@@ -374,8 +374,23 @@ const FaceVerification = () => {
     
     // Clear any previous srcObject
     videoEl.srcObject = null;
+    videoEl.muted = true;
+    videoEl.defaultMuted = true;
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.controls = false;
+    videoEl.removeAttribute('controls');
+    videoEl.setAttribute('muted', '');
+    videoEl.setAttribute('autoplay', '');
+    videoEl.setAttribute('playsinline', '');
+    videoEl.setAttribute('webkit-playsinline', 'true');
+    videoEl.setAttribute('x5-playsinline', 'true');
     videoEl.style.opacity = '0';
     videoEl.style.transition = 'opacity 200ms ease-out';
+    videoEl.style.backgroundColor = '#000';
+    stream.getVideoTracks().forEach(track => {
+      try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
+    });
     
     const reveal = () => {
       if (videoEl) videoEl.style.opacity = '1';
@@ -402,6 +417,13 @@ const FaceVerification = () => {
           }
         }, 300);
       });
+    setTimeout(() => {
+      const liveVideo = stream.getVideoTracks().some(track => track.readyState === 'live');
+      if (liveVideo) {
+        reveal();
+        if (videoEl.paused) videoEl.play().catch(() => {});
+      }
+    }, 900);
   }, []);
 
   const setNativeFaceCameraActive = useCallback((active: boolean) => {
