@@ -32,9 +32,14 @@ const iconMap: Record<string, React.ElementType> = {
   Sparkles, Crown, Star, Gift, Car, Image, Headphones
 };
 
-const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose }: PrivilegePreviewModalProps) => {
+const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userId }: PrivilegePreviewModalProps) => {
   const [animationData, setAnimationData] = useState<object | null>(null);
   const [loading, setLoading] = useState(false);
+  const [equipping, setEquipping] = useState(false);
+  const { toast } = useToast();
+  const { privileges, equipPrivilege } = useUserPrivileges(userId || null);
+
+  const isEquipped = privileges.find(p => p.id === privilege?.id)?.is_equipped;
 
   useEffect(() => {
     if (privilege?.animation_url && privilege.animation_url.endsWith('.json')) {
