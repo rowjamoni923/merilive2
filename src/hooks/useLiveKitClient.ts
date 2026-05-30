@@ -563,10 +563,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
 
         if (track.kind === Track.Kind.Video) {
-          // Pkg147: viewer audio-only data-saver — drop video sub immediately.
+          // Data-saver must never hide the host camera. Keep video subscribed;
+          // only reduce quality so visitors still see live/video-party/call faces.
           if (isAudioOnlyEnabled()) {
-            try { publication.setSubscribed(false); } catch { /* ignore */ }
-            return;
+            try { publication.setVideoQuality?.(VideoQuality.LOW); } catch { /* ignore */ }
           }
           try {
             publication.setVideoQuality?.(preferredVideoQualityRef.current);
@@ -611,12 +611,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Subscribe immediately as soon as remote track is published to reduce first-frame delay
       room.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-        // Pkg147: in audio-only viewer mode, only subscribe audio.
-        const audioOnly = isAudioOnlyEnabled();
-        if (audioOnly && publication.kind === Track.Kind.Video) {
-          try { publication.setSubscribed(false); } catch { /* ignore */ }
-          return;
-        }
         try {
           publication.setSubscribed(true);
         } catch {
