@@ -395,41 +395,13 @@ const FaceVerification = () => {
       })
       .catch(err => {
         console.error('[FaceVerification] Video play failed:', err);
+        // Retry play once after a short delay
+        setTimeout(() => {
+          if (videoEl && videoEl.paused) {
+            videoEl.play().then(reveal).catch(() => {});
+          }
+        }, 300);
       });
-  }, []);
-    
-    // Pkg155: Enhanced video reliability for Face Verification
-    requestAnimationFrame(() => {
-      videoEl.srcObject = stream;
-      
-      const markReady = () => {
-        if (!cameraReadyMarked) {
-          cameraReadyMarked = true;
-          setCameraReady(true);
-        }
-      };
-      let cameraReadyMarked = false;
-
-      videoEl.onloadedmetadata = () => {
-        videoEl.play().then(markReady).catch((e) => console.error('Video play error:', e));
-      };
-
-      // Pkg155: FORCE REVEAL WATCHDOG
-      // Some Android WebViews drop playing/canplay events.
-      const revealWatchdog = setTimeout(() => {
-        const hasLiveTrack = stream.getVideoTracks().some((track) => track.readyState === 'live');
-        if (hasLiveTrack) markReady();
-      }, 800);
-
-      // Fallback: force play after a short delay
-      setTimeout(() => {
-        if (!cameraReadyMarked) {
-          videoEl.play().then(markReady).catch(console.error);
-        }
-      }, 300);
-
-      return () => clearTimeout(revealWatchdog);
-    });
   }, []);
 
   const setNativeFaceCameraActive = useCallback((active: boolean) => {
