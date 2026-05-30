@@ -406,9 +406,10 @@ export function useLiveKitCall(
           if (track.kind === Track.Kind.Video) {
             try {
               publication.setVideoQuality?.(VideoQuality.HIGH);
-            } catch {
-              // ignore optional API failure
-            }
+              // Pkg155: FORCE SUBSCRIBE to high quality
+              publication.setSubscribed(true).catch(() => {});
+            } catch { /* ignore */ }
+            
             setState(p => ({
               ...p,
               remoteVideoTrack: track,
@@ -420,8 +421,12 @@ export function useLiveKitCall(
           if (track.kind === Track.Kind.Audio) {
             const key = getLiveKitRemoteAudioKey('call', participant.identity, publication, track);
             if (!remoteAudioKeysRef.current.has(key)) {
+              // Pkg155: Ensure audio is attached and played
               const audioElement = attachLiveKitRemoteAudioOnce({ scope: 'call', key, track });
-              if (audioElement) remoteAudioKeysRef.current.add(key);
+              if (audioElement) {
+                remoteAudioKeysRef.current.add(key);
+                audioElement.play().catch(() => {});
+              }
             }
           }
 
@@ -432,6 +437,7 @@ export function useLiveKitCall(
               ms.addTrack(pub.track.mediaStreamTrack);
             }
           });
+          
           setState(p => ({
             ...p,
             remoteStream: ms.getTracks().length > 0 ? ms : p.remoteStream,
@@ -442,20 +448,12 @@ export function useLiveKitCall(
 
         room.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
           if (deadRef.current) return;
+          console.log(`[LiveKitCall] Track published: ${publication.kind}`);
 
           try {
-            publication.setSubscribed(true);
-          } catch {
-            // ignore optional API failure
-          }
-
-          if (publication.kind === Track.Kind.Video) {
-            try {
-              publication.setVideoQuality?.(VideoQuality.HIGH);
-            } catch {
-              // ignore optional API failure
-            }
-          }
+            // Pkg155: Force subscription on every publish event
+            publication.setSubscribed(true).catch(() => {});
+          } catch { /* ignore */ }
         });
 
         room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
