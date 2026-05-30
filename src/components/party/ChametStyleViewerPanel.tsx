@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
+
 
 interface Viewer {
   id: string;
