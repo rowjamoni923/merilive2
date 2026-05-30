@@ -3151,12 +3151,20 @@ const FaceVerification = () => {
                 <video src={videoPreview} controls className="w-full h-full object-cover"/>
               ) : isRecording ? (
                 <>
-                  <video 
-                    ref={liveVideoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="w-full h-full object-cover scale-x-[-1]"/>
+                  <video
+                    ref={liveVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    controls={false}
+                    poster=""
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                    {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
+                    className="w-full h-full object-cover scale-x-[-1]"
+                    style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                  />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
                     <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                     <span className="text-slate-800 text-sm font-bold">{recordingTime}s / 15s</span>
