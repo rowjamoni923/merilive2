@@ -143,13 +143,13 @@ const AgencyDashboard = () => {
 
       // Subscribe for Zero Refresh Instant Updates
       cleanup = subscribeToTables(
+        "agency_dashboard_sync",
         ["agencies"],
-        (payload) => {
-          if (payload.new && payload.new.owner_id === user.id) {
-            setAgency(prev => ({ ...prev, ...payload.new }));
+        (table, event, payload) => {
+          if (payload && payload.owner_id === user.id) {
+            setAgency(prev => ({ ...prev, ...payload }));
           }
-        },
-        "agency_dashboard_sync"
+        }
       );
 
       // Check Helper Status
@@ -162,7 +162,7 @@ const AgencyDashboard = () => {
       setHelperData(helperStatus);
       setIsHelperLoading(false);
 
-      if (searchParams.get("welcome") === "helper") {
+      if (searchParams.get("welcome") === "helper" || (helperStatus && !helperStatus.is_verified)) {
         setShowPayrollWelcome(true);
       }
     };
@@ -170,6 +170,8 @@ const AgencyDashboard = () => {
     fetchData();
     return () => cleanup?.();
   }, [navigate, searchParams]);
+
+  const [showSubAgents, setShowSubAgents] = useState(false);
 
   if (isLoading) {
     return (
@@ -301,12 +303,12 @@ const AgencyDashboard = () => {
           </div>
 
           <div 
-            onClick={() => navigate("/agency-commission-history")}
+            onClick={() => setShowSubAgents(true)}
             className={`${premiumCardClass} from-slate-900 to-slate-900/80 hover:from-indigo-900/20 hover:to-indigo-900/10 border-indigo-500/20`}
           >
             <RankingIcon3D />
-            <h3 className="font-black text-lg mt-4 mb-1">Ranking</h3>
-            <p className="text-slate-400 text-xs leading-tight">Agency leaderboard & rewards</p>
+            <h3 className="font-black text-lg mt-4 mb-1">Sub-Agents</h3>
+            <p className="text-slate-400 text-xs leading-tight">View and manage your recruited sub-agencies</p>
             <ArrowRight className="absolute bottom-5 right-5 w-5 h-5 text-indigo-500/50 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
           </div>
 
@@ -342,7 +344,12 @@ const AgencyDashboard = () => {
         </div>
 
         {/* Sub-Agents Panel Integration */}
-        <SubAgentsPanel agencyId={agency.id} />
+        <SubAgentsPanel 
+          agencyId={agency.id} 
+          agencyCode={agency.agency_code}
+          isOpen={showSubAgents}
+          onClose={() => setShowSubAgents(false)}
+        />
 
         {/* History Action */}
         <div 
@@ -379,10 +386,12 @@ const AgencyDashboard = () => {
       </Dialog>
 
       {/* Payroll Helper Welcome Modal */}
-      <PayrollHelperWelcomeModal 
-        isOpen={showPayrollWelcome} 
-        onClose={() => setShowPayrollWelcome(false)} 
-      />
+      {agency && (
+        <PayrollHelperWelcomeModal 
+          agencyId={agency.id} 
+          userId={agency.owner_id}
+        />
+      )}
     </div>
   );
 };
