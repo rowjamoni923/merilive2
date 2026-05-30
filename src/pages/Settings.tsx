@@ -561,11 +561,10 @@ const Settings = () => {
     console.log('[Settings] Requesting location permission...');
     if (permissions.location) {
       toast({
-        title: "Already Enabled",
-        description: isNativeApp()
-          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Location."
-          : "To disable, change it from your browser site settings.",
+        title: "Permission Active",
+        description: "Opening app settings so you can manage location access.",
       });
+      void openPermissionSettings();
       return;
     }
 
