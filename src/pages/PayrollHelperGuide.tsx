@@ -104,7 +104,7 @@ const PayrollHelperGuide = () => {
             <h3 className="font-black text-base text-slate-800 dark:text-white">What is a Payroll Helper?</h3>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-            A <strong className="text-emerald-600 dark:text-emerald-400 font-black">Payroll Helper</strong> is a trusted regional partner who manages the platform's diamond economy. By processing top-ups and withdrawals, you earn <strong className="text-slate-800 dark:text-white">guaranteed commissions</strong> and tradeable diamonds.
+            A <strong className="text-brand-600 dark:text-brand-400 font-black">Payroll Helper</strong> is a trusted regional partner who manages the platform's diamond economy. By processing top-ups and withdrawals, you earn <strong className="text-slate-800 dark:text-white">guaranteed commissions</strong> and tradeable diamonds.
           </p>
         </section>
 
