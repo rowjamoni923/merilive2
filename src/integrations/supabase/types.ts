@@ -10257,7 +10257,6 @@ export type Database = {
           previous_noble_card_id: string | null
           previous_vehicle_id: string | null
           profile_photo_url: string | null
-          rating_banner_dismissed: boolean | null
           region: string | null
           registration_country_code: string | null
           registration_device_info: Json | null
@@ -10377,7 +10376,6 @@ export type Database = {
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
-          rating_banner_dismissed?: boolean | null
           region?: string | null
           registration_country_code?: string | null
           registration_device_info?: Json | null
@@ -10497,7 +10495,6 @@ export type Database = {
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
-          rating_banner_dismissed?: boolean | null
           region?: string | null
           registration_country_code?: string | null
           registration_device_info?: Json | null
@@ -18559,7 +18556,6 @@ export type Database = {
           previous_noble_card_id: string | null
           previous_vehicle_id: string | null
           profile_photo_url: string | null
-          rating_banner_dismissed: boolean | null
           region: string | null
           registration_country_code: string | null
           registration_device_info: Json | null

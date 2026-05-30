@@ -3857,307 +3857,58 @@ input:focus-visible, textarea:focus-visible {
 }
 
 @layer components {
-  .agency-official-shell {
-    background: linear-gradient(180deg, hsl(198 100% 97%) 0%, hsl(0 0% 100%) 34%, hsl(190 100% 96%) 100%);
-    color: hsl(222 47% 11%);
-  }
-
-  .agency-official-header {
-    background: linear-gradient(135deg, hsl(286 86% 58%) 0%, hsl(214 100% 58%) 62%, hsl(188 92% 50%) 100%);
-    color: hsl(0 0% 100%);
-    box-shadow: 0 14px 36px -24px hsl(222 84% 20% / 0.55);
-  }
-
-  .agency-official-title,
-  .agency-official-icon-button {
-    display: inline-flex;
-    align-items: center;
-    color: hsl(0 0% 100%);
-  }
-
-  .agency-official-title {
-    gap: 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 900;
-  }
-
-  .agency-official-icon-button {
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 999px;
-    background: hsl(0 0% 100% / 0.12);
-  }
-
-  .agency-official-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.25rem;
-    padding: 1rem;
-    color: hsl(0 0% 100%);
+  .agency-dashboard-light {
+    --background: 42 100% 98%;
+    --foreground: 224 48% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 48% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 48% 16%;
+    --primary: 270 84% 56%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 42 56% 94%;
+    --muted-foreground: 224 18% 42%;
+    --border: 38 68% 88%;
+    --input: 38 68% 88%;
     background:
-      linear-gradient(135deg, hsl(292 87% 67%) 0%, hsl(266 92% 67%) 52%, hsl(190 91% 51%) 100%);
-    box-shadow: 0 22px 44px -28px hsl(260 90% 44% / 0.72);
+      linear-gradient(180deg, hsl(42 100% 98%) 0%, hsl(38 88% 96%) 46%, hsl(34 76% 94%) 100%);
   }
 
-  .agency-official-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, hsl(0 0% 100% / 0.16), transparent 48%, hsl(190 100% 70% / 0.22));
-    pointer-events: none;
+  .agency-dashboard-light .agency-premium-card {
+    border: 1px solid hsl(38 68% 88% / 0.88);
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.98), hsl(42 100% 99% / 0.92));
+    color: hsl(var(--foreground));
+    box-shadow: 0 18px 46px -30px hsl(270 84% 40% / 0.38), inset 0 1px 0 hsl(0 0% 100% / 0.95);
   }
 
-  .agency-official-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
+  .agency-dashboard-light .agency-premium-tile {
+    border: 1px solid hsl(38 68% 88% / 0.72);
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.92), hsl(42 100% 98% / 0.78));
+    box-shadow: 0 12px 30px -24px hsl(224 48% 16% / 0.45);
+  }
+
+  .agency-dashboard-light .agency-premium-action {
     border-radius: 1rem;
-    background: hsl(0 0% 100% / 0.2);
-    border: 1px solid hsl(0 0% 100% / 0.22);
-    overflow: hidden;
-  }
-
-  .agency-official-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .agency-official-pin { font-size: 1.15rem; }
-
-  .agency-official-level {
-    border-radius: 999px;
-    padding: 0.375rem 0.75rem;
-    background: hsl(188 92% 48% / 0.82);
-    font-size: 0.75rem;
-    font-weight: 900;
-    text-transform: lowercase;
-  }
-
-  .agency-official-name {
-    font-size: 1.35rem;
-    line-height: 1.15;
-    font-weight: 900;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .agency-official-rate {
-    margin-top: 0.25rem;
-    color: hsl(0 0% 100% / 0.86);
-    font-size: 0.875rem;
-    font-weight: 800;
-  }
-
-  .agency-official-code {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 1rem;
-    border-radius: 1rem;
-    padding: 0.875rem 1rem;
-    background: hsl(0 0% 100% / 0.18);
-    color: hsl(0 0% 100%);
-    border: 1px solid hsl(0 0% 100% / 0.16);
-    text-align: left;
-  }
-
-  .agency-official-code small,
-  .agency-official-beans-row small,
-  .agency-official-parent-card small {
-    display: block;
-    color: hsl(0 0% 100% / 0.72);
-    font-size: 0.6875rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .agency-official-code strong { font-size: 1.25rem; letter-spacing: 0; }
-
-  .agency-official-stat-grid {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-  }
-
-  .agency-official-stat {
-    min-height: 5rem;
-    border-radius: 1rem;
-    background: hsl(0 0% 100% / 0.16);
-    border: 1px solid hsl(0 0% 100% / 0.12);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.15rem;
-    text-align: center;
-  }
-
-  .agency-official-stat strong { font-size: 0.95rem; font-weight: 900; }
-  .agency-official-stat span { font-size: 0.62rem; text-transform: uppercase; color: hsl(0 0% 100% / 0.74); font-weight: 800; }
-
-  .agency-official-finance {
-    border-radius: 1.25rem;
     padding: 1rem;
-    color: hsl(0 0% 100%);
-    background: linear-gradient(135deg, hsl(16 88% 22%) 0%, hsl(356 82% 12%) 58%, hsl(222 82% 8%) 100%);
-    box-shadow: 0 18px 38px -30px hsl(16 88% 18% / 0.78);
-  }
-
-  .agency-official-beans-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    color: hsl(0 0% 100%);
-    text-align: left;
-  }
-
-  .agency-official-beans-icon,
-  .agency-official-guide-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 1rem;
-    background: hsl(0 0% 100% / 0.18);
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.18);
-  }
-
-  .agency-official-beans-row strong { display: block; font-size: 1.65rem; font-weight: 950; line-height: 1; }
-  .agency-official-beans-row em { display: block; color: hsl(0 0% 100% / 0.72); font-size: 0.75rem; font-style: normal; font-weight: 700; margin-top: 0.25rem; }
-
-  .agency-official-usd {
-    flex: 0 0 auto;
-    border-radius: 1rem;
-    padding: 0.75rem;
-    background: hsl(0 0% 100% / 0.16);
-    text-align: right;
-  }
-
-  .agency-official-usd strong { font-size: 1.1rem; }
-
-  .agency-official-rate-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    border-radius: 999px;
-    padding: 0.8rem 1rem;
-    background: hsl(0 0% 100% / 0.12);
-    font-size: 0.84rem;
-    font-weight: 800;
-  }
-
-  .agency-official-rate-row strong { text-align: right; }
-
-  .agency-official-finance-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.875rem;
-  }
-
-  .agency-official-finance-actions button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-height: 3rem;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, hsl(278 100% 73%), hsl(206 100% 68%));
-    color: hsl(0 0% 100%);
-    font-weight: 900;
-  }
-
-  .agency-official-guide,
-  .agency-official-parent-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    border-radius: 1.125rem;
-    padding: 0.875rem;
-    color: hsl(0 0% 100%);
-    background: linear-gradient(135deg, hsl(219 92% 21%), hsl(234 86% 17%));
-    box-shadow: 0 16px 34px -27px hsl(220 90% 18% / 0.75);
-    text-align: left;
-  }
-
-  .agency-official-guide strong,
-  .agency-official-parent-card strong { display: block; font-weight: 900; }
-  .agency-official-guide small { display: block; color: hsl(0 0% 100% / 0.72); font-size: 0.75rem; font-weight: 800; }
-
-  .agency-official-section-title {
-    color: hsl(218 28% 36%);
-    font-size: 1rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .agency-official-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .agency-official-actions-grid button {
-    min-height: 5.75rem;
-    border-radius: 1rem;
-    padding: 0.625rem 0.45rem;
-    color: hsl(0 0% 100%);
+    color: hsl(var(--primary-foreground));
+    text-align: center;
+    border: 1px solid hsl(0 0% 100% / 0.28);
+    box-shadow: 0 16px 32px -18px hsl(270 84% 40% / 0.65), inset 0 1px 0 hsl(0 0% 100% / 0.24);
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    font-weight: 900;
-    text-align: center;
-    box-shadow: 0 16px 30px -24px hsl(222 60% 18% / 0.75);
   }
 
-  .agency-official-actions-grid button > svg,
-  .agency-official-actions-grid button > div { width: 2.25rem; height: 2.25rem; }
-  .agency-official-actions-grid button em { position: absolute; top: 0.35rem; right: 0.35rem; min-width: 1.25rem; height: 1.25rem; border-radius: 999px; background: hsl(0 84% 60%); font-size: 0.68rem; line-height: 1.25rem; }
-
-  .agency-action-blue { background: linear-gradient(135deg, hsl(205 96% 49%), hsl(220 92% 55%)); }
-  .agency-action-teal { background: linear-gradient(135deg, hsl(177 82% 38%), hsl(185 88% 42%)); }
-  .agency-action-orange { background: linear-gradient(135deg, hsl(33 96% 50%), hsl(25 92% 47%)); }
-  .agency-action-cyan { background: linear-gradient(135deg, hsl(176 78% 40%), hsl(185 78% 42%)); }
-  .agency-action-red { background: linear-gradient(135deg, hsl(18 95% 52%), hsl(356 87% 53%)); }
-  .agency-action-purple { background: linear-gradient(135deg, hsl(250 92% 65%), hsl(288 86% 64%)); }
-
-  .agency-official-parent-card {
-    color: hsl(222 47% 11%);
-    background: hsl(0 0% 100% / 0.96);
-    border: 1px solid hsl(214 32% 91%);
+  .agency-dashboard-light .agency-premium-action:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.08);
+    box-shadow: 0 20px 38px -18px hsl(270 84% 40% / 0.8), inset 0 1px 0 hsl(0 0% 100% / 0.28);
   }
 
-  .agency-official-parent-card small { color: hsl(215 16% 47%); }
-
-  .agency-official-parent-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: hsl(0 0% 100%);
-    background: linear-gradient(135deg, hsl(286 86% 58%), hsl(214 100% 58%));
-    font-weight: 900;
+  .agency-dashboard-light .agency-premium-action:active {
+    transform: scale(0.96);
   }
 
   .live-game-dock {

@@ -279,15 +279,20 @@ export default function AdminDashboard() {
 
   useAdminRealtime(
     [
+      'profiles',
       'agencies',
+      'blocked_users',
+      'live_streams',
+      'party_rooms',
+      'gift_transactions',
+      'private_calls',
       'face_verification_submissions',
-      'agency_withdrawals',
-      'support_tickets',
-      'notifications'
+      'recharge_transactions',
+      'payment_transactions',
+      'coin_transactions',
+      'vip_daily_rewards_log',
     ],
-    () => { loadData(); },
-    undefined,
-    { debounceMs: 5000 } // High debounce for dashboard to prevent refetch storms
+    () => { loadData(); }
   );
 
   useEffect(() => {

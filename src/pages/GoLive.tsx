@@ -458,9 +458,12 @@ const GoLive = () => {
             }
           } catch (err: any) {
             console.warn('[GoLive] Auto-start camera failed:', err?.message);
-            // On native Android, if auto-start fails but we are supposed to have cache,
-            // we should still NOT block the UI with a prompt if possible.
+            // Only show UI if auto-start truly fails (e.g. user denied)
+            if (isMounted) setShowPermissionPrompt(true);
           }
+        } else {
+          // Explicitly denied or needs prompt on web
+          if (isMounted) setShowPermissionPrompt(true);
         }
       }
     };
@@ -1542,7 +1545,7 @@ const GoLive = () => {
 
       {/* Permission Prompt Modal */}
       <AnimatePresence>
-        {showPermissionPrompt && !stream && !nativePreviewActive && (
+        {showPermissionPrompt && (
           <motion.div
             className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90"
             initial={{ opacity: 0 }}

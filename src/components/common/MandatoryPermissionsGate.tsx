@@ -128,8 +128,7 @@ export function MandatoryPermissionsGate() {
     await openNativeAppPermissionSettings();
   }, []);
 
-  const hasBypass = typeof window !== 'undefined' && localStorage.getItem('meri_permissions_granted') === '1';
-  if (!isNativeApp() || !show || hasBypass) return null;
+  if (!isNativeApp() || !show) return null;
 
   // If the system dialog is no longer available for ALL still-missing
   // required permissions, the only path forward is App Settings.

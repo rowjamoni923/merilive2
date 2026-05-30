@@ -130,13 +130,13 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
 
 // Table-specific debounce tuning for near-instant cache sync
 const TABLE_DEBOUNCE_MS: Record<string, number> = {
-  profiles: 800,
-  private_calls: 300,
-  live_streams: 300,
-  gift_transactions: 300,
-  messages: 250,
+  profiles: 500,
+  private_calls: 180,
+  live_streams: 180,
+  gift_transactions: 180,
+  messages: 120,
 };
-const DEFAULT_DEBOUNCE_MS = 350;
+const DEFAULT_DEBOUNCE_MS = 160;
 
 // Heavy home query protection: prevent refetch storms from high-frequency realtime updates
 const QUERY_KEY_MIN_INVALIDATE_MS: Record<string, number> = {
