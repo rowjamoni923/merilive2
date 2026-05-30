@@ -396,7 +396,11 @@ export function LiveFerrisWheelGame({
               transition={{ duration: 5, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {/* Wheel Background */}
-              <div className="absolute w-52 h-52 rounded-full shadow-2xl" 
+              <div className={cn(
+                "absolute rounded-full shadow-2xl",
+                isVerySmallHeight ? "w-28 h-28" : isLandscape ? "w-40 h-40" : "w-52 h-52"
+              )}
+
                 style={{ 
                   background: 'conic-gradient(from 0deg, #8b5cf6, #6366f1, #3b82f6, #06b6d4, #10b981, #22c55e, #eab308, #f97316, #ef4444, #ec4899, #8b5cf6)',
                   boxShadow: '0 0 30px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
