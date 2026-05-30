@@ -2175,8 +2175,10 @@ const AgencyDashboard = () => {
         />
       )}
       </div>
+    </div>
   );
 };
+
 
 
 export default AgencyDashboard;
