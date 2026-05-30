@@ -49,7 +49,6 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useOptimisticAction } from "@/hooks/useOptimisticAction";
 
-
 interface ProfileData {
   id: string;
   app_uid: string | null;
@@ -73,52 +72,7 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  const { execute: performSave, isPending: saving } = useOptimisticAction({
-    onAction: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Please login");
-
-      const updateData: Record<string, any> = {
-        display_name: displayName.trim() || undefined,
-        bio: bio.trim() || null,
-        age: (age && age >= 18 && age <= 100) ? age : undefined,
-        language,
-        secondary_language: secondLanguage || null,
-      };
-
-      if (gender && gender.toLowerCase() !== profile?.gender?.toLowerCase()) {
-        updateData.gender = gender.toLowerCase();
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onOptimisticUpdate: () => {
-      // Logic for optimistic UI can be added here if needed
-    },
-    onSuccess: (data) => {
-      if (data) {
-        syncProfileState(data as ProfileData);
-        window.dispatchEvent(new CustomEvent("app-sync", {
-          detail: { topic: "profiles", eventType: "UPDATE", payload: data },
-        }));
-      }
-    },
-    successMessage: gender.toLowerCase() === "female" && profile?.gender?.toLowerCase() !== "female"
-      ? "🎉 Profile updated! You are now a host."
-      : "✅ Profile saved!"
-  });
-
   const [uploading, setUploading] = useState(false);
-
 
   // Form states
   const [displayName, setDisplayName] = useState("");
@@ -155,6 +109,46 @@ const EditProfile = () => {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const linkOtpCooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { execute: handleSave, isPending: saving } = useOptimisticAction({
+    onAction: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please login");
+
+      const updateData: Record<string, any> = {
+        display_name: displayName.trim() || undefined,
+        bio: bio.trim() || null,
+        age: (age && age >= 18 && age <= 100) ? age : undefined,
+        language,
+        secondary_language: secondLanguage || null,
+      };
+
+      if (gender && gender.toLowerCase() !== profile?.gender?.toLowerCase()) {
+        updateData.gender = gender.toLowerCase();
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data) {
+        syncProfileState(data as ProfileData);
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+        }));
+      }
+    },
+    successMessage: gender.toLowerCase() === "female" && profile?.gender?.toLowerCase() !== "female"
+      ? "🎉 Profile updated! You are now a host."
+      : "✅ Profile saved!"
+  });
 
   const syncProfileState = (nextProfile: ProfileData) => {
     setProfile(nextProfile);
