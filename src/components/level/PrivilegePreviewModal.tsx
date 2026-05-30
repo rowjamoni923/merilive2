@@ -207,7 +207,7 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userI
                 )}
               </div>
 
-              {!isUnlocked && (
+              {!isUnlocked ? (
                 <Button
                   className="w-full h-12 rounded-xl text-white font-bold"
                   style={{
@@ -215,10 +215,36 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userI
                   }}
                   onClick={() => {
                     onClose();
-                    // Navigate to recharge
+                    // Navigate to recharge handled by parent
                   }}
                 >
                   Top Up to Unlock
+                </Button>
+              ) : (
+                <Button
+                  disabled={isEquipped || equipping}
+                  className={`w-full h-12 rounded-xl font-bold transition-all ${
+                    isEquipped 
+                      ? 'bg-green-100 text-green-600 border-2 border-green-200' 
+                      : 'text-white shadow-lg hover:shadow-xl'
+                  }`}
+                  style={!isEquipped ? {
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)'
+                  } : {}}
+                  onClick={async () => {
+                    if (!privilege || !userId) return;
+                    setEquipping(true);
+                    const success = await equipPrivilege(privilege.id, privilege.privilege_type, 'level');
+                    setEquipping(false);
+                    if (success) {
+                      toast({
+                        title: "Success",
+                        description: `${privilege.name} equipped successfully!`,
+                      });
+                    }
+                  }}
+                >
+                  {equipping ? 'Equipping...' : isEquipped ? 'Equipped' : 'Equip'}
                 </Button>
               )}
             </div>
