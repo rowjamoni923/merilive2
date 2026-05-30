@@ -1214,17 +1214,20 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+          className="bg-gradient-to-br from-brand-600 to-info-700 rounded-3xl p-5 cursor-pointer shadow-xl shadow-brand-500/20 active:scale-[0.98] transition-all relative overflow-hidden group"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-colors" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+              <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/60 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white font-black text-base tracking-tight leading-tight">📖 Payroll Helper Guide</p>
+              <p className="text-white/80 text-[11px] font-bold mt-0.5 uppercase tracking-wider">Master the economy</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/50" />
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <ArrowRight className="w-5 h-5 text-white" />
+            </div>
           </div>
         </div>
       </div>
