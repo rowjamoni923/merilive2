@@ -1465,8 +1465,10 @@ const FaceVerification = () => {
       if (nativeVideo?.blob?.size) {
         setFaceVerificationVideo(nativeVideo.blob);
       } else if (success) {
-        success = false;
-        pushDebug({ kind: 'error', message: 'native_recording_empty_or_missing' });
+        const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
+        setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+        effectiveManualReviewRequired = true;
+        pushDebug({ kind: 'recorder_skip', message: 'native_recording_empty_or_missing' });
       }
     } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
