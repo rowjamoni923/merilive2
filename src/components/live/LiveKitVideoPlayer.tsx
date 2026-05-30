@@ -202,7 +202,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           if (el.paused) el.play().catch(() => {}); 
         } catch { /* ignore */ }
       }
-    }, 600); // Reduced from 1200ms to 600ms for faster first frame response
+    }, 450); // Reduced from 600ms to 450ms for even faster response if first frame event is missed
 
 
     // === STALL WATCHDOG (optimized: 1.5s interval instead of 1s) ===

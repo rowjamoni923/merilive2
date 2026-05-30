@@ -305,6 +305,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // background" viewer symptom.
     setRemoteUsers((prev) => {
       const existing = prev.get(pUid);
+
       const userWrapper = existing || {
         uid: pUid,
         videoTrack: null as any,

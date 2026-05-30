@@ -252,11 +252,12 @@ export function useLiveKitCall(
 
   useEffect(() => {
     if (!callId || !userId) return;
-    if (isInitRef.current) return;
+    if (isInitRef.current || deadRef.current) return;
     isInitRef.current = true;
     deadRef.current = false;
 
     const roomName = `call_${callId}`;
+
 
     const init = async () => {
       try {

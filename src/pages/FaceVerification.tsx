@@ -365,11 +365,7 @@ const FaceVerification = () => {
       console.warn('[FaceVerification] faceVideoRef not ready, retrying in 200ms...');
       setTimeout(() => {
         const retryEl = faceVideoRef.current;
-        if (retryEl) {
-          retryEl.srcObject = stream;
-          retryEl.play().catch(console.error);
-          setCameraReady(true);
-        }
+        if (retryEl) attachFacePreviewStream(stream);
       }, 200);
       return;
     }
@@ -378,39 +374,34 @@ const FaceVerification = () => {
     
     // Clear any previous srcObject
     videoEl.srcObject = null;
+    videoEl.style.opacity = '0';
+    videoEl.style.transition = 'opacity 200ms ease-out';
     
-    // Pkg155: Enhanced video reliability for Face Verification
-    requestAnimationFrame(() => {
-      videoEl.srcObject = stream;
-      
-      const markReady = () => {
-        if (!cameraReadyMarked) {
-          cameraReadyMarked = true;
-          setCameraReady(true);
-        }
-      };
-      let cameraReadyMarked = false;
+    const reveal = () => {
+      if (videoEl) videoEl.style.opacity = '1';
+      setCameraReady(true);
+    };
 
-      videoEl.onloadedmetadata = () => {
-        videoEl.play().then(markReady).catch((e) => console.error('Video play error:', e));
-      };
+    videoEl.onplaying = reveal;
+    videoEl.onloadeddata = reveal;
 
-      // Pkg155: FORCE REVEAL WATCHDOG
-      // Some Android WebViews drop playing/canplay events.
-      const revealWatchdog = setTimeout(() => {
-        const hasLiveTrack = stream.getVideoTracks().some((track) => track.readyState === 'live');
-        if (hasLiveTrack) markReady();
-      }, 800);
-
-      // Fallback: force play after a short delay
-      setTimeout(() => {
-        if (!cameraReadyMarked) {
-          videoEl.play().then(markReady).catch(console.error);
-        }
-      }, 300);
-
-      return () => clearTimeout(revealWatchdog);
-    });
+    videoEl.srcObject = stream;
+    videoEl.play()
+      .then(() => {
+        // Fallback reveal watchdog for face verification
+        setTimeout(() => {
+          if (stream.active) reveal();
+        }, 600);
+      })
+      .catch(err => {
+        console.error('[FaceVerification] Video play failed:', err);
+        // Retry play once after a short delay
+        setTimeout(() => {
+          if (videoEl && videoEl.paused) {
+            videoEl.play().then(reveal).catch(() => {});
+          }
+        }, 300);
+      });
   }, []);
 
   const setNativeFaceCameraActive = useCallback((active: boolean) => {

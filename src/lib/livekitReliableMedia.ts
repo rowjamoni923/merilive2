@@ -108,19 +108,33 @@ export async function publishReliableLocalMedia(
   let videoPublication: LocalTrackPublication | undefined;
   let audioPublication: LocalTrackPublication | undefined;
 
-  if (needVideo && !hasLocalTrack(room, Track.Kind.Video, Track.Source.Camera)) {
-    const sourceVideo = stream.getVideoTracks().find(isLive);
-    if (!sourceVideo) throw new Error('Camera track missing after permission was granted.');
-    markVideoTrack(sourceVideo);
-    const finalVideo = processVideoTrack ? await processVideoTrack(sourceVideo) : sourceVideo;
-    markVideoTrack(finalVideo);
-    videoPublication = await room.localParticipant.publishTrack(finalVideo as any, { source: Track.Source.Camera } as any);
+  if (needVideo) {
+    const existingVideo = Array.from(room.localParticipant.trackPublications.values())
+      .find((pub) => pub.kind === Track.Kind.Video && pub.source === Track.Source.Camera);
+    
+    if (existingVideo && isLive(existingVideo.track?.mediaStreamTrack)) {
+      videoPublication = existingVideo as LocalTrackPublication;
+    } else {
+      const sourceVideo = stream.getVideoTracks().find(isLive);
+      if (!sourceVideo) throw new Error('Camera track missing after permission was granted.');
+      markVideoTrack(sourceVideo);
+      const finalVideo = processVideoTrack ? await processVideoTrack(sourceVideo) : sourceVideo;
+      markVideoTrack(finalVideo);
+      videoPublication = await room.localParticipant.publishTrack(finalVideo as any, { source: Track.Source.Camera } as any);
+    }
   }
 
-  if (needAudio && !hasLocalTrack(room, Track.Kind.Audio, Track.Source.Microphone)) {
-    const audio = stream.getAudioTracks().find(isLive);
-    if (!audio) throw new Error('Microphone track missing after permission was granted.');
-    audioPublication = await room.localParticipant.publishTrack(audio as any, { source: Track.Source.Microphone } as any);
+  if (needAudio) {
+    const existingAudio = Array.from(room.localParticipant.trackPublications.values())
+      .find((pub) => pub.kind === Track.Kind.Audio && pub.source === Track.Source.Microphone);
+    
+    if (existingAudio && isLive(existingAudio.track?.mediaStreamTrack)) {
+      audioPublication = existingAudio as LocalTrackPublication;
+    } else {
+      const audio = stream.getAudioTracks().find(isLive);
+      if (!audio) throw new Error('Microphone track missing after permission was granted.');
+      audioPublication = await room.localParticipant.publishTrack(audio as any, { source: Track.Source.Microphone } as any);
+    }
   }
 
   const localStream = new MediaStream();

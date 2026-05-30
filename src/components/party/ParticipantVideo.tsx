@@ -34,23 +34,42 @@ export function ParticipantVideo({
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
+
     if (stream) {
       // Avoid re-attaching the same MediaStream (causes flash + audio glitch)
       if (el.srcObject !== stream) {
+        // Hide until first frame to prevent "black flash"
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 160ms linear';
+        
         hardenVideoElementForNative(el, { muted: isSelf });
         el.srcObject = stream;
-        el.play().catch(e => console.log("Video play error:", e));
+        
+        const reveal = () => {
+          if (el) el.style.opacity = '1';
+        };
+
+        el.onplaying = reveal;
+        el.onloadeddata = reveal;
+        
+        el.play().then(() => {
+          // If no events fired, reveal after a short delay if the stream is live
+          setTimeout(() => {
+            if (stream.active) reveal();
+          }, 450);
+        }).catch(e => console.log("Video play error:", e));
       }
     } else if (el.srcObject) {
       // Clear stale frame when stream goes away
       try { el.pause(); } catch {}
       el.srcObject = null;
+      el.style.opacity = '0';
     }
+    
     return () => {
-      // On unmount, release the MediaStream reference to avoid leaks
-      if (el && el.srcObject) {
-        try { el.pause(); } catch {}
-        el.srcObject = null;
+      if (el) {
+        el.onplaying = null;
+        el.onloadeddata = null;
       }
     };
   }, [stream, isSelf]);
