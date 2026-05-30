@@ -2421,8 +2421,9 @@ const LiveStream = () => {
   };
 
   // Get remote video track (for viewers) - with logging for debugging
-  const firstRemoteUser = Array.from(remoteUsers.values())[0];
-  const remoteVideoTrack = firstRemoteUser?.videoTrack;
+  const firstRemoteUser = Array.from(remoteUsers.values()).find((user: any) => user?.hasVideo && user?.videoTrack)
+    ?? Array.from(remoteUsers.values())[0];
+  const remoteVideoTrack = firstRemoteUser?.videoTrack ?? null;
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
   const showHostTransitionPreview = isHost && !localVideoTrack && !!hostTransitionPreviewStream;
   // Debug: Log remote video state changes
