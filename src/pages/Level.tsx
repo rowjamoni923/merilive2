@@ -301,6 +301,7 @@ const Level = () => {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
       if (!user) return;
+      setUser(user);
 
       const { data: profile } = await supabase
         .from('profiles')
