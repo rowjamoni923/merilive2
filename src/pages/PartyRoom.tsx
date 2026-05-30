@@ -745,12 +745,24 @@ const PartyRoom = () => {
     const unsubscribeSeatRequests = subscribeToTables(
       `party-room-seat-requests-${roomId}`,
       ['seat_requests'],
-      (_table, _event, payload) => {
+      (table, event, payload) => {
         const row = payload as any;
         if (row?.room_id !== roomId) return;
+        
+        console.log(`[SeatRequest Realtime] ${event} detected for room ${roomId}`);
+        
+        // Pkg361 ZERO-REFRESH: Instant seat list update
+        // With REPLICA IDENTITY FULL, we always have room_id even on DELETE/UPDATE.
         void fetchSeatRequests();
+        
+        // If someone just requested a seat, play a sound for the host
+        if (event === 'INSERT' && isHost) {
+          playSound('notification');
+          toast.info(`${row.requester_name || 'Someone'} requested a seat`);
+        }
       }
     );
+
 
     // ============= Pkg81b/c: MOST party_room postgres_changes DELETED =============
     // Removed channels (LiveKit-only — zero Supabase Realtime inside party rooms):
