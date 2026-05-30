@@ -1085,8 +1085,13 @@ const FaceVerification = () => {
           await new Promise(resolve => setTimeout(resolve, 250));
         }
         if (!nativeFrameReady) throw new Error('Native camera frame is not ready yet. Please try again.');
-        await nativeFaceCam.startRecording();
-        nativeFaceRecordingRef.current = true;
+        try {
+          await nativeFaceCam.startRecording();
+          nativeFaceRecordingRef.current = true;
+        } catch (nativeRecErr) {
+          nativeFaceRecordingRef.current = false;
+          pushDebug({ kind: 'recorder_skip', message: nativeRecErr instanceof Error ? nativeRecErr.message : String(nativeRecErr) });
+        }
       } else {
         const webFaceStream = faceStream;
         if (!webFaceStream) throw new Error('Camera stream is not ready');
