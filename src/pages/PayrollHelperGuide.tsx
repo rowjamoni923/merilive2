@@ -215,32 +215,32 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Resource Panel Section */}
-        <section className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl p-5 border border-blue-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-              <Phone className="w-4 h-4 text-blue-500" />
+        <section className="bg-gradient-to-br from-info-600 to-brand-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                <Phone className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-black text-lg">Resource Panel</h3>
             </div>
-            <h3 className="font-bold text-base">Resource Panel — Your Contact Hub</h3>
-          </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            As a Payroll Helper, you can <strong className="text-foreground">add your phone number</strong> to the <strong className="text-foreground">Resource Panel</strong>. This panel is visible to all agencies and users in your country. When they need to recharge diamonds, withdraw salary, or transfer diamonds, they will <strong className="text-foreground">contact you directly</strong> through the number listed here.
-          </p>
-          <div className="bg-card/50 rounded-lg p-3 border border-border space-y-2">
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Your name, country, and phone number are displayed publicly</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Users & agencies can WhatsApp or call you for orders</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>More visibility means more transactions and more earnings</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Admin verifies your contact before it goes live</span>
+            <p className="text-sm text-white/90 leading-relaxed mb-5 font-medium">
+              As a Payroll Helper, you can <strong className="text-white font-black underline underline-offset-4">add your phone number</strong> to the <strong className="text-white font-black">Resource Panel</strong>. This makes you visible to all agencies and users in your country for direct orders.
+            </p>
+            <div className="space-y-3">
+              {[
+                "Public display of name, country & number",
+                "Direct contact via WhatsApp or Call",
+                "Increased visibility = more earnings",
+                "Admin verification before going live"
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-3 text-xs font-bold text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-white" />
+                  </div>
+                  <span>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
