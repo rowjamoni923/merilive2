@@ -1233,8 +1233,8 @@ const AgencyDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="mx-4 mt-4">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Quick Actions</h3>
+      <div className="mx-4 mt-6">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Quick Actions</h3>
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
