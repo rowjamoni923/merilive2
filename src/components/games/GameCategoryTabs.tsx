@@ -29,7 +29,7 @@ export function GameCategoryTabs({
   const sortedCategories = ['all', ...categories.filter(c => c !== 'all')];
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 pt-1 px-1">
       {sortedCategories.map((category) => {
         const config = categoryConfig[category] || { 
           emoji: "🎲", 
