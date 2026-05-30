@@ -380,7 +380,11 @@ export function LiveFerrisWheelGame({
         </div>
 
         <div className="relative flex justify-center items-center py-2">
-          <div className="relative w-56 h-56">
+          <div className={cn(
+            "relative",
+            isVerySmallHeight ? "w-32 h-32" : isLandscape ? "w-44 h-44" : "w-56 h-56"
+          )}>
+
             {/* Wheel Support Structure */}
             <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-3 h-12 bg-gradient-to-b from-gray-400 to-gray-600 rounded-b-lg shadow-lg" />
             <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-16 h-2 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 rounded-lg shadow-lg" />
