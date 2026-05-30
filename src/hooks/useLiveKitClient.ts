@@ -305,8 +305,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       let changed = !existing;
 
       participant.trackPublications.forEach((pub) => {
-        if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio) && !pub.isSubscribed) {
-          try { pub.setSubscribed(true); } catch { /* ignore */ }
+        // Pkg155: FORCE SUBSCRIBE to all tracks immediately to fix "no audio/video"
+        if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio)) {
+          if (!pub.isSubscribed) {
+            try { 
+              pub.setSubscribed(true); 
+              console.log(`[LiveKitClient] Subscribing to ${pub.kind} for ${participant.identity}`);
+            } catch (err) { 
+              console.warn(`[LiveKitClient] Failed to subscribe to ${pub.kind}:`, err);
+            }
+          }
         }
 
         if (pub.kind === Track.Kind.Video && pub.track && pub.track !== userWrapper.videoTrack) {
@@ -319,6 +327,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           userWrapper.audioTrack = pub.track;
           userWrapper.hasAudio = true;
           changed = true;
+          
+          // Pkg155: Also attach audio immediately
+          attachRemoteAudioOnce(pub.track as RemoteTrack, participant.identity, pub as RemoteTrackPublication);
         }
       });
 
@@ -327,7 +338,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
       return prev;
     });
-  }, [getUidForParticipant]);
+  }, [getUidForParticipant, attachRemoteAudioOnce]);
+
 
   const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
     const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
