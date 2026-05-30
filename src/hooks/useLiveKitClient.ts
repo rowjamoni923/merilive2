@@ -648,8 +648,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             }
             return newMap;
           });
-          // Defensive: try to re-subscribe in case the unsubscribe was transient.
-          try { publication.setSubscribed(true); } catch { /* ignore */ }
+          const mediaTrack = (track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+          if (mediaTrack?.readyState === 'ended') {
+            try { publication.setSubscribed(true); } catch { /* ignore */ }
+          }
         }
 
         if (track.kind === Track.Kind.Audio) {
@@ -988,7 +990,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   // see a black/frozen face for the entire stream.
                   try {
                     await room.localParticipant.unpublishTrack(cameraPub.track, false);
-                    await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                    const replacementPub = await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                    if (replacementPub?.track) setLocalVideoTrack(replacementPub.track);
                     console.log('[LiveKitClient] ✅ Replaced camera track with beauty-processed track');
                   } catch (e) {
                     console.warn('[LiveKitClient] Beauty track replacement failed, using original:', e);
