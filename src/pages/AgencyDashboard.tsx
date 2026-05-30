@@ -1998,6 +1998,251 @@ const AgencyDashboard = () => {
                   </ResponsiveContainer>
                 </div>
               </CardContent>
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button 
+                    onClick={shareHostJoinLink}
+                    className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-lg"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              onClick={() => navigate("/agency-host-management")}
+              className="w-full h-12 bg-gradient-to-r from-brand-500 to-info-600 hover:from-brand-600 hover:to-info-700 rounded-xl"
+            >
+              <Users className="w-5 h-5 mr-2" />
+              Manage All Hosts
+            </Button>
+          </TabsContent>
+
+          {/* Sub-Agents Tab */}
+          <TabsContent value="subagents" className="mt-4 space-y-4">
+            <Card className="overflow-hidden relative surface-amber">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Referral Link</h3>
+                    <p className="text-xs text-white/70">Share to add sub-agents</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copySubAgentLink}
+                    variant="outline" 
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button 
+                    onClick={shareSubAgentLink}
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="agency-premium-card">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-warning-600">{subAgents.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
+                </CardContent>
+              </Card>
+              <Card className="agency-premium-card">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-success-600">{fmtNum(totalSubAgentEarnings)}</p>
+                  <p className="text-sm text-muted-foreground">Total Commission</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Sub-Agent List</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subAgents.length > 0 ? (
+                  <div className="space-y-3">
+                    {subAgents.map((sa) => (
+                      <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                        <Avatar className="w-10 h-10 border-2 border-border">
+                          <AvatarImage src={sa.profile?.avatar_url || ""} />
+                          <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>Code: {sa.referral_code}</span>
+                            <span>•</span>
+                            <span>{sa.total_referrals} Referrals</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-success-600">{fmtNum(sa.total_earnings)}</p>
+                          <p className="text-xs text-muted-foreground">{sa.commission_rate}%</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                      <UserPlus className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No sub-agents yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Share the link above</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Sub-Agencies List */}
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-info-600" />
+                  </div>
+                  Sub-Agencies ({subAgencyCount})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subAgencies.length > 0 ? (
+                  <div className="space-y-3">
+                    {subAgencies.map((sa: any) => (
+                      <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center">
+ <Building2 className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{sa.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-mono">{sa.agency_code}</span>
+                            <span>•</span>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-foreground/80 border-border">{sa.level || 'A1'}</Badge>
+                            <span>•</span>
+                            <span>{sa.total_hosts || 0} Hosts</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="w-14 h-14 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                      <Building2 className="w-7 h-7 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No sub-agencies yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Share the referral link to recruit</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden relative surface-indigo">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-300" />
+                  Commission Structure
+                </h3>
+                <ul className="text-sm text-white/85 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
+                    <span>Sub-Agent Base Commission:</span>
+                    <span className="font-bold text-amber-300">2%</span>
+                  </li>
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
+                    <span>Top Performer Bonus:</span>
+                    <span className="font-bold text-amber-300">+1%</span>
+                  </li>
+                  <li className="flex items-center justify-between py-2">
+                    <span>10+ Referral Bonus:</span>
+                    <span className="font-bold text-amber-300">+0.5%</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Charts Tab */}
+          <TabsContent value="charts" className="mt-4 space-y-4">
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-info-600" />
+                  </div>
+                  Income Trend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="income" 
+                        stroke="hsl(var(--brand-500))" 
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--brand-500))', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-warning-600" />
+                  </div>
+                  Live Hours
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Bar dataKey="hours" fill="hsl(var(--warning-500))" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
             </Card>
 
             <Card className="agency-premium-card">
@@ -2241,6 +2486,7 @@ const AgencyDashboard = () => {
       />
 
       {/* Payroll Helper Welcome Modal (one-time for new agencies) */}
+      
       {currentUserId && agency && (
         <PayrollHelperWelcomeModal 
           agencyId={agency.id}
