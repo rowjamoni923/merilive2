@@ -2338,76 +2338,21 @@ const LiveStream = () => {
     }
   };
 
-  // Base options for all users (viewers)
+  // Base options for all users (viewers) — trimmed to only Share/Tasks/Top Up/Music/React per product spec
   const baseOptions = [
-    { id: "messages", name: "Messages", iconName: "MessageCircle" as const, color: "from-pink-400 to-rose-500", shadowColor: "shadow-pink-500/40", action: () => navigate("/chat") },
     { id: "share", name: "Share", iconName: "Share2" as const, color: "from-cyan-400 to-blue-500", shadowColor: "shadow-cyan-500/40", action: handleShare },
     { id: "tasks", name: "Tasks", iconName: "ClipboardList" as const, color: "from-amber-400 to-orange-500", shadowColor: "shadow-amber-500/40", action: () => navigate("/tasks") },
     { id: "topup", name: "Top Up", iconName: "Gem" as const, color: "from-emerald-400 to-teal-500", shadowColor: "shadow-emerald-500/40", action: () => navigate("/recharge") },
     { id: "music", name: "Music", iconName: "Music" as const, color: "from-fuchsia-400 to-pink-500", shadowColor: "shadow-fuchsia-500/40", action: () => { setShowMoreOptions(false); setShowMusicPlayer(true); } },
-    // Pkg132: floating reactions — visible to everyone (host + viewers)
     { id: "react", name: "React", iconName: "Smile" as const, color: "from-yellow-400 to-orange-500", shadowColor: "shadow-yellow-500/40", action: () => { setShowMoreOptions(false); setShowReactionPicker(true); } },
-    // Pkg131: audience raise-hand toggle (also shown to host as no-op preview — hidden below).
-    ...(!isHost ? [{
-      id: "raisehand",
-      name: iHaveRaised ? "Lower Hand" : "Raise Hand",
-      iconName: "Hand" as const,
-      color: iHaveRaised ? "from-slate-400 to-slate-600" : "from-amber-400 to-yellow-500",
-      shadowColor: "shadow-amber-500/40",
-      action: handleToggleRaiseHand,
-    }] : []),
   ];
 
-  // Host-only options: Flip
+  // Host-only options: only Beauty per product spec (Sticker/Background/Noise Cut/Publish Quality/Stream Source/Dial Phone/Agent/Raised Hands hidden)
   const hostOnlyOptions = [
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
-    { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
-    // Flip camera button removed per request (no video icons in live)
-    // Screen share removed for privacy
-    // Pkg125/Pkg119: Virtual Background — web uses track-processors, native routes to Kotlin MediaPipe.
-    { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowVirtualBackground(true);
-      } },
-    // Pkg123: Noise Cancellation toggle (Krisp — web hosts; native uses WebRTC NS)
-    { id: "noisecancel", name: "Noise Cut", iconName: "ShieldCheck" as const, color: "from-sky-400 to-indigo-600", shadowColor: "shadow-sky-500/40", action: () => {
-        setShowMoreOptions(false);
-        if (beauty.isNativeAndroid) {
-          toast.info("Native mic uses built-in noise suppression.");
-          return;
-        }
-        setShowNoiseCancellation(true);
-      } },
-    // Pkg152: Publish quality (simulcast layers) — host-only, portrait 9:16 enforced.
-    { id: "publishlayers", name: "Publish Quality", iconName: "Layers" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowPublishLayers(true);
-      } },
-    // Pkg109: RTMP/WHIP Ingress — broadcast from OBS / external encoder into this room.
-    { id: "ingress", name: "Stream Source", iconName: "Radio" as const, color: "from-rose-400 to-red-600", shadowColor: "shadow-rose-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowIngress(true);
-      } },
-    // Pkg110: SIP outbound dial — add phone caller (audio-only) into this room.
-    { id: "sipdial", name: "Dial Phone", iconName: "PhoneCall" as const, color: "from-emerald-400 to-green-600", shadowColor: "shadow-emerald-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowSipDial(true);
-      } },
-    // Pkg111 + Pkg126: Record stream (MP4 archive or HLS replay).
-    // Recording & Simulcast removed for privacy
-    // Pkg117: Dispatch AI Agent into this room.
-    { id: "agent", name: "Agent", iconName: "Bot" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowAgentDispatch(true);
-      } },
-    // Pkg131: Raised-Hands queue panel (host only). Badge shows queue length.
-    { id: "raisedhands", name: raisedHands.length > 0 ? `Raised Hands (${raisedHands.length})` : "Raised Hands", iconName: "Hand" as const, color: "from-amber-400 to-yellow-500", shadowColor: "shadow-amber-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowRaiseHandQueue(true);
-      } },
   ];
 
-  // Combined options - host sees all, viewers see base only
+  // Combined options - host sees Beauty + base, viewers see base only
   const moreOptions = isHost ? [...hostOnlyOptions, ...baseOptions] : baseOptions;
 
   const handleSendGift = async (gift: typeof gifts[0]) => {
