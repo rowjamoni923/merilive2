@@ -137,6 +137,7 @@ const EditProfile = () => {
       if (error) throw error;
       return data;
     },
+    },
     onSuccess: (data) => {
       if (data) {
         syncProfileState(data as ProfileData);
@@ -145,10 +146,12 @@ const EditProfile = () => {
         }));
       }
     },
-    successMessage: gender.toLowerCase() === "female" && profile?.gender?.toLowerCase() !== "female"
-      ? "🎉 Profile updated! You are now a host."
-      : "✅ Profile saved!"
+    successMessage: "Profile saved!"
   });
+
+  // Re-define for direct onClick handlers (Button event bypass)
+  const onSave = useCallback(() => handleSave(), [handleSave]);
+
 
   const syncProfileState = (nextProfile: ProfileData) => {
     setProfile(nextProfile);
