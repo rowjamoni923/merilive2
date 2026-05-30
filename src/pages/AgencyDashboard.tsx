@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
-
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   ArrowLeft, 
