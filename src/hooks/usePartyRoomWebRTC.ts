@@ -505,7 +505,7 @@ export function usePartyRoomWebRTC(
         room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
           console.log('[PartyLiveKit] Participant left:', participant.identity);
           detachAudioForIdentity(participant.identity);
-          peerStreamsRef.current.delete(participant.identity);
+          deletePeerStreamForParticipant(participant);
           setState(prev => ({
             ...prev,
             peerStreams: new Map(peerStreamsRef.current),
