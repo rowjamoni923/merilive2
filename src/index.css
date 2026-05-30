@@ -616,6 +616,13 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     letter-spacing: -0.005em;
   }
 
+  html.native-face-camera-active,
+  body.native-face-camera-active,
+  body.native-face-camera-active #root {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
   /* ============================================
      UNIVERSAL SCROLL POLISH — Pkg40
      Any element marked .app-scroll or [data-scroll]
