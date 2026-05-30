@@ -178,8 +178,12 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="bottom" 
-        className="h-[70vh] max-h-[70vh] rounded-t-3xl border-0 p-0 overflow-hidden [&>button]:hidden"
+        className={cn(
+          "rounded-t-3xl border-0 p-0 overflow-hidden [&>button]:hidden",
+          isLandscape ? "h-[98dvh] max-h-[98dvh]" : "h-[70vh] max-h-[70vh]"
+        )}
         style={{
+
           background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
         }}
       >
