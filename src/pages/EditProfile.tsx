@@ -508,7 +508,8 @@ const EditProfile = () => {
           </button>
           <h1 className="text-lg font-bold text-heading">My Profile</h1>
           <button
-            onClick={handleSave}
+            onClick={onSave}
+
             disabled={saving}
             className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
           >
@@ -674,7 +675,8 @@ const EditProfile = () => {
                   <p className="text-xs text-body text-center">{displayName.length}/20 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
+
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
@@ -839,7 +841,8 @@ const EditProfile = () => {
                   />
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
+
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
@@ -1048,7 +1051,7 @@ const EditProfile = () => {
                   <p className="text-xs text-body text-center">{bio.length}/200 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
