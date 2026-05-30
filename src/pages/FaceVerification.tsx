@@ -2685,8 +2685,9 @@ const FaceVerification = () => {
         </Button>
       )}
     </div>
-    );
-  };
+  );
+};
+
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -2763,8 +2764,8 @@ const FaceVerification = () => {
           )}
         </div>
       </div>
-      </div>
     );
+
   }
 
   // Already submitted - pending review
@@ -2784,8 +2785,8 @@ const FaceVerification = () => {
           </Button>
         </div>
       </div>
-      </div>
     );
+
   }
 
   // Already verified
@@ -3406,8 +3407,8 @@ const FaceVerification = () => {
         </div>
       )}
     </div>
-    </div>
   );
+
 };
 
 export default FaceVerification;
