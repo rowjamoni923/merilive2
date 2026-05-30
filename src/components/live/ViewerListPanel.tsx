@@ -35,6 +35,8 @@ export const ViewerListPanel = ({
 }: ViewerListPanelProps) => {
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (!isOpen || !streamId) return;
