@@ -397,6 +397,18 @@ export function usePartyRoomWebRTC(
             }
           }
 
+          // Pkg381: Ensure peer is in state even if track arrives late
+          const peerStream = buildPeerStream(participant);
+          peerStreamsRef.current.set(participant.identity, peerStream);
+          setState(prev => ({
+            ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
+          }));
+        });
+
+        room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+          console.log(`[PartyLiveKit] Participant connected: ${participant.identity}`);
+          // Pkg381: Immediately add to state with empty stream so UI can show placeholder
           const peerStream = buildPeerStream(participant);
           peerStreamsRef.current.set(participant.identity, peerStream);
           setState(prev => ({
