@@ -901,6 +901,11 @@ export function usePartyRoomWebRTC(
     toggleAudio,
     toggleVideo,
     cleanup,
-    getPeerStream: (peerId: string) => state.peerStreams.get(peerId),
+    getPeerStream: (peerId: string) => {
+      const direct = state.peerStreams.get(peerId);
+      if (direct) return direct;
+      const normalized = peerId.startsWith('user-') ? peerId.slice(5) : `user-${peerId}`;
+      return state.peerStreams.get(normalized);
+    },
   };
 }
