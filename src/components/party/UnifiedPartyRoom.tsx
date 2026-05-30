@@ -389,70 +389,34 @@ const VideoGridSeat = ({
     streamToUse?.getVideoTracks().some((track) => track.readyState === 'live' && track.enabled !== false)
   );
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const shieldRef = useRef<HTMLDivElement | null>(null);
   const canRenderVideo = Boolean(hasRenderableVideoTrack && !participant.isVideoOff && streamToUse);
-
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let cancelled = false;
-
-    const clearVideo = () => {
-      try { el.pause(); } catch { /* ignore */ }
-      if (el.srcObject) el.srcObject = null;
-    };
-
-    if (!canRenderVideo || !streamToUse) {
-      clearVideo();
-      return;
-    }
-
-    if (el.srcObject !== streamToUse) {
-      hardenVideoElementForNative(el, { muted: true });
-      el.srcObject = streamToUse;
-      el.muted = true;
-      el.playsInline = true;
-    }
-
-    const tryPlay = () => {
-      if (cancelled || el.srcObject !== streamToUse) return;
-      el.play().catch(() => {
-        if (!cancelled) timers.push(setTimeout(tryPlay, 300));
-      });
-    };
-
-    const hideShield = () => {
-      const shield = shieldRef.current;
-      if (!shield || cancelled) return;
-      shield.style.opacity = '0';
-      timers.push(setTimeout(() => {
-        if (!cancelled && shieldRef.current) shieldRef.current.style.display = 'none';
-      }, 300));
-    };
-
-    tryPlay();
-    const shield = shieldRef.current;
-    if (shield) {
-      shield.style.display = 'flex';
-      shield.style.opacity = '1';
-      if ('requestVideoFrameCallback' in el) {
-        (el as any).requestVideoFrameCallback(hideShield);
-      } else {
-        timers.push(setTimeout(hideShield, 600));
-      }
-      timers.push(setTimeout(hideShield, 1500));
-    }
-
-    return () => {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-      clearVideo();
-    };
-  }, [canRenderVideo, streamToUse]);
   
+  // Extract video track from stream to use with LiveKitVideoPlayer
+  const videoTrack = useMemo(() => {
+    if (!canRenderVideo || !streamToUse) return null;
+    const tracks = streamToUse.getVideoTracks();
+    if (tracks.length === 0) return null;
+    
+    // Create a pseudo Track object for LiveKitVideoPlayer compatibility if needed
+    // But usually in UnifiedPartyRoom, we receive actual LiveKit Track objects 
+    // in the participant data or through the getPeerStream.
+    // However, the participant object in UnifiedPartyRoom has a 'stream' property
+    // which is a MediaStream.
+    return {
+      mediaStreamTrack: tracks[0],
+      attach: (el: HTMLVideoElement) => {
+        el.srcObject = new MediaStream([tracks[0]]);
+        return el;
+      },
+      detach: (el: HTMLVideoElement) => {
+        el.srcObject = null;
+        return el;
+      }
+    } as any;
+  }, [canRenderVideo, streamToUse]);
+
   // Format number with shortcut (20M, 1.5K, etc.)
+
   const formatBeans = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1).replace(/\.0$/, '')}K`;
