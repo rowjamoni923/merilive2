@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
+
 
 interface Viewer {
   id: string;
@@ -59,6 +61,8 @@ export const ChametStyleViewerPanel = ({
   const [loading, setLoading] = useState(false);
   const isMountedRef = useRef(true);
   const roomIdRef = useRef(roomId);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   
   // Update roomId ref when it changes
   useEffect(() => {
@@ -191,7 +195,7 @@ export const ChametStyleViewerPanel = ({
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 28, stiffness: 320, mass: 0.7 }}
           className="fixed inset-x-0 bottom-0 z-50"
-          style={{ height: "72vh", willChange: 'transform', transform: 'translateZ(0)' }}
+          style={{ height: isLandscape ? "95dvh" : "72vh", willChange: 'transform', transform: 'translateZ(0)' }}
         >
           {/* Backdrop */}
           <motion.div

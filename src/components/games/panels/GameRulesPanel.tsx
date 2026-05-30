@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { X, HelpCircle, Trophy, Coins, Target } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -115,7 +118,9 @@ const GAME_RULES: Record<string, { title: string; rules: string[]; tips: string[
 };
 
 export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesPanelProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   if (!isOpen) return null;
+
 
   const rules = GAME_RULES[gameId] || {
     title: gameName,
@@ -137,8 +142,12 @@ export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesP
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl"
+        className={cn(
+          "w-full bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl",
+          isLandscape ? "max-w-xl max-h-[95dvh]" : "max-w-sm"
+        )}
       >
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/30">
           <div className="flex items-center gap-2">
@@ -157,7 +166,14 @@ export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesP
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '180px' : isLandscape ? '250px' : '60vh',
+            minHeight: '150px'
+          }}
+        >
+
           <div className="p-4 space-y-4">
             {/* Rules */}
             <div className="space-y-2">

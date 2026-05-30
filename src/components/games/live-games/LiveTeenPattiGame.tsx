@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +102,8 @@ export function LiveTeenPattiGame({
   onGameWin,
   onTimerUpdate
 }: LiveTeenPattiGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   // Allow multiple bets - track bets per hand
   const [selectedHands, setSelectedHands] = useState<Set<"A" | "B" | "C">>(new Set());
   const [betAmounts, setBetAmounts] = useState<{ A: number; B: number; C: number }>({ A: 0, B: 0, C: 0 });
@@ -504,7 +508,11 @@ export function LiveTeenPattiGame({
   };
 
   const CardBack = () => (
-    <div className="w-8 h-11 rounded bg-gradient-to-br from-red-500 to-red-700 border border-yellow-400/50 flex items-center justify-center shadow-md">
+    <div className={cn(
+      "rounded bg-gradient-to-br from-red-500 to-red-700 border border-yellow-400/50 flex items-center justify-center shadow-md",
+      isVerySmallHeight ? "w-4 h-6" : isLandscape ? "w-6 h-8" : "w-8 h-11"
+    )}>
+
       <div className="w-6 h-9 rounded-sm bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
         <span className="text-red-600 text-xs">♦</span>
       </div>
@@ -514,13 +522,25 @@ export function LiveTeenPattiGame({
   const CardFace = ({ card }: { card: Card }) => {
     const isRed = card.suit === "♥" || card.suit === "♦";
     return (
-      <div className="w-8 h-11 rounded bg-white border border-gray-300 flex flex-col items-center justify-center shadow-md">
-        <span className={cn("text-[9px] font-bold", isRed ? "text-red-600" : "text-gray-900")}>
+      <div className={cn(
+        "rounded bg-white border border-gray-300 flex flex-col items-center justify-center shadow-md",
+        isVerySmallHeight ? "w-4 h-6" : isLandscape ? "w-6 h-8" : "w-8 h-11"
+      )}>
+
+        <span className={cn(
+          "font-bold",
+          isVerySmallHeight ? "text-[5px]" : isLandscape ? "text-[7px]" : "text-[9px]",
+          isRed ? "text-red-600" : "text-gray-900"
+        )}>
           {card.value}
         </span>
-        <span className={cn("text-sm", isRed ? "text-red-600" : "text-gray-900")}>
+        <span className={cn(
+          isVerySmallHeight ? "text-[8px]" : isLandscape ? "text-[10px]" : "text-sm",
+          isRed ? "text-red-600" : "text-gray-900"
+        )}>
           {card.suit}
         </span>
+
       </div>
     );
   };
@@ -568,7 +588,12 @@ export function LiveTeenPattiGame({
         )}
         
         {/* Label */}
-        <span className={cn("text-2xl font-bold mb-1", labelColors[label])}>
+        <span className={cn(
+          "font-bold mb-1",
+          isVerySmallHeight ? "text-sm" : isLandscape ? "text-lg" : "text-2xl",
+          labelColors[label]
+        )}>
+
           {label}
         </span>
 

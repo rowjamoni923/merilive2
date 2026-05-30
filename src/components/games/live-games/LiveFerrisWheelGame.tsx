@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +60,8 @@ export function LiveFerrisWheelGame({
   onGameWin,
   onTimerUpdate
 }: LiveFerrisWheelGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   // Track bets per food item
   const [selectedFoods, setSelectedFoods] = useState<Set<number>>(new Set());
   const [betAmountsPerFood, setBetAmountsPerFood] = useState<Record<number, number>>({});
@@ -376,7 +380,11 @@ export function LiveFerrisWheelGame({
         </div>
 
         <div className="relative flex justify-center items-center py-2">
-          <div className="relative w-56 h-56">
+          <div className={cn(
+            "relative",
+            isVerySmallHeight ? "w-32 h-32" : isLandscape ? "w-44 h-44" : "w-56 h-56"
+          )}>
+
             {/* Wheel Support Structure */}
             <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-3 h-12 bg-gradient-to-b from-gray-400 to-gray-600 rounded-b-lg shadow-lg" />
             <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-16 h-2 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 rounded-lg shadow-lg" />
@@ -388,7 +396,11 @@ export function LiveFerrisWheelGame({
               transition={{ duration: 5, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {/* Wheel Background */}
-              <div className="absolute w-52 h-52 rounded-full shadow-2xl" 
+              <div className={cn(
+                "absolute rounded-full shadow-2xl",
+                isVerySmallHeight ? "w-28 h-28" : isLandscape ? "w-40 h-40" : "w-52 h-52"
+              )}
+
                 style={{ 
                   background: 'conic-gradient(from 0deg, #8b5cf6, #6366f1, #3b82f6, #06b6d4, #10b981, #22c55e, #eab308, #f97316, #ef4444, #ec4899, #8b5cf6)',
                   boxShadow: '0 0 30px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
@@ -396,12 +408,20 @@ export function LiveFerrisWheelGame({
               />
               
               {/* Inner Ring */}
-              <div className="absolute w-44 h-44 rounded-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 shadow-inner" />
+              <div className={cn(
+                "absolute rounded-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 shadow-inner",
+                isVerySmallHeight ? "w-24 h-24" : isLandscape ? "w-36 h-36" : "w-44 h-44"
+              )} />
+
               
               {/* Section Dividers */}
               {WHEEL_ITEMS.map((_, i) => (
                 <div key={i} className="absolute" style={{ transform: `rotate(${i * 45}deg)` }}>
-                  <div className="w-0.5 h-[104px] bg-white/30"
+                  <div className={cn(
+                    "w-0.5 bg-white/30",
+                    isVerySmallHeight ? "h-[56px]" : isLandscape ? "h-[80px]" : "h-[104px]"
+                  )}
+
                     style={{ transformOrigin: "bottom center", position: "absolute", bottom: "50%", left: "calc(50% - 1px)" }}
                   />
                 </div>
@@ -410,7 +430,7 @@ export function LiveFerrisWheelGame({
               {/* Food Items with Images */}
               {WHEEL_ITEMS.map((item, i) => {
                 const angle = (i * 45 - 90) * (Math.PI / 180);
-                const radius = 80;
+                const radius = isVerySmallHeight ? 42 : isLandscape ? 60 : 80;
                 const x = Math.cos(angle) * radius;
                 const y = Math.sin(angle) * radius;
                 
@@ -422,15 +442,18 @@ export function LiveFerrisWheelGame({
                     key={item.id}
                     onClick={() => handleSelectFood(i)}
                     className={cn(
-                      "absolute w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-lg",
+                      "absolute rounded-full flex items-center justify-center transition-all shadow-lg",
+                      isVerySmallHeight ? "w-7 h-7" : isLandscape ? "w-9 h-9" : "w-11 h-11",
                       "bg-white/95 border-2",
+
                       isSelected && "border-green-400 ring-2 ring-green-300/60 scale-110",
                       isWinner && "border-yellow-400 ring-3 ring-yellow-300/70 scale-115",
                       !isSelected && !isWinner && "border-white/50"
                     )}
                     style={{
-                      left: `calc(50% + ${x}px - 22px)`,
-                      top: `calc(50% + ${y}px - 22px)`,
+                      left: `calc(50% + ${x}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
+                      top: `calc(50% + ${y}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
+
                     }}
                     whileHover={{ scale: autoPlayPhase === "betting" ? 1.15 : 1 }}
                     whileTap={{ scale: 0.9 }}

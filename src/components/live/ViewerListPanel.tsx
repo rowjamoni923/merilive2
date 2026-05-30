@@ -6,6 +6,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
+
 
 interface Viewer {
   id: string;
@@ -32,6 +35,8 @@ export const ViewerListPanel = ({
 }: ViewerListPanelProps) => {
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (!isOpen || !streamId) return;
@@ -126,9 +131,13 @@ export const ViewerListPanel = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25 }}
-            className="absolute bottom-0 left-0 right-0 max-h-[70vh] bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20"
+            className={cn(
+              "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20",
+              isLandscape ? "max-h-[95dvh]" : "max-h-[75dvh]"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
+
             {/* Handle */}
             <div className="flex justify-center pt-2 pb-1">
               <div className="w-10 h-1 bg-white/20 rounded-full" />
@@ -172,7 +181,14 @@ export const ViewerListPanel = ({
             </div>
 
             {/* Viewer List - Mobile Optimized */}
-            <ScrollArea className="h-[calc(70vh-120px)]">
+            <ScrollArea 
+              className="relative" 
+              style={{ 
+                height: isVerySmallHeight ? '180px' : isLandscape ? '250px' : 'calc(70vh - 120px)',
+                minHeight: '150px'
+              }}
+            >
+
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />

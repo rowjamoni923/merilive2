@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, History, Coins, Trophy, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -48,6 +51,8 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalBets: 0, totalWon: 0, totalLost: 0, winRate: 0 });
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) {
@@ -120,8 +125,12 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl"
+        className={cn(
+          "w-full bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl",
+          isLandscape ? "max-w-xl max-h-[95dvh]" : "max-w-sm"
+        )}
       >
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/30">
           <div className="flex items-center gap-2">
@@ -160,7 +169,14 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
           </div>
         </div>
 
-        <ScrollArea className="h-[40vh] overflow-y-auto">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '150px' : isLandscape ? '220px' : '40vh',
+            minHeight: '120px'
+          }}
+        >
+
           <div className="p-2 space-y-1.5">
             {loading ? (
               <div className="flex items-center justify-center py-8">

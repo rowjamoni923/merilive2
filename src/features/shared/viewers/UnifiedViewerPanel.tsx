@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { X, Users, Crown, Eye } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -34,6 +37,8 @@ export const UnifiedViewerPanel = ({
   roomType = 'live',
 }: ViewerPanelProps) => {
   const [activeTab, setActiveTab] = useState<'audience' | 'applicant'>('audience');
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   
   // CRITICAL FIX: Always use hook for real-time viewer sync in BOTH live and party rooms
   // External viewers are only used as initial fallback, hook provides real-time updates
@@ -65,9 +70,13 @@ export const UnifiedViewerPanel = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25 }}
-            className="absolute bottom-0 left-0 right-0 max-h-[70vh] bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20"
+            className={cn(
+              "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20",
+              isLandscape ? "max-h-[95dvh]" : "max-h-[75dvh]"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
+
             {/* Handle */}
             <div className="flex justify-center pt-2 pb-1">
               <div className="w-10 h-1 bg-white/20 rounded-full" />
@@ -142,7 +151,14 @@ export const UnifiedViewerPanel = ({
             </div>
 
             {/* Content */}
-            <ScrollArea className="h-[calc(70vh-140px)]">
+            <ScrollArea 
+              className="relative"
+              style={{ 
+                height: isVerySmallHeight ? '150px' : isLandscape ? '250px' : 'calc(70vh - 140px)',
+                minHeight: '120px'
+              }}
+            >
+
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />

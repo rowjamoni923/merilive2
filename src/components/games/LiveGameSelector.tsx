@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
@@ -87,6 +89,8 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
   const [games, setGames] = useState<GameItem[]>([]);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) {
@@ -142,9 +146,16 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
       }}>
         <SheetContent 
           side="bottom" 
-          className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden"
+          className={cn(
+            "rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden",
+            isLandscape ? "h-[98dvh] max-h-[98dvh]" : "h-auto max-h-[85vh]"
+          )}
         >
-          <div className="p-2 overflow-y-auto max-h-[80vh]">
+          <div className={cn(
+            "p-2 overflow-y-auto",
+            isLandscape ? "max-h-[95dvh]" : "max-h-[80vh]"
+          )}>
+
             <GameErrorBoundary gameName={selectedGame ?? undefined} onReset={() => setSelectedGame(null)}>
               <LiveGameBoard
                 selectedGame={selectedGame}
@@ -167,8 +178,12 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="bottom" 
-        className="h-[70vh] max-h-[70vh] rounded-t-3xl border-0 p-0 overflow-hidden [&>button]:hidden"
+        className={cn(
+          "rounded-t-3xl border-0 p-0 overflow-hidden [&>button]:hidden",
+          isLandscape ? "h-[98dvh] max-h-[98dvh]" : "h-[70vh] max-h-[70vh]"
+        )}
         style={{
+
           background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
         }}
       >
@@ -242,7 +257,11 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
               </div>
             ) : (
               <motion.div 
-                className="grid grid-cols-3 gap-3"
+                className={cn(
+                  "grid gap-3",
+                  isLandscape ? "grid-cols-5 md:grid-cols-6" : "grid-cols-3"
+                )}
+
                 initial="hidden"
                 animate="visible"
                 variants={{

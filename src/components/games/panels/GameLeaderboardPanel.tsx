@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trophy, Crown, Medal, Coins, Loader2, Users, Calendar, CalendarDays, CalendarRange, Mic, Gamepad2, Building2, Swords } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { Button } from "@/components/ui/button";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +40,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
   const [period, setPeriod] = useState<PeriodType>('daily');
   const [category, setCategory] = useState<CategoryType>('host_earnings');
   const [myRank, setMyRank] = useState<{ rank: number; data: LeaderboardEntry | null }>({ rank: 0, data: null });
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) fetchLeaderboard();
@@ -208,8 +212,12 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       <motion.div
         initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-sm bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl"
+        className={cn(
+          "w-full bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl",
+          isLandscape ? "max-w-xl max-h-[95dvh]" : "max-w-sm"
+        )}
       >
+
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/30">
           <div className="flex items-center gap-2">
@@ -275,7 +283,14 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
           </div>
         )}
 
-        <ScrollArea className="max-h-[42vh]">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '150px' : isLandscape ? '220px' : '42vh',
+            minHeight: '120px'
+          }}
+        >
+
           <div className="p-2 space-y-1">
             {loading ? (
               <div className="flex items-center justify-center py-8">

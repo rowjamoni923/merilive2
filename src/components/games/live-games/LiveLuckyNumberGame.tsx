@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { cn } from "@/lib/utils";
 import { Coins, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +73,8 @@ export function LiveLuckyNumberGame({
   onGameWin,
   onTimerUpdate
 }: LiveLuckyNumberGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   const [selectedNumbers, setSelectedNumbers] = useState<Set<number>>(new Set());
   const [betOnNumber, setBetOnNumber] = useState<Record<number, number>>({});
   const [isRevealing, setIsRevealing] = useState(false);
@@ -372,13 +376,15 @@ export function LiveLuckyNumberGame({
             >
               <motion.div 
                 className={cn(
-                  "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-black text-white shadow-2xl border-2 border-white/30",
+                  "rounded-2xl flex items-center justify-center font-black text-white shadow-2xl border-2 border-white/30",
+                  isVerySmallHeight ? "w-12 h-12 text-xl" : isLandscape ? "w-16 h-16 text-2xl" : "w-20 h-20 text-4xl",
                   winningNumber 
                     ? `bg-gradient-to-br ${NUMBER_COLORS[winningNumber - 1]}` 
                     : revealingNumber 
                       ? `bg-gradient-to-br ${NUMBER_COLORS[revealingNumber - 1]}`
                       : "bg-purple-600"
                 )}
+
                 animate={isRevealing ? { rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] } : { scale: [1, 1.1, 1] }}
                 transition={{ duration: isRevealing ? 0.1 : 0.5, repeat: isRevealing ? Infinity : winningNumber ? 3 : 0 }}
                 style={{
@@ -392,7 +398,11 @@ export function LiveLuckyNumberGame({
         </AnimatePresence>
 
         {/* Number Grid - 2 Rows of 5 */}
-        <div className="grid grid-cols-5 gap-2">
+        <div className={cn(
+          "grid gap-2",
+          isLandscape ? "grid-cols-10" : "grid-cols-5"
+        )}>
+
           {NUMBERS.map((num) => (
             <motion.button
               key={num}

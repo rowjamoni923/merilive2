@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, Suspense, lazy, useCallback, useMemo, memo } from "react";
 import { createPortal } from "react-dom";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,6 +111,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
   // between renders. Closure `userCoins` lags by one render in combo bursts.
   const userCoinsRef = useRef<number>(propUserCoins || 0);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   // Animation state for panel open/close (CSS-based for performance)
   useEffect(() => {
@@ -422,7 +426,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         )}
         style={{ 
           boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.15), 0 -2px 20px rgba(0,0,0,0.8)', 
-          maxHeight: 'calc(70vh - env(safe-area-inset-bottom, 0px))', 
+          maxHeight: isLandscape ? '95dvh' : 'calc(70vh - env(safe-area-inset-bottom, 0px))', 
+
           paddingBottom: 'max(env(safe-area-inset-bottom, 16px), 16px)',
           display: 'flex',
           flexDirection: 'column',

@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useGameToken } from "@/hooks/useGameToken";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
@@ -98,7 +100,9 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'crash');
   const [loading, setLoading] = useState(true);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const { balance: diamondBalance, refetch: refetchBalance } = useUserBalance();
+
   const { buildGameUrl, loading: tokenLoading } = useGameToken();
   const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
