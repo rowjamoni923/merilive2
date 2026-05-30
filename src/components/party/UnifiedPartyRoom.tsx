@@ -36,6 +36,7 @@ import { BackgroundPickerPanel } from "./BackgroundPickerPanel";
 import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { SeatSelectorPanel } from "./SeatSelectorPanel";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import BeansIcon from "@/components/common/BeansIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useNavigate } from "react-router-dom";
