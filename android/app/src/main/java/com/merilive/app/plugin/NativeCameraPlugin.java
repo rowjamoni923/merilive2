@@ -231,7 +231,7 @@ public class NativeCameraPlugin extends Plugin {
     @PluginMethod
     public void startVideoRecording(PluginCall call) {
         if (videoCapture == null) {
-            call.reject("Camera not started");
+            call.reject("Native video recording is not available on this device");
             return;
         }
         if (activeRecording != null) {
