@@ -74,8 +74,8 @@ export const useAdminAccess = () => {
       return String(data);
     },
     enabled: !!adminId,
-    staleTime: 24 * 60 * 60 * 1000, // Cache for 24 hours - once verified, it won't change
-    gcTime: 48 * 60 * 60 * 1000,
+    staleTime: Infinity, // Owner link session is stable; verify once per tab mount
+    gcTime: 24 * 60 * 60 * 1000,
     retry: false,
   });
 
