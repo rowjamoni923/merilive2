@@ -415,6 +415,15 @@ const FaceVerification = () => {
     setUsingNativeFaceCamera(active);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
+    document.body.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
+    return () => {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    };
+  }, [usingNativeFaceCamera]);
+
   const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
     if (usingNativeFaceCameraRef.current) {
       const dataUrl = await nativeFaceCam.captureFrame();
