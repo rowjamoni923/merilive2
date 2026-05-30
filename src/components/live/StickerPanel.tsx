@@ -52,7 +52,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 350 }}
             className={cn(
-              "fixed bottom-0 left-0 right-0 z-[60] max-h-[72vh] overflow-hidden rounded-t-3xl bg-black/95 pb-safe backdrop-blur-xl",
+              "fixed bottom-0 left-0 right-0 z-[60] max-h-[72dvh] overflow-hidden rounded-t-3xl bg-black/95 pb-safe backdrop-blur-xl",
               "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:border-white/10 md:shadow-2xl"
             )}
           >
@@ -110,7 +110,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
               </div>
             )}
 
-            <div className="max-h-[48vh] overflow-y-auto px-4 pb-6">
+            <div className="max-h-[48dvh] overflow-y-auto px-4 pb-6">
               <div className="grid grid-cols-2 gap-3">
                 {filtered.map((sticker) => {
                   const isActive = activeSticker === sticker.name;
