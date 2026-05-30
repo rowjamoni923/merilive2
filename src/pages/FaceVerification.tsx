@@ -834,19 +834,13 @@ const FaceVerification = () => {
     try {
       autoFaceStartRef.current = false;
       preloadLocalFacePoseDetector();
-      if (await nativeFaceCam.isAvailable()) {
-        if (faceStream) {
-          faceStream.getTracks().forEach(track => track.stop());
-          setFaceStream(null);
-        }
-        // 720p keeps Android CameraX preview + analyzer + recorder bound on far
-        // more low/mid-range phones; 1080p often drops the analyzer, which made
-        // the visible face preview work while captureFrame returned no face.
-        await nativeFaceCam.startPreview('720p');
-        setNativeFaceCameraActive(true);
-        setCameraReady(true);
-        return;
-      }
+      // NOTE: native CameraX preview path is intentionally disabled here.
+      // It renders behind the WebView via punch-through, but the verification
+      // card + page background are opaque white, so the native surface was
+      // invisible on real devices (user reported blank white camera area).
+      // getUserMedia inside the DOM <video> works reliably on Android WebView
+      // with camera permission, so we use that path on every platform.
+      setNativeFaceCameraActive(false);
 
       // Stop any existing stream first
       if (faceStream) {
@@ -2174,16 +2168,22 @@ const FaceVerification = () => {
         ) : (
           <>
             {!usingNativeFaceCamera && (
-              <video 
-                ref={faceVideoRef} 
+              <video
+                ref={faceVideoRef}
                 autoPlay
                 playsInline
                 muted
+                controls={false}
+                poster=""
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
                 className="w-full h-full object-cover scale-x-[-1]"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000' }}
+                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
               />
             )}
             
@@ -3151,12 +3151,20 @@ const FaceVerification = () => {
                 <video src={videoPreview} controls className="w-full h-full object-cover"/>
               ) : isRecording ? (
                 <>
-                  <video 
-                    ref={liveVideoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="w-full h-full object-cover scale-x-[-1]"/>
+                  <video
+                    ref={liveVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    controls={false}
+                    poster=""
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                    {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
+                    className="w-full h-full object-cover scale-x-[-1]"
+                    style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                  />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
                     <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                     <span className="text-slate-800 text-sm font-bold">{recordingTime}s / 15s</span>
