@@ -2793,10 +2793,7 @@ const FaceVerification = () => {
           </Button>
         </div>
       </div>
-      </div>
     );
-
-
   }
 
   // Already verified
@@ -2804,25 +2801,25 @@ const FaceVerification = () => {
     return (
       <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
         <div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-
-        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
-        <div className="flex flex-col items-center justify-center mt-12">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring" }}
-            className="w-28 h-28 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mb-4 shadow-2xl shadow-green-500/20"
-          >
-            <CheckCircle2 className="w-14 h-14 text-slate-800" />
-          </motion.div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Already Verified!</h2>
-          <p className="text-slate-500 text-center">Your face verification is complete</p>
-          <Button
-            className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20"
-            onClick={() => navigate('/profile')}
-          >
-            Back to Profile
-          </Button>
+          {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
+          <div className="flex flex-col items-center justify-center mt-12">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring" }}
+              className="w-28 h-28 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mb-4 shadow-2xl shadow-green-500/20"
+            >
+              <CheckCircle2 className="w-14 h-14 text-slate-800" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Already Verified!</h2>
+            <p className="text-slate-500 text-center">Your face verification is complete</p>
+            <Button
+              className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20"
+              onClick={() => navigate('/profile')}
+            >
+              Back to Profile
+            </Button>
+          </div>
         </div>
       </div>
     );
