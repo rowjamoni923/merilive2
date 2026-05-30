@@ -904,8 +904,11 @@ export function usePartyRoomWebRTC(
     getPeerStream: (peerId: string) => {
       const direct = state.peerStreams.get(peerId);
       if (direct) return direct;
-      const normalized = peerId.startsWith('user-') ? peerId.slice(5) : `user-${peerId}`;
-      return state.peerStreams.get(normalized);
+      const hyphen = peerId.startsWith('user-') ? peerId.slice(5) : `user-${peerId}`;
+      const underscore = peerId.startsWith('user_') ? peerId.slice(5) : `user_${peerId}`;
+      return state.peerStreams.get(hyphen)
+        ?? state.peerStreams.get(underscore)
+        ?? Array.from(state.peerStreams.entries()).find(([key]) => key.includes(peerId))?.[1];
     },
   };
 }
