@@ -1128,12 +1128,12 @@ const GoLive = () => {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
               userProfile?.is_face_verified 
                 ? 'bg-green-500/30' 
-                : 'bg-gray-700/50'
+                : 'bg-red-500/20'
             }`}>
               {userProfile?.is_face_verified ? (
                 <Check className="w-5 h-5 text-green-400" />
               ) : (
-                <ScanFace className="w-5 h-5 text-red-400" />
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               )}
             </div>
             <span className={`text-[10px] ${userProfile?.is_face_verified ? 'text-green-400' : 'text-red-400'}`}>

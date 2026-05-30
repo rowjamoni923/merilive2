@@ -2730,21 +2730,9 @@ const LiveStream = () => {
               WebkitAppearance: 'none',
             }}/>
         ) : isHost ? (
-          <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-4 px-6 text-center">
-            {hostInfo?.avatar ? (
-              <img
-                src={hostInfo.avatar}
-                alt="Host preview"
-                className="w-24 h-24 rounded-full object-cover border border-white/20"
-               
-                draggable={false}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                <span className="text-white text-2xl font-semibold">{hostInfo?.name?.charAt(0) || 'H'}</span>
-              </div>
-            )}
-            <p className="text-white/85 text-sm font-medium">Starting camera...</p>
+          <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
+            {/* Pkg381: No generic user icon — show loading shimmer behind the transparent video element */}
+            <div className="w-full h-full bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950" />
           </div>
         ) : remoteVideoTrack ? (
           <div 

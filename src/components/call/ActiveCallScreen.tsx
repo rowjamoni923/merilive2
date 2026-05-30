@@ -858,17 +858,18 @@ export function ActiveCallScreen({
                 />
 
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
-                  <AvatarWithFrame
-                    userId={isSwapped ? userId : remoteUserId}
-                    src={isSwapped ? myAvatarUrl : remoteUserAvatar}
-                    name={primaryLabel}
-                    level={isSwapped ? myLevel : remoteUserLevel}
-                    size="2xl"
-                    showFrame={true}
-                    showAnimation={false}
-                  />
-                  
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+                  {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
+                  { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
+                    <img 
+                      src={isSwapped ? myAvatarUrl : remoteUserAvatar} 
+                      alt="" 
+                      className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl"
+                    />
+                  )}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-2" />
+                  </div>
                 </div>
               )}
             </div>
@@ -888,16 +889,15 @@ export function ActiveCallScreen({
                   className="w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
-                  <AvatarWithFrame
-                    userId={isSwapped ? remoteUserId : userId}
-                    src={isSwapped ? remoteUserAvatar : myAvatarUrl}
-                    name={secondaryLabel}
-                    level={isSwapped ? remoteUserLevel : myLevel}
-                    size="md"
-                    showFrame={true}
-                    showAnimation={false}
-                  />
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+                  { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
+                    <img 
+                      src={isSwapped ? remoteUserAvatar : myAvatarUrl} 
+                      alt="" 
+                      className="absolute inset-0 w-full h-full object-cover opacity-20 blur-lg"
+                    />
+                  )}
+                  <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" />
                 </div>
               )}
               <div className="absolute left-1.5 top-1.5 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-[9px] font-semibold text-white/90">
