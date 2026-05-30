@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useGameToken } from "@/hooks/useGameToken";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
