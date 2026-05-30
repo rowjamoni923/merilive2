@@ -116,12 +116,12 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
           "absolute -inset-0.5 rounded-full bg-gradient-to-r animate-pulse opacity-60",
           getLevelGradient(level)
         )} />
-        <Avatar className="w-7 h-7 relative border-2 border-white/80">
+        <Avatar className="w-7 h-7 md:w-9 md:h-9 relative border-2 border-white/80">
           <AvatarImage 
             src={notification.userAvatar || getDisplayAvatar(notification.userName)}
             alt={notification.userName}
           />
-          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs font-bold">
+          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs md:text-sm font-bold">
             {notification.userName.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -129,7 +129,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
 
       {/* Level Badge - Premium style with glow */}
       <div className={cn(
-        "px-2.5 py-0.5 rounded-lg text-[10px] font-black flex items-center gap-0.5",
+        "px-2.5 py-0.5 rounded-lg text-[10px] md:text-xs font-black flex items-center gap-0.5",
         getLevelBadgeBg(level),
         getLevelTextColor(level)
       )}>
@@ -137,20 +137,20 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
       </div>
 
       {/* Username - Premium with glow */}
-      <span className="text-white font-bold text-xs truncate max-w-[100px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+      <span className="text-white font-bold text-xs md:text-sm truncate max-w-[100px] md:max-w-[150px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
         {notification.userName}
       </span>
 
       {/* Sparkle + "joined the room" */}
       <div className="flex items-center gap-0.5 text-white/95">
         <motion.span 
-          className="text-sm"
+          className="text-sm md:text-base"
           animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 0.6, repeat: 2 }}
         >
           ✨
         </motion.span>
-        <span className="text-[10px] font-medium italic">joined</span>
+        <span className="text-[10px] md:text-xs font-medium italic">joined</span>
       </div>
     </motion.div>
   );
