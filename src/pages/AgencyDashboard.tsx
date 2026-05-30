@@ -2000,8 +2000,9 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-
+          </TabsContent>
         </Tabs>
+
       </div>
 
       {/* Helper Dialog - Different views based on status */}
