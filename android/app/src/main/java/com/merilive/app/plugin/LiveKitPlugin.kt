@@ -460,7 +460,7 @@ class LiveKitPlugin : Plugin() {
         val publishEncoding: VideoEncoding = if (args.resolution == "720p") {
             VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
         } else {
-            VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
+            VideoEncoding(maxBitrate = 3_000_000, maxFps = 30)
         }
         // Step 32 — bias publish-side codec when JS pinned a preference.
         // Falls back to "auto" → SDK chooses (VP8 default on libwebrtc).
