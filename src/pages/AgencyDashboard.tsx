@@ -243,201 +243,151 @@ const AgencyDashboard = () => {
   const levelInfo = getLevelInfo(agency.level || "A1");
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 pb-20">
-      {/* Premium Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 safe-area-top shadow-sm">
+    <div className="agency-official-shell min-h-screen flex flex-col pb-20">
+      <header className="agency-official-header sticky top-0 z-50 safe-area-top">
         <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors">
-            <ArrowLeft className="w-5 h-5 text-slate-800 dark:text-white" />
+          <button onClick={() => navigate(-1)} className="agency-official-icon-button" aria-label="Back">
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-brand-500" />
-            Agency Center
+          <h1 className="agency-official-title">
+            <Sparkles className="w-5 h-5" />
+            Agency Dashboard
           </h1>
-          <button onClick={() => navigate("/settings")} className="p-2 -mr-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors">
-            <Settings className="w-5 h-5 text-slate-400" />
+          <button onClick={() => navigate("/settings")} className="agency-official-icon-button" aria-label="Settings">
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 pt-4 space-y-5">
-        {/* Agency Hero Card */}
-        <div className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${levelInfo.color} p-6 shadow-2xl shadow-brand-500/20 text-white`}>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
-          
-          <div className="relative z-10 flex items-center gap-4 mb-6">
-            <Avatar className="w-16 h-16 border-4 border-white/20 shadow-xl">
-              <AvatarImage src={agency.logo_url || ""} />
-              <AvatarFallback className="bg-white/20 text-white text-xl font-bold">{agency.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{levelInfo.icon}</span>
-                <Badge className="bg-white/20 text-white border-0 font-black text-[10px] px-2 py-0.5 uppercase tracking-wider">
-                  Level {agency.level || 'A1'} • {levelTierInfo?.level_name || levelInfo.name}
-                </Badge>
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 pt-4 space-y-4">
+        <section className="agency-official-hero">
+          <div className="relative z-10 flex items-start gap-4">
+            <div className="agency-official-logo">
+              {agency.logo_url ? <img src={agency.logo_url} alt={`${agency.name} logo`} /> : <Building2 className="w-8 h-8" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="agency-official-pin">📌</span>
+                <span className="agency-official-level">{(levelTierInfo?.level_name || agency.level || levelInfo.name).toLowerCase()} • {agency.level || 'A1'}</span>
               </div>
-              <h2 className="text-xl font-black truncate tracking-tight">{agency.name}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <code className="bg-black/20 px-2 py-0.5 rounded text-xs font-mono border border-white/10">ID: {agency.agency_code}</code>
-                <button onClick={copyAgencyCode} className="p-1 hover:bg-white/20 rounded transition-colors"><Copy className="w-3.5 h-3.5" /></button>
-              </div>
+              <h2 className="agency-official-name">{agency.name}</h2>
+              <p className="agency-official-rate">% {actualCommissionRate}% Commission Rate</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 relative z-10">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <p className="text-white/60 text-[10px] uppercase font-black tracking-widest mb-1">Active Hosts</p>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-brand-200" />
-                <p className="text-lg font-black">{hostsCount}</p>
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <p className="text-white/60 text-[10px] uppercase font-black tracking-widest mb-1">My Rate</p>
-              <div className="flex items-center gap-2">
-                <Percent className="w-4 h-4 text-brand-200" />
-                <p className="text-lg font-black">{actualCommissionRate}%</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          <button onClick={copyAgencyCode} className="agency-official-code" aria-label="Copy agency code">
+            <span>
+              <small>Agency Code</small>
+              <strong>{agency.agency_code}</strong>
+            </span>
+            <Copy className="w-5 h-5" />
+          </button>
 
-        {/* Financial Stats Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Financial Overview</h3>
-            <Badge variant="outline" className="text-[9px] border-slate-200 dark:border-white/10 font-bold uppercase tracking-wider">Zero Refresh</Badge>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4">
-            <Card className="border-0 bg-white dark:bg-slate-900 shadow-xl shadow-brand-500/5 rounded-3xl overflow-hidden group">
-              <CardContent className="p-0">
-                <div className="bg-gradient-to-r from-brand-600 to-indigo-600 p-5 text-white flex justify-between items-center">
-                  <div>
-                    <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">Total Beans</p>
-                    <h3 className="text-3xl font-black tracking-tighter">{fmtNum(agencyBeansBalance)}</h3>
-                  </div>
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                    <Coins className="w-7 h-7 text-white" />
-                  </div>
-                </div>
-                <div className="p-4 flex items-center justify-between bg-slate-50 dark:bg-black/20">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">USD Value</p>
-                      <p className="text-sm font-black text-slate-700 dark:text-slate-200">${usdValue.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  <div className="h-8 w-px bg-slate-200 dark:bg-white/5" />
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-info-100 dark:bg-info-900/30 flex items-center justify-center">
-                      <span className="text-xs font-black text-info-600">{localCurrency.flag}</span>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{localCurrency.code} Value</p>
-                      <p className="text-sm font-black text-slate-700 dark:text-slate-200">{localCurrency.symbol}{localValue.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="agency-official-stat-grid">
+            <div className="agency-official-stat">
+              <Users className="w-5 h-5" />
+              <strong>{hostsCount}</strong>
+              <span>Hosts</span>
+            </div>
+            <div className="agency-official-stat">
+              <Building2 className="w-5 h-5" />
+              <strong>{subAgentsCount}</strong>
+              <span>Agents</span>
+            </div>
+            <div className="agency-official-stat">
+              <Diamond className="w-5 h-5" />
+              <strong>{fmtNum(agencyBeansBalance)}</strong>
+              <span>Beans</span>
+            </div>
+            <div className="agency-official-stat">
+              <Zap className="w-5 h-5" />
+              <strong>Online</strong>
+              <span>Status</span>
+            </div>
           </div>
         </section>
 
-        {/* Quick Actions Grid */}
-        <section className="space-y-4">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-1">Quick Management</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => navigate("/agency-host-management")} className="flex flex-col items-start p-5 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 active:scale-95 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-950 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><HostsIcon3D /></div>
-              <h4 className="font-black text-slate-800 dark:text-white">Host List</h4>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Manage Performance</p>
+        <section className="agency-official-finance">
+          <button onClick={() => navigate('/agency-commission-history')} className="agency-official-beans-row">
+            <span className="agency-official-beans-icon"><Coins className="w-6 h-6" /></span>
+            <span className="min-w-0 flex-1">
+              <small>Total Beans ›</small>
+              <strong>{fmtNum(agencyBeansBalance)}</strong>
+              <em>Tap to view commission history</em>
+            </span>
+            <span className="agency-official-usd">
+              <small>USD Value</small>
+              <strong>${usdValue.toFixed(2)}</strong>
+            </span>
+          </button>
+
+          <div className="agency-official-rate-row">
+            <span>{localCurrency.flag} {localCurrency.code} Value</span>
+            <strong>{localCurrency.symbol}{localValue.toFixed(2)}</strong>
+          </div>
+          <div className="agency-official-rate-row">
+            <span>⇄ Exchange Rate</span>
+            <strong>{fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}</strong>
+          </div>
+
+          <div className="agency-official-finance-actions">
+            <button onClick={() => navigate('/agency-withdrawal')}><Wallet className="w-5 h-5" />Withdraw</button>
+            <button onClick={() => navigate('/agency-transfer-history')}><History className="w-5 h-5" />History</button>
+          </div>
+        </section>
+
+        <button onClick={() => navigate('/payroll-helper-guide')} className="agency-official-guide">
+          <span className="agency-official-guide-icon"><FileText className="w-6 h-6" /></span>
+          <span className="min-w-0 flex-1">
+            <strong>Payroll Helper Guide</strong>
+            <small>Learn roles, benefits & diamond trading</small>
+          </span>
+          <ArrowRight className="w-6 h-6" />
+        </button>
+
+        <section className="space-y-3">
+          <h3 className="agency-official-section-title">Quick Actions</h3>
+          <div className="agency-official-actions-grid">
+            <button onClick={() => navigate("/agency-host-management")} className="agency-action-blue">
+              <HostsIcon3D />
+              <span>Hosts</span>
             </button>
-            <button onClick={() => navigate("/agency-withdrawal")} className="flex flex-col items-start p-5 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 active:scale-95 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><WithdrawIcon3D /></div>
-              <h4 className="font-black text-slate-800 dark:text-white">Withdraw</h4>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Salary Payment</p>
+            <button onClick={() => navigate("/agency-withdrawal")} className="agency-action-teal">
+              <WithdrawIcon3D />
+              <span>Withdraw</span>
             </button>
-            <button onClick={() => setShowSubAgentsPanel(true)} className="flex flex-col items-start p-5 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 active:scale-95 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><RankingIcon3D /></div>
-              <h4 className="font-black text-slate-800 dark:text-white">Sub-Agents</h4>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Team Management</p>
+            <button onClick={() => setShowSubAgentsPanel(true)} className="agency-action-orange">
+              <RankingIcon3D />
+              <span>Ranking</span>
             </button>
-            <button 
-              onClick={() => {
-                if (hasHelperAccess) navigate(isLevel5Helper ? "/level5-helper-dashboard" : "/helper-dashboard");
-                else setShowHelperDialog(true);
-              }}
-              className="flex flex-col items-start p-5 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 active:scale-95 transition-all group relative"
-            >
-              {hasHelperAccess && helperPendingCount > 0 && (
-                <span className="absolute top-4 right-4 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-lg border-2 border-white dark:border-slate-900 animate-pulse">{helperPendingCount}</span>
-              )}
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-950 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><HelperIcon3D /></div>
-              <h4 className="font-black text-slate-800 dark:text-white">{hasHelperAccess ? 'Helper Hub' : 'Become Helper'}</h4>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{hasHelperAccess ? 'Trading Panel' : 'Application'}</p>
+            <button onClick={() => hasHelperAccess ? navigate(isLevel5Helper ? "/level5-helper-dashboard" : "/helper-dashboard") : setShowHelperDialog(true)} className="agency-action-cyan relative">
+              {hasHelperAccess && helperPendingCount > 0 && <em>{helperPendingCount}</em>}
+              <HelperIcon3D />
+              <span>Helper</span>
+            </button>
+            <button onClick={() => navigate("/agency-coin-exchange")} className="agency-action-red">
+              <DiamondExchangeIcon3D />
+              <span>Diamond Exchange</span>
+            </button>
+            <button onClick={() => navigate("/agency-policy")} className="agency-action-blue">
+              <PolicyIcon3D />
+              <span>Policy</span>
+            </button>
+            <button onClick={() => navigate("/agency-transfer-history")} className="agency-action-purple">
+              <HistoryIcon3D />
+              <span>History</span>
             </button>
           </div>
         </section>
 
-        {/* Secondary Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <button onClick={() => navigate("/agency-coin-exchange")} className="flex flex-col items-center p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 active:scale-95 transition-all group">
-            <div className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform"><DiamondExchangeIcon3D /></div>
-            <span className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Exchange</span>
-          </button>
-          <button onClick={() => navigate("/agency-policy")} className="flex flex-col items-center p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 active:scale-95 transition-all group">
-            <div className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform"><PolicyIcon3D /></div>
-            <span className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Policy</span>
-          </button>
-          <button onClick={() => navigate("/agency-transfer-history")} className="flex flex-col items-center p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 active:scale-95 transition-all group">
-            <div className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform"><HistoryIcon3D /></div>
-            <span className="text-[9px] font-black uppercase tracking-tighter text-slate-500">History</span>
-          </button>
-        </div>
-
-        {/* PREMIUM Payroll Helper Guide Card - Fix Color & Design */}
-        <div 
-          onClick={() => navigate('/payroll-helper-guide')}
-          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-600 via-indigo-600 to-brand-700 p-6 shadow-2xl shadow-brand-500/20 active:scale-[0.98] transition-all group cursor-pointer"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-colors" />
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg border border-white/20 group-hover:rotate-6 transition-transform">
-              <FileText className="w-7 h-7 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-black text-lg tracking-tight leading-tight flex items-center gap-2">
-                Payroll Helper Guide
-                <Badge className="bg-white/20 text-white border-0 text-[8px] px-1.5 h-4 font-black uppercase tracking-widest">Official</Badge>
-              </h3>
-              <p className="text-white/80 text-[11px] font-bold mt-1 uppercase tracking-[0.1em]">Complete A-Z Training & Guidelines</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:translate-x-1 transition-all">
-              <ArrowRight className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-
-        {/* Parent Agency Mini Card */}
         {parentAgency && (
-          <div className="bg-slate-100 dark:bg-white/5 rounded-3xl p-4 flex items-center justify-between border border-slate-200 dark:border-white/5">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10 border border-white/20">
-                <AvatarImage src={parentAgency.owner_profile?.avatar_url || ""} />
-                <AvatarFallback className="bg-brand-500 text-white font-bold">{parentAgency.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Managed By</p>
-                <h5 className="text-sm font-black text-slate-700 dark:text-slate-200">{parentAgency.name}</h5>
-              </div>
+          <div className="agency-official-parent-card">
+            <div className="agency-official-parent-avatar">{parentAgency.name.charAt(0)}</div>
+            <div className="min-w-0 flex-1">
+              <small>Managed By</small>
+              <strong>{parentAgency.name}</strong>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate(`/chat?user=${parentAgency.owner_id}`)} className="rounded-full h-8 px-3 text-[10px] font-black uppercase bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/5">Chat Owner</Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/chat?user=${parentAgency.owner_id}`)}>Chat Owner</Button>
           </div>
         )}
       </main>
