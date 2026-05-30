@@ -424,12 +424,17 @@ const GoLive = () => {
         setIsLoading(false);
       }
 
+      // Pkg365: "Premium Auto-Start" camera behavior.
       // Check if permission is ALREADY granted (cached) — only then auto-start
       if (!useLiveKit && isMounted) {
         const permissionState = await checkPermissionStatus();
-        if (permissionState === 'granted') {
-          // Permission already granted from a previous session — safe to auto-start
-          console.log('[GoLive] Permission already granted, auto-starting camera');
+        
+        // On native, we are more aggressive: if we have a cache or if the state 
+        // is 'prompt', we try to auto-start. If it fails, only THEN we show the UI.
+        const shouldAttemptAutoStart = permissionState === 'granted' || (isNativeAndroid && permissionState === 'prompt');
+
+        if (shouldAttemptAutoStart) {
+          console.log('[GoLive] Attempting premium auto-start...');
           try {
             if (isNativeAndroid) {
               const started = await startNativePreview();
@@ -453,10 +458,11 @@ const GoLive = () => {
             }
           } catch (err: any) {
             console.warn('[GoLive] Auto-start camera failed:', err?.message);
+            // Only show UI if auto-start truly fails (e.g. user denied)
             if (isMounted) setShowPermissionPrompt(true);
           }
         } else {
-          // Not yet granted — show permission prompt, wait for user click
+          // Explicitly denied or needs prompt on web
           if (isMounted) setShowPermissionPrompt(true);
         }
       }
