@@ -47,6 +47,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { useOptimisticAction } from "@/hooks/useOptimisticAction";
+
 
 interface ProfileData {
   id: string;
