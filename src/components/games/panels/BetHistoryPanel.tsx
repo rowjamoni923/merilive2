@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, History, Coins, Trophy, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
