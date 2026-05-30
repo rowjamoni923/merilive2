@@ -556,46 +556,19 @@ const AgencyDashboard = () => {
       refetchTimer = setTimeout(() => fetchData(), 500);
     };
 
-    // Real-time subscriptions for instant updates
-    const channel = supabase
-      .channel('agency-dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agencies' },
-        async (payload) => {
-          if (payload.new && (payload.new as any).id === agency?.id) {
-            setAgency(payload.new as Agency);
-          }
-        }
-      )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_hosts' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_diamond_transactions' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_withdrawals' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, debouncedRefetch)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
-        (payload) => {
-          const newData = payload.new as any;
-          if (newData?.is_verified && newData?.is_active) {
-            setHasHelperAccess(true);
-            if (newData.trader_level === 5 && newData.payroll_enabled) {
-              setIsLevel5Helper(true);
-            }
-          } else if (newData && !newData.is_active) {
-            setHasHelperAccess(false);
-            setIsLevel5Helper(false);
-          }
-          debouncedRefetch();
-        }
-      )
-      .subscribe();
+    // Zero-Refresh Instant Updates via useUniversalRealtime
+    const cleanup = subscribeToTables(
+      "agency_dashboard_sync",
+      ["agencies", "agency_hosts", "agency_performance", "agency_diamond_transactions", "agency_withdrawals", "agency_level_tiers", "app_settings", "topup_helpers"],
+      (table, event, payload) => {
+        // Instant data refresh without full page reload
+        debouncedRefetch();
+      }
+    );
 
     return () => {
       if (refetchTimer) clearTimeout(refetchTimer);
-      supabase.removeChannel(channel);
+      cleanup();
     };
   }, [navigate, agency?.id]);
 
