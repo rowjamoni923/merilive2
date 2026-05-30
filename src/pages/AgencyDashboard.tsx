@@ -757,9 +757,9 @@ const AgencyDashboard = () => {
   ];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-y-auto overflow-x-hidden">
       {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
+      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 flex-shrink-0 border-b border-slate-100 dark:border-white/5 safe-area-top shadow-sm">
         <div className="flex items-center justify-between h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
