@@ -2771,9 +2771,6 @@ const FaceVerification = () => {
   }
 
 
-
-  }
-
   // Already submitted - pending review
   if (verificationStatus === 'submitted') {
     return (
@@ -2825,9 +2822,6 @@ const FaceVerification = () => {
     );
   }
 
-      </div>
-    );
-  }
 
   // User verification - 3-step process: Info → Photo → Face
   if (!isHostVerification) {
@@ -3423,8 +3417,5 @@ const FaceVerification = () => {
   );
 };
 
-
-
-};
 
 export default FaceVerification;
