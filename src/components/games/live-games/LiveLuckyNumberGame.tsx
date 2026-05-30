@@ -376,13 +376,15 @@ export function LiveLuckyNumberGame({
             >
               <motion.div 
                 className={cn(
-                  "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-black text-white shadow-2xl border-2 border-white/30",
+                  "rounded-2xl flex items-center justify-center font-black text-white shadow-2xl border-2 border-white/30",
+                  isVerySmallHeight ? "w-12 h-12 text-xl" : isLandscape ? "w-16 h-16 text-2xl" : "w-20 h-20 text-4xl",
                   winningNumber 
                     ? `bg-gradient-to-br ${NUMBER_COLORS[winningNumber - 1]}` 
                     : revealingNumber 
                       ? `bg-gradient-to-br ${NUMBER_COLORS[revealingNumber - 1]}`
                       : "bg-purple-600"
                 )}
+
                 animate={isRevealing ? { rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] } : { scale: [1, 1.1, 1] }}
                 transition={{ duration: isRevealing ? 0.1 : 0.5, repeat: isRevealing ? Infinity : winningNumber ? 3 : 0 }}
                 style={{
