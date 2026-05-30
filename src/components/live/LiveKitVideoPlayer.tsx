@@ -273,6 +273,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         el.muted = false;
         el.defaultMuted = false;
         el.removeAttribute('muted');
+        if (el.paused) el.play().catch(() => {});
       } catch { /* noop */ }
     }
   }, [muted]);
