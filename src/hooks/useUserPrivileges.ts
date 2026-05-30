@@ -77,10 +77,20 @@ export const useUserPrivileges = (userId: string | null) => {
     if (!userId) return;
 
     try {
-      // Fetch user level
+      // Fetch user profile to see which items are specifically equipped in the new system
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_level')
+        .select(`
+          user_level,
+          equipped_frame_id,
+          equipped_entrance_id,
+          equipped_entry_banner_id,
+          equipped_entry_name_bar_id,
+          equipped_bubble_id,
+          equipped_vehicle_id,
+          equipped_medal_id,
+          equipped_noble_card_id
+        `)
         .eq('id', userId)
         .single();
 
@@ -122,14 +132,28 @@ export const useUserPrivileges = (userId: string | null) => {
         for (const purchase of purchases) {
           const item = purchase.shop_items as any;
           if (item) {
+            // Check if this item is marked as equipped in profile OR in user_purchases
+            const cat = item.category;
+            let isEquipped = purchase.is_equipped || false;
+            
+            // Check against profile equipment columns too
+            if (cat === 'frame') isEquipped = isEquipped || purchase.item_id === profile?.equipped_frame_id;
+            else if (cat === 'entrance' || cat === 'entrance_effect' || cat === 'entry_banner') 
+              isEquipped = isEquipped || purchase.item_id === profile?.equipped_entrance_id || purchase.item_id === profile?.equipped_entry_banner_id;
+            else if (cat === 'entry_bar' || cat === 'entry_name_bar') isEquipped = isEquipped || purchase.item_id === profile?.equipped_entry_name_bar_id;
+            else if (cat === 'bubble') isEquipped = isEquipped || purchase.item_id === profile?.equipped_bubble_id;
+            else if (cat === 'vehicle') isEquipped = isEquipped || purchase.item_id === profile?.equipped_vehicle_id;
+            else if (cat === 'medal') isEquipped = isEquipped || purchase.item_id === profile?.equipped_medal_id;
+            else if (cat === 'noble_card') isEquipped = isEquipped || purchase.item_id === profile?.equipped_noble_card_id;
+
             allPrivileges.push({
               id: purchase.id,
-              category: item.category,
+              category: cat,
               name: item.name,
               animation_url: item.animation_url,
               animation_file_url: item.animation_file_url,
               preview_url: item.preview_url,
-              is_equipped: purchase.is_equipped || false,
+              is_equipped: isEquipped,
               expires_at: purchase.expires_at,
               item_type: 'shop',
             });
@@ -140,14 +164,27 @@ export const useUserPrivileges = (userId: string | null) => {
       // Add level privileges
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
+          const cat = priv.privilege_type;
+          let isEquipped = false;
+          
+          // Check against profile equipment columns
+          if (cat === 'frame' || cat === 'portrait_frame') isEquipped = priv.id === profile?.equipped_frame_id;
+          else if (cat === 'entrance' || cat === 'entrance_effect' || cat === 'entry_banner') 
+            isEquipped = priv.id === profile?.equipped_entrance_id || priv.id === profile?.equipped_entry_banner_id;
+          else if (cat === 'entry_bar' || cat === 'entry_name_bar') isEquipped = priv.id === profile?.equipped_entry_name_bar_id;
+          else if (cat === 'bubble') isEquipped = priv.id === profile?.equipped_bubble_id;
+          else if (cat === 'vehicle') isEquipped = priv.id === profile?.equipped_vehicle_id;
+          else if (cat === 'medal') isEquipped = priv.id === profile?.equipped_medal_id;
+          else if (cat === 'noble_card') isEquipped = priv.id === profile?.equipped_noble_card_id;
+
           allPrivileges.push({
             id: priv.id,
-            category: priv.privilege_type,
+            category: cat,
             name: priv.name,
             animation_url: priv.animation_url,
             animation_file_url: null,
             preview_url: priv.preview_url,
-            is_equipped: true, // Level privileges are always "equipped"
+            is_equipped: isEquipped,
             expires_at: null,
             item_type: 'level',
           });
