@@ -2691,6 +2691,7 @@ const FaceVerification = () => {
 
 
 
+
   if (loading) {
     return <LoadingSpinner fullScreen />;
   }
@@ -2821,6 +2822,7 @@ const FaceVerification = () => {
       </div>
     );
   }
+
 
 
   // User verification - 3-step process: Info → Photo → Face
@@ -3025,9 +3027,9 @@ const FaceVerification = () => {
           </motion.div>
         )}
       </div>
-      </div>
     );
   }
+
 
   // Host verification (3-step process)
   return (
