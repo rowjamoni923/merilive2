@@ -122,10 +122,12 @@ export const ChametStyleViewerPanel = ({
     setLoading(false);
   }, []);
 
-  // Pkg184 LiveKit-Purist: REMOVED 20s safety REST poll. Viewer in/out is
-  // applied as a pure in-memory delta from LiveKit `participant_joined` /
-  // `participant_left` window events (Pkg80/81b). Initial snapshot fetched
-  // once on open; thereafter zero REST hits, zero polling, 0ms updates.
+  // Pkg184: LiveKit DataPacket = primary instant path for in-memory delta.
+  // Pkg382: Supabase Realtime on `party_room_participants` filtered to this
+  // room = authoritative DB-backed fallback (LiveKit packets are best-effort
+  // and can be dropped during connect/reconnect races). Both paths converge
+  // because realtime callback triggers fetchPartyViewers() which becomes the
+  // source-of-truth list — duplicates are impossible.
   useEffect(() => {
     isMountedRef.current = true;
     if (!isOpen || !roomId) return;
@@ -162,11 +164,31 @@ export const ChametStyleViewerPanel = ({
     };
     window.addEventListener('livekit-party-event', onPartyEvent);
 
+    // Pkg382 — Supabase Realtime fallback (debounced refetch).
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (isMountedRef.current) fetchPartyViewers();
+      }, 250);
+    };
+    const channel = supabase
+      .channel(`viewer-panel-participants-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
+        scheduleRefetch,
+      )
+      .subscribe();
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('livekit-party-event', onPartyEvent);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      try { supabase.removeChannel(channel); } catch { /* ignore */ }
     };
   }, [isOpen, roomId, fetchPartyViewers]);
+
 
 
   // Use real-time data if available, otherwise fall back to external viewers
