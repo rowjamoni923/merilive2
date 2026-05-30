@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
