@@ -175,7 +175,7 @@ export const PKBattleActive = ({
 
   return (
     <motion.div
-      className="absolute top-24 left-0 right-0 z-30 px-3"
+      className={`absolute left-0 right-0 z-30 px-3 ${compact ? "top-2 mx-auto max-w-xl" : "top-24"}`}
       initial={{ y: -50, opacity: 0, scale: 0.96 }}
       animate={{ y: 0, opacity: 1, scale: 1 }}
       transition={{ type: "spring", damping: 24, stiffness: 320 }}
