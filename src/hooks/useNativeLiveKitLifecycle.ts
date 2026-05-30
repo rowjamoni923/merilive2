@@ -31,6 +31,14 @@ export function useNativeLiveKitLifecycle(
   optsRef.current = { manageCamera, manageMicrophone };
 
   useEffect(() => {
+    if (active) {
+      document.documentElement.classList.add('native-media-active');
+      document.body.classList.add('native-media-active');
+    } else {
+      document.documentElement.classList.remove('native-media-active');
+      document.body.classList.remove('native-media-active');
+    }
+
     if (!active || !isNativeLiveKitAvailable()) return;
 
     let cancelled = false;
