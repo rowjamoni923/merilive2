@@ -170,22 +170,21 @@ const PayrollHelperGuide = () => {
 
         {/* Core Roles */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <Zap className="w-5 h-5 text-amber-500" />
-            Your Core Responsibilities
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <Zap className="w-4 h-4 text-brand-500" />
+            Core Responsibilities
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {roles.map((role, idx) => (
-              <div key={idx} className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className={`h-1 bg-gradient-to-r ${role.color}`} />
+              <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
                 <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center shrink-0`}>
-                      <role.icon className="w-5 h-5 text-slate-800" />
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${role.color} flex items-center justify-center shrink-0 shadow-lg shadow-black/10`}>
+                      <role.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{role.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{role.desc}</p>
+                      <h4 className="font-bold text-slate-800 text-sm">{role.title}</h4>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">{role.desc}</p>
                     </div>
                   </div>
                 </div>
