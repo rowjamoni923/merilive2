@@ -166,7 +166,14 @@ export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesP
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '180px' : isLandscape ? '250px' : '60vh',
+            minHeight: '150px'
+          }}
+        >
+
           <div className="p-4 space-y-4">
             {/* Rules */}
             <div className="space-y-2">
