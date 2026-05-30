@@ -1560,6 +1560,12 @@ const PartyRoom = () => {
         requester_name: currentUser.profile?.display_name || 'User',
         timestamp: Date.now(),
       });
+
+      // Safety-net Supabase Broadcast — guarantees host receives instantly
+      try {
+        const bc = (window as any).__partySeatBroadcast?.[roomId];
+        if (bc) void bc.send({ type: 'broadcast', event: 'seat_event', payload: { kind: 'new_request', requester_id: currentUser.id, seat_position: position } });
+      } catch { /* ignore */ }
       
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
