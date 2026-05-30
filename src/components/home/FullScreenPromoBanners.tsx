@@ -155,6 +155,7 @@ export function FullScreenPromoBanners() {
       void supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+          void supabase.from("profiles").update({ rating_banner_dismissed: true }).eq("id", user.id);
         }
       });
     }
