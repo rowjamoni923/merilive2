@@ -2819,9 +2819,9 @@ const FaceVerification = () => {
           </Button>
         </div>
       </div>
-      </div>
     );
   }
+
 
 
 
@@ -3029,6 +3029,7 @@ const FaceVerification = () => {
       </div>
     );
   }
+
 
 
   // Host verification (3-step process)
@@ -3415,9 +3416,9 @@ const FaceVerification = () => {
         </div>
       )}
     </div>
-    </div>
   );
 };
+
 
 
 export default FaceVerification;
