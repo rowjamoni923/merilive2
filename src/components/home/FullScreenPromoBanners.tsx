@@ -170,10 +170,11 @@ export function FullScreenPromoBanners() {
       setRotationIndex(nextIndex);
 
       if (nextBanner.id === "rating") {
+        const randomDelay = Math.floor(Math.random() * (RATING_SHOW_DELAY_MAX_MS - RATING_SHOW_DELAY_MIN_MS + 1)) + RATING_SHOW_DELAY_MIN_MS;
         ratingDelayTimer = window.setTimeout(() => {
           setIsVisible(true);
           sessionStorage.setItem(SESSION_KEY, "1");
-        }, RATING_SHOW_DELAY_MS);
+        }, randomDelay);
         return;
       }
 
