@@ -595,31 +595,18 @@ const AdminFrames = () => {
                       );
                     }
 
-                    // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
-                    // Mirror in-app AvatarWithFrame proportions (avatar 80, frame ~98 → -9px inset)
+                    // Animated formats (.svga, .json/lottie, .mp4, .webm) — render frame
+                    // ART centered & filling the card, mirroring in-app Shop preview.
                     return (
-                      <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
-                        <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
-                          <AvatarFallback className="bg-slate-700 text-white text-xs">U</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute z-20 pointer-events-none" style={{ 
-                          width: 98, 
-                          height: 98, 
-                          top: -9, 
-                          left: -9,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <FixedAnimationFrame
-                            src={frame.frame_url || previewUrl}
-                            type={frame.frame_type as any}
-                            size="fill"
-                            center={true}
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        </div>
+                      <div className="relative w-[85%] h-[85%] flex items-center justify-center">
+                        <FixedAnimationFrame
+                          src={frame.frame_url || previewUrl}
+                          type={frame.frame_type as any}
+                          size="fill"
+                          center={false}
+                          loop={true}
+                          autoPlay={true}
+                        />
                       </div>
                     );
                   })()}
