@@ -83,7 +83,7 @@ const PayrollHelperGuide = () => {
           <img src={bannerImage} alt="Payroll Helper System" className="w-full h-56 object-cover"/>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
-            <Badge className="bg-emerald-500 text-white border-0 text-[9px] font-black tracking-[0.2em] mb-2 px-3 py-0.5 uppercase shadow-lg">
+            <Badge className="bg-brand-500 text-white border-0 text-[9px] font-black tracking-[0.2em] mb-2 px-3 py-0.5 uppercase shadow-lg">
               Premium Earning
             </Badge>
             <h2 className="text-2xl font-black text-white leading-tight">
