@@ -614,6 +614,7 @@ const Level = () => {
           currentLevel={currentLevel}
           isOpen={isPreviewOpen}
           onClose={() => setIsPreviewOpen(false)}
+          userId={user?.id}
         />
       </div>
 
