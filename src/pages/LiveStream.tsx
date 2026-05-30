@@ -2018,7 +2018,8 @@ const LiveStream = () => {
   };
 
   const handleCall = () => {
-    setShowCallConfirm(true);
+    // Pkg: Direct call as requested - bypassing confirmation modal
+    handleConfirmCall();
   };
 
   const handleConfirmCall = async () => {
