@@ -2089,7 +2089,7 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className={`${usingNativeFaceCamera ? 'bg-background/20 backdrop-blur-[2px]' : 'bg-white'} rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]`}>
+    <div className={`${usingNativeFaceCamera ? 'bg-transparent border-transparent shadow-none' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]'} rounded-3xl p-5 border`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -2134,7 +2134,7 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 shadow-2xl ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-white/80'}`}>
+      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : 'bg-white/80 shadow-2xl'}`}>
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
             <motion.div
