@@ -271,7 +271,7 @@ export const PKBattleActive = ({
             <div className="flex-1 flex items-center gap-2">
               <div className="relative">
                 <motion.div
-                  className="w-12 h-12 rounded-full overflow-hidden"
+                  className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
                     border: challengerWinning ? "2px solid #fbbf24" : "2px solid #ec4899",
                     boxShadow: challengerWinning
@@ -349,7 +349,7 @@ export const PKBattleActive = ({
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
               <div className="relative">
                 <motion.div
-                  className="w-12 h-12 rounded-full overflow-hidden"
+                  className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
                     border: opponentWinning ? "2px solid #fbbf24" : "2px solid #a855f7",
                     boxShadow: opponentWinning
