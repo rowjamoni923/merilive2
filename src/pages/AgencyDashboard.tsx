@@ -320,14 +320,13 @@ const AgencyDashboard = () => {
           navigate("/auth");
           return;
         }
-        setCurrentUserId(user.id);
 
         const { data: agencyData, error: agencyError } = await supabase
           .from("agencies")
           .select("*")
           .eq("owner_id", user.id)
-
           .maybeSingle();
+
 
 
         if (cancelled) return;
