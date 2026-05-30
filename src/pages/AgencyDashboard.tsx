@@ -54,7 +54,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCurrencyRateForCountry } from "@/utils/currencyRatesCache";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { HostsIcon3D, WithdrawIcon3D, RankingIcon3D, HelperIcon3D, DiamondExchangeIcon3D, PolicyIcon3D, HistoryIcon3D } from "@/components/agency/Premium3DIcons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -96,7 +95,7 @@ const AgencyDashboard = () => {
   const { toast } = useToast();
   const [agency, setAgency] = useState<Agency | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  
   const [showHelperForm, setShowHelperForm] = useState(false);
   const [helperData, setHelperData] = useState<any>(null);
   const [isHelperLoading, setIsHelperLoading] = useState(true);
