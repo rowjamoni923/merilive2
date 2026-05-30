@@ -452,7 +452,7 @@ export function useLiveKitCall(
 
           try {
             // Pkg155: Force subscription on every publish event
-            publication.setSubscribed(true).catch(() => {});
+            publication.setSubscribed(true);
           } catch { /* ignore */ }
         });
 
