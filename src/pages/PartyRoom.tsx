@@ -1208,9 +1208,28 @@ const PartyRoom = () => {
         scheduleRefetch,
       )
       .subscribe();
+
+    // ============= Safety-net: Supabase Broadcast for seat events =============
+    // LiveKit DataPacket (Pkg80 seat_action) + postgres_changes above are the
+    // primary instant paths. But LiveKit DataPackets are best-effort and
+    // postgres_changes can be filtered out by RLS edge cases. This dedicated
+    // broadcast channel guarantees every participant (esp. the HOST) is
+    // notified instantly when ANY seat event happens, then refetches the
+    // source-of-truth DB rows. Zero RLS dependency on the realtime path.
+    const seatBroadcast = supabase
+      .channel(`party-seat-broadcast-${roomId}`, { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'seat_event' }, () => {
+        scheduleRefetch();
+      })
+      .subscribe();
+    (window as any).__partySeatBroadcast = (window as any).__partySeatBroadcast || {};
+    (window as any).__partySeatBroadcast[roomId] = seatBroadcast;
+
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       try { supabase.removeChannel(channel); } catch { /* ignore */ }
+      try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
+      try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
   }, [roomId, fetchParticipants, fetchSeatRequests]);
 
@@ -1541,6 +1560,12 @@ const PartyRoom = () => {
         requester_name: currentUser.profile?.display_name || 'User',
         timestamp: Date.now(),
       });
+
+      // Safety-net Supabase Broadcast — guarantees host receives instantly
+      try {
+        const bc = (window as any).__partySeatBroadcast?.[roomId];
+        if (bc) void bc.send({ type: 'broadcast', event: 'seat_event', payload: { kind: 'new_request', requester_id: currentUser.id, seat_position: position } });
+      } catch { /* ignore */ }
       
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
@@ -1648,6 +1673,11 @@ const PartyRoom = () => {
         request_id: request.id,
         timestamp: Date.now(),
       });
+
+      try {
+        const bc = (window as any).__partySeatBroadcast?.[roomId];
+        if (bc) void bc.send({ type: 'broadcast', event: 'seat_event', payload: { kind: 'approved', request_id: request.id, requester_id: request.requester_id, seat_position: request.seat_position } });
+      } catch { /* ignore */ }
       
       // Force refresh participants to update UI immediately for all users
       await fetchParticipants();
