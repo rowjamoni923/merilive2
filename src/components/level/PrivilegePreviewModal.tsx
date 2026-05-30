@@ -4,6 +4,8 @@ import { X, Lock, Sparkles, Crown, Star, Gift, Car, Image, Headphones, Check } f
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Lottie from "lottie-react";
+import { useUserPrivileges } from "@/hooks/useUserPrivileges";
+import { useToast } from "@/hooks/use-toast";
 
 interface LevelPrivilege {
   id: string;
@@ -23,6 +25,7 @@ interface PrivilegePreviewModalProps {
   currentLevel: number;
   isOpen: boolean;
   onClose: () => void;
+  userId?: string | null;
 }
 
 const iconMap: Record<string, React.ElementType> = {
