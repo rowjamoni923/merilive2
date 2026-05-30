@@ -2220,11 +2220,6 @@ const FaceVerification = () => {
                 <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-purple-400 animate-spin mb-4" />
                 <p className="text-white text-sm font-bold animate-pulse">Initializing Direct Camera...</p>
               </div>
-                <div className="flex flex-col items-center">
-                  <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mb-2" />
-                  <p className="text-slate-600 text-sm">Initializing camera...</p>
-                </div>
-              </div>
             )}
             
             {/* Face oval guide with dynamic border color */}
