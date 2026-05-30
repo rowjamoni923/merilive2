@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Crown, Swords, Timer } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
@@ -36,6 +37,8 @@ export const PKBattleActive = ({
   const [opponentScore, setOpponentScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [battleEnded, setBattleEnded] = useState(false);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+  const compact = isLandscape || isVerySmallHeight;
 
   // Pkg181: INSTANT score sync — 0ms perceived latency, NO polling.
   //   1. Initial DB seed once (mid-battle rejoin safety).
