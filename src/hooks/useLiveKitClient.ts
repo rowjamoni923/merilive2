@@ -341,16 +341,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   }, [getUidForParticipant, attachRemoteAudioOnce]);
 
 
-  const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
-    const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
-    if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
-    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'live', key: trackKey, track, muted: isRemoteAudioMutedRef.current });
-    if (!audioEl) return;
-    remoteAudioTrackKeysRef.current.add(trackKey);
-    const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
-    if (!existing.includes(audioEl)) existing.push(audioEl);
-    remoteAudioElementsRef.current.set(participantIdentity, existing);
-  }, []);
 
   // Join channel - creates a LiveKit room connection
   const joinChannel = useCallback(async (config: LiveKitConfig) => {
