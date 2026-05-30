@@ -78,7 +78,12 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'agencies',
   'topup_helpers',
   'face_verification_submissions',
+  'host_applications',
+  'stream_viewers',
+  'party_room_participants',
+  'app_settings',
 ]);
+
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
