@@ -296,13 +296,13 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "flex flex-wrap items-center gap-2 w-fit",
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
-          "rounded-[20px] max-w-[94%]",
+          "rounded-[20px] max-w-[94%] md:max-w-[70%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
           getGlowStyle(),
-          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4",
+          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4 md:py-2.5 md:px-5",
         ],
       )}
     >
