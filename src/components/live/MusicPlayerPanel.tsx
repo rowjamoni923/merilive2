@@ -251,17 +251,20 @@ export const MusicPlayerPanel = ({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-              className="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-background to-background/95 rounded-t-3xl max-h-[80vh] overflow-hidden"
+              className={cn(
+                "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-background to-background/95 rounded-t-3xl max-h-[80vh] overflow-hidden",
+                "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl"
+              )}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border/50">
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-border/50">
                 <div className="flex items-center gap-2">
-                  <Music className="w-5 h-5 text-primary" />
-                  <h2 className="text-lg font-bold">Music Player</h2>
+                  <Music className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                  <h2 className="text-lg md:text-xl font-bold">Music Player</h2>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="w-5 h-5" />
+                <Button variant="ghost" size="icon" onClick={onClose} className="md:w-10 md:h-10">
+                  <X className="w-5 h-5 md:w-6 md:h-6" />
                 </Button>
               </div>
 
