@@ -329,20 +329,42 @@ export const useNotifications = () => {
             }));
           } catch {/* noop */}
 
-          if (newNotification.type === 'app_sync') {
+          const isAppSync = newNotification.type === 'app_sync';
+          const isStatusUpdate = [
+            'host_approved', 'host_rejected', 
+            'helper_approved', 'helper_rejected',
+            'agency_approved', 'agency_rejected',
+            'withdrawal_approved', 'withdrawal_rejected',
+            'topup_approved', 'topup_rejected'
+          ].includes(newNotification.type);
+
+          if (isAppSync || isStatusUpdate) {
             const data = (newNotification.data || {}) as Record<string, any>;
-            if (typeof data.topic === 'string') {
+            const topic = isAppSync ? (data.topic as string) : (newNotification.type.split('_')[0] + 's'); // e.g. host_approved -> hosts
+            
+            if (topic) {
               window.dispatchEvent(new CustomEvent('app-sync', {
-                detail: { topic: data.topic, eventType: data.eventType || data.event_type, rowId: data.row_id || null, payload: data },
+                detail: { 
+                  topic, 
+                  eventType: data.eventType || data.event_type || 'UPDATE', 
+                  rowId: data.row_id || null, 
+                  payload: data 
+                },
               }));
-              if (data.topic === 'helper_notifications') {
+
+              // If it's a verification update, also trigger a profiles sync
+              if (['host', 'helper', 'agency'].some(t => topic.includes(t))) {
+                window.dispatchEvent(new CustomEvent('app-sync', {
+                  detail: { topic: 'profiles', eventType: 'UPDATE', payload: {} },
+                }));
+              }
+
+              if (topic === 'helper_notifications' || topic === 'helpers') {
                 fetchNotificationsRef.current();
                 emitGlobalUnreadRefresh();
               }
-              // No-auto-refresh policy: realtime channels push their own updates;
-              // do not dispatch a synthetic visibilitychange (was causing global refetch).
             }
-            return;
+            if (isAppSync) return;
           }
 
           // Skip admin-only notification types in the user app
