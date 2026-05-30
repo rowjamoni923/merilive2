@@ -141,14 +141,29 @@ export function ParticipantVideo({
             style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
         ) : (
           <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
-            {avatarUrl && (
-              <img 
-                src={avatarUrl} 
-                alt="" 
-                className="absolute inset-0 w-full h-full object-cover opacity-20 blur-xl"
-              />
+            {roomType === 'audio' ? (
+              <Avatar className={cn(
+                "border-2",
+                "w-12 h-12",
+                isHost ? "border-yellow-400" : "border-purple-400"
+              )}>
+                <AvatarImage src={avatarUrl || undefined} />
+                <AvatarFallback className="bg-purple-600 text-white text-xl">
+                  {displayName?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <>
+                {avatarUrl && (
+                  <img 
+                    src={avatarUrl} 
+                    alt="" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-20 blur-xl"
+                  />
+                )}
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
+              </>
             )}
-            <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
           </div>
         )}
 
