@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hide_gift_senders boolean NOT NULL DEFAULT false;

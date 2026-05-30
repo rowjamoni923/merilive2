@@ -25,6 +25,8 @@ import {
   Diamond,
   Gift,
   ShieldX,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
@@ -43,6 +45,7 @@ import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -112,6 +115,7 @@ interface ProfileData {
   is_in_call?: boolean | null;
   host_status?: string | null;
   host_availability?: string | null;
+  hide_gift_senders?: boolean | null;
 }
 
 interface FrameData {
@@ -1346,7 +1350,7 @@ const ProfileDetail = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.15 }}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <button
                 onClick={() => navigate("/leaderboard")}
                 className="flex items-center gap-1 text-lg font-bold text-slate-950"
@@ -1354,9 +1358,40 @@ const ProfileDetail = () => {
                 🎁 Gifts Received
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </button>
-              <span className="text-sm text-muted-foreground font-medium">
-                Total: {profile?.total_earnings?.toLocaleString() || 0} beans
-              </span>
+              <div className="flex items-center gap-3">
+                {isOwnProfile && (
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1 shadow-sm cursor-pointer select-none">
+                    {profile?.hide_gift_senders ? (
+                      <EyeOff className="w-3.5 h-3.5 text-fuchsia-600" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                    )}
+                    <span>Hide senders</span>
+                    <Switch
+                      checked={!!profile?.hide_gift_senders}
+                      onCheckedChange={async (v) => {
+                        if (!profile?.id) return;
+                        const prev = !!profile.hide_gift_senders;
+                        setProfile({ ...profile, hide_gift_senders: v } as ProfileData);
+                        const { error } = await supabase
+                          .from('profiles')
+                          .update({ hide_gift_senders: v })
+                          .eq('id', profile.id);
+                        if (error) {
+                          setProfile({ ...profile, hide_gift_senders: prev } as ProfileData);
+                          toast({ title: 'Could not update', description: error.message, variant: 'destructive' });
+                        } else {
+                          toast({ title: v ? 'Gift senders hidden' : 'Gift senders visible', description: v ? 'Visitors will no longer see who sent your gifts.' : 'Visitors can now see who sent your gifts.' });
+                        }
+                      }}
+                      className="ml-1 scale-75"
+                    />
+                  </label>
+                )}
+                <span className="text-sm text-muted-foreground font-medium">
+                  Total: {profile?.total_earnings?.toLocaleString() || 0} beans
+                </span>
+              </div>
             </div>
 
             <div className="rounded-2xl p-4 profile-home-section">
@@ -1427,9 +1462,9 @@ const ProfileDetail = () => {
       )}
 
       <Dialog open={showGiftSendersModal} onOpenChange={setShowGiftSendersModal}>
- <DialogContent className="max-w-sm mx-auto max-h-[80vh] bg-[#141428] border-slate-200/10">
+  <DialogContent className="max-w-sm mx-auto max-h-[80vh] bg-white border border-slate-200 text-slate-900">
           <DialogHeader>
- <DialogTitle className="flex items-center gap-2 text-slate-900">
+  <DialogTitle className="flex items-center gap-2 text-slate-900">
               {(() => {
                 const normalized = normalizeGiftMediaUrl(selectedGift?.icon);
                 if (normalized && /\.svga(\?|$)/i.test(normalized)) {
@@ -1455,11 +1490,20 @@ const ProfileDetail = () => {
               })()}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
- <DialogDescription className="text-slate-700/75">
+  <DialogDescription className="text-slate-600">
               Total: {selectedGift?.count || 0} gifts received
             </DialogDescription>
           </DialogHeader>
           
+          {!isOwnProfile && profile?.hide_gift_senders ? (
+            <div className="flex flex-col items-center justify-center py-10 px-6 text-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-fuchsia-100 flex items-center justify-center">
+                <EyeOff className="w-8 h-8 text-fuchsia-600" />
+              </div>
+              <p className="text-base font-semibold text-slate-900">Senders are private</p>
+              <p className="text-sm text-slate-600">This user has chosen to keep gift senders hidden.</p>
+            </div>
+          ) : (
           <ScrollArea className="max-h-[50vh] pr-2">
             <div className="space-y-3">
               {giftsWithSenders
@@ -1474,22 +1518,21 @@ const ProfileDetail = () => {
                       setShowGiftSendersModal(false);
                       navigate(`/profile/${gift.sender_id}`);
                     }}
-                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-white/5 transition-all"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-all bg-slate-50/60 border border-slate-200"
                   >
                     <Avatar className="w-12 h-12 border border-fuchsia-500/30">
                       <AvatarImage src={gift.sender_avatar || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-fuchsia-600 to-purple-600 text-slate-900 font-bold">
+  <AvatarFallback className="bg-gradient-to-br from-fuchsia-600 to-purple-600 text-white font-bold">
                         {gift.sender_name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
- <p className="font-semibold text-sm truncate text-slate-700/90">{gift.sender_name}</p>
+  <p className="font-semibold text-sm truncate text-slate-900">{gift.sender_name}</p>
                       {gift.sender_uid && (
- <p className="text-xs text-slate-700/70 flex items-center gap-1">
+  <p className="text-xs text-slate-600 flex items-center gap-1">
                           <span className="w-4 h-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 flex items-center justify-center">
- <span className="text-slate-900 font-bold text-[6px]">ID</span>
+  <span className="text-white font-bold text-[6px]">ID</span>
                           </span>
                           {gift.sender_uid}
                         </p>
@@ -1501,7 +1544,7 @@ const ProfileDetail = () => {
                         <span className="text-lg">💎</span>
                         <span className="text-sm">{gift.coin_amount}</span>
                       </div>
- <p className="text-[10px] text-slate-700/70">
+  <p className="text-[10px] text-slate-500">
                         {new Date(gift.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -1509,16 +1552,17 @@ const ProfileDetail = () => {
                 ))}
               
               {giftsWithSenders.filter(g => g.gift_id === selectedGift?.id).length === 0 && (
- <div className="text-center py-6 text-slate-700/70">
+  <div className="text-center py-6 text-slate-500">
                   <span className="text-3xl">🔍</span>
                   <p className="text-sm mt-2">No sender information available</p>
                 </div>
               )}
             </div>
           </ScrollArea>
+          )}
           
           <DialogFooter>
- <Button variant="outline" onClick={() => setShowGiftSendersModal(false)} className="w-full border-slate-200/10 text-slate-700/70 hover:bg-white/5">
+  <Button variant="outline" onClick={() => setShowGiftSendersModal(false)} className="w-full border-slate-200 text-slate-700 hover:bg-slate-50">
               Close
             </Button>
           </DialogFooter>
