@@ -1283,24 +1283,24 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <DiamondExchangeIcon3D />
-            <span className="text-xs font-medium mt-1">Diamond Exchange</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <PolicyIcon3D />
-            <span className="text-xs font-medium mt-1">Policy</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <HistoryIcon3D />
-            <span className="text-xs font-medium mt-1">History</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">History</span>
           </button>
         </div>
       </div>
