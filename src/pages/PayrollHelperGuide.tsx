@@ -156,15 +156,15 @@ const PayrollHelperGuide = () => {
 
       <div className="p-4 space-y-6 pb-24">
         {/* What is a Payroll Helper */}
-        <section className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-5 border border-amber-500/20">
+        <section className="bg-white rounded-2xl p-5 border border-brand-100 shadow-lg shadow-brand-500/5">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+            <div className="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-brand-600" />
             </div>
-            <h3 className="font-bold text-base">What is a Payroll Helper?</h3>
+            <h3 className="font-bold text-base text-slate-800">What is a Payroll Helper?</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            A <strong className="text-foreground">Payroll Helper</strong> is a trusted, verified member of our platform who acts as a <strong className="text-foreground">financial bridge</strong> between the app and its users. You process real-money transactions — including user diamond top-ups, agency salary withdrawals, and diamond transfers — using local payment methods. In return, you earn <strong className="text-foreground">commissions</strong> and <strong className="text-foreground">diamond rewards</strong> that can be converted into real profit.
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            A <strong className="text-brand-600 font-black">Payroll Helper</strong> is a trusted, verified member of our platform who acts as a <strong className="text-info-600 font-black">financial bridge</strong> between the app and its users. You process real-money transactions — including user diamond top-ups, agency salary withdrawals, and diamond transfers — using local payment methods. In return, you earn <strong className="text-success-600 font-black">commissions</strong> and <strong className="text-amber-600 font-black">diamond rewards</strong> that can be converted into real profit.
           </p>
         </section>
 
