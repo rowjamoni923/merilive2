@@ -338,14 +338,14 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "rounded-md font-black shrink-0 shadow-md",
         getLevelBadgeBg(level),
         getLevelTextColor(level),
-        isGiftMessage ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[10px]"
+        isGiftMessage ? "px-1.5 py-0.5 text-[8px] md:text-[10px]" : "px-2 py-0.5 text-[10px] md:text-xs"
       )}>
         <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{formatLevel(level)}</span>
       </div>
 
       {/* Country Flag */}
       {message.countryFlag && !isGiftMessage && (
-        <span className="text-sm shrink-0 drop-shadow-md">{message.countryFlag}</span>
+        <span className="text-sm md:text-base shrink-0 drop-shadow-md">{message.countryFlag}</span>
       )}
 
       {/* Username + Colon */}
@@ -355,7 +355,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]",
         isHost && "text-shadow-glow-rose",
         isGameWinMessage && "text-shadow-glow-amber",
-        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
+        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
       )}>
         {message.user}:
       </span>
@@ -368,7 +368,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "break-words font-medium leading-snug",
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]",
         isGameWinMessage ? 'text-yellow-50 font-bold' : isGiftMessage ? 'text-pink-50' : 'text-white/95',
-        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
+        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
       )}>
         {parseMentions(cleanMessage)}
       </span>
