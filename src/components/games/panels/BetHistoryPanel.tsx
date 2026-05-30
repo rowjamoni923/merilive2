@@ -169,7 +169,14 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
           </div>
         </div>
 
-        <ScrollArea className="h-[40vh] overflow-y-auto">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '150px' : isLandscape ? '220px' : '40vh',
+            minHeight: '120px'
+          }}
+        >
+
           <div className="p-2 space-y-1.5">
             {loading ? (
               <div className="flex items-center justify-center py-8">
