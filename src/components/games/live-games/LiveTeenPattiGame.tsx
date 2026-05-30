@@ -588,7 +588,12 @@ export function LiveTeenPattiGame({
         )}
         
         {/* Label */}
-        <span className={cn("text-2xl font-bold mb-1", labelColors[label])}>
+        <span className={cn(
+          "font-bold mb-1",
+          isVerySmallHeight ? "text-sm" : isLandscape ? "text-lg" : "text-2xl",
+          labelColors[label]
+        )}>
+
           {label}
         </span>
 
