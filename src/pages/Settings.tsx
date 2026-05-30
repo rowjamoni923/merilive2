@@ -416,11 +416,10 @@ const Settings = () => {
     console.log('[Settings] Requesting camera permission...');
     if (permissions.camera) {
       toast({
-        title: "Already Enabled",
-        description: isNativeApp()
-          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera."
-          : "To disable, change it from your browser site settings.",
+        title: "Permission Active",
+        description: "Opening app settings so you can manage camera access.",
       });
+      void openPermissionSettings();
       return;
     }
 
