@@ -8,19 +8,14 @@ import {
   Coins,
   Copy,
   Diamond,
-  Trophy,
   Sparkles,
   Settings,
   Building2,
   Zap,
-  Percent,
   FileText,
   ArrowRight,
   Wallet,
-  History,
-  Banknote,
-  BadgeDollarSign,
-  Gem
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -72,14 +67,6 @@ interface LevelTier {
   level_name: string;
   commission_rate: number;
   badge_color: string;
-}
-
-interface WithdrawalHistory {
-  id: string;
-  amount: number;
-  status: string;
-  payment_method: string;
-  requested_at: string;
 }
 
 const AgencyDashboard = () => {
