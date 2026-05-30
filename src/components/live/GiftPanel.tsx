@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, Suspense, lazy, useCallback, useMemo, memo } from "react";
 import { createPortal } from "react-dom";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
