@@ -289,8 +289,9 @@ export const GiftSwipeableGrid = memo(({
               "grid gap-2 animate-[giftPageIn_220ms_cubic-bezier(0.32,0.72,0,1)]",
               gridCols
             )}
-            style={{ fill: 'transform, opacity' }}
+            style={{ willChange: 'transform, opacity' }}
           >
+
 
             {currentPageGifts.map((gift) => (
               <GiftItem
