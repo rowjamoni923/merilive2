@@ -265,8 +265,8 @@ export const PKBattleActive = ({
         </div>
 
         {/* VS Section */}
-        <div className="relative p-3">
-          <div className="flex items-center justify-between gap-2">
+        <div className={compact ? "relative p-2" : "relative p-3"}>
+          <div className={`flex items-center justify-between ${compact ? "gap-1.5" : "gap-2"}`}>
             {/* Challenger */}
             <div className="flex-1 flex items-center gap-2">
               <div className="relative">
