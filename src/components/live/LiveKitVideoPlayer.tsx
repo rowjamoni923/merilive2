@@ -198,9 +198,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       if (mt && mt.readyState === 'live') {
         revealVideo();
         // Best-effort: kick play() again in case autoplay was deferred.
-        try { el.play().catch(() => {}); } catch { /* ignore */ }
+        try { 
+          if (el.paused) el.play().catch(() => {}); 
+        } catch { /* ignore */ }
       }
-    }, 1200);
+    }, 600); // Reduced from 1200ms to 600ms for faster first frame response
 
 
     // === STALL WATCHDOG (optimized: 1.5s interval instead of 1s) ===

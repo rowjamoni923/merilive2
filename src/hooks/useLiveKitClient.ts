@@ -288,33 +288,43 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const ensureParticipantSubscribed = useCallback((participant: RemoteParticipant) => {
     const pUid = getUidForParticipant(participant.identity);
 
-    participant.trackPublications.forEach((pub) => {
-      if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio) && !pub.isSubscribed) {
-        try {
-          pub.setSubscribed(true);
-        } catch {
-          // ignore and continue
+    // Pkg381: Ensure ALL participants (especially the host) are in the map
+    // even before their tracks arrive. This prevents the "nothing but
+    // background" viewer symptom.
+    setRemoteUsers((prev) => {
+      const existing = prev.get(pUid);
+      const userWrapper = existing || {
+        uid: pUid,
+        videoTrack: null as any,
+        audioTrack: null as any,
+        hasVideo: false,
+        hasAudio: false,
+      };
+
+      let changed = !existing;
+
+      participant.trackPublications.forEach((pub) => {
+        if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio) && !pub.isSubscribed) {
+          try { pub.setSubscribed(true); } catch { /* ignore */ }
         }
+
+        if (pub.kind === Track.Kind.Video && pub.track && pub.track !== userWrapper.videoTrack) {
+          userWrapper.videoTrack = pub.track;
+          userWrapper.hasVideo = true;
+          changed = true;
+        }
+
+        if (pub.kind === Track.Kind.Audio && pub.track && pub.track !== userWrapper.audioTrack) {
+          userWrapper.audioTrack = pub.track;
+          userWrapper.hasAudio = true;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        return new Map(prev).set(pUid, { ...userWrapper });
       }
-
-      if (pub.track?.kind === Track.Kind.Video) {
-        const userWrapper = {
-          uid: pUid,
-          videoTrack: pub.track,
-          audioTrack: null as any,
-          hasVideo: true,
-          hasAudio: false,
-        };
-
-        participant.trackPublications.forEach((audioPub) => {
-          if (audioPub.track?.kind === Track.Kind.Audio) {
-            userWrapper.audioTrack = audioPub.track;
-            userWrapper.hasAudio = true;
-          }
-        });
-
-        setRemoteUsers((prev) => new Map(prev).set(pUid, userWrapper));
-      }
+      return prev;
     });
   }, [getUidForParticipant]);
 
