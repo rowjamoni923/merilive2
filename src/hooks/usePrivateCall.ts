@@ -193,11 +193,6 @@ export function usePrivateCall(userId: string | null) {
     return unsubscribe;
   }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
 
-  // Keep ref to callState for use in the realtime callback
-  const callStateRef = useRef(callState);
-  useEffect(() => {
-    callStateRef.current = callState;
-  }, [callState]);
 
 
   // Clear all timers helper
