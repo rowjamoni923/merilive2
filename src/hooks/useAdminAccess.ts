@@ -127,8 +127,8 @@ export const useAdminAccess = () => {
         })) as AccessibleSection[];
     },
     enabled: !!verifiedAdminId && !!adminUser && adminUser.role !== 'owner',
-    staleTime: 6 * 60 * 60 * 1000, // Cache for 6 hours
-    gcTime: 12 * 60 * 60 * 1000,
+    staleTime: Infinity, // Sub-admin permissions are stable for the session
+    gcTime: 24 * 60 * 60 * 1000,
   });
 
   // Admin access loads on mount only. Realtime permission invalidation is disabled
