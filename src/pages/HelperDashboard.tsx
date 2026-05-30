@@ -276,35 +276,41 @@ const HelperDashboard = () => {
     }
   };
 
-  // Instant sync via app_sync/admin_broadcast only. These tables are not in
-  // supabase_realtime publication, so direct postgres_changes channels were dead.
+  // Pkg361 ZERO-REFRESH: Instant sync via subscribeToTables
   useEffect(() => {
-    if (!helperData?.id) return;
+    if (!helperId || !currentUserId) return;
 
-    const onAdminTableUpdate = (event: Event) => {
-      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
-      if (table === 'trader_level_tiers') void refetchTraderLevels();
-      if (table === 'topup_payment_methods') void loadData();
-    };
+    const unsubscribe = subscribeToTables(
+      `helper-dashboard-${helperId}`,
+      ['topup_helpers', 'helper_upgrade_requests', 'agencies', 'profiles', 'trader_level_tiers'],
+      (table, event, payload) => {
+        const row = payload as any;
+        
+        // 1. Helper data updates (wallet balance, trader level)
+        if (table === 'topup_helpers' && row.id === helperId) {
+          setHelperData(prev => prev ? { ...prev, ...row } : row);
+        }
+        
+        // 2. Upgrade request status changes
+        if (table === 'helper_upgrade_requests' && row.helper_id === helperId) {
+          fetchPendingRequests(helperId);
+        }
+        
+        // 3. Agency balance updates (for combined wallet)
+        if (table === 'agencies' && row.owner_id === currentUserId) {
+          setAgencyDiamondBalance(row.diamond_balance || 0);
+        }
 
-    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+        // 4. Trader level tiers updates (if admin changes costs/commission)
+        if (table === 'trader_level_tiers') {
+          refetchTraderLevels();
+        }
+      }
+    );
 
-    return () => {
-      window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
-    };
-  }, [helperData?.id, helperData?.country_code]);
+    return unsubscribe;
+  }, [helperId, currentUserId]);
 
-  // Separate fetch function that accepts helper_id directly - fetch ALL requests including approved
-  const fetchPendingRequests = async (helperId: string) => {
-    const { data } = await supabase
-      .from('helper_upgrade_requests' as any)
-      .select('*')
-      .eq('helper_id', helperId)
-      .order('created_at', { ascending: false });
-    
-    console.log('[HelperDashboard] Fetched upgrade requests:', data);
-    setPendingRequests((data as unknown as UpgradeRequest[]) || []);
-  };
 
   const loadData = async () => {
     try {
