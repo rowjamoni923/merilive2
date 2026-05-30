@@ -417,7 +417,11 @@ export function LiveFerrisWheelGame({
               {/* Section Dividers */}
               {WHEEL_ITEMS.map((_, i) => (
                 <div key={i} className="absolute" style={{ transform: `rotate(${i * 45}deg)` }}>
-                  <div className="w-0.5 h-[104px] bg-white/30"
+                  <div className={cn(
+                    "w-0.5 bg-white/30",
+                    isVerySmallHeight ? "h-[56px]" : isLandscape ? "h-[80px]" : "h-[104px]"
+                  )}
+
                     style={{ transformOrigin: "bottom center", position: "absolute", bottom: "50%", left: "calc(50% - 1px)" }}
                   />
                 </div>
