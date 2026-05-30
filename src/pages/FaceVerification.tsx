@@ -365,11 +365,7 @@ const FaceVerification = () => {
       console.warn('[FaceVerification] faceVideoRef not ready, retrying in 200ms...');
       setTimeout(() => {
         const retryEl = faceVideoRef.current;
-        if (retryEl) {
-          retryEl.srcObject = stream;
-          retryEl.play().catch(console.error);
-          setCameraReady(true);
-        }
+        if (retryEl) attachFacePreviewStream(stream);
       }, 200);
       return;
     }
@@ -378,6 +374,29 @@ const FaceVerification = () => {
     
     // Clear any previous srcObject
     videoEl.srcObject = null;
+    videoEl.style.opacity = '0';
+    videoEl.style.transition = 'opacity 200ms ease-out';
+    
+    const reveal = () => {
+      if (videoEl) videoEl.style.opacity = '1';
+      setCameraReady(true);
+    };
+
+    videoEl.onplaying = reveal;
+    videoEl.onloadeddata = reveal;
+
+    videoEl.srcObject = stream;
+    videoEl.play()
+      .then(() => {
+        // Fallback reveal watchdog for face verification
+        setTimeout(() => {
+          if (stream.active) reveal();
+        }, 600);
+      })
+      .catch(err => {
+        console.error('[FaceVerification] Video play failed:', err);
+      });
+  }, []);
     
     // Pkg155: Enhanced video reliability for Face Verification
     requestAnimationFrame(() => {
