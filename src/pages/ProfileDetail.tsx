@@ -1350,7 +1350,7 @@ const ProfileDetail = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.15 }}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <button
                 onClick={() => navigate("/leaderboard")}
                 className="flex items-center gap-1 text-lg font-bold text-slate-950"
@@ -1358,9 +1358,40 @@ const ProfileDetail = () => {
                 🎁 Gifts Received
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </button>
-              <span className="text-sm text-muted-foreground font-medium">
-                Total: {profile?.total_earnings?.toLocaleString() || 0} beans
-              </span>
+              <div className="flex items-center gap-3">
+                {isOwnProfile && (
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1 shadow-sm cursor-pointer select-none">
+                    {profile?.hide_gift_senders ? (
+                      <EyeOff className="w-3.5 h-3.5 text-fuchsia-600" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                    )}
+                    <span>Hide senders</span>
+                    <Switch
+                      checked={!!profile?.hide_gift_senders}
+                      onCheckedChange={async (v) => {
+                        if (!profile?.id) return;
+                        const prev = !!profile.hide_gift_senders;
+                        setProfile({ ...profile, hide_gift_senders: v } as ProfileData);
+                        const { error } = await supabase
+                          .from('profiles')
+                          .update({ hide_gift_senders: v })
+                          .eq('id', profile.id);
+                        if (error) {
+                          setProfile({ ...profile, hide_gift_senders: prev } as ProfileData);
+                          toast({ title: 'Could not update', description: error.message, variant: 'destructive' });
+                        } else {
+                          toast({ title: v ? 'Gift senders hidden' : 'Gift senders visible', description: v ? 'Visitors will no longer see who sent your gifts.' : 'Visitors can now see who sent your gifts.' });
+                        }
+                      }}
+                      className="ml-1 scale-75"
+                    />
+                  </label>
+                )}
+                <span className="text-sm text-muted-foreground font-medium">
+                  Total: {profile?.total_earnings?.toLocaleString() || 0} beans
+                </span>
+              </div>
             </div>
 
             <div className="rounded-2xl p-4 profile-home-section">
