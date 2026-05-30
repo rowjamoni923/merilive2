@@ -51,6 +51,8 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalBets: 0, totalWon: 0, totalLost: 0, winRate: 0 });
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) {
