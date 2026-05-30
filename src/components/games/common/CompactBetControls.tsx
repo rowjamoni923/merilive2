@@ -64,7 +64,8 @@ export function CompactPresetBets({
           onClick={() => setBetAmount(amount)}
           disabled={amount > userCoins}
           className={cn(
-            "px-1.5 py-0.5 rounded text-[8px] font-bold transition-all",
+            "px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all min-w-[44px]",
+
             betAmount === amount
               ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30"
               : amount > userCoins
