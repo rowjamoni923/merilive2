@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { cn } from "@/lib/utils";
 import { Coins, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
