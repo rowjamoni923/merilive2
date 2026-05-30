@@ -2168,16 +2168,22 @@ const FaceVerification = () => {
         ) : (
           <>
             {!usingNativeFaceCamera && (
-              <video 
-                ref={faceVideoRef} 
+              <video
+                ref={faceVideoRef}
                 autoPlay
                 playsInline
                 muted
+                controls={false}
+                poster=""
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
                 className="w-full h-full object-cover scale-x-[-1]"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000' }}
+                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
               />
             )}
             
