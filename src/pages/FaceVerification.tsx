@@ -219,6 +219,7 @@ const FaceVerification = () => {
   // Face Verification Video States
   const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
+  const [faceCameraStarting, setFaceCameraStarting] = useState(false);
   const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [verifyingFace, setVerifyingFace] = useState(false);
@@ -831,21 +832,45 @@ const FaceVerification = () => {
 
   // Start face verification camera
   const startFaceCamera = useCallback(async () => {
+    setFaceCameraStarting(true);
+    setCameraReady(false);
     try {
       autoFaceStartRef.current = false;
       preloadLocalFacePoseDetector();
-      // NOTE: native CameraX preview path is intentionally disabled here.
-      // It renders behind the WebView via punch-through, but the verification
-      // card + page background are opaque white, so the native surface was
-      // invisible on real devices (user reported blank white camera area).
-      // getUserMedia inside the DOM <video> works reliably on Android WebView
-      // with camera permission, so we use that path on every platform.
       setNativeFaceCameraActive(false);
 
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
         setFaceStream(null);
+      }
+
+      const nativeAvailable = await nativeFaceCam.isAvailable();
+      if (nativeAvailable) {
+        try {
+          await nativeFaceCam.stopPreview().catch(() => null);
+          await nativeFaceCam.startPreview('720p');
+          setFaceStream(null);
+          setNativeFaceCameraActive(true);
+
+          let frameReady = false;
+          for (let i = 0; i < 10; i++) {
+            const warmFrame = await nativeFaceCam.captureFrame();
+            if (warmFrame) {
+              frameReady = true;
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 180));
+          }
+          if (!frameReady) throw new Error('Native camera frame is not ready');
+          setCameraReady(true);
+          return;
+        } catch (nativeErr) {
+          console.warn('[FaceVerification] Native Android camera failed, falling back to WebRTC:', nativeErr);
+          recordClientError({ label: 'FaceVerification.nativeCamera', message: nativeErr instanceof Error ? nativeErr.message : String(nativeErr) });
+          await nativeFaceCam.stopPreview().catch(() => null);
+          setNativeFaceCameraActive(false);
+        }
       }
 
       // getCameraStream already handles permission internally — no separate probe needed
@@ -866,6 +891,8 @@ const FaceVerification = () => {
         description: error.message || "Please grant camera permission from settings.",
         variant: "destructive",
       });
+    } finally {
+      setFaceCameraStarting(false);
     }
   }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive]);
   
