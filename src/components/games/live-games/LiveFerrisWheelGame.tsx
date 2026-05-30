@@ -430,7 +430,7 @@ export function LiveFerrisWheelGame({
               {/* Food Items with Images */}
               {WHEEL_ITEMS.map((item, i) => {
                 const angle = (i * 45 - 90) * (Math.PI / 180);
-                const radius = 80;
+                const radius = isVerySmallHeight ? 42 : isLandscape ? 60 : 80;
                 const x = Math.cos(angle) * radius;
                 const y = Math.sin(angle) * radius;
                 
