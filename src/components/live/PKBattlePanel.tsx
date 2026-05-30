@@ -374,7 +374,14 @@ export const PKBattlePanel = ({
             </div>
           </div>
 
-          <ScrollArea className="h-80 relative">
+          <ScrollArea 
+            className="relative" 
+            style={{ 
+              height: isVerySmallHeight ? '180px' : isLandscape ? '250px' : '360px',
+              minHeight: '150px'
+            }}
+          >
+
             <div className="p-4 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-10">
