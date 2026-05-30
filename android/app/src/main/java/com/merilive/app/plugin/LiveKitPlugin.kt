@@ -1042,17 +1042,26 @@ class LiveKitPlugin : Plugin() {
     private fun mountBehindWebView(renderer: TextureViewRenderer) {
         val webView = bridge?.webView ?: return
         val root = webView.parent as? ViewGroup ?: return
+        
         if (renderer.parent == null) {
             val lp = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+            // Always insert at the bottom (index 0) so it's behind the WebView
             root.addView(renderer, 0, lp)
         }
+        
         renderer.visibility = android.view.View.VISIBLE
         renderer.alpha = 1f
+        
+        // Force the WebView and its immediate parent to be transparent
         webView.setBackgroundColor(Color.TRANSPARENT)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+        (webView.parent as? android.view.View)?.setBackgroundColor(Color.TRANSPARENT)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+        }
     }
 
     private fun detachAllRenderersInternal() {
