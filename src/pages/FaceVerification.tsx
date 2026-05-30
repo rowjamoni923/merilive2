@@ -219,6 +219,7 @@ const FaceVerification = () => {
   // Face Verification Video States
   const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
+  const [faceCameraStarting, setFaceCameraStarting] = useState(false);
   const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [verifyingFace, setVerifyingFace] = useState(false);
@@ -413,6 +414,15 @@ const FaceVerification = () => {
     usingNativeFaceCameraRef.current = active;
     setUsingNativeFaceCamera(active);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
+    document.body.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
+    return () => {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    };
+  }, [usingNativeFaceCamera]);
 
   const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
     if (usingNativeFaceCameraRef.current) {
@@ -831,21 +841,45 @@ const FaceVerification = () => {
 
   // Start face verification camera
   const startFaceCamera = useCallback(async () => {
+    setFaceCameraStarting(true);
+    setCameraReady(false);
     try {
       autoFaceStartRef.current = false;
       preloadLocalFacePoseDetector();
-      // NOTE: native CameraX preview path is intentionally disabled here.
-      // It renders behind the WebView via punch-through, but the verification
-      // card + page background are opaque white, so the native surface was
-      // invisible on real devices (user reported blank white camera area).
-      // getUserMedia inside the DOM <video> works reliably on Android WebView
-      // with camera permission, so we use that path on every platform.
       setNativeFaceCameraActive(false);
 
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
         setFaceStream(null);
+      }
+
+      const nativeAvailable = await nativeFaceCam.isAvailable();
+      if (nativeAvailable) {
+        try {
+          await nativeFaceCam.stopPreview().catch(() => null);
+          await nativeFaceCam.startPreview('720p');
+          setFaceStream(null);
+          setNativeFaceCameraActive(true);
+
+          let frameReady = false;
+          for (let i = 0; i < 10; i++) {
+            const warmFrame = await nativeFaceCam.captureFrame();
+            if (warmFrame) {
+              frameReady = true;
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 180));
+          }
+          if (!frameReady) throw new Error('Native camera frame is not ready');
+          setCameraReady(true);
+          return;
+        } catch (nativeErr) {
+          console.warn('[FaceVerification] Native Android camera failed, falling back to WebRTC:', nativeErr);
+          recordClientError({ label: 'FaceVerification.nativeCamera', message: nativeErr instanceof Error ? nativeErr.message : String(nativeErr) });
+          await nativeFaceCam.stopPreview().catch(() => null);
+          setNativeFaceCameraActive(false);
+        }
       }
 
       // getCameraStream already handles permission internally — no separate probe needed
@@ -866,6 +900,8 @@ const FaceVerification = () => {
         description: error.message || "Please grant camera permission from settings.",
         variant: "destructive",
       });
+    } finally {
+      setFaceCameraStarting(false);
     }
   }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive]);
   
@@ -1049,8 +1085,13 @@ const FaceVerification = () => {
           await new Promise(resolve => setTimeout(resolve, 250));
         }
         if (!nativeFrameReady) throw new Error('Native camera frame is not ready yet. Please try again.');
-        await nativeFaceCam.startRecording();
-        nativeFaceRecordingRef.current = true;
+        try {
+          await nativeFaceCam.startRecording();
+          nativeFaceRecordingRef.current = true;
+        } catch (nativeRecErr) {
+          nativeFaceRecordingRef.current = false;
+          pushDebug({ kind: 'recorder_skip', message: nativeRecErr instanceof Error ? nativeRecErr.message : String(nativeRecErr) });
+        }
       } else {
         const webFaceStream = faceStream;
         if (!webFaceStream) throw new Error('Camera stream is not ready');
@@ -1424,8 +1465,10 @@ const FaceVerification = () => {
       if (nativeVideo?.blob?.size) {
         setFaceVerificationVideo(nativeVideo.blob);
       } else if (success) {
-        success = false;
-        pushDebug({ kind: 'error', message: 'native_recording_empty_or_missing' });
+        const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
+        setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+        effectiveManualReviewRequired = true;
+        pushDebug({ kind: 'recorder_skip', message: 'native_recording_empty_or_missing' });
       }
     } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
@@ -2048,7 +2091,7 @@ const FaceVerification = () => {
 
   // Face Verification Section JSX — Professional Scanning UI
   const renderFaceVerificationSection = () => {
-    const faceCameraActive = !!faceStream || usingNativeFaceCamera;
+    const faceCameraActive = faceCameraStarting || !!faceStream || usingNativeFaceCamera;
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
@@ -2062,7 +2105,7 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className={`${usingNativeFaceCamera ? 'bg-background/20 backdrop-blur-[2px]' : 'bg-white'} rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]`}>
+    <div className={`${usingNativeFaceCamera ? 'bg-transparent border-transparent shadow-none' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]'} rounded-3xl p-5 border`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -2107,7 +2150,7 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 shadow-2xl ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-white/80'}`}>
+      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : 'bg-white/80 shadow-2xl'}`}>
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
             <motion.div
@@ -2188,8 +2231,8 @@ const FaceVerification = () => {
             )}
             
             {/* Loading overlay */}
-            {faceCameraActive && !cameraReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+            {(faceCameraStarting || (faceCameraActive && !cameraReady)) && (
+              <div className={`${usingNativeFaceCamera ? 'fixed inset-0 z-[2147483647] bg-black/35' : 'absolute inset-0 bg-white/80'} flex items-center justify-center pointer-events-none`}>
                 <div className="flex flex-col items-center">
                   <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mb-2" />
                   <p className="text-slate-600 text-sm">Initializing camera...</p>
@@ -2684,8 +2727,8 @@ const FaceVerification = () => {
 
   if (verificationStatus === 'rejected') {
     return (
-        <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-        {renderHeader("Face Verification", "Identity check required")}
+        <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-2xl shadow-red-500/20">
@@ -2740,8 +2783,8 @@ const FaceVerification = () => {
   // Already submitted - pending review
   if (verificationStatus === 'submitted') {
     return (
-      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-        {renderHeader("Face Verification", "Identity check required")}
+      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
@@ -2762,7 +2805,7 @@ const FaceVerification = () => {
   if (verificationStatus === 'verified') {
     return (
       <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-        {renderHeader("Face Verification", "Identity check required")}
+        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div
             initial={{ scale: 0 }}
@@ -2830,11 +2873,11 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-        {renderHeader("Face Verification", "Verify your identity")}
+      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
-        <div className="flex items-center justify-center gap-3 mb-6">
+        <div className={`flex items-center justify-center gap-3 mb-6 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
           {[1, 2, 3].map((step) => {
             const isActive = (!userInfoDone && step === 1) || (userInfoDone && userPhotoStep && step === 2) || (!userPhotoStep && step === 3);
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
@@ -2994,11 +3037,11 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-    <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-      {renderHeader("Host Verification", "Get verified as a host")}
+    <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps — professional KYC-style indicator */}
-      <div className="mb-8 px-1">
+      <div className={`mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between">
           {[
             { n: 1, label: 'Basic Info' },
