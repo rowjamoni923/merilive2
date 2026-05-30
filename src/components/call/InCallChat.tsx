@@ -132,6 +132,17 @@ export const InCallChat = memo(({
     setMessages((prev) => [...prev, msg]);
     setInput("");
 
+    const payload: ChatMessageDetail = {
+      scope: 'call',
+      id: callId,
+      messageId: msgId,
+      userId,
+      displayName: actualName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
+    };
+
     void publishChatMessage('call', callId, {
       messageId: msgId,
       userId,
@@ -140,6 +151,12 @@ export const InCallChat = memo(({
       messageType: 'text',
       timestamp: msg.timestamp,
     });
+
+    // Safety-net broadcast — guarantees delivery if peer's LiveKit DataPacket misses
+    try {
+      const ch = (window as any).__callChatChannels?.[callId];
+      if (ch) void ch.send({ type: 'broadcast', event: 'chat', payload });
+    } catch {}
   };
 
   return (
