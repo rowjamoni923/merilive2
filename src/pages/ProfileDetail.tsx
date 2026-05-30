@@ -115,6 +115,7 @@ interface ProfileData {
   is_in_call?: boolean | null;
   host_status?: string | null;
   host_availability?: string | null;
+  hide_gift_senders?: boolean | null;
 }
 
 interface FrameData {
