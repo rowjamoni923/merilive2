@@ -94,7 +94,7 @@ export const useAdminAccess = () => {
       return data as AdminUser;
     },
     enabled: !!verifiedAdminId,
-    staleTime: 12 * 60 * 60 * 1000, // Cache for 12 hours
+    staleTime: Infinity, // Role/Permissions don't change during active session
     gcTime: 24 * 60 * 60 * 1000,
   });
 
