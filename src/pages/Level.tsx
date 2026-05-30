@@ -107,6 +107,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 const Level = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [currentLevel, setCurrentLevel] = useState(0);
   const [currentDiamonds, setCurrentDiamonds] = useState(0);
   const [selectedLevelTab, setSelectedLevelTab] = useState(1);
