@@ -40,6 +40,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
   const [period, setPeriod] = useState<PeriodType>('daily');
   const [category, setCategory] = useState<CategoryType>('host_earnings');
   const [myRank, setMyRank] = useState<{ rank: number; data: LeaderboardEntry | null }>({ rank: 0, data: null });
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) fetchLeaderboard();
