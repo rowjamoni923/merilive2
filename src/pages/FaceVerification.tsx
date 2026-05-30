@@ -2084,7 +2084,7 @@ const FaceVerification = () => {
 
   // Face Verification Section JSX — Professional Scanning UI
   const renderFaceVerificationSection = () => {
-    const faceCameraActive = !!faceStream || usingNativeFaceCamera;
+    const faceCameraActive = faceCameraStarting || !!faceStream || usingNativeFaceCamera;
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
