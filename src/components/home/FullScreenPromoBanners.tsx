@@ -38,7 +38,9 @@ const PROMO_BANNERS: PromoBanner[] = [
 
 const SKIP_DELAY_MS = 3000;
 const AUTO_CLOSE_MS = 10000;
-const RATING_SHOW_DELAY_MS = 40000;
+// Pkg: Random delay between 40s and 2min (120s) as requested.
+const RATING_SHOW_DELAY_MIN_MS = 40000;
+const RATING_SHOW_DELAY_MAX_MS = 120000;
 const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
 const RATING_PENDING_KEY = "rating_reward_return_pending";
