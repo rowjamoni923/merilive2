@@ -120,34 +120,35 @@ const PayrollHelperGuide = () => {
 
   return (
     <div
-      className="fixed inset-0 overflow-y-auto overscroll-contain bg-background"
+      className="fixed inset-0 overflow-y-auto overscroll-contain bg-gradient-to-br from-brand-50 via-white to-info-50"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 text-white safe-area-top shadow-lg">
+        <div className="flex items-center h-14 px-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0 text-white hover:bg-white/20 rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1 text-center">
             <h1 className="font-bold text-lg">Payroll Helper Guide</h1>
-            <p className="text-xs text-muted-foreground">Complete A-Z Overview</p>
+            <p className="text-[10px] text-white/80 uppercase tracking-wider font-medium">Complete A-Z Overview</p>
           </div>
+          <div className="w-10" />
         </div>
       </div>
 
       {/* Hero Banner */}
       <div className="relative">
         <img src={bannerImage} alt="Payroll Helper System" loading="eager" decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="w-full h-52 object-cover"/>
-        <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <Badge className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-amber-950 border border-amber-300/60 text-xs font-bold tracking-wide shadow-lg shadow-amber-500/30 mb-2 px-3 py-1">
-            💎 Premium Earning Opportunity
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-600/20 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
+          <Badge className="bg-gradient-to-r from-brand-500 via-info-400 to-brand-500 text-white border border-white/20 text-[10px] font-bold tracking-wide shadow-lg shadow-brand-500/30 mb-2 px-3 py-0.5 uppercase">
+            💎 Premium Opportunity
           </Badge>
-          <h2 className="text-2xl font-black text-slate-800 leading-tight">
+          <h2 className="text-2xl font-black text-white leading-tight drop-shadow-md">
             Become a Payroll Helper
           </h2>
-          <p className="text-slate-700 text-sm mt-1">
+          <p className="text-white/90 text-sm mt-1 font-medium">
             Process salaries, earn diamonds, and build your trading business
           </p>
         </div>
