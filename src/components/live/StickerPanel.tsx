@@ -51,7 +51,10 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-            className="fixed bottom-0 left-0 right-0 z-[60] max-h-[72vh] overflow-hidden rounded-t-3xl bg-black/95 pb-safe backdrop-blur-xl"
+            className={cn(
+              "fixed bottom-0 left-0 right-0 z-[60] max-h-[72vh] overflow-hidden rounded-t-3xl bg-black/95 pb-safe backdrop-blur-xl",
+              "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:border-white/10 md:shadow-2xl"
+            )}
           >
             <div className="flex justify-center pt-3 pb-1">
               <div className="h-1 w-10 rounded-full bg-white/20" />
