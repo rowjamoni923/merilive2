@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
@@ -555,46 +556,19 @@ const AgencyDashboard = () => {
       refetchTimer = setTimeout(() => fetchData(), 500);
     };
 
-    // Real-time subscriptions for instant updates
-    const channel = supabase
-      .channel('agency-dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agencies' },
-        async (payload) => {
-          if (payload.new && (payload.new as any).id === agency?.id) {
-            setAgency(payload.new as Agency);
-          }
-        }
-      )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_hosts' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_diamond_transactions' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_withdrawals' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, debouncedRefetch)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
-        (payload) => {
-          const newData = payload.new as any;
-          if (newData?.is_verified && newData?.is_active) {
-            setHasHelperAccess(true);
-            if (newData.trader_level === 5 && newData.payroll_enabled) {
-              setIsLevel5Helper(true);
-            }
-          } else if (newData && !newData.is_active) {
-            setHasHelperAccess(false);
-            setIsLevel5Helper(false);
-          }
-          debouncedRefetch();
-        }
-      )
-      .subscribe();
+    // Zero-Refresh Instant Updates via useUniversalRealtime
+    const cleanup = subscribeToTables(
+      "agency_dashboard_sync",
+      ["agencies", "agency_hosts", "agency_performance", "agency_diamond_transactions", "agency_withdrawals", "agency_level_tiers", "app_settings", "topup_helpers"],
+      (table, event, payload) => {
+        // Instant data refresh without full page reload
+        debouncedRefetch();
+      }
+    );
 
     return () => {
       if (refetchTimer) clearTimeout(refetchTimer);
-      supabase.removeChannel(channel);
+      cleanup();
     };
   }, [navigate, agency?.id]);
 
@@ -757,25 +731,25 @@ const AgencyDashboard = () => {
   ];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-y-auto overflow-x-hidden">
       {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
+      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 flex-shrink-0 border-b border-slate-100 dark:border-white/5 safe-area-top shadow-sm">
         <div className="flex items-center justify-between h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800 dark:text-white" />
           </button>
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Agency Dashboard
+          <h1 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 tracking-tight">
+            <Sparkles className="w-5 h-5 text-brand-500" />
+            Agency Management
           </h1>
           <button 
             onClick={() => navigate("/agent-rank")}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
           >
-            <Trophy className="w-5 h-5 text-white" />
+            <Trophy className="w-5 h-5 text-brand-500" />
           </button>
         </div>
       </div>
@@ -1133,79 +1107,6 @@ const AgencyDashboard = () => {
               </Button>
             </div>
 
-            {/* Inline Withdrawal History */}
-            {showWithdrawalHistory && (
-              <div className="mt-3 bg-slate-900/90 backdrop-blur-md rounded-xl p-3 border border-slate-700/50 max-h-64 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-white/90">Withdrawal History</h4>
-                  <button 
-                    onClick={() => navigate("/agency-transfer-history")}
-                    className="text-[10px] text-cyan-300 hover:underline"
-                  >
-                    View All →
-                  </button>
-                </div>
-                
-                {withdrawals.length === 0 ? (
-                  <div className="text-center py-4 text-white/60 text-xs">
-                    No withdrawal history yet
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {withdrawals.slice(0, 5).map((w) => (
-                      <div 
-                        key={w.id}
-                        className="bg-slate-800/80 rounded-lg p-2.5 flex items-center justify-between border border-slate-700/40"
-                      >
-                        <div className="flex items-center gap-2">
-                          {(() => {
-                            const displayStatus = (w as any).helper_processed_at && w.status === 'processing' ? 'approved' : w.status;
-                            return (
-                              <>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  displayStatus === 'approved' ? 'bg-green-500/30' :
-                                  displayStatus === 'pending' ? 'bg-yellow-500/30' :
-                                  displayStatus === 'processing' ? 'bg-blue-500/30' :
-                                  displayStatus === 'rejected' ? 'bg-red-500/30' : 'bg-gray-500/30'
-                                }`}>
-                                  {displayStatus === 'approved' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                                  ) : displayStatus === 'pending' ? (
-                                    <Clock className="w-4 h-4 text-yellow-400" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 text-red-400" />
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-white">
-                                    {(w.amount / coinsToUsdRate).toFixed(2)} USD
-                                  </p>
-                                  <p className="text-[10px] text-slate-400">
-                                    {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                        {(() => {
-                          const displayStatus = (w as any).helper_processed_at && w.status === 'processing' ? 'approved' : w.status;
-                          return (
-                            <Badge className={`text-[10px] ${
-                              displayStatus === 'approved' ? 'bg-green-500/20 text-green-400' :
-                              displayStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
-                            } border-0`}>
-                              {displayStatus}
-                            </Badge>
-                          );
-                        })()}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
@@ -1214,45 +1115,48 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+          className="bg-gradient-to-br from-brand-600 to-info-700 rounded-3xl p-5 cursor-pointer shadow-xl shadow-brand-500/20 active:scale-[0.98] transition-all relative overflow-hidden group"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-colors" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+              <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/60 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white font-black text-base tracking-tight leading-tight">📖 Payroll Helper Guide</p>
+              <p className="text-white/80 text-[11px] font-bold mt-0.5 uppercase tracking-wider">Master the economy</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/50" />
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <ArrowRight className="w-5 h-5 text-white" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="mx-4 mt-4">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Quick Actions</h3>
+      <div className="mx-4 mt-6">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Quick Actions</h3>
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
-            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <HostsIcon3D />
-            <span className="text-xs font-medium mt-1">Hosts</span>
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Hosts</span>
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <WithdrawIcon3D />
-            <span className="text-xs font-medium mt-1">Withdraw</span>
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <RankingIcon3D />
-            <span className="text-xs font-medium mt-1">Ranking</span>
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Ranking</span>
           </button>
           <button
             onClick={() => {
@@ -1262,18 +1166,15 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group relative"
           >
             {hasHelperAccess && helperPendingCount > 0 && (
-              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
+              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-black px-1.5 shadow-lg border-2 border-white dark:border-slate-900">
                 {helperPendingCount > 99 ? '99+' : helperPendingCount}
               </div>
             )}
-            {helperPendingApplication && !hasHelperAccess && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-            )}
             <HelperIcon3D />
-            <span className="text-xs font-medium mt-1">
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">
               {hasHelperAccess ? 'Helper' : helperPendingApplication ? 'Pending' : 'Helper'}
             </span>
           </button>
@@ -1283,24 +1184,24 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <DiamondExchangeIcon3D />
-            <span className="text-xs font-medium mt-1">Diamond Exchange</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <PolicyIcon3D />
-            <span className="text-xs font-medium mt-1">Policy</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <HistoryIcon3D />
-            <span className="text-xs font-medium mt-1">History</span>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">History</span>
           </button>
         </div>
       </div>
