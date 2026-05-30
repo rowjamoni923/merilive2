@@ -3032,6 +3032,7 @@ const FaceVerification = () => {
           </motion.div>
         )}
       </div>
+      </div>
     );
   }
 
