@@ -1823,7 +1823,44 @@ const LiveStream = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Pkg361 ZERO-REFRESH: Subscribe to this specific live_stream row for instant status updates.
+  // Replaces the 15s heartbeat-only path with <100ms DB change detection.
+  useEffect(() => {
+    if (!id) return;
+
+    const unsubscribe = subscribeToTables(
+      `live-stream-status-${id}`,
+      ['live_streams'],
+      (table, event, payload) => {
+        const row = payload as any;
+        if (row.id !== id) return;
+
+        console.log(`[LiveStream Realtime] Status update for ${id}: is_active=${row.is_active}`);
+        
+        // If stream is marked inactive in DB, end it locally
+        if (row.is_active === false && !streamEndedRef.current) {
+          console.log('[LiveStream Realtime] Stream ended from DB side');
+          toast.info('This live stream has ended.');
+          handleStreamEndCallback();
+        }
+
+        // Also sync viewer count if it changes in DB
+        if (typeof row.viewer_count === 'number') {
+          setViewerCount(row.viewer_count);
+        }
+        
+        // Sync music state if it changes
+        if (row.current_music_url !== undefined) {
+          setStreamData((prev: any) => prev ? { ...prev, ...row } : row);
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [id]);
+
   const handleEndStream = async () => {
+
     // ⛔ IMMEDIATELY mark stream as ended to stop task progress tracking
     streamEndedRef.current = true;
 
