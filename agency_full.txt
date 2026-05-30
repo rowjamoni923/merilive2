@@ -843,7 +843,7 @@ const AgencyDashboard = () => {
                 <img 
                   src={agency.logo_url} 
                   alt={agency.name}
- className="w-12 h-12 rounded-xl object-cover border-2 border-slate-200/30 shadow-lg" />
+ className="w-12 h-12 rounded-xl object-cover border-2 border-slate-200/30 shadow-lg"/>
               ) : (
  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-slate-200/30">
                   <Building2 className="w-6 h-6" />

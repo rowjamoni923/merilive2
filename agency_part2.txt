@@ -1,0 +1,500 @@
+        }
+
+        // ===== Process pending hosts =====
+        setPendingHosts(pendingHostsData.map(host => ({
+          ...host,
+          profile: (pendingHostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id) || null
+        })));
+
+        // ===== Process sub-agencies =====
+        const subAgenciesData = subAgenciesRes.data || [];
+        const actualAgentCount = subAgenciesData.length;
+        setSubAgencies(subAgenciesData);
+        setSubAgencyCount(actualAgentCount);
+        if (agencyData.total_agents !== actualAgentCount) {
+          supabase.from("agencies").update({ total_agents: actualAgentCount }).eq("id", agencyData.id);
+          setAgency(prev => prev ? { ...prev, total_agents: actualAgentCount } : prev);
+        }
+
+        // ===== Process performance history =====
+        if (perfHistoryRes.data && perfHistoryRes.data.length > 0) {
+          setWeeklyData(perfHistoryRes.data.map(p => ({
+            date: new Date(p.period_start).toLocaleDateString('en-US', { weekday: 'short' }),
+            income: p.total_income || 0,
+            hours: p.total_host_hours || 0,
+            hosts: p.new_hosts_count || 0
+          })));
+        } else {
+          const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+          setWeeklyData(days.map(day => ({ date: day, income: 0, hours: 0, hosts: 0 })));
+        }
+
+        if (perfWeeklyRes.data) setPerformance(perfWeeklyRes.data);
+        // subAgencyCount already set above
+
+        // ===== Process sub-agents =====
+        setSubAgents(subAgentsData.map(sa => ({
+          ...sa,
+          profile: (subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id)
+        })));
+
+        // ===== Process beans rate =====
+        if (beansRateRes.data?.setting_value) {
+          const rateSettings = beansRateRes.data.setting_value as { rate?: number };
+          if (rateSettings?.rate) setCoinsToUsdRate(rateSettings.rate);
+        }
+
+        // ===== Process country/currency =====
+        setUserCountryCode(countryCode);
+        if (currencyRes.data) {
+          setLocalExchangeRate(currencyRes.data.rate_to_usd);
+          setLocalCurrency({ code: currencyRes.data.currency_code, symbol: currencyRes.data.currency_symbol, flag: countryFlags[countryCode] || '🌍' });
+        }
+
+        // ===== Process helper access =====
+        if (helperData) {
+          if (helperData.is_verified && helperData.is_active) {
+            setHasHelperAccess(true);
+            if (helperData.trader_level === 5 && helperData.payroll_enabled) {
+              setIsLevel5Helper(true);
+            }
+            setHelperPendingCount((helperTopupCountRes.count || 0) + (helperWithdrawalCountRes.count || 0));
+          } else {
+            setHelperPendingApplication(true);
+          }
+        }
+
+        if (contactSettingsRes.data?.setting_value) {
+          setHelperContactInfo(contactSettingsRes.data.setting_value as {whatsapp?: string; email?: string; telegram?: string});
+        }
+
+        // ===== Process withdrawals =====
+        if (withdrawalRes.data) {
+          setWithdrawals((withdrawalRes.data as WithdrawalHistory[]).slice(0, 10));
+          const withdrawnTotal = withdrawalRes.data
+            .filter(w => ['pending', 'processing', 'approved', 'completed'].includes(w.status))
+            .reduce((sum, w) => sum + (Number(w.amount) || 0), 0);
+          setTotalWithdrawn(withdrawnTotal);
+        }
+
+        // ===== Calculate total from weekly transfers =====
+        const transfersData = transfersRes.data || [];
+        const totalGrossEarnings = transfersData.reduce((sum, t) => sum + (Number(t.gift_earnings) || 0) + (Number(t.call_earnings) || 0), 0);
+        // Calculate commission using each transfer's commission_rate
+        const totalCommission = transfersData.reduce((sum, t) => {
+          const gross = (Number(t.gift_earnings) || 0) + (Number(t.call_earnings) || 0);
+          const rate = Number(t.commission_rate) || 0;
+          return sum + Math.round(gross * rate / 100);
+        }, 0);
+
+        // Total Beans = gross host earnings (what shows as agency total)
+        setTotalHostEarningsFromTransfers(totalGrossEarnings);
+        // Agency Commission = calculated from commission_rate per transfer
+        setTotalAgencyCommission(totalCommission);
+      } catch (error) {
+        console.error('[AgencyDashboard] Error fetching data:', error);
+        recordClientError({ label: "AgencyDashboard.rate", message: error instanceof Error ? error.message : String(error) });
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchData();
+
+    const upsertWithdrawal = (record: WithdrawalHistory) => {
+      setWithdrawals((current) => {
+        const exists = current.some((item) => item.id === record.id);
+        const next = exists
+          ? current.map((item) => item.id === record.id ? { ...item, ...record } : item)
+          : [record, ...current];
+
+        const limited = next
+          .sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime())
+          .slice(0, 10);
+
+        setTotalWithdrawn(limited
+          .filter(w => ['pending', 'processing', 'approved', 'completed'].includes(w.status))
+          .reduce((sum, w) => sum + (Number(w.amount) || 0), 0));
+
+        return limited;
+      });
+    };
+
+    // Pkg52 admin_broadcast covers agency_withdrawals/admin updates. Zero-refresh
+    // policy: no visibility/tab-return refetch.
+    const onAdmin = async (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table !== 'agency_withdrawals' && table !== 'agencies') return;
+      const { data } = await supabase.from('agencies').select('*').eq('id', agencyIdRef.current).maybeSingle();
+      if (data) setAgency(data as Agency);
+    };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+    };
+
+  }, [navigate]);
+
+  // ===== Approve/Reject Host Handlers =====
+  const handleApproveHost = async (hostId: string) => {
+    if (!agency) return;
+    setApprovingHostId(hostId);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase.rpc('approve_host_request' as any, {
+        _agency_id: agency.id,
+        _host_id: hostId,
+        _approver_id: user.id,
+      });
+      if (error) throw error;
+      if (data) {
+        toast({ title: "Host Approved", description: "Host has been added to your agency!" });
+        const approvedHost = pendingHosts.find(h => h.host_id === hostId);
+        setPendingHosts(prev => prev.filter(h => h.host_id !== hostId));
+        setHosts(prev => [...prev, { host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: '', profile: approvedHost?.profile }]);
+        
+        // Notify the host about approval
+        import('@/utils/agencyNotifications').then(({ notifyHostApprovalResult }) => {
+          notifyHostApprovalResult(hostId, agency.name, true);
+        });
+      } else {
+        toast({ title: "Error", description: "Failed to approve host", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to approve", variant: "destructive" });
+    } finally {
+      setApprovingHostId(null);
+    }
+  };
+
+  const handleRejectHost = async (hostId: string) => {
+    if (!agency) return;
+    setRejectingHostId(hostId);
+    try {
+      const { error } = await supabase
+        .from('agency_hosts')
+        .update({ status: 'rejected' })
+        .eq('agency_id', agency.id)
+        .eq('host_id', hostId)
+        .eq('status', 'pending');
+      if (error) throw error;
+      toast({ title: "Host Rejected", description: "Request has been rejected" });
+      setPendingHosts(prev => prev.filter(h => h.host_id !== hostId));
+      
+      // Notify the host about rejection
+      import('@/utils/agencyNotifications').then(({ notifyHostApprovalResult }) => {
+        notifyHostApprovalResult(hostId, agency.name, false);
+      });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to reject", variant: "destructive" });
+    } finally {
+      setRejectingHostId(null);
+    }
+  };
+
+  const copyAgencyCode = () => {
+    if (agency) {
+      navigator.clipboard.writeText(agency.agency_code);
+      setCopiedCode(true);
+      toast({ title: "Copied!", description: "Agency code copied to clipboard" });
+      setTimeout(() => setCopiedCode(false), 2000);
+    }
+  };
+
+  const copySubAgentLink = () => {
+    navigator.clipboard.writeText(subAgentLink);
+    toast({ title: "Link Copied", description: "Sub-agent referral link copied" });
+  };
+
+  const copyHostJoinLink = () => {
+    navigator.clipboard.writeText(hostJoinLink);
+    toast({ title: "Link Copied", description: "Host join link copied" });
+  };
+
+  const shareSubAgentLink = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: `${agency?.name} - Become a Sub-Agent`,
+        text: `Join my agency as a sub-agent and earn!`,
+        url: subAgentLink
+      });
+    } else {
+      copySubAgentLink();
+    }
+  };
+
+  const shareHostJoinLink = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: `${agency?.name} - Join as Host`,
+        text: `Join my agency as a host and start earning!`,
+        url: hostJoinLink
+      });
+    } else {
+      copyHostJoinLink();
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="agency-dashboard-light min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-sm font-semibold text-muted-foreground">Loading Dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!agency) {
+    return null;
+  }
+
+  const totalHostEarnings = hosts.reduce((sum, h) => sum + (h.profile?.total_earnings || 0), 0);
+  const onlineHosts = hosts.filter(h => h.profile?.is_online).length;
+  const totalSubAgentEarnings = subAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
+  
+  // Total Beans = wallet_balance (host earnings transferred to agency + agency commission)
+  // This is the agency's withdrawable pool from host activities
+  const agencyBeansBalance = agency.wallet_balance || 0;
+  
+  // Correct USD calculation: beans / rate = USD
+  const usdValue = agencyBeansBalance / coinsToUsdRate;
+  const localValue = usdValue * localExchangeRate;
+
+  const getLevelInfo = (level: string) => {
+    // Use database tier info if available, otherwise fallback to defaults
+    const tierName = levelTierInfo?.level_name || '';
+    
+    switch (level) {
+      case "A5": return { color: "from-brand-500 to-brand-500", icon: "👑", name: tierName || "Legend" };
+      case "A4": return { color: "from-warning-400 to-warning-500", icon: "🌟", name: tierName || "Elite" };
+      case "A3": return { color: "from-info-500 to-info-500", icon: "✨", name: tierName || "Pro" };
+      case "A2": return { color: "from-warning-400 to-danger-400", icon: "🔥", name: tierName || "Rising" };
+      case "A1": return { color: "from-brand-500 to-brand-500", icon: "⭐", name: tierName || "Starter" };
+      default: return { color: "from-brand-500 to-info-500", icon: "📌", name: tierName || "Basic" };
+    }
+  };
+
+  // Use dynamic tier info from database if available
+  const levelInfo = {
+    ...getLevelInfo(agency.level || "A1"),
+    name: levelTierInfo?.level_name || getLevelInfo(agency.level || "A1").name
+  };
+
+  const pieData = [
+    { name: 'Host Commission', value: Math.floor(totalHostEarnings * 0.7) },
+    { name: 'Sub-Agent Commission', value: totalSubAgentEarnings },
+    { name: 'Wallet Balance', value: agencyBeansBalance }
+  ];
+
+  return (
+    <div className="agency-dashboard-light fixed inset-0 flex flex-col overflow-y-auto overflow-x-hidden text-foreground">
+      {/* Modern Header */}
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0 safe-area-top">
+        <div className="flex items-center justify-between h-14 px-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+ <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+ <h1 className="text-lg font-bold text-white flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            Agency Dashboard
+          </h1>
+          <button 
+            onClick={() => navigate("/agent-rank")}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+ <Trophy className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div 
+        className="flex-1 overflow-y-auto overscroll-contain"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'var(--content-bottom-padding)'
+        }}
+      >
+
+      {/* Agency Hero Card - Compact */}
+      <div className="mx-3 -mt-0 relative">
+ <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-white shadow-xl relative overflow-hidden`}>
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-lg" />
+          
+          <div className="relative z-10">
+            <div className="flex items-start gap-3">
+              {agency.logo_url ? (
+                <img 
+                  src={agency.logo_url} 
+                  alt={agency.name}
+ className="w-12 h-12 rounded-xl object-cover border-2 border-slate-200/30 shadow-lg"/>
+              ) : (
+ <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-slate-200/30">
+                  <Building2 className="w-6 h-6" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-lg">{levelInfo.icon}</span>
+ <div className={`bg-gradient-to-r ${levelInfo.color} px-2.5 py-0.5 rounded-full shadow-lg border border-slate-200/30`}>
+                    <span className="text-[11px] font-extrabold tracking-wide drop-shadow-md">
+                      {agency.level} • {levelInfo.name}
+                    </span>
+                  </div>
+                </div>
+                <h2 className="text-lg font-bold truncate">{agency.name}</h2>
+ <p className="text-white/80 text-xs flex items-center gap-1">
+                  <Percent className="w-3 h-3" />
+                  <span className="font-semibold">{actualCommissionRate}%</span> Commission Rate
+                </p>
+              </div>
+            </div>
+
+            {/* Agency Code Card - Compact */}
+ <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-xl p-2.5 flex items-center justify-between border border-slate-200/20">
+              <div>
+ <p className="text-white/70 text-[10px] uppercase tracking-wide">Agency Code</p>
+                <p className="font-mono font-bold text-base tracking-wider">{agency.agency_code}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyAgencyCode}
+ className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-lg"
+              >
+                {copiedCode ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+
+            {/* Quick Stats Grid - Mobile Optimized */}
+            <div className="grid grid-cols-4 gap-1 mt-2">
+              <button 
+                onClick={() => navigate("/agency-host-management")}
+ className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-slate-200/10 hover:bg-white/25 transition-all active:scale-95 relative"
+              >
+                <Users className="w-3.5 h-3.5 mx-auto mb-0.5" />
+                <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
+ <p className="text-[7px] text-white/70 uppercase">Hosts</p>
+                {pendingHosts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-danger-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
+                    {pendingHosts.length}
+                  </span>
+                )}
+              </button>
+              <button 
+                onClick={() => setShowSubAgentsPanel(true)}
+ className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-slate-200/10 hover:bg-white/25 transition-all active:scale-95"
+              >
+                <UserPlus className="w-3.5 h-3.5 mx-auto mb-0.5" />
+                <p className="text-sm font-bold">{subAgencyCount || subAgents.length}</p>
+ <p className="text-[7px] text-white/70 uppercase">Agents</p>
+              </button>
+              <div 
+ className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-slate-200/10 overflow-hidden"
+              >
+                <Diamond className="w-3.5 h-3.5 mx-auto mb-0.5" />
+                <p className="text-xs font-bold truncate">
+                  {agencyBeansBalance >= 1000000 
+                    ? `${(agencyBeansBalance / 1000000).toFixed(1)}M`
+                    : `${(agencyBeansBalance / 1000).toFixed(0)}K`}
+                </p>
+ <p className="text-[7px] text-white/70 uppercase">Beans</p>
+              </div>
+              <button 
+                onClick={() => navigate("/agency-host-management?filter=online")}
+ className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-slate-200/10 hover:bg-white/25 transition-all active:scale-95"
+              >
+                <Activity className="w-3.5 h-3.5 mx-auto mb-0.5 text-success-300" />
+                <p className="text-sm font-bold text-success-300">{onlineHosts}</p>
+ <p className="text-[7px] text-white/70 uppercase">Online</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 7-Day Host Requirement Warning - Hidden for payroll-enabled agencies */}
+      {agency && !isLevel5Helper && (() => {
+        const createdAt = new Date(agency.created_at);
+        const now = new Date();
+        const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.max(0, 30 - daysSinceCreation);
+        const activeHostCount = hosts.filter(h => h.status === 'active').length;
+        const progress = Math.min((activeHostCount / 10) * 100, 100);
+        
+        if (activeHostCount < 10 && daysRemaining > 0) {
+          return (
+            <div className="mx-3 mt-2">
+              <div className={`rounded-2xl p-3 border shadow-xl ${
+                daysRemaining <= 5 
+                  ? 'surface-rose border-rose-400/20' 
+                  : daysRemaining <= 10 
+                    ? 'surface-amber border-amber-400/20'
+                    : 'surface-sky border-sky-400/20'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-sm border border-white/10">
+                    <Clock className={`w-4 h-4 ${
+                      daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-xs font-bold">
+                      {daysRemaining} Days Remaining
+                    </p>
+                    <p className="text-white/70 text-[10px]">
+                      Minimum 10 active hosts required within 30 days
+                    </p>
+                  </div>
+                  <div className={`text-lg font-black ${
+                    daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
+                  }`}>
+                    {activeHostCount}/10
+                  </div>
+                </div>
+                <Progress value={progress} className="h-2 bg-white/15" />
+                <p className="text-white/70 text-[9px] mt-1.5 text-center">
+                  {daysRemaining <= 5 
+                    ? 'Agency will be auto-deactivated if target is not met'
+                    : `Add ${10 - activeHostCount} more hosts to secure your agency`
+                  }
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
+      {/* Pending Host Requests */}
+      {pendingHosts.length > 0 && (
+        <div className="mx-3 mt-2">
+          <div className="rounded-2xl surface-amber border border-amber-400/20 p-3 shadow-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10">
+                <Bell className="w-4 h-4 text-amber-200" />
+              </div>
+              <div>
+                <p className="font-bold text-white text-sm">
+                  {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
+                </p>

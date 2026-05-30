@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
@@ -1099,6 +1101,37 @@ const LiveStream = () => {
     };
     window.addEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
 
+    // Pkg361 ZERO-REFRESH: Subscribe to ALL relevant tables for the livestream
+    const unsubscribeRealtime = subscribeToTables(
+      `livestream-realtime-${id}`,
+      ['live_streams', 'stream_viewers', 'stream_chat', 'gift_transactions'],
+      (table, event, payload) => {
+        const row = payload as any;
+        
+        // 1. Stream ended or updated
+        if (table === 'live_streams' && row.id === id) {
+          if (row.status === 'ended' || row.is_active === false) {
+            handleStreamEndCallback();
+          } else {
+            setStreamData(prev => prev ? { ...prev, ...row } : row);
+          }
+        }
+        
+        // 2. Viewer count updates
+        if (table === 'stream_viewers' && row.stream_id === id) {
+          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id)
+            .then(({ count }) => {
+              if (count !== null) setViewerCount(count);
+            });
+        }
+
+        // 3. Gift transactions (backup)
+        if (table === 'gift_transactions' && row.stream_id === id && event === 'INSERT') {
+          console.log('[LiveStream] Gift transaction detected via Realtime:', row);
+        }
+      }
+    );
+
     // ============= Safety-net: Supabase Realtime on stream_chat =============
     // LiveKit DataPacket is the fast-path (<50ms). But when a viewer's LiveKit
     // room isn't connected yet, is subscribe-only, or mobile background-drops
@@ -1122,6 +1155,7 @@ const LiveStream = () => {
         // Skip own messages — already optimistically rendered by sender.
         if (row.user_id === currentUserId) return;
 
+
         // Resolve sender profile for display
         const { data: profile } = await supabase
           .from('profiles_public')
@@ -1139,7 +1173,9 @@ const LiveStream = () => {
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
       try { supabase.removeChannel(chatChannel); } catch {}
+      unsubscribeRealtime?.();
     };
+
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
 

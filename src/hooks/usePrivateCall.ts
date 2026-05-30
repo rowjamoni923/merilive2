@@ -211,11 +211,18 @@ export function usePrivateCall(userId: string | null) {
 
     
     // ☠️ DEAD FOREVER POLICY: Once a call ends, it NEVER comes back
-    // Like WhatsApp/IMO - ended call = dead forever. New call = fresh start.
+    // Like WhatsApp/IMO/Chamet - ended call = dead forever. New call = fresh start.
+    // This prevents one caller's ended session from being picked up by another session.
+    // The RPC 'reset_my_call_status' and 'end_private_call' ensure the DB state is clean.
+    if (callIdToReset) {
+      console.log(`[Call] Call ${callIdToReset} is now dead forever.`);
+    }
+
     // Keep callEndedRef true for 3 seconds to block any stale events
     setTimeout(() => {
       callEndedRef.current = false;
     }, 3000);
+
     
     // Auto-clean old entries from endedCallIdsRef after 5 minutes to prevent memory growth
     if (endedCallIdsRef.current.size > 20) {

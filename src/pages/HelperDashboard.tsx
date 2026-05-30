@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { 
   ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle,
   Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +24,14 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 import { recordClientError } from "@/utils/clientErrorLog";
 
+
 interface TraderLevel {
+
   level_number: number;
   level_name: string;
   upgrade_cost_usd: number;
@@ -209,7 +214,10 @@ const HelperDashboard = () => {
   // WhatsApp number state
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   useEffect(() => { loadData(); }, []);
+
 
   useEffect(() => {
     (async () => {
@@ -276,40 +284,61 @@ const HelperDashboard = () => {
     }
   };
 
-  // Instant sync via app_sync/admin_broadcast only. These tables are not in
-  // supabase_realtime publication, so direct postgres_changes channels were dead.
-  useEffect(() => {
-    if (!helperData?.id) return;
-
-    const onAdminTableUpdate = (event: Event) => {
-      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
-      if (table === 'trader_level_tiers') void refetchTraderLevels();
-      if (table === 'topup_payment_methods') void loadData();
-    };
-
-    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
-    };
-  }, [helperData?.id, helperData?.country_code]);
-
   // Separate fetch function that accepts helper_id directly - fetch ALL requests including approved
-  const fetchPendingRequests = async (helperId: string) => {
+  const fetchPendingRequests = useCallback(async (hId: string) => {
     const { data } = await supabase
       .from('helper_upgrade_requests' as any)
       .select('*')
-      .eq('helper_id', helperId)
+      .eq('helper_id', hId)
       .order('created_at', { ascending: false });
     
     console.log('[HelperDashboard] Fetched upgrade requests:', data);
     setPendingRequests((data as unknown as UpgradeRequest[]) || []);
-  };
+  }, []);
+
+  // Pkg361 ZERO-REFRESH: Instant sync via subscribeToTables
+  useEffect(() => {
+    if (!helperId || !currentUserId) return;
+
+    const unsubscribe = subscribeToTables(
+      `helper-dashboard-${helperId}`,
+      ['topup_helpers', 'helper_upgrade_requests', 'agencies', 'profiles', 'trader_level_tiers'],
+      (table, event, payload) => {
+        const row = payload as any;
+        
+        // 1. Helper data updates (wallet balance, trader level)
+        if (table === 'topup_helpers' && row.id === helperId) {
+          setHelperData(prev => prev ? { ...prev, ...row } : row);
+        }
+        
+        // 2. Upgrade request status changes
+        if (table === 'helper_upgrade_requests' && row.helper_id === helperId) {
+          fetchPendingRequests(helperId);
+        }
+        
+        // 3. Agency balance updates (for combined wallet)
+        if (table === 'agencies' && row.owner_id === currentUserId) {
+          setAgencyDiamondBalance(row.diamond_balance || 0);
+        }
+
+        // 4. Trader level tiers updates (if admin changes costs/commission)
+        if (table === 'trader_level_tiers') {
+          refetchTraderLevels();
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [helperId, currentUserId, fetchPendingRequests]);
+
+
 
   const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/auth'); return; }
+      setCurrentUserId(user.id);
+
 
       // Check user's face verification status
       const { data: profile } = await supabase
