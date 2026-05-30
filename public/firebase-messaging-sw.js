@@ -157,19 +157,15 @@ self.addEventListener('notificationclick', function(event) {
 });
 
 // =============================================
-// 🚀 ASSET CACHE — Stale-while-revalidate for JS/CSS/images
-// Makes repeat page loads near-instant (<100ms)
-// Pkg B pass-2: + HTML navigation cache with offline fallback
+// 🚀 ASSET CACHE — network-first for app code, cached fallback for offline
+// Prevents old dashboard chunks from being served after a new deploy.
 // =============================================
-var ASSET_CACHE = 'meri-assets-v1';
+var ASSET_CACHE = 'meri-assets-v2';
 var HTML_CACHE = 'meri-html-v1';
 var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
 
 self.addEventListener('install', function(event) {
-  // Pkg B pass-3: do NOT auto-skipWaiting; wait for SKIP_WAITING message from
-  // client so the user can be prompted before reload (avoids interrupting
-  // active sessions with mid-session chunk-hash mismatches).
-  // Clients that want immediate activation send: reg.waiting.postMessage({type:'SKIP_WAITING'})
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('message', function(event) {
@@ -264,16 +260,12 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.open(ASSET_CACHE).then(function(cache) {
       return cache.match(req).then(function(cached) {
-        // Background revalidation — fetch new copy & update cache
-        var networkPromise = fetch(req).then(function(resp) {
+        return fetch(req).then(function(resp) {
           if (resp && resp.status === 200 && resp.type === 'basic') {
             cache.put(req, resp.clone()).catch(function() {});
           }
           return resp;
         }).catch(function() { return cached; });
-
-        // Return cached immediately if available, otherwise wait for network
-        return cached || networkPromise;
       });
     })
   );
