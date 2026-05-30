@@ -1137,19 +1137,18 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Conversation list refresh — two parallel sources for zero-refresh instant feel:
+  // Conversation list refresh — three parallel sources for zero-refresh instant feel:
   //   (1) `chat:new-message` window event from useNotifications (notifications-row bridge)
   //   (2) DIRECT realtime subscription on `messages` + `conversations` (Pkg360 — these
-  //       tables ARE in supabase_realtime publication, so we no longer have to wait for
-  //       the notifications round-trip). If selected conversation matches, also upsert
-  //       the row into the open thread as a safety-net for the broadcast 'message' path.
+  //       tables ARE in supabase_realtime publication).
+  //   (3) Optimized universal sync bridge (Pkg365)
   useEffect(() => {
     if (!currentUserId) return;
 
     let refreshTimer: NodeJS.Timeout | null = null;
     const debouncedRefresh = () => {
       if (refreshTimer) clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => fetchConversations(), 200);
+      refreshTimer = setTimeout(() => fetchConversations(), 50); // super-fast debounce for instant feel
     };
 
     const onNewMessage = () => debouncedRefresh();
@@ -1157,7 +1156,7 @@ const Chat = () => {
 
     const unsubMessages = subscribeToTables(
       `chat-conv-list-msgs-${currentUserId}`,
-      ['messages', 'conversations'],
+      ['messages', 'conversations', 'group_messages'],
       (table: string, event: string, payload: any) => {
         if (!payload) return;
         if (table === 'messages') {
@@ -1180,6 +1179,9 @@ const Chat = () => {
           }
         } else if (table === 'conversations') {
           if (payload.participant1_id !== currentUserId && payload.participant2_id !== currentUserId) return;
+          debouncedRefresh();
+        } else if (table === 'group_messages') {
+          // Pkg365: refresh groups tab instantly when new group message arrives
           debouncedRefresh();
         }
       }
