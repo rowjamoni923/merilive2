@@ -1099,8 +1099,46 @@ const LiveStream = () => {
     };
     window.addEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
 
+    // ============= Safety-net: Supabase Realtime on stream_chat =============
+    // LiveKit DataPacket is the fast-path (<50ms). But when a viewer's LiveKit
+    // room isn't connected yet, is subscribe-only, or mobile background-drops
+    // the WS, messages never arrive. This Postgres realtime channel guarantees
+    // delivery to EVERY participant — host AND every viewer — so public chat
+    // is truly public. Dedup via message id ensures no double-render.
+    const seenMsgIds = new Set<string>();
+    const chatChannel = supabase
+      .channel(`live-chat-rt-${id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'stream_chat',
+        filter: `stream_id=eq.${id}`,
+      }, async (payload) => {
+        const row: any = payload.new;
+        if (!row?.id || !row?.user_id) return;
+        if (seenMsgIds.has(row.id)) return;
+        seenMsgIds.add(row.id);
+
+        // Skip own messages — already optimistically rendered by sender.
+        if (row.user_id === currentUserId) return;
+
+        // Resolve sender profile for display
+        const { data: profile } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, user_level, avatar_url, country_flag, created_at')
+          .eq('id', row.user_id)
+          .maybeSingle();
+
+        setMessages(prev => {
+          if (prev.some(m => m.id === row.id)) return prev;
+          return [...prev, mapStreamChatRow(row, profile, hostId)];
+        });
+      })
+      .subscribe();
+
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
+      try { supabase.removeChannel(chatChannel); } catch {}
     };
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
