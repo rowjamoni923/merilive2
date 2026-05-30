@@ -1673,6 +1673,11 @@ const PartyRoom = () => {
         request_id: request.id,
         timestamp: Date.now(),
       });
+
+      try {
+        const bc = (window as any).__partySeatBroadcast?.[roomId];
+        if (bc) void bc.send({ type: 'broadcast', event: 'seat_event', payload: { kind: 'approved', request_id: request.id, requester_id: request.requester_id, seat_position: request.seat_position } });
+      } catch { /* ignore */ }
       
       // Force refresh participants to update UI immediately for all users
       await fetchParticipants();
