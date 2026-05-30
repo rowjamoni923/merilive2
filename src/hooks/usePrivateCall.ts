@@ -146,6 +146,60 @@ export function usePrivateCall(userId: string | null) {
     incomingCallIdRef.current = incomingCall?.callId || null;
   }, [incomingCall]);
 
+  // Pkg361 ZERO-REFRESH: Subscribe to private_calls table for instant status updates.
+  // Replaces the 5s polling delay with <100ms DB change detection.
+  useEffect(() => {
+    if (!userId) return;
+
+    const unsubscribe = subscribeToTables(
+      `private-calls-${userId}`,
+      ['private_calls'],
+      (table, event, payload) => {
+        const row = payload as any;
+        const currentCallId = currentCallIdRef.current;
+        
+        // 1. Check if it's an incoming call for us (Host side)
+        if (event === 'INSERT' && row.host_id === userId && row.status === 'pending') {
+          console.log('[Call Realtime] Incoming call detected:', row.id);
+          showVerifiedIncomingCall(row.id);
+          return;
+        }
+
+        // 2. Check if it's an update for our current active call
+        if (currentCallId && row.id === currentCallId) {
+          console.log(`[Call Realtime] Status update for ${row.id}: ${row.status}`);
+          
+          if (row.status === 'connected') {
+            activateCallerConnectedState(row.id);
+          } else if (row.status === 'declined' || row.status === 'ended' || row.status === 'missed') {
+            console.log('[Call Realtime] Call ended via DB status:', row.status);
+            // We use softEndCall for connected calls so the summary modal shows, 
+            // and resetCallState for pending/ringing calls.
+            if (callStateRef.current.status === 'connected') {
+              softEndCallRef.current?.();
+            } else {
+              resetCallStateRef.current?.();
+            }
+            
+            const reasonMsg = row.status === 'declined' ? 'Host declined the call' 
+                           : row.status === 'missed' ? 'Host did not answer' 
+                           : 'The call has ended';
+            toastRef.current({ title: 'Call Finished', description: reasonMsg });
+          }
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+
+  // Keep ref to callState for use in the realtime callback
+  const callStateRef = useRef(callState);
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
+
+
   // Clear all timers helper
   const clearAllTimers = useCallback(() => {
     if (durationTimerRef.current) {
