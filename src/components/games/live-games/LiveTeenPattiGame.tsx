@@ -522,7 +522,11 @@ export function LiveTeenPattiGame({
   const CardFace = ({ card }: { card: Card }) => {
     const isRed = card.suit === "♥" || card.suit === "♦";
     return (
-      <div className="w-8 h-11 rounded bg-white border border-gray-300 flex flex-col items-center justify-center shadow-md">
+      <div className={cn(
+        "rounded bg-white border border-gray-300 flex flex-col items-center justify-center shadow-md",
+        isVerySmallHeight ? "w-4 h-6" : isLandscape ? "w-6 h-8" : "w-8 h-11"
+      )}>
+
         <span className={cn("text-[9px] font-bold", isRed ? "text-red-600" : "text-gray-900")}>
           {card.value}
         </span>
