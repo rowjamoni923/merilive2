@@ -148,6 +148,9 @@ const ensureExternalSyncBridge = () => {
 
   window.addEventListener('app-sync', (event: Event) => {
     const detail = (event as CustomEvent<any>).detail || {};
+    // Pkg362: Avoid loop — do not re-notify if this event was dispatched by us below.
+    if (detail.source === 'universal-realtime') return;
+
     const table = typeof detail.topic === 'string' ? detail.topic : null;
     if (!table) return;
     notifySubscribers(table, normalizeEventType(detail.eventType), detail.payload || detail);
@@ -272,6 +275,16 @@ const initializeUniversalChannel = async () => {
         (payload: RealtimePostgresChangesPayload<any>) => {
           const eventType = payload.eventType as EventType;
           const data = eventType === 'DELETE' ? payload.old : payload.new;
+
+          // 🚀 Bridge Real-time DB changes to legacy useAppSyncEvent listeners.
+          // This ensures that any direct DB update (e.g. from admin panel)
+          // instantly triggers UI refreshes in components watching via useAppSyncEvent.
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('app-sync', {
+              detail: { topic: table, eventType, payload: data, source: 'universal-realtime' }
+            }));
+          }
+
           notifySubscribers(table, eventType, data);
         }
       );

@@ -47,7 +47,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
-import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { useUniversalRealtime } from "@/hooks/useUniversalRealtime";
 import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
 import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
 
@@ -678,17 +678,19 @@ const FaceVerification = () => {
     };
   }, [navigate, refreshVerificationState]);
 
-  // Pkg91: dead postgres_changes channel (3 tables not in publication) replaced
-  // with app_sync trigger fan-out via useAppSyncEvent (zero new realtime channels).
-  useAppSyncEvent(
+  // 🚀 Enterprise Real-time Sync: listen to direct DB changes for instant UI updates.
+  // When admin approves/rejects, the status updates here without manual refresh.
+  useUniversalRealtime(
     ['face_verification_submissions', 'host_applications', 'profiles'],
-    (detail) => {
+    (table, _event, payload) => {
       if (!userId) return;
-      const rowUser = (detail.payload as any)?.user_id ?? (detail.payload as any)?.id;
+      const rowUser = (payload as any)?.user_id ?? (payload as any)?.id;
       if (rowUser && rowUser !== userId) return;
+
+      console.log(`[FaceVerification] Real-time sync triggered by ${table}`);
       void refreshVerificationState(userId);
     },
-    !!userId,
+    !!userId
   );
 
   // Handle photo selection (Step 1)
