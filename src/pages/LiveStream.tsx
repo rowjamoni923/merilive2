@@ -2450,6 +2450,40 @@ const LiveStream = () => {
       retryTimers.forEach(clearTimeout);
     };
   }, [isHost, isJoined, remoteVideoTrack, retrySubscription]);
+
+  // 🚨 Host camera watchdog — if isJoined but no localVideoTrack arrives within
+  // 6s (and we're not on native surface), show a visible recover overlay so the
+  // host is never stuck staring at a blank/white/dark screen silently.
+  const [showHostCameraRecover, setShowHostCameraRecover] = useState(false);
+  useEffect(() => {
+    if (!isHost || !isJoined) { setShowHostCameraRecover(false); return; }
+    if (localVideoTrack || isNativeMediaActive) { setShowHostCameraRecover(false); return; }
+    const t = setTimeout(() => setShowHostCameraRecover(true), 6000);
+    return () => clearTimeout(t);
+  }, [isHost, isJoined, localVideoTrack, isNativeMediaActive]);
+
+  const handleHostCameraRecover = useCallback(async () => {
+    setShowHostCameraRecover(false);
+    try {
+      const { default: nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+      try { await nativeLiveKitController.setCameraEnabled(false); } catch { /* ignore */ }
+      await new Promise((r) => setTimeout(r, 120));
+      try { await nativeLiveKitController.setCameraEnabled(true); } catch { /* ignore */ }
+    } catch { /* ignore */ }
+    try {
+      // Force a clean re-publish through the LiveKit room (web path)
+      const { Track } = await import('livekit-client');
+      const roomAny: any = (window as any).__livekitRoom;
+      if (roomAny?.localParticipant) {
+        try { await roomAny.localParticipant.setCameraEnabled(false); } catch { /* ignore */ }
+        await new Promise((r) => setTimeout(r, 120));
+        try { await roomAny.localParticipant.setCameraEnabled(true); } catch { /* ignore */ }
+        try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+    toast.info('Restarting camera…');
+  }, []);
+
   const syncedFilterCSS = generateSyncedFilterCSS();
   const combinedFilterCSS = syncedFilterCSS || getBeautyFilterCSS();
 
