@@ -94,7 +94,7 @@ export function MandatoryPermissionsGate() {
     (async () => {
       try {
         const { App } = await import('@capacitor/app');
-        const sub = await CapApp.addListener('appStateChange', (st) => {
+        const sub = await App.addListener('appStateChange', (st) => {
           if (st.isActive) {
             permLog('gate.resume');
             refresh();
