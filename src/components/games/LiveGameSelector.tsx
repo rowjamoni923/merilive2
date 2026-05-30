@@ -257,7 +257,11 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
               </div>
             ) : (
               <motion.div 
-                className="grid grid-cols-3 gap-3"
+                className={cn(
+                  "grid gap-3",
+                  isLandscape ? "grid-cols-5 md:grid-cols-6" : "grid-cols-3"
+                )}
+
                 initial="hidden"
                 animate="visible"
                 variants={{
