@@ -504,8 +504,7 @@ public class NativeCameraPlugin extends Plugin {
 
         cameraProvider.unbindAll();
         try {
-            // Face verification needs simultaneous native preview + video +
-            // pose frames. Analyzer supplies captureFrame while recording.
+            // Best path: visible preview + analyzer frames + recording.
             camera = cameraProvider.bindToLifecycle(
                 (LifecycleOwner) getActivity(),
                 currentSelector,
@@ -515,15 +514,31 @@ public class NativeCameraPlugin extends Plugin {
             );
             imageCapture = null;
         } catch (Exception e) {
-            // Some devices reject 3 use-cases — fall back to preview+video only
-            Log.w(TAG, "3-use-case bind failed, retry with preview+video: " + e.getMessage());
-            camera = cameraProvider.bindToLifecycle(
-                (LifecycleOwner) getActivity(),
-                currentSelector,
-                preview,
-                videoCapture
-            );
-            imageCapture = null;
+            // Many mid-range Android phones reject Preview+Analysis+VideoCapture.
+            // Face verification MUST still show the native camera and produce
+            // liveness frames, so prefer preview+analysis over preview+video.
+            Log.w(TAG, "3-use-case bind failed, retry with preview+analysis: " + e.getMessage());
+            try {
+                cameraProvider.unbindAll();
+                camera = cameraProvider.bindToLifecycle(
+                    (LifecycleOwner) getActivity(),
+                    currentSelector,
+                    preview,
+                    analysis
+                );
+                videoCapture = null;
+                imageCapture = null;
+            } catch (Exception e2) {
+                Log.w(TAG, "preview+analysis bind failed, retry with preview only: " + e2.getMessage());
+                cameraProvider.unbindAll();
+                camera = cameraProvider.bindToLifecycle(
+                    (LifecycleOwner) getActivity(),
+                    currentSelector,
+                    preview
+                );
+                videoCapture = null;
+                imageCapture = null;
+            }
         }
     }
 
