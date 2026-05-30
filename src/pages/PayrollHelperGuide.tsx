@@ -120,34 +120,35 @@ const PayrollHelperGuide = () => {
 
   return (
     <div
-      className="fixed inset-0 overflow-y-auto overscroll-contain bg-background"
+      className="fixed inset-0 overflow-y-auto overscroll-contain bg-gradient-to-br from-brand-50 via-white to-info-50"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 text-white safe-area-top shadow-lg">
+        <div className="flex items-center h-14 px-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0 text-white hover:bg-white/20 rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1 text-center">
             <h1 className="font-bold text-lg">Payroll Helper Guide</h1>
-            <p className="text-xs text-muted-foreground">Complete A-Z Overview</p>
+            <p className="text-[10px] text-white/80 uppercase tracking-wider font-medium">Complete A-Z Overview</p>
           </div>
+          <div className="w-10" />
         </div>
       </div>
 
       {/* Hero Banner */}
       <div className="relative">
         <img src={bannerImage} alt="Payroll Helper System" loading="eager" decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="w-full h-52 object-cover"/>
-        <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <Badge className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-amber-950 border border-amber-300/60 text-xs font-bold tracking-wide shadow-lg shadow-amber-500/30 mb-2 px-3 py-1">
-            💎 Premium Earning Opportunity
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-600/20 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
+          <Badge className="bg-gradient-to-r from-brand-500 via-info-400 to-brand-500 text-white border border-white/20 text-[10px] font-bold tracking-wide shadow-lg shadow-brand-500/30 mb-2 px-3 py-0.5 uppercase">
+            💎 Premium Opportunity
           </Badge>
-          <h2 className="text-2xl font-black text-slate-800 leading-tight">
+          <h2 className="text-2xl font-black text-white leading-tight drop-shadow-md">
             Become a Payroll Helper
           </h2>
-          <p className="text-slate-700 text-sm mt-1">
+          <p className="text-white/90 text-sm mt-1 font-medium">
             Process salaries, earn diamonds, and build your trading business
           </p>
         </div>
@@ -155,36 +156,35 @@ const PayrollHelperGuide = () => {
 
       <div className="p-4 space-y-6 pb-24">
         {/* What is a Payroll Helper */}
-        <section className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-5 border border-amber-500/20">
+        <section className="bg-white rounded-2xl p-5 border border-brand-100 shadow-lg shadow-brand-500/5">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+            <div className="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-brand-600" />
             </div>
-            <h3 className="font-bold text-base">What is a Payroll Helper?</h3>
+            <h3 className="font-bold text-base text-slate-800">What is a Payroll Helper?</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            A <strong className="text-foreground">Payroll Helper</strong> is a trusted, verified member of our platform who acts as a <strong className="text-foreground">financial bridge</strong> between the app and its users. You process real-money transactions — including user diamond top-ups, agency salary withdrawals, and diamond transfers — using local payment methods. In return, you earn <strong className="text-foreground">commissions</strong> and <strong className="text-foreground">diamond rewards</strong> that can be converted into real profit.
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            A <strong className="text-brand-600 font-black">Payroll Helper</strong> is a trusted, verified member of our platform who acts as a <strong className="text-info-600 font-black">financial bridge</strong> between the app and its users. You process real-money transactions — including user diamond top-ups, agency salary withdrawals, and diamond transfers — using local payment methods. In return, you earn <strong className="text-success-600 font-black">commissions</strong> and <strong className="text-amber-600 font-black">diamond rewards</strong> that can be converted into real profit.
           </p>
         </section>
 
         {/* Core Roles */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <Zap className="w-5 h-5 text-amber-500" />
-            Your Core Responsibilities
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <Zap className="w-4 h-4 text-brand-500" />
+            Core Responsibilities
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {roles.map((role, idx) => (
-              <div key={idx} className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className={`h-1 bg-gradient-to-r ${role.color}`} />
+              <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
                 <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center shrink-0`}>
-                      <role.icon className="w-5 h-5 text-slate-800" />
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${role.color} flex items-center justify-center shrink-0 shadow-lg shadow-black/10`}>
+                      <role.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{role.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{role.desc}</p>
+                      <h4 className="font-bold text-slate-800 text-sm">{role.title}</h4>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">{role.desc}</p>
                     </div>
                   </div>
                 </div>
@@ -195,19 +195,19 @@ const PayrollHelperGuide = () => {
 
         {/* Benefits */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <Award className="w-5 h-5 text-emerald-500" />
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <Award className="w-4 h-4 text-brand-500" />
             Benefits You Get
           </h3>
           <div className="grid grid-cols-1 gap-3">
             {benefits.map((benefit, idx) => (
-              <div key={idx} className="bg-card rounded-xl border border-border p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <benefit.icon className="w-4.5 h-4.5 text-emerald-500" />
+              <div key={idx} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-start gap-4 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center shrink-0 border border-brand-100">
+                  <benefit.icon className="w-5 h-5 text-brand-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm">{benefit.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{benefit.desc}</p>
+                  <h4 className="font-bold text-slate-800 text-sm">{benefit.title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed font-medium">{benefit.desc}</p>
                 </div>
               </div>
             ))}
@@ -215,56 +215,56 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Resource Panel Section */}
-        <section className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl p-5 border border-blue-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-              <Phone className="w-4 h-4 text-blue-500" />
+        <section className="bg-gradient-to-br from-info-600 to-brand-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                <Phone className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-black text-lg">Resource Panel</h3>
             </div>
-            <h3 className="font-bold text-base">Resource Panel — Your Contact Hub</h3>
-          </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            As a Payroll Helper, you can <strong className="text-foreground">add your phone number</strong> to the <strong className="text-foreground">Resource Panel</strong>. This panel is visible to all agencies and users in your country. When they need to recharge diamonds, withdraw salary, or transfer diamonds, they will <strong className="text-foreground">contact you directly</strong> through the number listed here.
-          </p>
-          <div className="bg-card/50 rounded-lg p-3 border border-border space-y-2">
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Your name, country, and phone number are displayed publicly</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Users & agencies can WhatsApp or call you for orders</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>More visibility means more transactions and more earnings</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Admin verifies your contact before it goes live</span>
+            <p className="text-sm text-white/90 leading-relaxed mb-5 font-medium">
+              As a Payroll Helper, you can <strong className="text-white font-black underline underline-offset-4">add your phone number</strong> to the <strong className="text-white font-black">Resource Panel</strong>. This makes you visible to all agencies and users in your country for direct orders.
+            </p>
+            <div className="space-y-3">
+              {[
+                "Public display of name, country & number",
+                "Direct contact via WhatsApp or Call",
+                "Increased visibility = more earnings",
+                "Admin verification before going live"
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-3 text-xs font-bold text-white/80">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-white" />
+                  </div>
+                  <span>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* How It Works — Step by Step */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <BadgeCheck className="w-5 h-5 text-purple-500" />
-            How It Works — Step by Step
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <BadgeCheck className="w-4 h-4 text-brand-500" />
+            Step by Step Process
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {howItWorks.map((step, idx) => (
-              <div key={idx} className="flex gap-3">
+              <div key={idx} className="flex gap-4 group">
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full ${step.color} flex items-center justify-center text-slate-800 text-xs font-bold shrink-0`}>
+                  <div className={`w-10 h-10 rounded-2xl ${step.color} flex items-center justify-center text-white text-xs font-black shrink-0 shadow-lg shadow-black/10 group-hover:scale-110 transition-transform`}>
                     {step.step}
                   </div>
                   {idx < howItWorks.length - 1 && (
-                    <div className="w-0.5 h-full bg-border mt-1" />
+                    <div className="w-1 h-full bg-slate-200 rounded-full mt-2" />
                   )}
                 </div>
-                <div className="pb-4">
-                  <h4 className="font-semibold text-sm">{step.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{step.desc}</p>
+                <div className="pb-6">
+                  <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">{step.desc}</p>
                 </div>
               </div>
             ))}
@@ -272,104 +272,103 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Diamond Earning Cycle */}
-        <section className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-2xl p-5 border border-cyan-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-              <Gem className="w-4 h-4 text-cyan-500" />
+        <section className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-info-50 flex items-center justify-center">
+              <Gem className="w-5 h-5 text-info-600" />
             </div>
-            <h3 className="font-bold text-base">Diamond Earning & Selling Cycle</h3>
+            <h3 className="font-black text-base text-slate-800">Diamond Trading Cycle</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            This is how the <strong className="text-foreground">diamond economy</strong> works for you as a Payroll Helper:
+          <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
+            This is how the <strong className="text-info-600 font-black uppercase tracking-tighter">diamond economy</strong> works for you:
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {diamondCycle.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center shrink-0">
-                  <item.icon className="w-4 h-4 text-cyan-500" />
+              <div key={idx} className="flex items-center gap-4 group">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-info-500 group-hover:border-info-500 transition-all duration-300">
+                  <item.icon className="w-5 h-5 text-info-600 group-hover:text-white" />
                 </div>
-                <div className="flex-1 bg-card/50 rounded-lg px-3 py-2 border border-border">
-                  <span className="text-xs font-medium">{item.label}</span>
+                <div className="flex-1 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 group-hover:bg-white group-hover:shadow-md transition-all duration-300">
+                  <span className="text-xs font-bold text-slate-700">{item.label}</span>
                 </div>
                 {idx < diamondCycle.length - 1 && (
-                  <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
+                  <ArrowRight className="w-4 h-4 text-slate-300 shrink-0 hidden sm:block" />
                 )}
               </div>
             ))}
           </div>
-          <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-3 font-medium">
-            💡 The more withdrawals you process, the more diamonds you accumulate. Sell them strategically for maximum profit!
-          </p>
+          <div className="bg-info-50 rounded-2xl p-4 mt-6 border border-info-100">
+            <p className="text-xs text-info-700 font-bold leading-relaxed">
+              💡 Pro Tip: Process more withdrawals to accumulate diamonds. Strategic trading is the key to maximum profit!
+            </p>
+          </div>
         </section>
 
         {/* Salary Processing for Hosts */}
-        <section className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl p-5 border border-pink-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
-              <Users className="w-4 h-4 text-pink-500" />
+        <section className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-2xl" />
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-brand-600" />
             </div>
-            <h3 className="font-bold text-base">Paying Agency & Host Salaries</h3>
+            <h3 className="font-black text-base text-slate-800">Processing Salaries</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            Every week, agencies submit withdrawal requests to pay their hosts' salaries. As a Payroll Helper, here's your role:
+          <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
+            Agencies submit withdrawal requests to pay hosts. Your role as a Payroll Helper:
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[
-              "Agency submits a withdrawal request with the total amount",
-              "You receive the order notification in your Helper Dashboard",
-              "You send the payment to the agency owner via local payment method",
-              "Upload payment screenshot as proof of transaction",
-              "Admin verifies and confirms the transaction",
-              "You receive diamonds as reward (based on withdrawal amount)",
-              "Diamonds are added to your Trader Wallet instantly",
+              "Receive order notification in Dashboard",
+              "Send payment via local method (bKash, etc.)",
+              "Upload transaction screenshot as proof",
+              "Receive diamond rewards instantly after verification"
             ].map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-pink-500 mt-0.5 shrink-0" />
-                <span className="text-muted-foreground">{item}</span>
+              <div key={idx} className="flex items-center gap-4 group">
+                <div className="w-6 h-6 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                </div>
+                <span className="text-xs font-bold text-slate-600 group-hover:text-brand-600 transition-colors">{item}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Important Notes */}
-        <section className="bg-card rounded-2xl p-5 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-amber-500" />
+        <section className="bg-slate-900 rounded-3xl p-6 border border-white/5 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-brand-400" />
             </div>
-            <h3 className="font-bold text-base">Important Guidelines</h3>
+            <h3 className="font-black text-base text-white">Security Guidelines</h3>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {[
-              "Always process orders within 24 hours of receiving them",
-              "Upload clear payment screenshots for every transaction",
-              "Never share your login credentials with anyone",
-              "Maintain professional communication with users and agencies",
-              "Report any suspicious activity to the admin team immediately",
-              "Your helper status can be revoked if guidelines are violated",
-              "Contact admin support for any transaction disputes",
+              "Process orders within 24 hours of notification",
+              "Always upload clear transaction screenshots",
+              "Maintain professional conduct with agencies",
+              "Report suspicious activity to Admin immediately",
+              "Violations will result in status revocation"
             ].map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-xs">
-                <div className="w-4 h-4 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[8px] font-bold text-amber-500">{idx + 1}</span>
+              <div key={idx} className="flex items-start gap-4">
+                <div className="w-6 h-6 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[10px] font-black text-brand-400">{idx + 1}</span>
                 </div>
-                <span className="text-muted-foreground">{item}</span>
+                <span className="text-xs font-bold text-white/60 leading-relaxed">{item}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* CTA */}
-        <div className="text-center space-y-3">
+        <div className="text-center pt-4">
           <Button
-            onClick={() => navigate("/helper-dashboard")}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-6 text-base rounded-xl"
+            onClick={() => navigate(-1)}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-brand-600 to-info-600 text-white font-black text-lg shadow-xl shadow-brand-500/20 active:scale-95 transition-all"
           >
-            Go to Helper Dashboard
-            <ArrowRight className="w-5 h-5 ml-2" />
+            I Understand, Go Back
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Already a helper? Access your dashboard to manage transactions
+          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-4">
+            Official Payroll Helper Documentation
           </p>
         </div>
       </div>
