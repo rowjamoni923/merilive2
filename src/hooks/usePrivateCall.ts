@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/hooks/useUniversalRealtime';
+
 import { updateCachedBalance } from '@/hooks/useUserBalance';
 import { useToast } from '@/hooks/use-toast';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
