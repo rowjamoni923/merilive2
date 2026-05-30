@@ -151,7 +151,14 @@ export const UnifiedViewerPanel = ({
             </div>
 
             {/* Content */}
-            <ScrollArea className="h-[calc(70vh-140px)]">
+            <ScrollArea 
+              className="relative"
+              style={{ 
+                height: isVerySmallHeight ? '150px' : isLandscape ? '250px' : 'calc(70vh - 140px)',
+                minHeight: '120px'
+              }}
+            >
+
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
