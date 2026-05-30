@@ -37,6 +37,7 @@ import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
+import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -584,14 +585,11 @@ export function useLiveKitCall(
         // from the user's call/accept tap so Android WebView never needs a
         // delayed getUserMedia request after async DB/token work.
         const preparedStream = consumePreparedCallMediaStream(callId);
-        if (preparedStream) {
-          const videoTrack = preparedStream.getVideoTracks().find((track) => track.readyState === 'live');
-          const audioTrack = preparedStream.getAudioTracks().find((track) => track.readyState === 'live');
-          if (videoTrack) await room.localParticipant.publishTrack(videoTrack, { source: Track.Source.Camera } as any);
-          if (audioTrack) await room.localParticipant.publishTrack(audioTrack, { source: Track.Source.Microphone } as any);
-        } else {
-          await room.localParticipant.enableCameraAndMicrophone();
-        }
+        await publishReliableLocalMedia(room, {
+          needVideo: true,
+          needAudio: true,
+          preparedStream,
+        });
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during

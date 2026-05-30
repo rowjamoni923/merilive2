@@ -18,6 +18,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
+import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
@@ -299,30 +300,14 @@ export function usePartyRoomWebRTC(
                 await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
               }
 
-              if (previewStream && attempt === 1) {
-                console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
-                const preloadedVideoTrack = previewStream.getVideoTracks()[0];
-                const preloadedAudioTrack = previewStream.getAudioTracks()[0];
-
-                const needsVideo = roomType === 'video' || roomType === 'game';
-
-                if (needsVideo && preloadedVideoTrack?.readyState === 'live') {
-                  const beautifiedTrack = await processTrackWithBeauty(preloadedVideoTrack);
-                  await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-                } else if (needsVideo) {
-                  await room.localParticipant.setCameraEnabled(true);
-                }
-
-                if (preloadedAudioTrack?.readyState === 'live') {
-                  await room.localParticipant.publishTrack(preloadedAudioTrack as any, { source: Track.Source.Microphone } as any);
-                } else {
-                  await room.localParticipant.setMicrophoneEnabled(true);
-                }
-              } else if (roomType === 'video' || roomType === 'game') {
-                await room.localParticipant.enableCameraAndMicrophone();
-              } else if (roomType === 'audio') {
-                await room.localParticipant.setMicrophoneEnabled(true);
-              }
+              const needsVideo = roomType === 'video' || roomType === 'game';
+              if (previewStream && attempt === 1) console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
+              await publishReliableLocalMedia(room, {
+                needVideo: needsVideo,
+                needAudio: true,
+                preparedStream: previewStream,
+                processVideoTrack: needsVideo ? processTrackWithBeauty : undefined,
+              });
 
               await new Promise((resolve) => setTimeout(resolve, 250));
               rebuildLocalStream();
