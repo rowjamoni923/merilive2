@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Crown, Swords, Timer } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
@@ -36,6 +37,8 @@ export const PKBattleActive = ({
   const [opponentScore, setOpponentScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [battleEnded, setBattleEnded] = useState(false);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+  const compact = isLandscape || isVerySmallHeight;
 
   // Pkg181: INSTANT score sync — 0ms perceived latency, NO polling.
   //   1. Initial DB seed once (mid-battle rejoin safety).
@@ -172,7 +175,7 @@ export const PKBattleActive = ({
 
   return (
     <motion.div
-      className="absolute top-24 left-0 right-0 z-30 px-3"
+      className={`absolute left-0 right-0 z-30 px-3 ${compact ? "top-2 mx-auto max-w-xl" : "top-24"}`}
       initial={{ y: -50, opacity: 0, scale: 0.96 }}
       animate={{ y: 0, opacity: 1, scale: 1 }}
       transition={{ type: "spring", damping: 24, stiffness: 320 }}
@@ -262,13 +265,13 @@ export const PKBattleActive = ({
         </div>
 
         {/* VS Section */}
-        <div className="relative p-3">
-          <div className="flex items-center justify-between gap-2">
+        <div className={compact ? "relative p-2" : "relative p-3"}>
+          <div className={`flex items-center justify-between ${compact ? "gap-1.5" : "gap-2"}`}>
             {/* Challenger */}
             <div className="flex-1 flex items-center gap-2">
               <div className="relative">
                 <motion.div
-                  className="w-12 h-12 rounded-full overflow-hidden"
+                  className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
                     border: challengerWinning ? "2px solid #fbbf24" : "2px solid #ec4899",
                     boxShadow: challengerWinning
@@ -346,7 +349,7 @@ export const PKBattleActive = ({
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
               <div className="relative">
                 <motion.div
-                  className="w-12 h-12 rounded-full overflow-hidden"
+                  className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
                     border: opponentWinning ? "2px solid #fbbf24" : "2px solid #a855f7",
                     boxShadow: opponentWinning

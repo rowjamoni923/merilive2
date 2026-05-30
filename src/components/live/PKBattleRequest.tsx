@@ -100,7 +100,7 @@ export const PKBattleRequest = ({
         />
 
         <motion.div
-          className="relative w-full max-w-sm rounded-3xl overflow-hidden"
+          className="relative w-full max-w-sm max-h-[95dvh] overflow-y-auto rounded-3xl"
           initial={{ scale: 0.82, y: 60, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.9, y: 30, opacity: 0 }}

@@ -46,7 +46,7 @@ export const PKBattleResult = ({
       />
 
       <motion.div
-        className="relative w-full max-w-sm"
+        className="relative w-full max-w-sm max-h-[95dvh] overflow-y-auto"
         initial={{ scale: 0.7, y: 60, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.85, y: 30, opacity: 0 }}
