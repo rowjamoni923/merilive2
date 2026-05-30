@@ -98,8 +98,8 @@ const PayrollHelperGuide = () => {
         {/* Intro Section */}
         <section className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-brand-600 dark:text-brand-400" />
             </div>
             <h3 className="font-black text-base text-slate-800 dark:text-white">What is a Payroll Helper?</h3>
           </div>
