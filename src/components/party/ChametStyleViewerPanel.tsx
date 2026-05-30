@@ -195,7 +195,7 @@ export const ChametStyleViewerPanel = ({
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 28, stiffness: 320, mass: 0.7 }}
           className="fixed inset-x-0 bottom-0 z-50"
-          style={{ height: "72vh", willChange: 'transform', transform: 'translateZ(0)' }}
+          style={{ height: isLandscape ? "95dvh" : "72vh", willChange: 'transform', transform: 'translateZ(0)' }}
         >
           {/* Backdrop */}
           <motion.div
