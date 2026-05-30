@@ -265,7 +265,31 @@ export const useUserPrivileges = (userId: string | null) => {
       }
 
       if (source === 'shop') {
-        await supabase.from('user_purchases').update({ is_equipped: false }).eq('user_id', userId);
+        const { data: allPurchases } = await supabase
+          .from("user_purchases")
+          .select("id, shop_items(category)")
+          .eq("user_id", userId)
+          .eq("is_active", true);
+
+        const sameCategoryIds = allPurchases
+          ?.filter(p => {
+            const pCategory = (p.shop_items as any)?.category;
+            let pSlot = pCategory;
+            if (pCategory === 'portrait_frame' || pCategory === 'frame') pSlot = 'frame';
+            if (pCategory === 'entrance_effect' || (pCategory as string) === 'entry_banner' || pCategory === 'entrance') pSlot = 'entrance';
+            if (pCategory === 'entry_bar' || pCategory === 'entry_name_bar') pSlot = 'entry_name_bar';
+            
+            return pSlot === slot;
+          })
+          .map(p => p.id) || [];
+
+        if (sameCategoryIds.length > 0) {
+          await supabase
+            .from("user_purchases")
+            .update({ is_equipped: false })
+            .in("id", sameCategoryIds);
+        }
+
         await supabase.from('user_purchases').update({ is_equipped: true }).eq('id', itemId);
       }
 
