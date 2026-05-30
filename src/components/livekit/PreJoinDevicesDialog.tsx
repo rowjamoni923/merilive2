@@ -190,7 +190,19 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               playsInline
               autoPlay
               muted
-              className="h-full w-full object-cover [transform:scaleX(-1)]"/>
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              // @ts-ignore
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="false"
+              x5-playsinline="true"
+              webkit-playsinline="true"
+              className="h-full w-full object-cover [transform:scaleX(-1)]"
+              style={{ pointerEvents: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
+
           </div>
 
           {/* Camera */}
