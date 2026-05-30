@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { X, Users, Crown, Eye } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
