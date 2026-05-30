@@ -55,17 +55,19 @@ export const InCallChat = memo(({
     }
   }, [isOpen]);
 
-  // Pkg79: LiveKit DataPacket chat — replaces the Supabase
-  // `call-chat-${callId}` broadcast channel entirely. The LiveKit Room is
-  // already registered by useLiveKitCall on connect; we only listen here.
+  // Pkg79: LiveKit DataPacket chat — sub-50ms fast-path between the 2
+  // call participants. Safety-net below uses a Supabase Broadcast channel
+  // so even if one side's LiveKit room is reconnecting / subscribe-only,
+  // the message still arrives. Dedup by message id.
   useEffect(() => {
     if (!callId || !isOpen) return;
+    const seenIds = new Set<string>();
 
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<ChatMessageDetail>).detail;
-      if (!detail) return;
-      if (detail.scope !== 'call' || detail.id !== callId) return;
+    const addIncoming = (detail: ChatMessageDetail) => {
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
       if (detail.userId === userId) return;
+      if (seenIds.has(detail.messageId)) return;
+      seenIds.add(detail.messageId);
       const msg: ChatMessage = {
         id: detail.messageId,
         senderId: detail.userId,
@@ -78,9 +80,27 @@ export const InCallChat = memo(({
         return [...prev, msg];
       });
     };
+
+    const handler = (event: Event) => {
+      addIncoming((event as CustomEvent<ChatMessageDetail>).detail);
+    };
     window.addEventListener('livekit-chat-message', handler as EventListener);
+
+    // Supabase Broadcast safety-net — both peers join the same room channel
+    const channel = supabase
+      .channel(`call-chat-rt-${callId}`, { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'chat' }, ({ payload }) => {
+        addIncoming(payload as ChatMessageDetail);
+      })
+      .subscribe();
+    // Expose the channel for sendMessage via ref on window keyed by callId
+    (window as any).__callChatChannels = (window as any).__callChatChannels || {};
+    (window as any).__callChatChannels[callId] = channel;
+
     return () => {
       window.removeEventListener('livekit-chat-message', handler as EventListener);
+      try { supabase.removeChannel(channel); } catch {}
+      try { delete (window as any).__callChatChannels[callId]; } catch {}
     };
   }, [callId, isOpen, userId]);
 
@@ -112,6 +132,17 @@ export const InCallChat = memo(({
     setMessages((prev) => [...prev, msg]);
     setInput("");
 
+    const payload: ChatMessageDetail = {
+      scope: 'call',
+      id: callId,
+      messageId: msgId,
+      userId,
+      displayName: actualName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
+    };
+
     void publishChatMessage('call', callId, {
       messageId: msgId,
       userId,
@@ -120,6 +151,12 @@ export const InCallChat = memo(({
       messageType: 'text',
       timestamp: msg.timestamp,
     });
+
+    // Safety-net broadcast — guarantees delivery if peer's LiveKit DataPacket misses
+    try {
+      const ch = (window as any).__callChatChannels?.[callId];
+      if (ch) void ch.send({ type: 'broadcast', event: 'chat', payload });
+    } catch {}
   };
 
   return (
