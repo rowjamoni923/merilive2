@@ -396,7 +396,11 @@ export function LiveLuckyNumberGame({
         </AnimatePresence>
 
         {/* Number Grid - 2 Rows of 5 */}
-        <div className="grid grid-cols-5 gap-2">
+        <div className={cn(
+          "grid gap-2",
+          isLandscape ? "grid-cols-10" : "grid-cols-5"
+        )}>
+
           {NUMBERS.map((num) => (
             <motion.button
               key={num}
