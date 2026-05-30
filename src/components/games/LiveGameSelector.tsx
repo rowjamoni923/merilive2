@@ -89,6 +89,8 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
   const [games, setGames] = useState<GameItem[]>([]);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   useEffect(() => {
     if (isOpen) {
