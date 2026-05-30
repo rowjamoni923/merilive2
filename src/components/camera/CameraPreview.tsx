@@ -177,10 +177,21 @@ export function CameraPreview({
         autoPlay
         playsInline
         muted
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+        poster=""
+        // @ts-ignore
+        x5-video-player-type="h5"
+        x5-video-player-fullscreen="false"
+        x5-playsinline="true"
+        webkit-playsinline="true"
         className={`w-full ${getAspectRatioClass()} object-cover ${
           mirror && facing === 'user' ? 'scale-x-[-1]' : ''
         }`}
-        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none' }}/>
+        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
+
 
       {/* Loading Overlay */}
       {isLoading && (
