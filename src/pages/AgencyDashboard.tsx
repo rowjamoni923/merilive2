@@ -164,8 +164,11 @@ const AgencyDashboard = () => {
       setSubAgentsCount(subAgentsCountRes.count || 0);
 
       if (beansRateRes.data?.setting_value) {
-        const val = beansRateRes.data.setting_value as any;
-        setCoinsToUsdRate(val.rate || 9000);
+        const settingValue = beansRateRes.data.setting_value;
+        const parsedRate = typeof settingValue === 'object' && settingValue !== null && 'rate' in settingValue
+          ? Number((settingValue as { rate?: unknown }).rate)
+          : Number(settingValue);
+        setCoinsToUsdRate(Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : 9000);
       }
 
       if (userProfileRes.data?.country_code) {
