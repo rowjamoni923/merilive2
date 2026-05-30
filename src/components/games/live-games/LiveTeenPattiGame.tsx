@@ -508,7 +508,11 @@ export function LiveTeenPattiGame({
   };
 
   const CardBack = () => (
-    <div className="w-8 h-11 rounded bg-gradient-to-br from-red-500 to-red-700 border border-yellow-400/50 flex items-center justify-center shadow-md">
+    <div className={cn(
+      "rounded bg-gradient-to-br from-red-500 to-red-700 border border-yellow-400/50 flex items-center justify-center shadow-md",
+      isVerySmallHeight ? "w-4 h-6" : isLandscape ? "w-6 h-8" : "w-8 h-11"
+    )}>
+
       <div className="w-6 h-9 rounded-sm bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
         <span className="text-red-600 text-xs">♦</span>
       </div>
