@@ -88,6 +88,7 @@ interface Agency {
   diamond_balance?: number;
   beans_balance?: number;
   parent_agency_id?: string | null;
+  owner_id: string;
 }
 
 const AgencyDashboard = () => {
