@@ -2148,28 +2148,16 @@ const FaceVerification = () => {
       {/* Video Container with Face Oval */}
       <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : 'bg-white/80 shadow-2xl'}`}>
         {!faceCameraActive && !faceVerified ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+            {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="relative w-32 h-32 mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="relative w-full h-full flex flex-col items-center justify-center"
             >
-              <motion.div
-                className="absolute inset-0 rounded-full border-2 border-slate-300/60"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.15, 0.5] }}
-                transition={{ duration: 2.2, repeat: Infinity }}
-              />
-              <motion.div
-                className="absolute inset-2 rounded-full border-2 border-slate-400/50"
-                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.1, 0.4] }}
-                transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
-              />
-              <div className="absolute inset-4 rounded-full bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-900/20">
-                <ScanFace className="w-12 h-12 text-white" />
-              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-3" />
+              <p className="text-white/40 text-xs font-medium tracking-wide">CAMERA STANDBY</p>
             </motion.div>
-            <p className="text-slate-900 text-center font-semibold mb-1 text-base">Ready to Scan</p>
-            <p className="text-slate-500 text-xs text-center max-w-[220px] leading-relaxed">Position your face inside the oval and follow each on-screen instruction</p>
           </div>
 
         ) : faceVerified ? (
