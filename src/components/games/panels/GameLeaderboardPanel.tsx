@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trophy, Crown, Medal, Coins, Loader2, Users, Calendar, CalendarDays, CalendarRange, Mic, Gamepad2, Building2, Swords } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { Button } from "@/components/ui/button";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
