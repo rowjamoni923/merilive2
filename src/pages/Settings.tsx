@@ -354,12 +354,13 @@ const Settings = () => {
   const requestNotificationPermission = async () => {
     console.log('[Settings] Requesting notification permission...');
     if (permissions.notifications) {
+      // Pkg365: If already enabled, open settings to allow the user to turn it OFF
+      // as requested ("off-on work correctly").
       toast({
-        title: "Already Enabled",
-        description: isNativeApp()
-          ? "To disable, go to device Settings → Apps → MeriLive → Permissions."
-          : "To disable, change it from your browser site settings.",
+        title: "Permission Active",
+        description: "Opening app settings so you can manage your notifications.",
       });
+      void openPermissionSettings();
       return;
     }
     try {
@@ -370,7 +371,8 @@ const Settings = () => {
           registerNotificationToken();
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
-          toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Notifications → Allow.", variant: "destructive" });
+          toast({ title: "Permission Needed", description: "Please enable notifications in App Settings.", variant: "destructive" });
+          void openPermissionSettings();
         }
         return;
       }
