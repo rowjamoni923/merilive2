@@ -45,7 +45,7 @@ export function GameCategoryTabs({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={cn(
-              "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200",
+              "relative flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 min-h-[36px]",
               isActive
                 ? `bg-gradient-to-r ${config.color} text-white shadow-lg`
                 : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80"
