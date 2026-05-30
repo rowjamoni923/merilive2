@@ -451,8 +451,9 @@ export function LiveFerrisWheelGame({
                       !isSelected && !isWinner && "border-white/50"
                     )}
                     style={{
-                      left: `calc(50% + ${x}px - 22px)`,
-                      top: `calc(50% + ${y}px - 22px)`,
+                      left: `calc(50% + ${x}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
+                      top: `calc(50% + ${y}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
+
                     }}
                     whileHover={{ scale: autoPlayPhase === "betting" ? 1.15 : 1 }}
                     whileTap={{ scale: 0.9 }}
