@@ -1245,10 +1245,10 @@ const AgencyDashboard = () => {
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group"
           >
             <WithdrawIcon3D />
-            <span className="text-xs font-medium mt-1">Withdraw</span>
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
