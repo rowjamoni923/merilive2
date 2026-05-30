@@ -148,7 +148,8 @@ const EditProfile = () => {
     successMessage: "Profile saved!"
   });
 
-  const onSave = useCallback(() => handleSave(), [handleSave]);
+  const onSave = useCallback(() => { handleSave(); }, [handleSave]);
+
 
 
 
