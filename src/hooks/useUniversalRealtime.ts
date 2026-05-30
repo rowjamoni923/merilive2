@@ -386,7 +386,8 @@ const scheduleChannelRebuild = () => {
   channelRebuildTimer = setTimeout(() => {
     channelRebuildTimer = null;
     void cleanupAndReconnect();
-  }, 500);
+  }, 200); // Reduced from 500ms to 200ms for faster subscription changes
+
 };
 
 /**
