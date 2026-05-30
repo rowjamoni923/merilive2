@@ -2769,9 +2769,9 @@ const FaceVerification = () => {
           )}
         </div>
       </div>
-      </div>
     );
   }
+
 
 
   // Already submitted - pending review
@@ -3427,6 +3427,5 @@ const FaceVerification = () => {
   );
 };
 
-
-
 export default FaceVerification;
+
