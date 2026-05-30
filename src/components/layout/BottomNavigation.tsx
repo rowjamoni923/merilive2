@@ -8,6 +8,7 @@ import { hapticFeedback } from "@/utils/nativeUtils";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
+import { useRealtimeProfile } from "@/hooks/useRealtimeData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
@@ -44,8 +45,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { profile: realtimeProfile, loading: profileLoading } = useRealtimeProfile(currentUserId);
   const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
   const [lockModal, setLockModal] = useState<{ open: boolean; featureName: string; requiredLevel: number; currentLevel: number; isHost: boolean }>({
     open: false,
@@ -55,48 +56,20 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     isHost: false,
   });
 
-  // Load user profile for level checks
+  // Initialize currentUserId
   useEffect(() => {
-    let isMounted = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setCurrentUserId(session.user.id);
+    });
 
-    const loadProfile = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const user = session?.user;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
 
-        if (!isMounted || !user) {
-          if (isMounted) {
-            setCurrentUserId(null);
-            setUserProfile(null);
-          }
-          return;
-        }
-
-        setCurrentUserId(user.id);
-
-        const { data } = await supabase
-          .from('profiles')
-          .select('user_level, host_level, max_user_level, is_host, host_status, gender')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (isMounted) {
-          setUserProfile(data ?? null);
-        }
-      } catch (error) {
-        console.warn('[BottomNavigation] Failed to load profile state', error);
-        if (isMounted) {
-          setUserProfile(null);
-        }
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => subscription.unsubscribe();
   }, []);
+
+  const userProfile = realtimeProfile;
     
   const currentPath = location.pathname;
   const activeTab = externalActiveTab || currentPath;
