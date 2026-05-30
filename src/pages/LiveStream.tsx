@@ -3070,7 +3070,7 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Professional Design */}
-        <div className="px-2 flex items-center gap-1 pt-2 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
+        <div className="px-2 md:px-6 flex items-center gap-1.5 md:gap-3 pt-2 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 70%, transparent 100%)' }}
         >
           {/* Chat Input — compact 36px tap target */}
