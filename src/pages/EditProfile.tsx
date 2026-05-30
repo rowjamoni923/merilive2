@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import {
@@ -47,6 +47,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { useOptimisticAction } from "@/hooks/useOptimisticAction";
 
 interface ProfileData {
   id: string;
@@ -71,7 +72,6 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // Form states
@@ -109,6 +109,50 @@ const EditProfile = () => {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const linkOtpCooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { execute: handleSave, isPending: saving } = useOptimisticAction({
+    onAction: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please login");
+
+      const updateData: Record<string, any> = {
+        display_name: displayName.trim() || undefined,
+        bio: bio.trim() || null,
+        age: (age && age >= 18 && age <= 100) ? age : undefined,
+        language,
+        secondary_language: secondLanguage || null,
+      };
+
+      if (gender && gender.toLowerCase() !== profile?.gender?.toLowerCase()) {
+        updateData.gender = gender.toLowerCase();
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data) {
+        syncProfileState(data as ProfileData);
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+        }));
+      }
+    },
+    successMessage: "Profile saved!"
+  });
+
+  const onSave = useCallback(() => { handleSave(); }, [handleSave]);
+
+
+
+
 
   const syncProfileState = (nextProfile: ProfileData) => {
     setProfile(nextProfile);
@@ -254,79 +298,6 @@ const EditProfile = () => {
     }
   };
 
-  const handleSave = async () => {
-    if (!profile) {
-      sonnerToast.error("Profile not loaded");
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      sonnerToast.error("Please login");
-      navigate("/auth");
-      return;
-    }
-
-    if (user.id !== profile.id) {
-      sonnerToast.error("Cannot update another user's profile");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const updateData: Record<string, any> = {};
-
-      if (displayName.trim()) {
-        updateData.display_name = displayName.trim();
-      }
-      
-      updateData.bio = bio.trim() || null;
-      
-      if (age && age >= 18 && age <= 100) {
-        updateData.age = age;
-      }
-
-      if (gender && gender.toLowerCase() !== profile.gender?.toLowerCase()) {
-        updateData.gender = gender.toLowerCase();
-        // Note: is_host, host_status, is_face_verified are set automatically
-        // by the auto_convert_account_by_gender database trigger (SECURITY DEFINER)
-      }
-
-      updateData.language = language;
-      updateData.secondary_language = secondLanguage || null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      if (data) {
-        syncProfileState(data as ProfileData);
-        try {
-          window.dispatchEvent(new CustomEvent("app-sync", {
-            detail: { topic: "profiles", eventType: "UPDATE", payload: data },
-          }));
-        } catch {}
-      }
-      
-      if (gender.toLowerCase() === "female" && profile.gender?.toLowerCase() !== "female") {
-        sonnerToast.success("🎉 Profile updated! You are now a host.");
-      } else {
-        sonnerToast.success("✅ Profile saved!");
-      }
-    } catch (error: any) {
-      console.error("Save error:", error);
-      recordClientError({ label: "EditProfile.updateData", message: error instanceof Error ? error.message : String(error) });
-      sonnerToast.error(error.message || "Failed to save");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handlePhoneUpdate = async () => {
     if (!newPhone) {
@@ -537,7 +508,8 @@ const EditProfile = () => {
           </button>
           <h1 className="text-lg font-bold text-heading">My Profile</h1>
           <button
-            onClick={handleSave}
+            onClick={onSave}
+
             disabled={saving}
             className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
           >
@@ -703,7 +675,8 @@ const EditProfile = () => {
                   <p className="text-xs text-body text-center">{displayName.length}/20 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
+
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
@@ -868,7 +841,8 @@ const EditProfile = () => {
                   />
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
+
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
@@ -1077,7 +1051,7 @@ const EditProfile = () => {
                   <p className="text-xs text-body text-center">{bio.length}/200 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
-                    onClick={handleSave}
+                    onClick={onSave}
                     disabled={saving}
                   >
                     {saving ? "Saving..." : "Save"}
