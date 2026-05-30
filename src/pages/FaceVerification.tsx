@@ -3021,11 +3021,11 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-    <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-      {renderHeader("Host Verification", "Get verified as a host")}
+    <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps — professional KYC-style indicator */}
-      <div className="mb-8 px-1">
+      <div className={`mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between">
           {[
             { n: 1, label: 'Basic Info' },
