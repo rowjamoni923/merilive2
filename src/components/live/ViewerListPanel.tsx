@@ -181,7 +181,14 @@ export const ViewerListPanel = ({
             </div>
 
             {/* Viewer List - Mobile Optimized */}
-            <ScrollArea className="h-[calc(70vh-120px)]">
+            <ScrollArea 
+              className="relative" 
+              style={{ 
+                height: isVerySmallHeight ? '180px' : isLandscape ? '250px' : 'calc(70vh - 120px)',
+                minHeight: '150px'
+              }}
+            >
+
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
