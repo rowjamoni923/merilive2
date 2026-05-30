@@ -352,6 +352,10 @@ public class NativeCameraPlugin extends Plugin {
             rotation = latestFrameRotation;
         }
         if (jpeg == null || jpeg.length == 0) {
+            if (imageCapture != null) {
+                capturePhoto(call);
+                return;
+            }
             call.reject("Camera frame not ready");
             return;
         }
@@ -529,15 +533,15 @@ public class NativeCameraPlugin extends Plugin {
                 videoCapture = null;
                 imageCapture = null;
             } catch (Exception e2) {
-                Log.w(TAG, "preview+analysis bind failed, retry with preview only: " + e2.getMessage());
+                Log.w(TAG, "preview+analysis bind failed, retry with preview+imageCapture: " + e2.getMessage());
                 cameraProvider.unbindAll();
                 camera = cameraProvider.bindToLifecycle(
                     (LifecycleOwner) getActivity(),
                     currentSelector,
-                    preview
+                    preview,
+                    imageCapture
                 );
                 videoCapture = null;
-                imageCapture = null;
             }
         }
     }
