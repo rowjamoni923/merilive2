@@ -129,7 +129,7 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Benefits Section */}
-        <section className="bg-emerald-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
+        <section className="bg-brand-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-brand-500/20">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
