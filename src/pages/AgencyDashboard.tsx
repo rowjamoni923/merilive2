@@ -1,67 +1,35 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
-  Building2,
   Users,
-  Wallet,
-  TrendingUp,
-  Crown,
-  Clock,
-  Gift,
   Coins,
   Copy,
-  CheckCircle2,
-  User,
-  Loader2,
-  ChevronRight,
-  BarChart3,
-  Share2,
-  Link as LinkIcon,
-  UserPlus,
-  TrendingDown,
-  Calendar,
-  DollarSign,
   Diamond,
-  ArrowRightLeft,
   Trophy,
   Sparkles,
-  Eye,
   Settings,
-  Bell,
-  Shield,
-  Star,
-  Activity,
+  Building2,
   Zap,
-  Target,
-  Award,
-  Headphones,
-  MessageCircle,
-  Phone,
-  Send,
-  Hash,
-  XCircle,
   Percent,
   FileText,
-  ArrowRight
+  ArrowRight,
+  Wallet,
+  History,
+  Banknote,
+  BadgeDollarSign,
+  Gem
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { HostsIcon3D, WithdrawIcon3D, RankingIcon3D, HelperIcon3D, DiamondExchangeIcon3D, PolicyIcon3D, HistoryIcon3D } from "@/components/agency/Premium3DIcons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
 import SubAgentsPanel from "@/components/agency/SubAgentsPanel";
