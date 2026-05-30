@@ -1265,18 +1265,15 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5 hover:scale-[1.05] active:scale-[0.95] transition-all flex flex-col items-center justify-center group relative"
           >
             {hasHelperAccess && helperPendingCount > 0 && (
-              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
+              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-black px-1.5 shadow-lg border-2 border-white dark:border-slate-900">
                 {helperPendingCount > 99 ? '99+' : helperPendingCount}
               </div>
             )}
-            {helperPendingApplication && !hasHelperAccess && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-            )}
             <HelperIcon3D />
-            <span className="text-xs font-medium mt-1">
+            <span className="text-[11px] font-black text-slate-800 dark:text-white mt-3 uppercase tracking-tighter">
               {hasHelperAccess ? 'Helper' : helperPendingApplication ? 'Pending' : 'Helper'}
             </span>
           </button>
