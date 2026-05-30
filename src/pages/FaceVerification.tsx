@@ -834,19 +834,13 @@ const FaceVerification = () => {
     try {
       autoFaceStartRef.current = false;
       preloadLocalFacePoseDetector();
-      if (await nativeFaceCam.isAvailable()) {
-        if (faceStream) {
-          faceStream.getTracks().forEach(track => track.stop());
-          setFaceStream(null);
-        }
-        // 720p keeps Android CameraX preview + analyzer + recorder bound on far
-        // more low/mid-range phones; 1080p often drops the analyzer, which made
-        // the visible face preview work while captureFrame returned no face.
-        await nativeFaceCam.startPreview('720p');
-        setNativeFaceCameraActive(true);
-        setCameraReady(true);
-        return;
-      }
+      // NOTE: native CameraX preview path is intentionally disabled here.
+      // It renders behind the WebView via punch-through, but the verification
+      // card + page background are opaque white, so the native surface was
+      // invisible on real devices (user reported blank white camera area).
+      // getUserMedia inside the DOM <video> works reliably on Android WebView
+      // with camera permission, so we use that path on every platform.
+      setNativeFaceCameraActive(false);
 
       // Stop any existing stream first
       if (faceStream) {
