@@ -65,7 +65,8 @@ export function usePartyRoomWebRTC(
     peerStreams: new Map(),
     isConnected: false,
     isAudioEnabled: true,
-    isVideoEnabled: true,
+    isVideoEnabled: true, // Auto-enable camera by default for 100% video experience
+
   });
   const [restartNonce, setRestartNonce] = useState(0);
 
