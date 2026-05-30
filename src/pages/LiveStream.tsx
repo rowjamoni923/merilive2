@@ -2450,6 +2450,40 @@ const LiveStream = () => {
       retryTimers.forEach(clearTimeout);
     };
   }, [isHost, isJoined, remoteVideoTrack, retrySubscription]);
+
+  // 🚨 Host camera watchdog — if isJoined but no localVideoTrack arrives within
+  // 6s (and we're not on native surface), show a visible recover overlay so the
+  // host is never stuck staring at a blank/white/dark screen silently.
+  const [showHostCameraRecover, setShowHostCameraRecover] = useState(false);
+  useEffect(() => {
+    if (!isHost || !isJoined) { setShowHostCameraRecover(false); return; }
+    if (localVideoTrack || isNativeMediaActive) { setShowHostCameraRecover(false); return; }
+    const t = setTimeout(() => setShowHostCameraRecover(true), 6000);
+    return () => clearTimeout(t);
+  }, [isHost, isJoined, localVideoTrack, isNativeMediaActive]);
+
+  const handleHostCameraRecover = useCallback(async () => {
+    setShowHostCameraRecover(false);
+    try {
+      const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+      try { await nativeLiveKitController.setCameraEnabled(false); } catch { /* ignore */ }
+      await new Promise((r) => setTimeout(r, 120));
+      try { await nativeLiveKitController.setCameraEnabled(true); } catch { /* ignore */ }
+    } catch { /* ignore */ }
+    try {
+      // Force a clean re-publish through the LiveKit room (web path)
+      const { Track } = await import('livekit-client');
+      const roomAny: any = (window as any).__livekitRoom;
+      if (roomAny?.localParticipant) {
+        try { await roomAny.localParticipant.setCameraEnabled(false); } catch { /* ignore */ }
+        await new Promise((r) => setTimeout(r, 120));
+        try { await roomAny.localParticipant.setCameraEnabled(true); } catch { /* ignore */ }
+        try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+    toast.info('Restarting camera…');
+  }, []);
+
   const syncedFilterCSS = generateSyncedFilterCSS();
   const combinedFilterCSS = syncedFilterCSS || getBeautyFilterCSS();
 
@@ -2771,7 +2805,22 @@ const LiveStream = () => {
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Pkg381: No generic user icon — show loading shimmer behind the transparent video element */}
             <div className="w-full h-full bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950" />
+            {showHostCameraRecover && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
+                <div className="text-white text-base font-semibold">Camera not visible</div>
+                <div className="text-white/70 text-xs max-w-[260px]">
+                  Your camera didn't start. Tap below to restart it. Make sure no other app is using the camera and that camera permission is granted.
+                </div>
+                <button
+                  onClick={handleHostCameraRecover}
+                  className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/30 active:scale-95 transition"
+                >
+                  🔄 Restart Camera
+                </button>
+              </div>
+            )}
           </div>
+
         ) : remoteVideoTrack ? (
           <div 
             className="w-full h-full relative flex items-center justify-center"
