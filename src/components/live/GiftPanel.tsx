@@ -111,6 +111,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
   // between renders. Closure `userCoins` lags by one render in combo bursts.
   const userCoinsRef = useRef<number>(propUserCoins || 0);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   // Animation state for panel open/close (CSS-based for performance)
   useEffect(() => {
