@@ -23,6 +23,7 @@ import {
   Room,
   RoomEvent,
   Track,
+  VideoQuality,
   type RemoteParticipant,
   type RemoteTrackPublication,
 } from 'livekit-client';
@@ -62,7 +63,10 @@ function setRemoteVideoSubscribed(room: Room, subscribed: boolean) {
         const rp = pub as RemoteTrackPublication;
         if (rp.kind !== Track.Kind.Video) return;
         if (rp.source === Track.Source.ScreenShare) return; // keep screen share
-        try { rp.setSubscribed(subscribed); } catch { /* ignore */ }
+        try {
+          rp.setSubscribed(true);
+          rp.setVideoQuality?.(subscribed ? VideoQuality.HIGH : VideoQuality.LOW);
+        } catch { /* ignore */ }
       });
     });
   } catch { /* ignore */ }
@@ -135,7 +139,10 @@ export function registerAutoAudioOnlyRoom(
     if (!entry.active) return;
     if (pub.kind !== Track.Kind.Video) return;
     if (pub.source === Track.Source.ScreenShare) return;
-    try { pub.setSubscribed(false); } catch { /* ignore */ }
+    try {
+      pub.setSubscribed(true);
+      pub.setVideoQuality?.(VideoQuality.LOW);
+    } catch { /* ignore */ }
   };
 
   try {
