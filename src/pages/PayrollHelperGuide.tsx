@@ -334,44 +334,41 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Important Notes */}
-        <section className="bg-card rounded-2xl p-5 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-amber-500" />
+        <section className="bg-slate-900 rounded-3xl p-6 border border-white/5 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-brand-400" />
             </div>
-            <h3 className="font-bold text-base">Important Guidelines</h3>
+            <h3 className="font-black text-base text-white">Security Guidelines</h3>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {[
-              "Always process orders within 24 hours of receiving them",
-              "Upload clear payment screenshots for every transaction",
-              "Never share your login credentials with anyone",
-              "Maintain professional communication with users and agencies",
-              "Report any suspicious activity to the admin team immediately",
-              "Your helper status can be revoked if guidelines are violated",
-              "Contact admin support for any transaction disputes",
+              "Process orders within 24 hours of notification",
+              "Always upload clear transaction screenshots",
+              "Maintain professional conduct with agencies",
+              "Report suspicious activity to Admin immediately",
+              "Violations will result in status revocation"
             ].map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-xs">
-                <div className="w-4 h-4 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[8px] font-bold text-amber-500">{idx + 1}</span>
+              <div key={idx} className="flex items-start gap-4">
+                <div className="w-6 h-6 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[10px] font-black text-brand-400">{idx + 1}</span>
                 </div>
-                <span className="text-muted-foreground">{item}</span>
+                <span className="text-xs font-bold text-white/60 leading-relaxed">{item}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* CTA */}
-        <div className="text-center space-y-3">
+        <div className="text-center pt-4">
           <Button
-            onClick={() => navigate("/helper-dashboard")}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-6 text-base rounded-xl"
+            onClick={() => navigate(-1)}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-brand-600 to-info-600 text-white font-black text-lg shadow-xl shadow-brand-500/20 active:scale-95 transition-all"
           >
-            Go to Helper Dashboard
-            <ArrowRight className="w-5 h-5 ml-2" />
+            I Understand, Go Back
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Already a helper? Access your dashboard to manage transactions
+          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-4">
+            Official Payroll Helper Documentation
           </p>
         </div>
       </div>
