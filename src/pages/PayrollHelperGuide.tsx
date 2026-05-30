@@ -195,19 +195,19 @@ const PayrollHelperGuide = () => {
 
         {/* Benefits */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <Award className="w-5 h-5 text-emerald-500" />
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <Award className="w-4 h-4 text-brand-500" />
             Benefits You Get
           </h3>
           <div className="grid grid-cols-1 gap-3">
             {benefits.map((benefit, idx) => (
-              <div key={idx} className="bg-card rounded-xl border border-border p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <benefit.icon className="w-4.5 h-4.5 text-emerald-500" />
+              <div key={idx} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-start gap-4 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center shrink-0 border border-brand-100">
+                  <benefit.icon className="w-5 h-5 text-brand-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm">{benefit.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{benefit.desc}</p>
+                  <h4 className="font-bold text-slate-800 text-sm">{benefit.title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed font-medium">{benefit.desc}</p>
                 </div>
               </div>
             ))}
