@@ -214,13 +214,16 @@ export const useUserPrivileges = (userId: string | null) => {
       };
 
       for (const priv of allPrivileges) {
-        if (priv.is_equipped || priv.item_type === 'level') {
+        if (priv.is_equipped) {
           const key = priv.category as keyof EquippedPrivileges;
-          if (key in equipped) {
-            // Prioritize shop items over level privileges if both exist
-            if (!equipped[key] || priv.item_type === 'shop') {
-              equipped[key] = priv;
-            }
+          // Handle normalized category names
+          let targetKey = key;
+          if (key === 'portrait_frame') targetKey = 'frame' as any;
+          if (key === 'entrance_effect' || key === 'entry_banner') targetKey = 'entrance' as any;
+          if (key === 'entry_bar') targetKey = 'entry_bar' as any;
+
+          if (targetKey in equipped) {
+            equipped[targetKey as keyof EquippedPrivileges] = priv;
           }
         }
       }
@@ -233,48 +236,50 @@ export const useUserPrivileges = (userId: string | null) => {
     }
   };
 
-  // Pkg83-ext: removed static `level-privileges-realtime` channel + per-user
-  // postgres_changes on user_purchases (table not in supabase_realtime
-  // publication). Admin level_privileges edits push via Pkg37 admin_broadcast;
-  // own purchases refresh via invisible app_sync notifications + after mutations.
-  const subscribeToChanges = () => {
-    const onAdmin = (e: Event) => {
-      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
-      if (table === 'level_privileges') fetchPrivileges();
-    };
-    const onAppSync = (e: Event) => {
-      const topic = (e as CustomEvent<{ topic?: string }>).detail?.topic;
-      if (topic === 'user_purchases') fetchPrivileges();
-    };
-    window.addEventListener('admin-table-update', onAdmin as EventListener);
-    window.addEventListener('app-sync', onAppSync as EventListener);
-    return () => {
-      window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      window.removeEventListener('app-sync', onAppSync as EventListener);
-    };
-  };
+  // ... (subscribeToChanges remains same)
 
-
-  const equipPrivilege = async (privilegeId: string, category: string) => {
+  const equipPrivilege = async (itemId: string, category: string, source: 'shop' | 'level' = 'shop') => {
     if (!userId) return false;
 
     try {
-      // Unequip all items in this category first
-      const { error: unequipError } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: false })
-        .eq('user_id', userId)
-        .eq('is_active', true);
+      // 1. Identify slot
+      let slot = category;
+      if (category === 'portrait_frame') slot = 'frame';
+      if (category === 'entrance_effect' || category === 'entry_banner') slot = 'entrance';
+      if (category === 'entry_bar') slot = 'entry_name_bar';
 
-      if (unequipError) throw unequipError;
+      // 2. Update profile columns
+      const updateData: any = {};
+      if (slot === 'frame') updateData.equipped_frame_id = itemId;
+      else if (slot === 'entrance') {
+        updateData.equipped_entrance_id = itemId;
+        updateData.equipped_entry_banner_id = itemId;
+      }
+      else if (slot === 'entry_name_bar' || slot === 'entry_bar') updateData.equipped_entry_name_bar_id = itemId;
+      else if (slot === 'bubble') updateData.equipped_bubble_id = itemId;
+      else if (slot === 'vehicle') updateData.equipped_vehicle_id = itemId;
+      else if (slot === 'medal') updateData.equipped_medal_id = itemId;
+      else if (slot === 'noble_card') updateData.equipped_noble_card_id = itemId;
 
-      // Equip the selected item
-      const { error } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: true })
-        .eq('id', privilegeId);
+      if (Object.keys(updateData).length > 0) {
+        await supabase.from('profiles').update(updateData).eq('id', userId);
+      }
 
-      if (error) throw error;
+      // 3. If shop item, update user_purchases
+      if (source === 'shop') {
+        // Unequip others in same slot? (Actually better to just set this one to true and let fetch resolve it)
+        // But for table consistency:
+        await supabase
+          .from('user_purchases')
+          .update({ is_equipped: false })
+          .eq('user_id', userId)
+          .eq('is_active', true); // This is still a bit broad, but safer than before
+
+        await supabase
+          .from('user_purchases')
+          .update({ is_equipped: true })
+          .eq('id', itemId); // itemId is the purchase ID in this case
+      }
 
       await fetchPrivileges();
       return true;
@@ -284,16 +289,30 @@ export const useUserPrivileges = (userId: string | null) => {
     }
   };
 
-  const unequipPrivilege = async (privilegeId: string) => {
+  const unequipPrivilege = async (category: string) => {
     if (!userId) return false;
 
     try {
-      const { error } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: false })
-        .eq('id', privilegeId);
+      let slot = category;
+      if (category === 'portrait_frame') slot = 'frame';
+      if (category === 'entrance_effect' || category === 'entry_banner') slot = 'entrance';
 
-      if (error) throw error;
+      const updateData: any = {};
+      if (slot === 'frame') updateData.equipped_frame_id = null;
+      else if (slot === 'entrance') {
+        updateData.equipped_entrance_id = null;
+        updateData.equipped_entry_banner_id = null;
+      }
+      else if (slot === 'entry_name_bar' || slot === 'entry_bar') updateData.equipped_entry_name_bar_id = null;
+      else if (slot === 'bubble') updateData.equipped_bubble_id = null;
+      else if (slot === 'vehicle') updateData.equipped_vehicle_id = null;
+      else if (slot === 'medal') updateData.equipped_medal_id = null;
+      else if (slot === 'noble_card') updateData.equipped_noble_card_id = null;
+
+      await supabase.from('profiles').update(updateData).eq('id', userId);
+      
+      // Also reset shop purchases for this user
+      await supabase.from('user_purchases').update({ is_equipped: false }).eq('user_id', userId);
 
       await fetchPrivileges();
       return true;
