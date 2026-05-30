@@ -163,12 +163,19 @@ const handler = async (req: Request): Promise<Response> => {
     let isAdmin = false;
     const adminToken = req.headers.get("x-admin-token");
     if (!isServiceRoleCall && adminToken) {
-      const { data: sessionRow } = await supabase
+      // Pkg410 deep-audit: Admin sessions can have the token as a header OR as a bearer.
+      // We check the admin_sessions table for the session_token.
+      const { data: sessionRow, error: sessionErr } = await supabase
         .from("admin_sessions")
         .select("admin_user_id, expires_at")
         .eq("session_token", adminToken)
         .gt("expires_at", new Date().toISOString())
         .maybeSingle();
+      
+      if (sessionErr) {
+        console.error("[Push] Session check error:", sessionErr);
+      }
+
       if (sessionRow?.admin_user_id) {
         const { data: adminUser } = await supabase
           .from("admin_users")
@@ -176,6 +183,9 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("id", sessionRow.admin_user_id)
           .maybeSingle();
         isAdmin = !!adminUser?.is_active;
+        console.log(`[Push] Admin authorized: ${isAdmin} (User: ${sessionRow.admin_user_id})`);
+      } else {
+        console.warn("[Push] No valid admin session found for token");
       }
     }
 
