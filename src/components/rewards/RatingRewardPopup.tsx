@@ -189,6 +189,27 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
     setUploading(true);
     try {
+      // Step 1: Automatic Detector - verify image via Edge Function using Google Vision API
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      const base64Image = await base64Promise;
+
+      const { data: verificationData, error: verificationError } = await supabase.functions.invoke('verify-rating-screenshot', {
+        body: { base64_image: base64Image }
+      });
+
+      if (verificationError || !verificationData?.success) {
+        console.error('Verification error:', verificationError, verificationData);
+        const msg = verificationData?.message || 'You submitted a different image, which is why your submission is not being accepted. Please upload a screenshot of your 5-star rating on the Play Store.';
+        toast.error(msg, { duration: 6000 });
+        setUploading(false);
+        return;
+      }
+
+      // Step 2: Upload to storage if verified
       const ext = file.name.split('.').pop() || 'png';
       const path = `${userId}/rating_${Date.now()}.${ext}`;
 
@@ -198,8 +219,6 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
       if (uploadError) throw uploadError;
 
-      // Bucket is private — admins resolve via signed URL. Store the storage path,
-      // not a public URL (which would 404).
       const screenshotRef = path;
 
       // Detect platform (Capacitor native → android/ios, otherwise web)
