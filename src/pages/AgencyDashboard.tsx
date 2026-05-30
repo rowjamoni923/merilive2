@@ -763,19 +763,19 @@ const AgencyDashboard = () => {
         <div className="flex items-center justify-between h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800 dark:text-white" />
           </button>
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Agency Dashboard
+          <h1 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 tracking-tight">
+            <Sparkles className="w-5 h-5 text-brand-500" />
+            Agency Management
           </h1>
           <button 
             onClick={() => navigate("/agent-rank")}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
           >
-            <Trophy className="w-5 h-5 text-white" />
+            <Trophy className="w-5 h-5 text-brand-500" />
           </button>
         </div>
       </div>
