@@ -31,6 +31,8 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -596,15 +598,24 @@ const AdminFrames = () => {
                     // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
                     // Mirror in-app AvatarWithFrame proportions (avatar 80, frame ~98 → -9px inset)
                     return (
-                      <div className="relative" style={{ width: 80, height: 80 }}>
+                      <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
                         <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                           <AvatarFallback className="bg-slate-700 text-white text-xs">U</AvatarFallback>
                         </Avatar>
-                        <div className="absolute pointer-events-none z-20" style={{ inset: -9 }}>
-                          <UniversalFramePlayer
+                        <div className="absolute z-20 pointer-events-none" style={{ 
+                          width: 98, 
+                          height: 98, 
+                          top: -9, 
+                          left: -9,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <FixedAnimationFrame
                             src={frame.frame_url || previewUrl}
                             type={frame.frame_type as any}
-                            className="w-full h-full"
+                            size="fill"
+                            center={true}
                             loop={true}
                             autoPlay={true}
                           />
