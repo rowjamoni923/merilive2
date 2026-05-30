@@ -2768,6 +2768,7 @@ const FaceVerification = () => {
             </>
           )}
         </div>
+        </div>
       </div>
     );
   }
@@ -2791,6 +2792,7 @@ const FaceVerification = () => {
           <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
             Back to Profile
           </Button>
+        </div>
         </div>
       </div>
     );
@@ -3029,6 +3031,7 @@ const FaceVerification = () => {
             </Button>
           </motion.div>
         )}
+      </div>
       </div>
     );
   }
@@ -3420,6 +3423,7 @@ const FaceVerification = () => {
           </motion.div>
         </div>
       )}
+      </div>
     </div>
   );
 };
