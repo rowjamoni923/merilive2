@@ -528,37 +528,26 @@ export function ChametStyleGameRoom({
               >
                 {participant ? (
                   <div className="w-full h-full relative">
-                    {/* Video Feed */}
+                    {/* Video Feed via unified LiveKitVideoPlayer */}
                     {streamToUse && !participant.isVideoOff ? (
-                      <video 
-                        ref={(el) => {
-                          if (el && streamToUse && el.srcObject !== streamToUse) {
-                            hardenVideoElementForNative(el, { muted: isMyself });
-                            el.srcObject = streamToUse;
-                            el.play().catch(console.error);
+                      <LiveKitVideoPlayer
+                        videoTrack={{
+                          mediaStreamTrack: streamToUse.getVideoTracks()[0],
+                          attach: (el: HTMLVideoElement) => {
+                            el.srcObject = new MediaStream([streamToUse.getVideoTracks()[0]]);
+                            return el;
+                          },
+                          detach: (el: HTMLVideoElement) => {
+                            el.srcObject = null;
+                            return el;
                           }
-                        }}
-                        autoPlay
-                        playsInline
-                        muted={isMyself}
-                        controls={false}
-                        disablePictureInPicture
-                        disableRemotePlayback
-                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                        poster=""
-                        // @ts-ignore
-                        x5-video-player-type="h5"
-                        x5-video-player-fullscreen="false"
-                        x5-playsinline="true"
-                        webkit-playsinline="true"
-                        className={cn(
-                          "absolute inset-0 w-full h-full object-cover pointer-events-none",
-                          isMyself && "transform scale-x-[-1]"
-                        )}
-                        style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+                        } as any}
+                        mirror={isMyself}
+                        fit="cover"
+                        className="w-full h-full"
                       />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none">
                         <AvatarWithFrame
                           userId={participant.id}
                           src={participant.avatarUrl}
