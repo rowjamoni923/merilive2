@@ -31,7 +31,7 @@ export function attachLiveKitRemoteAudioOnce({
   if (existing?.isConnected) {
     existing.muted = muted;
     existing.volume = volume;
-    existing.play().catch(() => {});
+    if (existing.paused) existing.play().catch(() => {});
     return existing;
   }
 
@@ -44,6 +44,7 @@ export function attachLiveKitRemoteAudioOnce({
     return null;
   }
 
+  // Pkg155: Enhanced audio reliability for Android WebView
   audioEl.dataset.livekitMedia = 'true';
   audioEl.dataset.livekitAudioKey = key;
   audioEl.dataset.livekitRemoteAudio = scope;
@@ -51,11 +52,28 @@ export function attachLiveKitRemoteAudioOnce({
   audioEl.muted = muted;
   audioEl.volume = volume;
   audioEl.style.display = 'none';
-  try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-  try { audioEl.setAttribute('webkit-playsinline', 'true'); } catch { /* ignore */ }
-  try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-  try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-  audioEl.play().catch(() => {});
+  audioEl.setAttribute('playsinline', 'true');
+  audioEl.setAttribute('webkit-playsinline', 'true');
+  (audioEl as any).webkitPlaysInline = true;
+
+  // Add to body if not already there
+  if (!audioEl.isConnected) {
+    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
+  }
+
+  // Pkg155: Retry loop for autoplay rejection
+  const tryPlay = () => {
+    if (!audioEl.isConnected) return;
+    audioEl.play().catch((err) => {
+      if (err.name === 'NotAllowedError') {
+        // User interaction required - will be handled by primeLiveKitRoomMedia
+      } else {
+        setTimeout(tryPlay, 500);
+      }
+    });
+  };
+  tryPlay();
+
   audioElementsByKey.set(key, audioEl);
   return audioEl;
 }

@@ -286,6 +286,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
   }, []);
 
+  const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
+    const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
+    if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
+    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'live', key: trackKey, track, muted: isRemoteAudioMutedRef.current });
+    if (!audioEl) return;
+    remoteAudioTrackKeysRef.current.add(trackKey);
+    const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
+    if (!existing.includes(audioEl)) existing.push(audioEl);
+    remoteAudioElementsRef.current.set(participantIdentity, existing);
+  }, []);
+
   const ensureParticipantSubscribed = useCallback((participant: RemoteParticipant) => {
     const pUid = getUidForParticipant(participant.identity);
 
@@ -305,8 +316,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       let changed = !existing;
 
       participant.trackPublications.forEach((pub) => {
-        if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio) && !pub.isSubscribed) {
-          try { pub.setSubscribed(true); } catch { /* ignore */ }
+        // Pkg155: FORCE SUBSCRIBE to all tracks immediately to fix "no audio/video"
+        if ((pub.kind === Track.Kind.Video || pub.kind === Track.Kind.Audio)) {
+          if (!pub.isSubscribed) {
+            try { 
+              pub.setSubscribed(true); 
+              console.log(`[LiveKitClient] Subscribing to ${pub.kind} for ${participant.identity}`);
+            } catch (err) { 
+              console.warn(`[LiveKitClient] Failed to subscribe to ${pub.kind}:`, err);
+            }
+          }
         }
 
         if (pub.kind === Track.Kind.Video && pub.track && pub.track !== userWrapper.videoTrack) {
@@ -319,6 +338,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           userWrapper.audioTrack = pub.track;
           userWrapper.hasAudio = true;
           changed = true;
+          
+          // Pkg155: Also attach audio immediately
+          attachRemoteAudioOnce(pub.track as RemoteTrack, participant.identity, pub as RemoteTrackPublication);
         }
       });
 
@@ -327,18 +349,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
       return prev;
     });
-  }, [getUidForParticipant]);
+  }, [getUidForParticipant, attachRemoteAudioOnce]);
 
-  const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
-    const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
-    if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
-    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'live', key: trackKey, track, muted: isRemoteAudioMutedRef.current });
-    if (!audioEl) return;
-    remoteAudioTrackKeysRef.current.add(trackKey);
-    const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
-    if (!existing.includes(audioEl)) existing.push(audioEl);
-    remoteAudioElementsRef.current.set(participantIdentity, existing);
-  }, []);
+
 
   // Join channel - creates a LiveKit room connection
   const joinChannel = useCallback(async (config: LiveKitConfig) => {
