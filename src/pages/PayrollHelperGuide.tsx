@@ -247,24 +247,24 @@ const PayrollHelperGuide = () => {
 
         {/* How It Works — Step by Step */}
         <section>
-          <h3 className="font-bold text-base flex items-center gap-2 mb-3">
-            <BadgeCheck className="w-5 h-5 text-purple-500" />
-            How It Works — Step by Step
+          <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <BadgeCheck className="w-4 h-4 text-brand-500" />
+            Step by Step Process
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {howItWorks.map((step, idx) => (
-              <div key={idx} className="flex gap-3">
+              <div key={idx} className="flex gap-4 group">
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full ${step.color} flex items-center justify-center text-slate-800 text-xs font-bold shrink-0`}>
+                  <div className={`w-10 h-10 rounded-2xl ${step.color} flex items-center justify-center text-white text-xs font-black shrink-0 shadow-lg shadow-black/10 group-hover:scale-110 transition-transform`}>
                     {step.step}
                   </div>
                   {idx < howItWorks.length - 1 && (
-                    <div className="w-0.5 h-full bg-border mt-1" />
+                    <div className="w-1 h-full bg-slate-200 rounded-full mt-2" />
                   )}
                 </div>
-                <div className="pb-4">
-                  <h4 className="font-semibold text-sm">{step.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{step.desc}</p>
+                <div className="pb-6">
+                  <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">{step.desc}</p>
                 </div>
               </div>
             ))}
