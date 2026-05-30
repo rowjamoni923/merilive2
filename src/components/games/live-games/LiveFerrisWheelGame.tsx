@@ -408,7 +408,11 @@ export function LiveFerrisWheelGame({
               />
               
               {/* Inner Ring */}
-              <div className="absolute w-44 h-44 rounded-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 shadow-inner" />
+              <div className={cn(
+                "absolute rounded-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 shadow-inner",
+                isVerySmallHeight ? "w-24 h-24" : isLandscape ? "w-36 h-36" : "w-44 h-44"
+              )} />
+
               
               {/* Section Dividers */}
               {WHEEL_ITEMS.map((_, i) => (
