@@ -1998,20 +1998,8 @@ const AgencyDashboard = () => {
                   </ResponsiveContainer>
                 </div>
               </CardContent>
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
-                  <Button 
-                    onClick={shareHostJoinLink}
-                    className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-lg"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
-              </CardContent>
             </Card>
+
 
             <Button
               onClick={() => navigate("/agency-host-management")}
