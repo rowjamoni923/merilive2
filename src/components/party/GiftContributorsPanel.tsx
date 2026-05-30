@@ -213,7 +213,7 @@ export function GiftContributorsPanel({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="fixed bottom-0 left-0 right-0 z-[101] max-h-[78vh] rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+            className="fixed bottom-0 left-0 right-0 z-[101] max-h-[78dvh] rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
             style={{
               background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
               backdropFilter: 'blur(24px)',
@@ -306,7 +306,7 @@ export function GiftContributorsPanel({
             </div>
 
             {/* Contributors List */}
-            <ScrollArea className="max-h-[55vh]">
+            <ScrollArea className="max-h-[55dvh]">
               <div className="p-4 space-y-2 relative" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {loading ? (
                   <div className="flex items-center justify-center py-12">

@@ -188,7 +188,7 @@ export function BackgroundPickerPanel({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[82vh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[82dvh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
             style={{
               background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
               backdropFilter: 'blur(24px)',
@@ -249,7 +249,7 @@ export function BackgroundPickerPanel({
 
             {/* Content */}
             <div
-              className="overflow-y-auto max-h-[68vh] p-4 pb-safe relative"
+              className="overflow-y-auto max-h-[68dvh] p-4 pb-safe relative"
               style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
             >
               {loading ? (

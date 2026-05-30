@@ -253,7 +253,7 @@ export const MusicPlayerPanel = ({
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
               className={cn(
-                "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-background to-background/95 rounded-t-3xl max-h-[80vh] overflow-hidden",
+                "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-background to-background/95 rounded-t-3xl max-h-[80dvh] overflow-hidden",
                 "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl"
               )}
               onClick={(e) => e.stopPropagation()}

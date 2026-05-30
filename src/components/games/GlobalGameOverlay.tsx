@@ -54,7 +54,7 @@ export function GlobalGameOverlay({
     }}>
       <SheetContent 
         side="bottom" 
-        className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden [&>button]:hidden"
+        className="h-auto max-h-[85dvh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden [&>button]:hidden"
       >
         {/* Close Button */}
         <div className="absolute top-2 right-2 z-50">
@@ -74,7 +74,7 @@ export function GlobalGameOverlay({
         {/* Live Game Board - Same for all locations. Wrapped in GameErrorBoundary
             so a crash inside any game shows a friendly retry card instead of a
             blank Sheet. */}
-        <div className="p-2 overflow-y-auto max-h-[80vh]">
+        <div className="p-2 overflow-y-auto max-h-[80dvh]">
           <GameErrorBoundary gameName={gameId}>
             <LiveGameBoard
               selectedGame={gameId}

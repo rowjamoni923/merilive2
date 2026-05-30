@@ -911,11 +911,11 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="fixed inset-x-1 bottom-14 z-50 mb-1"
-        style={{ maxHeight: '35vh' }}
+        style={{ maxHeight: '35dvh' }}
       >
       {/* Game Picker Sheet */}
       <Sheet open={showGamePicker} onOpenChange={setShowGamePicker}>
-        <SheetContent side="bottom" className="h-[40vh] rounded-t-2xl p-0" style={{
+        <SheetContent side="bottom" className="h-[40dvh] rounded-t-2xl p-0" style={{
           background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
         }}>
           <div className="flex justify-center pt-2">
@@ -925,7 +925,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
             <h3 className="text-white font-bold text-sm mb-2 flex items-center gap-1.5">
               <Gamepad2 className="w-4 h-4" /> Select Game
             </h3>
-            <div className="grid grid-cols-3 gap-1.5 max-h-[28vh] overflow-y-auto">
+            <div className="grid grid-cols-3 gap-1.5 max-h-[28dvh] overflow-y-auto">
               {games.map((game) => (
                 <motion.button
                   key={game.game_id}
@@ -1061,7 +1061,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         </div>
 
         {/* Game Content - More compact */}
-        <div className="max-h-[18vh] overflow-y-auto">
+        <div className="max-h-[18dvh] overflow-y-auto">
           {renderMiniGame()}
         </div>
 

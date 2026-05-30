@@ -973,7 +973,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
 
       {/* Game Picker Sheet */}
       <Sheet open={showGamePicker} onOpenChange={setShowGamePicker}>
-        <SheetContent side="bottom" className="h-[50vh] rounded-t-3xl p-4" style={{
+        <SheetContent side="bottom" className="h-[50dvh] rounded-t-3xl p-4" style={{
           background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
         }}>
           <div className="flex justify-center mb-4">
@@ -982,7 +982,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
           <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
             <Gamepad2 className="w-5 h-5" /> Select Game
           </h3>
-          <div className="grid grid-cols-3 gap-3 max-h-[35vh] overflow-y-auto">
+          <div className="grid grid-cols-3 gap-3 max-h-[35dvh] overflow-y-auto">
             {games.map((game) => (
               <motion.button
                 key={game.game_id}
@@ -1136,7 +1136,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
           </div>
 
           {/* Game Content */}
-          <div className="max-h-[35vh] overflow-y-auto">
+          <div className="max-h-[35dvh] overflow-y-auto">
             {renderGame()}
           </div>
 
