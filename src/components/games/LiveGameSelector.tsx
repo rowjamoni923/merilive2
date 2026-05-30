@@ -180,10 +180,10 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
         side="bottom" 
         className={cn(
           "rounded-t-3xl border-0 p-0 overflow-hidden [&>button]:hidden",
+          "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[800px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl",
           isLandscape ? "h-[98dvh] max-h-[98dvh]" : "h-[70vh] max-h-[70vh]"
         )}
         style={{
-
           background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
         }}
       >

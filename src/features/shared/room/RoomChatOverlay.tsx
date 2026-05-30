@@ -75,7 +75,7 @@ export const WelcomeMessage = memo(({
       </motion.span>
       
       {/* Welcome text - Premium styling */}
-      <span className="text-[10px] text-amber-50/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
+      <span className="text-[10px] md:text-xs text-amber-50/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
         Welcome to {hostName}'s {roomType === 'audio' ? 'Audio Party' : roomType === 'video' ? 'Video Party' : roomType === 'game' ? 'Game Party' : 'Live Stream'}! 
         {roomTitle && ` — ${roomTitle}`} 
         <span className="ml-1.5 text-amber-200 font-bold bg-amber-500/20 px-1.5 py-0.5 rounded-md">
@@ -116,12 +116,12 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
           "absolute -inset-0.5 rounded-full bg-gradient-to-r animate-pulse opacity-60",
           getLevelGradient(level)
         )} />
-        <Avatar className="w-7 h-7 relative border-2 border-white/80">
+        <Avatar className="w-7 h-7 md:w-9 md:h-9 relative border-2 border-white/80">
           <AvatarImage 
             src={notification.userAvatar || getDisplayAvatar(notification.userName)}
             alt={notification.userName}
           />
-          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs font-bold">
+          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs md:text-sm font-bold">
             {notification.userName.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -129,7 +129,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
 
       {/* Level Badge - Premium style with glow */}
       <div className={cn(
-        "px-2.5 py-0.5 rounded-lg text-[10px] font-black flex items-center gap-0.5",
+        "px-2.5 py-0.5 rounded-lg text-[10px] md:text-xs font-black flex items-center gap-0.5",
         getLevelBadgeBg(level),
         getLevelTextColor(level)
       )}>
@@ -137,20 +137,20 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
       </div>
 
       {/* Username - Premium with glow */}
-      <span className="text-white font-bold text-xs truncate max-w-[100px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+      <span className="text-white font-bold text-xs md:text-sm truncate max-w-[100px] md:max-w-[150px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
         {notification.userName}
       </span>
 
       {/* Sparkle + "joined the room" */}
       <div className="flex items-center gap-0.5 text-white/95">
         <motion.span 
-          className="text-sm"
+          className="text-sm md:text-base"
           animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 0.6, repeat: 2 }}
         >
           ✨
         </motion.span>
-        <span className="text-[10px] font-medium italic">joined</span>
+        <span className="text-[10px] md:text-xs font-medium italic">joined</span>
       </div>
     </motion.div>
   );
@@ -296,13 +296,13 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "flex flex-wrap items-center gap-2 w-fit",
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
-          "rounded-[20px] max-w-[94%]",
+          "rounded-[20px] max-w-[94%] md:max-w-[70%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
           getGlowStyle(),
-          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4",
+          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4 md:py-2.5 md:px-5",
         ],
       )}
     >
@@ -338,14 +338,14 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "rounded-md font-black shrink-0 shadow-md",
         getLevelBadgeBg(level),
         getLevelTextColor(level),
-        isGiftMessage ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[10px]"
+        isGiftMessage ? "px-1.5 py-0.5 text-[8px] md:text-[10px]" : "px-2 py-0.5 text-[10px] md:text-xs"
       )}>
         <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{formatLevel(level)}</span>
       </div>
 
       {/* Country Flag */}
       {message.countryFlag && !isGiftMessage && (
-        <span className="text-sm shrink-0 drop-shadow-md">{message.countryFlag}</span>
+        <span className="text-sm md:text-base shrink-0 drop-shadow-md">{message.countryFlag}</span>
       )}
 
       {/* Username + Colon */}
@@ -355,7 +355,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]",
         isHost && "text-shadow-glow-rose",
         isGameWinMessage && "text-shadow-glow-amber",
-        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
+        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
       )}>
         {message.user}:
       </span>
@@ -368,7 +368,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         "break-words font-medium leading-snug",
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]",
         isGameWinMessage ? 'text-yellow-50 font-bold' : isGiftMessage ? 'text-pink-50' : 'text-white/95',
-        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
+        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
       )}>
         {parseMentions(cleanMessage)}
       </span>
@@ -517,7 +517,7 @@ export const RoomChatOverlay = memo(({
           "bg-gradient-to-t from-black/25 via-black/5 to-transparent",
           "backdrop-blur-[3px]"
         )}
-        style={{ maxHeight }}
+        style={{ maxHeight: window.innerWidth >= 768 ? '400px' : maxHeight }}
       >
         {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
         <AnimatePresence initial={false} mode="sync">

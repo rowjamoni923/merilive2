@@ -422,7 +422,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       <div
         ref={containerRef}
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-[9999] bg-gradient-to-b from-[#1a1a28] via-[#0f0f18] to-[#08080c] rounded-t-3xl border-t border-purple-500/20"
+          "fixed bottom-0 left-0 right-0 z-[9999] bg-gradient-to-b from-[#1a1a28] via-[#0f0f18] to-[#08080c] rounded-t-3xl border-t border-purple-500/20",
+          "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[700px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl"
         )}
         style={{ 
           boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.15), 0 -2px 20px rgba(0,0,0,0.8)', 
@@ -442,9 +443,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Fixed, no shrink */}
-        <div className="relative flex-shrink-0" style={{ minHeight: '60px' }}>
+        <div className="relative flex-shrink-0 md:pt-2" style={{ minHeight: '60px' }}>
           <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full mt-2" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full mt-2 md:hidden" />
           
           <div className="relative flex items-center justify-between px-4 py-3 border-b border-white/5">
             <div className="flex items-center gap-3">

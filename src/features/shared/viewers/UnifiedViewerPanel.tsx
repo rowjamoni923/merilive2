@@ -72,24 +72,25 @@ export const UnifiedViewerPanel = ({
             transition={{ type: "spring", damping: 25 }}
             className={cn(
               "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20",
+              "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl",
               isLandscape ? "max-h-[95dvh]" : "max-h-[75dvh]"
             )}
             onClick={(e) => e.stopPropagation()}
           >
 
             {/* Handle */}
-            <div className="flex justify-center pt-2 pb-1">
+            <div className="flex justify-center pt-2 pb-1 md:hidden">
               <div className="w-10 h-1 bg-white/20 rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 pb-2">
+            <div className="flex items-center justify-between px-4 pb-2 md:pt-4 md:px-6">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-purple-400" />
-                <h2 className="text-sm font-bold text-white">
+                <Users className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
+                <h2 className="text-sm md:text-lg font-bold text-white">
                   {roomType === 'party' ? 'Viewers' : 'Viewers'}
                 </h2>
-                <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 text-[10px] px-1.5 py-0">
+                <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 text-[10px] md:text-xs px-1.5 py-0">
                   {totalViewers}
                 </Badge>
               </div>
@@ -97,9 +98,9 @@ export const UnifiedViewerPanel = ({
                 variant="ghost" 
                 size="icon" 
                 onClick={onClose}
-                className="w-7 h-7 rounded-full bg-white/10"
+                className="w-7 h-7 md:w-9 md:h-9 rounded-full bg-white/10"
               >
-                <X className="w-4 h-4 text-white/70" />
+                <X className="w-4 h-4 md:w-5 md:h-5 text-white/70" />
               </Button>
             </div>
 

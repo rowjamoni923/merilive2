@@ -150,7 +150,10 @@ export function BeautyFilterPanel({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[80] max-h-[80vh] overflow-y-auto bg-background/95 backdrop-blur-xl border-t border-border rounded-t-2xl p-5 pb-7 shadow-2xl animate-in slide-in-from-bottom duration-200">
+    <div className={cn(
+      "fixed inset-x-0 bottom-0 z-[80] max-h-[80vh] overflow-y-auto bg-background/95 backdrop-blur-xl border-t border-border rounded-t-2xl p-5 pb-7 shadow-2xl animate-in slide-in-from-bottom duration-200",
+      "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[600px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl md:max-h-[60vh]"
+    )}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />

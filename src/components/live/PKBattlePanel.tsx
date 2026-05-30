@@ -294,6 +294,7 @@ export const PKBattlePanel = ({
         <motion.div
           className={cn(
             "relative w-full max-w-lg rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]",
+            "md:max-w-2xl md:rounded-3xl md:bottom-10 md:border md:shadow-2xl md:left-1/2 md:-translate-x-1/2",
             isLandscape && "max-w-xl rounded-t-2xl"
           )}
           style={{
