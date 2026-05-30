@@ -212,8 +212,12 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       <motion.div
         initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-sm bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl"
+        className={cn(
+          "w-full bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl",
+          isLandscape ? "max-w-xl max-h-[95dvh]" : "max-w-sm"
+        )}
       >
+
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/30">
           <div className="flex items-center gap-2">
