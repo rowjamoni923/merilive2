@@ -75,7 +75,7 @@ export const WelcomeMessage = memo(({
       </motion.span>
       
       {/* Welcome text - Premium styling */}
-      <span className="text-[10px] text-amber-50/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
+      <span className="text-[10px] md:text-xs text-amber-50/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
         Welcome to {hostName}'s {roomType === 'audio' ? 'Audio Party' : roomType === 'video' ? 'Video Party' : roomType === 'game' ? 'Game Party' : 'Live Stream'}! 
         {roomTitle && ` — ${roomTitle}`} 
         <span className="ml-1.5 text-amber-200 font-bold bg-amber-500/20 px-1.5 py-0.5 rounded-md">
