@@ -36,6 +36,7 @@ import {
 } from '@/lib/livekitVideoQuality';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
+import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -935,38 +936,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             (pub) => pub.track?.kind === Track.Kind.Audio && pub.source === Track.Source.Microphone,
           );
 
-          if (hasPreloadedVideo && config.preloadedVideoTrack && !alreadyHasVideo) {
-            // Process through Tencent Beauty SDK (Web only, graceful fallback)
-            const beautifiedTrack = await processTrackWithBeauty(config.preloadedVideoTrack);
-            const videoPublication = await room.localParticipant.publishTrack(
-              beautifiedTrack as any,
-              { source: Track.Source.Camera } as any,
-            );
-            if (videoPublication?.track) {
-              setLocalVideoTrack(videoPublication.track);
-            }
-          }
-
-          if (hasPreloadedAudio && config.preloadedAudioTrack && !alreadyHasAudio) {
-            const audioPublication = await room.localParticipant.publishTrack(
-              config.preloadedAudioTrack as any,
-              { source: Track.Source.Microphone } as any,
-            );
-            if (audioPublication?.track) {
-              setLocalAudioTrack(audioPublication.track);
-            }
-          }
-
-          if (!alreadyHasVideo && !hasPreloadedVideo && !alreadyHasAudio && !hasPreloadedAudio) {
-            // One-shot enable path for first host join.
-            await room.localParticipant.enableCameraAndMicrophone();
-          } else {
-            if (!alreadyHasVideo && !hasPreloadedVideo) {
-              await room.localParticipant.setCameraEnabled(true);
-            }
-            if (!alreadyHasAudio && !hasPreloadedAudio) {
-              await room.localParticipant.setMicrophoneEnabled(true);
-            }
+          if (!alreadyHasVideo || !alreadyHasAudio) {
+            const preparedTracks = [config.preloadedVideoTrack, config.preloadedAudioTrack]
+              .filter((track): track is MediaStreamTrack => !!track && track.readyState === 'live');
+            await publishReliableLocalMedia(room, {
+              needVideo: true,
+              needAudio: true,
+              preparedStream: preparedTracks.length ? new MediaStream(preparedTracks) : null,
+            });
           }
 
           // Pkg103: apply Krisp noise filter to whichever mic we just published
