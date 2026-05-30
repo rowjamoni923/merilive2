@@ -60,6 +60,8 @@ export function LiveFerrisWheelGame({
   onGameWin,
   onTimerUpdate
 }: LiveFerrisWheelGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   // Track bets per food item
   const [selectedFoods, setSelectedFoods] = useState<Set<number>>(new Set());
   const [betAmountsPerFood, setBetAmountsPerFood] = useState<Record<number, number>>({});
