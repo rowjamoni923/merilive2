@@ -407,7 +407,7 @@ export function useLiveKitCall(
             try {
               publication.setVideoQuality?.(VideoQuality.HIGH);
               // Pkg155: FORCE SUBSCRIBE to high quality
-              publication.setSubscribed(true).catch(() => {});
+              publication.setSubscribed(true);
             } catch { /* ignore */ }
             
             setState(p => ({
