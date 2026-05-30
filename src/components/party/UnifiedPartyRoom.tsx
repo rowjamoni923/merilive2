@@ -389,8 +389,8 @@ const VideoGridSeat = ({
   const hasRenderableVideoTrack = Boolean(
     streamToUse?.getVideoTracks().some((track) => track.readyState === 'live' && track.enabled !== false)
   );
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canRenderVideo = Boolean(hasRenderableVideoTrack && !participant.isVideoOff && streamToUse);
+  
+  const canRenderVideo = Boolean(hasRenderableVideoTrack && !participant?.isVideoOff && streamToUse);
   
   // Extract video track from stream to use with LiveKitVideoPlayer
   const videoTrack = useMemo(() => {
@@ -398,11 +398,6 @@ const VideoGridSeat = ({
     const tracks = streamToUse.getVideoTracks();
     if (tracks.length === 0) return null;
     
-    // Create a pseudo Track object for LiveKitVideoPlayer compatibility if needed
-    // But usually in UnifiedPartyRoom, we receive actual LiveKit Track objects 
-    // in the participant data or through the getPeerStream.
-    // However, the participant object in UnifiedPartyRoom has a 'stream' property
-    // which is a MediaStream.
     return {
       mediaStreamTrack: tracks[0],
       attach: (el: HTMLVideoElement) => {
@@ -417,19 +412,10 @@ const VideoGridSeat = ({
   }, [canRenderVideo, streamToUse]);
 
   // Format number with shortcut (20M, 1.5K, etc.)
-
   const formatBeans = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1).replace(/\.0$/, '')}K`;
     return num.toString();
-  };
-  
-  const getLevelFrame = (level: number) => {
-    if (level >= 50) return { gradient: 'from-purple-600 via-pink-500 to-orange-400', glow: 'purple-500' };
-    if (level >= 30) return { gradient: 'from-yellow-500 via-orange-500 to-red-500', glow: 'orange-500' };
-    if (level >= 20) return { gradient: 'from-cyan-400 via-blue-500 to-purple-500', glow: 'blue-500' };
-    if (level >= 10) return { gradient: 'from-green-400 via-teal-500 to-cyan-500', glow: 'teal-500' };
-    return { gradient: 'from-indigo-400 via-purple-500 to-pink-500', glow: 'purple-400' };
   };
 
   if (!participant) {
@@ -450,8 +436,6 @@ const VideoGridSeat = ({
     );
   }
 
-  const frameStyle = getLevelFrame(participant.level);
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -461,48 +445,14 @@ const VideoGridSeat = ({
     >
       {/* Video or Avatar */}
       {canRenderVideo ? (
-        <>
-          <video 
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-            poster=""
-            // @ts-ignore
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="false"
-            x5-playsinline="true"
-            webkit-playsinline="true"
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover pointer-events-none",
-              isMyself && "transform scale-x-[-1]"
-            )}
-            style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
-          {/* Shield: hides native HTML5 play overlay icon until real frames arrive */}
-          <div
-            ref={shieldRef}
-            data-video-shield
-            className="absolute inset-0 z-10 bg-gradient-to-br from-purple-700/80 to-indigo-800/80 flex items-center justify-center pointer-events-none transition-opacity duration-300"
-          >
-            <AvatarWithFrame
-              userId={participant.id}
-              src={participant.avatarUrl}
-              name={participant.displayName}
-              level={participant.level}
-              isHost={participant.isHost}
-              size="lg"
-              showAnimation={true}
-              showGlow={true}
-              showFrame={true}
-            />
-          </div>
-        </>
+        <LiveKitVideoPlayer 
+          videoTrack={videoTrack}
+          mirror={isMyself}
+          fit="cover"
+          className="w-full h-full"
+        />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
           <AvatarWithFrame
             userId={participant.id}
             src={participant.avatarUrl}
@@ -514,6 +464,10 @@ const VideoGridSeat = ({
             showGlow={true}
             showFrame={true}
           />
+          <div className="mt-2 text-white/40 text-[10px] flex items-center gap-1">
+            <EyeOff className="w-3 h-3" />
+            Camera Off
+          </div>
         </div>
       )}
 
@@ -549,17 +503,28 @@ const VideoGridSeat = ({
 
       {/* Bottom Info */}
       <div className="absolute bottom-0 left-0 right-0 p-2">
-        <div className="flex items-center gap-1.5">
-          {participant.isHost ? (
-            <CountryFlag code={hostCountryCode} emoji={hostCountryFlag || participant.countryFlag || '🌍'} className="w-[18px] h-[12px]" />
-          ) : (
-            <CountryFlag emoji={participant.countryFlag || '🌍'} className="w-[18px] h-[12px]" />
-          )}
-          <span className="text-yellow-300 text-[10px]">
-            {'⭐'.repeat(Math.min(Math.floor(participant.level / 10) + 1, 7))}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 max-w-[70%]">
+            <span className="text-white text-[10px] font-bold truncate drop-shadow-md">
+              {participant.displayName}
+            </span>
+            {hostCountryCode && (
+              <CountryFlag countryCode={hostCountryCode} className="w-3 h-2" />
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {participant.isSpeaking && !participant.isMuted && (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+                className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+              />
+            )}
+            {participant.isMuted && (
+              <MicOff className="w-3 h-3 text-red-400" />
+            )}
+          </div>
         </div>
-        <p className="text-white text-xs font-semibold truncate">{participant.displayName}</p>
       </div>
     </motion.div>
   );
