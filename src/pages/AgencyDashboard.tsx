@@ -2486,7 +2486,6 @@ const AgencyDashboard = () => {
       />
 
       {/* Payroll Helper Welcome Modal (one-time for new agencies) */}
-      
       {currentUserId && agency && (
         <PayrollHelperWelcomeModal 
           agencyId={agency.id}
