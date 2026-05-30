@@ -367,6 +367,13 @@ export function useNativeCameraPermission() {
       return 'granted';
     }
 
+    // Pkg365: On native Android WebView, we prioritize the local cache heavily 
+    // because queryPermissionSafe often fails or returns incorrect 'prompt' state.
+    if (isNativeApp) {
+      const cached = readCachedPerm();
+      if (cached) return 'granted';
+    }
+
     // Permissions API works in modern Android WebView (Chromium 70+) and all browsers.
     // It NEVER triggers a permission dialog — safe to call anywhere.
     try {
@@ -376,10 +383,12 @@ export function useNativeCameraPermission() {
       if (camState === 'granted' && (micState === 'granted' || micState === null)) {
         globalPermissionGranted = true; writeCachedPerm(true);
         if (micState === 'granted') globalMicrophoneGranted = true;
-        writeCachedPerm(true);
         setPermissionGranted(true);
         return 'granted';
       }
+      
+      // If camState is 'prompt' but we are on native and have NO cache, 
+      // we still return 'prompt' to allow the system to ask.
       if (camState === 'denied' || micState === 'denied') {
         setPermissionGranted(false);
         return 'denied';
