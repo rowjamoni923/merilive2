@@ -29,6 +29,8 @@ interface PKBattlePanelProps {
   onBattleStarted: (battleId: string, opponentInfo: LiveHost) => void;
 }
 
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 export const PKBattlePanel = ({
   isOpen,
   onClose,
@@ -44,6 +46,8 @@ export const PKBattlePanel = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [sendingRequest, setSendingRequest] = useState<string | null>(null);
   const [sendingRandom, setSendingRandom] = useState(false);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
 
   // Pkg82d: track pending invites (direct + random) so the window-event
   // listener can route incoming pk_invite_accepted / pk_invite_declined /
