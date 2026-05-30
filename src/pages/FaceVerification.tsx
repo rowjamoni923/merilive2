@@ -2684,9 +2684,10 @@ const FaceVerification = () => {
           Submit Verification
         </Button>
       )}
-      </div>
-    );
-  };
+    </div>
+  );
+};
+
 
 
 
@@ -2767,6 +2768,8 @@ const FaceVerification = () => {
       </div>
       </div>
     );
+  }
+
 
 
   }
@@ -2818,6 +2821,10 @@ const FaceVerification = () => {
           </Button>
         </div>
       </div>
+      </div>
+    );
+  }
+
       </div>
     );
   }
@@ -3414,6 +3421,8 @@ const FaceVerification = () => {
     </div>
     </div>
   );
+};
+
 
 
 };
