@@ -1,0 +1,500 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { 
+  ArrowLeft, 
+  Building2,
+  Users,
+  Wallet,
+  TrendingUp,
+  Crown,
+  Clock,
+  Gift,
+  Coins,
+  Copy,
+  CheckCircle2,
+  User,
+  Loader2,
+  ChevronRight,
+  BarChart3,
+  Share2,
+  Link as LinkIcon,
+  UserPlus,
+  TrendingDown,
+  Calendar,
+  DollarSign,
+  Diamond,
+  ArrowRightLeft,
+  Trophy,
+  Sparkles,
+  Eye,
+  Settings,
+  Bell,
+  Shield,
+  Star,
+  Activity,
+  Zap,
+  Target,
+  Award,
+  Headphones,
+  MessageCircle,
+  Phone,
+  Send,
+  Hash,
+  XCircle,
+  Percent,
+  FileText,
+  ArrowRight
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { getCurrencyRateForCountry } from "@/utils/currencyRatesCache";
+
+import { getCachedUser } from "@/utils/cachedAuth";
+import { HostsIcon3D, WithdrawIcon3D, RankingIcon3D, HelperIcon3D, DiamondExchangeIcon3D, PolicyIcon3D, HistoryIcon3D } from "@/components/agency/Premium3DIcons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
+import SubAgentsPanel from "@/components/agency/SubAgentsPanel";
+import PayrollHelperWelcomeModal from "@/components/agency/PayrollHelperWelcomeModal";
+import { formatNumber as formatNum } from "@/utils/formatNumber";
+import { recordClientError } from "@/utils/clientErrorLog";
+
+// Helper for formatting numbers with English numerals
+const fmtNum = (num: number | null | undefined) => formatNum(num);
+
+const premiumCardClass = "agency-premium-card";
+const premiumTileClass = "agency-premium-tile";
+const premiumActionClass = "agency-premium-action";
+
+interface Agency {
+  id: string;
+  name: string;
+  agency_code: string;
+  level: string;
+  wallet_balance: number;
+  total_hosts: number;
+  total_agents: number;
+  commission_rate: number;
+  created_at: string;
+  logo_url: string | null;
+  diamond_balance?: number;
+  beans_balance?: number;
+  parent_agency_id?: string | null;
+}
+
+interface ParentAgencyInfo {
+  id: string;
+  name: string;
+  agency_code: string;
+  level: string;
+  owner_id: string;
+  owner_profile?: {
+    display_name: string | null;
+    avatar_url: string | null;
+    uid: string | null;
+  };
+}
+
+interface LevelTier {
+  level_code: string;
+  level_name: string;
+  commission_rate: number;
+  badge_color: string;
+}
+
+interface AgencyHost {
+  id: string;
+  host_id: string;
+  joined_at: string;
+  status: string;
+  profile: {
+    display_name: string | null;
+    avatar_url: string | null;
+    is_online: boolean | null;
+    total_earnings: number | null;
+    is_verified: boolean | null;
+  } | null;
+}
+
+interface PerformanceData {
+  total_income: number;
+  new_hosts_count: number;
+  total_host_hours: number;
+  golden_host_income: number;
+}
+
+interface SubAgent {
+  id: string;
+  user_id: string;
+  referral_code: string;
+  commission_rate: number;
+  total_referrals: number;
+  total_earnings: number;
+  status: string;
+  joined_at: string;
+  profile?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  };
+}
+
+const CHART_COLORS = ['hsl(var(--brand-500))', 'hsl(var(--success-500))', 'hsl(var(--warning-500))', 'hsl(var(--danger-500))', 'hsl(var(--info-500))'];
+
+interface WithdrawalHistory {
+  id: string;
+  amount: number;
+  status: string;
+  payment_method: string;
+  requested_at: string;
+  helper_processed_at?: string | null;
+  payment_details?: {
+    country_code?: string;
+    currency_code?: string;
+    local_amount?: number;
+  } | null;
+}
+
+const AgencyDashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [agency, setAgency] = useState<Agency | null>(null);
+  const [actualCommissionRate, setActualCommissionRate] = useState<number>(0);
+  const [levelTierInfo, setLevelTierInfo] = useState<LevelTier | null>(null);
+  const [hosts, setHosts] = useState<AgencyHost[]>([]);
+  const [performance, setPerformance] = useState<PerformanceData | null>(null);
+  const [subAgents, setSubAgents] = useState<SubAgent[]>([]);
+  const [weeklyData, setWeeklyData] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalHistory[]>([]);
+  const [showWithdrawalHistory, setShowWithdrawalHistory] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [subAgentLink, setSubAgentLink] = useState("");
+  const [hostJoinLink, setHostJoinLink] = useState("");
+  const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
+  const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
+  const [localCurrency, setLocalCurrency] = useState({ code: 'USD', symbol: '$', flag: '🇺🇸' });
+  const [userCountryCode, setUserCountryCode] = useState('US');
+  const [hasHelperAccess, setHasHelperAccess] = useState(false);
+  const [isLevel5Helper, setIsLevel5Helper] = useState(false);
+  const [helperPendingApplication, setHelperPendingApplication] = useState(false);
+  const [showHelperDialog, setShowHelperDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-open Helper application dialog when navigated with ?openHelper=1 (e.g., from Trader Wallet upgrade prompt)
+  useEffect(() => {
+    if (searchParams.get('openHelper') === '1') {
+      setShowHelperDialog(true);
+      // Clean the param so refresh doesn't re-trigger
+      const next = new URLSearchParams(searchParams);
+      next.delete('openHelper');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+  const [helperContactInfo, setHelperContactInfo] = useState<{whatsapp?: string; email?: string; telegram?: string} | null>(null);
+  const [applyingForHelper, setApplyingForHelper] = useState(false);
+  const [helperPendingCount, setHelperPendingCount] = useState(0);
+  const prevHelperPendingCountRef = useRef(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [pendingHosts, setPendingHosts] = useState<any[]>([]);
+  const [approvingHostId, setApprovingHostId] = useState<string | null>(null);
+  const [rejectingHostId, setRejectingHostId] = useState<string | null>(null);
+  const agencyIdRef = useRef<string | null>(null);
+  
+  // Host earnings and agency commission tracking
+  const [totalHostEarningsFromTransfers, setTotalHostEarningsFromTransfers] = useState(0);
+  const [totalAgencyCommission, setTotalAgencyCommission] = useState(0);
+  const [totalWithdrawn, setTotalWithdrawn] = useState(0); // Track total withdrawn amounts
+  const [ownerPersonalBeans, setOwnerPersonalBeans] = useState(0); // Agency owner's personal beans from gifts/calls
+  
+  // Parent agency info (if this is a sub-agency)
+  const [parentAgency, setParentAgency] = useState<ParentAgencyInfo | null>(null);
+  const [showParentContactModal, setShowParentContactModal] = useState(false);
+  const [showSubAgentsPanel, setShowSubAgentsPanel] = useState(false);
+  const [subAgencyCount, setSubAgencyCount] = useState(0);
+  const [subAgencies, setSubAgencies] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    agencyIdRef.current = agency?.id ?? null;
+    if (agency?.id && currentUserId) {
+      // Pkg361 ZERO-REFRESH: Subscribe to ALL relevant tables for the agency dashboard
+      const unsubscribe = subscribeToTables(
+        `agency-dashboard-${agency.id}`,
+        ['agencies', 'agency_hosts', 'agency_performance', 'profiles', 'topup_helpers', 'agency_earnings_transfers'],
+        (table, event, payload) => {
+          const row = payload as any;
+          
+          if (table === 'agencies' && row.id === agency.id) {
+            setAgency(prev => prev ? { ...prev, ...row } : row);
+          }
+          
+          if (table === 'agency_hosts' && row.agency_id === agency.id) {
+            fetchHostsData(agency.id);
+          }
+          
+          if (table === 'profiles' && row.id === currentUserId) {
+            setOwnerPersonalBeans(Number(row.beans || 0));
+          }
+
+          if (table === 'topup_helpers' && row.user_id === currentUserId) {
+            setHasHelperAccess(row.is_verified && row.is_active);
+            setIsLevel5Helper(row.trader_level >= 5);
+          }
+          
+          if (table === 'agency_earnings_transfers' && row.agency_id === agency.id) {
+            fetchTransfersData(agency.id);
+          }
+        }
+      );
+      return unsubscribe;
+    }
+  }, [agency?.id, currentUserId]);
+
+  const fetchHostsData = async (aid: string) => {
+    const { data: h } = await supabase.from("agency_hosts").select("id, host_id, joined_at, status").eq("agency_id", aid).eq("status", "active");
+
+    if (h) {
+      const hIds = h.map(i => i.host_id);
+      if (hIds.length > 0) {
+        const { data: p } = await supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hIds);
+        const pMap = new Map((p || []).map(i => [i.id, i]));
+        setHosts(h.map(i => ({ ...i, profile: pMap.get(i.host_id) || null })));
+      }
+    }
+  };
+
+  const fetchTransfersData = async (aid: string) => {
+    const { data: t } = await supabase.from('agency_earnings_transfers').select('gift_earnings, call_earnings, amount, commission_rate').eq('agency_id', aid);
+    if (t) {
+      const totalEarned = t.reduce((sum, item) => sum + (Number(item.gift_earnings || 0) + Number(item.call_earnings || 0)), 0);
+      const totalComm = t.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      setTotalHostEarningsFromTransfers(totalEarned);
+      setTotalAgencyCommission(totalComm);
+    }
+  };
+
+  // Initialize notification sound
+  useEffect(() => {
+    // ... keep existing code
+
+
+  // Watch for helper pending count changes and play sound
+  useEffect(() => {
+    if (helperPendingCount > prevHelperPendingCountRef.current && prevHelperPendingCountRef.current !== 0) {
+      // New request arrived, play sound
+      playNotificationSound();
+    }
+    prevHelperPendingCountRef.current = helperPendingCount;
+  }, [helperPendingCount, playNotificationSound]);
+  
+  // Country flags mapping
+  const countryFlags: Record<string, string> = {
+    'BD': '🇧🇩', 'US': '🇺🇸', 'IN': '🇮🇳', 'PK': '🇵🇰', 'NP': '🇳🇵',
+    'AE': '🇦🇪', 'SA': '🇸🇦', 'KW': '🇰🇼', 'QA': '🇶🇦', 'OM': '🇴🇲',
+    'MY': '🇲🇾', 'SG': '🇸🇬', 'GB': '🇬🇧', 'AU': '🇦🇺', 'CA': '🇨🇦',
+    'EU': '🇪🇺', 'JP': '🇯🇵', 'KR': '🇰🇷'
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchData = async () => {
+      try {
+        const user = await getCachedUser();
+        if (!user) {
+          navigate("/auth");
+          return;
+        }
+
+        const { data: agencyData, error: agencyError } = await supabase
+          .from("agencies")
+          .select("*")
+          .eq("owner_id", user.id)
+          .maybeSingle();
+
+
+
+        if (cancelled) return;
+
+        if (agencyError) {
+          console.error('[AgencyDashboard] Error fetching agency:', agencyError);
+          recordClientError({ label: "AgencyDashboard.user", message: agencyError instanceof Error ? agencyError.message : String(agencyError) });
+        }
+        if (!agencyData) {
+          navigate("/agency");
+          return;
+        }
+
+        setAgency(agencyData);
+        setCurrentUserId(user.id);
+
+        // Generate sub-agent link AND host join link (dynamic import but non-blocking)
+        import('@/utils/shareLinks').then(({ generateSubAgentLink, generateAgencyJoinLink }) => {
+          setSubAgentLink(generateSubAgentLink(agencyData.agency_code));
+          setHostJoinLink(generateAgencyJoinLink(agencyData.agency_code));
+        });
+
+        // ===== BATCH 1: All independent queries in parallel =====
+        const [
+          parentRes,
+          ownerHelperRes,
+          hostsRes,
+          pendingHostsRes,
+          perfHistoryRes,
+          perfWeeklyRes,
+          subAgenciesRes,
+          subAgentsRes,
+          beansRateRes,
+          userProfileRes,
+          helperRes,
+          contactSettingsRes,
+          withdrawalRes,
+          transfersRes
+        ] = await Promise.all([
+          // 1. Parent agency
+          agencyData.parent_agency_id
+            ? supabase.from("agencies").select("id, name, agency_code, level, owner_id").eq("id", agencyData.parent_agency_id).maybeSingle()
+            : Promise.resolve({ data: null }),
+          // 2. Owner helper data
+          supabase.from("topup_helpers").select("trader_level, payroll_enabled, is_verified, is_active").eq("user_id", user.id).maybeSingle(),
+          // 3. Active Hosts
+          supabase.from("agency_hosts").select("id, host_id, joined_at, status").eq("agency_id", agencyData.id).eq("status", "active"),
+          // 3b. Pending Hosts
+          supabase.from("agency_hosts").select("id, host_id, joined_at, status").eq("agency_id", agencyData.id).eq("status", "pending"),
+          // 4. Performance history (daily)
+          supabase.from("agency_performance").select("*").eq("agency_id", agencyData.id).eq("period_type", "daily").order("period_start", { ascending: true }).limit(7),
+          // 5. Performance weekly
+          supabase.from("agency_performance").select("total_income, new_hosts_count, total_host_hours, golden_host_income").eq("agency_id", agencyData.id).eq("period_type", "weekly").order("period_start", { ascending: false }).limit(1).maybeSingle(),
+          // 6. Sub-agencies count
+          supabase.from("agencies").select("id, name, agency_code, level, total_hosts, created_at, owner_id").eq("parent_agency_id", agencyData.id).eq("is_active", true),
+          // 7. Sub-agents
+          supabase.from("sub_agents").select("*").eq("agency_id", agencyData.id).eq("status", "active"),
+          // 8. Beans rate
+          supabase.from("app_settings").select("setting_value").eq("setting_key", "beans_to_usd_rate").maybeSingle(),
+          // 9. User profile (country + personal beans)
+          supabase.from('profiles').select('country_code, country_flag, beans').eq('id', user.id).single(),
+          // 10. Helper data
+          supabase.from("topup_helpers").select("id, is_verified, is_active, trader_level, payroll_enabled").eq("user_id", user.id).maybeSingle(),
+          // 11. Helper contact settings
+          supabase.from("app_settings").select("setting_value").eq("setting_key", "helper_contact_info").maybeSingle(),
+          // 12. Withdrawals
+          supabase.from('agency_withdrawals').select('id, amount, status, payment_method, requested_at, helper_processed_at, payment_details').eq('agency_id', agencyData.id).order('requested_at', { ascending: false }),
+          // 13. Transfers (weekly host earnings + agency commission)
+          supabase.from('agency_earnings_transfers').select('gift_earnings, call_earnings, amount, commission_rate').eq('agency_id', agencyData.id),
+        ]);
+
+        if (cancelled) return;
+
+        // ===== BATCH 2: All secondary queries in parallel =====
+        const hostsData = hostsRes.data || [];
+        const pendingHostsData = pendingHostsRes.data || [];
+        const hostIds = hostsData.map(h => h.host_id);
+        const pendingHostIds = pendingHostsData.map(h => h.host_id);
+        const subAgentsData = subAgentsRes.data || [];
+        const subAgentUserIds = subAgentsData.map(sa => sa.user_id);
+        const countryCode = userProfileRes.data?.country_code || '';
+        setOwnerPersonalBeans(Number(userProfileRes.data?.beans) || 0);
+        // Map A1-A5 codes to DB tier level_codes for proper lookup
+        const levelToTierMap: Record<string, string> = {
+          'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond'
+        };
+        const effectiveLevel = agencyData.level || 'A1';
+        const effectiveTierCode = levelToTierMap[effectiveLevel] || effectiveLevel;
+        const helperData = helperRes.data;
+
+        const [
+          parentOwnerRes,
+          tierRes,
+          hostProfilesRes,
+          pendingHostProfilesRes,
+          subAgentProfilesRes,
+          currencyRes,
+          helperTopupCountRes,
+          helperWithdrawalCountRes,
+        ] = await Promise.all([
+          // Parent owner profile
+          parentRes.data?.owner_id
+            ? supabase.from("profiles").select("display_name, avatar_url").eq("id", parentRes.data.owner_id).maybeSingle()
+            : Promise.resolve({ data: null }),
+          // Level tier
+          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveTierCode).eq("is_active", true).maybeSingle(),
+          // Host profiles
+          hostIds.length > 0
+            ? supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hostIds)
+            : Promise.resolve({ data: [] }),
+          // Pending host profiles
+          pendingHostIds.length > 0
+            ? supabase.from("profiles").select("id, display_name, avatar_url, app_uid").in("id", pendingHostIds)
+            : Promise.resolve({ data: [] }),
+          // Sub-agent profiles
+          subAgentUserIds.length > 0
+            ? supabase.from("profiles").select("id, display_name, avatar_url").in("id", subAgentUserIds)
+            : Promise.resolve({ data: [] }),
+          // Currency rate — Pkg D pass-3 shared cache (deduped across agency tabs)
+          countryCode
+            ? getCurrencyRateForCountry(countryCode).then((row) => ({ data: row })).catch(() => ({ data: null }))
+            : Promise.resolve({ data: null }),
+
+          // Helper pending topup count
+          helperData?.is_verified
+            ? supabase.from("helper_orders").select("*", { count: 'exact', head: true }).eq("helper_id", helperData.id).eq("status", "pending")
+            : Promise.resolve({ count: 0 }),
+          // Helper pending withdrawal count
+          helperData?.is_verified && helperData?.trader_level === 5 && helperData?.payroll_enabled
+            ? supabase.from("agency_withdrawals").select("*", { count: 'exact', head: true }).eq("status", "pending")
+            : Promise.resolve({ count: 0 }),
+        ]);
+
+        if (cancelled) return;
+
+        // ===== Process parent agency =====
+        if (parentRes.data) {
+          setParentAgency({
+            ...parentRes.data,
+            owner_profile: parentOwnerRes.data ? { ...parentOwnerRes.data, uid: null } : undefined
+          });
+        }
+
+        // ===== Process level tier =====
+        // Payroll-enabled agencies (Level 5 Helper) get 12% commission override
+        const isPayrollAgency = ownerHelperRes.data?.is_verified && ownerHelperRes.data?.is_active && ownerHelperRes.data?.trader_level === 5 && ownerHelperRes.data?.payroll_enabled;
+        const payrollCommissionRate = 12; // A5 Legend rate for payroll agencies
+        
+        if (tierRes.data) {
+          const effectiveCommission = isPayrollAgency ? Math.max(tierRes.data.commission_rate, payrollCommissionRate) : tierRes.data.commission_rate;
+          setActualCommissionRate(effectiveCommission);
+          setLevelTierInfo(tierRes.data);
+          const updates: Record<string, any> = {};
+          if (agencyData.commission_rate !== effectiveCommission) updates.commission_rate = effectiveCommission;
+          if (agencyData.level !== effectiveLevel) updates.level = effectiveLevel;
+          if (Object.keys(updates).length > 0) {
+            supabase.from("agencies").update(updates).eq("id", agencyData.id);
+            setAgency(prev => prev ? { ...prev, ...updates } : prev);
+          }
+        } else {
+          setActualCommissionRate(isPayrollAgency ? payrollCommissionRate : (agencyData.commission_rate || 0));
+        }
+
+        // ===== Process hosts =====
+        const actualHostCount = hostsData.length;
+        setHosts(hostsData.map(host => ({
+          ...host,
+          profile: (hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id) || null
+        })));
+        if (agencyData.total_hosts !== actualHostCount) {
+          supabase.from("agencies").update({ total_hosts: actualHostCount }).eq("id", agencyData.id);
+          setAgency(prev => prev ? { ...prev, total_hosts: actualHostCount } : prev);

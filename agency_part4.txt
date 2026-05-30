@@ -1,0 +1,500 @@
+              
+              <Card className="overflow-hidden relative surface-emerald">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    {performance?.new_hosts_count || 0}
+                  </p>
+                  <p className="text-sm text-white/75">New Hosts</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="overflow-hidden relative surface-amber-warm">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    {(performance?.total_host_hours || 0).toFixed(1)}h
+                  </p>
+                  <p className="text-sm text-white/75">Live Hours</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="overflow-hidden relative surface-amber">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Crown className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    {fmtNum(performance?.golden_host_income || 0)}
+                  </p>
+                  <p className="text-sm text-white/75">Golden Income</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Statistics Card */}
+            <Card className={premiumCardClass}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-4 h-4 text-info-600" />
+                  </div>
+                  Total Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <span className="text-muted-foreground">Total Host Earnings</span>
+                  <span className="font-bold text-success-600">{fmtNum(totalHostEarnings)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <span className="text-muted-foreground">Your Commission ({actualCommissionRate}%)</span>
+                  <span className="font-bold text-brand-600">
+                    {fmtNum(Math.floor(totalHostEarnings * actualCommissionRate / 100))}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <span className="text-muted-foreground">Sub-Agent Commission</span>
+                  <span className="font-bold text-info-600">{fmtNum(totalSubAgentEarnings)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-muted-foreground">Agency Created</span>
+                  <span className="font-medium">{formatDate(agency.created_at)}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Withdrawal History */}
+            <Card className={premiumCardClass}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                    <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-info-600" />
+                    </div>
+                    <div>
+                      <span>Withdrawal History</span>
+                      <p className="text-xs font-normal text-muted-foreground">{withdrawals.length} total requests</p>
+                    </div>
+                  </CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate('/agency-withdrawal')}
+                    className="text-info-600 hover:text-info-700 hover:bg-info-50"
+                  >
+                    View All
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {withdrawals.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No withdrawal history yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {withdrawals.slice(0, 5).map((withdrawal) => {
+                      const wCurrency = withdrawal.payment_details?.currency_code || 'BDT';
+                      const localAmt = withdrawal.payment_details?.local_amount || 0;
+                      
+                      // For agency view: if helper has processed payment, show as "approved"
+                      const displayStatus = ((withdrawal.status === 'processing' && withdrawal.helper_processed_at) || withdrawal.status === 'approved')
+                        ? 'completed'
+                        : withdrawal.status;
+                      
+                      const statusConfig: Record<string, { iconBg: string; text: string }> = {
+                        completed: { iconBg: 'bg-success-500', text: 'text-success-600' },
+                        pending: { iconBg: 'bg-warning-500', text: 'text-warning-600' },
+                        processing: { iconBg: 'bg-info-500', text: 'text-info-600' },
+                        rejected: { iconBg: 'bg-danger-500', text: 'text-danger-600' },
+                        approved: { iconBg: 'bg-success-500', text: 'text-success-600' }
+                      };
+                      const config = statusConfig[displayStatus] || statusConfig.pending;
+                      
+                      const countryFlag = withdrawal.payment_details?.country_code === 'BD' ? '🇧🇩' :
+                        withdrawal.payment_details?.country_code === 'IN' ? '🇮🇳' :
+                        withdrawal.payment_details?.country_code === 'PK' ? '🇵🇰' :
+                        withdrawal.payment_details?.country_code === 'NP' ? '🇳🇵' : '🌍';
+                      
+                      return (
+                        <div 
+                          key={withdrawal.id}
+                          onClick={() => navigate('/agency-withdrawal')}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer hover:shadow-md ${premiumTileClass}`}
+                        >
+                          {/* Status Icon */}
+                          <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
+ {displayStatus ==='pending' && <Clock className="w-6 h-6 text-white" />}
+ {displayStatus ==='processing' && <Loader2 className="w-6 h-6 text-white animate-spin" />}
+ {displayStatus ==='completed' && <CheckCircle2 className="w-6 h-6 text-white" />}
+ {displayStatus ==='approved' && <CheckCircle2 className="w-6 h-6 text-white" />}
+ {displayStatus ==='rejected' && <Clock className="w-6 h-6 text-white" />}
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{countryFlag}</span>
+                              <span className="text-foreground font-bold">{fmtNum(withdrawal.amount)}</span>
+                              <span className="text-muted-foreground text-sm">Beans</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="bg-gradient-to-r from-brand-50 to-brand-50 text-brand-700 px-2 py-0.5 rounded-md text-xs font-medium border border-brand-100">
+                                {withdrawal.payment_method?.toUpperCase()}
+                              </span>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground text-xs">
+                                {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Amount & Status */}
+                          <div className="text-right shrink-0">
+                            <p className={`font-bold ${config.text}`}>
+                              {wCurrency === 'BDT' ? 'Tk ' : wCurrency === 'INR' ? '₹' : '$'}{localAmt.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                            </p>
+                            <p className={`text-xs font-medium ${config.text} capitalize`}>
+                              {displayStatus}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Hosts Tab */}
+          <TabsContent value="hosts" className="mt-4 space-y-4">
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-warning-600" />
+                  </div>
+                  Top Performers
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {hosts
+                  .sort((a, b) => (b.profile?.total_earnings || 0) - (a.profile?.total_earnings || 0))
+                  .slice(0, 5)
+                  .map((host, index) => (
+                    <div 
+                      key={host.id}
+                      className="flex items-center gap-3 py-3 border-b border-border last:border-0"
+                    >
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                        index === 0 ? 'bg-warning-100 text-warning-700' :
+                        index === 1 ? 'bg-muted text-foreground/80' :
+                        index === 2 ? 'bg-warning-50 text-warning-600' :
+                        'bg-muted/60 text-muted-foreground'
+                      }`}>
+                        {index + 1}
+                      </span>
+                      <Avatar className="w-10 h-10 border-2 border-border">
+                        <AvatarImage src={host.profile?.avatar_url || ""} />
+                        <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
+                          {host.profile?.is_online && (
+                            <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
+                          )}
+                          {host.profile?.is_verified && (
+                            <CheckCircle2 className="w-4 h-4 text-info-500" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Joined: {formatDate(host.joined_at)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-success-600">{fmtNum(host.profile?.total_earnings || 0)}</p>
+                        <p className="text-xs text-muted-foreground">Earnings</p>
+                      </div>
+                    </div>
+                  ))}
+                
+                {hosts.length === 0 && (
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                      <Users className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No hosts yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Host Invite Link Card */}
+            <Card className="overflow-hidden relative surface-sky">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Host Invite Link</h3>
+                    <p className="text-xs text-white/70">Share to recruit new hosts</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copyHostJoinLink}
+                    variant="outline" 
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button 
+                    onClick={shareHostJoinLink}
+                    className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-lg"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              onClick={() => navigate("/agency-host-management")}
+              className="w-full h-12 bg-gradient-to-r from-brand-500 to-info-600 hover:from-brand-600 hover:to-info-700 rounded-xl"
+            >
+              <Users className="w-5 h-5 mr-2" />
+              Manage All Hosts
+            </Button>
+          </TabsContent>
+
+          {/* Sub-Agents Tab */}
+          <TabsContent value="subagents" className="mt-4 space-y-4">
+            <Card className="overflow-hidden relative surface-amber">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Referral Link</h3>
+                    <p className="text-xs text-white/70">Share to add sub-agents</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copySubAgentLink}
+                    variant="outline" 
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button 
+                    onClick={shareSubAgentLink}
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="agency-premium-card">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-warning-600">{subAgents.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
+                </CardContent>
+              </Card>
+              <Card className="agency-premium-card">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-success-600">{fmtNum(totalSubAgentEarnings)}</p>
+                  <p className="text-sm text-muted-foreground">Total Commission</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Sub-Agent List</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subAgents.length > 0 ? (
+                  <div className="space-y-3">
+                    {subAgents.map((sa) => (
+                      <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                        <Avatar className="w-10 h-10 border-2 border-border">
+                          <AvatarImage src={sa.profile?.avatar_url || ""} />
+                          <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>Code: {sa.referral_code}</span>
+                            <span>•</span>
+                            <span>{sa.total_referrals} Referrals</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-success-600">{fmtNum(sa.total_earnings)}</p>
+                          <p className="text-xs text-muted-foreground">{sa.commission_rate}%</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                      <UserPlus className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No sub-agents yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Share the link above</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Sub-Agencies List */}
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-info-600" />
+                  </div>
+                  Sub-Agencies ({subAgencyCount})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subAgencies.length > 0 ? (
+                  <div className="space-y-3">
+                    {subAgencies.map((sa: any) => (
+                      <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center">
+ <Building2 className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{sa.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-mono">{sa.agency_code}</span>
+                            <span>•</span>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-foreground/80 border-border">{sa.level || 'A1'}</Badge>
+                            <span>•</span>
+                            <span>{sa.total_hosts || 0} Hosts</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="w-14 h-14 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                      <Building2 className="w-7 h-7 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No sub-agencies yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Share the referral link to recruit</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden relative surface-indigo">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-300" />
+                  Commission Structure
+                </h3>
+                <ul className="text-sm text-white/85 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
+                    <span>Sub-Agent Base Commission:</span>
+                    <span className="font-bold text-amber-300">2%</span>
+                  </li>
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
+                    <span>Top Performer Bonus:</span>
+                    <span className="font-bold text-amber-300">+1%</span>
+                  </li>
+                  <li className="flex items-center justify-between py-2">
+                    <span>10+ Referral Bonus:</span>
+                    <span className="font-bold text-amber-300">+0.5%</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Charts Tab */}
+          <TabsContent value="charts" className="mt-4 space-y-4">
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-info-600" />
+                  </div>
+                  Income Trend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="income" 
+                        stroke="hsl(var(--brand-500))" 
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--brand-500))', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="agency-premium-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-warning-600" />
+                  </div>
+                  Live Hours
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Bar dataKey="hours" fill="hsl(var(--warning-500))" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
