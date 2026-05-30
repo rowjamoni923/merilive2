@@ -436,7 +436,7 @@ const AgencyDashboard = () => {
         {/* PREMIUM Payroll Helper Guide Card - Fix Color & Design */}
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-6 shadow-2xl shadow-emerald-500/20 active:scale-[0.98] transition-all group cursor-pointer"
+          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-600 via-indigo-600 to-brand-700 p-6 shadow-2xl shadow-brand-500/20 active:scale-[0.98] transition-all group cursor-pointer"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-colors" />
           <div className="relative z-10 flex items-center gap-4">
