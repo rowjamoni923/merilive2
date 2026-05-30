@@ -71,6 +71,7 @@ const Agency = () => {
 
           // FAST CHECK: If profile says user is agency owner, redirect immediately
           if (profileData?.is_agency_owner) {
+            localStorage.setItem('meri_agency_redirecting', 'true');
             navigate("/agency-dashboard", { replace: true });
             return;
           }
