@@ -16,25 +16,25 @@ const PayrollHelperGuide = () => {
       icon: Coins,
       title: "Process User Top-ups",
       desc: "When users purchase coins through local payment methods (bKash, Nagad, etc.), you receive the payment and deliver the coins instantly.",
-      color: "from-emerald-500 to-teal-600",
+      color: "from-brand-600 to-brand-700",
     },
     {
       icon: Wallet,
       title: "Process Agency Withdrawals",
       desc: "Agencies request weekly salary withdrawals. You process these payments by sending money to the owner and receiving diamonds as reward.",
-      color: "from-teal-500 to-cyan-600",
+      color: "from-brand-500 to-indigo-600",
     },
     {
       icon: Gem,
       title: "Diamond Trading",
       desc: "Every withdrawal earns you diamonds. Sell them back to agencies or users at market rates for consistent profit.",
-      color: "from-cyan-500 to-blue-600",
+      color: "from-brand-400 to-indigo-500",
     },
     {
       icon: Globe,
       title: "Regional Financial Hub",
       desc: "Act as the bridge between the platform's economy and real-world currency for your entire country region.",
-      color: "from-blue-500 to-indigo-600",
+      color: "from-indigo-600 to-brand-800",
     },
   ];
 
@@ -83,7 +83,7 @@ const PayrollHelperGuide = () => {
           <img src={bannerImage} alt="Payroll Helper System" className="w-full h-56 object-cover"/>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
-            <Badge className="bg-emerald-500 text-white border-0 text-[9px] font-black tracking-[0.2em] mb-2 px-3 py-0.5 uppercase shadow-lg">
+            <Badge className="bg-brand-500 text-white border-0 text-[9px] font-black tracking-[0.2em] mb-2 px-3 py-0.5 uppercase shadow-lg">
               Premium Earning
             </Badge>
             <h2 className="text-2xl font-black text-white leading-tight">
@@ -98,13 +98,13 @@ const PayrollHelperGuide = () => {
         {/* Intro Section */}
         <section className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 shadow-xl shadow-brand-500/5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-brand-600 dark:text-brand-400" />
             </div>
             <h3 className="font-black text-base text-slate-800 dark:text-white">What is a Payroll Helper?</h3>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-            A <strong className="text-emerald-600 dark:text-emerald-400 font-black">Payroll Helper</strong> is a trusted regional partner who manages the platform's diamond economy. By processing top-ups and withdrawals, you earn <strong className="text-slate-800 dark:text-white">guaranteed commissions</strong> and tradeable diamonds.
+            A <strong className="text-brand-600 dark:text-brand-400 font-black">Payroll Helper</strong> is a trusted regional partner who manages the platform's diamond economy. By processing top-ups and withdrawals, you earn <strong className="text-slate-800 dark:text-white">guaranteed commissions</strong> and tradeable diamonds.
           </p>
         </section>
 
@@ -129,7 +129,7 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Benefits Section */}
-        <section className="bg-emerald-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
+        <section className="bg-brand-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-brand-500/20">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">

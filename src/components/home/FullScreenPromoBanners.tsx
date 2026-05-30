@@ -79,6 +79,17 @@ export function FullScreenPromoBanners() {
       return false;
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("rating_banner_dismissed")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.rating_banner_dismissed) {
+      try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+      return false;
+    }
+
     const { data: settingData } = await supabase
       .from("app_settings")
       .select("setting_value")
@@ -144,6 +155,7 @@ export function FullScreenPromoBanners() {
       void supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+          void supabase.from("profiles").update({ rating_banner_dismissed: true }).eq("id", user.id);
         }
       });
     }

@@ -71,6 +71,7 @@ const Agency = () => {
 
           // FAST CHECK: If profile says user is agency owner, redirect immediately
           if (profileData?.is_agency_owner) {
+            localStorage.setItem('meri_agency_redirecting', 'true');
             navigate("/agency-dashboard", { replace: true });
             return;
           }
@@ -174,9 +175,9 @@ const Agency = () => {
   const regularTiers = commissionTiers.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
   const diamondTier = commissionTiers.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
 
-  // Loading state
-  if (loading) {
-    return <LoadingSpinner fullScreen size="lg" text="Loading Agency" />;
+  // If user is being redirected, don't show the loading spinner or the landing page
+  if (loading || (typeof window !== 'undefined' && localStorage.getItem('meri_agency_redirecting') === 'true')) {
+    return <LoadingSpinner fullScreen size="lg" text="Entering Agency Center..." />;
   }
 
   // User doesn't have an approved agency - show Apply/Join options
