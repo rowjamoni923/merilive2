@@ -34,6 +34,7 @@ import BeansIcon from "@/components/common/BeansIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 
 interface GameParticipant {
