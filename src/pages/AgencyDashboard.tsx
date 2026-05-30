@@ -95,7 +95,7 @@ const AgencyDashboard = () => {
   const { toast } = useToast();
   const [agency, setAgency] = useState<Agency | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  
   const [showHelperForm, setShowHelperForm] = useState(false);
   const [helperData, setHelperData] = useState<any>(null);
   const [isHelperLoading, setIsHelperLoading] = useState(true);
