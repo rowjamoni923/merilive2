@@ -618,7 +618,10 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   html.native-face-camera-active,
   body.native-face-camera-active,
-  body.native-face-camera-active #root {
+  body.native-face-camera-active #root,
+  html.native-media-active,
+  body.native-media-active,
+  body.native-media-active #root {
     background: transparent !important;
     background-color: transparent !important;
   }
