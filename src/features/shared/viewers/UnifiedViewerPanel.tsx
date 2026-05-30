@@ -37,6 +37,8 @@ export const UnifiedViewerPanel = ({
   roomType = 'live',
 }: ViewerPanelProps) => {
   const [activeTab, setActiveTab] = useState<'audience' | 'applicant'>('audience');
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   
   // CRITICAL FIX: Always use hook for real-time viewer sync in BOTH live and party rooms
   // External viewers are only used as initial fallback, hook provides real-time updates
