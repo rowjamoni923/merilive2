@@ -426,7 +426,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         )}
         style={{ 
           boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.15), 0 -2px 20px rgba(0,0,0,0.8)', 
-          maxHeight: 'calc(70vh - env(safe-area-inset-bottom, 0px))', 
+          maxHeight: isLandscape ? '95dvh' : 'calc(70vh - env(safe-area-inset-bottom, 0px))', 
+
           paddingBottom: 'max(env(safe-area-inset-bottom, 16px), 16px)',
           display: 'flex',
           flexDirection: 'column',
