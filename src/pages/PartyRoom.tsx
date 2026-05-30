@@ -1172,7 +1172,49 @@ const PartyRoom = () => {
     }
   }, []);
 
-  // Pkg187: Removed 20s participants + seat_requests safety poll. LiveKit `participant_joined`/`left` + `seat_action` data events + Pkg186 optimistic deltas already deliver instant updates to all viewers. Zero functional loss, $1400-rule safe.
+  // Pkg187: Removed 20s participants + seat_requests safety poll. LiveKit `participant_joined`/`left` + `seat_action` data events + Pkg186 optimistic deltas already deliver instant updates to all viewers.
+  //
+  // Pkg382 (audit-fix — host couldn't see new viewers): LiveKit DataPackets are
+  // best-effort and can be silently dropped (e.g. viewer publishes packet
+  // before their LiveKit Room is fully connected, host's room joins late
+  // and misses earlier packets, or a transient WS hiccup). Per Core rule
+  // "instant realtime — LiveKit for in-room, Supabase Realtime for everything
+  // else", we keep BOTH paths: LiveKit DataPacket = primary instant path,
+  // Supabase Realtime on `party_room_participants` filtered to this room =
+  // authoritative DB-backed fallback. Only triggers a single debounced
+  // fetchParticipants() per burst — zero polling, scoped to room lifecycle.
+  useEffect(() => {
+    if (!roomId) return;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (isMountedRef.current) {
+          void fetchParticipants();
+          void fetchSeatRequests();
+        }
+      }, 250);
+    };
+    const channel = supabase
+      .channel(`party-room-participants-realtime-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
+        scheduleRefetch,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'seat_requests', filter: `room_id=eq.${roomId}` },
+        scheduleRefetch,
+      )
+      .subscribe();
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      try { supabase.removeChannel(channel); } catch { /* ignore */ }
+    };
+  }, [roomId, fetchParticipants, fetchSeatRequests]);
+
+
 
 
   const joinRoom = async () => {
