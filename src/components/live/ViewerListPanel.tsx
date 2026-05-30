@@ -129,9 +129,13 @@ export const ViewerListPanel = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25 }}
-            className="absolute bottom-0 left-0 right-0 max-h-[70vh] bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20"
+            className={cn(
+              "absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#1a1035] to-[#0f0820] rounded-t-3xl border-t border-purple-500/20",
+              isLandscape ? "max-h-[95dvh]" : "max-h-[75dvh]"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
+
             {/* Handle */}
             <div className="flex justify-center pt-2 pb-1">
               <div className="w-10 h-1 bg-white/20 rounded-full" />
