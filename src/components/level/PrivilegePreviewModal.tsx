@@ -4,6 +4,8 @@ import { X, Lock, Sparkles, Crown, Star, Gift, Car, Image, Headphones, Check } f
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Lottie from "lottie-react";
+import { useUserPrivileges } from "@/hooks/useUserPrivileges";
+import { useToast } from "@/hooks/use-toast";
 
 interface LevelPrivilege {
   id: string;
@@ -23,15 +25,21 @@ interface PrivilegePreviewModalProps {
   currentLevel: number;
   isOpen: boolean;
   onClose: () => void;
+  userId?: string | null;
 }
 
 const iconMap: Record<string, React.ElementType> = {
   Sparkles, Crown, Star, Gift, Car, Image, Headphones
 };
 
-const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose }: PrivilegePreviewModalProps) => {
+const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userId }: PrivilegePreviewModalProps) => {
   const [animationData, setAnimationData] = useState<object | null>(null);
   const [loading, setLoading] = useState(false);
+  const [equipping, setEquipping] = useState(false);
+  const { toast } = useToast();
+  const { privileges, equipPrivilege } = useUserPrivileges(userId || null);
+
+  const isEquipped = privileges.find(p => p.id === privilege?.id)?.is_equipped;
 
   useEffect(() => {
     if (privilege?.animation_url && privilege.animation_url.endsWith('.json')) {
@@ -199,7 +207,7 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose }: Pri
                 )}
               </div>
 
-              {!isUnlocked && (
+              {!isUnlocked ? (
                 <Button
                   className="w-full h-12 rounded-xl text-white font-bold"
                   style={{
@@ -207,10 +215,36 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose }: Pri
                   }}
                   onClick={() => {
                     onClose();
-                    // Navigate to recharge
+                    // Navigate to recharge handled by parent
                   }}
                 >
                   Top Up to Unlock
+                </Button>
+              ) : (
+                <Button
+                  disabled={isEquipped || equipping}
+                  className={`w-full h-12 rounded-xl font-bold transition-all ${
+                    isEquipped 
+                      ? 'bg-green-100 text-green-600 border-2 border-green-200' 
+                      : 'text-white shadow-lg hover:shadow-xl'
+                  }`}
+                  style={!isEquipped ? {
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)'
+                  } : {}}
+                  onClick={async () => {
+                    if (!privilege || !userId) return;
+                    setEquipping(true);
+                    const success = await equipPrivilege(privilege.id, privilege.privilege_type, 'level');
+                    setEquipping(false);
+                    if (success) {
+                      toast({
+                        title: "Success",
+                        description: `${privilege.name} equipped successfully!`,
+                      });
+                    }
+                  }}
+                >
+                  {equipping ? 'Equipping...' : isEquipped ? 'Equipped' : 'Equip'}
                 </Button>
               )}
             </div>

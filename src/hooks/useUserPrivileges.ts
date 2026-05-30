@@ -32,10 +32,6 @@ export interface EquippedPrivileges {
   entrance_effect: UserPrivilege | null;
 }
 
-/**
- * Hook to fetch and manage user's purchased and level-unlocked privileges
- * This hook provides all equipped items for display across the app
- */
 export const useUserPrivileges = (userId: string | null) => {
   const [privileges, setPrivileges] = useState<UserPrivilege[]>([]);
   const [equippedPrivileges, setEquippedPrivileges] = useState<EquippedPrivileges>({
@@ -77,17 +73,25 @@ export const useUserPrivileges = (userId: string | null) => {
     if (!userId) return;
 
     try {
-      // Fetch user level
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_level')
+        .select(`
+          user_level,
+          equipped_frame_id,
+          equipped_entrance_id,
+          equipped_entry_banner_id,
+          equipped_entry_name_bar_id,
+          equipped_bubble_id,
+          equipped_vehicle_id,
+          equipped_medal_id,
+          equipped_noble_card_id
+        `)
         .eq('id', userId)
         .single();
 
       const level = profile?.user_level || 0;
       setUserLevel(level);
 
-      // Fetch purchased items from shop
       const { data: purchases } = await supabase
         .from('user_purchases')
         .select(`
@@ -108,7 +112,6 @@ export const useUserPrivileges = (userId: string | null) => {
         .eq('user_id', userId)
         .eq('is_active', true);
 
-      // Fetch level privileges that user has unlocked
       const { data: levelPrivileges } = await supabase
         .from('level_privileges')
         .select('*')
@@ -117,19 +120,30 @@ export const useUserPrivileges = (userId: string | null) => {
 
       const allPrivileges: UserPrivilege[] = [];
 
-      // Add shop purchases
       if (purchases) {
         for (const purchase of purchases) {
           const item = purchase.shop_items as any;
           if (item) {
+            const cat = item.category;
+            let isEquipped = purchase.is_equipped || false;
+            
+            if (cat === 'frame') isEquipped = isEquipped || purchase.item_id === profile?.equipped_frame_id;
+            else if (cat === 'entrance' || cat === 'entrance_effect' || cat === 'entry_banner') 
+              isEquipped = isEquipped || purchase.item_id === profile?.equipped_entrance_id || purchase.item_id === profile?.equipped_entry_banner_id;
+            else if (cat === 'entry_bar' || cat === 'entry_name_bar') isEquipped = isEquipped || purchase.item_id === profile?.equipped_entry_name_bar_id;
+            else if (cat === 'bubble') isEquipped = isEquipped || purchase.item_id === profile?.equipped_bubble_id;
+            else if (cat === 'vehicle') isEquipped = isEquipped || purchase.item_id === profile?.equipped_vehicle_id;
+            else if (cat === 'medal') isEquipped = isEquipped || purchase.item_id === profile?.equipped_medal_id;
+            else if (cat === 'noble_card') isEquipped = isEquipped || purchase.item_id === profile?.equipped_noble_card_id;
+
             allPrivileges.push({
               id: purchase.id,
-              category: item.category,
+              category: cat,
               name: item.name,
               animation_url: item.animation_url,
               animation_file_url: item.animation_file_url,
               preview_url: item.preview_url,
-              is_equipped: purchase.is_equipped || false,
+              is_equipped: isEquipped,
               expires_at: purchase.expires_at,
               item_type: 'shop',
             });
@@ -137,17 +151,28 @@ export const useUserPrivileges = (userId: string | null) => {
         }
       }
 
-      // Add level privileges
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
+          const cat = priv.privilege_type;
+          let isEquipped = false;
+          
+          if (cat === 'frame' || cat === 'portrait_frame') isEquipped = priv.id === profile?.equipped_frame_id;
+          else if (cat === 'entrance' || cat === 'entrance_effect' || cat === 'entry_banner') 
+            isEquipped = priv.id === profile?.equipped_entrance_id || priv.id === profile?.equipped_entry_banner_id;
+          else if (cat === 'entry_bar' || cat === 'entry_name_bar') isEquipped = priv.id === profile?.equipped_entry_name_bar_id;
+          else if (cat === 'bubble') isEquipped = priv.id === profile?.equipped_bubble_id;
+          else if (cat === 'vehicle') isEquipped = priv.id === profile?.equipped_vehicle_id;
+          else if (cat === 'medal') isEquipped = priv.id === profile?.equipped_medal_id;
+          else if (cat === 'noble_card') isEquipped = priv.id === profile?.equipped_noble_card_id;
+
           allPrivileges.push({
             id: priv.id,
-            category: priv.privilege_type,
+            category: cat,
             name: priv.name,
             animation_url: priv.animation_url,
             animation_file_url: null,
             preview_url: priv.preview_url,
-            is_equipped: true, // Level privileges are always "equipped"
+            is_equipped: isEquipped,
             expires_at: null,
             item_type: 'level',
           });
@@ -156,7 +181,6 @@ export const useUserPrivileges = (userId: string | null) => {
 
       setPrivileges(allPrivileges);
 
-      // Build equipped privileges map
       const equipped: EquippedPrivileges = {
         frame: null,
         entrance: null,
@@ -177,13 +201,15 @@ export const useUserPrivileges = (userId: string | null) => {
       };
 
       for (const priv of allPrivileges) {
-        if (priv.is_equipped || priv.item_type === 'level') {
+        if (priv.is_equipped) {
           const key = priv.category as keyof EquippedPrivileges;
-          if (key in equipped) {
-            // Prioritize shop items over level privileges if both exist
-            if (!equipped[key] || priv.item_type === 'shop') {
-              equipped[key] = priv;
-            }
+          let targetKey = key;
+          if (key === 'portrait_frame') targetKey = 'frame' as any;
+          if (key === 'entrance_effect' || (key as string) === 'entry_banner') targetKey = 'entrance' as any;
+          if (key === 'entry_bar') targetKey = 'entry_bar' as any;
+
+          if (targetKey in equipped) {
+            equipped[targetKey as keyof EquippedPrivileges] = priv;
           }
         }
       }
@@ -196,10 +222,6 @@ export const useUserPrivileges = (userId: string | null) => {
     }
   };
 
-  // Pkg83-ext: removed static `level-privileges-realtime` channel + per-user
-  // postgres_changes on user_purchases (table not in supabase_realtime
-  // publication). Admin level_privileges edits push via Pkg37 admin_broadcast;
-  // own purchases refresh via invisible app_sync notifications + after mutations.
   const subscribeToChanges = () => {
     const onAdmin = (e: Event) => {
       const table = (e as CustomEvent<{ table?: string }>).detail?.table;
@@ -217,27 +239,59 @@ export const useUserPrivileges = (userId: string | null) => {
     };
   };
 
-
-  const equipPrivilege = async (privilegeId: string, category: string) => {
+  const equipPrivilege = async (itemId: string, category: string, source: 'shop' | 'level' = 'shop') => {
     if (!userId) return false;
 
     try {
-      // Unequip all items in this category first
-      const { error: unequipError } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: false })
-        .eq('user_id', userId)
-        .eq('is_active', true);
+      let slot = category;
+      if (category === 'portrait_frame' || category === 'frame') slot = 'frame';
+      if (category === 'entrance_effect' || (category as string) === 'entry_banner' || category === 'entrance') slot = 'entrance';
+      if (category === 'entry_bar' || category === 'entry_name_bar') slot = 'entry_name_bar';
 
-      if (unequipError) throw unequipError;
+      const updateData: any = {};
+      if (slot === 'frame') updateData.equipped_frame_id = itemId;
+      else if (slot === 'entrance') {
+        updateData.equipped_entrance_id = itemId;
+        updateData.equipped_entry_banner_id = itemId;
+      }
+      else if (slot === 'entry_name_bar') updateData.equipped_entry_name_bar_id = itemId;
+      else if (slot === 'bubble') updateData.equipped_bubble_id = itemId;
+      else if (slot === 'vehicle') updateData.equipped_vehicle_id = itemId;
+      else if (slot === 'medal') updateData.equipped_medal_id = itemId;
+      else if (slot === 'noble_card') updateData.equipped_noble_card_id = itemId;
 
-      // Equip the selected item
-      const { error } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: true })
-        .eq('id', privilegeId);
+      if (Object.keys(updateData).length > 0) {
+        await supabase.from('profiles').update(updateData).eq('id', userId);
+      }
 
-      if (error) throw error;
+      if (source === 'shop') {
+        const { data: allPurchases } = await supabase
+          .from("user_purchases")
+          .select("id, shop_items(category)")
+          .eq("user_id", userId)
+          .eq("is_active", true);
+
+        const sameCategoryIds = allPurchases
+          ?.filter(p => {
+            const pCategory = (p.shop_items as any)?.category;
+            let pSlot = pCategory;
+            if (pCategory === 'portrait_frame' || pCategory === 'frame') pSlot = 'frame';
+            if (pCategory === 'entrance_effect' || (pCategory as string) === 'entry_banner' || pCategory === 'entrance') pSlot = 'entrance';
+            if (pCategory === 'entry_bar' || pCategory === 'entry_name_bar') pSlot = 'entry_name_bar';
+            
+            return pSlot === slot;
+          })
+          .map(p => p.id) || [];
+
+        if (sameCategoryIds.length > 0) {
+          await supabase
+            .from("user_purchases")
+            .update({ is_equipped: false })
+            .in("id", sameCategoryIds);
+        }
+
+        await supabase.from('user_purchases').update({ is_equipped: true }).eq('id', itemId);
+      }
 
       await fetchPrivileges();
       return true;
@@ -247,16 +301,28 @@ export const useUserPrivileges = (userId: string | null) => {
     }
   };
 
-  const unequipPrivilege = async (privilegeId: string) => {
+  const unequipPrivilege = async (category: string) => {
     if (!userId) return false;
 
     try {
-      const { error } = await supabase
-        .from('user_purchases')
-        .update({ is_equipped: false })
-        .eq('id', privilegeId);
+      let slot = category;
+      if (category === 'portrait_frame' || category === 'frame') slot = 'frame';
+      if (category === 'entrance_effect' || (category as string) === 'entry_banner' || category === 'entrance') slot = 'entrance';
 
-      if (error) throw error;
+      const updateData: any = {};
+      if (slot === 'frame') updateData.equipped_frame_id = null;
+      else if (slot === 'entrance') {
+        updateData.equipped_entrance_id = null;
+        updateData.equipped_entry_banner_id = null;
+      }
+      else if (slot === 'entry_name_bar') updateData.equipped_entry_name_bar_id = null;
+      else if (slot === 'bubble') updateData.equipped_bubble_id = null;
+      else if (slot === 'vehicle') updateData.equipped_vehicle_id = null;
+      else if (slot === 'medal') updateData.equipped_medal_id = null;
+      else if (slot === 'noble_card') updateData.equipped_noble_card_id = null;
+
+      await supabase.from('profiles').update(updateData).eq('id', userId);
+      await supabase.from('user_purchases').update({ is_equipped: false }).eq('user_id', userId);
 
       await fetchPrivileges();
       return true;
@@ -277,14 +343,10 @@ export const useUserPrivileges = (userId: string | null) => {
   };
 };
 
-/**
- * Get equipped privileges for a specific user (for viewing other users)
- */
 export const getEquippedPrivilegesForUser = async (userId: string): Promise<EquippedPrivileges | null> => {
   if (!userId) return null;
 
   try {
-    // Fetch user level
     const { data: profile } = await supabase
       .from('profiles_public')
       .select('user_level')
@@ -293,7 +355,6 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
 
     const level = profile?.user_level || 0;
 
-    // Fetch equipped purchases
     const { data: purchases } = await supabase
       .from('user_purchases')
       .select(`
@@ -313,7 +374,6 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
       .eq('is_active', true)
       .eq('is_equipped', true);
 
-    // Fetch level privileges
     const { data: levelPrivileges } = await supabase
       .from('level_privileges')
       .select('*')
@@ -339,7 +399,6 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
       entrance_effect: null,
     };
 
-    // Add shop purchases
     if (purchases) {
       for (const purchase of purchases) {
         const item = purchase.shop_items as any;
@@ -362,7 +421,6 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
       }
     }
 
-    // Add level privileges (only if no shop item equipped)
     if (levelPrivileges) {
       for (const priv of levelPrivileges) {
         const key = priv.privilege_type as keyof EquippedPrivileges;

@@ -107,6 +107,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 const Level = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [currentLevel, setCurrentLevel] = useState(0);
   const [currentDiamonds, setCurrentDiamonds] = useState(0);
   const [selectedLevelTab, setSelectedLevelTab] = useState(1);
@@ -300,6 +301,7 @@ const Level = () => {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
       if (!user) return;
+      setUser(user);
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -612,6 +614,7 @@ const Level = () => {
           currentLevel={currentLevel}
           isOpen={isPreviewOpen}
           onClose={() => setIsPreviewOpen(false)}
+          userId={user?.id}
         />
       </div>
 
