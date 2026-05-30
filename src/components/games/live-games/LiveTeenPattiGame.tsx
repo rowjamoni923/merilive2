@@ -102,6 +102,8 @@ export function LiveTeenPattiGame({
   onGameWin,
   onTimerUpdate
 }: LiveTeenPattiGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   // Allow multiple bets - track bets per hand
   const [selectedHands, setSelectedHands] = useState<Set<"A" | "B" | "C">>(new Set());
   const [betAmounts, setBetAmounts] = useState<{ A: number; B: number; C: number }>({ A: 0, B: 0, C: 0 });
