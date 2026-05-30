@@ -889,6 +889,8 @@ const VIP = () => {
       }
 
       console.log('[VIP] Equip persisted successfully');
+      // Refresh to ensure all states are synced
+      fetchData();
     } catch (error: any) {
       // REVERT optimistic state on failure
       console.error("[VIP] Error equipping:", error);
