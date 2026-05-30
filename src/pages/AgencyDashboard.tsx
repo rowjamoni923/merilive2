@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from \"react\";
-import { subscribeToTables } from \"@/hooks/useUniversalRealtime\";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
@@ -266,11 +267,12 @@ const AgencyDashboard = () => {
   }, [agency?.id, currentUserId]);
 
   const fetchHostsData = async (aid: string) => {
-    const { data: h } = await supabase.from(\"agency_hosts\").select(\"id, host_id, joined_at, status\").eq(\"agency_id\", aid).eq(\"status\", \"active\");
+    const { data: h } = await supabase.from("agency_hosts").select("id, host_id, joined_at, status").eq("agency_id", aid).eq("status", "active");
+
     if (h) {
       const hIds = h.map(i => i.host_id);
       if (hIds.length > 0) {
-        const { data: p } = await supabase.from(\"profiles\").select(\"id, display_name, avatar_url, is_online, total_earnings, is_verified\").in(\"id\", hIds);
+        const { data: p } = await supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hIds);
         const pMap = new Map((p || []).map(i => [i.id, i]));
         setHosts(h.map(i => ({ ...i, profile: pMap.get(i.host_id) || null })));
       }
@@ -321,9 +323,10 @@ const AgencyDashboard = () => {
         setCurrentUserId(user.id);
 
         const { data: agencyData, error: agencyError } = await supabase
-          .from(\"agencies\")
-          .select(\"*")
-          .eq(\"owner_id\", user.id)
+          .from("agencies")
+          .select("*")
+          .eq("owner_id", user.id)
+
           .maybeSingle();
 
 

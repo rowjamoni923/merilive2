@@ -1,31 +1,34 @@
-import { useState, useEffect, useCallback } from \"react\";
-import { useNavigate } from \"react-router-dom\";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { 
   ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle,
   Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard
-} from \"lucide-react\";
-import { Button } from \"@/components/ui/button\";
-import { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";
-import { Badge } from \"@/components/ui/badge\";
-import { Progress } from \"@/components/ui/progress\";
-import { Input } from \"@/components/ui/input\";
-import HelperListingToggle from \"@/components/helper/HelperListingToggle\";
-import HelperPaymentMethodsCard from \"@/components/helper/HelperPaymentMethodsCard\";
-import AddLocalPaymentMethodDialog from \"@/components/helper/AddLocalPaymentMethodDialog\";
-import { Label } from \"@/components/ui/label\";
-import { Textarea } from \"@/components/ui/textarea\";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from \"@/components/ui/dialog\";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from \"@/components/ui/tabs\";
-import { Avatar, AvatarImage, AvatarFallback } from \"@/components/ui/avatar\";
-import { supabase } from \"@/integrations/supabase/client\";
-import { useToast } from \"@/hooks/use-toast\";
-import { cn } from \"@/lib/utils\";
-import { useRealtimeHelperLevelProgress } from \"@/hooks/useRealtimeHelperLevel\";
-import { useAppSyncEvent } from \"@/hooks/useAppSyncEvent\";
-import { subscribeToTables } from \"@/hooks/useUniversalRealtime\";
-import { HelperAcceptedMethodsCard } from \"@/components/helper/HelperAcceptedMethodsCard\";
-import SwiftPayDepositModal from \"@/components/recharge/SwiftPayDepositModal\";
-import { recordClientError } from \"@/utils/clientErrorLog\";
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import HelperListingToggle from "@/components/helper/HelperListingToggle";
+import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
+import AddLocalPaymentMethodDialog from "@/components/helper/AddLocalPaymentMethodDialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
+import { recordClientError } from "@/utils/clientErrorLog";
+
 
 interface TraderLevel {
 

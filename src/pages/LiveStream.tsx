@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
@@ -1171,7 +1173,9 @@ const LiveStream = () => {
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
       try { supabase.removeChannel(chatChannel); } catch {}
+      unsubscribeRealtime?.();
     };
+
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
 
