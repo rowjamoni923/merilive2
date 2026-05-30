@@ -374,23 +374,18 @@ const CreateParty = () => {
   );
 
   // Host Video Cell
-  const HostVideoCell = ({ className }: { className?: string }) => (
-    <div className={cn(
-      "relative rounded-2xl overflow-hidden bg-purple-800/40 border border-purple-500/30",
-      className
-    )}>
-      {stream && isVideoEnabled ? (
-        <video 
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className={cn(
-            "w-full h-full object-cover",
-            facingMode === "user" && "scale-x-[-1]"
-          )}/>
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50">
+  const HostVideoCell = ({ className }: { className?: string }) => {
+    const showVideo = !!stream && isVideoEnabled && cameraReady;
+    return (
+      <div className={cn(
+        "relative rounded-2xl overflow-hidden bg-purple-800/40 border border-purple-500/30",
+        className
+      )}>
+        {/* Always-rendered avatar fallback (under video) — prevents native <video> play-icon flash */}
+        <div className={cn(
+          "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50",
+          showVideo && "opacity-0 pointer-events-none"
+        )}>
           <AvatarWithFrame
             userId={currentUser?.id}
             src={currentUser?.profile?.avatar_url}
@@ -402,9 +397,32 @@ const CreateParty = () => {
             showGlow={true}
           />
         </div>
-      )}
-    </div>
-  );
+        {stream && isVideoEnabled && (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+            poster=""
+            // @ts-ignore
+            x5-video-player-type="h5"
+            webkit-playsinline="true"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-200",
+              showVideo ? "opacity-100" : "opacity-0",
+              facingMode === "user" && "scale-x-[-1]"
+            )}
+            style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+          />
+        )}
+      </div>
+    );
+  };
+
 
   // Host Audio Seat (Circular with avatar)
   const HostAudioSeat = () => (
