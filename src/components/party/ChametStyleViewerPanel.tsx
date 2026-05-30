@@ -61,6 +61,8 @@ export const ChametStyleViewerPanel = ({
   const [loading, setLoading] = useState(false);
   const isMountedRef = useRef(true);
   const roomIdRef = useRef(roomId);
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   
   // Update roomId ref when it changes
   useEffect(() => {
