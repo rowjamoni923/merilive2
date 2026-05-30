@@ -2768,6 +2768,7 @@ const FaceVerification = () => {
             </>
           )}
         </div>
+        </div>
       </div>
     );
   }
