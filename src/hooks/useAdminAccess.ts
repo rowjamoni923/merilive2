@@ -74,8 +74,8 @@ export const useAdminAccess = () => {
       return String(data);
     },
     enabled: !!adminId,
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: Infinity, // Owner link session is stable; verify once per tab mount
+    gcTime: 24 * 60 * 60 * 1000,
     retry: false,
   });
 
@@ -94,8 +94,8 @@ export const useAdminAccess = () => {
       return data as AdminUser;
     },
     enabled: !!verifiedAdminId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: Infinity, // Role/Permissions don't change during active session
+    gcTime: 24 * 60 * 60 * 1000,
   });
 
   // Fetch accessible sections — for sub-admin we look up by admin_user_id directly
@@ -127,8 +127,8 @@ export const useAdminAccess = () => {
         })) as AccessibleSection[];
     },
     enabled: !!verifiedAdminId && !!adminUser && adminUser.role !== 'owner',
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: Infinity, // Sub-admin permissions are stable for the session
+    gcTime: 24 * 60 * 60 * 1000,
   });
 
   // Admin access loads on mount only. Realtime permission invalidation is disabled

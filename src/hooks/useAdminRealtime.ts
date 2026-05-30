@@ -54,6 +54,8 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'agencies',
   'face_verification_submissions',
   'notifications',
+  'admin_users',
+  'admin_section_permissions'
 ]);
 
 // ============= HOOK =============

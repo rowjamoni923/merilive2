@@ -185,17 +185,24 @@ export function prefetchAdminRoute(path: string): void {
 export function prefetchCommonAdminRoutes(): void {
   const all = Object.keys(ROUTE_IMPORTERS);
   const idleWindow: IdleCapableWindow | undefined = typeof window !== 'undefined' ? window : undefined;
-  const ric: (cb: () => void) => void =
-    idleWindow?.requestIdleCallback
-      ? (cb) => { idleWindow.requestIdleCallback?.(cb, { timeout: 2000 }); }
-      : (cb) => setTimeout(cb, 50);
+  
+  // Pkg381 optimization: Aggressive prefetching for admin routes.
+  // Instead of waiting for idle, we start prefetching immediately in small batches.
+  const schedule = (cb: () => void) => {
+    // If requestIdleCallback is available, use it but with a shorter timeout.
+    if (idleWindow?.requestIdleCallback) {
+      idleWindow.requestIdleCallback(cb, { timeout: 1000 });
+    } else {
+      setTimeout(cb, 10);
+    }
+  };
 
   let i = 0;
   const step = () => {
-    // Prefetch a small batch per idle tick so we don't saturate the network.
-    const end = Math.min(i + 4, all.length);
+    // Increased batch size from 4 to 8 for faster warmup.
+    const end = Math.min(i + 8, all.length);
     for (; i < end; i++) prefetchAdminRoute(all[i]);
-    if (i < all.length) ric(step);
+    if (i < all.length) schedule(step);
   };
-  ric(step);
+  schedule(step);
 }

@@ -314,6 +314,7 @@ export default function AdminDashboard() {
     setIsRefreshing(false);
   }, [loadData]);
 
+  // Fast-paint: use cached stats immediately. Only show skeleton if NO cache exists.
   if (loading && !stats) return <AdminDashboardSkeleton />;
 
   return (
