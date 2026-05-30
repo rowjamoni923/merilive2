@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { X, HelpCircle, Trophy, Coins, Target } from "lucide-react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
