@@ -32,6 +32,7 @@ import BeansIcon from "@/components/common/BeansIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
 interface VideoParticipant {
@@ -388,59 +389,42 @@ export function ChametStyleVideoRoom({
               >
                 {participant ? (
                   <div className="w-full h-full relative">
-                    {/* Always-mounted video element — prevents flicker when stream ref changes */}
-                    <video
-                      ref={(el) => {
-                        if (!el) return;
-                        if (streamToUse) {
-                          if (el.srcObject !== streamToUse) {
-                            hardenVideoElementForNative(el, { muted: isMyself });
-                            el.srcObject = streamToUse;
-                            el.play().catch(() => {});
+                    {/* Use unified LiveKitVideoPlayer for better reliability and Android watchdog */}
+                    {hasVideo ? (
+                      <LiveKitVideoPlayer
+                        videoTrack={{
+                          mediaStreamTrack: streamToUse!.getVideoTracks()[0],
+                          attach: (el: HTMLVideoElement) => {
+                            el.srcObject = new MediaStream([streamToUse!.getVideoTracks()[0]]);
+                            return el;
+                          },
+                          detach: (el: HTMLVideoElement) => {
+                            el.srcObject = null;
+                            return el;
                           }
-                        } else if (el.srcObject) {
-                          el.srcObject = null;
-                        }
-                      }}
-                      autoPlay
-                      playsInline
-                      muted={isMyself}
-                      controls={false}
-                      disablePictureInPicture
-                      disableRemotePlayback
-                      controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                      poster=""
-                      // @ts-ignore
-                      x5-video-player-type="h5"
-                      x5-video-player-fullscreen="false"
-                      x5-playsinline="true"
-                      webkit-playsinline="true"
-                      className={cn(
-                        "absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-200",
-                        isMyself && "transform scale-x-[-1]",
-                        hasVideo ? "opacity-100" : "opacity-0"
-                      )}
-                      style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-                    />
-
-                    {/* Avatar fallback — shown over video when no frames yet or video is off */}
-                    <div
-                      className={cn(
-                        "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none",
-                        hasVideo ? "opacity-0" : "opacity-100"
-                      )}
-                    >
-                      <AvatarWithFrame
-                        userId={participant.id}
-                        src={participant.avatarUrl}
-                        name={participant.displayName}
-                        level={participant.level}
-                        isHost={participant.isHost}
-                        size="lg"
-                        showAnimation={true}
-                        showGlow={true}
+                        } as any}
+                        mirror={isMyself}
+                        fit="cover"
+                        className="w-full h-full"
                       />
-                    </div>
+                    ) : (
+                      <div
+                        className={cn(
+                          "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none"
+                        )}
+                      >
+                        <AvatarWithFrame
+                          userId={participant.id}
+                          src={participant.avatarUrl}
+                          name={participant.displayName}
+                          level={participant.level}
+                          isHost={participant.isHost}
+                          size="lg"
+                          showAnimation={true}
+                          showGlow={true}
+                        />
+                      </div>
+                    )}
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />

@@ -179,7 +179,7 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 2: User info - Avatar + Name + Level */}
+              {/* Layer 2: User info - Avatar + Name + Level + Welcome Message */}
               <div
                 className={cn(
                   "absolute inset-0 z-[2] flex items-center",
@@ -188,7 +188,7 @@ const EntryNameBarAnimationInner = memo(({
               >
                 <Avatar className={cn(
                   "flex-shrink-0 ring-2 ring-white/60 shadow-lg",
-                  hasAnimation ? "w-11 h-11" : "w-8 h-8"
+                  hasAnimation ? "w-12 h-12" : "w-9 h-9"
                 )}>
                   <AvatarImage 
                     src={avatarUrl || getDisplayAvatar(userName)}
@@ -200,27 +200,40 @@ const EntryNameBarAnimationInner = memo(({
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn(
-                    "text-white font-bold truncate drop-shadow-md",
-                    hasAnimation ? "text-sm max-w-[140px]" : "text-xs max-w-[120px]"
-                  )}>
-                    {userName}
-                  </span>
-                  <div className={cn(
-                    "px-1.5 py-0.5 rounded-md font-black flex-shrink-0",
-                    hasAnimation ? "text-[10px]" : "text-[9px]",
-                    getLevelBadgeBg(level),
-                    getLevelTextColor(level)
-                  )}>
-                    {formatLevel(level)}
+                <div className="flex flex-col justify-center min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-white font-black truncate drop-shadow-md",
+                      hasAnimation ? "text-[15px] max-w-[160px]" : "text-sm max-w-[140px]"
+                    )}>
+                      {userName}
+                    </span>
+                    <div className={cn(
+                      "px-1.5 py-0.5 rounded-md font-black flex-shrink-0",
+                      hasAnimation ? "text-[10px]" : "text-[9px]",
+                      getLevelBadgeBg(level),
+                      getLevelTextColor(level)
+                    )}>
+                      {formatLevel(level)}
+                    </div>
                   </div>
+                  
+                  {/* Welcome Message - now below the name as requested */}
+                  <span className={cn(
+                    "text-white/90 font-bold drop-shadow-sm leading-none",
+                    hasAnimation ? "text-[11px] mt-0.5" : "text-[10px]"
+                  )}>
+                    Welcome to the room! 🎉
+                  </span>
                 </div>
 
                 {hasAnimation && (
-                  <span className="ml-auto text-white/60 text-[10px] flex-shrink-0 drop-shadow-sm">
-                    joined
-                  </span>
+                  <div className="ml-auto flex items-center gap-1.5 opacity-80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-white font-bold text-[10px] tracking-wider uppercase">
+                      Enter
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
