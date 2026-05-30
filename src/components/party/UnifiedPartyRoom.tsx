@@ -509,7 +509,7 @@ const VideoGridSeat = ({
               {participant.displayName}
             </span>
             {hostCountryCode && (
-              <CountryFlag countryCode={hostCountryCode} className="w-3 h-2" />
+              <CountryFlag code={hostCountryCode} className="w-3 h-2" />
             )}
           </div>
           <div className="flex items-center gap-1">
