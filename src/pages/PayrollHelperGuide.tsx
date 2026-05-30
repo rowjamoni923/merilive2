@@ -16,7 +16,7 @@ const PayrollHelperGuide = () => {
       icon: Coins,
       title: "Process User Top-ups",
       desc: "When users purchase coins through local payment methods (bKash, Nagad, etc.), you receive the payment and deliver the coins instantly.",
-      color: "from-emerald-500 to-teal-600",
+      color: "from-brand-600 to-brand-700",
     },
     {
       icon: Wallet,
