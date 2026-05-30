@@ -237,7 +237,7 @@ export function ProfessionalBottomBar({
               </SheetTrigger>
               <SheetContent 
                 side="bottom" 
-                className="h-auto max-h-[75vh] rounded-t-3xl border-0 p-0"
+                className="h-auto max-h-[75dvh] rounded-t-3xl border-0 p-0"
                 style={{
                   background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)'
                 }}
@@ -388,7 +388,7 @@ export function ProfessionalBottomBar({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 h-[65vh] rounded-t-3xl overflow-hidden"
+            className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] rounded-t-3xl overflow-hidden"
             style={{
               background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
               boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.25)'

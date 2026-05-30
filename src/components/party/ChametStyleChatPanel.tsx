@@ -103,7 +103,7 @@ export const ChametStyleChatPanel = ({
           transition={SPRING_FAST}
           className="fixed inset-x-0 bottom-0 z-50 flex flex-col will-change-transform"
           style={{
-            height: "58vh",
+            height: "58dvh",
             transform: "translateZ(0)",
           }}
         >
