@@ -146,9 +146,16 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
       }}>
         <SheetContent 
           side="bottom" 
-          className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden"
+          className={cn(
+            "rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden",
+            isLandscape ? "h-[98dvh] max-h-[98dvh]" : "h-auto max-h-[85vh]"
+          )}
         >
-          <div className="p-2 overflow-y-auto max-h-[80vh]">
+          <div className={cn(
+            "p-2 overflow-y-auto",
+            isLandscape ? "max-h-[95dvh]" : "max-h-[80vh]"
+          )}>
+
             <GameErrorBoundary gameName={selectedGame ?? undefined} onReset={() => setSelectedGame(null)}>
               <LiveGameBoard
                 selectedGame={selectedGame}
