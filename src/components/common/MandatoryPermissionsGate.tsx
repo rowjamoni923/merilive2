@@ -71,13 +71,30 @@ export function MandatoryPermissionsGate() {
     mounted.current = true;
     permLog('gate.mount', { native: isNativeApp() });
     if (!isNativeApp()) return;
-    refresh();
+    
+    // Pkg365: "Premium Auto-Approve" behavior.
+    // Instead of waiting for a manual click, we attempt to trigger the native 
+    // system dialog as soon as the gate mounts. This ensures the user gets 
+    // the system prompt immediately without an extra step inside our UI.
+    const autoRequest = async () => {
+      await refresh();
+      if (!allRequiredGranted(status) && !busy) {
+        // Only auto-trigger if we CAN prompt (haven't been permanently denied)
+        const canShowDialog = REQUIRED_KEYS.some(k => !status[k] && canPrompt[k]);
+        if (canShowDialog) {
+          console.log('[Gate] Auto-triggering native permission dialogs...');
+          handleAllow();
+        }
+      }
+    };
+    
+    autoRequest();
 
     let removeResume: (() => void) | undefined;
     (async () => {
       try {
         const { App } = await import('@capacitor/app');
-        const sub = await App.addListener('appStateChange', (st) => {
+        const sub = await CapApp.addListener('appStateChange', (st) => {
           if (st.isActive) {
             permLog('gate.resume');
             refresh();
