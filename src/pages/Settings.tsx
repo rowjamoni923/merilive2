@@ -490,11 +490,10 @@ const Settings = () => {
     console.log('[Settings] Requesting microphone permission...');
     if (permissions.microphone) {
       toast({
-        title: "Already Enabled",
-        description: isNativeApp()
-          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone."
-          : "To disable, change it from your browser site settings.",
+        title: "Permission Active",
+        description: "Opening app settings so you can manage microphone access.",
       });
+      void openPermissionSettings();
       return;
     }
 
