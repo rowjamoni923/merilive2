@@ -118,7 +118,9 @@ const GAME_RULES: Record<string, { title: string; rules: string[]; tips: string[
 };
 
 export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesPanelProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   if (!isOpen) return null;
+
 
   const rules = GAME_RULES[gameId] || {
     title: gameName,
