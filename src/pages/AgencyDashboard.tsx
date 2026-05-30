@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
