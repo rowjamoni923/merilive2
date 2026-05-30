@@ -272,34 +272,36 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Diamond Earning Cycle */}
-        <section className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-2xl p-5 border border-cyan-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-              <Gem className="w-4 h-4 text-cyan-500" />
+        <section className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-info-50 flex items-center justify-center">
+              <Gem className="w-5 h-5 text-info-600" />
             </div>
-            <h3 className="font-bold text-base">Diamond Earning & Selling Cycle</h3>
+            <h3 className="font-black text-base text-slate-800">Diamond Trading Cycle</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            This is how the <strong className="text-foreground">diamond economy</strong> works for you as a Payroll Helper:
+          <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
+            This is how the <strong className="text-info-600 font-black uppercase tracking-tighter">diamond economy</strong> works for you:
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {diamondCycle.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center shrink-0">
-                  <item.icon className="w-4 h-4 text-cyan-500" />
+              <div key={idx} className="flex items-center gap-4 group">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-info-500 group-hover:border-info-500 transition-all duration-300">
+                  <item.icon className="w-5 h-5 text-info-600 group-hover:text-white" />
                 </div>
-                <div className="flex-1 bg-card/50 rounded-lg px-3 py-2 border border-border">
-                  <span className="text-xs font-medium">{item.label}</span>
+                <div className="flex-1 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 group-hover:bg-white group-hover:shadow-md transition-all duration-300">
+                  <span className="text-xs font-bold text-slate-700">{item.label}</span>
                 </div>
                 {idx < diamondCycle.length - 1 && (
-                  <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
+                  <ArrowRight className="w-4 h-4 text-slate-300 shrink-0 hidden sm:block" />
                 )}
               </div>
             ))}
           </div>
-          <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-3 font-medium">
-            💡 The more withdrawals you process, the more diamonds you accumulate. Sell them strategically for maximum profit!
-          </p>
+          <div className="bg-info-50 rounded-2xl p-4 mt-6 border border-info-100">
+            <p className="text-xs text-info-700 font-bold leading-relaxed">
+              💡 Pro Tip: Process more withdrawals to accumulate diamonds. Strategic trading is the key to maximum profit!
+            </p>
+          </div>
         </section>
 
         {/* Salary Processing for Hosts */}
