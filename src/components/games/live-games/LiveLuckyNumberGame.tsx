@@ -73,6 +73,8 @@ export function LiveLuckyNumberGame({
   onGameWin,
   onTimerUpdate
 }: LiveLuckyNumberGameProps) {
+  const { isLandscape, isVerySmallHeight } = useMobileOrientation();
+
   const [selectedNumbers, setSelectedNumbers] = useState<Set<number>>(new Set());
   const [betOnNumber, setBetOnNumber] = useState<Record<number, number>>({});
   const [isRevealing, setIsRevealing] = useState(false);
