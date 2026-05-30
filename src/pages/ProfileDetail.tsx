@@ -43,6 +43,8 @@ import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { EyeOff, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
