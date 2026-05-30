@@ -305,29 +305,29 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Salary Processing for Hosts */}
-        <section className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl p-5 border border-pink-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
-              <Users className="w-4 h-4 text-pink-500" />
+        <section className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-2xl" />
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-brand-600" />
             </div>
-            <h3 className="font-bold text-base">Paying Agency & Host Salaries</h3>
+            <h3 className="font-black text-base text-slate-800">Processing Salaries</h3>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            Every week, agencies submit withdrawal requests to pay their hosts' salaries. As a Payroll Helper, here's your role:
+          <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
+            Agencies submit withdrawal requests to pay hosts. Your role as a Payroll Helper:
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[
-              "Agency submits a withdrawal request with the total amount",
-              "You receive the order notification in your Helper Dashboard",
-              "You send the payment to the agency owner via local payment method",
-              "Upload payment screenshot as proof of transaction",
-              "Admin verifies and confirms the transaction",
-              "You receive diamonds as reward (based on withdrawal amount)",
-              "Diamonds are added to your Trader Wallet instantly",
+              "Receive order notification in Dashboard",
+              "Send payment via local method (bKash, etc.)",
+              "Upload transaction screenshot as proof",
+              "Receive diamond rewards instantly after verification"
             ].map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-pink-500 mt-0.5 shrink-0" />
-                <span className="text-muted-foreground">{item}</span>
+              <div key={idx} className="flex items-center gap-4 group">
+                <div className="w-6 h-6 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                </div>
+                <span className="text-xs font-bold text-slate-600 group-hover:text-brand-600 transition-colors">{item}</span>
               </div>
             ))}
           </div>
