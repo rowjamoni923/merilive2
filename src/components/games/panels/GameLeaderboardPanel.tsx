@@ -283,7 +283,14 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
           </div>
         )}
 
-        <ScrollArea className="max-h-[42vh]">
+        <ScrollArea 
+          className="relative"
+          style={{ 
+            height: isVerySmallHeight ? '150px' : isLandscape ? '220px' : '42vh',
+            minHeight: '120px'
+          }}
+        >
+
           <div className="p-2 space-y-1">
             {loading ? (
               <div className="flex items-center justify-center py-8">
