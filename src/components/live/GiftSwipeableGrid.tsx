@@ -165,12 +165,18 @@ export const GiftSwipeableGrid = memo(({
   const containerRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
   const isDraggingRef = useRef(false);
+  const { isLandscape } = useMobileOrientation();
+
+  // Dynamic items per page
+  const itemsPerPage = isLandscape ? 12 : 8; // 6x2 in landscape, 4x2 in portrait
+  const gridCols = isLandscape ? "grid-cols-6" : "grid-cols-4";
 
   // Calculate pages
-  const totalPages = Math.ceil(gifts.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(gifts.length / itemsPerPage);
   const pages = Array.from({ length: totalPages }, (_, i) =>
-    gifts.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
+    gifts.slice(i * itemsPerPage, (i + 1) * itemsPerPage)
   );
+
   const currentPageGifts = useMemo(() => pages[currentPage] || [], [pages, currentPage]);
 
   // Reset page when gifts change
