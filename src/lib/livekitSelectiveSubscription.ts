@@ -4,8 +4,8 @@
  * For large party rooms, viewers' phones can't decode 10+ simulcast videos at
  * once. This helper keeps audio for EVERY remote participant (so the room
  * still "sounds full") but only subscribes video for the top-N priority
- * participants — host + recent active speakers. Other video pubs are
- * unsubscribed → SFU stops sending those streams → real bandwidth savings.
+ * participants — host + recent active speakers. Lower-priority video pubs stay
+ * subscribed at LOW quality so nobody disappears from visitor/host screens.
  *
  * Industry pattern: Zoom "Active Speaker View", Bigo Live multi-guest grid,
  * Discord stage video grid. Audio is cheap; video is the bandwidth hog.
@@ -14,7 +14,7 @@
  * - Pure client SFU sub control: zero Supabase channels, zero polls, zero cross-user reads.
  * - Pkg147 (audio-only) still wins when enabled: it unsubscribes ALL video.
  */
-import type { Room, RemoteParticipant, RemoteTrackPublication } from "livekit-client";
+import { VideoQuality, type Room, type RemoteParticipant, type RemoteTrackPublication } from "livekit-client";
 
 const STORAGE_KEY = "merilive_selective_sub_v1";
 export const SELECTIVE_SUB_CHANGED_EVENT = "livekit-selective-sub-changed";
@@ -104,7 +104,8 @@ export function applySelectiveSubscriptions(
       p.trackPublications.forEach((pub: RemoteTrackPublication) => {
         if (pub.kind !== "video") return;
         try {
-          pub.setSubscribed(keep);
+          pub.setSubscribed(true);
+          pub.setVideoQuality?.(keep ? VideoQuality.HIGH : VideoQuality.LOW);
         } catch {
           // ignore
         }
