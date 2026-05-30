@@ -442,8 +442,10 @@ export function LiveFerrisWheelGame({
                     key={item.id}
                     onClick={() => handleSelectFood(i)}
                     className={cn(
-                      "absolute w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-lg",
+                      "absolute rounded-full flex items-center justify-center transition-all shadow-lg",
+                      isVerySmallHeight ? "w-7 h-7" : isLandscape ? "w-9 h-9" : "w-11 h-11",
                       "bg-white/95 border-2",
+
                       isSelected && "border-green-400 ring-2 ring-green-300/60 scale-110",
                       isWinner && "border-yellow-400 ring-3 ring-yellow-300/70 scale-115",
                       !isSelected && !isWinner && "border-white/50"
