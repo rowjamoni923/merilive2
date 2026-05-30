@@ -3105,13 +3105,13 @@ const LiveStream = () => {
               whileTap={{ scale: 0.9 }}
               onClick={handleCall}
               aria-label="Start private call"
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #22c55e, #10b981)',
                 boxShadow: '0 2px 12px rgba(34,197,94,0.4)',
               }}
             >
-              <Phone className="w-4 h-4 text-white" />
+              <Phone className="w-4 h-4 md:w-6 md:h-6 text-white" />
             </motion.button>
           )}
 
@@ -3119,13 +3119,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowGamePanel(true)}
             aria-label="Open games"
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
               boxShadow: '0 2px 12px rgba(139,92,246,0.4)',
             }}
           >
-            <Gamepad2 className="w-4 h-4 text-white" />
+            <Gamepad2 className="w-4 h-4 md:w-6 md:h-6 text-white" />
           </motion.button>
 
           {isHost && (
@@ -3137,7 +3137,7 @@ const LiveStream = () => {
                 toggleAudio(!newState);
               }}
               aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: isHostMicMuted 
                   ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
@@ -3148,9 +3148,9 @@ const LiveStream = () => {
               }}
             >
               {isHostMicMuted ? (
-                <MicOff className="w-4 h-4 text-white" />
+                <MicOff className="w-4 h-4 md:w-6 md:h-6 text-white" />
               ) : (
-                <Mic className="w-4 h-4 text-white" />
+                <Mic className="w-4 h-4 md:w-6 md:h-6 text-white" />
               )}
             </motion.button>
           )}
@@ -3160,13 +3160,13 @@ const LiveStream = () => {
               whileTap={{ scale: 0.9 }}
               onClick={handleOpenPKPanel}
               aria-label="Start PK battle"
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                 boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
               }}
             >
-              <Swords className="w-4 h-4 text-white" />
+              <Swords className="w-4 h-4 md:w-6 md:h-6 text-white" />
             </motion.button>
           )}
 
@@ -3175,13 +3175,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.85 }}
             onClick={handleLike}
             aria-label="Like"
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
               boxShadow: '0 2px 12px rgba(244,63,94,0.4)',
             }}
           >
-            <Heart className="w-4 h-4 text-white fill-white" />
+            <Heart className="w-4 h-4 md:w-6 md:h-6 text-white fill-white" />
           </motion.button>
 
           {/* Gift Button */}
@@ -3189,13 +3189,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowGiftPanel(true)}
             aria-label="Send gift"
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #ec4899, #db2777)',
               boxShadow: '0 2px 12px rgba(236,72,153,0.4)',
             }}
           >
-            <Gift className="w-4 h-4 text-white" />
+            <Gift className="w-4 h-4 md:w-6 md:h-6 text-white" />
           </motion.button>
 
           {/* More Options Button */}
@@ -3204,13 +3204,13 @@ const LiveStream = () => {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 aria-label="More options"
-                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
                 style={{
                   background: 'rgba(255,255,255,0.12)',
                   border: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
-                <Grid3X3 className="w-4 h-4 text-white/85" />
+                <Grid3X3 className="w-4 h-4 md:w-6 md:h-6 text-white/85" />
               </motion.button>
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-[24px] h-auto p-0 border-0"
