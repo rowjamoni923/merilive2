@@ -569,7 +569,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             try { publication.setVideoQuality?.(VideoQuality.LOW); } catch { /* ignore */ }
           }
           try {
-            publication.setVideoQuality?.(preferredVideoQualityRef.current);
+            publication.setVideoQuality?.(isAudioOnlyEnabled() ? VideoQuality.LOW : preferredVideoQualityRef.current);
           } catch {
             // ignore optional API failures
           }
