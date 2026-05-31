@@ -375,8 +375,8 @@ const UserManagement = lazy(lazyRetry(() => import("./pages/settings/UserManagem
 // Lazy loaded components - defer non-critical
 const GenderSelectionModal = lazy(lazyRetry(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal }))));
 
-// DEFERRED IMPORTS - Non-critical UI components (use lazyRetry for chunk resilience)
-const NetworkStatusBar = lazy(lazyRetry(() => import("@/components/common/NetworkStatusBar")));
+// EAGER: tiny always-mounted overlay; lazy-loading caused blank-screen on stale chunk
+import { NetworkStatusBar } from "@/components/common/NetworkStatusBar";
 
 const NotificationSettings = lazy(lazyRetry(() => import("./pages/settings/NotificationSettings")));
 const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/GlobalScreenSecurity")));
