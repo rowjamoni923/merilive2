@@ -4,8 +4,8 @@ import { App } from '@capacitor/app';
 import { supabase } from '@/integrations/supabase/client';
 
 // Fallback version (only used if native version can't be read)
-const FALLBACK_VERSION_CODE = 9;
-const FALLBACK_VERSION_NAME = '5.0.3';
+const FALLBACK_VERSION_CODE = 100;
+const FALLBACK_VERSION_NAME = '8.2.1';
 
 // Storage key for dismissed updates
 const DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
