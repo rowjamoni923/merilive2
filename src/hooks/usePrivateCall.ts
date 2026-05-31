@@ -195,6 +195,8 @@ export function usePrivateCall(userId: string | null) {
     if (callIdToReset && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: callIdToReset, remote: true }).catch(() => {});
       NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
+      NativeCamera.stop().catch(() => {});
+      clearPreparedCallMediaStream(callIdToReset, { stopTracks: true });
     }
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
