@@ -41,7 +41,7 @@ interface Props {
 //  - TRC20 / BEP20 / SOL have the lowest network minimums (~$0.50-1) and lowest gas.
 //  - ERC20 / BTC / ETH have HIGH gateway minimums ($5-30+) due to Ethereum gas.
 //  - Therefore TRC20 is recommended for ALL sizes (it works for both small + large).
-const LARGE_PAYMENT_THRESHOLD_USD = 10;
+const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 
 // Order matters — first option is tried first in the auto-fallback loop.
 // Low-min networks come first so small amounts succeed on the first try.
