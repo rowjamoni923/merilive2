@@ -1198,6 +1198,7 @@ const PartyRoom = () => {
   useEffect(() => {
     if (!roomId) return;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const pendingJoinTimers = new Map<string, ReturnType<typeof setTimeout>>();
     const scheduleRefetch = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -1212,7 +1213,45 @@ const PartyRoom = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
-        scheduleRefetch,
+        (payload: any) => {
+          scheduleRefetch();
+          // Pkg383 safety-net: welcome popup + join chat from Postgres INSERT
+          // when LiveKit participant_joined fanout is missed.
+          if (payload.eventType !== 'INSERT') return;
+          const row = payload.new;
+          const uid: string | undefined = row?.user_id;
+          const myId = currentUserRef.current?.id;
+          if (!uid || !row || row.left_at || uid === myId) return;
+          const joinKey = `${uid}_${Math.floor(Date.now() / 5000)}`;
+          if (processedBroadcastJoinsRef.current.has(joinKey)) return;
+          if (pendingJoinTimers.has(uid)) return;
+          const timer = setTimeout(async () => {
+            pendingJoinTimers.delete(uid);
+            const recheckKey = `${uid}_${Math.floor(Date.now() / 5000)}`;
+            if (processedBroadcastJoinsRef.current.has(joinKey) || processedBroadcastJoinsRef.current.has(recheckKey)) return;
+            processedBroadcastJoinsRef.current.add(joinKey);
+            const { data: prof } = await supabase
+              .from('profiles_public')
+              .select('display_name, avatar_url, user_level')
+              .eq('id', uid)
+              .maybeSingle();
+            if (!isMountedRef.current) return;
+            const userName = prof?.display_name || 'User';
+            const userLevel = prof?.user_level || 1;
+            const userAvatar = prof?.avatar_url || undefined;
+            addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
+            setJoinMessages(prev => [...prev.slice(-20), {
+              id: `pg_join_${Date.now()}_${uid}`,
+              userId: uid,
+              userName,
+              userLevel,
+              avatarUrl: userAvatar,
+              type: 'join' as const,
+              timestamp: new Date(),
+            }]);
+          }, 1500);
+          pendingJoinTimers.set(uid, timer);
+        },
       )
       .on(
         'postgres_changes',
@@ -1221,13 +1260,6 @@ const PartyRoom = () => {
       )
       .subscribe();
 
-    // ============= Safety-net: Supabase Broadcast for seat events =============
-    // LiveKit DataPacket (Pkg80 seat_action) + postgres_changes above are the
-    // primary instant paths. But LiveKit DataPackets are best-effort and
-    // postgres_changes can be filtered out by RLS edge cases. This dedicated
-    // broadcast channel guarantees every participant (esp. the HOST) is
-    // notified instantly when ANY seat event happens, then refetches the
-    // source-of-truth DB rows. Zero RLS dependency on the realtime path.
     const seatBroadcast = supabase
       .channel(`party-seat-broadcast-${roomId}`, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'seat_event' }, () => {
@@ -1239,11 +1271,13 @@ const PartyRoom = () => {
 
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
+      pendingJoinTimers.forEach((t) => clearTimeout(t));
+      pendingJoinTimers.clear();
       try { supabase.removeChannel(channel); } catch { /* ignore */ }
       try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
       try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
-  }, [roomId, fetchParticipants, fetchSeatRequests]);
+  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification]);
 
 
 

@@ -382,6 +382,9 @@ const LiveStream = () => {
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
+  const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
+  const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
@@ -1118,12 +1121,54 @@ const LiveStream = () => {
           }
         }
         
-        // 2. Viewer count updates
+        // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
           supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id)
             .then(({ count }) => {
               if (count !== null) setViewerCount(count);
             });
+          // Pkg383 safety-net: if LiveKit viewer_joined doesn't arrive within 1.5s,
+          // fire welcome popup + join chat from Postgres INSERT so other viewers
+          // always see the new viewer's name+level instantly.
+          if (event === 'INSERT' && row.viewer_id && row.viewer_id !== currentUserId && !row.left_at) {
+            const uid = row.viewer_id as string;
+            const lastMark = joinNotifyDedupRef.current.get(uid) || 0;
+            if (Date.now() - lastMark < 5000) return; // LiveKit already handled
+            if (pendingJoinFallbackTimersRef.current.has(uid)) return;
+            const timer = setTimeout(async () => {
+              pendingJoinFallbackTimersRef.current.delete(uid);
+              const lastMark2 = joinNotifyDedupRef.current.get(uid) || 0;
+              if (Date.now() - lastMark2 < 5000) return; // LiveKit won the race
+              joinNotifyDedupRef.current.set(uid, Date.now());
+              const { data: prof } = await supabase
+                .from('profiles_public')
+                .select('display_name, avatar_url, user_level')
+                .eq('id', uid)
+                .maybeSingle();
+              if (!mountedRef.current) return;
+              const userName = prof?.display_name || 'User';
+              const userLevel = prof?.user_level || 1;
+              const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
+              activeViewerIdsRef.current.add(uid);
+              setRecentViewerAvatars((prev) => [
+                { id: uid, app_uid: null, avatar_url: userAvatar || null, name: userName, user_level: userLevel },
+                ...prev.filter((v: any) => v.id !== uid),
+              ].slice(0, 5));
+              addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
+              setMessages((prev) => {
+                if (prev.some((m) => m.id.includes(`join_${uid}`) && Date.now() - parseInt(m.id.split('_')[2] || '0') < 5000)) return prev;
+                return [...prev, {
+                  id: `join_${uid}_${Date.now()}`,
+                  user: userName,
+                  initial: userName.charAt(0),
+                  message: 'entered the live room 🎉',
+                  color: 'text-green-400',
+                  userLevel,
+                }];
+              });
+            }, 1500);
+            pendingJoinFallbackTimersRef.current.set(uid, timer);
+          }
         }
 
         // 3. Gift transactions (backup)
@@ -1175,6 +1220,8 @@ const LiveStream = () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
       try { supabase.removeChannel(chatChannel); } catch {}
       unsubscribeRealtime?.();
+      pendingJoinFallbackTimersRef.current.forEach((t) => clearTimeout(t));
+      pendingJoinFallbackTimersRef.current.clear();
     };
 
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
@@ -1276,6 +1323,10 @@ const LiveStream = () => {
       }
 
       if (p.type !== 'viewer_joined') return;
+      // Pkg383: mark dedup so Postgres safety-net skips this user
+      joinNotifyDedupRef.current.set(p.userId, Date.now());
+      const pendingTimer = pendingJoinFallbackTimersRef.current.get(p.userId);
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingJoinFallbackTimersRef.current.delete(p.userId); }
       // Skip own join (already shown via optimistic UI)
       if (p.userId === currentUserId) return;
 
