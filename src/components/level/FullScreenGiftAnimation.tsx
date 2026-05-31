@@ -30,52 +30,104 @@ interface FullScreenGiftAnimationProps {
   onComplete: () => void;
 }
 
-// Sound player for gift animation — soft, non-distorted chime
-const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
+// Singleton AudioContext + master limiter — prevents rapid-combo crackle / "broken" sound
+let _giftAudioCtx: AudioContext | null = null;
+let _giftMasterGain: GainNode | null = null;
+let _giftLimiter: DynamicsCompressorNode | null = null;
+let _lastGiftSoundAt = 0;
+
+const getGiftAudioCtx = (): { ctx: AudioContext; out: AudioNode } | null => {
   try {
-    if (customSoundUrl) {
+    if (!_giftAudioCtx || _giftAudioCtx.state === 'closed') {
+      const Ctor = (window.AudioContext || (window as any).webkitAudioContext);
+      if (!Ctor) return null;
+      _giftAudioCtx = new Ctor();
+      // Hard limiter prevents clipping when multiple sounds overlap (combo fire)
+      _giftLimiter = _giftAudioCtx.createDynamicsCompressor();
+      _giftLimiter.threshold.value = -6;
+      _giftLimiter.knee.value = 0;
+      _giftLimiter.ratio.value = 20;
+      _giftLimiter.attack.value = 0.003;
+      _giftLimiter.release.value = 0.1;
+      _giftMasterGain = _giftAudioCtx.createGain();
+      _giftMasterGain.gain.value = 0.8;
+      _giftMasterGain.connect(_giftLimiter);
+      _giftLimiter.connect(_giftAudioCtx.destination);
+    }
+    if (_giftAudioCtx.state === 'suspended') {
+      _giftAudioCtx.resume().catch(() => { /* noop */ });
+    }
+    return { ctx: _giftAudioCtx, out: _giftMasterGain! };
+  } catch {
+    return null;
+  }
+};
+
+const playSyntheticChime = (coinValue: number) => {
+  const handle = getGiftAudioCtx();
+  if (!handle) return;
+  const { ctx, out } = handle;
+  const now = ctx.currentTime;
+
+  const lowpass = ctx.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.value = 2400;
+  lowpass.Q.value = 0.7;
+  lowpass.connect(out);
+
+  const gain = ctx.createGain();
+  gain.connect(lowpass);
+
+  const peak = coinValue >= 10000 ? 0.12 : coinValue >= 1000 ? 0.09 : 0.07;
+  const duration = coinValue >= 10000 ? 0.7 : coinValue >= 1000 ? 0.45 : 0.25;
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  const baseFreq = coinValue >= 10000 ? 880 : coinValue >= 1000 ? 660 : 523;
+  osc.frequency.setValueAtTime(baseFreq, now);
+  osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + duration * 0.6);
+  osc.connect(gain);
+  osc.start(now);
+  osc.stop(now + duration + 0.05);
+
+  // Disconnect on stop to free graph nodes (do NOT close shared context)
+  osc.onended = () => {
+    try { osc.disconnect(); } catch { /* noop */ }
+    try { gain.disconnect(); } catch { /* noop */ }
+    try { lowpass.disconnect(); } catch { /* noop */ }
+  };
+};
+
+// Sound player for gift animation — bulletproof: throttled, limiter-protected, fallback-safe
+const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
+  // Throttle: ignore retriggers within 80ms (prevents combo-stack crackle)
+  const nowMs = Date.now();
+  if (nowMs - _lastGiftSoundAt < 80) return;
+  _lastGiftSoundAt = nowMs;
+
+  if (customSoundUrl) {
+    try {
       const audio = new Audio(customSoundUrl);
       audio.volume = 0.6;
-      await audio.play();
+      audio.preload = 'auto';
+      const p = audio.play();
+      if (p && typeof (p as Promise<void>).then === 'function') {
+        await (p as Promise<void>);
+      }
       return;
+    } catch (err) {
+      // Custom URL failed (404/autoplay-block/CORS) → fall through to synthetic chime
+      console.log('[GiftSound] Custom URL failed, fallback to synth:', err);
     }
+  }
 
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const now = audioContext.currentTime;
-
-    // Single soft sine + lowpass filter to avoid harsh clipping / "broken" sound
-    // Two-note arpeggio scaled by gift value for a pleasant chime
-    const lowpass = audioContext.createBiquadFilter();
-    lowpass.type = 'lowpass';
-    lowpass.frequency.value = 2400;
-    lowpass.Q.value = 0.7;
-    lowpass.connect(audioContext.destination);
-
-    const gain = audioContext.createGain();
-    gain.connect(lowpass);
-
-    // Gentle envelope (attack 20ms → release) prevents the click/pop that produced the harsh sound
-    const peak = coinValue >= 10000 ? 0.12 : coinValue >= 1000 ? 0.09 : 0.07;
-    const duration = coinValue >= 10000 ? 0.7 : coinValue >= 1000 ? 0.45 : 0.25;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    const osc = audioContext.createOscillator();
-    osc.type = 'sine';
-    const baseFreq = coinValue >= 10000 ? 880 : coinValue >= 1000 ? 660 : 523;
-    osc.frequency.setValueAtTime(baseFreq, now);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + duration * 0.6);
-    osc.connect(gain);
-    osc.start(now);
-    osc.stop(now + duration + 0.05);
-
-    // Auto-close the context to free resources
-    setTimeout(() => {
-      try { audioContext.close(); } catch { /* noop */ }
-    }, (duration + 0.2) * 1000);
+  try {
+    playSyntheticChime(coinValue);
   } catch (error) {
-    console.log('[GiftSound] Error:', error);
+    console.log('[GiftSound] Synth error:', error);
   }
 };
 
