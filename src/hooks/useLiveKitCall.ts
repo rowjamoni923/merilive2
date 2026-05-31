@@ -38,6 +38,7 @@ import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
+import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
