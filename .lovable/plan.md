@@ -1,28 +1,23 @@
-আমি আপনার অ্যাপের এজেন্সী কমিশন এবং সেটেলমেন্ট সিস্টেমটিকে একটি আন্তর্জাতিক মানের প্রফেশনাল অ্যাপের মতো একশ পারসেন্ট নিখুঁত করার জন্য নিচের এই ৫টি ধাপের পরিকল্পনা তৈরি করেছি। আপনার ১১ মাসের পরিশ্রমের প্রতিটি পয়সার হিসাব যাতে নির্ভুল থাকে, সেটিই আমার মূল লক্ষ্য।
+text
+## Phase 1: Database Speed Optimization (Instant Loading)
+The current Admin Panel delay is caused by sequential scans on large tables (profiles, verification, etc.) during sidebar badge calculation.
+- Add GIN and B-Tree indexes on `status`, `is_read`, `is_active`, and `verification_type` columns across 15+ tables.
+- Optimize the `admin_layout_counts()` PostgreSQL function to use these indexes, ensuring the sidebar badges load in milliseconds.
+- Implement specialized partial indexes for 'pending' states to make dashboard queries near-instant.
 
-### ১. রিয়েল-টাইম কমিশন ট্রিগার পুরোপুরি বন্ধ করা
-বর্তমানে হোস্ট আয় করলে সাথে সাথে এজেন্সী কমিশন পাচ্ছে, যা ডাবল পেমেন্টের ঝুঁকি তৈরি করছে।
-*   **পদক্ষেপ:** ডাটাবেস থেকে `auto_credit_agency_commission` ট্রিগারটি রিমুভ করে দিব। এতে সপ্তাহের মাঝে কোনো এজেন্সী কমিশন পাবে না, যা আপনার নিয়ম অনুযায়ী একশ পারসেন্ট সঠিক হবে।
+## Phase 2: Comprehensive Phone Number Detector Fix
+Currently, the system only logs host violations. We will expand this to cover every user.
+- Update `detect-phone-number` Edge Function to trigger for both hosts and regular users.
+- Modify the `process_contact_violation` RPC to accept non-host profiles.
+- Ensure that when a regular user shares a phone number, it creates a entry in `chat_moderation_logs` so it appears in the Admin Alert Bell.
+- Maintain the automated bean deduction ONLY for hosts, while ensuring users are flagged for admin review.
 
-### ২. গ্রুপ ভলিউম (Group Volume) ভিত্তিক লেভেল ক্যালকুলেশন
-প্রফেশনাল সিস্টেমে একজন মাস্টারের লেভেল তার পুরো টিমের আয়ের ওপর নির্ভর করে।
-*   **পদক্ষেপ:** এজেন্সীর লেভেল নির্ধারণের লজিকটি পরিবর্তন করব যাতে এটি **(নিজস্ব হোস্ট + সাব-এজেন্সীর হোস্ট)** টোটাল ইনকাম হিসাব করে। এতে বড় এজেন্সীরা তাদের ন্যায্য লেভেল এবং কমিশন পাবে।
+## Phase 3: Admin UI & Notification Reliability
+- Optimize `AdminLayout.tsx` to pre-fetch counts more efficiently using the new optimized RPC.
+- Fix the "Admin Alert Bell" to reliably show detected phone numbers for everyone (Users + Hosts).
+- Ensure the "Secret Link" authentication flow remains secure but bypasses unnecessary weight during initial entry.
 
-### ৩. হেল্পার লেভেল ৫ (Helper Level 5) প্রটেকশন
-*   **পদক্ষেপ:** কোডে একটি বিশেষ নিয়ম যোগ করব যাতে হেল্পার লেভেল ৫ এজেন্সীদের কমিশন সবসময় ১২% এ লক থাকে। তাদের ইনকাম কমলেও সিস্টেম তাদের লেভেল কমাবে না।
-
-### ৪. নিখুঁত শিডিউল ও ১ ঘণ্টা গ্যাপ লজিক
-আপনি যেমনটি চেয়েছেন—আগে হোস্টের টাকা এজেন্সী ওয়ালেটে যাবে, তার ঠিক এক ঘণ্টা পর কমিশন ডিস্ট্রিবিউট হবে।
-*   **পদক্ষেপ:** 
-    *   প্রথমত, অটো-শিডিউলার হোস্টদের সারা সপ্তাহের আর্নিং এজেন্সীর 'Total Beans' এ ট্রান্সফার করবে।
-    *   ঠিক **১ ঘণ্টা পর** সিস্টেম দ্বিতীয় একটি টাস্ক রান করবে যা ঐ সপ্তাহের টোটাল আয়ের ওপর ভিত্তি করে এজেন্সী কমিশন এবং আপার-এজেন্সী বোনাস (Difference) ক্যালকুলেট করে ক্রেডিট করবে।
-
-### ৫. অডিট ও ফিন্যান্সিয়াল রিপোর্ট ভেরিফিকেশন
-*   **পদক্ষেপ:** সিস্টেমটি চালু করার আগে আমি প্রতিটি লজিক অডিট করব যাতে কোনো প্রকার লস না হয়। এডমিন প্যানেলের রিপোর্টগুলো চেক করব যাতে আপনি দেখতে পারেন কোন এজেন্সী কত টাকা পেল এবং কেন পেল।
-
-### কারিগরি তথ্য (Technical Steps):
-*   `process_weekly_agency_transfers`: এটি হোস্ট থেকে এজেন্সী ওয়ালেটে টাকা পাঠাবে।
-*   `process_agency_commission_distribution`: এটি ১ ঘণ্টা পর কমিশন ক্যালকুলেট করবে।
-*   `get_agency_tier_rate_for_usd`: এখানে গ্রুপ ভলিউম লজিক আপডেট করা হবে।
-
-**আপনি কি অনুমতি দিচ্ছেন আমি এই নিখুঁত "Professional Financial Cycle" বাস্তবায়ন শুরু করি?** আমি ধাপে ধাপে কাজ করব যাতে আপনার রানিং সিস্টেমের কোনো ক্ষতি না হয়।
+## Phase 4: Final Audit & Stress Test
+- Conduct a "Honest Scan" of the top 5 most used admin pages (User Management, Withdrawals, Agency Hub).
+- Verify that real-time notifications (Websockets) are firing correctly for every single violation.
+- Confirm that the loading spinner for "Preparing admin console" disappears in less than 1-2 seconds.
