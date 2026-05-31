@@ -48,13 +48,15 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
   { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
+  { value: "usdtsol", label: "USDT (Solana)" },
+  { value: "usdtpolygon", label: "USDT (Polygon)" },
+  { value: "usdterc20", label: "USDT (ERC20)" },
+  { value: "btc", label: "Bitcoin (BTC)" },
+  { value: "eth", label: "Ethereum (ETH)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
   { value: "bnbbsc", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
-  { value: "sol", label: "Solana (SOL)" },
-  { value: "btc", label: "Bitcoin (BTC)" },
-  { value: "eth", label: "Ethereum (ETH)" },
   { value: "sol", label: "Solana (SOL)" },
 ];
 
