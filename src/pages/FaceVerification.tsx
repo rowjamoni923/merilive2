@@ -677,11 +677,13 @@ const FaceVerification = () => {
         usingNativeFaceCameraRef.current = false;
         nativeFaceRecordingRef.current = false;
       }
-      if (faceStream) {
-        faceStream.getTracks().forEach(track => track.stop());
+      if (faceStreamRef.current) {
+        faceStreamRef.current.getTracks().forEach(track => track.stop());
+        faceStreamRef.current = null;
       }
       if (videoStreamRef.current) {
         videoStreamRef.current.getTracks().forEach(track => track.stop());
+        videoStreamRef.current = null;
       }
       if (timerRef.current) {
         clearInterval(timerRef.current);
