@@ -19,6 +19,7 @@ const META_PREFIX = "meri:instant-rest-meta:";
 const DEFAULT_TTL_MS = 60_000;
 const DEFAULT_SWR_MS = 10 * 60_000;
 const DEFAULT_MAX_ENTRIES = 180;
+let invalidationInstalled = false;
 
 const hashString = (value: string): string => {
   let hash = 2166136261;
@@ -88,6 +89,20 @@ export const clearInstantRestCache = (namespace: string) => {
   } catch {
     // Cache is an optimization only.
   }
+};
+
+export const installInstantRestCacheInvalidation = (namespace: string) => {
+  if (invalidationInstalled || typeof window === "undefined") return;
+  invalidationInstalled = true;
+
+  const clear = () => clearInstantRestCache(namespace);
+  window.addEventListener("app-sync", clear);
+  window.addEventListener("admin-table-update", clear);
+  window.addEventListener("notifications:change", clear);
+  window.addEventListener("own-beans-updated", clear);
+  window.addEventListener("storage", (event) => {
+    if (event.key?.startsWith("meri:instant-rest:")) clear();
+  });
 };
 
 const readCached = (key: string): CachedResponse | null => {
