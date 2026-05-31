@@ -30,7 +30,7 @@ interface FullScreenGiftAnimationProps {
   onComplete: () => void;
 }
 
-// Sound player for gift animation
+// Sound player for gift animation — soft, non-distorted chime
 const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
   try {
     if (customSoundUrl) {
@@ -40,75 +40,40 @@ const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
       return;
     }
 
-    // Synthesized celebration sounds based on gift value
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    if (coinValue >= 10000) {
-      // Epic celebration - multiple oscillators
-      const oscillator1 = audioContext.createOscillator();
-      const oscillator2 = audioContext.createOscillator();
-      const oscillator3 = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator1.connect(gainNode);
-      oscillator2.connect(gainNode);
-      oscillator3.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator1.type = 'sine';
-      oscillator2.type = 'triangle';
-      oscillator3.type = 'sine';
-      oscillator1.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator2.frequency.setValueAtTime(1200, audioContext.currentTime);
-      oscillator3.frequency.setValueAtTime(400, audioContext.currentTime);
-      oscillator1.frequency.exponentialRampToValueAtTime(1600, audioContext.currentTime + 0.3);
-      oscillator2.frequency.exponentialRampToValueAtTime(2400, audioContext.currentTime + 0.3);
-      oscillator3.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
-      
-      gainNode.gain.setValueAtTime(0.35, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-      
-      oscillator1.start(audioContext.currentTime);
-      oscillator2.start(audioContext.currentTime);
-      oscillator3.start(audioContext.currentTime);
-      oscillator1.stop(audioContext.currentTime + 0.8);
-      oscillator2.stop(audioContext.currentTime + 0.8);
-      oscillator3.stop(audioContext.currentTime + 0.8);
-    } else if (coinValue >= 1000) {
-      // Big celebration
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.15);
-      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
-      
-      gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    } else {
-      // Simple celebration
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
-      
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.2);
-    }
+    const now = audioContext.currentTime;
+
+    // Single soft sine + lowpass filter to avoid harsh clipping / "broken" sound
+    // Two-note arpeggio scaled by gift value for a pleasant chime
+    const lowpass = audioContext.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.value = 2400;
+    lowpass.Q.value = 0.7;
+    lowpass.connect(audioContext.destination);
+
+    const gain = audioContext.createGain();
+    gain.connect(lowpass);
+
+    // Gentle envelope (attack 20ms → release) prevents the click/pop that produced the harsh sound
+    const peak = coinValue >= 10000 ? 0.12 : coinValue >= 1000 ? 0.09 : 0.07;
+    const duration = coinValue >= 10000 ? 0.7 : coinValue >= 1000 ? 0.45 : 0.25;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    const osc = audioContext.createOscillator();
+    osc.type = 'sine';
+    const baseFreq = coinValue >= 10000 ? 880 : coinValue >= 1000 ? 660 : 523;
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + duration * 0.6);
+    osc.connect(gain);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+
+    // Auto-close the context to free resources
+    setTimeout(() => {
+      try { audioContext.close(); } catch { /* noop */ }
+    }, (duration + 0.2) * 1000);
   } catch (error) {
     console.log('[GiftSound] Error:', error);
   }
