@@ -150,7 +150,7 @@ export default function SwiftPayDepositModal({
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdttrc20");
+      setCurrency("usdt_trc20");
       setDeposit(null);
       setCreating(false);
       return;
