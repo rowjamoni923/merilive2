@@ -362,8 +362,7 @@ const Index = () => {
     return () => window.clearTimeout(timeoutId);
   }, [hosts]);
 
-  // Route-local safety net: keep the home host feed live even if the global
-  // bridge is delayed by lazy loading or reconnect pressure.
+  // Route-local safety net: keep the home host feed live for stream/call status changes.
   useEffect(() => {
     let invalidateTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -372,12 +371,14 @@ const Index = () => {
       invalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
         queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
-      }, 200);
+      }, 500); // Increased debounce to prevent rapid flashes
     };
 
+    // Pkg360 NO-AUTO-REFRESH: removed noisy 'profiles' and 'party_room_participants' tables.
+    // Feed status (LIVE/Busy) now updates via 'live_streams' and 'private_calls' only.
     const unsubscribe = subscribeToTables(
       `home-hosts-${Date.now()}`,
-      ["profiles", "live_streams", "private_calls", "party_rooms", "party_room_participants"],
+      ["live_streams", "private_calls", "party_rooms"],
       queueHomeInvalidate
     );
 
