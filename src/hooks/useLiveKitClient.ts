@@ -36,7 +36,8 @@ import {
 } from '@/lib/livekitVideoQuality';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
-import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
+import { publishReliableLocalMedia } from '@/lib/reliableLocalMedia';
+import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
