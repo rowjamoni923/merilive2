@@ -3683,11 +3683,17 @@ const LiveStream = () => {
           >
             {/* Host Avatar */}
             <div className="relative mb-6">
-              <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl">
-                <img 
-                  src={hostInfo?.avatar || '/placeholder.svg'}
-                  alt={hostInfo?.name}
-                  className="w-full h-full object-cover"/>
+              <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
+                {hostInfo?.avatar ? (
+                  <img 
+                    src={hostInfo.avatar}
+                    alt={hostInfo?.name || 'Host'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <span className="text-white text-3xl font-bold">{(hostInfo?.name || 'H').charAt(0).toUpperCase()}</span>
+                )}
               </div>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
