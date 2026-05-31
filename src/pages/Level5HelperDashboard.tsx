@@ -135,7 +135,7 @@ interface CurrencyRate {
   rate_to_usd: number;
 }
 
-const CLAIM_LOCK_SECONDS = 30;
+const CLAIM_LOCK_SECONDS = 3600; // Updated to 1 hour (3600 seconds) to prevent double payments as requested
 
 const getClaimLockExpiryMs = (withdrawal?: { claim_locked_until?: string | null } | null) => {
   if (!withdrawal?.claim_locked_until) return null;
@@ -383,24 +383,13 @@ const Level5HelperDashboard = () => {
     return () => window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
   }, [helperData?.id]);
 
+  // Removed automatic release_agency_withdrawal_claim on cleanup
+  // This ensures the lock is sticky for 1 hour to prevent double payments
+  // even if the helper closes the browser tab or dialog accidentally.
   useEffect(() => {
     if (!selectedAgencyWithdrawal?.id || !helperData?.id || !showAgencyWithdrawalDialog) return;
-
-    const releaseClaim = () => {
-      void supabase.rpc('release_agency_withdrawal_claim' as any, {
-        _withdrawal_id: selectedAgencyWithdrawal.id,
-        _helper_id: helperData.id,
-      });
-    };
-
-    const handlePageHide = () => releaseClaim();
-
-    window.addEventListener('pagehide', handlePageHide);
-
-    return () => {
-      window.removeEventListener('pagehide', handlePageHide);
-      releaseClaim();
-    };
+    
+    // We intentionally don't release the claim here anymore to satisfy the 1-hour "hide" requirement
   }, [selectedAgencyWithdrawal?.id, helperData?.id, showAgencyWithdrawalDialog]);
 
   // Instant sync is handled above by app_sync notifications and Pkg37
@@ -541,8 +530,12 @@ const Level5HelperDashboard = () => {
         // Only show if country matches helper's country
         if (withdrawalCountry !== helperCountry) return false;
         
-        // CRITICAL: If status is 'processing', only show to the assigned helper
-        // Other helpers should NOT see it anymore
+        // CRITICAL: Hide withdrawals claimed by OTHER helpers (Active Lock)
+        // This prevents double payments as requested: "hide it from others for 1 hour"
+        const isLockedByOther = hasActiveClaimLock(w, Date.now()) && w.assigned_helper_id !== id;
+        if (isLockedByOther) return false;
+        
+        // Hide 'processing' withdrawals from other helpers (only show to assigned helper)
         if (w.status === 'processing' && w.assigned_helper_id !== id) {
           return false;
         }
@@ -1135,16 +1128,11 @@ const Level5HelperDashboard = () => {
     }
   };
   
-  // Handle closing the dialog - release lock if not submitted
+  // Handle closing the dialog
   const handleCloseAgencyWithdrawalDialog = async () => {
-    const withdrawalId = selectedAgencyWithdrawal?.id;
-
-    if (withdrawalId && helperData?.id) {
-      await supabase.rpc('release_agency_withdrawal_claim' as any, {
-        _withdrawal_id: withdrawalId,
-        _helper_id: helperData.id,
-      });
-    }
+    // Removed automatic release_agency_withdrawal_claim call to keep the 1-hour lock active
+    // This allows the helper to come back and finish if they closed it by mistake.
+    // The lock will automatically expire in the database after 1 hour.
     
     setShowAgencyWithdrawalDialog(false);
     setSelectedAgencyWithdrawal(null);
