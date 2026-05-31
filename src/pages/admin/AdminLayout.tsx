@@ -1562,10 +1562,10 @@ export default function AdminLayout() {
     }
   };
 
-  // Debounced version — longer delay to prevent rapid-fire during mount & realtime storms
+  // Optimized version with minimal debounce for reactive feel
   const fetchPendingCounts = useCallback(() => {
     if (pendingCountsTimerRef.current) clearTimeout(pendingCountsTimerRef.current);
-    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 250);
+    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 50);
   }, []);
 
   // Fetch notifications — ONLY unread so old/read ones never reappear
