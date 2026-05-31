@@ -18,6 +18,7 @@ import {
   User, CheckCircle, X, Image
 } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { useR2Upload } from "@/hooks/useR2Upload";
 interface RoleFrame {
   id: string;
   role_type: string;
