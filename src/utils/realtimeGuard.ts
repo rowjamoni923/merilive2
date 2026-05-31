@@ -38,6 +38,17 @@ const PUBLICATION_TABLES = new Set([
   'agencies',
   'topup_helpers',
   'face_verification_submissions',
+  'admin_notices', 'agency_withdrawals', 'conversations', 'group_messages', 'host_applications',
+  'stream_viewers', 'party_rooms', 'party_room_participants', 'party_room_messages', 'seat_requests',
+  'messages', 'app_settings', 'agency_performance', 'agency_hosts', 'agency_diamond_transactions',
+  'agency_earnings_transfers', 'agency_commission_history', 'coin_transactions', 'daily_login_claims',
+  'helper_notifications', 'helper_orders', 'helper_topup_requests', 'helper_upgrade_requests',
+  'helper_withdrawal_requests', 'live_bans', 'live_frame_alerts', 'live_game_bets', 'live_game_rounds',
+  'payroll_requests', 'rating_reward_claims', 'recharge_transactions', 'reel_comments', 'reel_likes',
+  'reel_shares', 'reels', 'stream_chat', 'user_task_progress', 'user_vip_subscriptions', 'user_parcels',
+  'payment_transactions', 'game_transactions', 'level_animations', 'level_privileges', 'user_level_tiers',
+  'trader_level_tiers', 'helper_country_payment_methods', 'pk_battles', 'pk_battle_gifts', 'pk_participants',
+  'groups', 'group_members',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.

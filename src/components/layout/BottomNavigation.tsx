@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
+import ErrorBoundary from "@/components/ErrorBoundary";
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
   icon: React.ElementType;
@@ -309,9 +310,11 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
           })}
         </div>
       </nav>
-      <Suspense fallback={null}>
-        <CampaignFloatingButton />
-      </Suspense>
+      <ErrorBoundary componentName="CampaignFloatingButton" fallback={null}>
+        <Suspense fallback={null}>
+          <CampaignFloatingButton />
+        </Suspense>
+      </ErrorBoundary>
       <LevelLockModal
         open={lockModal.open}
         onClose={() => setLockModal((s) => ({ ...s, open: false }))}

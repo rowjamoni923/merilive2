@@ -264,7 +264,7 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.open(ASSET_CACHE).then(function(cache) {
       return cache.match(req).then(function(cached) {
-        // Background revalidation — fetch new copy & update cache
+        var isScriptOrStyle = req.destination === 'script' || req.destination === 'style' || /\.(js|css)(\?|$)/i.test(url.pathname);
         var networkPromise = fetch(req).then(function(resp) {
           if (resp && resp.status === 200 && resp.type === 'basic') {
             cache.put(req, resp.clone()).catch(function() {});
@@ -272,7 +272,10 @@ self.addEventListener('fetch', function(event) {
           return resp;
         }).catch(function() { return cached; });
 
-        // Return cached immediately if available, otherwise wait for network
+        // JS/CSS chunks must be network-first; cache-first can keep a stale
+        // runtime pointing at deleted chunk URLs after deploys.
+        if (isScriptOrStyle) return networkPromise || cached;
+
         return cached || networkPromise;
       });
     })
