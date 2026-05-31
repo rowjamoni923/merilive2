@@ -47,7 +47,7 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
-  { value: "usdtbsc", label: "USDT (BEP20 / BSC)" },
+  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "usdtsol", label: "USDT (Solana)" },
   { value: "usdtpolygon", label: "USDT (Polygon)" },
   { value: "usdterc20", label: "USDT (ERC20)" },
@@ -55,7 +55,7 @@ const BASE_CRYPTO_OPTIONS = [
   { value: "eth", label: "Ethereum (ETH)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
-  { value: "bnbbsc", label: "BNB (BEP20)" },
+  { value: "bnb", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
   { value: "sol", label: "Solana (SOL)" },
 ];
