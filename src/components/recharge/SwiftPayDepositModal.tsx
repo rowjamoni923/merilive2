@@ -61,8 +61,7 @@ const BASE_CRYPTO_OPTIONS = [
 ];
 
 const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
-  // TRC20 has the lowest network minimum and lowest fee at any size.
-  return "usdttrc20";
+  return "usdt_trc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
