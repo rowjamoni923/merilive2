@@ -65,7 +65,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
     if (!showConnectionStatus) return;
     const interval = setInterval(() => {
       setConnectionState(getConnectionStatus());
-    }, 15000); // Reduced from 5s to 15s
+    }, 5000); // Increased from 15s to 5s for faster reactive feel
     return () => clearInterval(interval);
   }, [showConnectionStatus]);
 

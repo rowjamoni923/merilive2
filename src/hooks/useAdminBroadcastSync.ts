@@ -38,6 +38,8 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   // admin-triggered 'feed' topic updates.
   profiles: [['profile'], ['user-profile'], ['user-balance'], ['host-countries']],
   face_verification_submissions: [['face-verification'], ['host-applications'], ['profile'], ['user-profile']],
+  user_parcels: [['user-parcels'], ['parcels']],
+  swift_pay_topups: [['user-balance'], ['recharge-history']],
 
   banners: [['banners'], ['active-banners'], ['home-banners']],
   popup_event_banners: [['popup-event-banners']],
