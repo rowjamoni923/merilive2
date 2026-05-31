@@ -48,7 +48,7 @@ import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useUniversalRealtime } from "@/hooks/useUniversalRealtime";
-import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
+import { useNativeAndroidFaceCamera } from "@/hooks/useNativeAndroidFaceCamera";
 import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
 
 const languages = [
@@ -173,7 +173,7 @@ const FaceVerification = () => {
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
-  const nativeFaceCam = useNativeFaceCamera();
+  const nativeFaceCam = useNativeAndroidFaceCamera();
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;
