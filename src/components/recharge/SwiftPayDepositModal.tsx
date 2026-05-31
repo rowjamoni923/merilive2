@@ -103,10 +103,12 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "Gateway error");
   const lower = message.toLowerCase();
 
+  // If the error specifically mentions that the amount is below minimal, show the custom minimum message.
   if (code === "minimum_deposit_not_met" || lower.includes("less than minimal") || lower.includes("less than minimum")) {
     return MINIMUM_DEPOSIT_MESSAGE;
   }
 
+  // Otherwise, return the specific error message from the gateway to help with debugging.
   return message;
 };
 
