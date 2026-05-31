@@ -266,10 +266,32 @@ Deno.serve(async (req) => {
       const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
 
-      // Return the raw gateway error to the client so the user knows exactly what the issue is.
+      if (isGatewayMinimumAmountError(gatewayMessage)) {
+        return json({
+          ok: false,
+          error: "minimum_deposit_not_met",
+          fallback: true,
+          message: "This crypto network requires a larger deposit amount. Please choose a bigger amount and try again.",
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
+      if (isGatewayFallbackError(gatewayMessage)) {
+        return json({
+          ok: false,
+          error: "currency_not_enabled",
+          fallback: true,
+          message: gatewayMessage,
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
       return json(
         {
           ok: false,
+          fallback: true,
           error: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,
