@@ -71,7 +71,7 @@ const getCryptoOptions = (priceUsd: number | null | undefined) => {
     if (o.value === recommended) {
       return { ...o, label: `${o.label} — recommended, lowest minimum` };
     }
-    if (isSmall && (o.value === "usdt_erc20" || o.value === "btc" || o.value === "eth" || o.value === "usdt_trc20")) {
+    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth" || o.value === "usdttrc20")) {
       return { ...o, label: `${o.label} — high minimum, large payments only` };
     }
     return o;
