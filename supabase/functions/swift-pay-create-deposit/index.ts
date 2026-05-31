@@ -35,8 +35,7 @@ function isGatewayFallbackError(message: string): boolean {
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
+  return false;
 }
 
 function roundUsd(value: number): number {
@@ -257,35 +256,10 @@ Deno.serve(async (req) => {
       const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
 
-      if (isGatewayMinimumAmountError(gatewayMessage)) {
-        return json({
-          ok: false,
-          error: "minimum_deposit_not_met",
-          fallback: true,
-          message: "This crypto network requires a larger deposit amount. Please choose a bigger amount and try again.",
-          gateway_status: depositRes.status,
-          details: depositBody,
-        });
-      }
-
-      // Currency disabled / not supported on the SwiftPay/NOWPayments account.
-      // Return 200 with a fallback signal so the client can silently retry the
-      // next currency in its list instead of crashing on a 502.
-      if (isGatewayFallbackError(gatewayMessage)) {
-        return json({
-          ok: false,
-          error: "currency_not_enabled",
-          fallback: false,
-          message: gatewayMessage,
-          gateway_status: depositRes.status,
-          details: depositBody,
-        });
-      }
-
+      // Return the raw gateway error to the client so the user knows exactly what the issue is.
       return json(
         {
           ok: false,
-          fallback: true,
           error: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,
