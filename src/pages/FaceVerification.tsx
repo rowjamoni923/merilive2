@@ -48,7 +48,7 @@ import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useUniversalRealtime } from "@/hooks/useUniversalRealtime";
-import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
+import { useNativeAndroidFaceCamera } from "@/hooks/useNativeAndroidFaceCamera";
 import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
 
 const languages = [
