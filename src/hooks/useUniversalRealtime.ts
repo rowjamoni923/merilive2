@@ -608,7 +608,7 @@ export const useUserRealtime = (
 
     const unsubscribe = subscribeToTables(
       subscriberId,
-      ['notifications'],
+      ['profiles', 'notifications'],
       (table, event, payload) => {
         // Profile updates
         if (table === 'profiles' && payload?.id === userId) {
