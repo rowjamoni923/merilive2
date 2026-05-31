@@ -70,7 +70,7 @@ const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null
       <FeedbackDialog />
     </>
   );
-});
+}));
 
 DeferredAppHooks.displayName = 'DeferredAppHooks';
 
