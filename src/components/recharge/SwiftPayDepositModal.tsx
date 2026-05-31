@@ -46,20 +46,21 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Order matters — first option is tried first in the auto-fallback loop.
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
-  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "usdttrc20", label: "USDT (TRC20)" },
-  { value: "usdtsol", label: "USDT (Solana)" },
-  { value: "usdtpolygon", label: "USDT (Polygon)" },
+  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
   { value: "bnbbsc", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
   { value: "sol", label: "Solana (SOL)" },
+  { value: "btc", label: "Bitcoin (BTC)" },
+  { value: "eth", label: "Ethereum (ETH)" },
+  { value: "sol", label: "Solana (SOL)" },
 ];
 
 const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
   // TRC20 has the lowest network minimum and lowest fee at any size.
-  return "usdtbep20";
+  return "usdttrc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
@@ -102,10 +103,12 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "Gateway error");
   const lower = message.toLowerCase();
 
+  // If the error specifically mentions that the amount is below minimal, show the custom minimum message.
   if (code === "minimum_deposit_not_met" || lower.includes("less than minimal") || lower.includes("less than minimum")) {
     return MINIMUM_DEPOSIT_MESSAGE;
   }
 
+  // Otherwise, return the specific error message from the gateway to help with debugging.
   return message;
 };
 
@@ -136,7 +139,7 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdtbep20");
+  const [currency, setCurrency] = useState("usdttrc20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
@@ -147,7 +150,7 @@ export default function SwiftPayDepositModal({
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdtbep20");
+      setCurrency("usdttrc20");
       setDeposit(null);
       setCreating(false);
       return;
@@ -180,80 +183,66 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      // Build an ordered list of currencies to try: user pick first, then the
-      // remaining BASE_CRYPTO_OPTIONS as automatic fallbacks. This ensures
-      // that even if one currency is "not enabled" or has a high minimum, 
-      // the system automatically finds one that works for the user.
-      const tryOrder = [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)];
+      // Use the currency selected by the user.
+      const tryCurrency = currency;
+      const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+      
+      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+        requestBody.target = "helper_wallet";
+        requestBody.helper_id = helperId;
+        requestBody.custom_coins = helperCustomCoins;
+        requestBody.custom_price_usd = helperCustomPriceUsd;
+      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+        requestBody.custom_coins = userCustomCoins;
+        requestBody.custom_price_usd = userCustomPriceUsd;
+        requestBody.purpose = userCustomPurpose;
+      } else {
+        requestBody.package_id = pkg.id;
+      }
 
-      let lastErrMsg: string | null = null;
+      const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
+        body: requestBody,
+      });
+
+      // Try to parse a structured error payload from the FunctionsHttpError context.
+      let parsedErrPayload: any = null;
+      let rawErrText = "";
+      if (error) {
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx && typeof ctx.clone === "function") {
+            try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
+            if (!parsedErrPayload) {
+              try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
+              if (rawErrText) {
+                try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
+              }
+            }
+          } else if (ctx && typeof ctx.json === "function") {
+            try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
+          }
+        } catch { /* ignore */ }
+      }
+
+      const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
+
+      if (!error && !errPayload) {
+        setDeposit(data);
+        setStep("pay");
+        setCreating(false);
+        return;
+      }
+
+      const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
+
+      let lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
       let lastErrIsMinimum = false;
 
-      for (let i = 0; i < tryOrder.length; i++) {
-        const tryCurrency = tryOrder[i];
-        const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
-        
-        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
-          requestBody.target = "helper_wallet";
-          requestBody.helper_id = helperId;
-          requestBody.custom_coins = helperCustomCoins;
-          requestBody.custom_price_usd = helperCustomPriceUsd;
-        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-          requestBody.custom_coins = userCustomCoins;
-          requestBody.custom_price_usd = userCustomPriceUsd;
-          requestBody.purpose = userCustomPurpose;
-        } else {
-          requestBody.package_id = pkg.id;
-        }
-
-        const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-          body: requestBody,
-        });
-
-        // Try to parse a structured error payload from the FunctionsHttpError context.
-        let parsedErrPayload: any = null;
-        let rawErrText = "";
-        if (error) {
-          try {
-            const ctx: any = (error as any).context;
-            if (ctx && typeof ctx.clone === "function") {
-              try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
-              if (!parsedErrPayload) {
-                try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
-                if (rawErrText) {
-                  try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
-                }
-              }
-            } else if (ctx && typeof ctx.json === "function") {
-              try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
-            }
-          } catch { /* ignore */ }
-        }
-
-        const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
-
-        if (!error && !errPayload) {
-          if (tryCurrency !== currency) setCurrency(tryCurrency);
-          setDeposit(data);
-          setStep("pay");
-          setCreating(false);
-          return;
-        }
-
-        const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
-
-        // Auto-fallback for "currency not enabled" or "minimum deposit" errors
-        if (isCurrencyDisabledError(errPayload, combinedMsg) || 
-            errPayload?.error === "minimum_deposit_not_met" || 
-            errPayload?.error === "below_minimum" || 
-            /less than minim/i.test(combinedMsg)) {
-          lastErrMsg = /less than minim/i.test(combinedMsg) || errPayload?.error === "minimum_deposit_not_met" ? MINIMUM_DEPOSIT_MESSAGE : combinedMsg;
-          lastErrIsMinimum = /less than minim/i.test(combinedMsg) || errPayload?.error === "minimum_deposit_not_met";
-          continue; 
-        }
-
-        lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
-        break;
+      if (errPayload?.error === "minimum_deposit_not_met" || 
+          errPayload?.error === "below_minimum" || 
+          /less than minim/i.test(combinedMsg)) {
+        lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
+        lastErrIsMinimum = true;
       }
 
       toast({
