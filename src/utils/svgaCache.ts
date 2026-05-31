@@ -6,7 +6,7 @@
  * Includes automatic memory management (max 30 items, LRU eviction).
  */
 
-const MAX_CACHE_SIZE = 30;
+const MAX_CACHE_SIZE = 100; // Increased for pre-parsed gifts and entries
 
 interface CacheEntry {
   item: any;
