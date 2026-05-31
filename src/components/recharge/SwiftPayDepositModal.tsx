@@ -254,8 +254,13 @@ export default function SwiftPayDepositModal({
         variant: "destructive",
       });
       setCreating(false);
+    } catch (e: any) {
+      console.error('[SwiftPay] Unexpected error:', e);
+      toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
+      setCreating(false);
+    }
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose]);
 
-  // Poll for credit status
   useEffect(() => {
     if (step !== "pay" || !deposit?.topup_id) return;
     let active = true;
