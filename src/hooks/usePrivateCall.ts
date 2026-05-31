@@ -10,8 +10,9 @@ import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRat
 import { getAppSetting } from '@/utils/appSettingsCache';
 import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 import { NativeCall } from '@/plugins/NativeCall';
+import { NativeCamera } from '@/plugins/NativeCamera';
 import { getUserMediaWithFallback } from '@/hooks/useNativeCameraPermission';
-import { setPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 
 interface CallState {
   callId: string | null;
