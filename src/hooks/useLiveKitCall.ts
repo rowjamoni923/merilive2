@@ -290,7 +290,7 @@ export function useLiveKitCall(
                   video: true,
                   audio: true,
                   lens: 'front',
-                  resolution: '720p',
+                  resolution: '1080p',
                   attachLocal: true,
                   callType: 'Video Call',
                 });
