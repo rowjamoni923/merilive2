@@ -228,6 +228,7 @@ const FaceVerification = () => {
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
   const usingNativeFaceCameraRef = useRef(false);
+  const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
   const autoFaceStartRef = useRef(false);
   
