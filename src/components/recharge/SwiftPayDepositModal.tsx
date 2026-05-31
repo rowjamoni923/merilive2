@@ -46,19 +46,20 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Order matters — first option is tried first in the auto-fallback loop.
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
-  { value: "usdttrc20", label: "USDT (TRC20)" },
   { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
-  { value: "sol", label: "Solana (SOL)" },
+  { value: "usdttrc20", label: "USDT (TRC20)" },
+  { value: "usdtsol", label: "USDT (Solana)" },
+  { value: "usdtpolygon", label: "USDT (Polygon)" },
   { value: "ltc", label: "Litecoin (LTC)" },
-  { value: "bnb", label: "BNB" },
-  { value: "btc", label: "Bitcoin (BTC)" },
-  { value: "eth", label: "Ethereum (ETH)" },
-  { value: "usdterc20", label: "USDT (ERC20)" },
+  { value: "trx", label: "TRON (TRX)" },
+  { value: "bnbbsc", label: "BNB (BEP20)" },
+  { value: "doge", label: "Dogecoin (DOGE)" },
+  { value: "sol", label: "Solana (SOL)" },
 ];
 
 const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
   // TRC20 has the lowest network minimum and lowest fee at any size.
-  return "usdttrc20";
+  return "usdtbep20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
@@ -68,7 +69,7 @@ const getCryptoOptions = (priceUsd: number | null | undefined) => {
     if (o.value === recommended) {
       return { ...o, label: `${o.label} — recommended, lowest minimum` };
     }
-    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth")) {
+    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth" || o.value === "usdttrc20")) {
       return { ...o, label: `${o.label} — high minimum, large payments only` };
     }
     return o;
@@ -135,7 +136,7 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdttrc20");
+  const [currency, setCurrency] = useState("usdtbep20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
@@ -146,7 +147,7 @@ export default function SwiftPayDepositModal({
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdttrc20");
+      setCurrency("usdtbep20");
       setDeposit(null);
       setCreating(false);
       return;
