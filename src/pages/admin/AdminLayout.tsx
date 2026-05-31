@@ -1448,11 +1448,10 @@ export default function AdminLayout() {
     return Number.isFinite(n) ? n : 0;
   };
 
-  // ⚡ Prefetch ALL admin page chunks after first paint so every tab opens instantly.
-  // Runs in idle slices (see adminRoutePrefetch.ts) — no main-thread blocking.
+  // ⚡ High-speed optimization: Pre-fetch all admin routes and pending counts instantly
   useEffect(() => {
-    const t = setTimeout(() => prefetchCommonAdminRoutes(), 100);
-    return () => clearTimeout(t);
+    prefetchCommonAdminRoutes();
+    fetchPendingCounts(); // Fetch immediately on mount for speed
   }, []);
 
   // Safety net: never let "Preparing admin console…" spin past 7s.
@@ -1563,10 +1562,10 @@ export default function AdminLayout() {
     }
   };
 
-  // Debounced version — longer delay to prevent rapid-fire during mount & realtime storms
+  // Optimized version with minimal debounce for reactive feel
   const fetchPendingCounts = useCallback(() => {
     if (pendingCountsTimerRef.current) clearTimeout(pendingCountsTimerRef.current);
-    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 250);
+    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 50);
   }, []);
 
   // Fetch notifications — ONLY unread so old/read ones never reappear
