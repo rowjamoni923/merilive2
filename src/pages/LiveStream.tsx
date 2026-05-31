@@ -777,17 +777,19 @@ const LiveStream = () => {
         setIsHostVerified(true);
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
-        if (hostProfile) {
-          const hostAvatar = normalizeProfileMediaUrl(hostProfile.avatar_url) || hostProfile.avatar_url || "";
+        // Always set hostInfo (with fallbacks) so header pill never disappears
+        // even if profiles_public fetch silently fails (RLS race / network / deleted).
+        {
+          const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
           setHostInfo({
-            name: hostProfile.display_name || "Host",
+            name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
-            country: hostProfile.country_flag || "🌍",
+            country: hostProfile?.country_flag || "🌍",
             language: "English",
-            gender: hostProfile.gender || "female",
-            level: hostProfile.user_level || 1,
-            id: hostProfile.id,
-            isVerifiedHost: hostProfile.is_host === true,
+            gender: hostProfile?.gender || "female",
+            level: hostProfile?.user_level || 1,
+            id: hostProfile?.id || stream.host_id,
+            isVerifiedHost: hostProfile?.is_host === true,
           });
         }
 
@@ -3681,11 +3683,17 @@ const LiveStream = () => {
           >
             {/* Host Avatar */}
             <div className="relative mb-6">
-              <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl">
-                <img 
-                  src={hostInfo?.avatar || '/placeholder.svg'}
-                  alt={hostInfo?.name}
-                  className="w-full h-full object-cover"/>
+              <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
+                {hostInfo?.avatar ? (
+                  <img 
+                    src={hostInfo.avatar}
+                    alt={hostInfo?.name || 'Host'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <span className="text-white text-3xl font-bold">{(hostInfo?.name || 'H').charAt(0).toUpperCase()}</span>
+                )}
               </div>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
