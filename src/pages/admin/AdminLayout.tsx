@@ -78,7 +78,7 @@ import { AdminRealtimeSyncIndicator } from "@/components/admin/AdminRealtimeSync
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag } from "@/utils/adminAccessStorage";
-import { getAdminSession } from "@/utils/adminSession";
+import { getAdminSession, getAdminSessionToken } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
