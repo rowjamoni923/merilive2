@@ -35,8 +35,7 @@ function isGatewayFallbackError(message: string): boolean {
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
+  return false;
 }
 
 function roundUsd(value: number): number {
