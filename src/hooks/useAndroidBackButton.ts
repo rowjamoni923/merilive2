@@ -8,7 +8,7 @@ import { isAndroid, exitApp } from "@/utils/nativeUtils";
  * "press again to exit" then exit. Everything else is a sub-page that goes
  * back one step (professional Android app behavior).
  */
-const ROOT_PAGES = new Set<string>(['/', '/discover', '/live', '/chat', '/profile']);
+const ROOT_PAGES = new Set<string>(['/', '/discover', '/live', '/chat', '/profile', '/auth', '/welcome', '/index']);
 
 /**
  * Auto-detect any open Radix overlay (Dialog / Sheet / DropdownMenu /
