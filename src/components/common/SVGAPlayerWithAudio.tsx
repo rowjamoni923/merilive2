@@ -26,6 +26,8 @@ interface SVGAPlayerWithAudioProps {
   volume?: number;
   /** Optional admin-uploaded sound URL — used as fallback when SVGA has no embedded audio */
   soundUrl?: string | null;
+  /** Changing this key re-triggers the audio segments without restarting the animation */
+  triggerKey?: string | number;
 }
 
 const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
@@ -40,6 +42,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   onAudioExtracted,
   volume = 0.8,
   soundUrl = null,
+  triggerKey,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -52,6 +55,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
+  const audioSegmentsRef = useRef<any[]>([]);
+  const internalSoundFoundRef = useRef<boolean>(false);
 
   // Stable refs for callbacks — prevents parent re-renders from re-running the
   // load effect (which would tear down + rebuild the SVGA player and replay it).
@@ -231,6 +236,24 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
     loadAndPlay();
 
+    // COMBO AUDIO RE-TRIGGER: If triggerKey changes, re-play the cached audio segments.
+    // This provides "instant" audio feedback for combos without restarting the SVGA animation.
+    if (triggerKey && !loading) {
+      const clampedVolume = Math.min(Math.max(volume, 0), 1);
+      
+      // If we found internal segments, re-play them
+      if (audioSegmentsRef.current.length > 0) {
+        audioSegmentsRef.current.forEach(segment => {
+          playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef);
+        });
+      } else if (!internalSoundFoundRef.current && soundUrl) {
+        // Otherwise re-play the fallback sound
+        const fallbackHowl = new Howl({ src: [soundUrl], volume: clampedVolume, loop, html5: true });
+        activeHowlsRef.current.push(fallbackHowl);
+        fallbackHowl.play();
+      }
+    }
+
     const handleResume = () => resumeLoopingAnimation();
     document.addEventListener('visibilitychange', handleResume);
     window.addEventListener('focus', handleResume);
@@ -256,7 +279,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     // (parent re-renders) must NEVER tear down + rebuild the player — that was
     // causing the same SVGA to replay over and over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, loop, autoPlay, volume, soundUrl]);
+  }, [src, loop, autoPlay, volume, soundUrl, triggerKey]);
 
 
   if (error) {
