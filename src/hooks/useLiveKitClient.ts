@@ -37,6 +37,7 @@ import {
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
+import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -395,6 +396,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const roomType = 'host_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
+
+        // Section#5 pass-6 (Bug K — DUAL CAMERA CONFLICT): if we are about to use
+        // the native Android publisher, we MUST kill the web-based preview
+        // stream immediately. Otherwise WebView's getUserMedia holds the
+        // hardware handle and Native Camera2 fails to start (black screen).
+        clearPreparedHostPreviewStream({ stopTracks: true });
 
         // Native LiveKit publish with one quick retry — Camera2 device may
         // be transiently held by the previous CameraX preview during the
