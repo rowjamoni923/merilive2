@@ -32,8 +32,12 @@ type BroadcastRow = {
 // Add more keys here as new screens get queries — the underlying
 // realtime push already arrives, this just wires it to the cache.
 export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
-  profiles: [['profile'], ['user-profile'], ['user-balance'], ['index-hosts-v4'], ['host-countries'], ['host-feed']],
-  face_verification_submissions: [['face-verification'], ['host-applications'], ['profile'], ['user-profile'], ['index-hosts-v4'], ['host-countries']],
+  // Pkg360 NO-AUTO-REFRESH: removed 'index-hosts-v4' and 'host-feed' from profiles topic.
+  // These were causing the main feed to flash/refresh every time ANY user balance or 
+  // status changed. The feed now relies on its own 2-min staleTime or explicit 
+  // admin-triggered 'feed' topic updates.
+  profiles: [['profile'], ['user-profile'], ['user-balance'], ['host-countries']],
+  face_verification_submissions: [['face-verification'], ['host-applications'], ['profile'], ['user-profile']],
 
   banners: [['banners'], ['active-banners'], ['home-banners']],
   popup_event_banners: [['popup-event-banners']],
@@ -232,7 +236,7 @@ let killSwitchEnabled = true;
 // Per-topic client-side dedupe: ignore repeat events on the same topic
 // within this window (server already throttles to 500ms; client adds
 // belt-and-suspenders to absorb retries / multiple bumps).
-const TOPIC_DEDUPE_MS = 400;
+const TOPIC_DEDUPE_MS = 2000; // Increased from 400ms to 2s to prevent flash-storms
 const lastTopicAt = new Map<string, number>();
 
 async function checkKillSwitch(): Promise<boolean> {
