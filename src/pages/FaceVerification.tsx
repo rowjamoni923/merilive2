@@ -173,7 +173,7 @@ const FaceVerification = () => {
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
-  const nativeFaceCam = useNativeFaceCamera();
+  const nativeFaceCam = useNativeAndroidFaceCamera();
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;
