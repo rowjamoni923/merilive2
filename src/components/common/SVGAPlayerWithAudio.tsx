@@ -158,6 +158,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             let audioFound = false;
             try {
               const audioSegments = await extractAudioFromSVGA(src);
+              audioSegmentsRef.current = audioSegments;
               const clampedVolume = Math.min(Math.max(volume, 0), 1);
               
               if (audioSegments.length > 0) {
@@ -171,6 +172,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
               if (!audioFound) {
                 audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
               }
+              
+              internalSoundFoundRef.current = audioFound;
               
               // CRITICAL: Only play fallback sound if NO internal sound was found in the SVGA
               if (!audioFound && soundUrl) {
