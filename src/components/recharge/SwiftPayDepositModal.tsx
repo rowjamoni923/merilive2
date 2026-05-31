@@ -61,7 +61,7 @@ const BASE_CRYPTO_OPTIONS = [
 ];
 
 const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
-  return "usdt_trc20";
+  return "usdttrc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
