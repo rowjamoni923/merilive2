@@ -239,6 +239,8 @@ Deno.serve(async (req) => {
 
     const idempotencyKey = crypto.randomUUID();
 
+    console.log(`[swift-pay-create-deposit] requesting ${payCurrency} for ${priceUsd} USD (user: ${user.id})`);
+
     // Call Swift Pay: create deposit
     const depositRes = await fetch(`${SWIFT_PAY_BASE_URL}/api/public/v1/deposit`, {
       method: "POST",
@@ -264,7 +266,7 @@ Deno.serve(async (req) => {
 
     if (!depositRes.ok) {
       const gatewayMessage = gatewayErrorMessage(depositBody);
-      console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
+      console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage, depositBody);
 
       if (isGatewayMinimumAmountError(gatewayMessage)) {
         return json({
