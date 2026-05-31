@@ -31,11 +31,21 @@ function gatewayErrorMessage(body: any): string {
 }
 
 function isGatewayFallbackError(message: string): boolean {
-  return false;
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("currency not enabled") ||
+    normalized.includes("currency is not enabled") ||
+    normalized.includes("not enabled") ||
+    normalized.includes("not supported") ||
+    normalized.includes("unsupported currency") ||
+    normalized.includes("disabled") ||
+    normalized.includes("gateway_error")
+  );
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
-  return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
 }
 
 function roundUsd(value: number): number {
