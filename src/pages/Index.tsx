@@ -371,7 +371,7 @@ const Index = () => {
       invalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
         queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
-      }, 500); // Increased debounce to prevent rapid flashes
+      }, 300); // Reduced from 500ms to 300ms for near-instant feel
     };
 
     // Pkg360 NO-AUTO-REFRESH: removed noisy 'profiles' and 'party_room_participants' tables.

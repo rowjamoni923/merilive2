@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 
 export interface ParcelTemplate {
   id: string;
@@ -72,8 +73,21 @@ export function useParcels(userId: string | undefined) {
     },
   });
 
-  // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
-  // Mutation invalidates the cache inline; new parcels surface on next route entry.
+  // Pkg360: INSTANT PARCEL SYNC
+  // Listens to user_parcels table for assignments or progress updates.
+  useEffect(() => {
+    if (!userId) return;
+    const unsub = subscribeToTables(
+      `parcels-sync-${userId}`,
+      ['user_parcels'],
+      (_table, _event, payload: any) => {
+        if (payload?.user_id === userId) {
+          queryClient.invalidateQueries({ queryKey: ['user-parcels', userId] });
+        }
+      }
+    );
+    return unsub;
+  }, [userId, queryClient]);
 
 
 

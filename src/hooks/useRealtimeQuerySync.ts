@@ -106,9 +106,11 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   leaderboard_podium_frames: [['podium-frames']],
   ranking_rewards: [['ranking-rewards']],
   daily_tasks: [['daily-tasks']],
-  parcel_templates: [['parcels']],
+  user_parcels: [['user-parcels'], ['parcels']],
+  parcel_templates: [['parcel-templates'], ['parcels']],
   lucky_gift_config: [['lucky-gift']],
   invitation_settings: [['invitation-settings']],
+  swift_pay_topups: [['user-balance'], ['recharge-history']],
   // Misc
   followers: [['followers'], ['user-profile']],
   blocked_users: [['blocked-users']],
