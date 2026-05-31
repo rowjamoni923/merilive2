@@ -240,7 +240,8 @@ export default function SwiftPayDepositModal({
       // If it's a legitimate minimum error, show the friendly message.
       // Otherwise show the raw gateway error so we can see exactly why it says "not enabled".
       let lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
-      let lastErrIsMinimum = (errPayload?.error === "minimum_deposit_not_met" || lower.includes("less than minimal") || lower.includes("less than minimum"));
+      const lowerMsg = combinedMsg.toLowerCase();
+      let lastErrIsMinimum = (errPayload?.error === "minimum_deposit_not_met" || lowerMsg.includes("less than minimal") || lowerMsg.includes("less than minimum"));
 
       toast({
         title: lastErrIsMinimum ? "Amount too small" : "Gateway Response",
