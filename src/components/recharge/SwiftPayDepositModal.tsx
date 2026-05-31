@@ -184,71 +184,85 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      // Use the currency selected by the user.
-      const tryCurrency = currency;
-      const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+      // First, try the user's selected currency.
+      const tryOrder = [currency];
       
-      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
-        requestBody.target = "helper_wallet";
-        requestBody.helper_id = helperId;
-        requestBody.custom_coins = helperCustomCoins;
-        requestBody.custom_price_usd = helperCustomPriceUsd;
-      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-        requestBody.custom_coins = userCustomCoins;
-        requestBody.custom_price_usd = userCustomPriceUsd;
-        requestBody.purpose = userCustomPurpose;
-      } else {
-        requestBody.package_id = pkg.id;
-      }
-
-      const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: requestBody,
-      });
-
-      // Try to parse a structured error payload from the FunctionsHttpError context.
-      let parsedErrPayload: any = null;
-      let rawErrText = "";
-      if (error) {
-        try {
-          const ctx: any = (error as any).context;
-          if (ctx && typeof ctx.clone === "function") {
-            try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
-            if (!parsedErrPayload) {
-              try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
-              if (rawErrText) {
-                try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
-              }
-            }
-          } else if (ctx && typeof ctx.json === "function") {
-            try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
-          }
-        } catch { /* ignore */ }
-      }
-
-      const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
-
-      if (!error && !errPayload) {
-        setDeposit(data);
-        setStep("pay");
-        setCreating(false);
-        return;
-      }
-
-      const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
-
-      let lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
+      let lastErrMsg: string | null = null;
       let lastErrIsMinimum = false;
 
-      if (errPayload?.error === "minimum_deposit_not_met" || 
-          errPayload?.error === "below_minimum" || 
-          /less than minim/i.test(combinedMsg)) {
-        lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
-        lastErrIsMinimum = true;
+      for (let i = 0; i < tryOrder.length; i++) {
+        const tryCurrency = tryOrder[i];
+        const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+        
+        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+          requestBody.target = "helper_wallet";
+          requestBody.helper_id = helperId;
+          requestBody.custom_coins = helperCustomCoins;
+          requestBody.custom_price_usd = helperCustomPriceUsd;
+        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+          requestBody.custom_coins = userCustomCoins;
+          requestBody.custom_price_usd = userCustomPriceUsd;
+          requestBody.purpose = userCustomPurpose;
+        } else {
+          requestBody.package_id = pkg.id;
+        }
+
+        const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
+          body: requestBody,
+        });
+
+        let parsedErrPayload: any = null;
+        let rawErrText = "";
+        if (error) {
+          try {
+            const ctx: any = (error as any).context;
+            if (ctx && typeof ctx.clone === "function") {
+              try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
+              if (!parsedErrPayload) {
+                try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
+                if (rawErrText) {
+                  try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
+                }
+              }
+            } else if (ctx && typeof ctx.json === "function") {
+              try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
+            }
+          } catch { /* ignore */ }
+        }
+
+        const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
+
+        if (!error && !errPayload) {
+          setDeposit(data);
+          setStep("pay");
+          setCreating(false);
+          return;
+        }
+
+        const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
+
+        // If it's a "currency not enabled" error, the gateway reported that this currency 
+        // isn't ready for this specific amount or user. 
+        if (isCurrencyDisabledError(errPayload, combinedMsg)) {
+          lastErrMsg = combinedMsg;
+          break;
+        }
+
+        if (errPayload?.error === "minimum_deposit_not_met" || 
+            errPayload?.error === "below_minimum" || 
+            /less than minim/i.test(combinedMsg)) {
+          lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
+          lastErrIsMinimum = true;
+          break;
+        }
+
+        lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
+        break;
       }
 
       toast({
-        title: lastErrIsMinimum ? "Amount too small" : "Could not start deposit",
-        description: lastErrMsg || "All available crypto networks are unavailable right now. Please try again shortly.",
+        title: lastErrIsMinimum ? "Amount too small" : "Deposit Error",
+        description: lastErrMsg || "Gateway is currently unavailable. Please try again later.",
         variant: "destructive",
       });
       setCreating(false);
