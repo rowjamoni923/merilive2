@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { useR2Upload } from "@/hooks/useR2Upload";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
