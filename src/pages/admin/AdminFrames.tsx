@@ -88,6 +88,7 @@ const AdminFrames = () => {
   const [processingBackground, setProcessingBackground] = useState(false);
   const [autoRemoveBlack, setAutoRemoveBlack] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile: r2UploadFile } = useR2Upload();
   
   const [formData, setFormData] = useState({
     name: "",
