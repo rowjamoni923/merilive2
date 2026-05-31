@@ -46,20 +46,21 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Order matters — first option is tried first in the auto-fallback loop.
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
-  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "usdttrc20", label: "USDT (TRC20)" },
-  { value: "usdtsol", label: "USDT (Solana)" },
-  { value: "usdtpolygon", label: "USDT (Polygon)" },
+  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
   { value: "bnbbsc", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
   { value: "sol", label: "Solana (SOL)" },
+  { value: "btc", label: "Bitcoin (BTC)" },
+  { value: "eth", label: "Ethereum (ETH)" },
+  { value: "sol", label: "Solana (SOL)" },
 ];
 
 const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
   // TRC20 has the lowest network minimum and lowest fee at any size.
-  return "usdtbep20";
+  return "usdttrc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
@@ -136,7 +137,7 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdtbep20");
+  const [currency, setCurrency] = useState("usdttrc20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
@@ -147,7 +148,7 @@ export default function SwiftPayDepositModal({
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdtbep20");
+      setCurrency("usdttrc20");
       setDeposit(null);
       setCreating(false);
       return;
