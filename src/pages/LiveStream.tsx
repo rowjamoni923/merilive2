@@ -382,6 +382,9 @@ const LiveStream = () => {
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
+  const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
+  const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
