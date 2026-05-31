@@ -77,14 +77,14 @@ const Discover = () => {
   const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
-  // Debounced fetch to prevent too many calls - reduced delay for faster response
+  // Pkg360 NO-AUTO-REFRESH: increased debounce to prevent rapid list flashes
   const debouncedFetch = useCallback(() => {
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
       void fetchRoomsRef.current(false);
-    }, 100);
+    }, 1500); // 1.5s debounce for smooth room list updates
   }, []);
 
   const fetchCurrentUser = async () => {
