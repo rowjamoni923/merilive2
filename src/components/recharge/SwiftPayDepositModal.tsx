@@ -47,7 +47,7 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
-  { value: "usdtbsc", label: "USDT (BEP20 / BSC)" },
+  { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
   { value: "usdtsol", label: "USDT (Solana)" },
   { value: "usdtpolygon", label: "USDT (Polygon)" },
   { value: "usdterc20", label: "USDT (ERC20)" },
@@ -55,7 +55,7 @@ const BASE_CRYPTO_OPTIONS = [
   { value: "eth", label: "Ethereum (ETH)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
-  { value: "bnbbsc", label: "BNB (BEP20)" },
+  { value: "bnb", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
   { value: "sol", label: "Solana (SOL)" },
 ];
@@ -183,68 +183,83 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      // Use the exact currency selected by the user.
-      const tryCurrency = currency;
-      const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+      // Restore official round-robin fallback logic to handle gateway "not enabled" states
+      const tryOrder = [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)];
       
-      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
-        requestBody.target = "helper_wallet";
-        requestBody.helper_id = helperId;
-        requestBody.custom_coins = helperCustomCoins;
-        requestBody.custom_price_usd = helperCustomPriceUsd;
-      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-        requestBody.custom_coins = userCustomCoins;
-        requestBody.custom_price_usd = userCustomPriceUsd;
-        requestBody.purpose = userCustomPurpose;
-      } else {
-        requestBody.package_id = pkg.id;
-      }
+      let lastErrMsg: string | null = null;
+      let lastErrIsMinimum = false;
 
-      console.log('[SwiftPay] Attempting to generate address for:', tryCurrency);
+      for (let i = 0; i < tryOrder.length; i++) {
+        const tryCurrency = tryOrder[i];
+        const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+        
+        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+          requestBody.target = "helper_wallet";
+          requestBody.helper_id = helperId;
+          requestBody.custom_coins = helperCustomCoins;
+          requestBody.custom_price_usd = helperCustomPriceUsd;
+        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+          requestBody.custom_coins = userCustomCoins;
+          requestBody.custom_price_usd = userCustomPriceUsd;
+          requestBody.purpose = userCustomPurpose;
+        } else {
+          requestBody.package_id = pkg.id;
+        }
 
-      const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: requestBody,
-      });
+        const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
+          body: requestBody,
+        });
 
-      let parsedErrPayload: any = null;
-      let rawErrText = "";
-      if (error) {
-        try {
-          const ctx: any = (error as any).context;
-          if (ctx && typeof ctx.clone === "function") {
-            try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
-            if (!parsedErrPayload) {
-              try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
-              if (rawErrText) {
-                try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
+        let parsedErrPayload: any = null;
+        let rawErrText = "";
+        if (error) {
+          try {
+            const ctx: any = (error as any).context;
+            if (ctx && typeof ctx.clone === "function") {
+              try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
+              if (!parsedErrPayload) {
+                try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
+                if (rawErrText) {
+                  try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
+                }
               }
+            } else if (ctx && typeof ctx.json === "function") {
+              try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
             }
-          } else if (ctx && typeof ctx.json === "function") {
-            try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
-          }
-        } catch { /* ignore */ }
+          } catch { /* ignore */ }
+        }
+
+        const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
+
+        if (!error && !errPayload && data?.pay_address) {
+          if (tryCurrency !== currency) setCurrency(tryCurrency);
+          setDeposit(data);
+          setStep("pay");
+          setCreating(false);
+          return;
+        }
+
+        const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
+
+        if (isCurrencyDisabledError(errPayload, combinedMsg)) {
+          continue; // Try next currency in sequence
+        }
+
+        if (errPayload?.error === "minimum_deposit_not_met" || 
+            errPayload?.error === "below_minimum" || 
+            /less than minim/i.test(combinedMsg)) {
+          lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
+          lastErrIsMinimum = true;
+          continue; // Try next cheaper network
+        }
+
+        lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
+        break;
       }
-
-      const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
-
-      if (!error && !errPayload && data?.pay_address) {
-        setDeposit(data);
-        setStep("pay");
-        setCreating(false);
-        return;
-      }
-
-      const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "Gateway response issue");
-      
-      // If it's a legitimate minimum error, show the friendly message.
-      // Otherwise show the raw gateway error so we can see exactly why it says "not enabled".
-      let lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
-      const lowerMsg = combinedMsg.toLowerCase();
-      let lastErrIsMinimum = (errPayload?.error === "minimum_deposit_not_met" || lowerMsg.includes("less than minimal") || lowerMsg.includes("less than minimum"));
 
       toast({
-        title: lastErrIsMinimum ? "Amount too small" : "Gateway Response",
-        description: lastErrMsg,
+        title: lastErrIsMinimum ? "Amount too small" : "Deposit Error",
+        description: lastErrMsg || "Gateway is currently unavailable.",
         variant: "destructive",
       });
       setCreating(false);

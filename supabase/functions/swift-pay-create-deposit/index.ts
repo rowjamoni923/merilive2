@@ -31,11 +31,21 @@ function gatewayErrorMessage(body: any): string {
 }
 
 function isGatewayFallbackError(message: string): boolean {
-  return false;
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("currency not enabled") ||
+    normalized.includes("currency is not enabled") ||
+    normalized.includes("not enabled") ||
+    normalized.includes("not supported") ||
+    normalized.includes("unsupported currency") ||
+    normalized.includes("disabled") ||
+    normalized.includes("gateway_error")
+  );
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
-  return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
 }
 
 function roundUsd(value: number): number {
@@ -256,10 +266,32 @@ Deno.serve(async (req) => {
       const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
 
-      // Return the raw gateway error to the client so the user knows exactly what the issue is.
+      if (isGatewayMinimumAmountError(gatewayMessage)) {
+        return json({
+          ok: false,
+          error: "minimum_deposit_not_met",
+          fallback: true,
+          message: "This crypto network requires a larger deposit amount. Please choose a bigger amount and try again.",
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
+      if (isGatewayFallbackError(gatewayMessage)) {
+        return json({
+          ok: false,
+          error: "currency_not_enabled",
+          fallback: true,
+          message: gatewayMessage,
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
       return json(
         {
           ok: false,
+          fallback: true,
           error: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,
