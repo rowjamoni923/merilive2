@@ -52,9 +52,11 @@ async function clearStaleRuntimeCaches() {
     // best-effort only
   }
 
-  // Pkg54: aggressively unregister stale SWs that may still be serving old index.html.
-  // Without this, every reload re-fetches the same broken HTML from the SW cache and
-  // we get stuck in the "Updating MeriLive" loop forever.
+  // Pkg360 NO-AUTO-REFRESH: removed aggressive service-worker unregistration.
+  // Unregistering SWs forces the browser to bypass caches on next request,
+  // which can look like a flash or refresh to the user. We now rely on
+  // the SW itself to update in the background without interrupting the UI.
+  /*
   try {
     if (typeof navigator !== 'undefined' && navigator.serviceWorker?.getRegistrations) {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -63,6 +65,7 @@ async function clearStaleRuntimeCaches() {
   } catch {
     // best-effort only
   }
+  */
 }
 
 const MAX_RECOVERIES_PER_MODULE = 1;
