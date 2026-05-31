@@ -31,16 +31,7 @@ function gatewayErrorMessage(body: any): string {
 }
 
 function isGatewayFallbackError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("currency not enabled") ||
-    normalized.includes("currency is not enabled") ||
-    normalized.includes("not enabled") ||
-    normalized.includes("not supported") ||
-    normalized.includes("unsupported currency") ||
-    normalized.includes("disabled") ||
-    normalized.includes("gateway_error")
-  );
+  return false;
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
@@ -284,7 +275,7 @@ Deno.serve(async (req) => {
         return json({
           ok: false,
           error: "currency_not_enabled",
-          fallback: true,
+          fallback: false,
           message: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,

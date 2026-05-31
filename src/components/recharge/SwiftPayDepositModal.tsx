@@ -112,12 +112,11 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   return message;
 };
 
-// Compute total diamonds including bonus_percentage (always applied — bonus is
-// part of the published amount the user expects to receive).
+// Compute total diamonds including bonus_percentage
 const getBonusInclusiveCoins = (p: { coins: number; bonus_percentage?: number }) => {
   const bonusPct = Number(p.bonus_percentage ?? 0);
   const bonus = bonusPct > 0 ? Math.floor((p.coins * bonusPct) / 100) : 0;
-  return { total: p.coins + bonus, bonus, bonusPct };
+  return { total: Math.floor(p.coins + bonus), bonus, bonusPct };
 };
 
 export default function SwiftPayDepositModal({
