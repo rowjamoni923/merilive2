@@ -18,6 +18,7 @@ import {
   User, CheckCircle, X, Image
 } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { useR2Upload } from "@/hooks/useR2Upload";
 interface RoleFrame {
   id: string;
   role_type: string;
@@ -137,20 +138,11 @@ const AdminRoleFrames = () => {
     setLoading(false);
   };
 
-  // R2 upload for large files
+  // R2 upload for large files (uses multipart + x-admin-token via useR2Upload)
+  const { uploadFile: r2UploadFile } = useR2Upload();
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folder);
-
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
-      method: 'POST',
-      headers: { 'x-admin-token': getAdminSessionToken() },
-      body: formData,
-    });
-
-    const result = await response.json();
-    if (!response.ok || !result.success) {
+    const result = await r2UploadFile(file, { bucket: 'animations', folder });
+    if (!result.success || !result.url) {
       throw new Error(result.error || 'R2 upload failed');
     }
     return result.url;

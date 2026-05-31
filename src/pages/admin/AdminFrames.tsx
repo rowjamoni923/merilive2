@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { useR2Upload } from "@/hooks/useR2Upload";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -87,6 +88,7 @@ const AdminFrames = () => {
   const [processingBackground, setProcessingBackground] = useState(false);
   const [autoRemoveBlack, setAutoRemoveBlack] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile: r2UploadFile } = useR2Upload();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -142,19 +144,10 @@ const AdminFrames = () => {
 
   useAdminRealtime(['avatar_frames'], fetchFrames);
 
-  // R2 upload for large files
+  // R2 upload for large files (uses multipart + x-admin-token via useR2Upload)
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folder);
-
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-    if (!response.ok || !result.success) {
+    const result = await r2UploadFile(file, { bucket: 'frames', folder });
+    if (!result.success || !result.url) {
       throw new Error(result.error || 'R2 upload failed');
     }
     return result.url;
