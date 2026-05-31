@@ -1220,6 +1220,8 @@ const LiveStream = () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
       try { supabase.removeChannel(chatChannel); } catch {}
       unsubscribeRealtime?.();
+      pendingJoinFallbackTimersRef.current.forEach((t) => clearTimeout(t));
+      pendingJoinFallbackTimersRef.current.clear();
     };
 
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
