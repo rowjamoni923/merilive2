@@ -18744,6 +18744,10 @@ export type Database = {
         Args: { owner_user_id: string }
         Returns: number
       }
+      get_agency_group_volume_usd: {
+        Args: { _agency_id: string; _period_start: string }
+        Returns: number
+      }
       get_agency_numeric_level: {
         Args: { _agency_id: string }
         Returns: number
