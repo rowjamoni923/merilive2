@@ -68,6 +68,8 @@ export interface FixedAnimationFrameProps {
   debug?: boolean;
   /** Optional label appended to debug logs to identify the call site. */
   debugTag?: string;
+  /** Changing this key re-triggers the audio segments without restarting the animation */
+  triggerKey?: string | number;
 }
 
 const BG_CLASSES: Record<NonNullable<FixedAnimationFrameProps['background']>, string> = {
@@ -110,6 +112,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   soundUrl = null,
   debug,
   debugTag,
+  triggerKey,
 }) => {
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
@@ -196,6 +199,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             onError={onError}
             onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
+            triggerKey={triggerKey}
           />
         </Suspense>
       ) : (
