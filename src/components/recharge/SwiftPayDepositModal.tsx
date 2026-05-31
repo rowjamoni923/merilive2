@@ -184,6 +184,7 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
+      // Use the exact currency selected by the user.
       const tryCurrency = currency;
       const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
       
@@ -200,7 +201,7 @@ export default function SwiftPayDepositModal({
         requestBody.package_id = pkg.id;
       }
 
-      console.log('[SwiftPay] Creating deposit for:', tryCurrency, 'Amount:', pkg.price_usd);
+      console.log('[SwiftPay] Attempting to generate address for:', tryCurrency);
 
       const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
         body: requestBody,
@@ -228,34 +229,27 @@ export default function SwiftPayDepositModal({
       const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
 
       if (!error && !errPayload && data?.pay_address) {
-        console.log('[SwiftPay] Deposit created successfully');
         setDeposit(data);
         setStep("pay");
         setCreating(false);
         return;
       }
 
-      const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "Gateway error");
-      console.error('[SwiftPay] Deposit failed:', combinedMsg, errPayload);
-
+      const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "Gateway response issue");
+      
+      // If it's a legitimate minimum error, show the friendly message.
+      // Otherwise show the raw gateway error so we can see exactly why it says "not enabled".
       let lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
-      let lastErrIsMinimum = false;
-
-      if (errPayload?.error === "minimum_deposit_not_met" || 
-          errPayload?.error === "below_minimum" || 
-          /less than minim/i.test(combinedMsg)) {
-        lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
-        lastErrIsMinimum = true;
-      }
+      const lowerMsg = combinedMsg.toLowerCase();
+      let lastErrIsMinimum = (errPayload?.error === "minimum_deposit_not_met" || lowerMsg.includes("less than minimal") || lowerMsg.includes("less than minimum"));
 
       toast({
-        title: lastErrIsMinimum ? "Amount too small" : "Deposit Error",
+        title: lastErrIsMinimum ? "Amount too small" : "Gateway Response",
         description: lastErrMsg,
         variant: "destructive",
       });
       setCreating(false);
     } catch (e: any) {
-      console.error('[SwiftPay] Unexpected error:', e);
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
