@@ -869,9 +869,19 @@ const FaceVerification = () => {
       preloadLocalFacePoseDetector();
       setNativeFaceCameraActive(false);
 
+      // Section#5 pass-6 (Bug M — NATIVE CAMERA CONFLICT): kill any stale
+      // preview streams from other sections (GoLive/PrivateCall) before starting
+      // the verification camera. Ensures exclusive hardware access.
+      const { clearPreparedHostPreviewStream } = await import('@/features/live/hostPreviewSession');
+      const { clearPreparedCallMediaStream } = await import('@/features/call/preparedCallMedia');
+      clearPreparedHostPreviewStream({ stopTracks: true });
+      clearPreparedCallMediaStream(null, { stopTracks: true });
+      await nativeFaceCam.stopPreview().catch(() => null);
+
       // Stop any existing stream first
-      if (faceStream) {
-        faceStream.getTracks().forEach(track => track.stop());
+      if (faceStreamRef.current) {
+        faceStreamRef.current.getTracks().forEach(track => track.stop());
+        faceStreamRef.current = null;
         setFaceStream(null);
       }
 
