@@ -251,6 +251,8 @@ export function usePrivateCall(userId: string | null) {
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: cid, remote: true }).catch(() => {});
+      NativeCamera.stop().catch(() => {});
+      clearPreparedCallMediaStream(cid, { stopTracks: true });
     }
     setTimeout(() => { callEndedRef.current = false; }, 3000);
     if (endedCallIdsRef.current.size > 20) {
