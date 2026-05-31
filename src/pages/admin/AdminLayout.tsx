@@ -78,7 +78,7 @@ import { AdminRealtimeSyncIndicator } from "@/components/admin/AdminRealtimeSync
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag } from "@/utils/adminAccessStorage";
-import { getAdminSession } from "@/utils/adminSession";
+import { getAdminSession, getAdminSessionToken } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -1351,12 +1351,27 @@ export default function AdminLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  // Never render the admin shell from local flags/session blobs alone. Browser
-  // storage is editable; the shell opens only after the server validates the
-  // x-admin-token + approved device and returns the matching admin row.
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Optimistic-render policy (matches AdminAccessGuard / NO-AUTO-LOGOUT):
+  // If a local admin session exists we trust it INSTANTLY so the shell paints
+  // in <50 ms instead of waiting on 2–3 serial RPCs (6 s timeout each).
+  // `checkAdminAccess` still re-validates in the background and can clear the
+  // session only if the server explicitly rejects it.
+  const initialAdminSession = (() => {
+    try {
+      const s = getAdminSession();
+      return s && getAdminSessionToken().length >= 16 ? s : null;
+    } catch { return null; }
+  })();
+  const [currentUser, setCurrentUser] = useState<any>(initialAdminSession ? {
+    id: initialAdminSession.admin_id,
+    admin_id: initialAdminSession.admin_id,
+    email: initialAdminSession.email,
+    display_name: initialAdminSession.display_name,
+    role: initialAdminSession.role,
+    accepted_at: null,
+  } : null);
+  const [isAdmin, setIsAdmin] = useState(!!initialAdminSession);
+  const [isLoading, setIsLoading] = useState(!initialAdminSession);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(navGroups.map(g => g.title));
   const [searchQuery, setSearchQuery] = useState("");
   const [onlineUsersCount, setOnlineUsersCount] = useState(0);
