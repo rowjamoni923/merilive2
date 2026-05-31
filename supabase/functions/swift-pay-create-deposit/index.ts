@@ -71,7 +71,7 @@ async function resolveBestDiamondsPerUsd(admin: ReturnType<typeof createClient>)
 }
 
 async function resolveSwiftPayMinUsd(admin: ReturnType<typeof createClient>): Promise<number> {
-  let minUsd = 100;
+  let minUsd = 0.50;
   try {
     const { data: setting } = await admin
       .from("app_settings")
