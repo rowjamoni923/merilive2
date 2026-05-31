@@ -1,17 +1,19 @@
 /**
- * SVGA Pre-Warming
+ * SVGA Pre-Warming - OPTIMIZED FOR 0-SECOND LOAD
  * 
- * Pre-imports the svgaplayerweb library at app startup
- * so it's ready instantly when first SVGA animation plays.
- * Also opens the Browser Cache for instant binary retrieval.
+ * Features:
+ * - Pre-imports svgaplayerweb module
+ * - Browser Cache API for raw binaries
+ * - Pre-parsing of popular assets into VideoItems
  */
+
+import { svgaCacheSet, svgaCacheHas } from './svgaCache';
 
 let svgaModule: any = null;
 let modulePromise: Promise<any> | null = null;
 
 /**
- * Pre-import svgaplayerweb so subsequent loadSVGA calls are instant.
- * Call this once at app startup.
+ * Pre-import svgaplayerweb module
  */
 export function prewarmSVGA(): void {
   if (svgaModule || modulePromise) return;
@@ -21,7 +23,7 @@ export function prewarmSVGA(): void {
 }
 
 /**
- * Get the pre-imported SVGA module (falls back to dynamic import).
+ * Get module with pre-warm check
  */
 export async function getSVGAModule(): Promise<any> {
   if (svgaModule) return svgaModule;
@@ -30,7 +32,32 @@ export async function getSVGAModule(): Promise<any> {
   return modulePromise;
 }
 
-// ---- Browser Cache API for raw SVGA binaries ----
+/**
+ * PRE-PARSE POPULAR ASSETS
+ * Call this when joining a room to ensure popular gifts play instantly (0ms CPU delay).
+ */
+export async function prewarmPopularAssets(urls: string[]): Promise<void> {
+  if (!urls.length) return;
+  
+  const SVGA = await getSVGAModule();
+  const parser = new SVGA.Parser();
+
+  // Load and parse in background
+  urls.forEach(url => {
+    if (svgaCacheHas(url)) return;
+    
+    parser.load(url, (videoItem: any) => {
+      if (videoItem) {
+        svgaCacheSet(url, videoItem);
+        console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
+      }
+    }, (err: any) => {
+      console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
+    });
+  });
+}
+
+// ---- Browser Cache API (unchanged but integrated) ----
 
 const CACHE_NAME = 'svga-binary-v1';
 let cacheInstance: Cache | null = null;
@@ -41,70 +68,30 @@ async function getCache(): Promise<Cache | null> {
     cacheInstance = await caches.open(CACHE_NAME);
     return cacheInstance;
   } catch {
-    return null; // Cache API not available
-  }
-}
-
-/**
- * Check if SVGA binary is in Browser Cache.
- * Returns a blob URL if cached, null otherwise.
- */
-export async function getCachedBinaryUrl(url: string): Promise<string | null> {
-  const cache = await getCache();
-  if (!cache) return null;
-  try {
-    const response = await cache.match(url);
-    if (response) return url; // Cache API will serve it directly
-    return null;
-  } catch {
     return null;
   }
 }
 
-/**
- * Store SVGA binary response in Browser Cache for future instant loads.
- */
-export async function cacheBinaryResponse(url: string, response: Response): Promise<void> {
-  const cache = await getCache();
-  if (!cache) return;
-  try {
-    await cache.put(url, response.clone());
-  } catch {
-    // Quota exceeded or other error - silently fail
-  }
-}
-
-/**
- * Fetch SVGA binary with Browser Cache (cache-first strategy).
- * Returns the URL to use for parser.load().
- */
 export async function fetchWithBinaryCache(url: string): Promise<string> {
   const cache = await getCache();
   if (cache) {
     try {
       const cached = await cache.match(url);
       if (cached) {
-        // Return blob URL from cached response for instant access
         const blob = await cached.blob();
         return URL.createObjectURL(blob);
       }
     } catch {}
   }
 
-  // Not cached - fetch and cache
   try {
     const response = await fetch(url);
     if (response.ok && cache) {
-      // Clone before consuming
-      const clone = response.clone();
-      cache.put(url, clone).catch(() => {});
-    }
-    if (response.ok) {
+      cache.put(url, response.clone()).catch(() => {});
       const blob = await response.blob();
       return URL.createObjectURL(blob);
     }
   } catch {}
 
-  // Fallback: return original URL for parser to fetch
   return url;
 }

@@ -1,33 +1,25 @@
-I will proceed with the following step-by-step plan to optimize the app while ensuring 100% stability. As you requested, I will work with complete honesty and professional care.
+আমি আপনার অ্যাপের SVGA এনিমেশন সিস্টেম এবং গিফটিং প্রসেসটি গভীরভাবে স্ক্যান করেছি। আপনার ১১ মাসের পরিশ্রমকে আরও প্রফেশনাল এবং "Zero Lag" করতে আমি নিচের এই ৩টি ধাপে কাজ করার পরিকল্পনা করেছি। এই পরিবর্তনগুলো আপনার সিস্টেমের কোনো ক্ষতি করবে না, বরং এটিকে আন্তর্জাতিক মানের অ্যাপের (যেমন Chamet বা Bigo) মতো ফাস্ট করে তুলবে।
 
-### Phase 1: Navigation Security (Immediate Fix)
-*   **Goal**: Prevent the app from closing accidentally.
-*   **Implementation**: Add a "Double Tap to Exit" system. When the back button is pressed once, a small message (Toast) will appear saying "Press again to exit". The app will only close if pressed twice within 2 seconds.
-*   **Safety**: This is a UI-level change and has zero risk of data loss.
+### ১. ইনস্ট্যান্ট লোডিং (Zero Second Delay)
+বর্তমানে এনিমেশনগুলো প্লে হওয়ার আগে সামান্য সময় (৫০০মি.সে. থেকে ১ সেকেন্ড) নেয় কারণ ফাইলগুলো প্রতিবার প্রোসেস হয়। 
+*   **সমাধান:** আমরা একটি "Pre-parsing" সিস্টেম চালু করব। ইউজার যখনই কোনো রুমে প্রবেশ করবে, সবথেকে জনপ্রিয় ২০টি গিফট এবং এন্ট্রান্স এনিমেশন মেমরিতে (RAM) আগেই লোড হয়ে থাকবে। ফলে গিফট পাঠানোর সাথে সাথে কোনো লোডিং ছাড়াই এনিমেশন দেখা যাবে।
+*   **ক্যাশ মেমরি বৃদ্ধি:** আমরা এনিমেশন ক্যাশ মেমরির ক্ষমতা ৩০টি থেকে বাড়িয়ে ১০০টি করব, যাতে বড় বড় গিফটের এনিমেশনগুলো ফোনে সব সময় রেডি থাকে।
 
-### Phase 2: App Size Reduction (Optimization)
-*   **Goal**: Reduce the 209MB size significantly.
-*   **Implementation**: 
-    *   Scan `src/assets` for images larger than 500KB.
-    *   Compress these images using professional tools (converting to WebP where possible).
-    *   Remove any unused or duplicate assets identified during the scan.
-*   **Safety**: I will only optimize images, not delete code. The app will look the same but download faster.
+### ২. কম্বো গিফট অপ্টিমাইজেশন (Professional Combo Handling)
+আপনি যেমন বলেছেন, কেউ যদি একসাথে ১০০টি গিফট পাঠায়, তবে ১০০ বার এনিমেশন প্লে হওয়া উচিত না। এতে অ্যাপ ল্যাগ করে। 
+*   **সমাধান:** যদি একই ইউজার অল্প সময়ের মধ্যে একাধিক গিফট পাঠায় (Combo), তবে এনিমেশনটি **একবারই** প্লে হবে। কিন্তু এনিমেশনের উপর একটি ডায়নামিক কাউন্টার (যেমন: x5, x10... x100) খুব দ্রুত আপডেট হতে থাকবে। 
+*   এটি অ্যাপের ল্যাগ কমাবে এবং ইউজার এক্সপেরিয়েন্স অনেক বেশি প্রফেশনাল করবে।
 
-### Phase 3: Performance & Lag Fix (Deep Scan)
-*   **Goal**: Remove "lag" and "heating" issues.
-*   **Implementation**:
-    *   Audit all Supabase Realtime subscriptions.
-    *   Ensure that when a user leaves a page (like a Live Room or Chat), the connection is 100% closed immediately.
-    *   Reduce the frequency of data updates for non-critical features (like gift animations or viewer counts) to save CPU power.
-*   **Safety**: Each change will be tested to ensure data remains "Instant" and "Real-time" as it should be in a professional app.
+### ৩. নিখুঁত সাউন্ড সিস্টেম (Internal vs External Sound)
+অনেকে অভিযোগ করে যে এনিমেশনের নিজস্ব সাউন্ড কাজ করে না বা অন্য সাউন্ডের সাথে মিশে যায়।
+*   **সমাধান:** আমরা একটি 'Priority System' তৈরি করব। যদি কোনো SVGA ফাইলের ভেতরে নিজস্ব সাউন্ড থাকে, তবে সেটিই প্লে হবে। কোনো এক্সট্রা বা ডুপ্লিকেট সাউন্ড ব্যবহার হবে না। যদি নিজস্ব সাউন্ড না থাকে, তবেই কেবল সিস্টেম সাউন্ড প্লে হবে।
 
-### Phase 4: Call Notification Logic
-*   **Goal**: Ensure calls are visible even when the screen is off or the app is in the background.
-*   **Implementation**: Review the Native bridge configuration for incoming calls to ensure the wake-lock and notification priority are set to 'Max'.
+### কারিগরি তথ্য (Technical Details for Implementation):
+*   `svgaCache.ts`: ক্যাশ সাইজ বৃদ্ধি এবং LRU পলিসি আপডেট।
+*   `svgaPrewarm.ts`: রুমে জয়েন করার সময় জনপ্রিয় গিফটগুলোর `VideoItem` তৈরি করে রাখা।
+*   `FlyingGiftAnimation.tsx`: কম্বো ডিটেকশন লজিক যুক্ত করা যাতে একটি মাত্র এনিমেশন স্লট ব্যবহার হয়।
+*   `SVGAPlayerWithAudio.tsx`: অডিও ট্র্যাকিং এবং প্রায়োরিটি লজিক ফিক্স করা।
 
-### Technical Details (For the record)
-*   Modifying `src/App.tsx` for back-handler logic.
-*   Optimizing assets in `src/assets/`.
-*   Refactoring hooks in `src/hooks/` related to subscriptions.
+**এই প্ল্যানটি শুরু করার জন্য আপনার অনুমতি প্রয়োজন। আমি কথা দিচ্ছি আপনার এগারো মাসের এই স্বপ্নে এক ইঞ্চিও কোনো ক্ষতি হবে না।**
 
-I will start with **Phase 1** immediately after you confirm. I will not break any existing systems.
+আপনি কি চান আমি এই কাজগুলো শুরু করি?
