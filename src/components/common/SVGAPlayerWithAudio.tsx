@@ -154,18 +154,37 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             try {
               const audioSegments = await extractAudioFromSVGA(src);
               const clampedVolume = Math.min(Math.max(volume, 0), 1);
-              for (const segment of audioSegments) {
-                if (playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef)) audioFound = true;
+              
+              if (audioSegments.length > 0) {
+                for (const segment of audioSegments) {
+                  if (playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef)) {
+                    audioFound = true;
+                  }
+                }
               }
-              if (!audioFound) audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
+              
+              if (!audioFound) {
+                audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
+              }
+              
+              // CRITICAL: Only play fallback sound if NO internal sound was found in the SVGA
               if (!audioFound && soundUrl) {
-                const fallbackHowl = new Howl({ src: [soundUrl], volume: clampedVolume, loop, html5: true });
+                console.log('[SVGAPlayerWithAudio] 🔊 No internal sound found, playing fallback:', soundUrl.split('/').pop());
+                const fallbackHowl = new Howl({ 
+                  src: [soundUrl], 
+                  volume: clampedVolume, 
+                  loop, 
+                  html5: true,
+                  onplayerror: () => {
+                    fallbackHowl.once('unlock', () => fallbackHowl.play());
+                  }
+                });
                 activeHowlsRef.current.push(fallbackHowl);
                 fallbackHowl.play();
                 audioFound = true;
               }
             } catch (e) {
-              console.warn('[SVGAPlayerWithAudio] Audio resolved after visual start failed:', e);
+              console.warn('[SVGAPlayerWithAudio] Audio logic failed:', e);
             }
             onAudioExtractedRef.current?.(audioFound ? 'embedded' : null);
           })();
