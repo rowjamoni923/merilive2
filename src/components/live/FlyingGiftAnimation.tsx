@@ -301,6 +301,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               muted={!isSVGA}
               volume={0.8}
               soundUrl={gift.soundUrl}
+              triggerKey={gift.comboKey}
               onComplete={isSVGA ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
