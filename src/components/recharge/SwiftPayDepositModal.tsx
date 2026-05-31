@@ -46,16 +46,16 @@ const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
 // Order matters — first option is tried first in the auto-fallback loop.
 // Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
-  { value: "usdt_trc20", label: "USDT (TRC20)" },
-  { value: "usdt_bep20", label: "USDT (BEP20 / BSC)" },
-  { value: "usdt_sol", label: "USDT (Solana)" },
-  { value: "usdt_polygon", label: "USDT (Polygon)" },
-  { value: "usdt_erc20", label: "USDT (ERC20)" },
+  { value: "usdttrc20", label: "USDT (TRC20)" },
+  { value: "usdtbsc", label: "USDT (BEP20 / BSC)" },
+  { value: "usdtsol", label: "USDT (Solana)" },
+  { value: "usdtpolygon", label: "USDT (Polygon)" },
+  { value: "usdterc20", label: "USDT (ERC20)" },
   { value: "btc", label: "Bitcoin (BTC)" },
   { value: "eth", label: "Ethereum (ETH)" },
   { value: "ltc", label: "Litecoin (LTC)" },
   { value: "trx", label: "TRON (TRX)" },
-  { value: "bnb", label: "BNB (BEP20)" },
+  { value: "bnbbsc", label: "BNB (BEP20)" },
   { value: "doge", label: "Dogecoin (DOGE)" },
   { value: "sol", label: "Solana (SOL)" },
 ];
