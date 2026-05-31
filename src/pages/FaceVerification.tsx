@@ -884,6 +884,7 @@ const FaceVerification = () => {
         throw new Error('Failed to get camera stream');
       }
       
+      faceStreamRef.current = stream;
       setFaceStream(stream);
       attachFacePreviewStream(stream);
     } catch (error: any) {
