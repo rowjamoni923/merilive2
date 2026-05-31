@@ -1279,6 +1279,10 @@ const LiveStream = () => {
       }
 
       if (p.type !== 'viewer_joined') return;
+      // Pkg383: mark dedup so Postgres safety-net skips this user
+      joinNotifyDedupRef.current.set(p.userId, Date.now());
+      const pendingTimer = pendingJoinFallbackTimersRef.current.get(p.userId);
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingJoinFallbackTimersRef.current.delete(p.userId); }
       // Skip own join (already shown via optimistic UI)
       if (p.userId === currentUserId) return;
 
