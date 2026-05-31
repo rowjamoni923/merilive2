@@ -10,8 +10,9 @@ import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRat
 import { getAppSetting } from '@/utils/appSettingsCache';
 import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 import { NativeCall } from '@/plugins/NativeCall';
+import { NativeCamera } from '@/plugins/NativeCamera';
 import { getUserMediaWithFallback } from '@/hooks/useNativeCameraPermission';
-import { setPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 
 interface CallState {
   callId: string | null;
@@ -194,6 +195,8 @@ export function usePrivateCall(userId: string | null) {
     if (callIdToReset && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: callIdToReset, remote: true }).catch(() => {});
       NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
+      NativeCamera.stop().catch(() => {});
+      clearPreparedCallMediaStream(callIdToReset, { stopTracks: true });
     }
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
@@ -248,6 +251,8 @@ export function usePrivateCall(userId: string | null) {
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: cid, remote: true }).catch(() => {});
+      NativeCamera.stop().catch(() => {});
+      clearPreparedCallMediaStream(cid, { stopTracks: true });
     }
     setTimeout(() => { callEndedRef.current = false; }, 3000);
     if (endedCallIdsRef.current.size > 20) {

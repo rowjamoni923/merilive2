@@ -228,6 +228,7 @@ const FaceVerification = () => {
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
   const usingNativeFaceCameraRef = useRef(false);
+  const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
   const autoFaceStartRef = useRef(false);
   
@@ -676,11 +677,13 @@ const FaceVerification = () => {
         usingNativeFaceCameraRef.current = false;
         nativeFaceRecordingRef.current = false;
       }
-      if (faceStream) {
-        faceStream.getTracks().forEach(track => track.stop());
+      if (faceStreamRef.current) {
+        faceStreamRef.current.getTracks().forEach(track => track.stop());
+        faceStreamRef.current = null;
       }
       if (videoStreamRef.current) {
         videoStreamRef.current.getTracks().forEach(track => track.stop());
+        videoStreamRef.current = null;
       }
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -866,9 +869,19 @@ const FaceVerification = () => {
       preloadLocalFacePoseDetector();
       setNativeFaceCameraActive(false);
 
+      // Section#5 pass-6 (Bug M — NATIVE CAMERA CONFLICT): kill any stale
+      // preview streams from other sections (GoLive/PrivateCall) before starting
+      // the verification camera. Ensures exclusive hardware access.
+      const { clearPreparedHostPreviewStream } = await import('@/features/live/hostPreviewSession');
+      const { clearPreparedCallMediaStream } = await import('@/features/call/preparedCallMedia');
+      clearPreparedHostPreviewStream({ stopTracks: true });
+      clearPreparedCallMediaStream(null, { stopTracks: true });
+      await nativeFaceCam.stopPreview().catch(() => null);
+
       // Stop any existing stream first
-      if (faceStream) {
-        faceStream.getTracks().forEach(track => track.stop());
+      if (faceStreamRef.current) {
+        faceStreamRef.current.getTracks().forEach(track => track.stop());
+        faceStreamRef.current = null;
         setFaceStream(null);
       }
 
@@ -883,6 +896,7 @@ const FaceVerification = () => {
         throw new Error('Failed to get camera stream');
       }
       
+      faceStreamRef.current = stream;
       setFaceStream(stream);
       attachFacePreviewStream(stream);
     } catch (error: any) {
