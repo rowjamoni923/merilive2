@@ -38,7 +38,7 @@ const GlobalNotificationsMount = () => {
  * Contains heavy hooks that are NOT needed for initial render
  * Uses forwardRef to avoid React warnings when used with Suspense
  */
-const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>(({ userId }, _ref) => {
+const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null }>(({ userId }, _ref) => {
   const location = useLocation();
   const isAdminRoute = useMemo(() => location.pathname.startsWith('/admin'), [location.pathname]);
   const singleDeviceUserId = isAdminRoute ? null : userId;
