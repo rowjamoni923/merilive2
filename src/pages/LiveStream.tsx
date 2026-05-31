@@ -777,17 +777,19 @@ const LiveStream = () => {
         setIsHostVerified(true);
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
-        if (hostProfile) {
-          const hostAvatar = normalizeProfileMediaUrl(hostProfile.avatar_url) || hostProfile.avatar_url || "";
+        // Always set hostInfo (with fallbacks) so header pill never disappears
+        // even if profiles_public fetch silently fails (RLS race / network / deleted).
+        {
+          const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
           setHostInfo({
-            name: hostProfile.display_name || "Host",
+            name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
-            country: hostProfile.country_flag || "🌍",
+            country: hostProfile?.country_flag || "🌍",
             language: "English",
-            gender: hostProfile.gender || "female",
-            level: hostProfile.user_level || 1,
-            id: hostProfile.id,
-            isVerifiedHost: hostProfile.is_host === true,
+            gender: hostProfile?.gender || "female",
+            level: hostProfile?.user_level || 1,
+            id: hostProfile?.id || stream.host_id,
+            isVerifiedHost: hostProfile?.is_host === true,
           });
         }
 
