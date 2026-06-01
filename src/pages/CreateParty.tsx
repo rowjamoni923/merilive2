@@ -32,7 +32,7 @@ import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
-import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -822,10 +822,13 @@ const CreateParty = () => {
             const newFacingMode = facingMode === "user" ? "environment" : "user";
             setFacingMode(newFacingMode);
             try {
-              const newStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: newFacingMode },
-                audio: true
-              });
+              const newStream = await claimAndroidWebViewCameraForStream(
+                () => navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: newFacingMode },
+                  audio: true
+                }),
+                'create-party:switch-camera-new-stream',
+              );
               setStream(newStream);
               if (videoRef.current) {
               }
