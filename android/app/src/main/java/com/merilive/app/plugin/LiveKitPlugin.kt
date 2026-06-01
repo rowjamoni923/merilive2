@@ -434,6 +434,9 @@ class LiveKitPlugin : Plugin() {
                 call.resolve(ret)
             } catch (e: Exception) {
                 Log.e(TAG, "connect failed", e)
+                try { room?.disconnect() } catch (_: Exception) {}
+                room = null
+                CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
             }
         }
