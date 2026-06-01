@@ -692,7 +692,6 @@ public class NativeCameraPlugin extends Plugin {
             resolved[0] = true;
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
             if (sessionId != cameraSessionId) {
-                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                 call.reject("Camera start cancelled");
                 return;
             }
@@ -712,7 +711,6 @@ public class NativeCameraPlugin extends Plugin {
             handler.removeCallbacks(timeout);
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
             if (sessionId != cameraSessionId) {
-                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                 call.reject("Camera start cancelled");
                 return;
             }
