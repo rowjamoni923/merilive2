@@ -63,22 +63,30 @@ export const hardenVideoElementForNative = (
   videoEl.style.backgroundColor = 'transparent';
 
   // === Hide-until-first-frame ===
-  // Keep the video element invisible (but laid out) until a real frame paints.
-  // This prevents Android WebView's native play-icon from flashing without
-  // painting any solid colour overlay (no black, no shield).
+  // Pkg-audit Bug N: Skip opacity:0 if the element is ALREADY playing real
+  // frames. Re-attaches (camera switch / beauty replace / harden re-runs)
+  // would otherwise blank an already-visible feed and rely on a new
+  // playing/loadeddata event that may never fire → permanent white screen.
+  const alreadyPlaying = !!videoEl.srcObject && videoEl.readyState >= 2 && !videoEl.paused;
   videoEl.style.transition = 'opacity 120ms linear';
-  videoEl.style.opacity = '0';
-  const revealOnFrame = () => { videoEl.style.opacity = '1'; };
-  const safe = videoEl as HTMLVideoElement & {
-    requestVideoFrameCallback?: (cb: () => void) => number;
-  };
-  if (typeof safe.requestVideoFrameCallback === 'function') {
-    try { safe.requestVideoFrameCallback(revealOnFrame); } catch { /* noop */ }
+  if (!alreadyPlaying) {
+    videoEl.style.opacity = '0';
   }
-  videoEl.addEventListener('playing', revealOnFrame, { once: true });
-  videoEl.addEventListener('loadeddata', () => {
-    if (videoEl.readyState >= 2) revealOnFrame();
-  }, { once: true });
+  const revealOnFrame = () => { videoEl.style.opacity = '1'; };
+  if (alreadyPlaying) {
+    revealOnFrame();
+  } else {
+    const safe = videoEl as HTMLVideoElement & {
+      requestVideoFrameCallback?: (cb: () => void) => number;
+    };
+    if (typeof safe.requestVideoFrameCallback === 'function') {
+      try { safe.requestVideoFrameCallback(revealOnFrame); } catch { /* noop */ }
+    }
+    videoEl.addEventListener('playing', revealOnFrame, { once: true });
+    videoEl.addEventListener('loadeddata', () => {
+      if (videoEl.readyState >= 2) revealOnFrame();
+    }, { once: true });
+  }
 
 
   // === ShadowRoot piercing — kill controls inside shadow DOM ===
