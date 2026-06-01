@@ -725,7 +725,7 @@ const LiveStream = () => {
       const { data: hostProfile } = stream?.host_id
         ? await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, gender, user_level, country_flag, country_name, is_host")
+            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
             .eq("id", stream.host_id)
             .maybeSingle()
         : { data: null };
@@ -740,7 +740,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -760,6 +760,7 @@ const LiveStream = () => {
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: profile.user_level || 1,
+          host_level: profile.host_level || 0,
           country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
@@ -787,14 +788,17 @@ const LiveStream = () => {
         // even if profiles_public fetch silently fails (RLS race / network / deleted).
         {
           const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
+          const hostLevel = Number(hostProfile?.host_level || hostProfile?.user_level || 1);
           setHostInfo({
             name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
             country: hostProfile?.country_flag || "🌍",
             language: "English",
             gender: hostProfile?.gender || "female",
-            level: hostProfile?.user_level || 1,
+            level: hostLevel > 0 ? hostLevel : 1,
             id: hostProfile?.id || stream.host_id,
+            frameId: hostProfile?.equipped_frame_id || hostProfile?.frame_id || null,
+            appUid: hostProfile?.app_uid || null,
             isVerifiedHost: hostProfile?.is_host === true,
           });
         }
