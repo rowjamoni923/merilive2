@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Camera, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
+import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 import {
   runConnectionCheck,
   CheckStatus,
@@ -55,7 +56,10 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
     (async () => {
       // Request permissions so labels are populated.
       try {
-        const tmp = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        const tmp = await claimAndroidWebViewCameraForStream(
+          () => navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
+          'prejoin:permission-probe',
+        );
         tmp.getTracks().forEach((t) => t.stop());
       } catch {
         /* user may deny — labels will be blank but ids still work */
@@ -73,10 +77,13 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
     const start = async () => {
       stopPreview();
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
-          video: prefs.videoinput ? { deviceId: { exact: prefs.videoinput } } : true,
-        });
+        const stream = await claimAndroidWebViewCameraForStream(
+          () => navigator.mediaDevices.getUserMedia({
+            audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
+            video: prefs.videoinput ? { deviceId: { exact: prefs.videoinput } } : true,
+          }),
+          'prejoin:preview',
+        );
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
@@ -141,6 +148,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
     audioCtxRef.current?.close().catch(() => {});
     audioCtxRef.current = null;
     previewStreamRef.current?.getTracks().forEach((t) => t.stop());
+    if (previewStreamRef.current) releaseAndroidWebViewCamera('prejoin:stop-preview');
     previewStreamRef.current = null;
     setMicLevel(0);
   };
