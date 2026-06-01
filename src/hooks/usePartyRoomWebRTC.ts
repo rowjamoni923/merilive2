@@ -40,6 +40,7 @@ import {
   getSelectiveSubConfig,
 } from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
+import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
@@ -173,6 +174,7 @@ export function usePartyRoomWebRTC(
     try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
     // Pkg133: drop reactions registration.
     try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterViewerCountRoom(roomId); } catch { /* ignore */ }
 
     if (tokenRefreshDetachRef.current) {
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
@@ -673,6 +675,11 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg80] registerPartyEventsRoom failed:', err);
         }
+        try {
+          registerViewerCountRoom(roomId, room);
+        } catch (err) {
+          console.warn('[PartyLiveKit] registerViewerCountRoom failed:', err);
+        }
 
         // Pkg81c: bind for in-room chat DataPackets. Replaces the
         // `party-chat-${roomId}` Supabase postgres_changes subscription.
@@ -754,6 +761,24 @@ export function usePartyRoomWebRTC(
         } else {
           await publishLocalMediaWithRetry();
         }
+
+        const partyVideoRecovery = setInterval(() => {
+          if (deadRef.current || !isVideoPartyType(roomType) || !partyCanPublishRef.current || !cameraReadyRef.current) return;
+          const activeRoom = roomRef.current;
+          if (!activeRoom || activeRoom.state !== ConnectionState.Connected) return;
+          const vPub = Array.from(activeRoom.localParticipant.trackPublications.values())
+            .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+          const mediaTrack = (vPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+          if (mediaTrack?.readyState !== 'ended') return;
+          console.warn('[PartyLiveKit] camera track ended, recovering');
+          activeRoom.localParticipant.setCameraEnabled(false).catch(() => {})
+            .then(() => new Promise((resolve) => setTimeout(resolve, 180)))
+            .then(() => claimWebViewCameraIfAndroid(true))
+            .then(() => activeRoom.localParticipant.setCameraEnabled(true))
+            .then(() => window.dispatchEvent(new Event('beauty:reapply')))
+            .catch((e) => console.warn('[PartyLiveKit] camera recovery failed:', e));
+        }, 4000);
+        delayedTimers.push(partyVideoRecovery as unknown as ReturnType<typeof setTimeout>);
 
         // Build local stream (initial pass)
         rebuildLocalStream();

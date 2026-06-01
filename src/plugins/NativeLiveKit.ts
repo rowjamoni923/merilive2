@@ -101,6 +101,13 @@ export interface VideoStallEvent {
   state: 'stalled' | 'failed';
 }
 
+export interface CameraStateEvent {
+  state: 'started' | 'failed';
+  reason: string;
+  attempt?: number;
+  error?: string;
+}
+
 export interface StallStatus {
   enabled: boolean;
   tracks: Array<{ sid: string; isLocal: boolean; silentMs: number; attempts: number }>;
@@ -218,7 +225,7 @@ export interface NativeLiveKitPlugin {
   disconnect(): Promise<void>;
   sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<void>;
-  setCameraEnabled(opts: { enabled: boolean }): Promise<void>;
+  setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled?: boolean; skipped?: boolean; reason?: string } | void>;
   switchCamera(): Promise<void>;
   attachLocal(): Promise<void>;
   attachRemote(opts: { sid: string }): Promise<void>;
@@ -599,6 +606,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'connection-state', cb: (e: ConnectionStateEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'camera-state', cb: (e: CameraStateEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'network-changed', cb: (e: NetworkChangedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'rtc-stats', cb: (e: RtcStatsEvent) => void): Promise<PluginListenerHandle>;
   /** Step 29 — fired both when entering and leaving Picture-in-Picture. */

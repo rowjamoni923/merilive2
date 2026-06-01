@@ -27,6 +27,10 @@ export interface NativeLiveKitEventHandlers {
   onConnectionState?: (state: 'reconnecting' | 'reconnected' | 'degraded' | 'reconnect-failed' | 'lost') => void;
   /** Step 18 — system audio focus lost/regained (PSTN call, alarm, navigation prompt, etc.). */
   onAudioInterruption?: (state: 'loss' | 'gain', permanent: boolean) => void;
+  /** OEM Camera2 open/retry state from native Android. */
+  onCameraState?: (state: 'started' | 'failed', reason: string, error?: string) => void;
+  /** Per-track decoded-frame watchdog event. */
+  onVideoStall?: (state: 'stalled' | 'failed', isLocal: boolean, sid: string) => void;
 }
 
 /**
@@ -107,6 +111,26 @@ export function useNativeLiveKitEvents(
         });
         if (cancelled) { audioInt.remove(); return; }
         subs.push(audioInt);
+
+        const cameraState = await NativeLiveKit.addListener('camera-state', (e) => {
+          handlersRef.current.onCameraState?.(e.state, e.reason, e.error);
+          if (e.state === 'started') {
+            setTimeout(attachAllRemoteSurfaces, 80);
+            setTimeout(attachAllRemoteSurfaces, 300);
+          }
+        });
+        if (cancelled) { cameraState.remove(); return; }
+        subs.push(cameraState);
+
+        const videoStall = await NativeLiveKit.addListener('video-stall', (e) => {
+          handlersRef.current.onVideoStall?.(e.state, e.isLocal, e.sid);
+          if (e.state === 'failed') {
+            setTimeout(attachAllRemoteSurfaces, 120);
+            setTimeout(attachAllRemoteSurfaces, 450);
+          }
+        });
+        if (cancelled) { videoStall.remove(); return; }
+        subs.push(videoStall);
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
       }

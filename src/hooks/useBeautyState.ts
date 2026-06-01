@@ -31,6 +31,7 @@ import {
   isNativeBeautyAvailable,
   loadStoredLevels,
   persistLevels,
+  resetBeautyInit,
   setBeautyEnabled as setNativeBeautyEnabled,
   type ProBeautyLevels,
 } from '@/plugins/GPUPixelBeauty';
@@ -111,7 +112,12 @@ export function useBeautyState(): any {
   useEffect(() => {
     if (!isNativeBeautyAvailable()) return;
     const replay = () => { void drive(lastLevelsRef.current, lastEnabledRef.current); };
-    const onVisible = () => { if (document.visibilityState === 'visible') replay(); };
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      resetBeautyInit();
+      replay();
+      setTimeout(replay, 700);
+    };
     window.addEventListener('beauty:reapply', replay);
     document.addEventListener('visibilitychange', onVisible);
     return () => {

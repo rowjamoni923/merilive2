@@ -97,6 +97,7 @@ export function useLiveKitCall(
   // but as state so the effect re-runs after a successful native connect.
   const [nativeActive, setNativeActive] = useState(false);
   const remoteAudioKeysRef = useRef<Set<string>>(new Set());
+  const callVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -111,6 +112,8 @@ export function useLiveKitCall(
         if (ok) {
           setNativeActive(true);
           setState(p => ({ ...p, isConnected: true, connectionState: 'connected' }));
+          window.dispatchEvent(new Event('beauty:reapply'));
+          setTimeout(() => window.dispatchEvent(new Event('beauty:reapply')), 800);
           toast.success('Reconnected', { id: 'lk-reconnect', duration: 1500 });
         }
       }).catch(() => {
@@ -141,6 +144,23 @@ export function useLiveKitCall(
         toast.dismiss('lk-audio-interrupt');
       }
     },
+    onCameraState: (s) => {
+      if (deadRef.current) return;
+      if (s === 'started') {
+        window.dispatchEvent(new Event('beauty:reapply'));
+        setState(p => ({ ...p, localMediaReady: true, isVideoEnabled: true }));
+      } else {
+        toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
+        nativeLiveKitController.reconnectNow().catch(() => {});
+      }
+    },
+    onVideoStall: (s, isLocal) => {
+      if (deadRef.current) return;
+      if (s === 'failed' && isLocal) {
+        toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
+        nativeLiveKitController.reconnectNow().catch(() => {});
+      }
+    },
   });
 
   // Pause camera + mic when the app is backgrounded; restore on resume.
@@ -152,6 +172,10 @@ export function useLiveKitCall(
     console.log('[LiveKitCall] cleanup');
     deadRef.current = true;
     isInitRef.current = false;
+    if (callVideoRecoveryTimerRef.current) {
+      clearInterval(callVideoRecoveryTimerRef.current);
+      callVideoRecoveryTimerRef.current = null;
+    }
 
     // Pkg73: drop call-signaling registration before tearing the room down.
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
@@ -619,6 +643,21 @@ export function useLiveKitCall(
           preparedStream,
         });
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
+        if (callVideoRecoveryTimerRef.current) clearInterval(callVideoRecoveryTimerRef.current);
+        callVideoRecoveryTimerRef.current = setInterval(() => {
+          if (deadRef.current || usingNativeRef.current) return;
+          const activeRoom = roomRef.current;
+          if (!activeRoom || activeRoom.state !== ConnectionState.Connected) return;
+          const vPub = Array.from(activeRoom.localParticipant.trackPublications.values())
+            .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+          const mediaTrack = (vPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+          if (mediaTrack?.readyState !== 'ended') return;
+          activeRoom.localParticipant.setCameraEnabled(false).catch(() => {})
+            .then(() => new Promise((resolve) => setTimeout(resolve, 150)))
+            .then(() => activeRoom.localParticipant.setCameraEnabled(true))
+            .then(() => window.dispatchEvent(new Event('beauty:reapply')))
+            .catch((e) => console.warn('[LiveKitCall] camera recovery failed:', e));
+        }, 4000);
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during
         // the enableCameraAndMicrophone() await. Disable + disconnect now so

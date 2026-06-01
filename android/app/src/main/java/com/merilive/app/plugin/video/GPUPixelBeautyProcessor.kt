@@ -13,6 +13,8 @@ import livekit.org.webrtc.JavaI420Buffer
 import livekit.org.webrtc.VideoFrame
 import livekit.org.webrtc.VideoProcessor
 import livekit.org.webrtc.VideoSink
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -256,6 +258,7 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     fun release() {
+        val latch = CountDownLatch(1)
         worker.post {
             try {
                 rawInput?.RemoveAllSinks()
@@ -275,7 +278,10 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
             lipstick = null
             blusher = null
             initialized.set(false)
+            busy.set(false)
+            latch.countDown()
         }
+        try { latch.await(500L, TimeUnit.MILLISECONDS) } catch (_: Throwable) {}
         workerThread.quitSafely()
     }
 }
