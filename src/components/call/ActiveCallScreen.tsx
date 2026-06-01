@@ -635,6 +635,7 @@ export function ActiveCallScreen({
 
   const callUi = (
     <div
+      data-room-shell
       className="fixed inset-0 z-[100] flex select-none overflow-hidden"
       style={{ 
         userSelect: 'none', 
@@ -643,6 +644,10 @@ export function ActiveCallScreen({
         willChange: 'transform',
         width: '100vw',
         height: '100dvh',
+        // Pkg415: when native LiveKit TextureView is mounted behind the
+        // WebView, the gradient layer below already fades out via opacity;
+        // ensure this fixed root itself is transparent so the camera shows.
+        background: isNativeMediaActive ? 'transparent' : undefined,
       }}
     >
       {/* Background - lightweight solid gradient (transparent when native video is mounted behind WebView) */}
