@@ -10,7 +10,7 @@ const hasLiveVideo = (stream: MediaStream | null | undefined) =>
 export async function claimAndroidWebViewCamera(reason: string): Promise<boolean> {
   if (!isNativeLiveKitAvailable()) return false;
   try {
-    await NativeLiveKit.claimCameraForWebView();
+    if (webViewVideoClaimCount === 0) await NativeLiveKit.claimCameraForWebView();
     webViewVideoClaimCount += 1;
     console.log(`[AndroidCameraHandoff] claimed WebView camera: ${reason}`);
     return true;
