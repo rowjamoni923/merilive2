@@ -526,7 +526,6 @@ public class NativeCameraPlugin extends Plugin {
             // PreviewView has a valid Surface by the time CameraX binds to it.
             previewView.post(() -> {
                 if (sessionId != cameraSessionId || previewView == null) {
-                    CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                     call.reject("Camera start cancelled");
                     return;
                 }
@@ -536,7 +535,6 @@ public class NativeCameraPlugin extends Plugin {
                     future.addListener(() -> {
                         try {
                             if (sessionId != cameraSessionId || previewView == null) {
-                                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                                 call.reject("Camera start cancelled");
                                 return;
                             }
