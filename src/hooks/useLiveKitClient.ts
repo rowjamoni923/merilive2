@@ -722,14 +722,31 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           clearViewerHardReconnectTimer();
 
           if (config.role === 'audience') {
-            setRemoteUsers(new Map());
+            // Pkg-audit Bug G: do NOT wipe remoteUsers synchronously — that
+            // blanks the viewer's video tile for 0-300ms on every reconnect.
+            // Instead, re-subscribe to current participants and drop any that
+            // are no longer in the room AFTER the resync runs.
             const resync = () => {
               if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
-              room.remoteParticipants.forEach((participant) => ensureParticipantSubscribed(participant));
+              const liveIds = new Set<string>();
+              room.remoteParticipants.forEach((participant) => {
+                liveIds.add(participant.identity);
+                ensureParticipantSubscribed(participant);
+              });
+              // Diff-remove anyone who actually left
+              setRemoteUsers((prev) => {
+                let changed = false;
+                const next = new Map(prev);
+                for (const id of next.keys()) {
+                  if (!liveIds.has(id)) { next.delete(id); changed = true; }
+                }
+                return changed ? next : prev;
+              });
             };
             resync();
             [40, 120, 300].forEach((delay) => setTimeout(resync, delay));
           }
+
 
           // Host track publishing is handled in the dedicated host publish block below.
           // Avoid duplicate camera/mic enable calls here — these can trigger repeated
@@ -998,11 +1015,21 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   try {
                     await room.localParticipant.unpublishTrack(cameraPub.track, false);
                     const replacementPub = await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-                    if (replacementPub?.track) setLocalVideoTrack(replacementPub.track);
+                    // Pkg-audit Bug H: if the beauty publish returned no track,
+                    // fall back to the original camera publication so the host
+                    // preview never goes blank while we're still broadcasting.
+                    if (replacementPub?.track) {
+                      setLocalVideoTrack(replacementPub.track);
+                    } else if (cameraPub.track) {
+                      setLocalVideoTrack(cameraPub.track);
+                    }
                     console.log('[LiveKitClient] ✅ Replaced camera track with beauty-processed track');
                   } catch (e) {
                     console.warn('[LiveKitClient] Beauty track replacement failed, using original:', e);
+                    // Defense-in-depth: re-anchor preview to the original track
+                    if (cameraPub.track) setLocalVideoTrack(cameraPub.track);
                   }
+
                 }
               }
             }
@@ -1069,7 +1096,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   recovering = false;
                 });
             }
-          }, 10000);
+          }, 3000); // Pkg-audit Bug I: reduced from 10s → 3s so blank-after-interrupt recovers in 3s, not 10s.
+
         } catch (trackErr: any) {
           console.error('[LiveKitClient] Track creation error:', trackErr);
           // 🚨 Surface the error so the host sees a clear toast instead of
