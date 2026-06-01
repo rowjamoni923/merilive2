@@ -1,6 +1,7 @@
 import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 
 const VIDEO_CLAIM_KEY = '__meriWebViewCameraClaimed';
+const TRACK_STOP_PATCH_KEY = '__meriStopReleasesCamera';
 let webViewVideoClaimCount = 0;
 
 const hasLiveVideo = (stream: MediaStream | null | undefined) =>
@@ -40,7 +41,17 @@ export function releaseAndroidWebViewCameraWhenStopped(stream: MediaStream | nul
     }
   };
 
-  stream.getVideoTracks().forEach((track) => track.addEventListener('ended', maybeRelease, { once: true }));
+  stream.getVideoTracks().forEach((track) => {
+    track.addEventListener('ended', maybeRelease, { once: true });
+    const t = track as MediaStreamTrack & Record<string, unknown>;
+    if (t[TRACK_STOP_PATCH_KEY]) return;
+    const originalStop = track.stop.bind(track);
+    t[TRACK_STOP_PATCH_KEY] = true;
+    t.stop = () => {
+      originalStop();
+      maybeRelease();
+    };
+  });
 }
 
 export function stopMediaStreamAndReleaseAndroidCamera(stream: MediaStream | null | undefined, reason: string): void {
