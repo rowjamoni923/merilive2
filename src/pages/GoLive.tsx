@@ -400,15 +400,23 @@ const GoLive = () => {
     navigate(-1);
   };
 
-  // Pkg416: claim the single shared camera slot for streaming. If
-  // Face Verification currently holds it, acquire() throws and we surface
-  // a toast instead of letting two pipelines race for /dev/video0.
+  // Pkg416/Pkg418: claim the single shared camera slot for streaming. If
+  // Face Verification currently holds it, acquire() throws and we HARD
+  // BLOCK every camera-start path (handleAllowPermissions early-return)
+  // and bounce the host out so two pipelines never race for /dev/video0.
   const proCamera = useProCamera('live-stream', true);
+  const proCameraReadyRef = useRef<boolean>(false);
+  const proCameraErrorRef = useRef<boolean>(false);
   useEffect(() => {
+    proCameraReadyRef.current = proCamera.ready;
+    proCameraErrorRef.current = !!proCamera.error;
     if (proCamera.error) {
       toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      // Hard bail: leave GoLive so user can't sit on a stuck white screen.
+      const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
+      return () => clearTimeout(t);
     }
-  }, [proCamera.error]);
+  }, [proCamera.error, proCamera.ready, navigate]);
 
   // LiveKit client hook
   const {
@@ -540,6 +548,12 @@ const GoLive = () => {
 
   // Function to actually request permissions when user clicks Allow
   const handleAllowPermissions = async () => {
+    // Pkg418 hard gate: never start ANY camera path while ProCamera arbiter
+    // says verification family holds the slot (or hasn't granted us yet).
+    if (proCameraErrorRef.current || !proCameraReadyRef.current) {
+      toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      return;
+    }
     setShowPermissionPrompt(false);
 
     // Pkg415: On Android we MUST try the native CameraX preview FIRST.

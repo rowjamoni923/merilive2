@@ -77,8 +77,11 @@ export function ActiveCallScreen({
   useEffect(() => {
     if (proCamera.error) {
       toast.error('Camera is busy with face verification. Please finish that first.');
+      // Pkg418 hard gate: end the call so LiveKit never tries to claim
+      // the camera while verification holds it.
+      try { onEndCall?.(); } catch { /* ignore */ }
     }
-  }, [proCamera.error]);
+  }, [proCamera.error, onEndCall]);
 
   // REAL native beauty integration (Pkg417 — actually drives GPUPixel now)
   const beauty = useBeautyState();

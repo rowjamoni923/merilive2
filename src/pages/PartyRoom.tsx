@@ -268,11 +268,16 @@ const PartyRoom = () => {
     partyCameraOwner ?? 'video-party',
     !!partyCameraOwner,
   );
+  // Audio rooms never need camera arbitration — they're always "ready".
+  const partyCameraReady = partyCameraOwner ? partyProCamera.ready : true;
   useEffect(() => {
     if (partyProCamera.error) {
       toast.error('Camera is busy with face verification. Please finish that first.');
+      // Pkg418 hard gate: bounce out of the room so LiveKit never races.
+      const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
+      return () => clearTimeout(t);
     }
-  }, [partyProCamera.error]);
+  }, [partyProCamera.error, navigate]);
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(currentUser?.id);
@@ -605,7 +610,8 @@ const PartyRoom = () => {
     currentUser?.id || null,
     room?.room_type || 'video',
     isHost,
-    isHost || myPosition !== null
+    isHost || myPosition !== null,
+    partyCameraReady
   );
 
   // Voice/silence auto-close intentionally disabled for party rooms.
