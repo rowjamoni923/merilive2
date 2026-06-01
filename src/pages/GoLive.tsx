@@ -95,6 +95,20 @@ const GoLive = () => {
   const [nativePreviewActive, setNativePreviewActive] = useState(false);
   const nativePreviewStartInFlightRef = useRef(false);
 
+  const applyNativePreviewTransparency = useCallback((active: boolean) => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.toggle('native-face-camera-active', active);
+    document.body.classList.toggle('native-face-camera-active', active);
+    document.documentElement.classList.toggle('native-media-active', active);
+    document.body.classList.toggle('native-media-active', active);
+  }, []);
+
+  useEffect(() => {
+    if (!isNativeAndroid) return;
+    applyNativePreviewTransparency(nativePreviewActive);
+    return () => applyNativePreviewTransparency(false);
+  }, [isNativeAndroid, nativePreviewActive, applyNativePreviewTransparency]);
+
   // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
     isNativeAndroid,
@@ -130,6 +144,13 @@ const GoLive = () => {
 
     nativePreviewStartInFlightRef.current = true;
     try {
+      // NativeCamera preview is mounted behind the Capacitor WebView. The
+      // document/body/#root must be transparent BEFORE CameraX attaches;
+      // otherwise the light app background covers the preview and the user
+      // sees the exact white screen from the Android screenshot while camera
+      // provider logs still show frames.
+      applyNativePreviewTransparency(true);
+
       // Prevent dual camera ownership (web + native) before native start
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -150,17 +171,20 @@ const GoLive = () => {
         setShowPermissionPrompt(false);
         setFacingMode('user');
         setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+      } else {
+        applyNativePreviewTransparency(false);
       }
       return started;
     } finally {
       nativePreviewStartInFlightRef.current = false;
     }
-  }, [isNativeAndroid, nativePreviewActive, startNativeCamera]);
+  }, [isNativeAndroid, nativePreviewActive, startNativeCamera, applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
     await stopNativeCamera();
+    applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
-  }, [stopNativeCamera]);
+  }, [stopNativeCamera, applyNativePreviewTransparency]);
 
   const openBeautyStudio = useCallback(async () => {
     // Always open the panel — works on web (CSS/MediaPipe) and on Android
