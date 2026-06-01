@@ -14,6 +14,7 @@ import { NativeCamera } from '@/plugins/NativeCamera';
 import { getUserMediaWithFallback } from '@/hooks/useNativeCameraPermission';
 import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
+import { whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitKillSwitch';
 
 interface CallState {
   callId: string | null;
@@ -507,6 +508,7 @@ export function usePrivateCall(userId: string | null) {
 
     let preparedOutgoingStream: MediaStream | null = null;
     try {
+      if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
       if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
         preparedOutgoingStream = await getUserMediaWithFallback(true);
       }
@@ -855,6 +857,7 @@ export function usePrivateCall(userId: string | null) {
   const acceptCall = useCallback(async (callId: string) => {
     let preparedIncomingStream: MediaStream | null = null;
     try {
+      if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
       if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
         preparedIncomingStream = await getUserMediaWithFallback(true);
         setPreparedCallMediaStream(callId, preparedIncomingStream);
