@@ -68,10 +68,21 @@ export function usePartyRoomWebRTC(
   roomType: 'video' | 'audio' | 'game',
   _isHost: boolean,
   /** When false, LiveKit token is subscribe-only (audience); no local camera/mic publish. */
-  partyCanPublish: boolean
+  partyCanPublish: boolean,
+  /**
+   * Pkg418: ProCamera arbiter clearance. Defaults to true so audio-only
+   * rooms (which never publish video) and legacy callers keep working.
+   * Video/game rooms MUST pass `useProCamera('video-party'|'game-party').ready`
+   * — otherwise every `setCameraEnabled(true)` site below short-circuits
+   * to false (no LiveKit camera publish) so the streaming family never
+   * races face-verify for /dev/video0.
+   */
+  cameraReady: boolean = true
 ) {
   const partyCanPublishRef = useRef(partyCanPublish);
   partyCanPublishRef.current = partyCanPublish;
+  const cameraReadyRef = useRef(cameraReady);
+  cameraReadyRef.current = cameraReady;
   const [state, setState] = useState<PartyWebRTCState>({
     localStream: null,
     peerStreams: new Map(),
