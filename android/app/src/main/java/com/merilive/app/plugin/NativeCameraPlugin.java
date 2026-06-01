@@ -128,7 +128,10 @@ public class NativeCameraPlugin extends Plugin {
             call.reject("Camera busy: held by " + existingOwner);
             return;
         }
-        CameraOwnership.acquire(CameraOwnership.OWNER_NATIVE_CAMERA, false);
+        if (!CameraOwnership.acquire(CameraOwnership.OWNER_NATIVE_CAMERA, false)) {
+            call.reject("Camera busy: held by " + CameraOwnership.owner());
+            return;
+        }
 
         String lens = call.getString("lens", "front");
         String res = call.getString("resolution", "1080p");
@@ -476,11 +479,15 @@ public class NativeCameraPlugin extends Plugin {
                     call.resolve(ret);
                 } catch (Exception e) {
                     Log.e(TAG, "bindCameraAsync failed", e);
+                    CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                    removePreviewView();
                     call.reject("Failed to start camera: " + e.getMessage());
                 }
             }, ContextCompat.getMainExecutor(getContext()));
         } catch (Exception e) {
             Log.e(TAG, "bindCameraAsync setup failed", e);
+            CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+            removePreviewView();
             call.reject("Camera setup failed: " + e.getMessage());
         }
     }
