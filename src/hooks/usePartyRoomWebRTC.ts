@@ -850,8 +850,11 @@ export function usePartyRoomWebRTC(
       try {
         if (partyCanPublish) {
           if (isVideoPartyType(roomType)) {
-            await claimWebViewCameraIfAndroid(true);
-            await room.localParticipant.setCameraEnabled(true);
+            // Pkg418 hard gate: skip camera publish when arbiter isn't clear.
+            if (cameraReadyRef.current) {
+              await claimWebViewCameraIfAndroid(true);
+              await room.localParticipant.setCameraEnabled(true);
+            }
           }
           await room.localParticipant.setMicrophoneEnabled(true);
           if (cancelled) return;
