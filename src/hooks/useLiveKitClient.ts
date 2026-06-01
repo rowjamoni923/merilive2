@@ -1205,18 +1205,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Pkg-fix: explicitly stop local hardware tracks BEFORE disconnect so the
       // camera/mic LEDs go off immediately on Android WebViews even if a React
-      // ref somewhere still holds the track reference.
+      // ref somewhere still holds the track reference. Read from the live room
+      // (not React state) so stale closures don't leak tracks.
       try {
-        const lv: any = localVideoTrack;
-        if (lv) {
-          if (typeof lv.stop === 'function') lv.stop();
-          if (lv.mediaStreamTrack && typeof lv.mediaStreamTrack.stop === 'function') lv.mediaStreamTrack.stop();
-        }
-        const la: any = localAudioTrack;
-        if (la) {
-          if (typeof la.stop === 'function') la.stop();
-          if (la.mediaStreamTrack && typeof la.mediaStreamTrack.stop === 'function') la.mediaStreamTrack.stop();
-        }
+        const lp: any = roomRef.current?.localParticipant;
+        const pubs = lp?.trackPublications ? Array.from(lp.trackPublications.values()) : [];
+        pubs.forEach((pub: any) => {
+          const t = pub?.track;
+          if (!t) return;
+          try { if (typeof t.stop === 'function') t.stop(); } catch {}
+          try { if (t.mediaStreamTrack?.stop) t.mediaStreamTrack.stop(); } catch {}
+        });
       } catch { /* noop */ }
 
       if (roomRef.current) {
