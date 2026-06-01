@@ -150,3 +150,11 @@ dependencies {
     // overhead is ~3 ms on a Snapdragon 8 Gen 2.
     implementation 'com.google.mediapipe:tasks-vision:0.10.14'
 }
+
+// Pkg411 — wire installed @capacitor/* plugin Android modules. MUST be at
+// the bottom (after dependencies {} closes) because capacitor.build.gradle
+// contributes its own android {} + dependencies {} blocks at file scope.
+// Without this the push-notifications plugin has no Android implementation,
+// PushNotifications.register() silently fails, no FCM token is uploaded to
+// Supabase.device_tokens, and admin pushes never reach the device.
+apply from: 'capacitor.build.gradle'
