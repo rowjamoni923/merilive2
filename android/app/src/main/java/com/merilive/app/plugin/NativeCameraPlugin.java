@@ -171,6 +171,8 @@ public class NativeCameraPlugin extends Plugin {
                     lastFrameEncodeAt = 0L;
                 }
                 removePreviewView();
+                // Pkg415: release Camera2 ownership so LiveKit (or another plugin) can claim it.
+                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                 call.resolve();
             } catch (Exception e) {
                 call.reject("Failed to stop camera: " + e.getMessage());
