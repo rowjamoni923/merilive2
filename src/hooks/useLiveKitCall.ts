@@ -536,6 +536,8 @@ export function useLiveKitCall(
               const mt = track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
+            // Pkg417 — re-apply pro beauty on every (re)publish.
+            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           }
         });
 

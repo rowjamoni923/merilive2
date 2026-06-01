@@ -593,6 +593,10 @@ export function usePartyRoomWebRTC(
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
+            // Pkg417 — re-apply pro beauty on every (re)publish so
+            // video-party / game-party also keep the GPUPixel processor
+            // attached after seat changes / track recovery.
+            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           }
           rebuildLocalStream();
         });
