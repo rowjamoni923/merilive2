@@ -455,14 +455,16 @@ class LiveKitPlugin : Plugin() {
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
         val existingOwner = CameraOwnership.owner()
-        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        val isReentrantReconnect = isReconnect &&
+            (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
+        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
         }
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
-        activity?.runOnUiThread { detachAllRenderersInternal() }
+        withContext(Dispatchers.Main) { detachAllRenderersInternal() }
         // Tear down any previous room first.
         room?.disconnect()
         room = null
@@ -576,9 +578,7 @@ class LiveKitPlugin : Plugin() {
         try { localSid = newRoom.localParticipant.sid.value } catch (_: Exception) {}
         startStatsCollector()
 
-        activity?.runOnUiThread {
-            attachAllRemoteRenderersInternal(newRoom)
-        }
+        withContext(Dispatchers.Main) { attachAllRemoteRenderersInternal(newRoom) }
 
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
