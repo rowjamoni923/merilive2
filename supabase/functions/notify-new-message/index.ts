@@ -136,11 +136,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: verifiedMessage, error: verifyError } = await supabase
       .from("messages")
-      .select("id, conversation_id, sender_id, content, message_type")
+      .select("id, conversation_id, sender_id, content, message_type, media_url")
       .eq("id", messageId)
       .eq("conversation_id", conversationId)
       .eq("sender_id", senderId)
       .maybeSingle();
+
 
     const { data: conversation, error: conversationError } = await supabase
       .from("conversations")
