@@ -8,6 +8,7 @@ import { useState, useRef, useCallback } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
 import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { NativeCamera } from '@/plugins/NativeCamera';
 
 export function useBeautyState(): any {
   const [beautyEnabled, setBeautyEnabled] = useState(false);
@@ -28,8 +29,32 @@ export function useBeautyState(): any {
   const handleStickerChange = useCallback((s: string | null) => setActiveSticker(s), []);
   const toggleSticker = useCallback(() => setStickerActive(v => !v), []);
   const openBeautyPanel = useCallback(() => setShowBeautyPanel(true), []);
-  const switchNativeCamera = useCallback(() => {
-    setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
+  const startNativeCamera = useCallback(async () => {
+    if (!isNativeAndroidApp()) return false;
+    try {
+      const lens = facingMode === 'environment' ? 'back' : 'front';
+      const result = await NativeCamera.start({ lens, resolution: '1080p' });
+      return !!result?.started;
+    } catch (error) {
+      console.warn('[useBeautyState] NativeCamera.start failed:', error);
+      return false;
+    }
+  }, [facingMode]);
+  const stopNativeCamera = useCallback(async () => {
+    if (!isNativeAndroidApp()) return;
+    try { await NativeCamera.stop(); } catch { /* native optional */ }
+  }, []);
+  const switchNativeCamera = useCallback(async () => {
+    if (!isNativeAndroidApp()) {
+      setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
+      return;
+    }
+    try {
+      const result = await NativeCamera.switchCamera();
+      setFacingMode(result?.lens === 'back' ? 'environment' : 'user');
+    } catch (error) {
+      console.warn('[useBeautyState] NativeCamera.switchCamera failed:', error);
+    }
   }, []);
   const getLastError = useCallback(() => null, []);
 
@@ -55,8 +80,8 @@ export function useBeautyState(): any {
     toggleSticker,
     openBeautyPanel,
     switchNativeCamera,
-    startNativeCamera: noopAsync,
-    stopNativeCamera: noop,
+    startNativeCamera,
+    stopNativeCamera,
     initBeauty: async () => false,
     destroyBeauty: noop,
     applyToVideoElement: noop,
