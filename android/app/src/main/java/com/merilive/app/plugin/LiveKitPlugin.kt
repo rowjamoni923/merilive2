@@ -578,6 +578,22 @@ class LiveKitPlugin : Plugin() {
                 stopStatsCollector()
                 qualityTable.clear()
                 unregisterNetworkCallback()
+                // Native camera-release pass: explicitly disable camera +
+                // mic BEFORE room.disconnect() so the underlying Camera2
+                // capture session is torn down in a clean order. Without
+                // this the SDK sometimes releases the room object while
+                // the capture session is still pumping frames, leaving
+                // the Camera2 device locked until the next process
+                // restart — that is what produces the "white/blank
+                // screen on re-enter" the host sees after tapping close.
+                val pre = room
+                if (pre != null) {
+                    try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    // Also flip the beauty bridge OFF so GPUPixel releases
+                    // the camera if it currently owns it.
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                }
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
@@ -644,6 +660,21 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
+                // Camera arbiter: if the GPUPixel beauty pipeline currently
+                // owns the physical Camera2 device, never let JS turn
+                // LiveKit's native capture back on — both holders would
+                // race for the same device handle and the second opener
+                // gets a CameraAccessException, leaving the preview blank.
+                // Beauty pipeline must be disabled first (see
+                // setBeautyPipelineEnabled).
+                if (enabled && BeautyPipelineBridge.isEnabled()) {
+                    val ret = JSObject()
+                    ret.put("enabled", false)
+                    ret.put("skipped", true)
+                    ret.put("reason", "beauty-pipeline-owns-camera")
+                    call.resolve(ret)
+                    return@launch
+                }
                 r.localParticipant.setCameraEnabled(enabled)
                 call.resolve()
             } catch (e: Exception) {
@@ -680,13 +711,25 @@ class LiveKitPlugin : Plugin() {
         val r = room
         scope.launch {
             try {
-                BeautyPipelineBridge.setEnabled(enabled)
-                if (r != null) {
-                    // Flip LiveKit's camera ownership: when beauty is on we
-                    // mute the native camera track so GPUPixel can use the
-                    // device; when beauty is off we re-enable it so LiveKit
-                    // resumes its own capture.
-                    r.localParticipant.setCameraEnabled(!enabled)
+                if (enabled) {
+                    // Beauty ON: release LiveKit's camera FIRST, then flip
+                    // the bridge flag, then let Camera2 settle (~150ms) so
+                    // GPUPixel can open the device on the JS-side call
+                    // without a CameraAccessException.
+                    if (r != null) {
+                        try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    }
+                    delay(150L)
+                    BeautyPipelineBridge.setEnabled(true)
+                } else {
+                    // Beauty OFF: flip the bridge flag FIRST so GPUPixel
+                    // sink drains, give Camera2 a beat to release, then
+                    // re-enable LiveKit's native capture.
+                    BeautyPipelineBridge.setEnabled(false)
+                    delay(150L)
+                    if (r != null) {
+                        try { r.localParticipant.setCameraEnabled(true) } catch (_: Exception) {}
+                    }
                 }
                 val ret = JSObject()
                 ret.put("enabled", enabled)
@@ -1382,7 +1425,20 @@ class LiveKitPlugin : Plugin() {
             stopReconnectWatchdog()
             unregisterNetworkCallback()
             lastConnectArgs = null
-            scope.launch { room?.disconnect() }
+            // Native camera-release pass: explicitly disable camera + mic
+            // BEFORE disconnect so Camera2 session unwinds in order and
+            // the device is not held into the next process.
+            scope.launch {
+                try {
+                    val pre = room
+                    if (pre != null) {
+                        try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                        try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    }
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    room?.disconnect()
+                } catch (_: Exception) {}
+            }
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
             applyAudioMode(false)

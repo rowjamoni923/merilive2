@@ -142,6 +142,16 @@ public class NativeCameraPlugin extends Plugin {
                     activeRecording = null;
                 }
                 if (cameraProvider != null) cameraProvider.unbindAll();
+                // Null the retained use-case references so the next start()
+                // rebinds a fresh Preview / ImageCapture / VideoCapture
+                // against the current lifecycle. Without this, a stale
+                // imageCapture/videoCapture left over from a prior session
+                // would be referenced by capturePhoto/startVideoRecording
+                // and trigger CameraX "use-case not attached" errors —
+                // which surface to the user as a frozen / blank preview.
+                imageCapture = null;
+                videoCapture = null;
+                camera = null;
                 synchronized (frameLock) {
                     latestFrameJpeg = null;
                     latestFrameWidth = 0;
