@@ -389,6 +389,15 @@ const GoLive = () => {
 
   // Handle back button
   const handleBack = async () => {
+    // Pkg-fix: if a native camera start is currently in-flight, wait briefly so
+    // we don't tear down state mid-init (which leaves CameraX in an inconsistent
+    // state and produces a white preview on re-entry).
+    if (nativePreviewStartInFlightRef.current) {
+      const deadline = Date.now() + 1500;
+      while (nativePreviewStartInFlightRef.current && Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+    }
     clearPreparedHostPreviewStream();
     await stopNativePreview();
     if (streamRef.current) {
