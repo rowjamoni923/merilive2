@@ -127,6 +127,7 @@ import { Capacitor } from "@capacitor/core";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { claimAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
 interface PKBattleState {
@@ -2624,6 +2625,7 @@ const LiveStream = () => {
       if (roomAny?.localParticipant) {
         try { await roomAny.localParticipant.setCameraEnabled(false); } catch { /* ignore */ }
         await new Promise((r) => setTimeout(r, 120));
+        try { await claimAndroidWebViewCamera('livestream:web-recover-camera'); } catch { /* ignore */ }
         try { await roomAny.localParticipant.setCameraEnabled(true); } catch { /* ignore */ }
         try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
       }

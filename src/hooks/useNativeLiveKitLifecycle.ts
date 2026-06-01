@@ -13,7 +13,6 @@
 import { useEffect, useRef } from 'react';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
-import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 
 export interface NativeLiveKitLifecycleOptions {
   /** Whether to pause/resume the camera (host + video call). Default true. */
@@ -53,12 +52,11 @@ export function useNativeLiveKitLifecycle(
         const { App } = await import('@capacitor/app');
         if (cancelled) return;
         const h = await App.addListener('appStateChange', async ({ isActive }) => {
-          if (!nativeLiveKitController.isConnected()) return;
           try {
             if (!isActive) {
               console.log('[useNativeLiveKitLifecycle] App inactive — keeping native LiveKit tracks alive');
             } else {
-              await nativeLiveKitController.reconnectNow();
+              console.log('[useNativeLiveKitLifecycle] App active — keeping existing native LiveKit session');
             }
           } catch (err) {
             console.warn('[useNativeLiveKitLifecycle] toggle failed:', err);

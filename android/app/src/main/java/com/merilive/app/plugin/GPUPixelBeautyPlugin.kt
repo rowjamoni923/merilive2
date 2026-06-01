@@ -117,7 +117,7 @@ class GPUPixelBeautyPlugin : Plugin() {
         // setBeautyPipelineEnabled() (camera-disable → 150ms wait → bridge
         // flip → camera-enable) when LiveKit is the active owner.
         val owner = CameraOwnership.owner()
-        if (owner == CameraOwnership.OWNER_LIVEKIT) {
+        if (owner == CameraOwnership.OWNER_LIVEKIT || owner == CameraOwnership.OWNER_NATIVE_CAMERA) {
             // LiveKitPlugin handles the handshake; just no-op here so callers
             // that hit the wrong plugin don't break the live session.
             call.resolve(JSObject().put("enabled", enabled).put("deferred", true))

@@ -1,4 +1,5 @@
 import { Room, Track, type LocalTrackPublication } from 'livekit-client';
+import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
 
@@ -29,8 +30,8 @@ const markVideoTrack = (track: MediaStreamTrack) => {
   try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch { /* ignore */ }
 };
 
-const getUserMediaAttempt = (constraints: MediaStreamConstraints) =>
-  navigator.mediaDevices.getUserMedia(constraints);
+const getUserMediaAttempt = (constraints: MediaStreamConstraints, reason: string) =>
+  claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia(constraints), reason);
 
 async function createFallbackStream(needVideo: boolean, needAudio: boolean): Promise<MediaStream> {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
@@ -43,7 +44,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
   if (needVideo) {
     for (const video of VIDEO_CONSTRAINTS) {
       try {
-        const stream = await getUserMediaAttempt({ video, audio: needAudio ? AUDIO_CONSTRAINTS : false });
+        const stream = await getUserMediaAttempt({ video, audio: needAudio ? AUDIO_CONSTRAINTS : false }, 'livekit-reliable:combined');
         if (stream.getVideoTracks().some(isLive)) return stream;
         stream.getTracks().forEach((track) => track.stop());
       } catch (error) {
@@ -55,7 +56,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
   if (needVideo) {
     for (const video of VIDEO_CONSTRAINTS) {
       try {
-        const stream = await getUserMediaAttempt({ video, audio: false });
+        const stream = await getUserMediaAttempt({ video, audio: false }, 'livekit-reliable:video');
         if (stream.getVideoTracks().some(isLive)) {
           streams.push(stream);
           break;
@@ -69,7 +70,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
 
   if (needAudio) {
     try {
-      streams.push(await getUserMediaAttempt({ video: false, audio: AUDIO_CONSTRAINTS }));
+      streams.push(await navigator.mediaDevices.getUserMedia({ video: false, audio: AUDIO_CONSTRAINTS }));
     } catch (error) {
       lastError = error;
     }

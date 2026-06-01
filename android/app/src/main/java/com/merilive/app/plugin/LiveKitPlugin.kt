@@ -60,6 +60,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
@@ -350,7 +351,9 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
+        synchronized(LiveKitPlugin::class.java) {
+            if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
+        }
         // Cache the system feature so isPictureInPictureSupported() is free.
         pipSupported = try {
             context.packageManager.hasSystemFeature(
@@ -434,6 +437,9 @@ class LiveKitPlugin : Plugin() {
                 call.resolve(ret)
             } catch (e: Exception) {
                 Log.e(TAG, "connect failed", e)
+                try { room?.disconnect() } catch (_: Exception) {}
+                room = null
+                CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
             }
         }
@@ -452,17 +458,16 @@ class LiveKitPlugin : Plugin() {
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
         val existingOwner = CameraOwnership.owner()
-        if (existingOwner == CameraOwnership.OWNER_WEBVIEW_LIVEKIT) {
-            CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
-        }
-        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        val isReentrantReconnect = isReconnect &&
+            (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
+        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
         }
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
-        activity?.runOnUiThread { detachAllRenderersInternal() }
+        withContext(Dispatchers.Main) { detachAllRenderersInternal() }
         // Tear down any previous room first.
         room?.disconnect()
         room = null
@@ -576,9 +581,7 @@ class LiveKitPlugin : Plugin() {
         try { localSid = newRoom.localParticipant.sid.value } catch (_: Exception) {}
         startStatsCollector()
 
-        activity?.runOnUiThread {
-            attachAllRemoteRenderersInternal(newRoom)
-        }
+        withContext(Dispatchers.Main) { attachAllRemoteRenderersInternal(newRoom) }
 
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
@@ -1531,22 +1534,15 @@ class LiveKitPlugin : Plugin() {
             stopReconnectWatchdog()
             unregisterNetworkCallback()
             lastConnectArgs = null
-            // Native camera-release pass: explicitly disable camera + mic
-            // BEFORE disconnect so Camera2 session unwinds in order and
-            // the device is not held into the next process.
-            scope.launch {
-                try {
-                    val pre = room
-                    if (pre != null) {
-                        try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
-                        try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    }
-                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
-                    activity?.runOnUiThread { detachAllRenderersInternal() }
-                    room?.disconnect()
-                    room = null
-                } catch (_: Exception) {}
+            val pre = room
+            if (pre != null) runBlocking {
+                try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
             }
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            activity?.runOnUiThread { detachAllRenderersInternal() }
+            try { room?.disconnect() } catch (_: Exception) {}
+            room = null
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
             applyAudioMode(false)

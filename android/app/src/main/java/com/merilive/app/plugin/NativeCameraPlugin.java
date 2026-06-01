@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
+import android.os.Looper;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -621,7 +622,7 @@ public class NativeCameraPlugin extends Plugin {
     private void releaseCameraResources(boolean destroyProvider) {
         try {
             if (getActivity() == null) return;
-            getActivity().runOnUiThread(() -> {
+            Runnable release = () -> {
                 try {
                     if (activeRecording != null) {
                         try { activeRecording.stop(); } catch (Exception ignored) {}
@@ -646,7 +647,9 @@ public class NativeCameraPlugin extends Plugin {
                 } catch (Exception e) {
                     Log.w(TAG, "releaseCameraResources failed: " + e.getMessage());
                 }
-            });
+            };
+            if (Looper.myLooper() == Looper.getMainLooper()) release.run();
+            else getActivity().runOnUiThread(release);
         } catch (Exception e) {
             Log.w(TAG, "releaseCameraResources schedule failed: " + e.getMessage());
             CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);

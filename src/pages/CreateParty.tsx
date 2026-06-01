@@ -32,6 +32,7 @@ import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -74,6 +75,7 @@ const CreateParty = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<PartyMode>("video");
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [showGameSelection, setShowGameSelection] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -87,6 +89,9 @@ const CreateParty = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
   const preserveStreamRef = useRef(false);
+  useEffect(() => {
+    streamRef.current = stream;
+  }, [stream]);
   
   // Feature level check
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
@@ -142,6 +147,7 @@ const CreateParty = () => {
         }
       } else {
         // Audio only mode
+        releaseAndroidWebViewCamera('create-party:audio-only');
         const constraints: MediaStreamConstraints = { 
           audio: { echoCancellation: true, noiseSuppression: true } 
         };
@@ -207,8 +213,10 @@ const CreateParty = () => {
     return () => {
       isMounted = false;
       // Only stop tracks if we're NOT preserving for party room handoff
-      if (!preserveStreamRef.current && stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (!preserveStreamRef.current && streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        releaseAndroidWebViewCamera('create-party:unmount');
       }
     };
   }, []);
@@ -310,6 +318,8 @@ const CreateParty = () => {
       if (stream) {
         preserveStreamRef.current = true;
         setPreparedHostPreviewStream(stream);
+      } else {
+        releaseAndroidWebViewCamera('create-party:no-stream-handoff');
       }
 
       navigate(`/party/${partyRoomId}`);
@@ -324,11 +334,13 @@ const CreateParty = () => {
 
   const handleClose = () => {
     try {
-      if (stream) {
-        stream.getTracks().forEach(track => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
           track.stop();
         });
+        streamRef.current = null;
         setStream(null);
+        releaseAndroidWebViewCamera('create-party:close');
       }
     } catch (e) {
       console.error("Error stopping tracks:", e);
@@ -806,13 +818,17 @@ const CreateParty = () => {
         onSwitchCamera={async () => {
           if (stream) {
             stream.getTracks().forEach(track => track.stop());
+            releaseAndroidWebViewCamera('create-party:switch-camera');
             const newFacingMode = facingMode === "user" ? "environment" : "user";
             setFacingMode(newFacingMode);
             try {
-              const newStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: newFacingMode },
-                audio: true
-              });
+              const newStream = await claimAndroidWebViewCameraForStream(
+                () => navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: newFacingMode },
+                  audio: true
+                }),
+                'create-party:switch-camera-new-stream',
+              );
               setStream(newStream);
               if (videoRef.current) {
               }

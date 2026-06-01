@@ -93,12 +93,19 @@ class NativeLiveKitController {
         callType: opts.callType,
       };
 
-      const res = await NativeLiveKit.connect(payload);
-      this.connected = true;
+      try {
+        const res = await NativeLiveKit.connect(payload);
+        this.connected = true;
 
-      if (opts.attachLocal !== false) await this.attachLocalWithRetry();
+        if (opts.attachLocal !== false) await this.attachLocalWithRetry();
 
-      return { sid: res.sid, identity: res.identity };
+        return { sid: res.sid, identity: res.identity };
+      } catch (error) {
+        this.connected = false;
+        try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
+        try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
+        throw error;
+      }
     } finally {
       this.busy = false;
     }
@@ -106,7 +113,6 @@ class NativeLiveKitController {
 
   async disconnect(): Promise<void> {
     await this.waitForIdle('disconnect handoff', 1200);
-    if (!this.connected && !this.busy) return;
     this.busy = true;
     try {
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
