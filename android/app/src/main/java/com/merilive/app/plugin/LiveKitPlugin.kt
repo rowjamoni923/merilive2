@@ -711,13 +711,25 @@ class LiveKitPlugin : Plugin() {
         val r = room
         scope.launch {
             try {
-                BeautyPipelineBridge.setEnabled(enabled)
-                if (r != null) {
-                    // Flip LiveKit's camera ownership: when beauty is on we
-                    // mute the native camera track so GPUPixel can use the
-                    // device; when beauty is off we re-enable it so LiveKit
-                    // resumes its own capture.
-                    r.localParticipant.setCameraEnabled(!enabled)
+                if (enabled) {
+                    // Beauty ON: release LiveKit's camera FIRST, then flip
+                    // the bridge flag, then let Camera2 settle (~150ms) so
+                    // GPUPixel can open the device on the JS-side call
+                    // without a CameraAccessException.
+                    if (r != null) {
+                        try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    }
+                    delay(150L)
+                    BeautyPipelineBridge.setEnabled(true)
+                } else {
+                    // Beauty OFF: flip the bridge flag FIRST so GPUPixel
+                    // sink drains, give Camera2 a beat to release, then
+                    // re-enable LiveKit's native capture.
+                    BeautyPipelineBridge.setEnabled(false)
+                    delay(150L)
+                    if (r != null) {
+                        try { r.localParticipant.setCameraEnabled(true) } catch (_: Exception) {}
+                    }
                 }
                 val ret = JSObject()
                 ret.put("enabled", enabled)
