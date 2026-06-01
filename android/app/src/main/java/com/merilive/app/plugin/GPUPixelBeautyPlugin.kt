@@ -110,6 +110,19 @@ class GPUPixelBeautyPlugin : Plugin() {
     @PluginMethod
     fun setEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled") ?: false
+        // Pkg415: when LiveKit currently owns the camera, flipping the
+        // GPUPixel bridge directly causes BOTH WebRTC Camera2Capturer AND
+        // GPUPixel's Camera2 session to try to open the front camera at the
+        // same time → CAMERA_IN_USE → white screen. Route through LiveKit's
+        // setBeautyPipelineEnabled() (camera-disable → 150ms wait → bridge
+        // flip → camera-enable) when LiveKit is the active owner.
+        val owner = CameraOwnership.owner()
+        if (owner == CameraOwnership.OWNER_LIVEKIT) {
+            // LiveKitPlugin handles the handshake; just no-op here so callers
+            // that hit the wrong plugin don't break the live session.
+            call.resolve(JSObject().put("enabled", enabled).put("deferred", true))
+            return
+        }
         BeautyPipelineBridge.setEnabled(enabled)
         call.resolve(JSObject().put("enabled", enabled))
     }
