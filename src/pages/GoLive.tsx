@@ -142,8 +142,8 @@ const GoLive = () => {
         setStream(null);
       }
 
-      // Keep delay very short for instant startup
-      await new Promise((resolve) => setTimeout(resolve, 120));
+      // Tiny yield so the stopped tracks fully release Camera2 before CameraX opens.
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
       const started = await startNativeCamera();
       if (started) {
