@@ -822,7 +822,13 @@ class LiveKitPlugin : Plugin() {
                     ?.track as? io.livekit.android.room.track.VideoTrack
                     ?: return@runOnUiThread call.reject("No remote camera track")
 
-                val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+                remoteRenderers.remove(sid)?.let { old ->
+                    try { track.removeRenderer(old) } catch (_: Exception) {}
+                    (old.parent as? ViewGroup)?.removeView(old)
+                    try { old.release() } catch (_: Exception) {}
+                }
+                val renderer = createRenderer()
+                remoteRenderers[sid] = renderer
                 r.initVideoRenderer(renderer)
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
@@ -980,7 +986,13 @@ class LiveKitPlugin : Plugin() {
         val sid = participant.sid.value
         val track = participant.getTrackPublication(Track.Source.CAMERA)
             ?.track as? io.livekit.android.room.track.VideoTrack ?: return false
-        val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+        remoteRenderers.remove(sid)?.let { old ->
+            try { track.removeRenderer(old) } catch (_: Exception) {}
+            (old.parent as? ViewGroup)?.removeView(old)
+            try { old.release() } catch (_: Exception) {}
+        }
+        val renderer = createRenderer()
+        remoteRenderers[sid] = renderer
         return try {
             r.initVideoRenderer(renderer)
             track.addRenderer(renderer)
