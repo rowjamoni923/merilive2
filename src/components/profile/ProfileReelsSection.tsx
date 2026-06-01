@@ -4,6 +4,7 @@ import { Play, Film, Trash2, MoreVertical, Lock, Globe, Eye, EyeOff } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -199,11 +200,13 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                       className="w-full h-full object-cover"/>
                   ) : (
                     <video
+                      ref={el => { if (el) hardenVideoElementForNative(el, { muted: true }); }}
                       src={reel.video_url}
                       className="w-full h-full object-cover"
                       muted
-                      preload="auto"
+                      preload="metadata"
                     />
+
                   )}
 
                   {/* Play icon overlay */}

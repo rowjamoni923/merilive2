@@ -165,6 +165,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           </div>
         )}
         <video 
+          ref={el => { if (el) { import('@/utils/videoNativeHardening').then(m => m.hardenVideoElementForNative(el, { muted: true })).catch(()=>{}); } }}
           src={resolvedSrc}
           autoPlay={autoPlay}
           loop={loop}

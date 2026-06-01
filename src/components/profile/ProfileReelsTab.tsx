@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,11 +160,13 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
                 className="w-full h-full object-cover"/>
             ) : (
               <video
+                ref={el => { if (el) hardenVideoElementForNative(el, { muted: true }); }}
                 src={reel.video_url}
                 className="w-full h-full object-cover"
                 muted
-                preload="auto"
+                preload="metadata"
               />
+
             )}
 
             {/* Play icon overlay */}
@@ -205,11 +208,13 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
                   className="w-full h-full object-cover"/>
               ) : (
                 <video
+                  ref={el => { if (el) hardenVideoElementForNative(el, { muted: true }); }}
                   src={reel.video_url}
                   className="w-full h-full object-cover"
                   muted
-                  preload="auto"
+                  preload="metadata"
                 />
+
               )}
             </div>
 

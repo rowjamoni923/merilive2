@@ -22,6 +22,7 @@ import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
 // Module-scoped instant cache — re-entering Reels shows the last list immediately
 // (zero-refresh feel) while realtime + background fetch keep it fresh.
@@ -657,17 +658,19 @@ const Reels = () => {
               >
                 {/* Video */}
                 <video 
-                  ref={el => videoRefs.current[currentReel.id] = el}
+                  ref={el => {
+                    videoRefs.current[currentReel.id] = el;
+                    if (el) hardenVideoElementForNative(el, { muted: isMuted });
+                  }}
                   src={currentReel.video_url}
                   className="w-full h-full object-cover"
                   loop
                   playsInline
                   autoPlay
-                 
                   muted={isMuted}
                   onClick={togglePlay}
-                  poster={currentReel.thumbnail_url || undefined}
                 />
+
 
 
                 {/* Play/Pause Overlay — cinematic indigo glow */}
