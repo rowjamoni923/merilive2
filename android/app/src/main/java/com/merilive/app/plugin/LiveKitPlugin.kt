@@ -434,6 +434,15 @@ class LiveKitPlugin : Plugin() {
      * it in retry/backoff logic.
      */
     private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
+        // Pkg415: claim Camera2 ownership BEFORE building a new room so
+        // NativeCameraPlugin can't race in and grab the hardware mid-connect.
+        // Use force=true on reconnect because we already owned it and just
+        // want to keep ownership across the teardown→rebuild.
+        CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        // Pkg415: detach renderers (without releasing EGL) BEFORE the old
+        // room is torn down so the old VideoTracks' final null/invalid frame
+        // can't repaint the renderer black for the reconnect race window.
+        activity?.runOnUiThread { detachAllRenderersInternal() }
         // Tear down any previous room first.
         room?.disconnect()
         room = null
