@@ -188,6 +188,7 @@ export function usePartyRoomWebRTC(
     }
 
     destroyBeautyProcessor();
+    releaseWebViewCameraIfAndroid();
     detachAllAudio();
     peerStreamsRef.current.clear();
 
@@ -213,15 +214,23 @@ export function usePartyRoomWebRTC(
     setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
   }, [state.isAudioEnabled]);
 
-  const toggleVideo = useCallback(() => {
+  const toggleVideo = useCallback(async () => {
     if (!partyCanPublishRef.current) return;
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
     const newEnabled = !state.isVideoEnabled;
-    room.localParticipant.setCameraEnabled(newEnabled);
-    setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
-  }, [state.isVideoEnabled]);
+    try {
+      if (newEnabled) await claimWebViewCameraIfAndroid(isVideoPartyType(roomType));
+      await room.localParticipant.setCameraEnabled(newEnabled);
+      if (!newEnabled) releaseWebViewCameraIfAndroid();
+      setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
+    } catch (err) {
+      if (newEnabled) releaseWebViewCameraIfAndroid();
+      console.warn('[PartyLiveKit] Video toggle failed:', err);
+      toast.error('Camera could not start. Please close other camera screens and try again.');
+    }
+  }, [roomType, state.isVideoEnabled]);
 
   useEffect(() => {
     if (!roomId || !userId) {
