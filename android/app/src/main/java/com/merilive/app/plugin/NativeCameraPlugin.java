@@ -101,7 +101,14 @@ public class NativeCameraPlugin extends Plugin {
     @Override
     public void handleOnPause() {
         super.handleOnPause();
-        releaseCameraResources(false);
+        // Do not tear down CameraX on every pause. Android fires onPause for
+        // permission sheets, notification shade, focus churn and activity
+        // overlays while the GoLive screen is still visible; releasing here
+        // removes the native PreviewView behind the WebView, leaving only the
+        // transparent/light React shell — the user-visible white preview. The
+        // owning React screen calls NativeCamera.stop() on back/unmount, and
+        // handleOnDestroy() is still the hard safety release.
+        Log.d(TAG, "handleOnPause: keeping native camera alive until explicit stop/destroy");
     }
 
     @Override
