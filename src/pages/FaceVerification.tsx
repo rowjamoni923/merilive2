@@ -777,18 +777,10 @@ const FaceVerification = () => {
   // Start video recording for host
   const startRecording = async () => {
     try {
-      // Request camera permission first using native API
-      const permResult = await requestCameraPermission();
-      if (!permResult.granted) {
-        toast({
-          title: "Camera Permission Required",
-          description: permResult.error || "Please allow camera access to continue",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Use native camera hook with fallback
+      // Pkg-fix: removed double getUserMedia probe (requestCameraPermission) — getCameraStream
+      // handles permission internally and keeps the user-gesture chain intact on Android WebView.
+      // The previous probe stopped its own stream and the immediate re-acquire produced a blank
+      // stream on Android because Camera2 HAL had not finished releasing.
       const stream = await getCameraStream(true); // true for audio
       if (!stream) {
         throw new Error('Failed to get camera stream');
@@ -876,7 +868,7 @@ const FaceVerification = () => {
       const { clearPreparedCallMediaStream } = await import('@/features/call/preparedCallMedia');
       clearPreparedHostPreviewStream({ stopTracks: true });
       clearPreparedCallMediaStream(null, { stopTracks: true });
-      await nativeFaceCam.stopPreview().catch(() => null);
+      // (duplicate stopPreview removed — single stopPreview below is sufficient)
 
       // Stop any existing stream first
       if (faceStreamRef.current) {

@@ -7,6 +7,7 @@
 import { useState, useRef, useCallback } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
 import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 export function useBeautyState(): any {
   const [beautyEnabled, setBeautyEnabled] = useState(false);
@@ -47,7 +48,7 @@ export function useBeautyState(): any {
     canvasRef,
     videoRef,
     isReady: false,
-    isNativeAndroid: false,
+    isNativeAndroid: isNativeAndroidApp(),
     handleBeautyEnabledChange,
     handleBeautySettingsChange,
     handleStickerChange,
