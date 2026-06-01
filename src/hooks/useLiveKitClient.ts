@@ -728,9 +728,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             // are no longer in the room AFTER the resync runs.
             const resync = () => {
               if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
-              const liveIds = new Set<string>();
+              const liveUids = new Set<number>();
               room.remoteParticipants.forEach((participant) => {
-                liveIds.add(participant.identity);
+                liveUids.add(getUidForParticipant(participant.identity));
                 ensureParticipantSubscribed(participant);
               });
               // Diff-remove anyone who actually left
@@ -738,11 +738,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                 let changed = false;
                 const next = new Map(prev);
                 for (const id of next.keys()) {
-                  if (!liveIds.has(id)) { next.delete(id); changed = true; }
+                  if (!liveUids.has(id)) { next.delete(id); changed = true; }
                 }
                 return changed ? next : prev;
               });
             };
+
             resync();
             [40, 120, 300].forEach((delay) => setTimeout(resync, delay));
           }
