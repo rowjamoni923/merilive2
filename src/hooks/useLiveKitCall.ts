@@ -248,7 +248,7 @@ export function useLiveKitCall(
     setState(p => ({ ...p, isAudioEnabled: enabled }));
   }, [state.isAudioEnabled]);
 
-  const toggleVideo = useCallback(() => {
+  const toggleVideo = useCallback(async () => {
     const enabled = !state.isVideoEnabled;
     if (usingNativeRef.current) {
       nativeLiveKitController.setCameraEnabled(enabled).catch(() => {});
@@ -260,10 +260,8 @@ export function useLiveKitCall(
     }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
-    if (enabled) {
-      claimAndroidWebViewCamera('call:web-toggle-video').catch(() => {});
-    }
-    room.localParticipant.setCameraEnabled(enabled);
+    if (enabled) await claimAndroidWebViewCamera('call:web-toggle-video');
+    await room.localParticipant.setCameraEnabled(enabled);
     if (!enabled) releaseAndroidWebViewCamera('call:web-toggle-video-off');
     setState(p => ({ ...p, isVideoEnabled: enabled }));
   }, [state.isVideoEnabled]);
