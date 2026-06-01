@@ -70,7 +70,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
 
   if (needAudio) {
     try {
-      streams.push(await getUserMediaAttempt({ video: false, audio: AUDIO_CONSTRAINTS }));
+      streams.push(await navigator.mediaDevices.getUserMedia({ video: false, audio: AUDIO_CONSTRAINTS }));
     } catch (error) {
       lastError = error;
     }
