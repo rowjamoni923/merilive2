@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Camera, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
 import {
   runConnectionCheck,
   CheckStatus,
@@ -82,6 +83,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
         }
         previewStreamRef.current = stream;
         if (videoRef.current) {
+          hardenVideoElementForNative(videoRef.current, { muted: true });
           videoRef.current.srcObject = stream;
           videoRef.current.muted = true;
           await videoRef.current.play().catch(() => {});
