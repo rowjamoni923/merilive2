@@ -136,11 +136,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: verifiedMessage, error: verifyError } = await supabase
       .from("messages")
-      .select("id, conversation_id, sender_id, content, message_type")
+      .select("id, conversation_id, sender_id, content, message_type, media_url")
       .eq("id", messageId)
       .eq("conversation_id", conversationId)
       .eq("sender_id", senderId)
       .maybeSingle();
+
 
     const { data: conversation, error: conversationError } = await supabase
       .from("conversations")
@@ -185,6 +186,16 @@ const handler = async (req: Request): Promise<Response> => {
     else if (messageType === 'gift') body = "🎁 Sent you a gift!";
     else if (body.length > 100) body = body.substring(0, 97) + "...";
 
+    // Pkg419 — DM photo push now uses message media_url as the big-picture
+    // banner (was incorrectly using senderAvatar → users never saw the photo
+    // they were sent). Falls back to senderAvatar for text/voice so the
+    // notification still has a thumbnail.
+    const messageMediaUrl = String(verifiedMessage.media_url || "");
+    const isMediaMessage = messageType === "image" || messageType === "video";
+    const pushImageUrl = isMediaMessage && messageMediaUrl
+      ? messageMediaUrl
+      : (senderAvatar || "");
+
     const credentials: ServiceAccountCredentials = JSON.parse(serviceAccountJson);
     const accessToken = await getAccessToken(credentials);
     const projectId = credentials.project_id;
@@ -195,10 +206,9 @@ const handler = async (req: Request): Promise<Response> => {
           // WhatsApp/Imo/Chamet pattern: data-only + priority:high.
           // Forces onMessageReceived() in ALL states (foreground / background /
           // killed) so our MeriFirebaseMessagingService can render rich
-          // BigPictureStyle with emoji prefix + sender avatar on the correct
-          // merilive_messages channel (HIGH importance, sound, vibration).
-          // Mixed notification+data lets the OS render a plain default-channel
-          // notification when killed — that's the bug we're fixing.
+          // BigPictureStyle with emoji prefix + message photo (for image DMs)
+          // on the correct merilive_messages channel (HIGH importance, sound,
+          // vibration).
           const fcmMessage = {
             message: {
               token: device.token,
@@ -206,7 +216,8 @@ const handler = async (req: Request): Promise<Response> => {
                 type: "message",
                 title: senderName,
                 body,
-                image_url: senderAvatar || "",
+                image_url: pushImageUrl,
+                media_url: messageMediaUrl,
                 icon_emoji: messageType === "voice" ? "🎤"
                           : messageType === "image" ? "📷"
                           : messageType === "video" ? "🎥"
@@ -239,10 +250,12 @@ const handler = async (req: Request): Promise<Response> => {
                     "thread-id": conversationId,
                     "mutable-content": 1,
                   },
+                  ...(pushImageUrl ? { fcm_options: { image: pushImageUrl } } : {}),
                 },
               },
             },
           };
+
 
           const response = await fetch(
             `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
