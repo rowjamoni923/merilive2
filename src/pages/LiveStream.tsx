@@ -127,7 +127,7 @@ import { Capacitor } from "@capacitor/core";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
 interface PKBattleState {
