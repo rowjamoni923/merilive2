@@ -1,6 +1,7 @@
 import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 
 const VIDEO_CLAIM_KEY = '__meriWebViewCameraClaimed';
+let webViewVideoClaimCount = 0;
 
 const hasLiveVideo = (stream: MediaStream | null | undefined) =>
   !!stream && stream.getVideoTracks().some((track) => track.readyState === 'live');
@@ -9,6 +10,7 @@ export async function claimAndroidWebViewCamera(reason: string): Promise<boolean
   if (!isNativeLiveKitAvailable()) return false;
   try {
     await NativeLiveKit.claimCameraForWebView();
+    webViewVideoClaimCount += 1;
     console.log(`[AndroidCameraHandoff] claimed WebView camera: ${reason}`);
     return true;
   } catch (error) {
@@ -19,6 +21,8 @@ export async function claimAndroidWebViewCamera(reason: string): Promise<boolean
 
 export function releaseAndroidWebViewCamera(reason: string): void {
   if (!isNativeLiveKitAvailable()) return;
+  if (webViewVideoClaimCount > 0) webViewVideoClaimCount -= 1;
+  if (webViewVideoClaimCount > 0) return;
   void NativeLiveKit.releaseCameraForWebView()
     .then(() => console.log(`[AndroidCameraHandoff] released WebView camera: ${reason}`))
     .catch(() => undefined);
