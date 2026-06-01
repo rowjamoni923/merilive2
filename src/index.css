@@ -626,6 +626,24 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     background-color: transparent !important;
   }
 
+  /* Pkg414 — When native Android LiveKit is publishing, the camera is
+     rendered into a TextureView mounted BEHIND the WebView. Any opaque
+     background on the room shell (bg-muted, bg-background, room-viewport,
+     inline hsl(var(--background))) covers that TextureView and produces a
+     pure white screen on light theme. Force every common room-shell
+     surface transparent while native media is active so the camera shows
+     through. The chat/gift/UI overlays inside the page still render
+     normally because they have their own non-transparent surfaces. */
+  body.native-media-active .room-viewport,
+  body.native-media-active .room-viewport > div,
+  body.native-media-active [data-room-shell],
+  body.native-media-active .bg-muted,
+  body.native-media-active .bg-background {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+
   /* ============================================
      UNIVERSAL SCROLL POLISH — Pkg40
      Any element marked .app-scroll or [data-scroll]
