@@ -1289,7 +1289,10 @@ const GoLive = () => {
       {/* Camera View - Full Screen Horizontal */}
       <div className={cn(
         "absolute inset-0 overflow-hidden flex items-center justify-center",
-        isNativeAndroid && nativePreviewActive ? "bg-transparent" : "bg-muted"
+        // Android native preview is a TextureView behind the WebView; never
+        // use the light-theme muted background here because it is visually the
+        // same white screen the user reported while CameraX warms up.
+        isNativeAndroid ? "bg-transparent" : "bg-black"
       )}>
         {useLiveKit && localVideoTrack ? (
           <LiveKitVideoPlayer
