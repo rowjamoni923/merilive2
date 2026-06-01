@@ -192,10 +192,28 @@ export function useLiveKitCall(
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
       tokenRefreshDetachRef.current = null;
     }
+    // Pkg-fix: explicitly stop local tracks BEFORE room.disconnect so the
+    // hardware camera/mic is freed instantly even if React refs leak.
+    try {
+      const lp: any = roomRef.current?.localParticipant;
+      const pubs = lp?.trackPublications ? Array.from(lp.trackPublications.values()) : [];
+      pubs.forEach((pub: any) => {
+        const t = pub?.track;
+        if (!t) return;
+        try { if (typeof t.stop === 'function') t.stop(); } catch {}
+        try { if (t.mediaStreamTrack?.stop) t.mediaStreamTrack.stop(); } catch {}
+      });
+    } catch {}
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
+    // Pkg-fix: also drop any prepared call media stream still cached
+    // (covers unmount-before-connect race).
+    try {
+      const cid = callIdRef.current;
+      if (cid) clearPreparedCallMediaStream(cid, { stopTracks: true });
+    } catch {}
     remoteAudioKeysRef.current.forEach(detachLiveKitRemoteAudio);
     remoteAudioKeysRef.current.clear();
 
