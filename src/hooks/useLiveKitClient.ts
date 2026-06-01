@@ -1370,14 +1370,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // an additional CSS blur/brightness on top double-processes the frames
     // and is exactly what the user has been reporting as "old bad blur".
     // Skip the CSS path entirely when GPUPixel is the source of truth.
-    if (typeof window !== 'undefined') {
-      try {
-        // Lazy import shape to avoid touching SSR/web bundle structure.
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { Capacitor } = require('@capacitor/core');
-        if (Capacitor?.getPlatform?.() === 'android') return '';
-      } catch { /* not in Capacitor env, fall through */ }
-    }
+    try {
+      // Capacitor is already imported across the app; safe to read here.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cap: any = (globalThis as any).Capacitor;
+      if (cap && typeof cap.getPlatform === 'function' && cap.getPlatform() === 'android') {
+        return '';
+      }
+    } catch { /* not in Capacitor env, fall through */ }
     const { smoothness, whitening, redness, sharpness, glow = 0, warmth = 0, eyeBright = 0, skinTone = 50 } = beautySettings;
     const filters: string[] = [];
     // Combined brightness from whitening + glow + eyeBright + smoothness
