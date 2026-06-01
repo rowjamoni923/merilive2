@@ -46,7 +46,9 @@ export function ParticipantVideo({
         el.srcObject = stream;
         
         const reveal = () => {
-          if (el) el.style.opacity = '1';
+          if (el && el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0) {
+            el.style.opacity = '1';
+          }
         };
 
         el.onplaying = reveal;

@@ -182,6 +182,8 @@ const GoLive = () => {
   const beautyCSS = (isNativeAndroid && nativePreviewActive) ? "" : generateBeautyCSS(beautyEnabled, beautySettings);
 
   const markPreviewReady = useCallback(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl || videoEl.readyState < 2 || videoEl.videoWidth <= 0 || videoEl.videoHeight <= 0) return;
     setPreviewHasFrame(true);
   }, []);
 
@@ -203,7 +205,11 @@ const GoLive = () => {
       videoEl.srcObject = mediaStream;
     }
 
-    const ready = () => setPreviewHasFrame(true);
+    const ready = () => {
+      if (videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+        setPreviewHasFrame(true);
+      }
+    };
 
     const tryPlay = () => {
       if (!videoEl) return;
