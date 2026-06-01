@@ -8,7 +8,6 @@ import { useState, useRef, useCallback } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
 import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
-import { NativeCamera } from '@/plugins/NativeCamera';
 
 export function useBeautyState(): any {
   const [beautyEnabled, setBeautyEnabled] = useState(false);
@@ -30,31 +29,17 @@ export function useBeautyState(): any {
   const toggleSticker = useCallback(() => setStickerActive(v => !v), []);
   const openBeautyPanel = useCallback(() => setShowBeautyPanel(true), []);
   const startNativeCamera = useCallback(async () => {
-    if (!isNativeAndroidApp()) return false;
-    try {
-      const lens = facingMode === 'environment' ? 'back' : 'front';
-      const result = await NativeCamera.start({ lens, resolution: '1080p' });
-      return !!result?.started;
-    } catch (error) {
-      console.warn('[useBeautyState] NativeCamera.start failed:', error);
-      return false;
-    }
-  }, [facingMode]);
+    // Streaming/call/party flows must never open the Face Verification
+    // CameraX plugin. Live/private/party media uses LiveKit/WebRTC only;
+    // NativeCamera is reserved for face verification to prevent Camera2
+    // ownership races and white/abandoned preview surfaces on Android.
+    return false;
+  }, []);
   const stopNativeCamera = useCallback(async () => {
-    if (!isNativeAndroidApp()) return;
-    try { await NativeCamera.stop(); } catch { /* native optional */ }
+    return;
   }, []);
   const switchNativeCamera = useCallback(async () => {
-    if (!isNativeAndroidApp()) {
-      setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
-      return;
-    }
-    try {
-      const result = await NativeCamera.switchCamera();
-      setFacingMode(result?.lens === 'back' ? 'environment' : 'user');
-    } catch (error) {
-      console.warn('[useBeautyState] NativeCamera.switchCamera failed:', error);
-    }
+    setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
   }, []);
   const getLastError = useCallback(() => null, []);
 

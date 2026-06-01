@@ -79,6 +79,7 @@ public class NativeCameraPlugin extends Plugin {
     private PreviewView previewView;
     private CameraSelector currentSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
     private Size targetResolution = new Size(1280, 720);
+    private volatile int cameraSessionId = 0;
 
     private ImageCapture imageCapture;
     private VideoCapture<Recorder> videoCapture;
@@ -167,13 +168,15 @@ public class NativeCameraPlugin extends Plugin {
             ? new Size(1280, 720)
             : new Size(1920, 1080);
 
-        getActivity().runOnUiThread(() -> bindCameraAsync(call, lens, res));
+        final int sessionId = ++cameraSessionId;
+        getActivity().runOnUiThread(() -> bindCameraAsync(call, lens, res, sessionId));
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
         getActivity().runOnUiThread(() -> {
             try {
+                cameraSessionId++;
                 if (activeRecording != null) {
                     try { activeRecording.stop(); } catch (Exception ignored) {}
                     activeRecording = null;
@@ -214,7 +217,8 @@ public class NativeCameraPlugin extends Plugin {
 
         getActivity().runOnUiThread(() -> {
             String lens = currentSelector == CameraSelector.DEFAULT_FRONT_CAMERA ? "front" : "back";
-            bindCameraAsync(call, lens, targetResolution.getHeight() == 720 ? "720p" : "1080p");
+            final int sessionId = ++cameraSessionId;
+            bindCameraAsync(call, lens, targetResolution.getHeight() == 720 ? "720p" : "1080p", sessionId);
         });
     }
 
@@ -505,7 +509,7 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
-    private void bindCameraAsync(PluginCall call, String lens, String res) {
+    private void bindCameraAsync(PluginCall call, String lens, String res, int sessionId) {
         try {
             // Pkg416: make sure the PreviewView is attached AND laid out before we
             // call setSurfaceProvider — otherwise CameraX binds against a Surface
@@ -521,11 +525,19 @@ public class NativeCameraPlugin extends Plugin {
             // Pkg416: post() guarantees we run AFTER the next layout pass, so the
             // PreviewView has a valid Surface by the time CameraX binds to it.
             previewView.post(() -> {
+                if (sessionId != cameraSessionId || previewView == null) {
+                    call.reject("Camera start cancelled");
+                    return;
+                }
                 try {
                     ListenableFuture<ProcessCameraProvider> future =
                         ProcessCameraProvider.getInstance(getContext());
                     future.addListener(() -> {
                         try {
+                            if (sessionId != cameraSessionId || previewView == null) {
+                                call.reject("Camera start cancelled");
+                                return;
+                            }
                             cameraProvider = future.get();
                             // Pkg416: bind preview+analysis only on the hot path.
                             // VideoCapture is rebound lazily inside startVideoRecording.
@@ -533,7 +545,7 @@ public class NativeCameraPlugin extends Plugin {
                             // hardware on Oppo/OnePlus mid-range and causes the
                             // Surface-abandoned white preview.
                             bindUseCases(false);
-                            resolveStartWhenPreviewStreams(call, lens, res);
+                            resolveStartWhenPreviewStreams(call, lens, res, sessionId);
                         } catch (Exception e) {
                             Log.e(TAG, "bindCameraAsync failed", e);
                             CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
@@ -665,7 +677,7 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
-    private void resolveStartWhenPreviewStreams(PluginCall call, String lens, String res) {
+    private void resolveStartWhenPreviewStreams(PluginCall call, String lens, String res, int sessionId) {
         if (previewView == null || getActivity() == null) {
             call.reject("Preview surface missing");
             return;
@@ -679,6 +691,10 @@ public class NativeCameraPlugin extends Plugin {
             if (resolved[0]) return;
             resolved[0] = true;
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            if (sessionId != cameraSessionId) {
+                call.reject("Camera start cancelled");
+                return;
+            }
             Log.w(TAG, "Preview did not reach STREAMING before timeout");
             // Pkg416: leave WebView transparent even on timeout — restoring
             // the opaque shell while CameraX is still mid-attach paints the
@@ -694,6 +710,10 @@ public class NativeCameraPlugin extends Plugin {
             resolved[0] = true;
             handler.removeCallbacks(timeout);
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            if (sessionId != cameraSessionId) {
+                call.reject("Camera start cancelled");
+                return;
+            }
             setWebViewCameraBackground(0x00000000);
             JSObject ret = new JSObject();
             ret.put("started", true);

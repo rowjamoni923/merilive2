@@ -106,13 +106,8 @@ const GoLive = () => {
   // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
     isNativeAndroid,
-    startNativeCamera,
-    stopNativeCamera,
     openBeautyPanel,
     toggleSticker,
-    switchNativeCamera,
-    facingMode: nativeFacingMode,
-    getLastError,
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
@@ -134,58 +129,17 @@ const GoLive = () => {
 
   // Wrapper: start native camera with permission check
   const startNativePreview = useCallback(async () => {
-    if (!isNativeAndroid) return false;
-    if (nativePreviewActive) return true;
-
-    if (nativePreviewStartInFlightRef.current) {
-      console.log('[GoLive] Native preview start already in progress');
-      return false;
-    }
-
-    nativePreviewStartInFlightRef.current = true;
-    try {
-      // NativeCamera preview is mounted behind the Capacitor WebView. The
-      // document/body/#root must be transparent BEFORE CameraX attaches;
-      // otherwise the light app background covers the preview and the user
-      // sees the exact white screen from the Android screenshot while camera
-      // provider logs still show frames.
-      applyNativePreviewTransparency(true);
-
-      // Prevent dual camera ownership (web + native) before native start
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-        setStream(null);
-        releaseAndroidWebViewCamera('golive:native-preview-start');
-      }
-
-      // Android native path must NOT run a WebView getUserMedia permission
-      // probe here. NativeCamera.start owns the permission request and opens
-      // CameraX directly; probing with web getUserMedia first briefly locks
-      // Camera2 and causes the persistent white native preview/live surface.
-      await new Promise((resolve) => setTimeout(resolve, 250));
-
-      const started = await startNativeCamera();
-      if (started) {
-        setNativePreviewActive(true);
-        setShowPermissionPrompt(false);
-        setFacingMode('user');
-        setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-      } else {
-        applyNativePreviewTransparency(false);
-        try { await stopNativeCamera(); } catch { /* native cleanup best-effort */ }
-      }
-      return started;
-    } finally {
-      nativePreviewStartInFlightRef.current = false;
-    }
-  }, [isNativeAndroid, nativePreviewActive, startNativeCamera, applyNativePreviewTransparency]);
+    // Streaming/live preview must use WebRTC/LiveKit camera only. The
+    // NativeCamera CameraX plugin is reserved for Face Verification; opening
+    // it here creates the exact Camera2 ownership race that produces ColorOS
+    // white screens and `handleResized abandoned` surfaces during handoff.
+    return false;
+  }, []);
 
   const stopNativePreview = useCallback(async () => {
-    await stopNativeCamera();
     applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
-  }, [stopNativeCamera, applyNativePreviewTransparency]);
+  }, [applyNativePreviewTransparency]);
 
   const openBeautyStudio = useCallback(async () => {
     // Always open the panel — works on web (CSS/MediaPipe) and on Android
@@ -803,15 +757,6 @@ const GoLive = () => {
 
   const startCamera = async () => {
     try {
-      if (isNativeAndroid) {
-        await stopNativePreview();
-        const started = await startNativePreview();
-        if (!started) {
-          throw new Error(getLastError() || 'Native camera access failed');
-        }
-        return;
-      }
-
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
@@ -845,12 +790,6 @@ const GoLive = () => {
 
   const handleCameraSwitch = async () => {
     try {
-      if (isNativeAndroid && nativePreviewActive) {
-        await switchNativeCamera();
-        setFacingMode(nativeFacingMode);
-        return;
-      }
-
       // Pkg-audit Bug C: only stop the VIDEO tracks on camera flip — keep
       // the microphone track alive so the host's audio doesn't go silent
       // (Android WebView won't re-grant mic without a fresh user gesture).

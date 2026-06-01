@@ -38,7 +38,7 @@ import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -403,6 +403,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // stream immediately. Otherwise WebView's getUserMedia holds the
         // hardware handle and Native Camera2 fails to start (black screen).
         clearPreparedHostPreviewStream({ stopTracks: true });
+        await releaseAndroidWebViewCameraNow('live:native-before-connect');
+        await new Promise((resolve) => setTimeout(resolve, 900));
 
         // Native LiveKit publish with one quick retry — Camera2 device may
         // be transiently held by the previous CameraX preview during the
