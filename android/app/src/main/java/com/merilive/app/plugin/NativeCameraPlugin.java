@@ -154,7 +154,7 @@ public class NativeCameraPlugin extends Plugin {
             call.reject("Camera busy: held by " + existingOwner);
             return;
         }
-        if (!CameraOwnership.acquire(CameraOwnership.OWNER_NATIVE_CAMERA, false)) {
+        if (!CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_NATIVE_CAMERA, false)) {
             call.reject("Camera busy: held by " + CameraOwnership.owner());
             return;
         }
