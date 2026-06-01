@@ -31,8 +31,8 @@ class ProfessionalHeader extends StatelessWidget {
       child: Row(
         children: [
           // 1. Host Group (Glass Badge)
-          _buildHostBadge(),
-          const Spacer(),
+          Flexible(child: _buildHostBadge()),
+          const SizedBox(width: 8),
           // 2. Metrics Group (Viewer stack + Close)
           _buildMetricsGroup(),
         ],
@@ -53,34 +53,47 @@ class ProfessionalHeader extends StatelessWidget {
             children: [
               DynamicAvatar(
                 avatarUrl: hostData['avatar_url'],
-                frameId: hostData['frame_id'],
+                frameId: hostData['equipped_frame_id'] ?? hostData['frame_id'],
                 size: 36,
                 showFrame: true,
-                level: hostData['user_level'] ?? 1,
+                level: hostData['host_level'] ?? hostData['user_level'] ?? 1,
+                isHost: true,
+                isVerified: hostData['is_face_verified'] == true || hostData['is_verified'] == true,
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Row(
-                     children: [
-                       Text(
-                         hostData['display_name'] ?? 'Host',
-                         style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
-                       ),
-                       const SizedBox(width: 4),
-                       LevelBadge(level: hostData['host_level'] ?? 1, size: 'xs'),
-                     ],
-                   ),
-                   Text(
-                     "ID: ${hostData['app_uid'] ?? (hostData['id']?.toString().split('-').first ?? '0000')}",
-                     style: GoogleFonts.inter(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w600),
-                   ),
-                ],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                     Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         Flexible(
+                           child: Text(
+                             hostData['display_name'] ?? 'Host',
+                             maxLines: 1,
+                             overflow: TextOverflow.ellipsis,
+                             style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
+                           ),
+                         ),
+                         const SizedBox(width: 4),
+                         LevelBadge(level: hostData['host_level'] ?? hostData['user_level'] ?? 1, size: 'xs'),
+                       ],
+                     ),
+                     Text(
+                       "ID: ${hostData['app_uid'] ?? (hostData['id']?.toString().split('-').first ?? '0000')}",
+                       maxLines: 1,
+                       overflow: TextOverflow.ellipsis,
+                       style: GoogleFonts.inter(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w600),
+                     ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 12),
-              _buildFollowButton(),
+              if (hostData['is_self'] != true) ...[
+                const SizedBox(width: 8),
+                _buildFollowButton(),
+              ],
             ],
           ),
         ),

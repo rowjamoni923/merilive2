@@ -992,6 +992,13 @@ const GoLive = () => {
         state: { 
           isHost: true,
           title: title.trim(),
+          hostInfo: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.display_name || 'Host',
+            avatar: userProfile.avatar_url || '',
+            level: Number(userProfile.host_level || userProfile.user_level || 1),
+            gender: userProfile.gender || 'female',
+          } : undefined,
         } 
       });
     } catch (error) {

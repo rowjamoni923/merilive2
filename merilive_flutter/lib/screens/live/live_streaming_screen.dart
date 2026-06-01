@@ -6,6 +6,7 @@ import '../../services/livekit_service.dart';
 import '../../theme/app_theme.dart';
 import './components/flying_gift_overlay.dart';
 import './components/bigo_join_banner.dart';
+import '../../widgets/professional_header.dart';
 import 'dart:ui';
 import 'dart:async';
 
@@ -137,60 +138,29 @@ class _LiveStreamingScreenState extends State<LiveStreamingScreen> {
   }
 
   Widget _buildTopHeader(Map<String, dynamic> stream, LiveService service) {
-    final host = stream['host'] ?? {};
+    final host = Map<String, dynamic>.from(stream['host'] ?? {});
+    final hostData = {
+      'id': host['id'] ?? stream['host_id'],
+      'app_uid': host['app_uid'],
+      'display_name': host['display_name'] ?? 'Host',
+      'avatar_url': host['avatar_url'] ?? stream['thumbnail_url'],
+      'user_level': host['user_level'] ?? 1,
+      'host_level': host['host_level'] ?? host['user_level'] ?? 1,
+      'frame_id': host['frame_id'],
+      'equipped_frame_id': host['equipped_frame_id'],
+      'is_verified': host['is_verified'] == true || host['is_face_verified'] == true,
+      'is_self': service.currentRole == LiveRole.host,
+    };
     return Positioned(
       top: MediaQuery.of(context).padding.top + 10,
       left: 10,
       right: 10,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Host Info Pill
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(30)),
-            child: Row(
-              children: [
-                CircleAvatar(radius: 18, backgroundImage: NetworkImage(host['avatar_url'] ?? '')),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(host['display_name'] ?? 'Host', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                    Text("${service.viewerCount} Viewers", style: const TextStyle(color: Colors.white70, fontSize: 10)),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(20)),
-                  child: const Text("Follow", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-          // Beans Count & Exit
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(20)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.stars, color: Colors.amber, size: 14),
-                    const SizedBox(width: 4),
-                    Text("${service.totalBeans.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                onPressed: () => _confirmExit(service),
-              ),
-            ],
-          ),
-        ],
+      child: ProfessionalHeader(
+        hostData: hostData,
+        viewerCount: service.viewerCount,
+        sessionBeans: service.totalBeans.toInt(),
+        onFollow: () {},
+        onClose: () => _confirmExit(service),
       ),
     );
   }

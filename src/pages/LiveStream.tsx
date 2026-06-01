@@ -102,10 +102,8 @@ import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } fr
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
-import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
-import FramedAvatar from "@/components/common/FramedAvatar";
+import { LevelBadge } from "@/components/common/LevelBadge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
-import Premium3DFrame from "@/components/common/Premium3DFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { PremiumViewerProfileCard, ViewerProfile } from "@/components/live/PremiumViewerProfileCard";
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
@@ -193,8 +191,21 @@ const LiveStream = () => {
     gender: string;
     level: number;
     id: string;
+    frameId?: string | null;
+    appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
-  } | null>(null);
+  } | null>(() => location.state?.hostInfo ? {
+    name: location.state.hostInfo.name || "Host",
+    avatar: location.state.hostInfo.avatar || "",
+    country: location.state.hostInfo.country || "🌍",
+    language: location.state.hostInfo.language || "English",
+    gender: location.state.hostInfo.gender || "female",
+    level: Number(location.state.hostInfo.level || 1),
+    id: location.state.hostInfo.id || "",
+    frameId: location.state.hostInfo.frameId || null,
+    appUid: location.state.hostInfo.appUid || null,
+    isVerifiedHost: true,
+  } : null);
   
   const [currentUser, setCurrentUser] = useState<{
     gender: string;
@@ -204,6 +215,7 @@ const LiveStream = () => {
     display_name?: string;
     avatar_url?: string;
     user_level?: number;
+    host_level?: number;
     country_flag?: string;
   } | null>(null);
   
@@ -722,7 +734,7 @@ const LiveStream = () => {
       const { data: hostProfile } = stream?.host_id
         ? await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, gender, user_level, country_flag, country_name, is_host")
+            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
             .eq("id", stream.host_id)
             .maybeSingle()
         : { data: null };
@@ -737,7 +749,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -757,6 +769,7 @@ const LiveStream = () => {
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: profile.user_level || 1,
+          host_level: profile.host_level || 0,
           country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
@@ -784,14 +797,17 @@ const LiveStream = () => {
         // even if profiles_public fetch silently fails (RLS race / network / deleted).
         {
           const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
+          const hostLevel = Number(hostProfile?.host_level || hostProfile?.user_level || 1);
           setHostInfo({
             name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
             country: hostProfile?.country_flag || "🌍",
             language: "English",
             gender: hostProfile?.gender || "female",
-            level: hostProfile?.user_level || 1,
+            level: hostLevel > 0 ? hostLevel : 1,
             id: hostProfile?.id || stream.host_id,
+            frameId: hostProfile?.equipped_frame_id || hostProfile?.frame_id || null,
+            appUid: hostProfile?.app_uid || null,
             isVerifiedHost: hostProfile?.is_host === true,
           });
         }
@@ -3017,6 +3033,185 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="fixed left-0 right-0 z-[90] px-2.5 sm:px-3"
+        data-testid="live-host-identity-header"
+        style={{
+          top: 'max(calc(env(safe-area-inset-top, 0px) + 8px), 12px)',
+          pointerEvents: isUIHidden ? 'none' : 'auto',
+        }}
+      >
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-1.5 w-full">
+          {/* Left Section - Live Badge + Host Info */}
+          <div className="min-w-0 flex items-center">
+            {/* Host Info Pill with embedded LIVE indicator */}
+            {hostInfo ? (
+              <motion.div 
+                className="min-w-0 max-w-[calc(100vw-108px)] flex items-center gap-2 rounded-full p-[4px] pr-2.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.76) 0%, rgba(30,20,50,0.82) 100%)',
+                  border: '1px solid rgba(255,255,255,0.16)',
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(14px)',
+                }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", damping: 20, stiffness: 150 }}
+              >
+                {/* LIVE indicator dot - positioned on avatar */}
+                <div className="relative shrink-0">
+                  <button 
+                    type="button"
+                    className="block cursor-pointer"
+                    onClick={() => navigate(`/profile/${hostInfo.id}`)}
+                    aria-label={`${hostInfo.name} profile`}
+                  >
+                    <AvatarWithFrame
+                      userId={hostInfo.id}
+                      src={hostInfo.avatar}
+                      name={hostInfo.name}
+                      level={hostInfo.level}
+                      isHost={true}
+                      gender={(hostInfo.gender || '').toLowerCase() === 'male' ? 'male' : 'female'}
+                      size="sm"
+                      showFrame={true}
+                      showAnimation={true}
+                      showGlow={hostInfo.level >= 10}
+                      frameId={hostInfo.frameId || undefined}
+                    />
+                  </button>
+                  <div className="absolute -top-1 -left-1 z-20">
+                    <div className="relative flex items-center gap-[2px] px-[5px] py-[1px] rounded-full" 
+                      style={{ background: 'linear-gradient(135deg, #ff3b5c, #ff1744)' }}>
+                      <div className="w-[4px] h-[4px] bg-white rounded-full animate-pulse" />
+                      <span className="text-white text-[6px] font-black tracking-wider">LIVE</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  type="button"
+                  className="min-w-0 flex flex-col items-start cursor-pointer text-left"
+                  onClick={() => navigate(`/profile/${hostInfo.id}`)}
+                >
+                  <div className="min-w-0 flex items-center gap-1.5 max-w-[112px] sm:max-w-[160px]">
+                    <span className="text-white font-semibold text-[12px] truncate leading-tight">{hostInfo.name}</span>
+                    <LevelBadge level={hostInfo.level} size="xs" animated={false} />
+                  </div>
+                  <div className="flex items-center gap-1 leading-none mt-0.5">
+                    <span className="text-white/65 text-[8px] font-semibold">ID {hostInfo.appUid || hostInfo.id.slice(0, 6)}</span>
+                    <span className="text-white/35 text-[8px]">•</span>
+                    <BeansIcon size={10} />
+                    <span className="text-[9px] font-bold" style={{ color: '#ffb74d' }}>
+                      {totalBeans >= 1000 ? `${(totalBeans / 1000).toFixed(1)}K` : totalBeans}
+                    </span>
+                  </div>
+                </button>
+                
+                {!isFollowingHost ? (
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.85 }}
+                    onClick={handleFollowHost}
+                    aria-label="Follow host"
+                    className="relative w-7 h-7 shrink-0 flex items-center justify-center rounded-full overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #ec4899, #f43f5e)',
+                      boxShadow: '0 2px 8px rgba(236,72,153,0.5)',
+                    }}
+                  >
+                    <Heart className="w-3.5 h-3.5 text-white relative z-10" strokeWidth={2.5} />
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #34d399, #10b981)' }}
+                  >
+                    <Heart className="w-3.5 h-3.5 text-white fill-white" strokeWidth={0} />
+                  </motion.div>
+                )}
+              </motion.div>
+            ) : (
+              <div className="h-12 w-[180px] rounded-full bg-black/55 border border-white/10 backdrop-blur-md" />
+            )}
+          </div>
+
+          {/* Right Section - Viewer Avatars + Count + Close */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Recent Viewer Avatars + Count combined pill */}
+            <button
+              onClick={() => setShowViewerList(true)}
+              className="flex items-center gap-0.5 px-1 py-[3px] rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.64), rgba(20,15,35,0.76))',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              {/* Viewer Avatars inside the pill */}
+              <div className="flex items-center -space-x-1.5 ml-0.5">
+                {recentViewerAvatars.length > 0 ? (
+                  recentViewerAvatars.slice(0, 2).map((viewer, i) => (
+                    <div 
+                      key={viewer.id}
+                      className="relative"
+                      style={{ 
+                        zIndex: 4 - i,
+                        width: 30,
+                        height: 30,
+                      }}
+                    >
+                      <AvatarWithFrame
+                        userId={viewer.id}
+                        src={viewer.avatar_url}
+                        name={viewer.name}
+                        level={viewer.user_level || 1}
+                        size="xxs"
+                        showAnimation={false}
+                        showFrame={true}
+                        showGlow={false}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+                    <Users className="w-3 h-3 text-white/50" />
+                  </div>
+                )}
+              </div>
+              {/* Count */}
+              <div className="flex items-center gap-[3px] px-1.5">
+                <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
+                <span className="text-white text-[10px] font-bold tabular-nums">{viewerCount}</span>
+              </div>
+            </button>
+
+            {/* Close Button — 36px tap target */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={isHost ? handleEndStream : handleLeaveStream}
+              aria-label={isHost ? 'End live stream' : 'Leave live stream'}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.64), rgba(20,15,35,0.76))',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              <X className="w-4 h-4 text-white/85" />
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
+      {false && (
+      <motion.div 
+        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="relative z-20 px-3 pt-2 pb-1"
         style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
       >
@@ -3172,6 +3367,7 @@ const LiveStream = () => {
           </div>
         </div>
       </motion.div>
+      )}
 
       {/* ==================== MESSAGES AREA - ABOVE INPUT BOX ==================== */}
       {/* Public chat area visible to all viewers */}
