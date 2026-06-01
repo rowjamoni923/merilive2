@@ -509,7 +509,7 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
-    private void bindCameraAsync(PluginCall call, String lens, String res) {
+    private void bindCameraAsync(PluginCall call, String lens, String res, int sessionId) {
         try {
             // Pkg416: make sure the PreviewView is attached AND laid out before we
             // call setSurfaceProvider — otherwise CameraX binds against a Surface
@@ -525,11 +525,21 @@ public class NativeCameraPlugin extends Plugin {
             // Pkg416: post() guarantees we run AFTER the next layout pass, so the
             // PreviewView has a valid Surface by the time CameraX binds to it.
             previewView.post(() -> {
+                if (sessionId != cameraSessionId || previewView == null) {
+                    CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                    call.reject("Camera start cancelled");
+                    return;
+                }
                 try {
                     ListenableFuture<ProcessCameraProvider> future =
                         ProcessCameraProvider.getInstance(getContext());
                     future.addListener(() -> {
                         try {
+                            if (sessionId != cameraSessionId || previewView == null) {
+                                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                                call.reject("Camera start cancelled");
+                                return;
+                            }
                             cameraProvider = future.get();
                             // Pkg416: bind preview+analysis only on the hot path.
                             // VideoCapture is rebound lazily inside startVideoRecording.
@@ -537,7 +547,7 @@ public class NativeCameraPlugin extends Plugin {
                             // hardware on Oppo/OnePlus mid-range and causes the
                             // Surface-abandoned white preview.
                             bindUseCases(false);
-                            resolveStartWhenPreviewStreams(call, lens, res);
+                            resolveStartWhenPreviewStreams(call, lens, res, sessionId);
                         } catch (Exception e) {
                             Log.e(TAG, "bindCameraAsync failed", e);
                             CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
