@@ -84,7 +84,7 @@ export {
 // Camera coordination (Pkg416)
 export {
   ProCameraEngine,
-  useProCamera,
   CameraConflictError,
   type ProCameraOwner,
 } from '@/camera/ProCameraEngine';
+export { useProCamera } from '@/camera/useProCamera';

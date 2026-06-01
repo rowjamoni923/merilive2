@@ -3,6 +3,16 @@
  *
  * Pkg272: extended with capturePhoto / captureFrame / startVideoRecording /
  * stopVideoRecording for native Face Verification flow.
+ *
+ * Pkg416: THIS PLUGIN IS RESERVED FOR FACE VERIFICATION ONLY.
+ *   Live Streaming, Private Call, Video Party and Game Party MUST use the
+ *   shared LiveKit publisher coordinated by `src/camera/ProCameraEngine.ts`.
+ *   Opening NativeCamera while LiveKit owns the camera (or vice versa) is
+ *   exactly what produced the Android white-screen / CAMERA_IN_USE errors.
+ *   The native arbiter (`CameraOwnership.kt`) refuses overlapping owners.
+ *
+ *   Cleanup-only calls (e.g. NativeCamera.stop() inside private-call reset
+ *   paths) are still allowed — they are no-ops when the plugin isn't running.
  */
 import { registerPlugin, Capacitor } from '@capacitor/core';
 
