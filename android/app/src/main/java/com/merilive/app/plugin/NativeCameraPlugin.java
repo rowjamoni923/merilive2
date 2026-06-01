@@ -366,7 +366,10 @@ public class NativeCameraPlugin extends Plugin {
         pendingStopCall = null;
 
         // Encode file to base64 on a worker thread
-        Executors.newSingleThreadExecutor().execute(() -> {
+        // Pkg416: reuse the shared cameraExecutor instead of spawning a new
+        // single-thread executor per recording — the old code leaked one
+        // pooled thread per face-verification attempt.
+        cameraExecutor.execute(() -> {
             try {
                 if (hasError) {
                     if (call != null) call.reject("Recording finalize error code=" + errCode);
