@@ -759,8 +759,14 @@ public class NativeCameraPlugin extends Plugin {
         if (parent != null) parent.removeView(previewView);
         previewView = null;
         if (bridge != null && bridge.getWebView() != null) {
-            bridge.getWebView().setBackgroundColor(0xFF000000);
-            ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
+            android.webkit.WebView wv = bridge.getWebView();
+            // Pkg416: restore the WebView's normal opaque shell + software
+            // layer so the rest of the React UI renders normally after the
+            // camera tears down. Without this, the WebView would stay
+            // transparent and the activity background would bleed through.
+            wv.setBackgroundColor(0xFFFFFFFF);
+            wv.setLayerType(android.view.View.LAYER_TYPE_NONE, null);
+            ViewGroup root = (ViewGroup) wv.getParent();
             if (root != null) root.setBackgroundColor(0xFF000000);
         }
     }
