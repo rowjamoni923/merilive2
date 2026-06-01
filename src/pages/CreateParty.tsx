@@ -32,6 +32,7 @@ import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -142,6 +143,7 @@ const CreateParty = () => {
         }
       } else {
         // Audio only mode
+        releaseAndroidWebViewCamera('create-party:audio-only');
         const constraints: MediaStreamConstraints = { 
           audio: { echoCancellation: true, noiseSuppression: true } 
         };
@@ -310,6 +312,8 @@ const CreateParty = () => {
       if (stream) {
         preserveStreamRef.current = true;
         setPreparedHostPreviewStream(stream);
+      } else {
+        releaseAndroidWebViewCamera('create-party:no-stream-handoff');
       }
 
       navigate(`/party/${partyRoomId}`);
@@ -806,6 +810,7 @@ const CreateParty = () => {
         onSwitchCamera={async () => {
           if (stream) {
             stream.getTracks().forEach(track => track.stop());
+            releaseAndroidWebViewCamera('create-party:switch-camera');
             const newFacingMode = facingMode === "user" ? "environment" : "user";
             setFacingMode(newFacingMode);
             try {
