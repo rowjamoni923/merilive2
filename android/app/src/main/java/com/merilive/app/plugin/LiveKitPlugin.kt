@@ -1463,9 +1463,7 @@ class LiveKitPlugin : Plugin() {
         }
         inBackground = true
         try {
-            localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
-            remoteRenderers.values.forEach { (it.parent as? ViewGroup)?.removeView(it) }
-            bridge?.webView?.setBackgroundColor(0xFF000000.toInt())
+            detachAllRenderersInternal()
 
             if (pauseCameraOnBackground) {
                 val r = room ?: return
@@ -1489,11 +1487,26 @@ class LiveKitPlugin : Plugin() {
         if (!inBackground) return
         inBackground = false
         try {
-            localRenderer?.let { mountBehindWebView(it) }
-            remoteRenderers.values.forEach { mountBehindWebView(it) }
+            val r = room ?: return
+            activity?.runOnUiThread {
+                try {
+                    val localTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    if (localTrack != null) {
+                        val renderer = createRenderer()
+                        localRenderer = renderer
+                        r.initVideoRenderer(renderer)
+                        localTrack.addRenderer(renderer)
+                        mountBehindWebView(renderer)
+                        installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                    }
+                    attachAllRemoteRenderersInternal(r)
+                } catch (e: Exception) {
+                    Log.w(TAG, "handleOnResume renderer restore failed: ${e.message}")
+                }
+            }
 
             if (pauseCameraOnBackground && cameraOnBeforeBackground) {
-                val r = room ?: return
                 scope.launch {
                     try { r.localParticipant.setCameraEnabled(true) }
                     catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
