@@ -1363,6 +1363,21 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
   const getBeautyFilterCSS = useCallback(() => {
     if (!beautyEnabled) return '';
+    // Pkg413 — On native Android the professional GPUPixel engine already
+    // processes the outgoing broadcast track (3D MarsFace landmarks, skin
+    // smoothing, whitening, thin-face, big-eye, lipstick, blusher). The
+    // LiveKit local preview shows that processed track directly. Painting
+    // an additional CSS blur/brightness on top double-processes the frames
+    // and is exactly what the user has been reporting as "old bad blur".
+    // Skip the CSS path entirely when GPUPixel is the source of truth.
+    try {
+      // Capacitor is already imported across the app; safe to read here.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cap: any = (globalThis as any).Capacitor;
+      if (cap && typeof cap.getPlatform === 'function' && cap.getPlatform() === 'android') {
+        return '';
+      }
+    } catch { /* not in Capacitor env, fall through */ }
     const { smoothness, whitening, redness, sharpness, glow = 0, warmth = 0, eyeBright = 0, skinTone = 50 } = beautySettings;
     const filters: string[] = [];
     // Combined brightness from whitening + glow + eyeBright + smoothness
