@@ -1123,10 +1123,17 @@ class LiveKitPlugin : Plugin() {
         val webView = bridge?.webView
         // Step 25 — drop stall sinks before we release the underlying tracks.
         try { clearStallSinks() } catch (_: Exception) {}
-        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it); it.release() }
+        // Pkg415: only detach from the view hierarchy; DO NOT call release()
+        // on the renderer here. release() destroys the EGL context which races
+        // attachLocal() if a reconnect mounts a fresh local renderer within
+        // the next ~500ms (the EGL teardown leaves the SurfaceTexture invalid
+        // and the new renderer draws nothing → 2-second white screen).
+        // The renderers are GC-collectable once their parent view is removed
+        // and no track holds a reference to them.
+        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
         localRenderer = null
         remoteRenderers.values.forEach {
-            (it.parent as? ViewGroup)?.removeView(it); it.release()
+            (it.parent as? ViewGroup)?.removeView(it)
         }
         remoteRenderers.clear()
         webView?.setBackgroundColor(0xFF000000.toInt())
