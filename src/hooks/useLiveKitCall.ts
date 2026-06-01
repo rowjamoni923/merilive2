@@ -39,6 +39,7 @@ import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoo
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -259,7 +260,11 @@ export function useLiveKitCall(
     }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
+    if (enabled) {
+      claimAndroidWebViewCamera('call:web-toggle-video').catch(() => {});
+    }
     room.localParticipant.setCameraEnabled(enabled);
+    if (!enabled) releaseAndroidWebViewCamera('call:web-toggle-video-off');
     setState(p => ({ ...p, isVideoEnabled: enabled }));
   }, [state.isVideoEnabled]);
 
