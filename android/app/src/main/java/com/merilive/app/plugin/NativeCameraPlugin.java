@@ -240,8 +240,11 @@ public class NativeCameraPlugin extends Plugin {
             resolveLatestFrame(call);
             return;
         }
+        // Pkg416: offload base64 encode to background. On main thread it
+        // shows up in Logcat as UISlowBinder / Skipped N frames and stalls
+        // the preview Surface for ~120ms on slower CPUs.
         imageCapture.takePicture(
-            ContextCompat.getMainExecutor(getContext()),
+            cameraExecutor,
             new ImageCapture.OnImageCapturedCallback() {
                 @Override
                 public void onCaptureSuccess(@NonNull ImageProxy image) {
@@ -249,12 +252,14 @@ public class NativeCameraPlugin extends Plugin {
                         ByteBuffer buf = image.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buf.remaining()];
                         buf.get(bytes);
-                        String b64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
+                        final String b64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
+                        final int w = image.getWidth();
+                        final int h = image.getHeight();
                         JSObject ret = new JSObject();
                         ret.put("base64", b64);
                         ret.put("mimeType", "image/jpeg");
-                        ret.put("width", image.getWidth());
-                        ret.put("height", image.getHeight());
+                        ret.put("width", w);
+                        ret.put("height", h);
                         call.resolve(ret);
                     } catch (Exception e) {
                         call.reject("Encode failed: " + e.getMessage());
