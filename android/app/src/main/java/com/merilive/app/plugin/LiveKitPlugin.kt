@@ -623,9 +623,9 @@ class LiveKitPlugin : Plugin() {
                     // the camera if it currently owns it.
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                 }
+                activity?.runOnUiThread { detachAllRenderersInternal() }
                 room?.disconnect()
                 room = null
-                activity?.runOnUiThread { detachAllRenderersInternal() }
                 setKeepScreenOn(false)
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
@@ -638,6 +638,7 @@ class LiveKitPlugin : Plugin() {
                 stopCallForegroundService()
                 try { beautyProcessor?.release() } catch (_: Exception) {}
                 beautyProcessor = null
+                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
                 // a future LiveKit reconnect can claim the hardware without racing.
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
