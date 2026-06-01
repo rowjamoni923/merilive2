@@ -75,6 +75,7 @@ const CreateParty = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<PartyMode>("video");
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [showGameSelection, setShowGameSelection] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -88,6 +89,9 @@ const CreateParty = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
   const preserveStreamRef = useRef(false);
+  useEffect(() => {
+    streamRef.current = stream;
+  }, [stream]);
   
   // Feature level check
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
@@ -209,8 +213,10 @@ const CreateParty = () => {
     return () => {
       isMounted = false;
       // Only stop tracks if we're NOT preserving for party room handoff
-      if (!preserveStreamRef.current && stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (!preserveStreamRef.current && streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        releaseAndroidWebViewCamera('create-party:unmount');
       }
     };
   }, []);
@@ -328,11 +334,13 @@ const CreateParty = () => {
 
   const handleClose = () => {
     try {
-      if (stream) {
-        stream.getTracks().forEach(track => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
           track.stop();
         });
+        streamRef.current = null;
         setStream(null);
+        releaseAndroidWebViewCamera('create-party:close');
       }
     } catch (e) {
       console.error("Error stopping tracks:", e);
