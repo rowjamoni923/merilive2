@@ -1,3 +1,5 @@
+import { releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
+
 interface PreparedHostPreviewMedia {
   stream: MediaStream;
   preparedAt: number;
@@ -44,5 +46,6 @@ export const clearPreparedHostPreviewStream = (options?: { stopTracks?: boolean 
 
   if (shouldStopTracks && prepared?.stream) {
     prepared.stream.getTracks().forEach((track) => track.stop());
+    releaseAndroidWebViewCamera('host-preview:clear');
   }
 };
