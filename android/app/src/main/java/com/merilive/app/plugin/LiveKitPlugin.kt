@@ -578,6 +578,22 @@ class LiveKitPlugin : Plugin() {
                 stopStatsCollector()
                 qualityTable.clear()
                 unregisterNetworkCallback()
+                // Native camera-release pass: explicitly disable camera +
+                // mic BEFORE room.disconnect() so the underlying Camera2
+                // capture session is torn down in a clean order. Without
+                // this the SDK sometimes releases the room object while
+                // the capture session is still pumping frames, leaving
+                // the Camera2 device locked until the next process
+                // restart — that is what produces the "white/blank
+                // screen on re-enter" the host sees after tapping close.
+                val pre = room
+                if (pre != null) {
+                    try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    // Also flip the beauty bridge OFF so GPUPixel releases
+                    // the camera if it currently owns it.
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                }
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
