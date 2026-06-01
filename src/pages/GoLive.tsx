@@ -108,7 +108,6 @@ const GoLive = () => {
     isNativeAndroid,
     openBeautyPanel,
     toggleSticker,
-    switchNativeCamera,
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
