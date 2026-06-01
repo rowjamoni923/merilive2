@@ -438,7 +438,11 @@ class LiveKitPlugin : Plugin() {
         // NativeCameraPlugin can't race in and grab the hardware mid-connect.
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
-        CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        val existingOwner = CameraOwnership.owner()
+        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        if (!ownerAcquired) {
+            throw IllegalStateException("Camera busy: held by $existingOwner")
+        }
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
