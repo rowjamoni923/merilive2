@@ -1208,7 +1208,7 @@ class LiveKitPlugin : Plugin() {
                 if (keptRenderer != null) {
                     try { oldTrack.removeRenderer(keptRenderer) } catch (_: Exception) {}
                 }
-                try { removeStallSink("local") } catch (_: Exception) {}
+                // Old track's stall sink dies with the track; new installStallSink below overwrites the "local" entry.
                 try { oldTrack.stopCapture() } catch (_: Exception) {}
                 r.localParticipant.unpublishTrack(oldTrack)
 
