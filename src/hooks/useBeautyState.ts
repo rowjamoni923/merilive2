@@ -1,17 +1,65 @@
 /**
- * useBeautyState — REMOVED (Pkg200 prep). Permissive stub.
+ * useBeautyState — REAL native beauty driver (Pkg417 — replaces Pkg200 stub).
  *
- * Returns a permissive object so existing 20+ call-sites compile.
- * All operations are no-ops; no UI, no processing.
+ * Previously this file was a no-op `useState` stub, so every Beauty button
+ * in GoLive / LiveStream / ActiveCallScreen / PartyRoom did absolutely
+ * nothing. Beauty only worked while `BeautyFilterPanel` was open (because
+ * that component talked to GPUPixel directly). This rewrite makes the
+ * shared hook the single source of truth that actually drives the native
+ * GPUPixel C++ engine (3D MarsFace landmarks + lipstick → blusher → face
+ * reshape → skin beauty pipeline) AND survives track swaps / app
+ * foregrounding / re-joins by replaying the last-applied levels on:
+ *   - mount
+ *   - LiveKit `LocalTrackPublished` (dispatched by all 3 connection hooks)
+ *   - `visibilitychange` → visible
+ *
+ * Web preview stays a visual no-op (the underlying GPUPixel functions
+ * already short-circuit on non-Android platforms).
+ *
+ * API surface is intentionally identical to the old stub so the 20+
+ * existing call sites compile unchanged.
  */
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
 import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import {
+  applyProBeauty,
+  applyBroadcastBeauty,
+  ensureBeautyInit,
+  isBroadcastBeautyEnabled,
+  isNativeBeautyAvailable,
+  loadStoredLevels,
+  persistLevels,
+  setBeautyEnabled as setNativeBeautyEnabled,
+  type ProBeautyLevels,
+} from '@/plugins/GPUPixelBeauty';
+
+const ENABLED_KEY = 'pkg417.beauty.enabled.v1';
+
+function loadStoredEnabled(): boolean {
+  try {
+    // Default ON on native (host expects professional look out of the box).
+    const v = localStorage.getItem(ENABLED_KEY);
+    if (v === null) return true;
+    return v === '1';
+  } catch {
+    return true;
+  }
+}
+function persistEnabled(v: boolean): void {
+  try { localStorage.setItem(ENABLED_KEY, v ? '1' : '0'); } catch { /* ignore */ }
+}
 
 export function useBeautyState(): any {
-  const [beautyEnabled, setBeautyEnabled] = useState(false);
-  const [beautySettings, setBeautySettings] = useState<BeautySettings>({ ...DEFAULT_BEAUTY });
+  const initialLevels = loadStoredLevels();
+  const initialEnabled = loadStoredEnabled();
+
+  const [beautyEnabled, setBeautyEnabledState] = useState(initialEnabled);
+  const [beautySettings, setBeautySettings] = useState<BeautySettings>({
+    ...DEFAULT_BEAUTY,
+    levels: initialLevels,
+  });
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
   const [activeSticker, setActiveSticker] = useState<string | null>(null);
   const [stickerActive, setStickerActive] = useState(false);
@@ -19,25 +67,68 @@ export function useBeautyState(): any {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const noop = useCallback(() => {}, []);
-  const noopAsync = useCallback(async () => {}, []);
-  const passthroughAsync = useCallback(async <T,>(x: T): Promise<T> => x, []);
+  // Track last-applied so we can replay on track swap / foreground / re-mount.
+  const lastLevelsRef = useRef<ProBeautyLevels>(initialLevels);
+  const lastEnabledRef = useRef<boolean>(initialEnabled);
 
-  const handleBeautyEnabledChange = useCallback((v: boolean) => setBeautyEnabled(v), []);
-  const handleBeautySettingsChange = useCallback((s: BeautySettings) => setBeautySettings(s), []);
+  // ---- Core driver: push (levels, enabled) into the native engine. ----
+  const drive = useCallback(async (levels: ProBeautyLevels, enabled: boolean) => {
+    if (!isNativeBeautyAvailable()) return;
+    try {
+      await ensureBeautyInit();
+      // Always push slider values (so the engine has fresh state even if
+      // currently bypassed — toggling back on is instant).
+      await applyProBeauty(levels);
+      await setNativeBeautyEnabled(enabled);
+      // Push to the LiveKit broadcast track (no-op if no track yet —
+      // re-applied on LocalTrackPublished).
+      if (isBroadcastBeautyEnabled()) {
+        await applyBroadcastBeauty(levels, enabled);
+      } else if (!enabled) {
+        // Always detach when fully off, regardless of flag.
+        await applyBroadcastBeauty(levels, false);
+      }
+    } catch (err) {
+      console.warn('[useBeautyState] drive failed:', err);
+    }
+  }, []);
+
+  // Apply on mount and whenever levels/enabled change.
+  useEffect(() => {
+    lastLevelsRef.current = beautySettings.levels ?? initialLevels;
+    lastEnabledRef.current = beautyEnabled;
+    void drive(lastLevelsRef.current, beautyEnabled);
+  }, [beautyEnabled, beautySettings.levels, drive]);
+
+  // Replay on track-republish (LiveKit LocalTrackPublished) and foregrounding.
+  useEffect(() => {
+    if (!isNativeBeautyAvailable()) return;
+    const replay = () => { void drive(lastLevelsRef.current, lastEnabledRef.current); };
+    const onVisible = () => { if (document.visibilityState === 'visible') replay(); };
+    window.addEventListener('beauty:reapply', replay);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('beauty:reapply', replay);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [drive]);
+
+  const handleBeautyEnabledChange = useCallback((v: boolean) => {
+    setBeautyEnabledState(v);
+    persistEnabled(v);
+  }, []);
+  const handleBeautySettingsChange = useCallback((s: BeautySettings) => {
+    setBeautySettings(s);
+    if (s.levels) persistLevels(s.levels);
+  }, []);
   const handleStickerChange = useCallback((s: string | null) => setActiveSticker(s), []);
   const toggleSticker = useCallback(() => setStickerActive(v => !v), []);
   const openBeautyPanel = useCallback(() => setShowBeautyPanel(true), []);
-  const startNativeCamera = useCallback(async () => {
-    // Streaming/call/party flows must never open the Face Verification
-    // CameraX plugin. Live/private/party media uses LiveKit/WebRTC only;
-    // NativeCamera is reserved for face verification to prevent Camera2
-    // ownership races and white/abandoned preview surfaces on Android.
-    return false;
-  }, []);
-  const stopNativeCamera = useCallback(async () => {
-    return;
-  }, []);
+
+  // Native CameraX is reserved for face-verify (Pkg416). Streaming surfaces
+  // must never open it — Camera2 ownership race → white preview.
+  const startNativeCamera = useCallback(async () => false, []);
+  const stopNativeCamera = useCallback(async () => {}, []);
   const switchNativeCamera = useCallback(async () => {
     setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
   }, []);
@@ -45,9 +136,9 @@ export function useBeautyState(): any {
 
   return {
     beautyEnabled,
-    setBeautyEnabled,
+    setBeautyEnabled: handleBeautyEnabledChange,
     beautySettings,
-    setBeautySettings,
+    setBeautySettings: handleBeautySettingsChange,
     showBeautyPanel,
     setShowBeautyPanel,
     activeSticker,
@@ -57,7 +148,7 @@ export function useBeautyState(): any {
     facingMode,
     canvasRef,
     videoRef,
-    isReady: false,
+    isReady: isNativeBeautyAvailable(),
     isNativeAndroid: isNativeAndroidApp(),
     handleBeautyEnabledChange,
     handleBeautySettingsChange,
@@ -67,11 +158,20 @@ export function useBeautyState(): any {
     switchNativeCamera,
     startNativeCamera,
     stopNativeCamera,
-    initBeauty: async () => false,
-    destroyBeauty: noop,
-    applyToVideoElement: noop,
-    applyToTrack: passthroughAsync,
-    updateSettings: (s: Partial<BeautySettings>) => setBeautySettings(prev => ({ ...prev, ...s })),
+    initBeauty: async () => {
+      if (!isNativeBeautyAvailable()) return false;
+      return ensureBeautyInit();
+    },
+    destroyBeauty: () => {},
+    applyToVideoElement: () => {},
+    applyToTrack: async <T,>(x: T): Promise<T> => x,
+    updateSettings: (s: Partial<BeautySettings>) => {
+      setBeautySettings(prev => {
+        const next = { ...prev, ...s };
+        if (next.levels) persistLevels(next.levels);
+        return next;
+      });
+    },
     getLastError,
   };
 }
