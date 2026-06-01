@@ -196,7 +196,18 @@ const LiveStream = () => {
     frameId?: string | null;
     appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
-  } | null>(null);
+  } | null>(() => location.state?.hostInfo ? {
+    name: location.state.hostInfo.name || "Host",
+    avatar: location.state.hostInfo.avatar || "",
+    country: location.state.hostInfo.country || "🌍",
+    language: location.state.hostInfo.language || "English",
+    gender: location.state.hostInfo.gender || "female",
+    level: Number(location.state.hostInfo.level || 1),
+    id: location.state.hostInfo.id || "",
+    frameId: location.state.hostInfo.frameId || null,
+    appUid: location.state.hostInfo.appUid || null,
+    isVerifiedHost: true,
+  } : null);
   
   const [currentUser, setCurrentUser] = useState<{
     gender: string;
