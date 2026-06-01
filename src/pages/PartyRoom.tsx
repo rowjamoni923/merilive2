@@ -610,7 +610,8 @@ const PartyRoom = () => {
     currentUser?.id || null,
     room?.room_type || 'video',
     isHost,
-    isHost || myPosition !== null
+    isHost || myPosition !== null,
+    partyCameraReady
   );
 
   // Voice/silence auto-close intentionally disabled for party rooms.
