@@ -106,13 +106,9 @@ const GoLive = () => {
   // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
     isNativeAndroid,
-    startNativeCamera,
-    stopNativeCamera,
     openBeautyPanel,
     toggleSticker,
     switchNativeCamera,
-    facingMode: nativeFacingMode,
-    getLastError,
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
@@ -762,15 +758,6 @@ const GoLive = () => {
 
   const startCamera = async () => {
     try {
-      if (isNativeAndroid) {
-        await stopNativePreview();
-        const started = await startNativePreview();
-        if (!started) {
-          throw new Error(getLastError() || 'Native camera access failed');
-        }
-        return;
-      }
-
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
@@ -804,12 +791,6 @@ const GoLive = () => {
 
   const handleCameraSwitch = async () => {
     try {
-      if (isNativeAndroid && nativePreviewActive) {
-        await switchNativeCamera();
-        setFacingMode(nativeFacingMode);
-        return;
-      }
-
       // Pkg-audit Bug C: only stop the VIDEO tracks on camera flip — keep
       // the microphone track alive so the host's audio doesn't go silent
       // (Android WebView won't re-grant mic without a fresh user gesture).
