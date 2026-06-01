@@ -79,6 +79,7 @@ public class NativeCameraPlugin extends Plugin {
     private PreviewView previewView;
     private CameraSelector currentSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
     private Size targetResolution = new Size(1280, 720);
+    private volatile int cameraSessionId = 0;
 
     private ImageCapture imageCapture;
     private VideoCapture<Recorder> videoCapture;
@@ -167,13 +168,15 @@ public class NativeCameraPlugin extends Plugin {
             ? new Size(1280, 720)
             : new Size(1920, 1080);
 
-        getActivity().runOnUiThread(() -> bindCameraAsync(call, lens, res));
+        final int sessionId = ++cameraSessionId;
+        getActivity().runOnUiThread(() -> bindCameraAsync(call, lens, res, sessionId));
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
         getActivity().runOnUiThread(() -> {
             try {
+                cameraSessionId++;
                 if (activeRecording != null) {
                     try { activeRecording.stop(); } catch (Exception ignored) {}
                     activeRecording = null;
@@ -214,7 +217,8 @@ public class NativeCameraPlugin extends Plugin {
 
         getActivity().runOnUiThread(() -> {
             String lens = currentSelector == CameraSelector.DEFAULT_FRONT_CAMERA ? "front" : "back";
-            bindCameraAsync(call, lens, targetResolution.getHeight() == 720 ? "720p" : "1080p");
+            final int sessionId = ++cameraSessionId;
+            bindCameraAsync(call, lens, targetResolution.getHeight() == 720 ? "720p" : "1080p", sessionId);
         });
     }
 
