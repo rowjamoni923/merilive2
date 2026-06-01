@@ -1159,22 +1159,37 @@ class LiveKitPlugin : Plugin() {
 
     private fun detachAllRenderersInternal() {
         val webView = bridge?.webView
+        val r = room
         // Step 25 — drop stall sinks before we release the underlying tracks.
         try { clearStallSinks() } catch (_: Exception) {}
-        // Pkg415: only detach from the view hierarchy; DO NOT call release()
-        // on the renderer here. release() destroys the EGL context which races
-        // attachLocal() if a reconnect mounts a fresh local renderer within
-        // the next ~500ms (the EGL teardown leaves the SurfaceTexture invalid
-        // and the new renderer draws nothing → 2-second white screen).
-        // The renderers are GC-collectable once their parent view is removed
-        // and no track holds a reference to them.
-        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
-        localRenderer = null
-        remoteRenderers.values.forEach {
+        localRenderer?.let {
+            if (r != null) {
+                try {
+                    val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    track?.removeRenderer(it)
+                } catch (_: Exception) {}
+            }
             (it.parent as? ViewGroup)?.removeView(it)
+            try { it.release() } catch (_: Exception) {}
+        }
+        localRenderer = null
+        remoteRenderers.forEach { (sid, renderer) ->
+            if (r != null) {
+                try {
+                    val participant = r.remoteParticipants.values.firstOrNull { it.sid.value == sid }
+                    val track = participant?.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    track?.removeRenderer(renderer)
+                } catch (_: Exception) {}
+            }
+            (renderer.parent as? ViewGroup)?.removeView(renderer)
+            try { renderer.release() } catch (_: Exception) {}
         }
         remoteRenderers.clear()
         webView?.setBackgroundColor(0xFF000000.toInt())
+        (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
+        webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
     }
 
     // ------------------------------------------------------------
