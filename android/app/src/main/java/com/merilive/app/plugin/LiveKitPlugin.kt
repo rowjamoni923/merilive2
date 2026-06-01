@@ -618,6 +618,9 @@ class LiveKitPlugin : Plugin() {
                 stopCallForegroundService()
                 try { beautyProcessor?.release() } catch (_: Exception) {}
                 beautyProcessor = null
+                // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
+                // a future LiveKit reconnect can claim the hardware without racing.
+                CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
