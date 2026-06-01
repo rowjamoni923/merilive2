@@ -452,9 +452,6 @@ class LiveKitPlugin : Plugin() {
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
         val existingOwner = CameraOwnership.owner()
-        if (existingOwner == CameraOwnership.OWNER_WEBVIEW_LIVEKIT) {
-            CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
-        }
         val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
