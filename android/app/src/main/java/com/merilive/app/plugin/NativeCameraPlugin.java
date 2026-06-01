@@ -679,7 +679,7 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
-    private void resolveStartWhenPreviewStreams(PluginCall call, String lens, String res) {
+    private void resolveStartWhenPreviewStreams(PluginCall call, String lens, String res, int sessionId) {
         if (previewView == null || getActivity() == null) {
             call.reject("Preview surface missing");
             return;
@@ -693,6 +693,11 @@ public class NativeCameraPlugin extends Plugin {
             if (resolved[0]) return;
             resolved[0] = true;
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            if (sessionId != cameraSessionId) {
+                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                call.reject("Camera start cancelled");
+                return;
+            }
             Log.w(TAG, "Preview did not reach STREAMING before timeout");
             // Pkg416: leave WebView transparent even on timeout — restoring
             // the opaque shell while CameraX is still mid-attach paints the
@@ -708,6 +713,11 @@ public class NativeCameraPlugin extends Plugin {
             resolved[0] = true;
             handler.removeCallbacks(timeout);
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            if (sessionId != cameraSessionId) {
+                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                call.reject("Camera start cancelled");
+                return;
+            }
             setWebViewCameraBackground(0x00000000);
             JSObject ret = new JSObject();
             ret.put("started", true);
