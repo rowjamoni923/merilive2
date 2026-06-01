@@ -39,6 +39,13 @@ export function releaseAndroidWebViewCameraWhenStopped(stream: MediaStream | nul
   stream.getVideoTracks().forEach((track) => track.addEventListener('ended', maybeRelease, { once: true }));
 }
 
+export function stopMediaStreamAndReleaseAndroidCamera(stream: MediaStream | null | undefined, reason: string): void {
+  if (!stream) return;
+  const hadVideo = hasLiveVideo(stream);
+  stream.getTracks().forEach((track) => track.stop());
+  if (hadVideo) releaseAndroidWebViewCamera(reason);
+}
+
 export async function claimAndroidWebViewCameraForStream<T extends MediaStream | null>(
   factory: () => Promise<T>,
   reason: string,
