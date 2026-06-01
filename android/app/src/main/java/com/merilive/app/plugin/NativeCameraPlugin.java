@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
+import android.os.Handler;
 import android.os.Looper;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -101,7 +102,14 @@ public class NativeCameraPlugin extends Plugin {
     @Override
     public void handleOnPause() {
         super.handleOnPause();
-        releaseCameraResources(false);
+        // Do not tear down CameraX on every pause. Android fires onPause for
+        // permission sheets, notification shade, focus churn and activity
+        // overlays while the GoLive screen is still visible; releasing here
+        // removes the native PreviewView behind the WebView, leaving only the
+        // transparent/light React shell — the user-visible white preview. The
+        // owning React screen calls NativeCamera.stop() on back/unmount, and
+        // handleOnDestroy() is still the hard safety release.
+        Log.d(TAG, "handleOnPause: keeping native camera alive until explicit stop/destroy");
     }
 
     @Override
@@ -487,11 +495,7 @@ public class NativeCameraPlugin extends Plugin {
                 try {
                     cameraProvider = future.get();
                     bindUseCases();
-                    JSObject ret = new JSObject();
-                    ret.put("started", true);
-                    ret.put("lens", lens);
-                    ret.put("resolution", res);
-                    call.resolve(ret);
+                    resolveStartWhenPreviewStreams(call, lens, res);
                 } catch (Exception e) {
                     Log.e(TAG, "bindCameraAsync failed", e);
                     CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
@@ -591,9 +595,60 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
+    private void resolveStartWhenPreviewStreams(PluginCall call, String lens, String res) {
+        if (previewView == null || getActivity() == null) {
+            call.reject("Preview surface missing");
+            return;
+        }
+
+        final boolean[] resolved = new boolean[] { false };
+        LifecycleOwner owner = (LifecycleOwner) getActivity();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Runnable timeout = () -> {
+            if (resolved[0]) return;
+            resolved[0] = true;
+            try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            Log.w(TAG, "Preview did not reach STREAMING before timeout");
+            setWebViewCameraBackground(0xFF000000);
+            call.reject("Camera preview did not start");
+        };
+
+        try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+        previewView.getPreviewStreamState().observe(owner, state -> {
+            if (resolved[0]) return;
+            if (state != PreviewView.StreamState.STREAMING) return;
+            resolved[0] = true;
+            handler.removeCallbacks(timeout);
+            try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
+            setWebViewCameraBackground(0x00000000);
+            JSObject ret = new JSObject();
+            ret.put("started", true);
+            ret.put("lens", lens);
+            ret.put("resolution", res);
+            call.resolve(ret);
+        });
+        handler.postDelayed(timeout, 3500);
+    }
+
+    private void setWebViewCameraBackground(int color) {
+        if (bridge == null || bridge.getWebView() == null) return;
+        bridge.getWebView().setBackgroundColor(color);
+        ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
+        if (root != null) root.setBackgroundColor(color);
+    }
+
     private void ensurePreviewViewSync() {
         if (previewView != null) return;
         previewView = new PreviewView(getContext());
+        // Force TextureView-backed rendering. CameraX PreviewView defaults to
+        // PERFORMANCE/SurfaceView on many OnePlus/Oppo devices; SurfaceView is
+        // a separate compositor layer and often disappears when placed behind
+        // a transparent Capacitor WebView, even though Camera2 keeps producing
+        // frames. COMPATIBLE uses TextureView so normal z-order works.
+        previewView.setImplementationMode(PreviewView.ImplementationMode.COMPATIBLE);
+        previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
+        previewView.setBackgroundColor(0xFF000000);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
@@ -602,7 +657,7 @@ public class NativeCameraPlugin extends Plugin {
             ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
             if (root != null) {
                 root.addView(previewView, 0, lp);
-                bridge.getWebView().setBackgroundColor(0x00000000);
+                setWebViewCameraBackground(0xFF000000);
             }
         }
     }
