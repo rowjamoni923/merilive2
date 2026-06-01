@@ -44,7 +44,7 @@ interface ActiveCallScreenProps {
   hostEarned?: number;
   callerRemainingCoins?: number;
   callStatus?: 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
-  onEndCall: () => void;
+  onEndCall: () => void | Promise<void>;
   onMediaConnected?: (callId: string) => void;
   isHost?: boolean;
 }
@@ -420,15 +420,20 @@ export function ActiveCallScreen({
       setTimeout(() => { sendingGiftRef.current = false; }, 250);
     }
   };
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
     // Section#5 pass-3 (Bug J): block double-tap so onEndCall (and its
     // downstream Telecom + billing finalize) only fires once.
     if (endingRef.current) return;
     endingRef.current = true;
     setCallEnded(true);
-    cleanup();
-    // End immediately on both sides (no waiting modal)
-    onEndCall();
+    // End immediately on both sides, but keep the LiveKit room registered until
+    // CallProvider publishes the hangup packet. Cleaning media first unregisters
+    // the room and makes the peer wait for DB realtime instead of instant close.
+    try {
+      await Promise.resolve(onEndCall());
+    } finally {
+      cleanup();
+    }
   };
   useEffect(() => {
     if (!isOpen || callEnded) return;
