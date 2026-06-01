@@ -38,6 +38,7 @@ import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -1088,7 +1089,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               room.localParticipant.setCameraEnabled(false)
                 .catch(() => {})
                 .then(() => new Promise((resolve) => setTimeout(resolve, 80)))
-                .then(() => room.localParticipant.setCameraEnabled(true))
+                .then(async () => {
+                  await claimAndroidWebViewCamera('live:web-recover-camera');
+                  return room.localParticipant.setCameraEnabled(true);
+                })
                 .then(() => {
                   const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
                     .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
@@ -1119,7 +1123,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               .some((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
             if (hasVideo) return;
             console.log('[LiveKitClient] 🔁 Retrying camera publish after initial failure');
-            room.localParticipant.enableCameraAndMicrophone()
+            publishReliableLocalMedia(room, { needVideo: true, needAudio: true })
               .then(() => {
                 room.localParticipant.trackPublications.forEach((pub) => {
                   if (pub.track?.kind === Track.Kind.Video) setLocalVideoTrack(pub.track);
@@ -1270,7 +1274,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
+    if (enabled) await claimAndroidWebViewCamera('live:web-toggle-video');
     await room.localParticipant.setCameraEnabled(enabled);
+    if (!enabled) releaseAndroidWebViewCamera('live:web-toggle-video-off');
   }, []);
 
   // Switch camera
