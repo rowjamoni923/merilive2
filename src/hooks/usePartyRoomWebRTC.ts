@@ -830,7 +830,8 @@ export function usePartyRoomWebRTC(
     (async () => {
       try {
         if (partyCanPublish) {
-          if (roomType === 'video' || roomType === 'game') {
+          if (isVideoPartyType(roomType)) {
+            await claimWebViewCameraIfAndroid(true);
             await room.localParticipant.setCameraEnabled(true);
           }
           await room.localParticipant.setMicrophoneEnabled(true);
@@ -846,6 +847,7 @@ export function usePartyRoomWebRTC(
           }));
         } else {
           await room.localParticipant.setCameraEnabled(false);
+          releaseWebViewCameraIfAndroid();
           await room.localParticipant.setMicrophoneEnabled(false);
           setState((prev) => ({
             ...prev,
