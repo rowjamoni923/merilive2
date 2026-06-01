@@ -13,6 +13,7 @@ import { NativeCall } from '@/plugins/NativeCall';
 import { NativeCamera } from '@/plugins/NativeCamera';
 import { getUserMediaWithFallback } from '@/hooks/useNativeCameraPermission';
 import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 
 interface CallState {
   callId: string | null;
@@ -506,7 +507,9 @@ export function usePrivateCall(userId: string | null) {
 
     let preparedOutgoingStream: MediaStream | null = null;
     try {
-      preparedOutgoingStream = await getUserMediaWithFallback(true);
+      if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
+        preparedOutgoingStream = await getUserMediaWithFallback(true);
+      }
       // ✅ FIX: Force-clear ALL stale call state before starting new call
       // This ensures old call never reconnects
       callEndedRef.current = false;
@@ -852,9 +855,11 @@ export function usePrivateCall(userId: string | null) {
   const acceptCall = useCallback(async (callId: string) => {
     let preparedIncomingStream: MediaStream | null = null;
     try {
-      preparedIncomingStream = await getUserMediaWithFallback(true);
-      setPreparedCallMediaStream(callId, preparedIncomingStream);
-      preparedIncomingStream = null;
+      if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
+        preparedIncomingStream = await getUserMediaWithFallback(true);
+        setPreparedCallMediaStream(callId, preparedIncomingStream);
+        preparedIncomingStream = null;
+      }
       const incomingSnapshot = incomingCallIdRef.current === callId ? incomingCall : null;
 
       // ⚡ Optimistic connect UI first (don't wait for DB/network)
