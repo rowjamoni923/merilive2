@@ -98,6 +98,7 @@ import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 import { useRoomProtection } from "@/hooks/useRoomProtection";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useBeautyState } from "@/hooks/useBeautyState";
+import { useProCamera } from "@/camera/useProCamera";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -253,8 +254,25 @@ const PartyRoom = () => {
     max_game_participants: 6
   });
   
-  // REAL native beauty native beauty integration for Party Rooms
+  // REAL native beauty integration for Party Rooms (Pkg417 drives GPUPixel)
   const beauty = useBeautyState();
+
+  // Pkg416 — claim the single professional camera for video/game party.
+  // Audio-only rooms skip the arbiter (no camera publish). Family conflict
+  // with face-verify → friendly toast, no camera start.
+  const partyCameraOwner: 'video-party' | 'game-party' | null =
+    room?.room_type === 'video' ? 'video-party'
+    : room?.room_type === 'game' ? 'game-party'
+    : null;
+  const partyProCamera = useProCamera(
+    partyCameraOwner ?? 'video-party',
+    !!partyCameraOwner,
+  );
+  useEffect(() => {
+    if (partyProCamera.error) {
+      toast.error('Camera is busy with face verification. Please finish that first.');
+    }
+  }, [partyProCamera.error]);
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(currentUser?.id);

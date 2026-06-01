@@ -813,6 +813,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
+            // Pkg417 — re-apply professional GPUPixel beauty on every
+            // (re)publish so adaptive-tier track swaps / recovery
+            // republishes don't drop the beauty processor.
+            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           } else if (publication.track.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
           }

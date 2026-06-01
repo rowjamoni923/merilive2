@@ -68,7 +68,19 @@ export function ActiveCallScreen({
   onMediaConnected,
   isHost = false,
 }: ActiveCallScreenProps) {
-  // REAL native beauty native beauty integration
+  // Pkg416 — claim the single professional camera for private-call. If
+  // face-verify holds the camera (verification family), this returns a
+  // conflict error and we surface a friendly toast instead of starting
+  // LiveKit (which would otherwise hit a Camera2 ownership race and show
+  // a permanent white preview).
+  const proCamera = useProCamera('private-call', isOpen);
+  useEffect(() => {
+    if (proCamera.error) {
+      toast.error('Camera is busy with face verification. Please finish that first.');
+    }
+  }, [proCamera.error]);
+
+  // REAL native beauty integration (Pkg417 — actually drives GPUPixel now)
   const beauty = useBeautyState();
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
