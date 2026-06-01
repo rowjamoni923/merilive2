@@ -98,6 +98,7 @@ import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 import { useRoomProtection } from "@/hooks/useRoomProtection";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useBeautyState } from "@/hooks/useBeautyState";
+import { useProCamera } from "@/camera/useProCamera";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
