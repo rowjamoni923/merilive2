@@ -1425,7 +1425,20 @@ class LiveKitPlugin : Plugin() {
             stopReconnectWatchdog()
             unregisterNetworkCallback()
             lastConnectArgs = null
-            scope.launch { room?.disconnect() }
+            // Native camera-release pass: explicitly disable camera + mic
+            // BEFORE disconnect so Camera2 session unwinds in order and
+            // the device is not held into the next process.
+            scope.launch {
+                try {
+                    val pre = room
+                    if (pre != null) {
+                        try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                        try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    }
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    room?.disconnect()
+                } catch (_: Exception) {}
+            }
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
