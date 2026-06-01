@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
+import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -99,10 +100,10 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
     }
     console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
     const stream = await withTimeout(
-      navigator.mediaDevices.getUserMedia({ 
+      claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user' }, 
         audio: includeAudio 
-      }),
+      }), `permission-probe:${includeAudio ? 'av' : 'video'}`),
       10000, // 10s timeout for native permission dialog
       'Camera permission request timed out'
     );
@@ -120,7 +121,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
       console.warn('[Camera Permission] Got video but no audio, requesting audio separately...');
       try {
         const audioStream = await withTimeout(
-          navigator.mediaDevices.getUserMedia({ audio: true }),
+            navigator.mediaDevices.getUserMedia({ audio: true }),
           8000,
           'Microphone request timed out'
         );
@@ -169,7 +170,7 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     try {
       console.log(`[Camera] Attempt ${i + 1}/${constraintOptions.length}`);
       const stream = await withTimeout(
-        navigator.mediaDevices.getUserMedia(constraintOptions[i]),
+        claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia(constraintOptions[i]), `camera-stream:${i + 1}`),
         9000,
         'Camera stream request timed out',
       );
