@@ -361,7 +361,8 @@ export function usePartyRoomWebRTC(
         const publishLocalMediaWithRetry = async () => {
           const previewStream = consumePreparedHostPreviewStream();
           const preparedStream = previewStream?.getTracks().every((track) => track.readyState === 'live') ? previewStream : undefined;
-          const needsVideo = isVideoPartyType(roomType);
+          // Pkg418 hard gate: if arbiter not clear, publish audio-only.
+          const needsVideo = isVideoPartyType(roomType) && cameraReadyRef.current;
           let cameraClaimed = false;
           let lastError: unknown = null;
 
