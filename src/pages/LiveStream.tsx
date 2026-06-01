@@ -193,6 +193,8 @@ const LiveStream = () => {
     gender: string;
     level: number;
     id: string;
+    frameId?: string | null;
+    appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
   } | null>(null);
   
@@ -204,6 +206,7 @@ const LiveStream = () => {
     display_name?: string;
     avatar_url?: string;
     user_level?: number;
+    host_level?: number;
     country_flag?: string;
   } | null>(null);
   
