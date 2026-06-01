@@ -2628,7 +2628,6 @@ const LiveStream = () => {
         try { await claimAndroidWebViewCamera('livestream:web-recover-camera'); } catch { /* ignore */ }
         try { await roomAny.localParticipant.setCameraEnabled(true); } catch { /* ignore */ }
         try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
-        releaseAndroidWebViewCamera('livestream:web-recover-done');
       }
     } catch { /* ignore */ }
     toast.info('Restarting camera…');
