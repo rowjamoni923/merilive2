@@ -1542,7 +1542,9 @@ class LiveKitPlugin : Plugin() {
                         try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
                     }
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    activity?.runOnUiThread { detachAllRenderersInternal() }
                     room?.disconnect()
+                    room = null
                 } catch (_: Exception) {}
             }
             setKeepScreenOn(false)
@@ -1560,6 +1562,9 @@ class LiveKitPlugin : Plugin() {
             virtualBackgroundProcessor = null
             try { beautyProcessor?.release() } catch (_: Exception) {}
             beautyProcessor = null
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
+            CameraOwnership.forceRelease()
         } catch (_: Exception) {}
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
