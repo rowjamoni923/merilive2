@@ -87,12 +87,18 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !videoTrack) return;
-    // Hide until first real frame so native play-icon never gets a chance to flash
-    el.style.opacity = '0';
 
+    const mediaTrack = videoTrack.mediaStreamTrack;
 
-    // Android WebView autoplay compatibility: force-muted at bootstrap,
-    // then optionally unmute only after real playback starts.
+    // Pkg-audit Bug E: detect re-attach of the SAME track (parent re-render)
+    // and keep the element visible instead of blanking it.
+    const currentStream = el.srcObject as MediaStream | null;
+    const currentTrack = currentStream?.getVideoTracks?.()[0];
+    const isSameTrack = !!(currentTrack && mediaTrack && currentTrack.id === mediaTrack.id);
+    if (!isSameTrack) {
+      el.style.opacity = '0';
+    }
+
     const enforceInlineSurface = () => {
       el.controls = false;
       el.removeAttribute('controls');
@@ -101,34 +107,39 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.setAttribute('playsinline', '');
       el.setAttribute('webkit-playsinline', 'true');
       el.setAttribute('x5-playsinline', 'true');
-      el.setAttribute('muted', '');
-      el.muted = true;
-      el.defaultMuted = true;
+      // Pkg-audit Bug E: only force-mute on FIRST attach. Re-running this
+      // after attach() would flip an unmuted video back to muted and cause
+      // Android WebView to pause/blank the surface.
+      if (!isSameTrack && mutedRef.current) {
+        el.setAttribute('muted', '');
+        el.muted = true;
+        el.defaultMuted = true;
+      }
     };
 
     enforceInlineSurface();
-    hardenVideoElementForNative(el, { muted: true });
-
-    const mediaTrack = videoTrack.mediaStreamTrack;
+    hardenVideoElementForNative(el, { muted: mutedRef.current });
 
     // === ATTACH TRACK ===
-    if (mediaTrack && mediaTrack.readyState !== 'ended') {
-      try {
-        el.srcObject = new MediaStream([mediaTrack]);
-      } catch {
-        // ignore unsupported MediaStream assignment
-      }
-    }
-
+    // Pkg-audit Bug E: Use videoTrack.attach() EXCLUSIVELY when available.
+    // Previously we set srcObject AND called attach(), causing the SDK to
+    // re-assign srcObject internally → double loadedmetadata → double play()
+    // → mute/unmute flip → blank surface.
+    let attached = false;
     if (typeof videoTrack.attach === 'function') {
       try {
         videoTrack.attach(el);
+        attached = true;
       } catch {
-        // ignore attach race during track replacement
+        // fall through
       }
-      // LiveKit attach can re-introduce default attributes on some WebViews
-      enforceInlineSurface();
-      hardenVideoElementForNative(el, { muted: true });
+    }
+    if (!attached && mediaTrack && mediaTrack.readyState !== 'ended') {
+      try {
+        el.srcObject = new MediaStream([mediaTrack]);
+      } catch {
+        // ignore
+      }
     }
 
     // === EVENT HANDLING ===
@@ -138,7 +149,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const markReady = () => {
       revealVideo();
       if (!mutedRef.current) {
-        // Optional unmute after successful playback start
         try {
           el.muted = false;
           el.defaultMuted = false;
@@ -149,24 +159,17 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       }
     };
 
-
-
-
     const playNow = () => {
-      enforceInlineSurface();
       if (!el || !el.paused) { markReady(); return; }
       el.play().then(markReady).catch(() => {
         if (el.readyState >= 2) {
-          // Keep retrying silently; do not surface native play UI.
           setTimeout(() => {
-            enforceInlineSurface();
             el.play().catch(() => {});
           }, 80);
         }
       });
     };
 
-    // First-frame detection
     const safeVideo = el as HTMLVideoElement & {
       requestVideoFrameCallback?: (cb: () => void) => number;
       cancelVideoFrameCallback?: (h: number) => void;
@@ -184,28 +187,22 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     el.onwaiting = () => { if (el.readyState >= 2) el.play().catch(() => {}); };
     el.onstalled = () => { if (el.readyState >= 2) el.play().catch(() => {}); };
 
-    // Lightweight retries for autoplay race conditions on some WebViews
     const timers = [0, 60, 180, 400, 800].map((d) => setTimeout(playNow, d));
 
-    // Pkg381 — REVEAL WATCHDOG.
-    // Android WebView often lacks requestVideoFrameCallback AND can silently
-    // drop `onplaying`/`oncanplay`. Without this, the video stays at opacity:0
-    // forever (white/black screen with only chat overlay visible) — exactly
-    // the host/viewer symptom we are fixing. After 1200ms force-reveal if the
-    // underlying mediaStreamTrack is live, regardless of whether any event fired.
     const revealWatchdog = setTimeout(() => {
       const mt = videoTrack?.mediaStreamTrack;
       if (mt && mt.readyState === 'live') {
         revealVideo();
-        // Best-effort: kick play() again in case autoplay was deferred.
-        try { 
-          if (el.paused) el.play().catch(() => {}); 
+        try {
+          if (el.paused) el.play().catch(() => {});
         } catch { /* ignore */ }
       }
-    }, 450); // Reduced from 600ms to 450ms for even faster response if first frame event is missed
+    }, 450);
 
-
-    // === STALL WATCHDOG (optimized: 1.5s interval instead of 1s) ===
+    // === STALL WATCHDOG ===
+    // Pkg-audit Bug F: do NOT reassign srcObject on every stall tick — that
+    // blanks the element for 80-200ms on mobile WebViews. Only reassign when
+    // srcObject is actually gone or wrapping a different track.
     let lastTime = -1;
     let stagnant = 0;
     let lastRecovery = 0;
@@ -225,10 +222,13 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         const now = Date.now();
         if (now - lastRecovery > 5000) {
           lastRecovery = now;
-          if (mediaTrack && mediaTrack.readyState !== 'ended') {
-            el.srcObject = new MediaStream([mediaTrack]);
+          const liveTrack = mediaTrack && mediaTrack.readyState !== 'ended';
+          const cur = el.srcObject as MediaStream | null;
+          const curTrack = cur?.getVideoTracks?.()[0];
+          const needsReattach = !!(liveTrack && mediaTrack && (!cur || !curTrack || curTrack.id !== mediaTrack.id));
+          if (needsReattach && mediaTrack) {
+            try { el.srcObject = new MediaStream([mediaTrack]); } catch { /* noop */ }
           }
-          enforceInlineSurface();
           el.play().catch(() => {});
           onVideoStalledRef.current?.();
         }

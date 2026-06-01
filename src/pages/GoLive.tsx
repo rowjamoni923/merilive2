@@ -189,26 +189,43 @@ const GoLive = () => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
 
-    setPreviewHasFrame(false);
+    // Pkg-audit Bug B: single play path. Previously two `play()` calls (one
+    // from onloadedmetadata, one from rAF) raced against each other and on
+    // Android WebView caused the second play to interrupt the first → blank.
+    const currentStream = videoEl.srcObject as MediaStream | null;
+    const sameStream = currentStream === mediaStream;
+
+    if (!sameStream) {
+      setPreviewHasFrame(false);
+    }
     hardenVideoElementForNative(videoEl, { muted: true });
-    videoEl.srcObject = mediaStream;
+    if (!sameStream) {
+      videoEl.srcObject = mediaStream;
+    }
 
     const ready = () => setPreviewHasFrame(true);
 
-    videoEl.onloadedmetadata = () => {
-      ready();
-      videoEl.play().catch((e) => console.log('[GoLive] Video play error:', e));
+    const tryPlay = () => {
+      if (!videoEl) return;
+      if (!videoEl.paused) { ready(); return; }
+      videoEl.play().then(ready).catch((e) => {
+        console.log('[GoLive] preview play deferred:', e?.message || e);
+      });
     };
 
-    requestAnimationFrame(() => {
-      videoEl.play().then(ready).catch(() => {});
-    });
+    videoEl.onloadedmetadata = tryPlay;
+    videoEl.oncanplay = tryPlay;
+    videoEl.onplaying = ready;
+    tryPlay();
 
+    // Safety net: if no frame event fires, reveal once the underlying track
+    // confirms it's live.
     window.setTimeout(() => {
       const hasLiveTrack = mediaStream.getVideoTracks().some((t) => t.readyState === 'live');
       if (hasLiveTrack) ready();
     }, 1400);
   }, []);
+
   const [userProfile, setUserProfile] = useState<{
     id: string;
     display_name: string;
@@ -768,9 +785,13 @@ const GoLive = () => {
         return;
       }
 
+      // Pkg-audit Bug C: only stop the VIDEO tracks on camera flip — keep
+      // the microphone track alive so the host's audio doesn't go silent
+      // (Android WebView won't re-grant mic without a fresh user gesture).
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getVideoTracks().forEach((track) => track.stop());
       }
+
 
       const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
 
