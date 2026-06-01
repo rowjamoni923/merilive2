@@ -454,6 +454,14 @@ export function usePartyRoomWebRTC(
 
         room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
           console.log(`[PartyLiveKit] Participant connected: ${participant.identity}`);
+          participant.trackPublications.forEach((pub) => {
+            if (!pub.isSubscribed) {
+              try { pub.setSubscribed(true); } catch { /* ignore */ }
+            }
+            if (pub.kind === Track.Kind.Video) {
+              try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
+            }
+          });
           // Pkg381: Immediately add to state with empty stream so UI can show placeholder
           const peerStream = buildPeerStream(participant);
           setPeerStreamForParticipant(participant, peerStream);
@@ -478,29 +486,6 @@ export function usePartyRoomWebRTC(
             }
           }
 
-          const peerStream = buildPeerStream(participant);
-          if (peerStream.getTracks().length > 0) {
-            setPeerStreamForParticipant(participant, peerStream);
-            setState(prev => ({
-              ...prev,
-              peerStreams: new Map(peerStreamsRef.current),
-            }));
-          }
-        });
-
-        // PARTICIPANT JOINED: defensively force-subscribe to any tracks they
-        // already published before we connected. Without this, a viewer who
-        // joins after the host published can miss the first publish event.
-        room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
-          console.log('[PartyLiveKit] Participant connected:', participant.identity);
-          participant.trackPublications.forEach((pub) => {
-            if (!pub.isSubscribed) {
-              try { pub.setSubscribed(true); } catch { /* ignore */ }
-            }
-            if (pub.kind === Track.Kind.Video) {
-              try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
-            }
-          });
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
             setPeerStreamForParticipant(participant, peerStream);
