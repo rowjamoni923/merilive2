@@ -1,5 +1,3 @@
-import { releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
-
 interface PreparedCallMedia {
   callId: string;
   stream: MediaStream;
@@ -34,6 +32,5 @@ export const clearPreparedCallMediaStream = (callId?: string | null, options?: {
   preparedCallMedia = null;
   if (options?.stopTracks) {
     prepared.stream.getTracks().forEach((track) => track.stop());
-    releaseAndroidWebViewCamera('prepared-call:clear');
   }
 };
