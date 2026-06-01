@@ -345,6 +345,9 @@ export function usePartyRoomWebRTC(
 
         const publishLocalMediaWithRetry = async () => {
           const previewStream = consumePreparedHostPreviewStream();
+          const preparedStream = previewStream?.getTracks().every((track) => track.readyState === 'live') ? previewStream : undefined;
+          const needsVideo = isVideoPartyType(roomType);
+          let cameraClaimed = false;
           let lastError: unknown = null;
 
           for (let attempt = 1; attempt <= 3; attempt++) {
@@ -354,12 +357,15 @@ export function usePartyRoomWebRTC(
                 await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
               }
 
-              const needsVideo = roomType === 'video' || roomType === 'game';
-              if (previewStream && attempt === 1) console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
+              if (needsVideo && !cameraClaimed) {
+                await claimWebViewCameraIfAndroid(true);
+                cameraClaimed = true;
+              }
+              if (preparedStream && attempt === 1) console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
               await publishReliableLocalMedia(room, {
                 needVideo: needsVideo,
                 needAudio: true,
-                preparedStream: previewStream,
+                preparedStream,
                 processVideoTrack: needsVideo ? processTrackWithBeauty : undefined,
               });
 
@@ -392,6 +398,7 @@ export function usePartyRoomWebRTC(
           // Browser MediaDevices errors have well-known names — map each to a
           // specific, actionable message so the host can fix the real problem.
           const err: any = lastError;
+          if (cameraClaimed) releaseWebViewCameraIfAndroid();
           const errName: string = err?.name || err?.error?.name || '';
           const errMsg: string = String(err?.message || err || '').toLowerCase();
           const isVideo = roomType === 'video';
