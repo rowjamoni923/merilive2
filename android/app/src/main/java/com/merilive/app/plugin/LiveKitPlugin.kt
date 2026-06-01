@@ -60,6 +60,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
@@ -350,7 +351,9 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
+        synchronized(LiveKitPlugin::class.java) {
+            if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
+        }
         // Cache the system feature so isPictureInPictureSupported() is free.
         pipSupported = try {
             context.packageManager.hasSystemFeature(
