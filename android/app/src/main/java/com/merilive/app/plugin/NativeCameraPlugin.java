@@ -488,21 +488,47 @@ public class NativeCameraPlugin extends Plugin {
 
     private void bindCameraAsync(PluginCall call, String lens, String res) {
         try {
+            // Pkg416: make sure the PreviewView is attached AND laid out before we
+            // call setSurfaceProvider — otherwise CameraX binds against a Surface
+            // whose isValid()==false, the system logs "handleResized abandoned!"
+            // and the WebView's default opaque background paints over the empty
+            // PreviewView → the user-visible white screen.
             ensurePreviewViewSync();
-            ListenableFuture<ProcessCameraProvider> future =
-                ProcessCameraProvider.getInstance(getContext());
-            future.addListener(() -> {
+            if (previewView == null) {
+                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                call.reject("Camera setup failed: preview attach failed");
+                return;
+            }
+            // Pkg416: post() guarantees we run AFTER the next layout pass, so the
+            // PreviewView has a valid Surface by the time CameraX binds to it.
+            previewView.post(() -> {
                 try {
-                    cameraProvider = future.get();
-                    bindUseCases();
-                    resolveStartWhenPreviewStreams(call, lens, res);
+                    ListenableFuture<ProcessCameraProvider> future =
+                        ProcessCameraProvider.getInstance(getContext());
+                    future.addListener(() -> {
+                        try {
+                            cameraProvider = future.get();
+                            // Pkg416: bind preview+analysis only on the hot path.
+                            // VideoCapture is rebound lazily inside startVideoRecording.
+                            // Binding 3 use-cases simultaneously is what locks the
+                            // hardware on Oppo/OnePlus mid-range and causes the
+                            // Surface-abandoned white preview.
+                            bindUseCases(false);
+                            resolveStartWhenPreviewStreams(call, lens, res);
+                        } catch (Exception e) {
+                            Log.e(TAG, "bindCameraAsync failed", e);
+                            CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                            removePreviewView();
+                            call.reject("Failed to start camera: " + e.getMessage());
+                        }
+                    }, ContextCompat.getMainExecutor(getContext()));
                 } catch (Exception e) {
-                    Log.e(TAG, "bindCameraAsync failed", e);
+                    Log.e(TAG, "bindCameraAsync post failed", e);
                     CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                     removePreviewView();
-                    call.reject("Failed to start camera: " + e.getMessage());
+                    call.reject("Camera setup failed: " + e.getMessage());
                 }
-            }, ContextCompat.getMainExecutor(getContext()));
+            });
         } catch (Exception e) {
             Log.e(TAG, "bindCameraAsync setup failed", e);
             CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
@@ -511,7 +537,15 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
-    private void bindUseCases() {
+    /**
+     * Pkg416: bind preview + analysis (+ optional video). VideoCapture is added
+     * only when the JS layer actually calls startVideoRecording, because binding
+     * Preview + ImageAnalysis + VideoCapture together exceeds the simultaneous
+     * use-case limit on many Snapdragon 6xx / MediaTek Helio devices and the
+     * preview Surface is silently dropped (UISlowBinder + handleResized
+     * abandoned + completely white WebView).
+     */
+    private void bindUseCases(boolean includeVideo) {
         Preview preview = new Preview.Builder()
             .setTargetResolution(targetResolution)
             .build();
@@ -524,11 +558,13 @@ public class NativeCameraPlugin extends Plugin {
         analysis.setAnalyzer(cameraExecutor, image -> {
             try {
                 long now = System.currentTimeMillis();
-                if (now - lastFrameEncodeAt < 350) return;
-        int rotation = image.getImageInfo().getRotationDegrees();
-        // Do not mirror analyzer frames. Mirroring is only a preview concern;
-        // mirrored JPEGs invert yaw and cause left/right liveness to fail.
-        byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, false, 82);
+                if (now - lastFrameEncodeAt < 350) {
+                    return;
+                }
+                int rotation = image.getImageInfo().getRotationDegrees();
+                // Do not mirror analyzer frames. Mirroring is only a preview concern;
+                // mirrored JPEGs invert yaw and cause left/right liveness to fail.
+                byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, false, 82);
                 synchronized (frameLock) {
                     latestFrameJpeg = jpeg;
                     latestFrameWidth = (rotation == 90 || rotation == 270) ? image.getHeight() : image.getWidth();
@@ -548,29 +584,44 @@ public class NativeCameraPlugin extends Plugin {
             .setTargetResolution(targetResolution)
             .build();
 
-        Quality preferred = targetResolution.getHeight() >= 1080 ? Quality.FHD : Quality.HD;
-        Recorder recorder = new Recorder.Builder()
-            .setQualitySelector(QualitySelector.from(
-                preferred, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)))
-            .build();
-        videoCapture = VideoCapture.withOutput(recorder);
+        VideoCapture<Recorder> vc = null;
+        if (includeVideo) {
+            Quality preferred = targetResolution.getHeight() >= 1080 ? Quality.FHD : Quality.HD;
+            Recorder recorder = new Recorder.Builder()
+                .setQualitySelector(QualitySelector.from(
+                    preferred, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)))
+                .build();
+            vc = VideoCapture.withOutput(recorder);
+        }
 
         cameraProvider.unbindAll();
         try {
-            // Best path: visible preview + analyzer frames + recording.
-            camera = cameraProvider.bindToLifecycle(
-                (LifecycleOwner) getActivity(),
-                currentSelector,
-                preview,
-                analysis,
-                videoCapture
-            );
-            imageCapture = null;
+            if (includeVideo && vc != null) {
+                // Recording path: drop ImageCapture to stay within the
+                // 3-use-case hardware budget on most phones.
+                camera = cameraProvider.bindToLifecycle(
+                    (LifecycleOwner) getActivity(),
+                    currentSelector,
+                    preview,
+                    analysis,
+                    vc
+                );
+                videoCapture = vc;
+                imageCapture = null;
+            } else {
+                // Hot path: preview + analysis + imageCapture. Light enough
+                // to bind reliably on every device we ship to.
+                camera = cameraProvider.bindToLifecycle(
+                    (LifecycleOwner) getActivity(),
+                    currentSelector,
+                    preview,
+                    analysis,
+                    imageCapture
+                );
+                videoCapture = null;
+            }
         } catch (Exception e) {
-            // Many mid-range Android phones reject Preview+Analysis+VideoCapture.
-            // Face verification MUST still show the native camera and produce
-            // liveness frames, so prefer preview+analysis over preview+video.
-            Log.w(TAG, "3-use-case bind failed, retry with preview+analysis: " + e.getMessage());
+            Log.w(TAG, "primary bind failed, retry preview+analysis only: " + e.getMessage());
             try {
                 cameraProvider.unbindAll();
                 camera = cameraProvider.bindToLifecycle(
@@ -582,15 +633,15 @@ public class NativeCameraPlugin extends Plugin {
                 videoCapture = null;
                 imageCapture = null;
             } catch (Exception e2) {
-                Log.w(TAG, "preview+analysis bind failed, retry with preview+imageCapture: " + e2.getMessage());
+                Log.w(TAG, "preview+analysis bind failed, retry preview only: " + e2.getMessage());
                 cameraProvider.unbindAll();
                 camera = cameraProvider.bindToLifecycle(
                     (LifecycleOwner) getActivity(),
                     currentSelector,
-                    preview,
-                    imageCapture
+                    preview
                 );
                 videoCapture = null;
+                imageCapture = null;
             }
         }
     }
