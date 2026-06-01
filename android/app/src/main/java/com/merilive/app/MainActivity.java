@@ -115,6 +115,16 @@ public class MainActivity extends BridgeActivity {
         // Setup notification channels
         NotificationHelper.createNotificationChannels(this);
 
+        // Pkg-fix: allow muted autoplay for in-app <video> previews (LiveKit /
+        // GoLive / Party / Face Verify / Reels). Without this the WebView
+        // injects a native play-icon overlay on every video surface.
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                android.webkit.WebSettings ws = getBridge().getWebView().getSettings();
+                ws.setMediaPlaybackRequiresUserGesture(false);
+            }
+        } catch (Throwable ignored) {}
+
         // Handle notification route on cold start
         handleNotificationRoute(getIntent());
     }

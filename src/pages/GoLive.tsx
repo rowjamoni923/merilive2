@@ -410,6 +410,13 @@ const GoLive = () => {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    // Pkg-fix: null srcObject so the WebView doesn't keep painting the last
+    // (now-stopped) frame as a frozen native-controls overlay on re-entry.
+    if (videoRef.current) {
+      try { videoRef.current.pause(); } catch { /* ignore */ }
+      try { videoRef.current.srcObject = null; } catch { /* ignore */ }
+      try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
+    }
     navigate(-1);
   };
 
@@ -512,6 +519,12 @@ const GoLive = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
+      }
+      // Pkg-fix: clear video element srcObject on unmount so a stale stopped
+      // stream never leaves a "play" icon ghost in the WebView paint cache.
+      if (videoRef.current) {
+        try { videoRef.current.pause(); } catch { /* ignore */ }
+        try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);

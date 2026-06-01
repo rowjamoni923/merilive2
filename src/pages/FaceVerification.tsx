@@ -361,12 +361,18 @@ const FaceVerification = () => {
   const verticalFirstTiltSignRef = useRef<number | null>(null);
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
+    // Pkg-fix: race-guard — if stopVerification already nulled refs OR the
+    // stream itself was killed, don't attach a dead stream to a stale element.
+    if (!stream || !stream.active) {
+      console.warn('[FaceVerification] attach skipped: stream inactive');
+      return;
+    }
     const videoEl = faceVideoRef.current;
     if (!videoEl) {
       console.warn('[FaceVerification] faceVideoRef not ready, retrying in 200ms...');
       setTimeout(() => {
         const retryEl = faceVideoRef.current;
-        if (retryEl) attachFacePreviewStream(stream);
+        if (retryEl && stream.active) attachFacePreviewStream(stream);
       }, 200);
       return;
     }

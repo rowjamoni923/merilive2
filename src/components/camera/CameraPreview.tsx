@@ -27,6 +27,7 @@ import { Camera, SwitchCamera, Loader2, Circle, Square, AlertTriangle, RefreshCw
 import { Button } from '@/components/ui/button';
 import { useCameraSDK } from '@/sdk/useCameraSDK';
 import { PhotoResult, VideoRecordingResult } from '@/sdk/NativeCameraSDK';
+import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
 
 interface CameraPreviewProps {
   // Callbacks
@@ -92,9 +93,11 @@ export function CameraPreview({
     };
   }, []);
 
-  // Attach stream to video element
   useEffect(() => {
     if (stream && videoRef.current) {
+      // Pkg-fix: harden first so MutationObserver kills any injected controls
+      // even if the WebView tries to add a native play overlay on attach.
+      hardenVideoElementForNative(videoRef.current, { muted: true });
       videoRef.current.srcObject = stream;
       videoRef.current.onloadedmetadata = () => {
         videoRef.current?.play().catch(console.warn);

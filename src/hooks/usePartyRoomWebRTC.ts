@@ -156,6 +156,20 @@ export function usePartyRoomWebRTC(
       tokenRefreshDetachRef.current = null;
     }
     if (roomRef.current) {
+      // Pkg-fix: explicitly stop hardware tracks BEFORE room.disconnect so the
+      // camera LED / busy state clears immediately on Android WebView. Without
+      // this the next session (Live → close → Party) may get a black/blank
+      // preview because the camera is still "in use" from the prior room.
+      try {
+        const lp: any = roomRef.current.localParticipant;
+        const pubs = lp?.trackPublications ? Array.from(lp.trackPublications.values()) : [];
+        pubs.forEach((pub: any) => {
+          const t = pub?.track;
+          if (!t) return;
+          try { t.stop?.(); } catch { /* ignore */ }
+          try { t.mediaStreamTrack?.stop?.(); } catch { /* ignore */ }
+        });
+      } catch { /* ignore */ }
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
