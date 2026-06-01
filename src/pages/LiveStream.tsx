@@ -102,10 +102,8 @@ import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } fr
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
-import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
-import FramedAvatar from "@/components/common/FramedAvatar";
+import { LevelBadge } from "@/components/common/LevelBadge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
-import Premium3DFrame from "@/components/common/Premium3DFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { PremiumViewerProfileCard, ViewerProfile } from "@/components/live/PremiumViewerProfileCard";
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
