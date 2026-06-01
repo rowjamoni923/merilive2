@@ -434,6 +434,15 @@ class LiveKitPlugin : Plugin() {
      * it in retry/backoff logic.
      */
     private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
+        // Pkg415: claim Camera2 ownership BEFORE building a new room so
+        // NativeCameraPlugin can't race in and grab the hardware mid-connect.
+        // Use force=true on reconnect because we already owned it and just
+        // want to keep ownership across the teardown→rebuild.
+        CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
+        // Pkg415: detach renderers (without releasing EGL) BEFORE the old
+        // room is torn down so the old VideoTracks' final null/invalid frame
+        // can't repaint the renderer black for the reconnect race window.
+        activity?.runOnUiThread { detachAllRenderersInternal() }
         // Tear down any previous room first.
         room?.disconnect()
         room = null
@@ -609,6 +618,9 @@ class LiveKitPlugin : Plugin() {
                 stopCallForegroundService()
                 try { beautyProcessor?.release() } catch (_: Exception) {}
                 beautyProcessor = null
+                // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
+                // a future LiveKit reconnect can claim the hardware without racing.
+                CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -1111,10 +1123,17 @@ class LiveKitPlugin : Plugin() {
         val webView = bridge?.webView
         // Step 25 — drop stall sinks before we release the underlying tracks.
         try { clearStallSinks() } catch (_: Exception) {}
-        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it); it.release() }
+        // Pkg415: only detach from the view hierarchy; DO NOT call release()
+        // on the renderer here. release() destroys the EGL context which races
+        // attachLocal() if a reconnect mounts a fresh local renderer within
+        // the next ~500ms (the EGL teardown leaves the SurfaceTexture invalid
+        // and the new renderer draws nothing → 2-second white screen).
+        // The renderers are GC-collectable once their parent view is removed
+        // and no track holds a reference to them.
+        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
         localRenderer = null
         remoteRenderers.values.forEach {
-            (it.parent as? ViewGroup)?.removeView(it); it.release()
+            (it.parent as? ViewGroup)?.removeView(it)
         }
         remoteRenderers.clear()
         webView?.setBackgroundColor(0xFF000000.toInt())
@@ -1198,6 +1217,17 @@ class LiveKitPlugin : Plugin() {
                     captureParams = newCapture
                 )
                 // Stop + unpublish the old track, then create + publish a fresh one.
+                // Pkg415: BEFORE killing the old track, detach it from the local
+                // renderer so the renderer's EGL surface is preserved. After the
+                // new track is published, re-attach it to the SAME renderer +
+                // re-install the stall sink — otherwise the local preview goes
+                // black/white permanently (the renderer was bound to a dead
+                // track) and the stall watchdog cycles the camera forever.
+                val keptRenderer = localRenderer
+                if (keptRenderer != null) {
+                    try { oldTrack.removeRenderer(keptRenderer) } catch (_: Exception) {}
+                }
+                // Old track's stall sink dies with the track; new installStallSink below overwrites the "local" entry.
                 try { oldTrack.stopCapture() } catch (_: Exception) {}
                 r.localParticipant.unpublishTrack(oldTrack)
 
@@ -1210,6 +1240,16 @@ class LiveKitPlugin : Plugin() {
                         simulcast = simulcast,
                     )
                 )
+                // Pkg415: re-bind the preserved renderer + stall sink to the new track.
+                if (keptRenderer != null) {
+                    try {
+                        r.initVideoRenderer(keptRenderer)
+                        newTrack.addRenderer(keptRenderer)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
+                    }
+                }
+                try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
                 currentTier = target
                 Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
 

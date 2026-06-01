@@ -142,8 +142,8 @@ const GoLive = () => {
         setStream(null);
       }
 
-      // Keep delay very short for instant startup
-      await new Promise((resolve) => setTimeout(resolve, 120));
+      // Tiny yield so the stopped tracks fully release Camera2 before CameraX opens.
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
       const started = await startNativeCamera();
       if (started) {
@@ -551,9 +551,46 @@ const GoLive = () => {
   const handleAllowPermissions = async () => {
     setShowPermissionPrompt(false);
 
-    // Camera/mic MUST be requested immediately from this tap gesture. Any
-    // geolocation/network await before getUserMedia breaks Android WebView and
-    // leaves the preview blank.
+    // Pkg415: On Android we MUST try the native CameraX preview FIRST.
+    // Previously web getUserMedia ran unconditionally and held the camera
+    // handle — when LiveKit native then claimed Camera2 it failed with
+    // CAMERA_IN_USE → 2-second white screen. Native first, web only as
+    // a true fallback.
+    if (isNativeAndroid) {
+      try {
+        const started = await startNativePreview();
+        if (started) {
+          playSound('notification');
+          return;
+        }
+      } catch (err) {
+        console.warn('[GoLive] native preview threw, falling back to web:', err);
+      }
+
+      // Native failed — make sure CameraX released the camera before web tries.
+      try { await stopNativePreview(); } catch { /* noop */ }
+      await new Promise((r) => setTimeout(r, 400));
+
+      try {
+        const fallbackStream = await getCameraStream(true);
+        if (fallbackStream) {
+          setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+          setStream(fallbackStream);
+          setFacingMode('user');
+          attachWebPreviewStream(fallbackStream);
+          toast.info('Using standard camera (Beauty Studio unavailable)');
+          playSound('notification');
+          return;
+        }
+      } catch (e) {
+        console.error('[GoLive] web fallback also failed:', e);
+      }
+      setShowPermissionPrompt(true);
+      toast.error('Camera failed to start. Please check permissions in Settings.');
+      return;
+    }
+
+    // Web / iOS path — getUserMedia directly.
     try {
       const mediaStream = await getCameraStream(true);
       if (!mediaStream) throw new Error('Failed to get camera stream');
@@ -568,31 +605,6 @@ const GoLive = () => {
       recordClientError({ label: "GoLive.mediaStream", message: error instanceof Error ? error.message : String(error) });
       setShowPermissionPrompt(true);
       toast.error(error?.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
-      return;
-    }
-
-    // Native fast-path: try native beauty first, then web camera fallback
-    if (isNativeAndroid) {
-      const started = await startNativePreview();
-      if (started) {
-        playSound('notification');
-        return;
-      }
-
-      // native beauty failed → try web camera before giving up
-      try {
-        const fallbackStream = await getCameraStream(true);
-        if (fallbackStream) {
-          setStream(fallbackStream);
-          setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-          attachWebPreviewStream(fallbackStream);
-          playSound('notification');
-          return;
-        }
-      } catch { /* fallthrough */ }
-
-      setShowPermissionPrompt(true);
-      toast.error('Camera failed to start. Please check permissions in Settings.');
       return;
     }
     
@@ -1090,8 +1102,11 @@ const GoLive = () => {
   return (
     <div className={cn(
       "room-viewport z-50 flex flex-col overflow-hidden",
-      isNativeAndroid && nativePreviewActive ? "bg-transparent" : "bg-black"
-    )}>
+      // Pkg415: on native Android keep the shell transparent even while
+      // CameraX is starting — otherwise bg-black overlays the TextureView
+      // for ~120ms causing a black/white flash before the camera shows.
+      isNativeAndroid ? "bg-transparent" : "bg-black"
+    )} data-room-shell>
       {/* Safe Area Padding - Universal Mobile Support */}
       <style>{`
         .go-live-container {

@@ -119,6 +119,17 @@ public class NativeCameraPlugin extends Plugin {
             return;
         }
 
+        // Pkg415: cross-plugin camera arbiter — if LiveKit (or another
+        // plugin) currently owns Camera2, refuse rather than racing into a
+        // CAMERA_IN_USE white screen. Caller (JS) should disconnect the
+        // active session first.
+        String existingOwner = CameraOwnership.owner();
+        if (existingOwner != null && !CameraOwnership.OWNER_NATIVE_CAMERA.equals(existingOwner)) {
+            call.reject("Camera busy: held by " + existingOwner);
+            return;
+        }
+        CameraOwnership.acquire(CameraOwnership.OWNER_NATIVE_CAMERA, false);
+
         String lens = call.getString("lens", "front");
         String res = call.getString("resolution", "1080p");
 
@@ -160,6 +171,8 @@ public class NativeCameraPlugin extends Plugin {
                     lastFrameEncodeAt = 0L;
                 }
                 removePreviewView();
+                // Pkg415: release Camera2 ownership so LiveKit (or another plugin) can claim it.
+                CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
                 call.resolve();
             } catch (Exception e) {
                 call.reject("Failed to stop camera: " + e.getMessage());

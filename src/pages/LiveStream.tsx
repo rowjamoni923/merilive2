@@ -2800,7 +2800,15 @@ const LiveStream = () => {
 
   return (
     <div 
-      className="room-viewport bg-muted flex flex-col overflow-hidden"
+      data-room-shell
+      className={cn(
+        "room-viewport flex flex-col overflow-hidden",
+        // Pkg415: on native Android host path the TextureView lives behind the
+        // WebView — any opaque background here paints WHITE over the camera for
+        // 600-1200ms until nativeActive flips. Default to transparent on Android,
+        // bg-muted only for web/iOS where a CSS-only fallback is in use.
+        isNativeMediaActive || Capacitor.getPlatform() === 'android' ? "bg-transparent" : "bg-muted"
+      )}
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))'

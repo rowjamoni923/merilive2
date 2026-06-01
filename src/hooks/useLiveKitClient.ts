@@ -450,6 +450,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        // Pkg415: explicitly tear down the native session AND wait for Camera2
+        // to fully release before the web Room calls getUserMedia. Camera2
+        // teardown takes ~800-900ms on most Android phones; without this
+        // delay the web fallback hits NotReadableError and the host sees a
+        // permanent white/black screen.
+        try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+        await new Promise((r) => setTimeout(r, 1000));
         // Surface to the host so they aren't stuck on a black "Starting camera..." UI.
         try { options.onError?.(nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr))); } catch { /* ignore */ }
         // Fall through to web path — web livekit-client inside the WebView
