@@ -139,6 +139,7 @@ class GPUPixelBeautyPlugin : Plugin() {
         blusher = null
         initialized = false
         BeautyPipelineBridge.setEnabled(false)
+        BeautyPipelineBridge.registerSink(null)
         call.resolve()
     }
 }
