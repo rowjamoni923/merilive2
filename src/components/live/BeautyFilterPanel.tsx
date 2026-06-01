@@ -237,9 +237,20 @@ export function BeautyFilterPanel({
   );
 }
 
-/** Legacy CSS fallback for web preview. */
+/** Legacy CSS fallback for web preview ONLY. Pkg413: never paint on Android. */
 export function generateBeautyCSS(enabled: boolean, settings: BeautySettings): string {
   if (!enabled || !settings) return "";
+  // On native Android the GPUPixel pipeline owns the camera + broadcast
+  // track. Adding any CSS filter on top of the already-processed local
+  // preview just double-blurs the frame — the exact "old bad blur" the
+  // user has been complaining about. Hard short-circuit here.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cap: any = (globalThis as any).Capacitor;
+    if (cap && typeof cap.getPlatform === 'function' && cap.getPlatform() === 'android') {
+      return "";
+    }
+  } catch { /* not in Capacitor env, fall through to CSS preview */ }
   // If custom levels exist, derive CSS from smooth + white.
   if (settings.levels) {
     const { smooth, white } = settings.levels;
