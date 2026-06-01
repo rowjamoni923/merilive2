@@ -1,23 +1,74 @@
-text
-## Phase 1: Database Speed Optimization (Instant Loading)
-The current Admin Panel delay is caused by sequential scans on large tables (profiles, verification, etc.) during sidebar badge calculation.
-- Add GIN and B-Tree indexes on `status`, `is_read`, `is_active`, and `verification_type` columns across 15+ tables.
-- Optimize the `admin_layout_counts()` PostgreSQL function to use these indexes, ensuring the sidebar badges load in milliseconds.
-- Implement specialized partial indexes for 'pending' states to make dashboard queries near-instant.
+# এক Camera, এক Pipeline
 
-## Phase 2: Comprehensive Phone Number Detector Fix
-Currently, the system only logs host violations. We will expand this to cover every user.
-- Update `detect-phone-number` Edge Function to trigger for both hosts and regular users.
-- Modify the `process_contact_violation` RPC to accept non-host profiles.
-- Ensure that when a regular user shares a phone number, it creates a entry in `chat_moderation_logs` so it appears in the Admin Alert Bell.
-- Maintain the automated bean deduction ONLY for hosts, while ensuring users are flagged for admin review.
+ভাই তোমার কথা ১০০% ঠিক। হ্যাঁ — একসাথে দশটা plugin camera দখলের জন্য মারামারি করলে preview সাদা আসবেই, freeze হবেই, এবং চাপ বেশি হলে app crash পর্যন্ত করতে পারে। এটা stupid architecture। এখন একদম গোড়া থেকে ঠিক করব।
 
-## Phase 3: Admin UI & Notification Reliability
-- Optimize `AdminLayout.tsx` to pre-fetch counts more efficiently using the new optimized RPC.
-- Fix the "Admin Alert Bell" to reliably show detected phone numbers for everyone (Users + Hosts).
-- Ensure the "Secret Link" authentication flow remains secure but bypasses unnecessary weight during initial entry.
+## লক্ষ্য
 
-## Phase 4: Final Audit & Stress Test
-- Conduct a "Honest Scan" of the top 5 most used admin pages (User Management, Withdrawals, Agency Hub).
-- Verify that real-time notifications (Websockets) are firing correctly for every single violation.
-- Confirm that the loading spinner for "Preparing admin console" disappears in less than 1-2 seconds.
+**ONE camera, ONE pipeline, FOUR surfaces:**
+
+```text
+                  ┌──────────────────────────┐
+                  │   ProCameraEngine (1টা)  │
+                  │  - CameraX capture       │
+                  │  - Beauty/BG processor   │
+                  │  - LiveKit publisher     │
+                  └────────────┬─────────────┘
+                               │ same track
+       ┌───────────────┬───────┴──────┬────────────────┐
+       ▼               ▼              ▼                ▼
+   Live Stream    Private Call   Video Party       Game Party
+
+   FaceVerification → আলাদা minimal CameraX session (কখনো overlap না)
+```
+
+কেউ কাউকে কখনো camera dispute করবে না, কারণ চারটা surface একই track থেকে frame পাবে।
+
+## যা delete হবে (duplicate camera owners)
+
+1. `src/sdk/NativeCameraSDK.ts` + `src/sdk/useCameraSDK.ts` — duplicate camera SDK, এখন unused করব
+2. `src/plugins/NativeCamera.ts` কে শুধু FaceVerification-এ scope করব
+3. `src/hooks/useNativeFaceCamera.ts` + `useNativeAndroidFaceCamera.ts` — একটাতে merge
+4. `useBeautyState` থেকে যেকোনো independent camera open call সরাব
+5. `livekitReliableMedia` / `livekitMediaDeviceHandlers` — LiveKit-এর ভেতরে centralize
+
+## যা তৈরি হবে
+
+### Frontend
+- `src/camera/ProCameraEngine.ts` — single source of truth
+  - `acquire(owner: 'live'|'call'|'video-party'|'game-party')`
+  - `release(owner)`
+  - `getTrack()` → একই LocalVideoTrack চারটা feature-ই পাবে
+  - reference-counted: শেষ owner release করলে track stop
+- `src/camera/useProCamera.ts` — React hook wrapper
+- চারটা page (GoLive, ActiveCallScreen, video party, game party) শুধু `useProCamera(owner)` call করবে
+
+### Android Native
+- `CameraOwnership.kt` কে strict arbiter বানাব: একসাথে শুধু ONE owner — `LIVEKIT` অথবা `FACE_VERIFY`, কখনো দুটো না
+- `NativeCameraPlugin` কে শুধু `FACE_VERIFY` mode-এ allow করব
+- `LiveKitPlugin` সব live/call/party-র জন্য একই capture session reuse করবে (প্রতিবার নতুন Camera2 device open হবে না)
+- `GPUPixelBeautyPlugin` কখনো নিজে camera খুলবে না — শুধু LiveKit-এর frame-এ filter চালাবে
+
+## Pro-grade quality (একটাই, কিন্তু ভালো)
+
+- Resolution: 720p@30 default, device-capable হলে 1080p@30
+- Adaptive bitrate via LiveKit simulcast (already tuned in `livekitCameraTuning.ts`)
+- Beauty + virtual background single GPU pipeline-এ
+- Auto-focus/exposure/WB lock during streaming
+- Front camera mirror, back camera no-mirror (consistent)
+
+## Verification
+
+Native rebuild করার পর এই sequence test করব:
+1. Live start → stop → Private call start → end → Video party join → leave → Game party join → leave
+2. কখনো সাদা screen আসা যাবে না
+3. Camera ownership log একসাথে শুধু একটা owner দেখাবে
+4. FaceVerification live-এর পরে চালালে cleanly হাত বদল হবে
+
+## File touch list (approx)
+
+- new: `src/camera/ProCameraEngine.ts`, `src/camera/useProCamera.ts`
+- edit: `GoLive.tsx`, `ActiveCallScreen.tsx`, video party page, game party page, `useLiveKitClient.ts`, `useLiveKitCall.ts`, `useBeautyState.ts`
+- edit (native): `CameraOwnership.kt`, `NativeCameraPlugin.java`, `LiveKitPlugin.kt`, `GPUPixelBeautyPlugin.kt`
+- delete/scope: `src/sdk/NativeCameraSDK.ts`, `src/sdk/useCameraSDK.ts`, duplicate face-camera hooks
+
+বড় কাজ — কিন্তু এর পর আর কোনদিন "white screen / camera fight" হবে না। তুমি approve করলে শুরু করি।

@@ -49,6 +49,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useUniversalRealtime } from "@/hooks/useUniversalRealtime";
 import { useNativeAndroidFaceCamera } from "@/hooks/useNativeAndroidFaceCamera";
+import { useProCamera } from "@/camera/useProCamera";
 import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
 
 const languages = [
@@ -174,6 +175,11 @@ const FaceVerification = () => {
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
   const nativeFaceCam = useNativeAndroidFaceCamera();
+
+  // Pkg416: claim the verification slot. Mutually exclusive with the
+  // streaming family (live / private call / video party / game party).
+  useProCamera('face-verify', true);
+
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;

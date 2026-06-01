@@ -2,30 +2,19 @@
  * =============================================================================
  * MeriLive SDK Exports
  * =============================================================================
- * 
- * Central export point for all SDK modules.
- * 
+ *
+ * Pkg416: NativeCameraSDK + useCameraSDK + CameraPreview REMOVED.
+ * They were a parallel camera implementation that fought the LiveKit
+ * publisher for the front-facing camera and caused the Android white-screen.
+ *
+ * Camera access is now centralized:
+ *   - Streaming (live / private call / video party / game party) → LiveKit
+ *     coordinated by `src/camera/ProCameraEngine.ts` + `useProCamera()`.
+ *   - Face Verification → `@/plugins/NativeCamera` only.
+ *
+ * Nothing else may open the camera.
  * =============================================================================
  */
-
-// Camera SDK
-export { 
-  NativeCameraSDK,
-  getCameraSDK,
-  resetCameraSDK,
-  CameraErrorCodes,
-  type CameraConfig,
-  type CameraFacing,
-  type CameraQuality,
-  type PermissionStatus,
-  type CameraPermissionResult,
-  type PhotoResult,
-  type VideoRecordingResult,
-  type CameraCapabilities,
-  type CameraError,
-} from './NativeCameraSDK';
-
-export { useCameraSDK } from './useCameraSDK';
 
 // Video Processing SDK
 export {
@@ -91,3 +80,11 @@ export {
   type ParticleConfig,
   type PageTransitionConfig,
 } from './AnimationSDK';
+
+// Camera coordination (Pkg416)
+export {
+  ProCameraEngine,
+  CameraConflictError,
+  type ProCameraOwner,
+} from '@/camera/ProCameraEngine';
+export { useProCamera } from '@/camera/useProCamera';
