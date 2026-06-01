@@ -34,7 +34,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
-import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -859,7 +859,10 @@ const GoLive = () => {
 
       for (const constraint of constraints) {
         try {
-          mediaStream = await navigator.mediaDevices.getUserMedia(constraint);
+          mediaStream = await claimAndroidWebViewCameraForStream(
+            () => navigator.mediaDevices.getUserMedia(constraint),
+            'golive:switch-camera-new-stream',
+          );
           break;
         } catch {
           continue;
