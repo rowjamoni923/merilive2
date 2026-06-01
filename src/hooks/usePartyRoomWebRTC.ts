@@ -40,7 +40,7 @@ import {
   getSelectiveSubConfig,
 } from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
-import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -54,13 +54,12 @@ interface PartyWebRTCState {
 const isVideoPartyType = (roomType: 'video' | 'audio' | 'game') => roomType === 'video' || roomType === 'game';
 
 const claimWebViewCameraIfAndroid = async (shouldClaim: boolean) => {
-  if (!shouldClaim || !isNativeLiveKitAvailable()) return;
-  await NativeLiveKit.claimCameraForWebView();
+  if (!shouldClaim) return;
+  await claimAndroidWebViewCamera('party-room');
 };
 
 const releaseWebViewCameraIfAndroid = () => {
-  if (!isNativeLiveKitAvailable()) return;
-  void NativeLiveKit.releaseCameraForWebView().catch(() => {});
+  releaseAndroidWebViewCamera('party-room');
 };
 
 export function usePartyRoomWebRTC(
