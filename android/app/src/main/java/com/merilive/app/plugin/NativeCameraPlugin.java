@@ -97,6 +97,20 @@ public class NativeCameraPlugin extends Plugin {
         Log.d(TAG, "NativeCameraPlugin loaded");
     }
 
+    @Override
+    public void handleOnPause() {
+        super.handleOnPause();
+        releaseCameraResources(false);
+    }
+
+    @Override
+    public void handleOnDestroy() {
+        super.handleOnDestroy();
+        releaseCameraResources(true);
+        cameraExecutor.shutdownNow();
+        CameraOwnership.forceRelease();
+    }
+
     // ============================================================
     // PUBLIC API
     // ============================================================
@@ -599,6 +613,43 @@ public class NativeCameraPlugin extends Plugin {
         previewView = null;
         if (bridge != null && bridge.getWebView() != null) {
             bridge.getWebView().setBackgroundColor(0xFF000000);
+            ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
+            if (root != null) root.setBackgroundColor(0xFF000000);
+        }
+    }
+
+    private void releaseCameraResources(boolean destroyProvider) {
+        try {
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                try {
+                    if (activeRecording != null) {
+                        try { activeRecording.stop(); } catch (Exception ignored) {}
+                        activeRecording = null;
+                    }
+                    if (cameraProvider != null) {
+                        try { cameraProvider.unbindAll(); } catch (Exception ignored) {}
+                        if (destroyProvider) cameraProvider = null;
+                    }
+                    imageCapture = null;
+                    videoCapture = null;
+                    camera = null;
+                    synchronized (frameLock) {
+                        latestFrameJpeg = null;
+                        latestFrameWidth = 0;
+                        latestFrameHeight = 0;
+                        latestFrameRotation = 0;
+                        lastFrameEncodeAt = 0L;
+                    }
+                    removePreviewView();
+                    CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
+                } catch (Exception e) {
+                    Log.w(TAG, "releaseCameraResources failed: " + e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            Log.w(TAG, "releaseCameraResources schedule failed: " + e.getMessage());
+            CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
         }
     }
 }
