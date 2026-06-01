@@ -173,6 +173,7 @@ const GoLive = () => {
         setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
       } else {
         applyNativePreviewTransparency(false);
+        try { await stopNativeCamera(); } catch { /* native cleanup best-effort */ }
       }
       return started;
     } finally {
