@@ -677,7 +677,10 @@ public class NativeCameraPlugin extends Plugin {
             resolved[0] = true;
             try { previewView.getPreviewStreamState().removeObservers(owner); } catch (Exception ignored) {}
             Log.w(TAG, "Preview did not reach STREAMING before timeout");
-            setWebViewCameraBackground(0xFF000000);
+            // Pkg416: leave WebView transparent even on timeout — restoring
+            // the opaque shell while CameraX is still mid-attach paints the
+            // white React background on top of the bound Surface.
+            setWebViewCameraBackground(0x00000000);
             call.reject("Camera preview did not start");
         };
 
@@ -700,9 +703,23 @@ public class NativeCameraPlugin extends Plugin {
 
     private void setWebViewCameraBackground(int color) {
         if (bridge == null || bridge.getWebView() == null) return;
-        bridge.getWebView().setBackgroundColor(color);
-        ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
-        if (root != null) root.setBackgroundColor(color);
+        final android.webkit.WebView wv = bridge.getWebView();
+        final ViewGroup root = (ViewGroup) wv.getParent();
+        Runnable apply = () -> {
+            try {
+                wv.setBackgroundColor(color);
+                // Pkg416: HW layer + transparent paint disables the
+                // WebView's default opaque white compositor backing on
+                // Oppo/OnePlus ColorOS, which was painting OVER the
+                // PreviewView during the first ~600ms of CameraX bind.
+                if (color == 0x00000000) {
+                    wv.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
+                }
+                if (root != null) root.setBackgroundColor(color);
+            } catch (Exception ignored) {}
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) apply.run();
+        else wv.post(apply);
     }
 
     private void ensurePreviewViewSync() {
@@ -723,8 +740,15 @@ public class NativeCameraPlugin extends Plugin {
         if (bridge != null && bridge.getWebView() != null) {
             ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
             if (root != null) {
+                // Index 0 → behind the WebView. PreviewView paints its black
+                // background, then the (now transparent) WebView paints the
+                // React UI on top. No white flash.
                 root.addView(previewView, 0, lp);
-                setWebViewCameraBackground(0xFF000000);
+                // Pkg416: flip WebView transparent IMMEDIATELY (was 0xFF000000
+                // which made the WebView fully opaque black until preview
+                // streamed — on OEMs where the WebView ignored the late flip,
+                // the user kept seeing white/black for the whole bind window).
+                setWebViewCameraBackground(0x00000000);
             }
         }
     }
