@@ -230,6 +230,11 @@ export function usePartyRoomWebRTC(
     if (!room?.localParticipant) return;
 
     const newEnabled = !state.isVideoEnabled;
+    // Pkg418 hard gate: only acquire camera when arbiter says we're clear.
+    if (newEnabled && !cameraReadyRef.current) {
+      toast.error('Camera is busy with face verification. Please finish that first.');
+      return;
+    }
     try {
       if (newEnabled) await claimWebViewCameraIfAndroid(isVideoPartyType(roomType));
       await room.localParticipant.setCameraEnabled(newEnabled);
