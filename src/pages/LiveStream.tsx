@@ -3358,6 +3358,7 @@ const LiveStream = () => {
           </div>
         </div>
       </motion.div>
+      )}
 
       {/* ==================== MESSAGES AREA - ABOVE INPUT BOX ==================== */}
       {/* Public chat area visible to all viewers */}
