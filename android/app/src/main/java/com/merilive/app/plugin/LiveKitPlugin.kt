@@ -463,7 +463,7 @@ class LiveKitPlugin : Plugin() {
         val existingOwner = CameraOwnership.owner()
         val isReentrantReconnect = isReconnect &&
             (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
-        val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
+        val ownerAcquired = CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
         }
