@@ -1102,8 +1102,11 @@ const GoLive = () => {
   return (
     <div className={cn(
       "room-viewport z-50 flex flex-col overflow-hidden",
-      isNativeAndroid && nativePreviewActive ? "bg-transparent" : "bg-black"
-    )}>
+      // Pkg415: on native Android keep the shell transparent even while
+      // CameraX is starting — otherwise bg-black overlays the TextureView
+      // for ~120ms causing a black/white flash before the camera shows.
+      isNativeAndroid ? "bg-transparent" : "bg-black"
+    )} data-room-shell>
       {/* Safe Area Padding - Universal Mobile Support */}
       <style>{`
         .go-live-container {
