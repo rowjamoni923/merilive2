@@ -601,6 +601,13 @@ public class NativeCameraPlugin extends Plugin {
     private void ensurePreviewViewSync() {
         if (previewView != null) return;
         previewView = new PreviewView(getContext());
+        // Force TextureView-backed rendering. CameraX PreviewView defaults to
+        // PERFORMANCE/SurfaceView on many OnePlus/Oppo devices; SurfaceView is
+        // a separate compositor layer and often disappears when placed behind
+        // a transparent Capacitor WebView, even though Camera2 keeps producing
+        // frames. COMPATIBLE uses TextureView so normal z-order works.
+        previewView.setImplementationMode(PreviewView.ImplementationMode.COMPATIBLE);
+        previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
@@ -609,6 +616,7 @@ public class NativeCameraPlugin extends Plugin {
             ViewGroup root = (ViewGroup) bridge.getWebView().getParent();
             if (root != null) {
                 root.addView(previewView, 0, lp);
+                root.setBackgroundColor(0x00000000);
                 bridge.getWebView().setBackgroundColor(0x00000000);
             }
         }
