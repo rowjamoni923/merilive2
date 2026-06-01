@@ -10,6 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
+import com.merilive.app.plugin.CameraOwnership;
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
@@ -158,6 +159,14 @@ public class MainActivity extends BridgeActivity {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         );
+    }
+
+    @Override
+    protected void onDestroy() {
+        try {
+            CameraOwnership.forceRelease();
+        } catch (Throwable ignored) {}
+        super.onDestroy();
     }
 
     // Step 29 — Picture-in-Picture lifecycle. Forward both events to
