@@ -124,7 +124,10 @@ class LiveService extends ChangeNotifier {
         'total_coins_earned': 0,
       }).select().single();
 
-      _currentStream = streamData;
+      _currentStream = {
+        ...streamData,
+        'host': eligibility['profile'],
+      };
 
       final tokenRes = await _supabase.functions.invoke('livekit-token', body: {
         'roomName': 'live_${streamData['id']}',
@@ -164,8 +167,16 @@ class LiveService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final stream = await _supabase.from('live_streams').select('*, host:profiles(*)').eq('id', streamId).single();
-      _currentStream = stream;
+      final stream = await _supabase.from('live_streams').select('*').eq('id', streamId).single();
+      final hostProfile = await _supabase
+          .from('profiles_public')
+          .select('id, app_uid, display_name, avatar_url, user_level, host_level, frame_id, equipped_frame_id, is_host, is_verified, is_face_verified')
+          .eq('id', stream['host_id'])
+          .maybeSingle();
+      _currentStream = {
+        ...stream,
+        'host': hostProfile ?? {},
+      };
 
       final tokenRes = await _supabase.functions.invoke('livekit-token', body: {
         'roomName': 'live_$streamId',
