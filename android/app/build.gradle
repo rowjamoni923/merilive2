@@ -116,6 +116,11 @@ dependencies {
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
 
+    // Pkg411 — installed @capacitor/* plugins. Without these the plugin
+    // implementations (push-notifications, app, browser, …) are missing on
+    // Android → JS calls silently fail / time out.
+    apply from: 'capacitor.build.gradle'
+
     // Image Loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
