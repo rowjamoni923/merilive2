@@ -40,6 +40,7 @@ import {
   getSelectiveSubConfig,
 } from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
+import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -49,6 +50,18 @@ interface PartyWebRTCState {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
 }
+
+const isVideoPartyType = (roomType: 'video' | 'audio' | 'game') => roomType === 'video' || roomType === 'game';
+
+const claimWebViewCameraIfAndroid = async (shouldClaim: boolean) => {
+  if (!shouldClaim || !isNativeLiveKitAvailable()) return;
+  await NativeLiveKit.claimCameraForWebView();
+};
+
+const releaseWebViewCameraIfAndroid = () => {
+  if (!isNativeLiveKitAvailable()) return;
+  void NativeLiveKit.releaseCameraForWebView().catch(() => {});
+};
 
 export function usePartyRoomWebRTC(
   roomId: string | null,
@@ -175,6 +188,7 @@ export function usePartyRoomWebRTC(
     }
 
     destroyBeautyProcessor();
+    releaseWebViewCameraIfAndroid();
     detachAllAudio();
     peerStreamsRef.current.clear();
 
@@ -200,15 +214,23 @@ export function usePartyRoomWebRTC(
     setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
   }, [state.isAudioEnabled]);
 
-  const toggleVideo = useCallback(() => {
+  const toggleVideo = useCallback(async () => {
     if (!partyCanPublishRef.current) return;
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
     const newEnabled = !state.isVideoEnabled;
-    room.localParticipant.setCameraEnabled(newEnabled);
-    setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
-  }, [state.isVideoEnabled]);
+    try {
+      if (newEnabled) await claimWebViewCameraIfAndroid(isVideoPartyType(roomType));
+      await room.localParticipant.setCameraEnabled(newEnabled);
+      if (!newEnabled) releaseWebViewCameraIfAndroid();
+      setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
+    } catch (err) {
+      if (newEnabled) releaseWebViewCameraIfAndroid();
+      console.warn('[PartyLiveKit] Video toggle failed:', err);
+      toast.error('Camera could not start. Please close other camera screens and try again.');
+    }
+  }, [roomType, state.isVideoEnabled]);
 
   useEffect(() => {
     if (!roomId || !userId) {
@@ -323,6 +345,9 @@ export function usePartyRoomWebRTC(
 
         const publishLocalMediaWithRetry = async () => {
           const previewStream = consumePreparedHostPreviewStream();
+          const preparedStream = previewStream?.getTracks().every((track) => track.readyState === 'live') ? previewStream : undefined;
+          const needsVideo = isVideoPartyType(roomType);
+          let cameraClaimed = false;
           let lastError: unknown = null;
 
           for (let attempt = 1; attempt <= 3; attempt++) {
@@ -332,12 +357,15 @@ export function usePartyRoomWebRTC(
                 await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
               }
 
-              const needsVideo = roomType === 'video' || roomType === 'game';
-              if (previewStream && attempt === 1) console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
+              if (needsVideo && !cameraClaimed) {
+                await claimWebViewCameraIfAndroid(true);
+                cameraClaimed = true;
+              }
+              if (preparedStream && attempt === 1) console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
               await publishReliableLocalMedia(room, {
                 needVideo: needsVideo,
                 needAudio: true,
-                preparedStream: previewStream,
+                preparedStream,
                 processVideoTrack: needsVideo ? processTrackWithBeauty : undefined,
               });
 
@@ -370,6 +398,7 @@ export function usePartyRoomWebRTC(
           // Browser MediaDevices errors have well-known names — map each to a
           // specific, actionable message so the host can fix the real problem.
           const err: any = lastError;
+          if (cameraClaimed) releaseWebViewCameraIfAndroid();
           const errName: string = err?.name || err?.error?.name || '';
           const errMsg: string = String(err?.message || err || '').toLowerCase();
           const isVideo = roomType === 'video';
@@ -425,6 +454,14 @@ export function usePartyRoomWebRTC(
 
         room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
           console.log(`[PartyLiveKit] Participant connected: ${participant.identity}`);
+          participant.trackPublications.forEach((pub) => {
+            if (!pub.isSubscribed) {
+              try { pub.setSubscribed(true); } catch { /* ignore */ }
+            }
+            if (pub.kind === Track.Kind.Video) {
+              try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
+            }
+          });
           // Pkg381: Immediately add to state with empty stream so UI can show placeholder
           const peerStream = buildPeerStream(participant);
           setPeerStreamForParticipant(participant, peerStream);
@@ -449,29 +486,6 @@ export function usePartyRoomWebRTC(
             }
           }
 
-          const peerStream = buildPeerStream(participant);
-          if (peerStream.getTracks().length > 0) {
-            setPeerStreamForParticipant(participant, peerStream);
-            setState(prev => ({
-              ...prev,
-              peerStreams: new Map(peerStreamsRef.current),
-            }));
-          }
-        });
-
-        // PARTICIPANT JOINED: defensively force-subscribe to any tracks they
-        // already published before we connected. Without this, a viewer who
-        // joins after the host published can miss the first publish event.
-        room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
-          console.log('[PartyLiveKit] Participant connected:', participant.identity);
-          participant.trackPublications.forEach((pub) => {
-            if (!pub.isSubscribed) {
-              try { pub.setSubscribed(true); } catch { /* ignore */ }
-            }
-            if (pub.kind === Track.Kind.Video) {
-              try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
-            }
-          });
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
             setPeerStreamForParticipant(participant, peerStream);
@@ -816,7 +830,8 @@ export function usePartyRoomWebRTC(
     (async () => {
       try {
         if (partyCanPublish) {
-          if (roomType === 'video' || roomType === 'game') {
+          if (isVideoPartyType(roomType)) {
+            await claimWebViewCameraIfAndroid(true);
             await room.localParticipant.setCameraEnabled(true);
           }
           await room.localParticipant.setMicrophoneEnabled(true);
@@ -832,6 +847,7 @@ export function usePartyRoomWebRTC(
           }));
         } else {
           await room.localParticipant.setCameraEnabled(false);
+          releaseWebViewCameraIfAndroid();
           await room.localParticipant.setMicrophoneEnabled(false);
           setState((prev) => ({
             ...prev,

@@ -350,7 +350,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        INSTANCE = this
+        if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
         // Cache the system feature so isPictureInPictureSupported() is free.
         pipSupported = try {
             context.packageManager.hasSystemFeature(
@@ -370,6 +370,19 @@ class LiveKitPlugin : Plugin() {
         ret.put("backend", "livekit-native")
         ret.put("version", "2.7.0")
         call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun claimCameraForWebView(call: PluginCall) {
+        val ok = CameraOwnership.acquire(CameraOwnership.OWNER_WEBVIEW_LIVEKIT, false)
+        if (!ok) return call.reject("Camera busy: held by ${CameraOwnership.owner()}")
+        call.resolve(JSObject().put("claimed", true))
+    }
+
+    @PluginMethod
+    fun releaseCameraForWebView(call: PluginCall) {
+        CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+        call.resolve(JSObject().put("released", true))
     }
 
     @PluginMethod
@@ -439,6 +452,9 @@ class LiveKitPlugin : Plugin() {
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
         val existingOwner = CameraOwnership.owner()
+        if (existingOwner == CameraOwnership.OWNER_WEBVIEW_LIVEKIT) {
+            CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+        }
         val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
@@ -607,9 +623,9 @@ class LiveKitPlugin : Plugin() {
                     // the camera if it currently owns it.
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                 }
+                activity?.runOnUiThread { detachAllRenderersInternal() }
                 room?.disconnect()
                 room = null
-                activity?.runOnUiThread { detachAllRenderersInternal() }
                 setKeepScreenOn(false)
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
@@ -622,6 +638,7 @@ class LiveKitPlugin : Plugin() {
                 stopCallForegroundService()
                 try { beautyProcessor?.release() } catch (_: Exception) {}
                 beautyProcessor = null
+                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
                 // a future LiveKit reconnect can claim the hardware without racing.
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
@@ -781,10 +798,16 @@ class LiveKitPlugin : Plugin() {
                     ?.track as? io.livekit.android.room.track.VideoTrack
                 if (track == null) { call.reject("No local camera track yet"); return@runOnUiThread }
 
-                if (localRenderer == null) localRenderer = createRenderer()
-                r.initVideoRenderer(localRenderer!!)
-                track.addRenderer(localRenderer!!)
-                mountBehindWebView(localRenderer!!)
+                localRenderer?.let { old ->
+                    try { track.removeRenderer(old) } catch (_: Exception) {}
+                    (old.parent as? ViewGroup)?.removeView(old)
+                    try { old.release() } catch (_: Exception) {}
+                }
+                val renderer = createRenderer()
+                localRenderer = renderer
+                r.initVideoRenderer(renderer)
+                track.addRenderer(renderer)
+                mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
                 call.resolve()
             } catch (e: Exception) {
@@ -806,7 +829,13 @@ class LiveKitPlugin : Plugin() {
                     ?.track as? io.livekit.android.room.track.VideoTrack
                     ?: return@runOnUiThread call.reject("No remote camera track")
 
-                val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+                remoteRenderers.remove(sid)?.let { old ->
+                    try { track.removeRenderer(old) } catch (_: Exception) {}
+                    (old.parent as? ViewGroup)?.removeView(old)
+                    try { old.release() } catch (_: Exception) {}
+                }
+                val renderer = createRenderer()
+                remoteRenderers[sid] = renderer
                 r.initVideoRenderer(renderer)
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
@@ -964,7 +993,13 @@ class LiveKitPlugin : Plugin() {
         val sid = participant.sid.value
         val track = participant.getTrackPublication(Track.Source.CAMERA)
             ?.track as? io.livekit.android.room.track.VideoTrack ?: return false
-        val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+        remoteRenderers.remove(sid)?.let { old ->
+            try { track.removeRenderer(old) } catch (_: Exception) {}
+            (old.parent as? ViewGroup)?.removeView(old)
+            try { old.release() } catch (_: Exception) {}
+        }
+        val renderer = createRenderer()
+        remoteRenderers[sid] = renderer
         return try {
             r.initVideoRenderer(renderer)
             track.addRenderer(renderer)
@@ -1125,22 +1160,37 @@ class LiveKitPlugin : Plugin() {
 
     private fun detachAllRenderersInternal() {
         val webView = bridge?.webView
+        val r = room
         // Step 25 — drop stall sinks before we release the underlying tracks.
         try { clearStallSinks() } catch (_: Exception) {}
-        // Pkg415: only detach from the view hierarchy; DO NOT call release()
-        // on the renderer here. release() destroys the EGL context which races
-        // attachLocal() if a reconnect mounts a fresh local renderer within
-        // the next ~500ms (the EGL teardown leaves the SurfaceTexture invalid
-        // and the new renderer draws nothing → 2-second white screen).
-        // The renderers are GC-collectable once their parent view is removed
-        // and no track holds a reference to them.
-        localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
-        localRenderer = null
-        remoteRenderers.values.forEach {
+        localRenderer?.let {
+            if (r != null) {
+                try {
+                    val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    track?.removeRenderer(it)
+                } catch (_: Exception) {}
+            }
             (it.parent as? ViewGroup)?.removeView(it)
+            try { it.release() } catch (_: Exception) {}
+        }
+        localRenderer = null
+        remoteRenderers.forEach { (sid, renderer) ->
+            if (r != null) {
+                try {
+                    val participant = r.remoteParticipants.values.firstOrNull { it.sid.value == sid }
+                    val track = participant?.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    track?.removeRenderer(renderer)
+                } catch (_: Exception) {}
+            }
+            (renderer.parent as? ViewGroup)?.removeView(renderer)
+            try { renderer.release() } catch (_: Exception) {}
         }
         remoteRenderers.clear()
         webView?.setBackgroundColor(0xFF000000.toInt())
+        (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
+        webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
     }
 
     // ------------------------------------------------------------
@@ -1247,7 +1297,6 @@ class LiveKitPlugin : Plugin() {
                 // Pkg415: re-bind the preserved renderer + stall sink to the new track.
                 if (keptRenderer != null) {
                     try {
-                        r.initVideoRenderer(keptRenderer)
                         newTrack.addRenderer(keptRenderer)
                     } catch (e: Exception) {
                         Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
@@ -1415,9 +1464,7 @@ class LiveKitPlugin : Plugin() {
         }
         inBackground = true
         try {
-            localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
-            remoteRenderers.values.forEach { (it.parent as? ViewGroup)?.removeView(it) }
-            bridge?.webView?.setBackgroundColor(0xFF000000.toInt())
+            detachAllRenderersInternal()
 
             if (pauseCameraOnBackground) {
                 val r = room ?: return
@@ -1441,11 +1488,26 @@ class LiveKitPlugin : Plugin() {
         if (!inBackground) return
         inBackground = false
         try {
-            localRenderer?.let { mountBehindWebView(it) }
-            remoteRenderers.values.forEach { mountBehindWebView(it) }
+            val r = room ?: return
+            activity?.runOnUiThread {
+                try {
+                    val localTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    if (localTrack != null) {
+                        val renderer = createRenderer()
+                        localRenderer = renderer
+                        r.initVideoRenderer(renderer)
+                        localTrack.addRenderer(renderer)
+                        mountBehindWebView(renderer)
+                        installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                    }
+                    attachAllRemoteRenderersInternal(r)
+                } catch (e: Exception) {
+                    Log.w(TAG, "handleOnResume renderer restore failed: ${e.message}")
+                }
+            }
 
             if (pauseCameraOnBackground && cameraOnBeforeBackground) {
-                val r = room ?: return
                 scope.launch {
                     try { r.localParticipant.setCameraEnabled(true) }
                     catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
@@ -1480,7 +1542,9 @@ class LiveKitPlugin : Plugin() {
                         try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
                     }
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    activity?.runOnUiThread { detachAllRenderersInternal() }
                     room?.disconnect()
+                    room = null
                 } catch (_: Exception) {}
             }
             setKeepScreenOn(false)
@@ -1498,6 +1562,9 @@ class LiveKitPlugin : Plugin() {
             virtualBackgroundProcessor = null
             try { beautyProcessor?.release() } catch (_: Exception) {}
             beautyProcessor = null
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
+            CameraOwnership.forceRelease()
         } catch (_: Exception) {}
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.

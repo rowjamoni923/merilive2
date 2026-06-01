@@ -174,7 +174,6 @@ interface ChatMessage {
 const PartyRoom = () => {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [room, setRoom] = useState<PartyRoom | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
@@ -1304,7 +1303,6 @@ const PartyRoom = () => {
         p_password: null,
       });
       if (enterError) throw enterError;
-      setMediaReady(true);
       
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
       // Only viewers (and other participants) see entry banners + animations.
@@ -1396,22 +1394,12 @@ const PartyRoom = () => {
 
   useEffect(() => {
     if (!room?.id || !currentUser?.id) return;
+    setMediaReady(true);
     const joinKey = `${room.id}:${currentUser.id}`;
     if (joinedRoomKeyRef.current === joinKey) return;
     joinedRoomKeyRef.current = joinKey;
     void joinRoom();
   }, [room?.id, currentUser?.id]);
-
-  // Ensure video stream is connected when localStream changes
-  useEffect(() => {
-    if (localStream && videoRef.current && (room?.room_type === 'video' || room?.room_type === 'game')) {
-      console.log("[PartyRoom] Connecting local stream to video element, tracks:", localStream.getTracks().length);
-      videoRef.current.srcObject = localStream;
-      videoRef.current.onloadedmetadata = () => {
-        videoRef.current?.play().catch(e => console.log("Video play error:", e));
-      };
-    }
-  }, [localStream, room?.room_type]);
 
   // Helper function to connect video stream to element
   const connectVideoStream = (element: HTMLVideoElement | null, stream: MediaStream | null) => {

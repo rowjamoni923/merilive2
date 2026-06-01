@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference
 object CameraOwnership {
     const val OWNER_NATIVE_CAMERA = "native-camera"
     const val OWNER_LIVEKIT = "livekit"
+    const val OWNER_WEBVIEW_LIVEKIT = "webview-livekit"
     const val OWNER_GPUPIXEL = "gpupixel"
 
     private val current = AtomicReference<String?>(null)
