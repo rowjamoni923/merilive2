@@ -103,12 +103,6 @@ const GoLive = () => {
     document.body.classList.toggle('native-media-active', active);
   }, []);
 
-  useEffect(() => {
-    if (!isNativeAndroid) return;
-    applyNativePreviewTransparency(nativePreviewActive);
-    return () => applyNativePreviewTransparency(false);
-  }, [isNativeAndroid, nativePreviewActive, applyNativePreviewTransparency]);
-
   // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
     isNativeAndroid,
@@ -129,6 +123,12 @@ const GoLive = () => {
     handleBeautyEnabledChange,
     handleStickerChange,
   } = useBeautyState();
+
+  useEffect(() => {
+    if (!isNativeAndroid) return;
+    applyNativePreviewTransparency(nativePreviewActive);
+    return () => applyNativePreviewTransparency(false);
+  }, [isNativeAndroid, nativePreviewActive, applyNativePreviewTransparency]);
 
 
 
