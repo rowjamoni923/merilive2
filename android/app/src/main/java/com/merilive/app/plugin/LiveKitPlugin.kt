@@ -1198,6 +1198,17 @@ class LiveKitPlugin : Plugin() {
                     captureParams = newCapture
                 )
                 // Stop + unpublish the old track, then create + publish a fresh one.
+                // Pkg415: BEFORE killing the old track, detach it from the local
+                // renderer so the renderer's EGL surface is preserved. After the
+                // new track is published, re-attach it to the SAME renderer +
+                // re-install the stall sink — otherwise the local preview goes
+                // black/white permanently (the renderer was bound to a dead
+                // track) and the stall watchdog cycles the camera forever.
+                val keptRenderer = localRenderer
+                if (keptRenderer != null) {
+                    try { oldTrack.removeRenderer(keptRenderer) } catch (_: Exception) {}
+                }
+                try { removeStallSink("local") } catch (_: Exception) {}
                 try { oldTrack.stopCapture() } catch (_: Exception) {}
                 r.localParticipant.unpublishTrack(oldTrack)
 
@@ -1210,6 +1221,16 @@ class LiveKitPlugin : Plugin() {
                         simulcast = simulcast,
                     )
                 )
+                // Pkg415: re-bind the preserved renderer + stall sink to the new track.
+                if (keptRenderer != null) {
+                    try {
+                        r.initVideoRenderer(keptRenderer)
+                        newTrack.addRenderer(keptRenderer)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
+                    }
+                }
+                try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
                 currentTier = target
                 Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
 
