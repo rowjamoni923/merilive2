@@ -129,12 +129,6 @@ const GoLive = () => {
 
     nativePreviewStartInFlightRef.current = true;
     try {
-      const permission = await requestCameraPermission();
-      if (!permission.granted) {
-        toast.error(permission.error || "Camera permission is required");
-        return false;
-      }
-
       // Prevent dual camera ownership (web + native) before native start
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -142,8 +136,11 @@ const GoLive = () => {
         setStream(null);
       }
 
-      // Tiny yield so the stopped tracks fully release Camera2 before CameraX opens.
-      await new Promise((resolve) => setTimeout(resolve, 30));
+      // Android native path must NOT run a WebView getUserMedia permission
+      // probe here. NativeCamera.start owns the permission request and opens
+      // CameraX directly; probing with web getUserMedia first briefly locks
+      // Camera2 and causes the persistent white native preview/live surface.
+      await new Promise((resolve) => setTimeout(resolve, 250));
 
       const started = await startNativeCamera();
       if (started) {
@@ -156,7 +153,7 @@ const GoLive = () => {
     } finally {
       nativePreviewStartInFlightRef.current = false;
     }
-  }, [isNativeAndroid, nativePreviewActive, requestCameraPermission, startNativeCamera]);
+  }, [isNativeAndroid, nativePreviewActive, startNativeCamera]);
 
   const stopNativePreview = useCallback(async () => {
     await stopNativeCamera();
