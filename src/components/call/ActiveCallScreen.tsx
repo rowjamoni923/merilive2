@@ -7,6 +7,8 @@ import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, 
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
+import { useProCamera } from "@/camera/useProCamera";
+import { toast } from "sonner";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
