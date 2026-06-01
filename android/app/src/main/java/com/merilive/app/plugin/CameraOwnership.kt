@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference
 object CameraOwnership {
     private const val TAG = "CameraOwnership"
     private const val OEM_RELEASE_GRACE_MS = 650L
+    private const val STALE_OWNER_TTL_MS = 30_000L
 
     const val OWNER_NATIVE_CAMERA = "native-camera"     // face verification only
     const val OWNER_LIVEKIT = "livekit"                 // ALL streaming
@@ -89,6 +90,27 @@ object CameraOwnership {
             Log.w(TAG, "DENIED acquire by '$owner' — held by '${current.get()}'")
         }
         return ok
+    }
+
+    /**
+     * OEM battery/camera services can revoke Camera2 while our advisory owner
+     * remains set. Evict a different owner only after a conservative TTL so
+     * foreground reconnects do not get stuck behind stale state.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun acquireOrEvictStale(owner: String, force: Boolean = false): Boolean {
+        val held = current.get()
+        if (!force && held != null && held != owner && acquiredAtMs > 0L) {
+            val age = System.currentTimeMillis() - acquiredAtMs
+            if (age > STALE_OWNER_TTL_MS && current.compareAndSet(held, null)) {
+                lastReleasedAtMs = System.currentTimeMillis()
+                lastReleasedOwner = held
+                acquiredAtMs = 0L
+                Log.w(TAG, "evicted stale owner '$held' for '$owner' after ${age}ms")
+            }
+        }
+        return acquire(owner, force)
     }
 
     /** Release ownership only if [owner] currently holds it. */
