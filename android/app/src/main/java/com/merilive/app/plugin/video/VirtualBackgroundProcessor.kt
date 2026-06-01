@@ -72,7 +72,7 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
         private set
     private val backgroundBitmap = AtomicReference<Bitmap?>(null)
 
-    private var sink: VideoSink? = null
+    @Volatile private var sink: VideoSink? = null
     private var segmenter: ImageSegmenter? = null
     private var renderScript: RenderScript? = null
     private var blurScript: ScriptIntrinsicBlur? = null
