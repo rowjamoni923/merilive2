@@ -30,6 +30,15 @@ export function releaseAndroidWebViewCamera(reason: string): void {
     .catch(() => undefined);
 }
 
+export async function releaseAndroidWebViewCameraNow(reason: string): Promise<void> {
+  if (!isNativeLiveKitAvailable()) return;
+  webViewVideoClaimCount = 0;
+  try {
+    await NativeLiveKit.releaseCameraForWebView();
+    console.log(`[AndroidCameraHandoff] released WebView camera: ${reason}`);
+  } catch { /* native optional */ }
+}
+
 export function releaseAndroidWebViewCameraWhenStopped(stream: MediaStream | null | undefined, reason: string): void {
   if (!isNativeLiveKitAvailable() || !hasLiveVideo(stream)) return;
   const s = stream as MediaStream & Record<string, unknown>;
