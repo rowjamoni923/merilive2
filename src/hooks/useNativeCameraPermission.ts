@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
 import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 
