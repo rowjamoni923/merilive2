@@ -279,8 +279,8 @@ public class NativeCameraPlugin extends Plugin {
     // ---------- NEW: video recording ----------
     @PluginMethod
     public void startVideoRecording(PluginCall call) {
-        if (videoCapture == null) {
-            call.reject("Native video recording is not available on this device");
+        if (cameraProvider == null) {
+            call.reject("Camera not started");
             return;
         }
         if (activeRecording != null) {
@@ -291,30 +291,41 @@ public class NativeCameraPlugin extends Plugin {
             requestPermissionForAlias("microphone", call, "micPermissionCallback");
             return;
         }
-        try {
-            File outDir = getContext().getCacheDir();
-            activeRecordingFile = new File(outDir, "face-verify-" + System.currentTimeMillis() + ".mp4");
-            FileOutputOptions outOpts = new FileOutputOptions.Builder(activeRecordingFile).build();
+        // Pkg416: VideoCapture is bound lazily — preview+analysis+video at
+        // once exceeds the hardware use-case budget on many mid-range
+        // devices and abandons the preview Surface (white screen).
+        getActivity().runOnUiThread(() -> {
+            try {
+                if (videoCapture == null) {
+                    bindUseCases(true);
+                }
+                if (videoCapture == null) {
+                    call.reject("Native video recording is not available on this device");
+                    return;
+                }
+                File outDir = getContext().getCacheDir();
+                activeRecordingFile = new File(outDir, "face-verify-" + System.currentTimeMillis() + ".mp4");
+                FileOutputOptions outOpts = new FileOutputOptions.Builder(activeRecordingFile).build();
 
-            // withAudioEnabled is allowed only with RECORD_AUDIO permission (checked above)
-            //noinspection MissingPermission
-            activeRecording = videoCapture.getOutput()
-                .prepareRecording(getContext(), outOpts)
-                .withAudioEnabled()
-                .start(ContextCompat.getMainExecutor(getContext()), event -> {
-                    if (event instanceof VideoRecordEvent.Finalize) {
-                        VideoRecordEvent.Finalize fin = (VideoRecordEvent.Finalize) event;
-                        finalizeRecording(fin.hasError(), fin.getError());
-                    }
-                });
-            recordingStartedAt = System.currentTimeMillis();
-            JSObject ret = new JSObject();
-            ret.put("recording", true);
-            call.resolve(ret);
-        } catch (Exception e) {
-            Log.e(TAG, "startVideoRecording failed", e);
-            call.reject("startVideoRecording failed: " + e.getMessage());
-        }
+                //noinspection MissingPermission
+                activeRecording = videoCapture.getOutput()
+                    .prepareRecording(getContext(), outOpts)
+                    .withAudioEnabled()
+                    .start(ContextCompat.getMainExecutor(getContext()), event -> {
+                        if (event instanceof VideoRecordEvent.Finalize) {
+                            VideoRecordEvent.Finalize fin = (VideoRecordEvent.Finalize) event;
+                            finalizeRecording(fin.hasError(), fin.getError());
+                        }
+                    });
+                recordingStartedAt = System.currentTimeMillis();
+                JSObject ret = new JSObject();
+                ret.put("recording", true);
+                call.resolve(ret);
+            } catch (Exception e) {
+                Log.e(TAG, "startVideoRecording failed", e);
+                call.reject("startVideoRecording failed: " + e.getMessage());
+            }
+        });
     }
 
     @PluginMethod
