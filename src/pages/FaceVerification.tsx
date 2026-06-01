@@ -401,23 +401,25 @@ const FaceVerification = () => {
     videoEl.onplaying = reveal;
     videoEl.onloadeddata = reveal;
 
+    // Pkg-fix: wait for loadedmetadata before play() — fixes mobile WebView blank
+    // frame when play() is called before hardware finishes initializing.
+    const tryPlay = () => {
+      videoEl.play()
+        .then(() => {
+          setTimeout(() => { if (stream.active) reveal(); }, 600);
+        })
+        .catch(err => {
+          console.error('[FaceVerification] Video play failed:', err);
+          setTimeout(() => {
+            if (videoEl && videoEl.paused) {
+              videoEl.play().then(reveal).catch(() => {});
+            }
+          }, 300);
+        });
+    };
     videoEl.srcObject = stream;
-    videoEl.play()
-      .then(() => {
-        // Fallback reveal watchdog for face verification
-        setTimeout(() => {
-          if (stream.active) reveal();
-        }, 600);
-      })
-      .catch(err => {
-        console.error('[FaceVerification] Video play failed:', err);
-        // Retry play once after a short delay
-        setTimeout(() => {
-          if (videoEl && videoEl.paused) {
-            videoEl.play().then(reveal).catch(() => {});
-          }
-        }, 300);
-      });
+    if (videoEl.readyState >= 1) tryPlay();
+    else videoEl.onloadedmetadata = tryPlay;
     setTimeout(() => {
       const liveVideo = stream.getVideoTracks().some(track => track.readyState === 'live');
       if (liveVideo) {
@@ -677,6 +679,10 @@ const FaceVerification = () => {
         usingNativeFaceCameraRef.current = false;
         nativeFaceRecordingRef.current = false;
       }
+      // Pkg-fix: clear <video> srcObject BEFORE stopping tracks → prevents
+      // frozen/white last-frame on Android WebView.
+      try { if (faceVideoRef.current) faceVideoRef.current.srcObject = null; } catch {}
+      try { if (liveVideoRef.current) liveVideoRef.current.srcObject = null; } catch {}
       if (faceStreamRef.current) {
         faceStreamRef.current.getTracks().forEach(track => track.stop());
         faceStreamRef.current = null;
@@ -685,6 +691,12 @@ const FaceVerification = () => {
         videoStreamRef.current.getTracks().forEach(track => track.stop());
         videoStreamRef.current = null;
       }
+      // Pkg-fix: release cross-section prepared streams so Live/Call/Party can
+      // acquire the camera immediately after the user leaves face verification.
+      try {
+        import('@/features/live/hostPreviewSession').then(m => m.clearPreparedHostPreviewStream({ stopTracks: true })).catch(() => {});
+        import('@/features/call/preparedCallMedia').then(m => m.clearPreparedCallMediaStream(null, { stopTracks: true })).catch(() => {});
+      } catch {}
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -870,7 +882,9 @@ const FaceVerification = () => {
       clearPreparedCallMediaStream(null, { stopTracks: true });
       // (duplicate stopPreview removed — single stopPreview below is sufficient)
 
-      // Stop any existing stream first
+      // Pkg-fix: clear <video> srcObject BEFORE stopping tracks to avoid the
+      // frozen last-frame "white box" while the new stream initializes.
+      try { if (faceVideoRef.current) faceVideoRef.current.srcObject = null; } catch {}
       if (faceStreamRef.current) {
         faceStreamRef.current.getTracks().forEach(track => track.stop());
         faceStreamRef.current = null;
@@ -883,6 +897,9 @@ const FaceVerification = () => {
       // in live face scan. getCameraStream already handles permission internally —
       // no separate probe, so Android WebView keeps the user-gesture chain intact.
       await nativeFaceCam.stopPreview().catch(() => null);
+      // Pkg-fix: small breathing room so Android Camera2 HAL fully releases
+      // before the WebView re-acquires it (avoids NotReadableError → blank).
+      await new Promise(r => setTimeout(r, 200));
       const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');

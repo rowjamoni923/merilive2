@@ -130,22 +130,15 @@ const CreateParty = () => {
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
     try {
       if (videoMode) {
-        // Request native camera permission first
-        const permResult = await requestCameraPermission();
-        if (!permResult.granted) {
-          toast.error(permResult.error || "Camera permission required");
-          return;
-        }
-        
-        // Use native camera stream with progressive fallback
+        // Pkg-fix: removed double getUserMedia probe — getCameraStream already
+        // handles native permission internally and keeps the Android WebView
+        // user-gesture chain intact.
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
           setStream(mediaStream);
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
-            videoRef.current.play().then(() => setCameraReady(true)).catch(() => {});
-          }
+          // Pkg-fix: do NOT set srcObject here — the sync useEffect below
+          // attaches stream → video element whenever either changes. Setting
+          // it twice causes a mute-flip on Android WebView → blank preview.
         }
       } else {
         // Audio only mode
@@ -160,7 +153,7 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream, requestCameraPermission]);
+  }, [getCameraStream]);
 
   // Initialize everything in parallel on mount
   useEffect(() => {
