@@ -146,7 +146,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const onTrackEnded = () => onVideoStalledRef.current?.();
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
+    const hasDecodedFrame = () => el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0;
+
     const markReady = () => {
+      if (!hasDecodedFrame()) return;
       revealVideo();
       if (!mutedRef.current) {
         try {
@@ -162,7 +165,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const playNow = () => {
       if (!el || !el.paused) { markReady(); return; }
       el.play().then(markReady).catch(() => {
-        if (el.readyState >= 2) {
+        if (hasDecodedFrame()) {
           setTimeout(() => {
             el.play().catch(() => {});
           }, 80);
@@ -192,10 +195,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const revealWatchdog = setTimeout(() => {
       const mt = videoTrack?.mediaStreamTrack;
       if (mt && mt.readyState === 'live') {
-        revealVideo();
         try {
           if (el.paused) el.play().catch(() => {});
         } catch { /* ignore */ }
+        markReady();
       }
     }, 450);
 
