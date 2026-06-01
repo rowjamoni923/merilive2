@@ -660,6 +660,21 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
+                // Camera arbiter: if the GPUPixel beauty pipeline currently
+                // owns the physical Camera2 device, never let JS turn
+                // LiveKit's native capture back on — both holders would
+                // race for the same device handle and the second opener
+                // gets a CameraAccessException, leaving the preview blank.
+                // Beauty pipeline must be disabled first (see
+                // setBeautyPipelineEnabled).
+                if (enabled && BeautyPipelineBridge.isEnabled()) {
+                    val ret = JSObject()
+                    ret.put("enabled", false)
+                    ret.put("skipped", true)
+                    ret.put("reason", "beauty-pipeline-owns-camera")
+                    call.resolve(ret)
+                    return@launch
+                }
                 r.localParticipant.setCameraEnabled(enabled)
                 call.resolve()
             } catch (e: Exception) {
