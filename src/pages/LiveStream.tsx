@@ -2807,7 +2807,7 @@ const LiveStream = () => {
         // WebView — any opaque background here paints WHITE over the camera for
         // 600-1200ms until nativeActive flips. Default to transparent on Android,
         // bg-muted only for web/iOS where a CSS-only fallback is in use.
-        isNativeMediaActive || isNativeAndroid ? "bg-transparent" : "bg-muted"
+        isNativeMediaActive || Capacitor.getPlatform() === 'android' ? "bg-transparent" : "bg-muted"
       )}
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
