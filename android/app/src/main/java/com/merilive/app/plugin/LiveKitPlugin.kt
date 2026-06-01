@@ -797,10 +797,16 @@ class LiveKitPlugin : Plugin() {
                     ?.track as? io.livekit.android.room.track.VideoTrack
                 if (track == null) { call.reject("No local camera track yet"); return@runOnUiThread }
 
-                if (localRenderer == null) localRenderer = createRenderer()
-                r.initVideoRenderer(localRenderer!!)
-                track.addRenderer(localRenderer!!)
-                mountBehindWebView(localRenderer!!)
+                localRenderer?.let { old ->
+                    try { track.removeRenderer(old) } catch (_: Exception) {}
+                    (old.parent as? ViewGroup)?.removeView(old)
+                    try { old.release() } catch (_: Exception) {}
+                }
+                val renderer = createRenderer()
+                localRenderer = renderer
+                r.initVideoRenderer(renderer)
+                track.addRenderer(renderer)
+                mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
                 call.resolve()
             } catch (e: Exception) {
@@ -1275,7 +1281,6 @@ class LiveKitPlugin : Plugin() {
                 // Pkg415: re-bind the preserved renderer + stall sink to the new track.
                 if (keptRenderer != null) {
                     try {
-                        r.initVideoRenderer(keptRenderer)
                         newTrack.addRenderer(keptRenderer)
                     } catch (e: Exception) {
                         Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
