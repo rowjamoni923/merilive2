@@ -548,6 +548,12 @@ const GoLive = () => {
 
   // Function to actually request permissions when user clicks Allow
   const handleAllowPermissions = async () => {
+    // Pkg418 hard gate: never start ANY camera path while ProCamera arbiter
+    // says verification family holds the slot (or hasn't granted us yet).
+    if (proCameraErrorRef.current || !proCameraReadyRef.current) {
+      toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      return;
+    }
     setShowPermissionPrompt(false);
 
     // Pkg415: On Android we MUST try the native CameraX preview FIRST.
