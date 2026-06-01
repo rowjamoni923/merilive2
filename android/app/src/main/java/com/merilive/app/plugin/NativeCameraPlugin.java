@@ -12,6 +12,7 @@ import android.util.Log;
 import android.util.Size;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Build;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -73,6 +74,7 @@ import java.util.concurrent.Executors;
 public class NativeCameraPlugin extends Plugin {
 
     private static final String TAG = "NativeCameraPlugin";
+    private static final long OEM_CAMERA_RELEASE_SETTLE_MS = 650L;
 
     private ProcessCameraProvider cameraProvider;
     private Camera camera;
@@ -169,7 +171,18 @@ public class NativeCameraPlugin extends Plugin {
             : new Size(1920, 1080);
 
         final int sessionId = ++cameraSessionId;
-        getActivity().runOnUiThread(() -> bindCameraAsync(call, lens, res, sessionId));
+        final long graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_NATIVE_CAMERA);
+        getActivity().runOnUiThread(() -> {
+            if (graceMs > 0L) {
+                Log.w(TAG, "OEM Camera2 release grace before CameraX open: " + graceMs + "ms");
+                new Handler(Looper.getMainLooper()).postDelayed(
+                    () -> bindCameraAsync(call, lens, res, sessionId),
+                    graceMs
+                );
+            } else {
+                bindCameraAsync(call, lens, res, sessionId);
+            }
+        });
     }
 
     @PluginMethod
@@ -182,6 +195,15 @@ public class NativeCameraPlugin extends Plugin {
                     activeRecording = null;
                 }
                 if (cameraProvider != null) cameraProvider.unbindAll();
+                new Handler(Looper.getMainLooper()).postDelayed(() -> finishStopCamera(call), OEM_CAMERA_RELEASE_SETTLE_MS);
+            } catch (Exception e) {
+                call.reject("Failed to stop camera: " + e.getMessage());
+            }
+        });
+    }
+
+    private void finishStopCamera(PluginCall call) {
+        try {
                 // Null the retained use-case references so the next start()
                 // rebinds a fresh Preview / ImageCapture / VideoCapture
                 // against the current lifecycle. Without this, a stale
@@ -206,7 +228,6 @@ public class NativeCameraPlugin extends Plugin {
             } catch (Exception e) {
                 call.reject("Failed to stop camera: " + e.getMessage());
             }
-        });
     }
 
     @PluginMethod
@@ -700,6 +721,12 @@ public class NativeCameraPlugin extends Plugin {
             // the opaque shell while CameraX is still mid-attach paints the
             // white React background on top of the bound Surface.
             setWebViewCameraBackground(0x00000000);
+            try { if (cameraProvider != null) cameraProvider.unbindAll(); } catch (Exception ignored) {}
+            imageCapture = null;
+            videoCapture = null;
+            camera = null;
+            removePreviewView();
+            CameraOwnership.release(CameraOwnership.OWNER_NATIVE_CAMERA);
             call.reject("Camera preview did not start");
         };
 
@@ -721,7 +748,7 @@ public class NativeCameraPlugin extends Plugin {
             ret.put("resolution", res);
             call.resolve(ret);
         });
-        handler.postDelayed(timeout, 3500);
+        handler.postDelayed(timeout, cameraOpenTimeoutMs());
     }
 
     private void setWebViewCameraBackground(int color) {
@@ -788,10 +815,30 @@ public class NativeCameraPlugin extends Plugin {
             // camera tears down. Without this, the WebView would stay
             // transparent and the activity background would bleed through.
             wv.setBackgroundColor(0xFFFFFFFF);
-            wv.setLayerType(android.view.View.LAYER_TYPE_NONE, null);
+            wv.setLayerType(isOppoFamily()
+                ? android.view.View.LAYER_TYPE_SOFTWARE
+                : android.view.View.LAYER_TYPE_NONE, null);
             ViewGroup root = (ViewGroup) wv.getParent();
             if (root != null) root.setBackgroundColor(0xFF000000);
         }
+    }
+
+    private static long cameraOpenTimeoutMs() {
+        return isXiaomiFamily() ? 8500L : 4500L;
+    }
+
+    private static boolean isXiaomiFamily() {
+        String m = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase();
+        String b = Build.BRAND == null ? "" : Build.BRAND.toLowerCase();
+        return m.contains("xiaomi") || m.contains("redmi") || m.contains("poco")
+            || b.contains("xiaomi") || b.contains("redmi") || b.contains("poco");
+    }
+
+    private static boolean isOppoFamily() {
+        String m = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase();
+        String b = Build.BRAND == null ? "" : Build.BRAND.toLowerCase();
+        return m.contains("oppo") || m.contains("realme") || m.contains("oneplus")
+            || b.contains("oppo") || b.contains("realme") || b.contains("oneplus");
     }
 
     private void releaseCameraResources(boolean destroyProvider) {

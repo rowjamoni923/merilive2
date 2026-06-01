@@ -231,6 +231,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           setNativeActive(true);
           setIsJoined(true);
           setConnectionState('CONNECTED');
+          window.dispatchEvent(new Event('beauty:reapply'));
+          setTimeout(() => window.dispatchEvent(new Event('beauty:reapply')), 800);
           toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         } else {
           setConnectionState('CONNECTING');
@@ -256,6 +258,21 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     onAudioInterruption: (s, permanent) => {
       if (s === 'loss' && permanent) {
         toast.info('Mic paused — interrupted by another app');
+      }
+    },
+    onCameraState: (s) => {
+      if (s === 'started') {
+        window.dispatchEvent(new Event('beauty:reapply'));
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
+      } else {
+        toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
+        nativeLiveKitController.reconnectNow().catch(() => {});
+      }
+    },
+    onVideoStall: (s, isLocal) => {
+      if (s === 'failed' && isLocal) {
+        toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
+        nativeLiveKitController.reconnectNow().catch(() => {});
       }
     },
   });
@@ -916,6 +933,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           clearHostVideoRecoveryTimer();
           setIsJoined(false);
           setConnectionState('DISCONNECTED');
+        });
+        pRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
+          if (publication.track?.kind === Track.Kind.Video) {
+            setLocalVideoTrack(publication.track);
+            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
+          } else if (publication.track?.kind === Track.Kind.Audio) {
+            setLocalAudioTrack(publication.track);
+          }
         });
 
         // Immediately process existing participants

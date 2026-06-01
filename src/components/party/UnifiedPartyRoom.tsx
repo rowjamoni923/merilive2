@@ -772,10 +772,17 @@ export function UnifiedPartyRoom({
         fetchRealtimeViewers();
       }
     };
+    const handleViewerCount = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ streamId: string; count: number }>).detail;
+      if (detail?.streamId !== roomId) return;
+      setRealtimeViewerCount(Math.max(0, detail.count || 0));
+    };
     window.addEventListener('livekit-party-event', handlePartyEvent);
+    window.addEventListener('livekit-viewer-count', handleViewerCount);
 
     return () => {
       window.removeEventListener('livekit-party-event', handlePartyEvent);
+      window.removeEventListener('livekit-viewer-count', handleViewerCount);
     };
   }, [roomId, fetchRealtimeViewers]);
   

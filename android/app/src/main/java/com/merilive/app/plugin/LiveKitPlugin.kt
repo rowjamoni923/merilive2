@@ -62,6 +62,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.abs
@@ -114,6 +115,8 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_WARN_MS = 7_000L
         private const val STALL_HARD_MS = 15_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+        private const val OEM_CAMERA_OPEN_TIMEOUT_MS = 4_500L
+        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
@@ -464,6 +467,11 @@ class LiveKitPlugin : Plugin() {
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
         }
+        val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
+        if (graceMs > 0L) {
+            Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
+            delay(graceMs)
+        }
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
@@ -545,7 +553,12 @@ class LiveKitPlugin : Plugin() {
 
         // Publish local tracks.
         newRoom.localParticipant.setMicrophoneEnabled(args.audio)
-        newRoom.localParticipant.setCameraEnabled(args.video)
+        if (args.video) {
+            val cameraStarted = setNativeCameraEnabledWithOemRetry(newRoom, true, "connect")
+            if (!cameraStarted) throw IllegalStateException("Camera2 failed to start after OEM recovery")
+        } else {
+            setNativeCameraEnabledWithOemRetry(newRoom, false, "connect-audio-only")
+        }
 
         // Keep screen on for the duration of the live/call session.
         setKeepScreenOn(true)
@@ -625,8 +638,9 @@ class LiveKitPlugin : Plugin() {
                     // Also flip the beauty bridge OFF so GPUPixel releases
                     // the camera if it currently owns it.
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
-                activity?.runOnUiThread { detachAllRenderersInternal() }
+                activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                 room?.disconnect()
                 room = null
                 setKeepScreenOn(false)
@@ -711,12 +725,62 @@ class LiveKitPlugin : Plugin() {
                     call.resolve(ret)
                     return@launch
                 }
-                r.localParticipant.setCameraEnabled(enabled)
-                call.resolve()
+                val ok = setNativeCameraEnabledWithOemRetry(r, enabled, "setCameraEnabled")
+                if (!ok) {
+                    val ret = JSObject()
+                    ret.put("enabled", false)
+                    ret.put("skipped", true)
+                    ret.put("reason", "camera-open-timeout")
+                    call.resolve(ret)
+                    return@launch
+                }
+                call.resolve(JSObject().put("enabled", enabled))
             } catch (e: Exception) {
                 call.reject("setCameraEnabled failed: ${e.message}")
             }
         }
+    }
+
+    private suspend fun setNativeCameraEnabledWithOemRetry(
+        r: Room,
+        enabled: Boolean,
+        reason: String,
+    ): Boolean {
+        if (!enabled) {
+            try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+            delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+            return true
+        }
+
+        val delays = longArrayOf(0L, 260L, 650L, 1_100L)
+        var lastError: Throwable? = null
+        for ((attempt, waitMs) in delays.withIndex()) {
+            if (waitMs > 0L) delay(waitMs)
+            try {
+                withTimeout(OEM_CAMERA_OPEN_TIMEOUT_MS) {
+                    r.localParticipant.setCameraEnabled(true)
+                }
+                val data = JSObject()
+                data.put("state", "started")
+                data.put("attempt", attempt + 1)
+                data.put("reason", reason)
+                notifyListeners("camera-state", data)
+                return true
+            } catch (e: Throwable) {
+                lastError = e
+                Log.w(TAG, "Camera2 enable attempt ${attempt + 1} failed ($reason): ${e.message}")
+                try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+            }
+        }
+        Log.e(TAG, "Camera2 enable failed after OEM retries ($reason)", lastError)
+        val data = JSObject()
+        data.put("state", "failed")
+        data.put("reason", reason)
+        data.put("error", lastError?.message ?: lastError?.javaClass?.simpleName ?: "unknown")
+        notifyListeners("camera-state", data)
+        if (reason != "connect") scheduleHardReconnect("camera-open-timeout:$reason")
+        return false
     }
 
     // ------------------------------------------------------------
@@ -753,18 +817,18 @@ class LiveKitPlugin : Plugin() {
                     // GPUPixel can open the device on the JS-side call
                     // without a CameraAccessException.
                     if (r != null) {
-                        try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                        setNativeCameraEnabledWithOemRetry(r, false, "beauty-on")
                     }
-                    delay(150L)
+                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                     BeautyPipelineBridge.setEnabled(true)
                 } else {
                     // Beauty OFF: flip the bridge flag FIRST so GPUPixel
                     // sink drains, give Camera2 a beat to release, then
                     // re-enable LiveKit's native capture.
                     BeautyPipelineBridge.setEnabled(false)
-                    delay(150L)
+                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                     if (r != null) {
-                        try { r.localParticipant.setCameraEnabled(true) } catch (_: Exception) {}
+                        setNativeCameraEnabledWithOemRetry(r, true, "beauty-off")
                     }
                 }
                 val ret = JSObject()
@@ -866,7 +930,7 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun detachAll(call: PluginCall) {
         activity?.runOnUiThread {
-            detachAllRenderersInternal()
+            detachAllRenderersInternal(releaseRenderers = true)
             call.resolve()
         }
     }
@@ -996,15 +1060,10 @@ class LiveKitPlugin : Plugin() {
         val sid = participant.sid.value
         val track = participant.getTrackPublication(Track.Source.CAMERA)
             ?.track as? io.livekit.android.room.track.VideoTrack ?: return false
-        remoteRenderers.remove(sid)?.let { old ->
-            try { track.removeRenderer(old) } catch (_: Exception) {}
-            (old.parent as? ViewGroup)?.removeView(old)
-            try { old.release() } catch (_: Exception) {}
-        }
-        val renderer = createRenderer()
-        remoteRenderers[sid] = renderer
+        val renderer = remoteRenderers[sid] ?: createRenderer().also { remoteRenderers[sid] = it }
         return try {
             r.initVideoRenderer(renderer)
+            try { track.removeRenderer(renderer) } catch (_: Exception) {}
             track.addRenderer(renderer)
             mountBehindWebView(renderer)
             installStallSink(track, key = sid, sid = sid, isLocal = false)
@@ -1161,7 +1220,7 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
-    private fun detachAllRenderersInternal() {
+    private fun detachAllRenderersInternal(releaseRenderers: Boolean = false) {
         val webView = bridge?.webView
         val r = room
         // Step 25 — drop stall sinks before we release the underlying tracks.
@@ -1175,9 +1234,9 @@ class LiveKitPlugin : Plugin() {
                 } catch (_: Exception) {}
             }
             (it.parent as? ViewGroup)?.removeView(it)
-            try { it.release() } catch (_: Exception) {}
+            if (releaseRenderers) try { it.release() } catch (_: Exception) {}
         }
-        localRenderer = null
+        if (releaseRenderers) localRenderer = null
         remoteRenderers.forEach { (sid, renderer) ->
             if (r != null) {
                 try {
@@ -1188,9 +1247,9 @@ class LiveKitPlugin : Plugin() {
                 } catch (_: Exception) {}
             }
             (renderer.parent as? ViewGroup)?.removeView(renderer)
-            try { renderer.release() } catch (_: Exception) {}
+            if (releaseRenderers) try { renderer.release() } catch (_: Exception) {}
         }
-        remoteRenderers.clear()
+        if (releaseRenderers) remoteRenderers.clear()
         webView?.setBackgroundColor(0xFF000000.toInt())
         (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
         webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
@@ -1475,7 +1534,7 @@ class LiveKitPlugin : Plugin() {
                 cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
                 if (cameraOnBeforeBackground) {
                     scope.launch {
-                        try { r.localParticipant.setCameraEnabled(false) }
+                        try { setNativeCameraEnabledWithOemRetry(r, false, "background-pause") }
                         catch (e: Exception) { Log.w(TAG, "pause camera failed: ${e.message}") }
                     }
                 }
@@ -1497,9 +1556,10 @@ class LiveKitPlugin : Plugin() {
                     val localTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
                         ?.track as? io.livekit.android.room.track.VideoTrack
                     if (localTrack != null) {
-                        val renderer = createRenderer()
+                        val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
                         localRenderer = renderer
                         r.initVideoRenderer(renderer)
+                        try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
                         localTrack.addRenderer(renderer)
                         mountBehindWebView(renderer)
                         installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
@@ -1512,7 +1572,7 @@ class LiveKitPlugin : Plugin() {
 
             if (pauseCameraOnBackground && cameraOnBeforeBackground) {
                 scope.launch {
-                    try { r.localParticipant.setCameraEnabled(true) }
+                    try { setNativeCameraEnabledWithOemRetry(r, true, "background-resume") }
                     catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
                 }
             }
@@ -1540,7 +1600,7 @@ class LiveKitPlugin : Plugin() {
                 try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
             }
             try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
-            activity?.runOnUiThread { detachAllRenderersInternal() }
+            activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
             try { room?.disconnect() } catch (_: Exception) {}
             room = null
             setKeepScreenOn(false)
@@ -1931,9 +1991,11 @@ class LiveKitPlugin : Plugin() {
                     // Republish camera with a fresh encoder. Cheap and
                     // doesn't disturb the room — peers see one black frame.
                     Log.w(TAG, "Stall recovery (local): toggling camera")
-                    r.localParticipant.setCameraEnabled(false)
-                    delay(250L)
-                    r.localParticipant.setCameraEnabled(true)
+                    val ok = setNativeCameraEnabledWithOemRetry(r, false, "stall-local-off") &&
+                        setNativeCameraEnabledWithOemRetry(r, true, "stall-local-on")
+                    if (!ok && entry.attempts >= 2) {
+                        scheduleHardReconnect("local-camera-stall")
+                    }
                 } else {
                     val participant = r.remoteParticipants.values.firstOrNull {
                         it.sid.value == entry.sid

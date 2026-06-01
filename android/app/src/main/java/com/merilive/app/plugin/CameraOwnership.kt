@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference
  */
 object CameraOwnership {
     private const val TAG = "CameraOwnership"
+    private const val OEM_RELEASE_GRACE_MS = 650L
 
     const val OWNER_NATIVE_CAMERA = "native-camera"     // face verification only
     const val OWNER_LIVEKIT = "livekit"                 // ALL streaming
@@ -40,9 +41,25 @@ object CameraOwnership {
     const val OWNER_GPUPIXEL = "gpupixel"
 
     private val current = AtomicReference<String?>(null)
+    @Volatile private var acquiredAtMs: Long = 0L
+    @Volatile private var lastReleasedAtMs: Long = 0L
+    @Volatile private var lastReleasedOwner: String? = null
 
     /** Returns the current owner, or null if free. */
     fun owner(): String? = current.get()
+
+    /**
+     * Some OEM Camera2 HALs (MIUI/ColorOS/Samsung Exynos variants) return
+     * from close()/unbindAll() before the hardware handle is actually reusable.
+     * The next owner must wait this grace window before opening Camera2, or it
+     * may get CAMERA_IN_USE / a permanently black TextureView.
+     */
+    @JvmStatic
+    fun releaseGraceRemainingMs(nextOwner: String): Long {
+        lastReleasedOwner ?: return 0L
+        val elapsed = System.currentTimeMillis() - lastReleasedAtMs
+        return (OEM_RELEASE_GRACE_MS - elapsed).coerceAtLeast(0L)
+    }
 
     /**
      * Attempt to take ownership. If [force] is true, an existing owner is
@@ -60,12 +77,14 @@ object CameraOwnership {
         }
         if (force) {
             val prev = current.getAndSet(owner)
+            acquiredAtMs = System.currentTimeMillis()
             if (prev != null && prev != owner) {
                 Log.w(TAG, "FORCED ownership '$prev' → '$owner'")
             }
             return true
         }
         val ok = current.compareAndSet(null, owner) || current.get() == owner
+        if (ok) acquiredAtMs = System.currentTimeMillis()
         if (!ok) {
             Log.w(TAG, "DENIED acquire by '$owner' — held by '${current.get()}'")
         }
@@ -76,6 +95,9 @@ object CameraOwnership {
     @JvmStatic
     fun release(owner: String) {
         if (current.compareAndSet(owner, null)) {
+            lastReleasedAtMs = System.currentTimeMillis()
+            lastReleasedOwner = owner
+            acquiredAtMs = 0L
             Log.d(TAG, "released '$owner'")
         }
     }
@@ -84,6 +106,11 @@ object CameraOwnership {
     @JvmStatic
     fun forceRelease() {
         val prev = current.getAndSet(null)
-        if (prev != null) Log.w(TAG, "force-released '$prev'")
+        if (prev != null) {
+            lastReleasedAtMs = System.currentTimeMillis()
+            lastReleasedOwner = prev
+            acquiredAtMs = 0L
+            Log.w(TAG, "force-released '$prev'")
+        }
     }
 }

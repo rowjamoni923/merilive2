@@ -58,16 +58,26 @@ export const DEFAULT_PRO_BEAUTY: ProBeautyLevels = {
 };
 
 let initialized = false;
+let initRetryCount = 0;
 export async function ensureBeautyInit(): Promise<boolean> {
   if (!isNativeBeautyAvailable()) return false;
   if (initialized) return true;
+  if (initRetryCount >= 4) return false;
   try {
+    initRetryCount += 1;
     const r = await GPUPixelBeauty.init();
     initialized = !!r?.ok || !!r?.alreadyInitialized;
+    if (initialized) initRetryCount = 0;
     return initialized;
-  } catch {
+  } catch (e) {
+    console.warn('[GPUPixelBeauty] init failed:', e);
     return false;
   }
+}
+
+export function resetBeautyInit(): void {
+  initialized = false;
+  initRetryCount = 0;
 }
 
 export async function applyProBeauty(levels: ProBeautyLevels) {
