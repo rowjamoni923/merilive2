@@ -350,7 +350,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        INSTANCE = this
+        if (INSTANCE == null || INSTANCE?.room == null) INSTANCE = this
         // Cache the system feature so isPictureInPictureSupported() is free.
         pipSupported = try {
             context.packageManager.hasSystemFeature(
@@ -370,6 +370,19 @@ class LiveKitPlugin : Plugin() {
         ret.put("backend", "livekit-native")
         ret.put("version", "2.7.0")
         call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun claimCameraForWebView(call: PluginCall) {
+        val ok = CameraOwnership.acquire(CameraOwnership.OWNER_WEBVIEW_LIVEKIT, false)
+        if (!ok) return call.reject("Camera busy: held by ${CameraOwnership.owner()}")
+        call.resolve(JSObject().put("claimed", true))
+    }
+
+    @PluginMethod
+    fun releaseCameraForWebView(call: PluginCall) {
+        CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+        call.resolve(JSObject().put("released", true))
     }
 
     @PluginMethod
@@ -439,6 +452,9 @@ class LiveKitPlugin : Plugin() {
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
         val existingOwner = CameraOwnership.owner()
+        if (existingOwner == CameraOwnership.OWNER_WEBVIEW_LIVEKIT) {
+            CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+        }
         val ownerAcquired = CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = isReconnect)
         if (!ownerAcquired) {
             throw IllegalStateException("Camera busy: held by $existingOwner")
