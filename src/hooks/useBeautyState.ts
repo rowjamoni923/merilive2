@@ -98,6 +98,13 @@ export function useBeautyState(): any {
     lastLevelsRef.current = beautySettings.levels ?? initialLevels;
     lastEnabledRef.current = beautyEnabled;
     void drive(lastLevelsRef.current, beautyEnabled);
+    // Pkg418: the LiveKit camera track may publish *after* this mount-time
+    // drive() runs (LocalTrackPublished fires later) — schedule a few
+    // retries so the broadcast processor always picks up our levels even
+    // if it wasn't attached on the very first drive.
+    const t1 = setTimeout(() => { void drive(lastLevelsRef.current, lastEnabledRef.current); }, 600);
+    const t2 = setTimeout(() => { void drive(lastLevelsRef.current, lastEnabledRef.current); }, 2000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [beautyEnabled, beautySettings.levels, drive]);
 
   // Replay on track-republish (LiveKit LocalTrackPublished) and foregrounding.
