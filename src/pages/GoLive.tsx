@@ -34,6 +34,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
+import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -134,6 +135,7 @@ const GoLive = () => {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         setStream(null);
+        releaseAndroidWebViewCamera('golive:native-preview-start');
       }
 
       // Android native path must NOT run a WebView getUserMedia permission
@@ -406,6 +408,7 @@ const GoLive = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      releaseAndroidWebViewCamera('golive:back');
     }
     // Pkg-fix: null srcObject so the WebView doesn't keep painting the last
     // (now-stopped) frame as a frozen native-controls overlay on re-entry.
@@ -516,6 +519,7 @@ const GoLive = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
+        releaseAndroidWebViewCamera('golive:unmount');
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
       // stream never leaves a "play" icon ghost in the WebView paint cache.
@@ -827,6 +831,7 @@ const GoLive = () => {
       // (Android WebView won't re-grant mic without a fresh user gesture).
       if (stream) {
         stream.getVideoTracks().forEach((track) => track.stop());
+        releaseAndroidWebViewCamera('golive:switch-camera');
       }
 
 
