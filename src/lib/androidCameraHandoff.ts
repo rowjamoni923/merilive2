@@ -22,7 +22,8 @@ export async function claimAndroidWebViewCamera(reason: string): Promise<boolean
 
 export function releaseAndroidWebViewCamera(reason: string): void {
   if (!isNativeLiveKitAvailable()) return;
-  if (webViewVideoClaimCount > 0) webViewVideoClaimCount -= 1;
+  if (webViewVideoClaimCount <= 0) return;
+  webViewVideoClaimCount -= 1;
   if (webViewVideoClaimCount > 0) return;
   void NativeLiveKit.releaseCameraForWebView()
     .then(() => console.log(`[AndroidCameraHandoff] released WebView camera: ${reason}`))
