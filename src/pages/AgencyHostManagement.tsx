@@ -375,17 +375,18 @@ const AgencyHostManagement = () => {
               pendingHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-warning-500/20"
+                  className="bg-white rounded-2xl p-4 border border-slate-200"
+                  style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.1), 0 2px 4px -2px rgba(15,23,42,0.06)' }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="w-12 h-12 border-2 border-warning-500/30">
+                    <Avatar className="w-12 h-12 border-2 border-amber-300">
                       <AvatarImage src={hostData.host?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-warning-500/20 text-warning-400">
+                      <AvatarFallback className="bg-amber-100 text-amber-700">
                         {hostData.host?.display_name?.charAt(0) || "H"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-900 font-medium">{hostData.host?.display_name || "Unknown"}</p>
                       <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
                   </div>
@@ -393,7 +394,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setApproveDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-success-500/20 hover:bg-success-500/30 text-success-400"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
                       {processingId === hostData.host_id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -407,7 +408,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setRejectDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-danger-500/20 hover:bg-danger-500/30 text-danger-400"
+                      className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
                       Reject
