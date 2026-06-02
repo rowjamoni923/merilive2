@@ -528,20 +528,28 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     setSelectedGift(null);
                     resetCombo();
                   }}
-
                   className={cn(
-                    "flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap flex-shrink-0 border transition-all duration-150",
+                    "flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 border transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-pink-500/90 via-purple-500/90 to-indigo-500/90 text-white border-purple-400/50"
-                      : "bg-white/5 text-white/60 border-white/10 active:bg-white/15"
+                      ? "bg-gradient-to-r from-pink-500 via-fuchsia-500 to-indigo-500 text-white border-white/30 -translate-y-0.5"
+                      : "bg-white/[0.06] text-white/65 border-white/10 active:bg-white/15 hover:-translate-y-0.5"
                   )}
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  style={{
+                    WebkitTapHighlightColor: 'transparent',
+                    boxShadow: isActive
+                      ? '0 6px 16px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'
+                      : 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                  }}
                 >
-                  <span>{cat.name}</span>
-                  <span className={cn(
-                    "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
-                    isActive ? "bg-white/30 text-white" : "bg-white/10 text-white/70"
-                  )}>
+                  <span style={isActive ? { textShadow: '0 1px 2px rgba(0,0,0,0.35)' } : undefined}>
+                    {cat.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
+                      isActive ? "bg-white/25 text-white" : "bg-white/10 text-white/70"
+                    )}
+                  >
                     {giftsInCategory}
                   </span>
                 </button>
