@@ -702,13 +702,13 @@ export function ActiveCallScreen({
         style={{ contain: 'layout' }}
       >
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
-          {/* Left - User info pill */}
+          {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full"
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(20,10,40,0.7) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                boxShadow: '0 8px 24px -8px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 6px rgba(0,0,0,0.35)',
               }}
             >
               {/* Live indicator dot */}
@@ -716,94 +716,122 @@ export function ActiveCallScreen({
                 <div className={cn(
                   "w-2 h-2 rounded-full",
                   isLiveConnected ? "bg-red-500" : "bg-amber-500"
-                )} />
+                )}
+                  style={{ boxShadow: isLiveConnected ? '0 0 8px rgba(239,68,68,0.7)' : '0 0 8px rgba(245,158,11,0.7)' }}
+                />
                 {isLiveConnected && (
                   <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500 animate-ping opacity-75" />
                 )}
               </div>
-              
+
               {/* Remote user avatar mini */}
-              <div className="w-7 h-7 rounded-full overflow-hidden border border-white/20">
+              <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-white/30"
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
+              >
                 {remoteUserAvatar ? (
                   <img src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover"/>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
+                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-extrabold">
                     {remoteUserName?.charAt(0)}
                   </div>
                 )}
               </div>
-              
-              <div className="flex flex-col">
-                <span className="text-white text-[11px] font-semibold leading-tight max-w-[80px] truncate">{remoteUserName}</span>
-                <div className="flex items-center gap-1">
-                  <span className={cn(
-                    "text-[9px] font-bold tracking-wider uppercase",
-                    isLiveConnected ? "text-emerald-400" : "text-amber-400"
-                  )}>
-                    {connectionBadgeLabel}
-                  </span>
-                </div>
+
+              <div className="flex flex-col leading-tight">
+                <span
+                  className="text-white text-[11px] font-extrabold max-w-[88px] truncate"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
+                >
+                  {remoteUserName}
+                </span>
+                <span className={cn(
+                  "text-[9px] font-extrabold tracking-[0.12em] uppercase",
+                  isLiveConnected ? "text-emerald-300" : "text-amber-300"
+                )}
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.5)' }}
+                >
+                  {connectionBadgeLabel}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Center - Duration timer */}
-          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full"
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full backdrop-blur-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.35)'
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(20,8,40,0.6) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 8px 20px -8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-white/95 font-mono font-bold text-xs tracking-wider">{formatDuration(duration)}</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
+              style={{ boxShadow: '0 0 8px rgba(239,68,68,0.75)' }}
+            />
+            <span
+              className="text-white font-mono font-extrabold text-xs tracking-[0.14em] tabular-nums"
+              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
+            >
+              {formatDuration(duration)}
+            </span>
           </div>
 
           {/* Right - Earnings/Coins + Connection */}
           <div className="flex items-center gap-2">
             {isHost ? (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(234,88,12,0.12) 100%)',
-                  border: '1px solid rgba(245,158,11,0.25)',
-                  boxShadow: '0 0 20px rgba(245,158,11,0.1)'
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.28) 0%, rgba(234,88,12,0.22) 100%)',
+                  border: '1px solid rgba(252,211,77,0.5)',
+                  boxShadow: '0 8px 20px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
               >
                 <BeansIcon size={14} />
-                <span className="text-amber-200 font-bold text-xs">+{formatCoins(displayedHostEarned)}</span>
+                <span
+                  className="text-amber-100 font-extrabold text-xs tabular-nums"
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                >
+                  +{formatCoins(displayedHostEarned)}
+                </span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.18) 100%)',
+                  border: '1px solid rgba(110,231,183,0.45)',
+                  boxShadow: '0 8px 18px -6px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span className="text-[9px] font-bold text-emerald-300 tracking-wider uppercase">E2E</span>
+                <ShieldCheck className="w-3 h-3 text-emerald-200" />
+                <span
+                  className="text-[9px] font-extrabold text-emerald-100 tracking-[0.14em] uppercase"
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                >
+                  E2E
+                </span>
               </div>
             )}
 
             {/* Signal bars */}
-            <div className={cn(
-              "flex items-center gap-1 px-2.5 py-2 rounded-full",
-            )}
+            <div className="flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
               style={{
-                background: isConnected 
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(234,88,12,0.08) 100%)',
-                border: `1px solid ${isConnected ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                background: isConnected
+                  ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
+                  : 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(234,88,12,0.15) 100%)',
+                border: `1px solid ${isConnected ? 'rgba(110,231,183,0.5)' : 'rgba(252,211,77,0.5)'}`,
+                boxShadow: `0 6px 14px -6px ${isConnected ? 'rgba(16,185,129,0.45)' : 'rgba(245,158,11,0.45)'}, inset 0 1px 0 rgba(255,255,255,0.25)`,
               }}
             >
-              <div className="flex items-center gap-[2px]">
+              <div className="flex items-end gap-[2px]">
                 {[1,2,3].map(i => (
                   <div key={i} className={cn(
                     "w-[3px] rounded-full transition-all",
                     i === 1 ? "h-1.5" : i === 2 ? "h-2.5" : "h-3",
-                    isConnected 
-                      ? "bg-emerald-400" 
-                      : i <= 1 ? "bg-amber-400" : "bg-white/15"
-                  )} />
+                    isConnected
+                      ? "bg-emerald-300"
+                      : i <= 1 ? "bg-amber-300" : "bg-white/20"
+                  )}
+                    style={isConnected ? { boxShadow: '0 0 4px rgba(16,185,129,0.55)' } : undefined}
+                  />
                 ))}
               </div>
             </div>
