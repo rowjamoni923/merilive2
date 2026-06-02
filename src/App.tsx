@@ -1168,9 +1168,14 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="/" element={session ? <ProtectedRoute session={session}><Index /></ProtectedRoute> : <LandingPage />} />
+                <Route path="/" element={
+                  session
+                    ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
+                    : (isLandingDomain ? <LandingPage /> : <Navigate to="/auth" replace />)
+                } />
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/download" element={<LandingPage />} />
+
                 <Route path="/smart-link" element={<SmartLink />} />
                 <Route path="/share" element={<ShareReceive />} />
                 <Route path="/link" element={<SmartLink />} />
