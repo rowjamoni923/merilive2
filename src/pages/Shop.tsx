@@ -481,10 +481,10 @@ const Shop = () => {
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => navigate(-1)}
-            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
-            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+            style={{ boxShadow: '0 6px 16px -6px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.50)' }}
           >
-            <ArrowLeft className="w-5 h-5 text-heading" />
+            <ArrowLeft className="w-5 h-5 text-heading drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]" />
           </button>
 
           <h1
@@ -495,16 +495,18 @@ const Shop = () => {
           </h1>
 
           <div className="flex items-center gap-2">
-            <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+            <button
+              onClick={() => navigate('/recharge')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
               style={{
-                background: 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(217,182,107,0.22) 100%)',
-                boxShadow: '0 6px 14px -6px rgba(217,119,6,0.4), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(217,182,107,0.5)',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(217,182,107,0.25) 100%)',
+                boxShadow: '0 8px 18px -6px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.75), 0 0 0 1px rgba(217,182,107,0.55)',
               }}
             >
               <Diamond3DIcon size={14} />
               <span className="text-heading text-sm font-bold">{userDiamonds.toLocaleString()}</span>
-            </div>
+              <Plus className="w-3.5 h-3.5 text-amber-700" strokeWidth={3} />
+            </button>
           </div>
         </div>
       </div>
