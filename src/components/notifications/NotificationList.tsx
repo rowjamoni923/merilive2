@@ -304,10 +304,13 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
   if (notifications.length === 0) {
     return (
       <div className="p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-          <Bell className="w-8 h-8 text-muted-foreground" />
+        <div
+          className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-primary/15 via-primary/10 to-transparent rounded-full flex items-center justify-center border border-primary/25"
+          style={{ boxShadow: "0 12px 30px -10px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.5)" }}
+        >
+          <Bell className="w-10 h-10 text-primary drop-shadow-[0_1px_2px_rgba(99,102,241,0.4)]" />
         </div>
-        <p className="text-foreground font-medium">No Notifications</p>
+        <p className="text-foreground font-semibold">No Notifications</p>
         <p className="text-sm text-muted-foreground mt-1">New notifications will appear here</p>
       </div>
     );
@@ -315,12 +318,24 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
 
   return (
     <div className={cn("flex flex-col", compact ? "h-[400px]" : "h-full")}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-foreground">Notifications</h3>
+      {/* Header - 3D */}
+      <div
+        className="flex items-center justify-between p-4 border-b border-border/60 bg-gradient-to-r from-primary/5 via-pink-500/5 to-rose-500/5"
+        style={{ boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.5)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 via-rose-500 to-red-500 flex items-center justify-center ring-1 ring-white/15"
+            style={{ boxShadow: "0 6px 14px -4px rgba(236,72,153,0.5), inset 0 1px 0 rgba(255,255,255,0.35)" }}
+          >
+            <Bell className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
+          </div>
+          <h3 className="font-bold text-foreground">Notifications</h3>
           {unreadCount > 0 && (
-            <Badge className="bg-primary text-primary-foreground text-xs">
+            <Badge
+              className="bg-gradient-primary text-primary-foreground text-xs border-0"
+              style={{ boxShadow: "0 3px 8px -2px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.4)" }}
+            >
               {unreadCount}
             </Badge>
           )}
@@ -331,19 +346,20 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-xs text-primary hover:text-primary/80"
+              className="text-xs text-primary hover:text-primary/80 hover:bg-primary/5 rounded-full"
             >
               <CheckCheck className="w-4 h-4 mr-1" />
               Mark all read
             </Button>
           )}
           {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
               <X className="w-4 h-4" />
             </Button>
           )}
         </div>
       </div>
+
 
       {/* Notifications List */}
       <ScrollArea className="flex-1">
