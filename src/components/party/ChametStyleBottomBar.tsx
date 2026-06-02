@@ -59,14 +59,14 @@ interface ChametStyleBottomBarProps {
 }
 
 const MENU_ITEMS = [
-  { id: "seat", icon: Armchair, label: "Seat", gradient: "from-emerald-400 to-teal-600", glow: "rgba(52,211,153,0.3)" },
-  { id: "background", icon: Image, label: "Background", gradient: "from-sky-400 to-blue-600", glow: "rgba(56,189,248,0.3)" },
-  { id: "music", icon: Music, label: "Music", gradient: "from-fuchsia-500 to-purple-700", glow: "rgba(217,70,239,0.3)" },
-  { id: "layout", icon: LayoutDashboard, label: "Layout", gradient: "from-violet-500 to-indigo-700", glow: "rgba(139,92,246,0.3)" },
-  { id: "messages", icon: MessageSquare, label: "Messages", gradient: "from-rose-400 to-pink-600", glow: "rgba(251,113,133,0.3)" },
-  { id: "share", icon: Share2, label: "Share", gradient: "from-orange-400 to-amber-600", glow: "rgba(251,146,60,0.3)" },
-  { id: "topup", icon: Diamond, label: "Top Up", gradient: "from-yellow-400 to-amber-500", glow: "rgba(250,204,21,0.3)" },
-  { id: "settings", icon: Settings, label: "Settings", gradient: "from-slate-400 to-gray-600", glow: "rgba(148,163,184,0.2)" },
+  { id: "seat", icon: Armchair, label: "Seat", radial: "radial-gradient(120% 120% at 30% 20%, #6ee7b7 0%, #10b981 45%, #047857 100%)", glow: "rgba(16,185,129,0.55)" },
+  { id: "background", icon: Image, label: "Background", radial: "radial-gradient(120% 120% at 30% 20%, #bae6fd 0%, #38bdf8 45%, #075985 100%)", glow: "rgba(56,189,248,0.55)" },
+  { id: "music", icon: Music, label: "Music", radial: "radial-gradient(120% 120% at 30% 20%, #f5d0fe 0%, #d946ef 45%, #86198f 100%)", glow: "rgba(217,70,239,0.55)" },
+  { id: "layout", icon: LayoutDashboard, label: "Layout", radial: "radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #4c1d95 100%)", glow: "rgba(139,92,246,0.55)" },
+  { id: "messages", icon: MessageSquare, label: "Messages", radial: "radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #f43f5e 45%, #9f1239 100%)", glow: "rgba(244,63,94,0.55)" },
+  { id: "share", icon: Share2, label: "Share", radial: "radial-gradient(120% 120% at 30% 20%, #fed7aa 0%, #f97316 45%, #9a3412 100%)", glow: "rgba(249,115,22,0.55)" },
+  { id: "topup", icon: Diamond, label: "Top Up", radial: "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #92400e 100%)", glow: "rgba(245,158,11,0.55)" },
+  { id: "settings", icon: Settings, label: "Settings", radial: "radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.28) 0%, rgba(100,116,139,0.85) 45%, rgba(30,41,59,0.95) 100%)", glow: "rgba(148,163,184,0.4)" },
 ];
 
 export const ChametStyleBottomBar = ({
@@ -182,13 +182,17 @@ export const ChametStyleBottomBar = ({
                         className="flex flex-col items-center gap-1.5 py-1.5"
                       >
                         <div className="relative">
-                          <div
-                            className={cn("w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br", item.gradient)}
-                            style={{ boxShadow: `0 6px 18px ${item.glow}` }}
+                          <motion.div
+                            whileHover={{ y: -2 }}
+                            className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center relative overflow-hidden"
+                            style={{
+                              background: item.radial,
+                              boxShadow: `0 10px 24px ${item.glow}, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 6px rgba(0,0,0,0.28)`,
+                            }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-                            <Icon className="w-5 h-5 text-white relative z-10 drop-shadow" />
-                          </div>
+                            <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />
+                            <Icon className="w-5 h-5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
+                          </motion.div>
                           {badge && (
                             <div
                               className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full flex items-center justify-center ring-2 ring-[#0c0823]"
@@ -236,8 +240,8 @@ export const ChametStyleBottomBar = ({
               icon={Gamepad2}
               label="Game"
               onClick={onGameClick}
-              bg="linear-gradient(135deg, #f97316, #ea580c)"
-              shadow="rgba(249,115,22,0.35)"
+              bg="radial-gradient(120% 120% at 30% 20%, #fed7aa 0%, #f97316 45%, #9a3412 100%)"
+              shadow="rgba(249,115,22,0.55)"
             />
 
             {/* Gift — Hero button (premium breathing glow + haptic) */}
@@ -292,27 +296,28 @@ export const ChametStyleBottomBar = ({
                 icon={Armchair}
                 label="Seat"
                 onClick={onJoinSeatClick}
-                bg="linear-gradient(135deg, #34d399, #059669)"
-                shadow="rgba(52,211,153,0.35)"
+                bg="radial-gradient(120% 120% at 30% 20%, #6ee7b7 0%, #10b981 45%, #047857 100%)"
+                shadow="rgba(16,185,129,0.55)"
                 badge={applicantCount > 0 ? applicantCount : undefined}
               />
             ) : (
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ y: -2, scale: 1.03 }}
                 transition={{ type: "spring", damping: 14, stiffness: 480 }}
                 onClick={!isWaitingToJoin ? () => { haptic(10); onJoinRequest?.(); } : undefined}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl relative overflow-hidden"
                 style={{
                   background: isWaitingToJoin
-                    ? "linear-gradient(135deg, #f59e0b, #ea580c)"
-                    : "linear-gradient(135deg, #06b6d4, #6366f1)",
+                    ? "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #92400e 100%)"
+                    : "radial-gradient(120% 120% at 30% 20%, #a5f3fc 0%, #06b6d4 45%, #3730a3 100%)",
                   boxShadow: isWaitingToJoin
-                    ? "0 6px 16px rgba(245,158,11,0.35)"
-                    : "0 6px 16px rgba(99,102,241,0.35)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                    ? "0 8px 20px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)"
+                    : "0 8px 20px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(255,255,255,0.18)",
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-white/12 to-transparent" />
+                <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.55), transparent)" }} />
                 {isWaitingToJoin ? (
                   <>
                     <motion.div
@@ -320,12 +325,12 @@ export const ChametStyleBottomBar = ({
                       transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                       className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full relative z-10"
                     />
-                    <span className="text-white font-bold text-[11px] relative z-10">Waiting</span>
+                    <span className="text-white font-bold text-[11px] relative z-10" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}>Waiting</span>
                   </>
                 ) : (
                   <>
-                    <Hand className="w-3.5 h-3.5 text-white relative z-10" />
-                    <span className="text-white font-bold text-[11px] relative z-10">Join</span>
+                    <Hand className="w-3.5 h-3.5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.4))" }} />
+                    <span className="text-white font-bold text-[11px] relative z-10" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}>Join</span>
                   </>
                 )}
               </motion.button>
@@ -339,9 +344,11 @@ export const ChametStyleBottomBar = ({
                 setShowMoreMenu(!showMoreMenu);
                 onMenuClick?.();
               }}
-              bg={showMoreMenu ? "linear-gradient(135deg, rgba(168,85,247,0.35), rgba(236,72,153,0.25))" : "rgba(255,255,255,0.07)"}
-              shadow={showMoreMenu ? "rgba(168,85,247,0.25)" : "none"}
-              border={showMoreMenu ? "rgba(168,85,247,0.35)" : "rgba(255,255,255,0.06)"}
+              bg={showMoreMenu
+                ? "radial-gradient(120% 120% at 30% 20%, rgba(236,72,153,0.55) 0%, rgba(168,85,247,0.85) 45%, rgba(76,29,149,0.95) 100%)"
+                : "radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.2) 0%, rgba(40,30,55,0.85) 45%, rgba(10,8,20,0.95) 100%)"}
+              shadow={showMoreMenu ? "rgba(168,85,247,0.55)" : "rgba(0,0,0,0.4)"}
+              border={showMoreMenu ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.12)"}
             />
           </div>
         </motion.div>
@@ -375,6 +382,7 @@ function BarButton({
   return (
     <motion.button
       whileTap={{ scale: 0.88 }}
+      whileHover={{ y: -2, scale: 1.05 }}
       transition={{ type: "spring", damping: 14, stiffness: 480 }}
       onClick={handlePress}
       className="flex flex-col items-center gap-0.5 px-1.5 py-0.5 will-change-transform"
@@ -386,12 +394,14 @@ function BarButton({
         className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
         style={{
           background: bg,
-          boxShadow: shadow !== "none" ? `0 6px 16px ${shadow}` : undefined,
+          boxShadow: shadow !== "none"
+            ? `0 8px 20px ${shadow}, inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)`
+            : `inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 4px rgba(0,0,0,0.18)`,
           border: border ? `1px solid ${border}` : undefined,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent" />
-        <Icon className="w-5 h-5 text-white relative z-10 drop-shadow-sm" />
+        <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />
+        <Icon className="w-5 h-5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
         {badge && badge > 0 && (
           <motion.div
             initial={{ scale: 0 }}
@@ -404,7 +414,7 @@ function BarButton({
           </motion.div>
         )}
       </motion.div>
-      <span className="text-white/65 text-[9px] font-medium">{label}</span>
+      <span className="text-white/80 text-[9px] font-semibold tracking-tight" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>{label}</span>
     </motion.button>
   );
 }
