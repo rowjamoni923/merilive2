@@ -396,16 +396,21 @@ const Level = () => {
       <div className="flex-shrink-0">
         <header className="relative safe-area-top">
           <div className="flex items-center gap-3 px-4 py-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full profile-home-icon-button text-slate-700 hover:bg-amber-50"
+            <button
               onClick={() => navigate(-1)}
+              className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
             >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-lg font-bold text-slate-800">My Level</h1>
+              <ArrowLeft className="w-5 h-5 text-slate-700" />
+            </button>
+            <h1
+              className="text-lg font-bold text-slate-800 tracking-tight"
+              style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}
+            >
+              My Level
+            </h1>
           </div>
+
         </header>
 
         {/* Level Card - Premium Design */}
