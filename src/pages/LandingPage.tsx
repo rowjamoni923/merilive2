@@ -581,7 +581,7 @@ const LandingPage = () => {
             <Button
               onClick={handleAPKDownload}
               size="lg"
-              className="h-16 px-10 bg-white hover:bg-slate-50 border border-slate-200/10 text-white font-bold rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              className="h-16 px-10 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.18)]"
             >
               <Download className="w-5 h-5 mr-2" />
               APK Download
