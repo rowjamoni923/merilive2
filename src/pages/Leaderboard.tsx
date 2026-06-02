@@ -427,7 +427,7 @@ const Leaderboard = () => {
           })}
         </div>
 
-        {/* Period Toggle - Golden */}
+        {/* Period Toggle - Golden 3D */}
         {activeCategory !== "pk_competition" && (
           <div className="flex justify-center gap-2 px-4 pb-2">
             {(["daily", "weekly", "monthly"] as PeriodType[]).map(p => {
@@ -437,15 +437,17 @@ const Leaderboard = () => {
                   key={p}
                   onClick={() => setPeriodType(p)}
                   className={cn(
-                    "px-5 py-1.5 rounded-full text-xs font-semibold transition-all touch-manipulation active:scale-95",
-                    isActive ? "text-amber-900" : "text-slate-500"
+                    "px-5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 touch-manipulation active:scale-95",
+                    isActive ? "text-amber-950" : "text-slate-600 hover:-translate-y-0.5"
                   )}
                   style={isActive ? {
-                    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                    boxShadow: '0 4px 15px rgba(251,191,36,0.3)',
+                    background: 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%)',
+                    boxShadow: '0 6px 16px -4px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(146,64,14,0.18)',
+                    border: '1px solid rgba(245,158,11,0.5)',
                   } : {
-                    background: '#F1F5F9',
-                    border: '1px solid rgba(15,23,42,0.06)',
+                    background: '#ffffff',
+                    border: '1px solid rgba(15,23,42,0.08)',
+                    boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                   }}
                 >
                   {p === "daily" ? "Day" : p === "weekly" ? "Week" : "Month"}
@@ -454,6 +456,7 @@ const Leaderboard = () => {
             })}
           </div>
         )}
+
 
         {/* PK Competition Info */}
         {activeCategory === "pk_competition" && activePK && (
