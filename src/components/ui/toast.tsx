@@ -23,12 +23,14 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl border backdrop-blur-2xl px-4 py-3.5 pr-10 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.6)] transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top sm:data-[state=closed]:slide-out-to-bottom sm:data-[state=open]:slide-in-from-bottom",
+  "group pointer-events-auto relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3.5 pr-10 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.06)_inset] transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top sm:data-[state=closed]:slide-out-to-bottom sm:data-[state=open]:slide-in-from-bottom",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-[#FFFBF2]/98 via-[#FAF5EA]/98 to-[#F5EFDF]/98 border-amber-200/70 text-slate-800",
-        destructive: "destructive group bg-gradient-to-br from-rose-50 to-pink-50 border-rose-300/70 text-rose-900",
+        default:
+          "bg-gradient-to-br from-slate-900 to-slate-800 border-white/10 text-white",
+        destructive:
+          "destructive group bg-gradient-to-br from-rose-600 to-red-700 border-white/15 text-white",
       },
     },
     defaultVariants: {
@@ -36,6 +38,7 @@ const toastVariants = cva(
     },
   },
 );
+
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
