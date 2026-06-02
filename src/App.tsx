@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, lazy, Suspense, memo } from "react";
+import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -17,10 +18,12 @@ import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache, useUserBalancePrefetch } from '@/hooks/useUserBalance';
 import { useAnalyticsBootstrap } from '@/hooks/useAnalyticsBootstrap';
+import { useEnableBrowserPageInteraction } from '@/hooks/useEnableBrowserPageInteraction';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
+import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import AdminAuth from "./pages/admin/AdminAuth";
 
@@ -102,7 +105,7 @@ function preloadCoreRoutes() {
 // Pkg51: Fire preload at module-evaluation time too (before <App /> mounts).
 // The useEffect inside App still calls it as a safety net — preloadCoreRoutes
 // is idempotent. Guarded by `window` so SSR/test environments stay safe.
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
   const schedule = (cb: () => void) => {
     const w = window as any;
     if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 1800 });
