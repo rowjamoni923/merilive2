@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import agencyHeroImg from "@/assets/landing-agency-hero.jpg";
 import payrollImg from "@/assets/landing-payroll.jpg";
+import { mainAppHref } from "@/utils/publicRoutes";
+import { generateAgencyJoinLink } from "@/utils/shareLinks";
 
 interface Agency {
   id: string;
@@ -267,38 +269,40 @@ const AgencyCard = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {agencies.map((agency, i) => (
-              <motion.div
+              <motion.a
                 key={agency.id}
+                href={generateAgencyJoinLink(agency.agency_code)}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-blue-500/20 hover:bg-white/[0.04] transition-all duration-300 group"
+                className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-blue-500/30 hover:bg-white/[0.04] transition-all duration-300 group cursor-pointer"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-all">
                   <Building2 className="w-5 h-5 text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-white/80 truncate">{agency.name}</h4>
+                  <h4 className="text-sm font-semibold text-white/90 truncate">{agency.name}</h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-white/30 font-mono">{agency.agency_code}</span>
+                    <span className="text-[11px] text-white/50 font-mono">{agency.agency_code}</span>
                     {agency.total_hosts !== null && agency.total_hosts > 0 && (
-                      <span className="text-[10px] text-blue-400/60">· {agency.total_hosts} hosts</span>
+                      <span className="text-[10px] text-blue-400/70">· {agency.total_hosts} hosts</span>
                     )}
                   </div>
                 </div>
                 <button
-                  onClick={() => handleCopy(agency.agency_code)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCopy(agency.agency_code); }}
                   className="p-2.5 rounded-lg hover:bg-blue-500/10 transition-colors flex-shrink-0"
                   title="Copy agency code"
                 >
                   {copiedCode === agency.agency_code ? (
                     <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-white/30 group-hover:text-blue-400 transition-colors" />
+                    <Copy className="w-4 h-4 text-white/40 group-hover:text-blue-400 transition-colors" />
                   )}
                 </button>
-              </motion.div>
+                <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+              </motion.a>
             ))}
           </div>
         </motion.div>
@@ -311,7 +315,7 @@ const AgencyCard = () => {
           className="text-center"
         >
           <Button
-            onClick={() => window.location.href = '/agency-signup'}
+            onClick={() => { window.location.href = mainAppHref('/agency-signup'); }}
             size="lg"
             className="h-14 md:h-16 px-6 md:px-14 w-full sm:w-auto bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white font-extrabold rounded-2xl shadow-[0_10px_40px_rgba(59,130,246,0.3)] hover:shadow-[0_10px_50px_rgba(59,130,246,0.45)] text-sm md:text-lg group transition-all duration-300"
           >

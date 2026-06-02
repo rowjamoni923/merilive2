@@ -10,6 +10,7 @@ import heroBg from "@/assets/landing-bg-hero.jpg";
 import HostProgramCard from "@/components/landing/HostProgramCard";
 import AgencyCard from "@/components/landing/AgencyCard";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
+import { generateAgencyJoinLink } from "@/utils/shareLinks";
 
 interface AgencyListItem {
   id: string;
@@ -742,16 +743,19 @@ const LandingPage = () => {
                         </div>
                       </div>
 
-                      {/* Copy Button */}
+                      {/* Join via main domain */}
+                      <a
+                        href={generateAgencyJoinLink(agency.agency_code)}
+                        className="flex-shrink-0 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5" /> Join
+                      </a>
                       <button
                         onClick={() => copyCode(agency.agency_code)}
-                        className="flex-shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-600 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5"
+                        className="flex-shrink-0 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-xs transition-all duration-200"
+                        title="Copy code"
                       >
-                        {copiedCode === agency.agency_code ? (
-                          <><Check className="w-3.5 h-3.5" /> Copied</>
-                        ) : (
-                          <><Copy className="w-3.5 h-3.5" /> Code</>
-                        )}
+                        {copiedCode === agency.agency_code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
                     </motion.div>
                   ))
