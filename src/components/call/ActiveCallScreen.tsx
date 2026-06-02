@@ -944,8 +944,11 @@ export function ActiveCallScreen({
             <motion.div
               whileTap={{ scale: 0.93 }}
               onClick={handleSwapVideos}
-              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl z-10 cursor-pointer"
-              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
+              style={{
+                boxShadow:
+                  '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+              }}
             >
               {secondaryHasVideo && secondaryVideoTrack ? (
                 <LiveKitVideoPlayer
@@ -957,17 +960,34 @@ export function ActiveCallScreen({
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
                   { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
-                    <img 
-                      src={isSwapped ? remoteUserAvatar : myAvatarUrl} 
-                      alt="" 
+                    <img
+                      src={isSwapped ? remoteUserAvatar : myAvatarUrl}
+                      alt=""
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-lg"
                     />
                   )}
-                  <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" />
+                  <div className="w-1 h-1 rounded-full bg-white/30 animate-pulse" />
                 </div>
               )}
-              <div className="absolute left-1.5 top-1.5 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-[9px] font-semibold text-white/90">
+              <div
+                className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,15,55,0.55))',
+                  textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}
+              >
                 {secondaryLabel}
+              </div>
+              <div
+                aria-hidden
+                className="absolute right-1.5 bottom-1.5 w-5 h-5 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-md"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(20,10,40,0.55))',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <SwitchCamera className="w-3 h-3 text-white/85" />
               </div>
             </motion.div>
           </div>
