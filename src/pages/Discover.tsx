@@ -486,19 +486,22 @@ const Discover = () => {
             <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredRooms.length === 0 ? (
-          <div 
-            className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl shadow-sm border border-border min-h-[50vh]"
+          <div
+            className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl min-h-[50vh]"
+            style={{ boxShadow: '0 10px 30px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.8)' }}
           >
-            {/* Static Icon */}
             <div className="relative mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center border border-border/50">
+              <div
+                className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center"
+                style={{ boxShadow: '0 18px 36px -14px rgba(79,70,229,0.55), inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -3px 0 rgba(0,0,0,0.18)' }}
+              >
                 <Gamepad2 className="w-10 h-10 text-on-dark" />
               </div>
             </div>
-            
+
             <h3 className="text-lg font-semibold text-display mb-2 relative z-10">No Active Rooms</h3>
-            <p className="text-sm text-muted-pro text-center max-w-[200px] relative z-10">Rooms will appear when hosts start streaming!</p>
-            
+            <p className="text-sm text-muted-pro text-center max-w-[220px] relative z-10">Rooms will appear when hosts start streaming!</p>
+
             <div className="mt-6 w-24 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent rounded-full animate-pulse" />
           </div>
         ) : (
