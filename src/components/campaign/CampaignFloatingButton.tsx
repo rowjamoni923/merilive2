@@ -709,6 +709,24 @@ function CampaignFloatingButton() {
               perspective: '600px',
             }}
           >
+            {/* Close (X) — session-only dismiss; reappears on next app open */}
+            <button
+              type="button"
+              aria-label="Dismiss campaign"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (campaign) {
+                  try { sessionStorage.setItem(getCampaignDismissedKey(campaign.id), '1'); } catch {}
+                }
+                setDismissed(true);
+                setCampaign(null);
+                setRemainingSeconds(0);
+              }}
+              className="absolute -top-3 -right-2 z-30 w-6 h-6 rounded-full flex items-center justify-center bg-black/70 backdrop-blur border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] active:scale-90 transition-transform"
+            >
+              <X className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+            </button>
+
             {/* Countdown pill */}
             <motion.div
               className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-0.5 rounded-full min-w-[58px] text-center"
