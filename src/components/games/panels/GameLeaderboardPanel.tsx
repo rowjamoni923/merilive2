@@ -219,53 +219,86 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       >
 
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/30">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-              <Trophy className="w-4 h-4 text-amber-400" />
-            </div>
-            <h2 className="text-white font-bold text-sm">Leaderboard</h2>
+        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/40 backdrop-blur-sm">
+          <div className="flex items-center gap-2.5">
+            <motion.div
+              whileHover={{ rotate: -6, scale: 1.05 }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
+              style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #b45309 100%)',
+                boxShadow: '0 8px 18px -6px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              <Trophy className="w-4 h-4 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
+              <div className="absolute inset-x-1.5 top-1 h-1.5 rounded-full bg-white/40 blur-[2px]" />
+            </motion.div>
+            <h2 className="text-white font-extrabold text-sm tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Leaderboard</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-white/60 hover:text-white w-8 h-8">
+          <motion.button
+            whileHover={{ scale: 1.08, rotate: 90 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 text-white flex items-center justify-center border border-white/10"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
+          >
             <X className="w-4 h-4" />
-          </Button>
+          </motion.button>
         </div>
 
         {/* Category Tabs */}
         <div className="flex gap-1 p-2 bg-black/20">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setCategory(cat.id)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-medium transition-all",
-                category === cat.id
-                  ? "bg-purple-500/30 text-purple-300 border border-purple-500/30"
-                  : "text-white/50 hover:text-white/70 hover:bg-white/5"
-              )}
-            >
-              {cat.icon} {cat.label}
-            </button>
-          ))}
+          {CATEGORIES.map(cat => {
+            const active = category === cat.id;
+            return (
+              <motion.button
+                key={cat.id}
+                whileHover={{ y: -1, scale: 1.03 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setCategory(cat.id)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-bold transition-all relative overflow-hidden",
+                  active ? "text-white" : "text-white/55 hover:text-white/80 bg-white/[0.04] border border-white/5"
+                )}
+                style={active ? {
+                  background: 'radial-gradient(120% 120% at 30% 20%, #d8b4fe 0%, #a855f7 50%, #6b21a8 100%)',
+                  boxShadow: '0 6px 14px -4px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
+                } : undefined}
+              >
+                {active && <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />}
+                <span className="relative">{cat.icon}</span>
+                <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{cat.label}</span>
+              </motion.button>
+            );
+          })}
         </div>
 
         {/* Period Tabs */}
         <div className="flex gap-1 px-2 pb-2">
-          {periods.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setPeriod(tab.id)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-medium transition-all",
-                period === tab.id
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                  : "text-white/40 hover:text-white/60 hover:bg-white/5"
-              )}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
+          {periods.map(tab => {
+            const active = period === tab.id;
+            return (
+              <motion.button
+                key={tab.id}
+                whileHover={{ y: -1, scale: 1.03 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setPeriod(tab.id)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-bold transition-all relative overflow-hidden",
+                  active ? "text-white" : "text-white/40 hover:text-white/65 bg-white/[0.04] border border-white/5"
+                )}
+                style={active ? {
+                  background: 'radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 50%, #b45309 100%)',
+                  boxShadow: '0 6px 14px -4px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
+                } : undefined}
+              >
+                {active && <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />}
+                <span className="relative">{tab.icon}</span>
+                <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{tab.label}</span>
+              </motion.button>
+            );
+          })}
         </div>
+
 
         {/* Summary */}
         {!loading && leaderboard.length > 0 && (
