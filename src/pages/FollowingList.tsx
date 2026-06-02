@@ -277,24 +277,35 @@ const FollowingList = () => {
     return (
       <div
         key={record.id}
-        className="flex items-center gap-3 p-4 bg-card text-card-foreground rounded-xl border border-border shadow-sm"
+        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-br from-card via-card to-card/90 border border-border/60 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
+        style={{
+          boxShadow:
+            '0 8px 24px -12px rgba(168,85,247,0.18), 0 2px 6px -2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
+        }}
       >
         {/* Avatar */}
         <div
-          className="relative cursor-pointer"
+          className="relative cursor-pointer shrink-0"
           onClick={() => navigate(`/profile/${profile.id}`)}
         >
-          <Avatar className="w-14 h-14">
+          <div
+            className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-400 opacity-70 blur-[2px] group-hover:opacity-100 transition-opacity"
+            aria-hidden
+          />
+          <Avatar className="w-14 h-14 relative ring-2 ring-background">
             <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-primary-foreground">
+            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-semibold">
               {profile.display_name?.[0] || '?'}
             </AvatarFallback>
           </Avatar>
           {profile.is_online && (
-            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-card" />
+            <div
+              className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-card"
+              style={{ boxShadow: '0 0 8px rgba(16,185,129,0.6)' }}
+            />
           )}
           {profile.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center border-2 border-card shadow-md">
               <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -310,20 +321,35 @@ const FollowingList = () => {
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate text-foreground">{profile.display_name || 'User'}</p>
             {profile.is_host && (
-              <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">Host</span>
+              <span
+                className="text-[10px] font-bold uppercase tracking-wide bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2 py-0.5 rounded-full shadow-sm"
+                style={{ boxShadow: '0 2px 6px -1px rgba(236,72,153,0.5), inset 0 1px 0 rgba(255,255,255,0.3)' }}
+              >
+                Host
+              </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
-            {profile.country_flag} {profile.is_online ? 'Online' : 'Offline'}
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+            <span>{profile.country_flag}</span>
+            <span
+              className={`inline-flex items-center gap-1 ${profile.is_online ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}
+            >
+              {profile.is_online && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+              {profile.is_online ? 'Online now' : 'Offline'}
+            </span>
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {profile.is_host && profile.is_online && (
             <Button
               size="icon"
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 via-green-500 to-emerald-600 text-white border-0 transition-all hover:-translate-y-0.5 active:scale-95"
+              style={{
+                boxShadow:
+                  '0 6px 16px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.15)',
+              }}
               onClick={() => handleCall(profile.id)}
             >
               <Phone className="w-4 h-4" />
@@ -333,7 +359,11 @@ const FollowingList = () => {
           {showFollowBack && !isFollowingUser ? (
             <Button
               size="sm"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+              className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white border-0 rounded-full px-4 font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
+              style={{
+                boxShadow:
+                  '0 6px 16px -4px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+              }}
               onClick={() => handleFollow(profile.id)}
             >
               <UserPlus className="w-4 h-4 mr-1" />
@@ -343,12 +373,13 @@ const FollowingList = () => {
             <Button
               size="sm"
               variant="outline"
+              className="rounded-full px-4 font-medium border-border/80 bg-background/60 backdrop-blur hover:bg-muted transition-all active:scale-95"
               onClick={() => {
                 const followRecord = following.find(f => f.profile.id === profile.id);
                 if (followRecord) handleUnfollow(followRecord.id, profile.id);
               }}
             >
-              <UserCheck className="w-4 h-4 mr-1" />
+              <UserCheck className="w-4 h-4 mr-1 text-emerald-500" />
               Following
             </Button>
           ) : null}
@@ -358,29 +389,43 @@ const FollowingList = () => {
   };
 
   const renderEmptyState = (type: string) => (
-    <div className="text-center py-16">
-      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted border border-border flex items-center justify-center">
+    <div className="relative text-center py-16">
+      <div
+        className="absolute inset-x-0 top-4 mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-purple-400/30 via-fuchsia-400/20 to-pink-400/30 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="relative w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-100 via-fuchsia-50 to-pink-100 dark:from-purple-900/40 dark:via-fuchsia-900/30 dark:to-pink-900/40 border border-border flex items-center justify-center"
+        style={{
+          boxShadow:
+            '0 10px 24px -10px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 4px rgba(168,85,247,0.1)',
+        }}
+      >
         {type === 'following' ? (
-          <Heart className="w-10 h-10 text-primary" />
+          <Heart className="w-9 h-9 text-purple-500" />
         ) : type === 'friends' ? (
-          <Users className="w-10 h-10 text-primary" />
+          <Users className="w-9 h-9 text-pink-500" />
         ) : (
-          <UserPlus className="w-10 h-10 text-primary" />
+          <UserPlus className="w-9 h-9 text-fuchsia-500" />
         )}
       </div>
-      <h3 className="text-lg font-semibold mb-2 text-foreground">
+      <h3 className="relative text-lg font-bold mb-2 text-foreground">
         {type === 'following' ? 'Not following anyone yet' :
          type === 'friends' ? 'No friends yet' :
          'No followers yet'}
       </h3>
-      <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+      <p className="relative text-muted-foreground text-sm max-w-xs mx-auto">
         {type === 'following' ? 'Discover and follow hosts you like!' :
          type === 'friends' ? 'Friends are people you follow who also follow you back.' :
          'Share your profile to get more followers!'}
       </p>
       {type === 'following' && (
         <Button
-          className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+          className="relative mt-5 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white border-0 rounded-full px-6 py-2.5 font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
+          style={{
+            boxShadow:
+              '0 10px 24px -8px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+          }}
           onClick={() => navigate('/discover')}
         >
           Discover Hosts
@@ -389,20 +434,48 @@ const FollowingList = () => {
     </div>
   );
 
+  const countBadge = (n: number, gradient: string) => (
+    <span
+      className={`ml-1.5 text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full bg-gradient-to-r ${gradient}`}
+      style={{ boxShadow: '0 2px 5px -1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.35)' }}
+    >
+      {n}
+    </span>
+  );
+
   return (
-    <div className="mobile-page bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-card/85 backdrop-blur-xl border-b border-border safe-area-top">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="text-foreground hover:bg-muted"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold text-foreground">Following & Friends</h1>
+    <div className="mobile-page bg-gradient-to-b from-purple-50/40 via-background to-background dark:from-purple-950/20">
+      {/* Premium gradient header */}
+      <header className="sticky top-0 z-40 safe-area-top">
+        <div
+          className="relative bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-500 text-white"
+          style={{ boxShadow: '0 8px 24px -8px rgba(168,85,247,0.45)' }}
+        >
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.35), transparent 60%), radial-gradient(circle at 90% 100%, rgba(236,72,153,0.4), transparent 60%)',
+            }}
+            aria-hidden
+          />
+          <div className="relative px-4 py-3.5 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-xl text-white hover:bg-white/25 border-0 transition-all hover:-translate-y-0.5 active:scale-95"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 10px -4px rgba(0,0,0,0.25)' }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1
+              className="text-xl font-bold tracking-tight"
+              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}
+            >
+              Following & Friends
+            </h1>
+          </div>
         </div>
       </header>
 
@@ -413,34 +486,35 @@ const FollowingList = () => {
           </div>
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="following" className="relative">
+            {/* Sunken-track premium tabs */}
+            <TabsList
+              className="grid w-full grid-cols-3 mb-5 h-12 p-1 rounded-2xl bg-muted/60 border border-border/60"
+              style={{ boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.4)' }}
+            >
+              <TabsTrigger
+                value="following"
+                className="rounded-xl font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:via-fuchsia-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+              >
                 Following
-                {following.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
-                    {following.length}
-                  </span>
-                )}
+                {following.length > 0 && countBadge(following.length, 'from-purple-600 to-fuchsia-600')}
               </TabsTrigger>
-              <TabsTrigger value="followers" className="relative">
+              <TabsTrigger
+                value="followers"
+                className="rounded-xl font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-fuchsia-500 data-[state=active]:via-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+              >
                 Followers
-                {followers.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
-                    {followers.length}
-                  </span>
-                )}
+                {followers.length > 0 && countBadge(followers.length, 'from-fuchsia-600 to-pink-600')}
               </TabsTrigger>
-              <TabsTrigger value="friends" className="relative">
+              <TabsTrigger
+                value="friends"
+                className="rounded-xl font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:via-rose-500 data-[state=active]:to-orange-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+              >
                 Friends
-                {friends.length > 0 && (
-                  <span className="ml-1 text-xs bg-pink-500 text-white px-1.5 rounded-full">
-                    {friends.length}
-                  </span>
-                )}
+                {friends.length > 0 && countBadge(friends.length, 'from-pink-600 to-rose-600')}
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="following" className="space-y-3">
+            <TabsContent value="following" className="space-y-3 animate-fade-in">
               {following.length === 0 ? (
                 renderEmptyState('following')
               ) : (
@@ -448,7 +522,7 @@ const FollowingList = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="followers" className="space-y-3">
+            <TabsContent value="followers" className="space-y-3 animate-fade-in">
               {followers.length === 0 ? (
                 renderEmptyState('followers')
               ) : (
@@ -456,7 +530,7 @@ const FollowingList = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="friends" className="space-y-3">
+            <TabsContent value="friends" className="space-y-3 animate-fade-in">
               {friends.length === 0 ? (
                 renderEmptyState('friends')
               ) : (
