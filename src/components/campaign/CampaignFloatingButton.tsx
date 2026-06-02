@@ -100,6 +100,9 @@ function CampaignFloatingButton() {
   const [showPopup, setShowPopup] = useState(false);
   const [isHost, setIsHost] = useState<boolean | null>(null);
   const [purchased, setPurchased] = useState(false);
+  // Session-only dismiss: user can close the floating campaign via X, then it
+  // stays gone for the rest of the app session. Reopening the app brings it back.
+  const [dismissed, setDismissed] = useState(false);
   const [isBangladesh, setIsBangladesh] = useState(true);
   const [userCountryCode, setUserCountryCode] = useState('BD');
   const [popupView, setPopupView] = useState<PopupView>('main');
