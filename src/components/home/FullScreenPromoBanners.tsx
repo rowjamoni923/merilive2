@@ -266,77 +266,175 @@ export function FullScreenPromoBanners() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black"
+        className="fixed inset-0 z-[200] flex flex-col items-center justify-center px-4 py-6 overflow-hidden"
         onClick={handleSkip}
       >
+        {/* Luxurious gradient backdrop with blurred banner — eliminates raw black bars */}
+        <img
+          src={currentBanner.image}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover scale-125 blur-3xl opacity-50"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 50% 0%, rgba(120,53,15,0.55) 0%, rgba(15,5,30,0.85) 55%, rgba(0,0,0,0.95) 100%)",
+          }}
+        />
+
+        {/* Top controls bar — countdown / skip pill, always inside safe area */}
+        <div
+          className="relative z-30 w-full max-w-sm flex items-center justify-between"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 8px)" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 rounded-full px-3 py-1.5"
+            style={{
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+            }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+            </span>
+            <span className="text-[11px] font-semibold tracking-wide text-white/90">
+              {canSkip ? "Ready" : `${countdown}s`}
+            </span>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            {canSkip ? (
+              <motion.button
+                key="skip-btn"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  closeBanner();
+                }}
+                className="flex items-center gap-1.5 rounded-full pl-3 pr-2 py-1.5 text-white"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(0,0,0,0.4)",
+                }}
+              >
+                <span className="text-[11px] font-semibold tracking-wide">Skip</span>
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15">
+                  <X className="h-3 w-3" />
+                </div>
+              </motion.button>
+            ) : (
+              <motion.div
+                key="wait-pill"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-full px-3 py-1.5"
+                style={{
+                  background: "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+              >
+                <span className="text-[11px] font-medium text-white/70">
+                  Skip in {countdown}s
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Premium centered mobile-card — locked 9:16 aspect, no black bars */}
         <motion.div
-          initial={{ scale: 0.88, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.88, opacity: 0 }}
+          initial={{ scale: 0.92, opacity: 0, y: 10 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.92, opacity: 0 }}
           transition={{ type: "spring", damping: 22, stiffness: 280 }}
-          className={
-            currentBanner.fullScreen
-              ? "relative h-full w-full overflow-hidden"
-              : "relative w-[85%] max-w-sm overflow-hidden rounded-3xl shadow-2xl"
-          }
+          className="relative z-20 my-3 w-full max-w-[340px] overflow-hidden rounded-[28px]"
+          style={{
+            aspectRatio: "9 / 16",
+            boxShadow:
+              "0 30px 80px -10px rgba(0,0,0,0.7), 0 0 60px -10px rgba(245,158,11,0.35), inset 0 0 0 1px rgba(255,255,255,0.12)",
+          }}
           onClick={handleBannerClick}
         >
-          {currentBanner.fullScreen && (
-            <>
-              {/* Blurred fill — eliminates the empty letterbox bands so the
-                  screen never shows raw black bars above/below the banner. */}
-              <img
-                src={currentBanner.image}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-70"
-              />
-              <div className="absolute inset-0 bg-black/30" />
-            </>
-          )}
+          {/* Gold gradient ring frame */}
+          <div
+            className="pointer-events-none absolute inset-0 z-30 rounded-[28px]"
+            style={{
+              padding: "1.5px",
+              background:
+                "linear-gradient(135deg, rgba(252,211,77,0.7) 0%, rgba(245,158,11,0.2) 35%, rgba(255,255,255,0.15) 60%, rgba(245,158,11,0.6) 100%)",
+              WebkitMask:
+                "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+            }}
+          />
 
-          <img 
+          <img
             src={currentBanner.image}
             alt={currentBanner.alt}
             width={1080}
-            height={currentBanner.fullScreen ? 1920 : 1080}
+            height={1920}
             loading="eager"
             decoding="async"
             {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
-            className={
-              currentBanner.fullScreen
-                ? "relative z-10 h-full w-full object-contain"
-                : "h-auto w-full rounded-3xl object-contain"
-            }/>
+            className="absolute inset-0 h-full w-full object-cover"
+          />
 
-          {canSkip && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onClick={(event) => {
-                event.stopPropagation();
-                closeBanner();
-              }}
-              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 backdrop-blur-md"
-            >
-              <X className="h-4 w-4 text-on-dark" />
-            </motion.button>
-          )}
-
-          {!canSkip && (
-            <div className="absolute right-4 top-4 z-20 rounded-full border border-white/20 bg-black/60 px-3 py-1 backdrop-blur-md">
-              <span className="text-xs font-medium text-on-dark">{countdown}s</span>
-            </div>
-          )}
-
-          {currentBanner.id === "rating" && (
-            <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 pointer-events-none">
-              <div className="rounded-full border border-white/15 bg-black/55 px-4 py-2 backdrop-blur-md">
-                <span className="text-xs font-semibold tracking-wide text-on-dark">Tap banner to claim your reward</span>
-              </div>
-            </div>
-          )}
+          {/* Subtle top sheen */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/12 to-transparent z-10" />
+          {/* Bottom gradient for CTA readability */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent z-10" />
         </motion.div>
+
+        {/* Premium CTA pill — fully professional, gold-glass */}
+        {currentBanner.id === "rating" && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="relative z-30 w-full max-w-sm"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.button
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => void handleRatingClick()}
+              className="relative w-full overflow-hidden rounded-2xl py-3.5 px-5 text-white flex items-center justify-center gap-2"
+              style={{
+                background:
+                  "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
+                boxShadow:
+                  "0 14px 30px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.25)",
+                border: "1px solid rgba(255,255,255,0.25)",
+              }}
+            >
+              <div className="pointer-events-none absolute inset-x-2 top-1 h-2 rounded-full bg-white/40 blur-[2px]" />
+              <span
+                className="relative text-[14px] font-bold tracking-wide"
+                style={{ textShadow: "0 1px 2px rgba(120,53,15,0.6)" }}
+              >
+                ⭐ Tap to Claim Your Reward
+              </span>
+            </motion.button>
+            <p className="mt-2 text-center text-[10.5px] font-medium tracking-wide text-white/55">
+              Rate us on Play Store to receive your gift
+            </p>
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
