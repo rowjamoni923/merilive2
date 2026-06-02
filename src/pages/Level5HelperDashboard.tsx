@@ -1360,26 +1360,37 @@ const Level5HelperDashboard = () => {
         <div className="pointer-events-none absolute -top-24 -right-12 w-64 h-64 bg-violet-500/10 rounded-full blur-[70px]" />
 
         <div className="relative flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-amber-100/60 rounded-full" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700">Diamond Helper</h1>
-            <p className="text-slate-700 text-xs font-medium">Level 5 • Payroll System</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-slate-700 hover:bg-amber-100/60 rounded-full relative"
-            onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <Bell className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0"
+              style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.25)' }}
+            >
+              <Wallet className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-base bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700 leading-tight tracking-tight">Diamond Helper</h1>
+              <p className="text-slate-600 text-[10px] font-medium">Level 5 · Payroll System</p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
+            className="relative h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
+          >
+            <Bell className="w-5 h-5 text-amber-700" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-md shadow-rose-500/40">
                 {unreadCount}
               </span>
             )}
-          </Button>
+          </button>
         </div>
 
         {/* ============ SHOW/HIDE ON RECHARGE TOGGLE (always visible at top) ============ */}

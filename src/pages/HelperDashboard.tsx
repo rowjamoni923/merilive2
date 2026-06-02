@@ -1051,13 +1051,13 @@ const HelperDashboard = () => {
 
         {/* Top bar */}
         <div className="relative flex items-center gap-3 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-amber-700 hover:bg-amber-200/40 rounded-full" onClick={() => navigate(-1)}
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
           <div className="flex-1 min-w-0">
             <h1
               className="font-black text-[18px] tracking-tight bg-clip-text text-transparent leading-none"

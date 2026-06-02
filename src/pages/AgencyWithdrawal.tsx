@@ -2508,22 +2508,37 @@ const AgencyWithdrawal = () => {
   const beansValue = localToBeans(localAmount);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-brand-50 via-white to-info-50">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 text-white safe-area-top shadow-lg">
-        <div className="px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold flex items-center gap-2">
-              <ArrowDownCircle className="w-5 h-5" />
-              Agency Withdrawal
-            </h1>
-            <p className="text-xs text-white/80">{agency?.name}</p>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+      {/* Premium 3D Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-40 bg-white/90 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0"
+              style={{ boxShadow: '0 10px 20px -8px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(6,78,59,0.25)' }}
+            >
+              <ArrowDownCircle className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight truncate">Agency Withdrawal</h1>
+              <p className="text-slate-500 text-[10px] truncate">{agency?.name}</p>
+            </div>
           </div>
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-warning-700" />
+          <div
+            className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0"
+            style={{ boxShadow: '0 6px 14px -6px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45)' }}
+          >
+            <Sparkles className="w-4 h-4 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
           </div>
         </div>
       </header>
