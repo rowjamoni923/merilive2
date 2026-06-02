@@ -465,7 +465,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
-  const isPublicPage = isLandingDomain || ((!hasSession && location.pathname === '/') || ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
+  const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
@@ -483,8 +483,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
   return (
     <>
-      {!isAdminRoute && !isLandingDomain && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
-      {(!isPublicPage || hasSession) && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
+      {!isAdminRoute && !isPublicPage && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      {!isPublicPage && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
           <WelcomeOnboarding />
@@ -493,7 +493,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
           <RatingRewardPopup />
         </ErrorBoundary>
       ) : null}
-      {!isAdminRoute && (
+      {!isAdminRoute && !isPublicPage && (
         <>
           <AppUpdateChecker />
           <NetworkStatusBar />
