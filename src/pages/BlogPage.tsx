@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 import meriliveLogo from "@/assets/merilive-logo.png";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 /**
  * Blog Page - Shown at /admin route for non-authorized users
@@ -142,6 +143,8 @@ const APP_STATS = [
 ];
 
 export default function BlogPage() {
+  useEnableBrowserPageInteraction();
+
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -157,12 +160,13 @@ export default function BlogPage() {
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]"
+      data-public-scroll="true"
       style={{
         // Defensive: override global `touch-action: manipulation` /
         // `overscroll-behavior: none` so the public Blog/About page always
         // scrolls cleanly in mobile Chrome + Android WebView, regardless of
         // any parent native-disguise rules. See index.css ~line 3427.
-        touchAction: 'pan-y',
+        touchAction: 'pan-y pinch-zoom',
         overscrollBehaviorY: 'auto',
         WebkitOverflowScrolling: 'touch',
       }}
