@@ -289,16 +289,25 @@ Deno.serve(async (req) => {
       const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage, depositBody);
 
-      if (isGatewayMinimumAmountError(gatewayMessage)) {
+      if (isGatewayMinimumAmountError(gatewayMessage) || isGatewayMinimumAmountError(String(depositBody?.details ?? ""))) {
+        // Parse "Minimum required is approximately $X.XX" out of details
+        const detailsStr = String(depositBody?.details ?? gatewayMessage ?? "");
+        const minMatch = detailsStr.match(/\$\s*([0-9]+(?:\.[0-9]+)?)/);
+        const parsedMin = minMatch ? Number(minMatch[1]) : null;
         return json({
           ok: false,
           error: "minimum_deposit_not_met",
           fallback: true,
-          message: "This crypto network requires a larger deposit amount. Please choose a bigger amount and try again.",
+          currency: payCurrency,
+          min_required_usd: parsedMin,
+          message: parsedMin
+            ? `${payCurrency.toUpperCase()} requires at least $${parsedMin.toFixed(2)}. Choose a larger amount or a different network.`
+            : `${payCurrency.toUpperCase()} requires a larger deposit. Choose a bigger amount or a different network.`,
           gateway_status: depositRes.status,
           details: depositBody,
         });
       }
+
 
       if (isGatewayFallbackError(gatewayMessage)) {
         return json({
