@@ -321,22 +321,33 @@ const Invitation = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 z-40 border-b border-amber-200/60 bg-white/85 backdrop-blur-xl shadow-sm">
+      <header
+        className="flex-shrink-0 z-40 bg-white/90 backdrop-blur-xl"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-700 hover:text-slate-900 hover:bg-amber-50 w-9 h-9 rounded-full">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <Trophy className="w-5 h-5 text-white" />
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"
+              style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.2)' }}
+            >
+              <Trophy className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
             </div>
             <div>
-              <h1 className="text-slate-900 font-bold text-base leading-tight">Share Leaderboard</h1>
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Share Leaderboard</h1>
               <p className="text-slate-500 text-[10px]">Share to climb the ranks!</p>
             </div>
           </div>
         </div>
       </header>
+
 
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
       <div className="p-4 space-y-5">

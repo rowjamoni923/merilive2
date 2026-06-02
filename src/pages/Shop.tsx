@@ -461,23 +461,27 @@ const Shop = () => {
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <Button
-            size="icon"
-            variant="ghost"
+          <button
             onClick={() => navigate(-1)}
-            className="text-heading hover:bg-amber-100/60 w-9 h-9 rounded-full"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+            <ArrowLeft className="w-5 h-5 text-heading" />
+          </button>
 
-          <h1 className="text-lg font-bold text-heading tracking-wide">My Store</h1>
+          <h1
+            className="text-lg font-bold text-heading tracking-wide"
+            style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}
+          >
+            My Store
+          </h1>
 
           <div className="flex items-center gap-2">
             <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(251,191,36,0.20) 0%, rgba(217,182,107,0.18) 100%)',
-                border: '1px solid rgba(217,182,107,0.45)',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(217,182,107,0.22) 100%)',
+                boxShadow: '0 6px 14px -6px rgba(217,119,6,0.4), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(217,182,107,0.5)',
               }}
             >
               <Diamond3DIcon size={14} />
@@ -486,6 +490,7 @@ const Shop = () => {
           </div>
         </div>
       </div>
+
 
       {/* Category Tabs - Pill style */}
       <div

@@ -988,28 +988,40 @@ const VIP = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 backdrop-blur-xl safe-area-top border-b border-amber-200/50 shadow-sm">
+      <div
+        className="sticky top-0 z-50 bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.35), inset 0 -1px 0 rgba(217,182,107,0.45)' }}
+      >
         <div className="flex items-center justify-between px-4 py-3">
-          <Button
-            size="icon"
-            variant="ghost"
+          <button
             onClick={() => navigate(-1)}
-            className="text-heading hover:bg-amber-100/60 w-9 h-9 rounded-full"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+            <ArrowLeft className="w-5 h-5 text-heading" />
+          </button>
 
-          <h1 className="text-lg font-bold text-heading flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-500" />
+          <h1
+            className="text-lg font-bold text-heading flex items-center gap-2"
+            style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}
+          >
+            <Crown className="w-5 h-5 text-amber-500" style={{ filter: 'drop-shadow(0 2px 4px rgba(245,158,11,0.5))' }} />
             VIP Membership
           </h1>
 
-          <div className="flex items-center gap-1.5 bg-amber-100/80 px-2.5 py-1 rounded-full border border-amber-300/60">
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              background: 'linear-gradient(135deg, rgba(254,243,199,0.95), rgba(253,230,138,0.9))',
+              boxShadow: '0 6px 14px -6px rgba(217,119,6,0.4), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(217,182,107,0.55)',
+            }}
+          >
             <Diamond3DIcon size={14} />
             <span className="text-amber-700 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
           </div>
         </div>
       </div>
+
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
