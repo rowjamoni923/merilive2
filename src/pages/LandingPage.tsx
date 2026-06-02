@@ -738,7 +738,7 @@ const LandingPage = () => {
                       </a>
                       <button
                         onClick={() => copyCode(agency.agency_code)}
-                        className="flex-shrink-0 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-200 text-slate-600 text-xs transition-all duration-200"
+                        className="flex-shrink-0 px-2.5 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs transition-all duration-200"
                         title="Copy code"
                       >
                         {copiedCode === agency.agency_code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
