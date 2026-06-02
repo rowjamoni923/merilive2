@@ -3604,19 +3604,28 @@ const LiveStream = () => {
                 <Grid3X3 className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" />
               </motion.button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-[24px] h-auto p-0 border-0"
+            <SheetContent side="bottom" className="rounded-t-[28px] h-auto p-0 border-0"
               style={{
-                background: 'linear-gradient(180deg, rgba(15,10,30,0.97) 0%, rgba(10,8,25,0.99) 100%)',
-                
-                borderTop: '1px solid rgba(255,255,255,0.08)',
+                background: 'linear-gradient(180deg, rgba(20,14,40,0.98) 0%, rgba(10,8,22,0.99) 100%)',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 -20px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08)',
               }}
             >
+              {/* Glass top sheen */}
+              <div className="absolute inset-x-0 top-0 h-24 pointer-events-none rounded-t-[28px]" style={{ background: 'radial-gradient(80% 100% at 50% 0%, rgba(139,92,246,0.22), transparent 70%)' }} />
+
               {/* Handle */}
-              <div className="flex justify-center pt-3 pb-3">
-                <div className="w-8 h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+              <div className="relative flex justify-center pt-3 pb-2">
+                <div className="w-10 h-[4px] rounded-full" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.35), rgba(255,255,255,0.15))' }} />
               </div>
-              
-              <div className="pb-8 pt-1 px-4">
+
+              {/* Title */}
+              <div className="relative px-5 pb-3">
+                <h3 className="text-white text-[15px] font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>More Options</h3>
+                <p className="text-white/55 text-[11px] mt-0.5">Tools and controls for your live session</p>
+              </div>
+
+              <div className="relative pb-8 pt-1 px-4">
                 <div className="grid grid-cols-5 gap-y-5 gap-x-2">
                   {moreOptions.map((option, index) => {
                     const iconMap: Record<string, React.ReactNode> = {
@@ -3639,28 +3648,30 @@ const LiveStream = () => {
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
-                    
+
                     return (
                       <motion.button
                         key={option.id}
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.02 }}
+                        transition={{ delay: index * 0.025 }}
                         className="flex flex-col items-center gap-1.5"
-                        whileTap={{ scale: 0.92 }}
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ y: -2 }}
                         onClick={option.action}
                       >
-                        <div 
-                          className={`w-[48px] h-[48px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center`}
+                        <div
+                          className={`relative w-[52px] h-[52px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center overflow-hidden`}
                           style={{
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.25)',
                           }}
                         >
-                          <div className="text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
+                          <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.45), transparent)' }} />
+                          <div className="text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
                             {IconComponent}
                           </div>
                         </div>
-                        <span className="text-white/75 text-[10px] font-medium">{option.name}</span>
+                        <span className="text-white/85 text-[10px] font-semibold tracking-tight">{option.name}</span>
                       </motion.button>
                     );
                   })}
