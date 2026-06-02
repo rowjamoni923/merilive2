@@ -702,13 +702,13 @@ export function ActiveCallScreen({
         style={{ contain: 'layout' }}
       >
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
-          {/* Left - User info pill */}
+          {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full"
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(20,10,40,0.7) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                boxShadow: '0 8px 24px -8px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 6px rgba(0,0,0,0.35)',
               }}
             >
               {/* Live indicator dot */}
@@ -716,94 +716,122 @@ export function ActiveCallScreen({
                 <div className={cn(
                   "w-2 h-2 rounded-full",
                   isLiveConnected ? "bg-red-500" : "bg-amber-500"
-                )} />
+                )}
+                  style={{ boxShadow: isLiveConnected ? '0 0 8px rgba(239,68,68,0.7)' : '0 0 8px rgba(245,158,11,0.7)' }}
+                />
                 {isLiveConnected && (
                   <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500 animate-ping opacity-75" />
                 )}
               </div>
-              
+
               {/* Remote user avatar mini */}
-              <div className="w-7 h-7 rounded-full overflow-hidden border border-white/20">
+              <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-white/30"
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
+              >
                 {remoteUserAvatar ? (
                   <img src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover"/>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
+                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-extrabold">
                     {remoteUserName?.charAt(0)}
                   </div>
                 )}
               </div>
-              
-              <div className="flex flex-col">
-                <span className="text-white text-[11px] font-semibold leading-tight max-w-[80px] truncate">{remoteUserName}</span>
-                <div className="flex items-center gap-1">
-                  <span className={cn(
-                    "text-[9px] font-bold tracking-wider uppercase",
-                    isLiveConnected ? "text-emerald-400" : "text-amber-400"
-                  )}>
-                    {connectionBadgeLabel}
-                  </span>
-                </div>
+
+              <div className="flex flex-col leading-tight">
+                <span
+                  className="text-white text-[11px] font-extrabold max-w-[88px] truncate"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
+                >
+                  {remoteUserName}
+                </span>
+                <span className={cn(
+                  "text-[9px] font-extrabold tracking-[0.12em] uppercase",
+                  isLiveConnected ? "text-emerald-300" : "text-amber-300"
+                )}
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.5)' }}
+                >
+                  {connectionBadgeLabel}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Center - Duration timer */}
-          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full"
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full backdrop-blur-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.35)'
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(20,8,40,0.6) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 8px 20px -8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-white/95 font-mono font-bold text-xs tracking-wider">{formatDuration(duration)}</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
+              style={{ boxShadow: '0 0 8px rgba(239,68,68,0.75)' }}
+            />
+            <span
+              className="text-white font-mono font-extrabold text-xs tracking-[0.14em] tabular-nums"
+              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
+            >
+              {formatDuration(duration)}
+            </span>
           </div>
 
           {/* Right - Earnings/Coins + Connection */}
           <div className="flex items-center gap-2">
             {isHost ? (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(234,88,12,0.12) 100%)',
-                  border: '1px solid rgba(245,158,11,0.25)',
-                  boxShadow: '0 0 20px rgba(245,158,11,0.1)'
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.28) 0%, rgba(234,88,12,0.22) 100%)',
+                  border: '1px solid rgba(252,211,77,0.5)',
+                  boxShadow: '0 8px 20px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
               >
                 <BeansIcon size={14} />
-                <span className="text-amber-200 font-bold text-xs">+{formatCoins(displayedHostEarned)}</span>
+                <span
+                  className="text-amber-100 font-extrabold text-xs tabular-nums"
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                >
+                  +{formatCoins(displayedHostEarned)}
+                </span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.18) 100%)',
+                  border: '1px solid rgba(110,231,183,0.45)',
+                  boxShadow: '0 8px 18px -6px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span className="text-[9px] font-bold text-emerald-300 tracking-wider uppercase">E2E</span>
+                <ShieldCheck className="w-3 h-3 text-emerald-200" />
+                <span
+                  className="text-[9px] font-extrabold text-emerald-100 tracking-[0.14em] uppercase"
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                >
+                  E2E
+                </span>
               </div>
             )}
 
             {/* Signal bars */}
-            <div className={cn(
-              "flex items-center gap-1 px-2.5 py-2 rounded-full",
-            )}
+            <div className="flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
               style={{
-                background: isConnected 
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(234,88,12,0.08) 100%)',
-                border: `1px solid ${isConnected ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                background: isConnected
+                  ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
+                  : 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(234,88,12,0.15) 100%)',
+                border: `1px solid ${isConnected ? 'rgba(110,231,183,0.5)' : 'rgba(252,211,77,0.5)'}`,
+                boxShadow: `0 6px 14px -6px ${isConnected ? 'rgba(16,185,129,0.45)' : 'rgba(245,158,11,0.45)'}, inset 0 1px 0 rgba(255,255,255,0.25)`,
               }}
             >
-              <div className="flex items-center gap-[2px]">
+              <div className="flex items-end gap-[2px]">
                 {[1,2,3].map(i => (
                   <div key={i} className={cn(
                     "w-[3px] rounded-full transition-all",
                     i === 1 ? "h-1.5" : i === 2 ? "h-2.5" : "h-3",
-                    isConnected 
-                      ? "bg-emerald-400" 
-                      : i <= 1 ? "bg-amber-400" : "bg-white/15"
-                  )} />
+                    isConnected
+                      ? "bg-emerald-300"
+                      : i <= 1 ? "bg-amber-300" : "bg-white/20"
+                  )}
+                    style={isConnected ? { boxShadow: '0 0 4px rgba(16,185,129,0.55)' } : undefined}
+                  />
                 ))}
               </div>
             </div>
@@ -846,20 +874,32 @@ export function ActiveCallScreen({
                 showFrame={true}
                 showAnimation={false}
               />
-              <h2 className="text-white text-xl font-bold mt-4 drop-shadow-lg">{remoteUserName}</h2>
-              <div className="flex items-center gap-2 mt-2">
+              <h2
+                className="text-white text-2xl font-extrabold mt-4 tracking-wide"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}
+              >
+                {remoteUserName}
+              </h2>
+              <div className="flex items-center gap-2 mt-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15"
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.35)' }}
+              >
                 <div className="flex gap-1">
                   {[0,1,2].map(i => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/70 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s`, boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
                   ))}
                 </div>
-                <span className="text-white/70 text-sm font-medium drop-shadow">
+                <span className="text-white/90 text-xs font-bold tracking-wide">
                   {callStatus === 'ringing' ? 'Ringing...' : callStatus === 'calling' ? 'Calling...' : 'Connecting...'}
                 </span>
               </div>
               {isHost && (
-                <div className="flex items-center gap-2.5 mt-4 bg-black/40 border border-white/10 px-5 py-2.5 rounded-2xl">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <div className="flex items-center gap-2.5 mt-4 px-5 py-2.5 rounded-2xl border border-emerald-300/40 backdrop-blur-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.28) 0%, rgba(5,150,105,0.2) 100%)',
+                    boxShadow: '0 8px 22px -8px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  }}
+                >
+                  <TrendingUp className="w-4 h-4 text-emerald-200" />
                   <BeansIcon size={18} />
                   <span className="text-emerald-200 text-lg font-bold">{formatCoins(displayedHostEarned)}</span>
                 </div>
@@ -904,8 +944,11 @@ export function ActiveCallScreen({
             <motion.div
               whileTap={{ scale: 0.93 }}
               onClick={handleSwapVideos}
-              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl z-10 cursor-pointer"
-              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
+              style={{
+                boxShadow:
+                  '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+              }}
             >
               {secondaryHasVideo && secondaryVideoTrack ? (
                 <LiveKitVideoPlayer
@@ -917,17 +960,34 @@ export function ActiveCallScreen({
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
                   { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
-                    <img 
-                      src={isSwapped ? remoteUserAvatar : myAvatarUrl} 
-                      alt="" 
+                    <img
+                      src={isSwapped ? remoteUserAvatar : myAvatarUrl}
+                      alt=""
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-lg"
                     />
                   )}
-                  <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" />
+                  <div className="w-1 h-1 rounded-full bg-white/30 animate-pulse" />
                 </div>
               )}
-              <div className="absolute left-1.5 top-1.5 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-[9px] font-semibold text-white/90">
+              <div
+                className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,15,55,0.55))',
+                  textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}
+              >
                 {secondaryLabel}
+              </div>
+              <div
+                aria-hidden
+                className="absolute right-1.5 bottom-1.5 w-5 h-5 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-md"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(20,10,40,0.55))',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <SwitchCamera className="w-3 h-3 text-white/85" />
               </div>
             </motion.div>
           </div>
@@ -951,14 +1011,24 @@ export function ActiveCallScreen({
                   animate={{ opacity: 1, x: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="max-w-[80%] px-3 py-1.5 rounded-2xl rounded-bl-sm text-xs bg-black/50 border border-white/5">
+                  <div
+                    className="max-w-[80%] px-3 py-1.5 rounded-2xl rounded-bl-sm text-xs backdrop-blur-md border border-white/10"
+                    style={{
+                      background: isMe
+                        ? 'linear-gradient(135deg, rgba(168,85,247,0.35), rgba(99,102,241,0.3))'
+                        : 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(30,15,55,0.5))',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 12px -6px rgba(0,0,0,0.5)',
+                    }}
+                  >
                     <span className={cn(
-                      "text-[10px] font-bold block mb-0.5",
-                      isMe ? "text-purple-300" : "text-pink-300"
-                    )}>
+                      "text-[10px] font-extrabold block mb-0.5 tracking-wide",
+                      isMe ? "text-purple-200" : "text-pink-200"
+                    )}
+                      style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                    >
                       {msg.senderName}
                     </span>
-                    <span className="text-white/90">{msg.message}</span>
+                    <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
                   </div>
                 </motion.div>
               );
@@ -975,43 +1045,37 @@ export function ActiveCallScreen({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="absolute bottom-24 right-3 z-30"
+            className="absolute bottom-24 right-3 z-30 backdrop-blur-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(15,5,30,0.92) 100%)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '16px',
-              padding: '6px',
-              minWidth: '170px',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 20px rgba(168,85,247,0.08)'
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(25,12,50,0.88) 100%)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '20px',
+              padding: '8px',
+              minWidth: '180px',
+              boxShadow: '0 18px 44px -10px rgba(0,0,0,0.7), 0 0 24px rgba(168,85,247,0.18), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
-            {/* Mic Toggle */}
-            <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-400" /> : <MicOff className="w-5 h-5 text-red-400" />}
-              <span className="text-xs font-medium">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
+            <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-300" /> : <MicOff className="w-5 h-5 text-red-300" />}
+              <span className="text-xs font-bold tracking-wide">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
             </button>
-            {/* Flip Camera removed per request (no video icons in call) */}
-            {/* Swap View — local↔remote tile */}
-            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              <Maximize2 className="w-5 h-5 text-cyan-400" />
-              <span className="text-xs font-medium">Swap View</span>
+            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              <Maximize2 className="w-5 h-5 text-cyan-300" />
+              <span className="text-xs font-bold tracking-wide">Swap View</span>
             </button>
-            {/* Beauty — Cross-platform */}
-              <button onClick={() => { beauty.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-                <Sparkles className="w-5 h-5 text-pink-400" />
-                <span className="text-xs font-medium">Beauty</span>
+              <button onClick={() => { beauty.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+                <Sparkles className="w-5 h-5 text-pink-300" />
+                <span className="text-xs font-bold tracking-wide">Beauty</span>
               </button>
-            {/* Sticker — REAL native beauty Native */}
             {beauty.isNativeAndroid && (
-              <button onClick={() => { void beauty.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-                <Smile className="w-5 h-5 text-orange-400" />
-                <span className="text-xs font-medium">{beauty.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
+              <button onClick={() => { void beauty.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+                <Smile className="w-5 h-5 text-orange-300" />
+                <span className="text-xs font-bold tracking-wide">{beauty.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
               </button>
             )}
-            {/* Speaker */}
-            <button onClick={() => { setIsSpeakerOn(!isSpeakerOn); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              {isSpeakerOn ? <Volume2 className="w-5 h-5 text-amber-400" /> : <VolumeX className="w-5 h-5 text-red-400" />}
-              <span className="text-xs font-medium">{isSpeakerOn ? 'Speaker On' : 'Speaker Off'}</span>
+            <button onClick={() => { setIsSpeakerOn(!isSpeakerOn); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              {isSpeakerOn ? <Volume2 className="w-5 h-5 text-amber-300" /> : <VolumeX className="w-5 h-5 text-red-300" />}
+              <span className="text-xs font-bold tracking-wide">{isSpeakerOn ? 'Speaker On' : 'Speaker Off'}</span>
             </button>
           </motion.div>
         )}
@@ -1023,10 +1087,11 @@ export function ActiveCallScreen({
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-2">
             {/* Message input pill */}
-            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full"
+            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(15,5,30,0.5) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(25,12,50,0.5) 100%)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 16px -8px rgba(0,0,0,0.5)',
               }}
             >
               <input
@@ -1036,59 +1101,74 @@ export function ActiveCallScreen({
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
                 placeholder="Say something..."
-                className="flex-1 bg-transparent text-white text-xs outline-none placeholder:text-white/35 min-w-0"
+                className="flex-1 bg-transparent text-white text-xs font-medium outline-none placeholder:text-white/40 min-w-0"
               />
               {chatInput.trim() && (
                 <motion.button
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={sendChatMessage}
-                  className="p-1 rounded-full"
+                  className="w-7 h-7 rounded-full flex items-center justify-center border border-white/25"
+                  style={{
+                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                    boxShadow: '0 4px 12px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+                  }}
                 >
-                  <Send className="w-4 h-4 text-white/70" />
+                  <Send className="w-3.5 h-3.5 text-white" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.4))' }} />
                 </motion.button>
               )}
             </div>
 
             {/* Call End button */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={handleEndCall}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
-                boxShadow: '0 0 24px rgba(239,68,68,0.4), 0 4px 12px rgba(0,0,0,0.3)',
-                border: '1px solid rgba(252,165,165,0.3)'
+                background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 40%, #b91c1c 100%)',
+                boxShadow: '0 10px 24px -6px rgba(239,68,68,0.65), 0 4px 10px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(252,165,165,0.45)',
               }}
+              aria-label="End call"
             >
-              <PhoneOff className="w-5 h-5 text-white" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
+                style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.55), transparent 70%)' }} />
+              <PhoneOff className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
             </motion.button>
 
             {/* Gift button */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={() => setShowGiftPanel(true)}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(168,85,247,0.2) 100%)',
-                border: '1px solid rgba(236,72,153,0.3)',
-                boxShadow: '0 0 16px rgba(236,72,153,0.15)'
+                background: 'radial-gradient(120% 120% at 30% 20%, #f9a8d4 0%, #ec4899 40%, #a855f7 100%)',
+                boxShadow: '0 10px 24px -6px rgba(236,72,153,0.55), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.28)',
+                border: '1px solid rgba(249,168,212,0.4)',
               }}
+              aria-label="Send gift"
             >
-              <Gift className="w-5 h-5 text-pink-400" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
+                style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.5), transparent 70%)' }} />
+              <Gift className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }} />
             </motion.button>
 
             {/* Three dot menu */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(15,5,30,0.45) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                boxShadow: '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
-              <MoreVertical className="w-5 h-5 text-white/70" />
+              <MoreVertical className="w-5 h-5 text-white/85" />
             </motion.button>
           </div>
         </div>
