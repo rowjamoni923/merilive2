@@ -492,26 +492,30 @@ const EditProfile = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden">
-      {/* Premium Dark Header */}
-      <div 
+      {/* Premium 3D Glass Header */}
+      <div
         className="relative shrink-0 z-50"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-50/90 via-white/95 to-pink-50/90 backdrop-blur-xl" />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-amber-50/90 via-white/95 to-pink-50/90 backdrop-blur-xl"
+          style={{ boxShadow: '0 8px 24px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)' }}
+        />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
         <div className="relative flex items-center justify-between px-4 h-14">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-white/80 border border-amber-200/60 flex items-center justify-center active:scale-95 transition-transform shadow-sm"
+            className="w-10 h-10 rounded-xl bg-white border border-amber-200/60 flex items-center justify-center active:scale-95 hover:-translate-y-0.5 transition-all"
+            style={{ boxShadow: '0 4px 12px -6px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           >
-            <ArrowLeft className="w-5 h-5 text-heading" />
+            <ArrowLeft className="w-5 h-5 text-heading" style={{ filter: 'drop-shadow(0 1px 1px rgba(15,23,42,0.15))' }} />
           </button>
-          <h1 className="text-lg font-bold text-heading">My Profile</h1>
+          <h1 className="text-lg font-bold text-heading" style={{ textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}>My Profile</h1>
           <button
             onClick={onSave}
-
             disabled={saving}
-            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+            className="px-5 h-10 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-on-dark font-semibold text-sm flex items-center justify-center active:scale-95 hover:-translate-y-0.5 transition-all disabled:opacity-50"
+            style={{ boxShadow: '0 6px 16px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.35)' }}
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -581,7 +585,10 @@ const EditProfile = () => {
         {/* Profile Settings */}
         <div className="px-4 space-y-4">
           {/* Basic Info Card */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+          <div
+            className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden"
+            style={{ boxShadow: '0 10px 28px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)' }}
+          >
             {/* My Avatar */}
             <label className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70 cursor-pointer">
               <div className="flex items-center gap-3">
@@ -1081,7 +1088,7 @@ const EditProfile = () => {
           </div>
 
           {/* Account Recovery Section */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden" style={{ boxShadow: "0 10px 28px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)" }}>
             <div className="px-4 py-3 bg-slate-50 border-b border-amber-200/40">
               <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Account Recovery
@@ -1128,7 +1135,7 @@ const EditProfile = () => {
           </div>
 
           {/* Account Security Section */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden" style={{ boxShadow: "0 10px 28px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)" }}>
             <div className="px-4 py-3 bg-slate-50 border-b border-amber-200/40">
               <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Account Security
