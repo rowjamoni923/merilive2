@@ -138,18 +138,15 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdttrc20");
+  const [currency, setCurrency] = useState<string>(BASE_CRYPTO_OPTIONS[0].value);
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
-
-
-
 
   useEffect(() => {
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdttrc20");
+      setCurrency(BASE_CRYPTO_OPTIONS[0].value);
       setDeposit(null);
       setCreating(false);
       return;
@@ -173,12 +170,14 @@ export default function SwiftPayDepositModal({
     }
   }, [open, initialPackageId, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomLabel]);
 
-  // Remove auto-reset of currency when package changes to respect user selection
-  /*
+  // Auto-select the cheapest network that can actually accept this amount.
+  // For ≥$10 the user can still override; for <$10 only eligible networks
+  // are pickable so the deposit always succeeds on the first try.
   useEffect(() => {
-    if (pkg) setCurrency(getRecommendedCurrency(pkg.price_usd));
-  }, [pkg?.id]);
-  */
+    if (!pkg) return;
+    setCurrency(getRecommendedCurrency(pkg.price_usd));
+  }, [pkg?.id, pkg?.price_usd]);
+
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
