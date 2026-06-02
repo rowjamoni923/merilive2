@@ -182,13 +182,17 @@ export const ChametStyleBottomBar = ({
                         className="flex flex-col items-center gap-1.5 py-1.5"
                       >
                         <div className="relative">
-                          <div
-                            className={cn("w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br", item.gradient)}
-                            style={{ boxShadow: `0 6px 18px ${item.glow}` }}
+                          <motion.div
+                            whileHover={{ y: -2 }}
+                            className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center relative overflow-hidden"
+                            style={{
+                              background: item.radial,
+                              boxShadow: `0 10px 24px ${item.glow}, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 6px rgba(0,0,0,0.28)`,
+                            }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-                            <Icon className="w-5 h-5 text-white relative z-10 drop-shadow" />
-                          </div>
+                            <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />
+                            <Icon className="w-5 h-5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
+                          </motion.div>
                           {badge && (
                             <div
                               className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full flex items-center justify-center ring-2 ring-[#0c0823]"
