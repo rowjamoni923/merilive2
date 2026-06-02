@@ -1087,10 +1087,11 @@ export function ActiveCallScreen({
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-2">
             {/* Message input pill */}
-            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full"
+            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(15,5,30,0.5) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(25,12,50,0.5) 100%)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 16px -8px rgba(0,0,0,0.5)',
               }}
             >
               <input
@@ -1100,59 +1101,74 @@ export function ActiveCallScreen({
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
                 placeholder="Say something..."
-                className="flex-1 bg-transparent text-white text-xs outline-none placeholder:text-white/35 min-w-0"
+                className="flex-1 bg-transparent text-white text-xs font-medium outline-none placeholder:text-white/40 min-w-0"
               />
               {chatInput.trim() && (
                 <motion.button
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={sendChatMessage}
-                  className="p-1 rounded-full"
+                  className="w-7 h-7 rounded-full flex items-center justify-center border border-white/25"
+                  style={{
+                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                    boxShadow: '0 4px 12px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+                  }}
                 >
-                  <Send className="w-4 h-4 text-white/70" />
+                  <Send className="w-3.5 h-3.5 text-white" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.4))' }} />
                 </motion.button>
               )}
             </div>
 
             {/* Call End button */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={handleEndCall}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
-                boxShadow: '0 0 24px rgba(239,68,68,0.4), 0 4px 12px rgba(0,0,0,0.3)',
-                border: '1px solid rgba(252,165,165,0.3)'
+                background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 40%, #b91c1c 100%)',
+                boxShadow: '0 10px 24px -6px rgba(239,68,68,0.65), 0 4px 10px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(252,165,165,0.45)',
               }}
+              aria-label="End call"
             >
-              <PhoneOff className="w-5 h-5 text-white" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
+                style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.55), transparent 70%)' }} />
+              <PhoneOff className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
             </motion.button>
 
             {/* Gift button */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={() => setShowGiftPanel(true)}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(168,85,247,0.2) 100%)',
-                border: '1px solid rgba(236,72,153,0.3)',
-                boxShadow: '0 0 16px rgba(236,72,153,0.15)'
+                background: 'radial-gradient(120% 120% at 30% 20%, #f9a8d4 0%, #ec4899 40%, #a855f7 100%)',
+                boxShadow: '0 10px 24px -6px rgba(236,72,153,0.55), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.28)',
+                border: '1px solid rgba(249,168,212,0.4)',
               }}
+              aria-label="Send gift"
             >
-              <Gift className="w-5 h-5 text-pink-400" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
+                style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.5), transparent 70%)' }} />
+              <Gift className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }} />
             </motion.button>
 
             {/* Three dot menu */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
               onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(15,5,30,0.45) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                boxShadow: '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
-              <MoreVertical className="w-5 h-5 text-white/70" />
+              <MoreVertical className="w-5 h-5 text-white/85" />
             </motion.button>
           </div>
         </div>
