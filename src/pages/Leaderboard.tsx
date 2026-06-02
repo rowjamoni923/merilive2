@@ -402,27 +402,29 @@ const Leaderboard = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all touch-manipulation active:scale-95",
-                  isActive ? "text-white" : "text-slate-500"
+                  "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all duration-200 touch-manipulation active:scale-95",
+                  isActive ? "text-white" : "text-slate-600 hover:-translate-y-0.5"
                 )}
                 style={isActive ? {
                   background: cat.activeGrad,
-                  boxShadow: `0 4px 15px ${cat.shadow}`,
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.4)',
+                  boxShadow: `0 6px 16px -4px ${cat.shadow}, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)`,
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.45)',
                 } : {
-                  background: '#F1F5F9',
-                  border: '1px solid rgba(15,23,42,0.06)',
-                  borderRadius: '8px',
+                  background: '#ffffff',
+                  border: '1px solid rgba(15,23,42,0.08)',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                 }}
               >
                 {customIcons?.[`leaderboard_${cat.id}_icon`] ? (
-                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className="w-3 h-3 object-contain"/>
+                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className={cn("w-3 h-3 object-contain", isActive && "drop-shadow")}/>
                 ) : (
-                  <Icon className="w-3 h-3" />
+                  <Icon className={cn("w-3 h-3", isActive && "drop-shadow")} />
                 )}
                 {cat.label}
               </button>
+
             );
           })}
         </div>
