@@ -527,18 +527,20 @@ const Shop = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-on-dark' : 'text-heading'
+                  className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-95 ${
+                    isActive ? 'text-white' : 'text-heading'
                   }`}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
-                    boxShadow: '0 4px 18px rgba(147,51,234,0.40), inset 0 1px 0 rgba(255,255,255,0.20)',
+                    boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.20)',
                   } : {
-                    background: 'rgba(255,255,255,0.7)',
-                    border: '1px solid rgba(217,182,107,0.30)',
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.40)',
+                    boxShadow: '0 2px 6px -2px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.9)',
                   }}
                 >
-                  <cat.icon className="w-3.5 h-3.5" />
+                  <cat.icon className={`w-3.5 h-3.5 ${isActive ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]' : ''}`} />
                   {cat.name}
                 </button>
               );
