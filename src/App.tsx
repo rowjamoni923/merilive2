@@ -1060,12 +1060,17 @@ const App = () => {
   const isNative = Capacitor.isNativePlatform();
   const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
-  
+
   // Allow Lovable preview/development environments
   const isLovablePreview = hostname.includes('lovable.app') || 
                            hostname.includes('lovableproject.com') || 
                            hostname === 'localhost' || 
                            hostname === '127.0.0.1';
+
+  // Landing page is ONLY served on merilive.top (the marketing/download domain).
+  // Main domain (merilive.com / native app / lovable preview) always boots the main app.
+  const isLandingDomain = hostname === 'merilive.top' || hostname === 'www.merilive.top';
+
   
   // Routes allowed in public browser
   const BROWSER_ALLOWED_ROUTES = [
@@ -1163,9 +1168,14 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="/" element={session ? <ProtectedRoute session={session}><Index /></ProtectedRoute> : <LandingPage />} />
+                <Route path="/" element={
+                  session
+                    ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
+                    : (isLandingDomain ? <LandingPage /> : <Navigate to="/auth" replace />)
+                } />
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/download" element={<LandingPage />} />
+
                 <Route path="/smart-link" element={<SmartLink />} />
                 <Route path="/share" element={<ShareReceive />} />
                 <Route path="/link" element={<SmartLink />} />
