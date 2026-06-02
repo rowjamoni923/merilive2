@@ -9,6 +9,7 @@ import googlePlayBadge from "@/assets/google-play-badge.png";
 import heroBg from "@/assets/landing-bg-hero.jpg";
 import HostProgramCard from "@/components/landing/HostProgramCard";
 import AgencyCard from "@/components/landing/AgencyCard";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 interface AgencyListItem {
   id: string;
@@ -39,6 +40,10 @@ interface LandingSection {
 }
 
 const LandingPage = () => {
+  // Public marketing page: keep native browser scroll + pinch-zoom enabled
+  // (overrides any app-shell scroll locks inherited from native WebView CSS).
+  useEnableBrowserPageInteraction();
+
   const [features, setFeatures] = useState<LandingSection[]>([]);
   const [events, setEvents] = useState<LandingSection[]>([]);
   const [announcements, setAnnouncements] = useState<LandingSection[]>([]);

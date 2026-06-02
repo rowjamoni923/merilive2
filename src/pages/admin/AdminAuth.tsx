@@ -14,6 +14,7 @@ import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const loginSchema = z.object({
@@ -32,6 +33,8 @@ interface PendingAuthData {
 }
 
 export default function AdminAuth() {
+  // Public browser admin entry — enable native scroll + pinch-zoom.
+  useEnableBrowserPageInteraction();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
