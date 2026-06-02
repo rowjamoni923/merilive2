@@ -476,24 +476,29 @@ const Tasks = () => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-white p-4 shadow-lg safe-area-top">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+      {/* Premium Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-40 bg-white/90 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
             onClick={() => navigate(-1)}
-            className="text-white hover:bg-white/20"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Star className="w-5 h-5 text-slate-800" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"
+              style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.2)' }}
+            >
+              <Star className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
             </div>
-          <div>
-              <h1 className="text-xl font-bold">Task Center</h1>
-              <p className="text-xs text-white/85">Complete daily tasks, earn rewards</p>
+            <div>
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Task Center</h1>
+              <p className="text-slate-500 text-[10px]">Complete daily tasks, earn rewards</p>
             </div>
           </div>
         </div>
@@ -506,22 +511,30 @@ const Tasks = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-white mb-6"
+          className="relative overflow-hidden rounded-2xl p-5 mb-6 text-white"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #fbbf24 100%)',
+            boxShadow: '0 16px 36px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(146,64,14,0.25)'
+          }}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(255,255,255,0.35),transparent_55%)] pointer-events-none" />
+          <div className="relative flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-bold">Today's Tasks</h2>
-              <p className="text-sm text-white/90">
+              <h2 className="text-lg font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.18)' }}>Today's Tasks</h2>
+              <p className="text-sm text-white/95">
                 {Object.values(progress).filter(p => p.is_claimed).length}/{tasks.length} Completed
               </p>
             </div>
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-              <Gift className="w-7 h-7" />
+            <div
+              className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-sm flex items-center justify-center"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 14px -6px rgba(0,0,0,0.25)' }}
+            >
+              <Gift className="w-7 h-7 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
             </div>
           </div>
-          <Progress 
-            value={(Object.values(progress).filter(p => p.is_claimed).length / Math.max(tasks.length, 1)) * 100} 
-            className="h-2 bg-white/30"
+          <Progress
+            value={(Object.values(progress).filter(p => p.is_claimed).length / Math.max(tasks.length, 1)) * 100}
+            className="relative h-2 bg-white/30"
           />
         </motion.div>
 
@@ -641,23 +654,38 @@ const Tasks = () => {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className={`bg-white backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
-                  status === 'claimed' 
-                    ? 'border-green-300 bg-green-50' 
+                className="relative overflow-hidden rounded-2xl p-4 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                style={{
+                  background: status === 'claimed'
+                    ? 'linear-gradient(135deg, rgba(16,185,129,0.10), rgba(34,197,94,0.06))'
                     : status === 'completed'
-                    ? 'border-amber-400 shadow-amber-300/30'
-                    : 'border-amber-200/60'
-                }`}
+                      ? 'linear-gradient(135deg, #ffffff, rgba(254,243,199,0.95))'
+                      : 'linear-gradient(135deg, #ffffff, rgba(255,251,240,0.95))',
+                  border: status === 'claimed'
+                    ? '1px solid rgba(34,197,94,0.45)'
+                    : status === 'completed'
+                      ? '1px solid rgba(245,158,11,0.55)'
+                      : '1px solid rgba(217,182,107,0.4)',
+                  boxShadow: status === 'completed'
+                    ? '0 12px 28px -10px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.95)'
+                    : '0 6px 18px -10px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95)',
+                }}
               >
-                <div className="flex items-center gap-4">
+                {status === 'completed' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer pointer-events-none" />
+                )}
+                <div className="relative flex items-center gap-4">
                   {/* Icon */}
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${task.icon_color}20` }}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, ${task.icon_color}, ${task.icon_color}cc)`,
+                      boxShadow: `0 8px 18px -6px ${task.icon_color}66, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.15)`
+                    }}
                   >
-                    <IconComponent 
-                      className="w-6 h-6" 
-                      style={{ color: task.icon_color }}
+                    <IconComponent
+                      className="w-6 h-6 text-white"
+                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }}
                     />
                   </div>
 
