@@ -732,10 +732,12 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-muted animate-pulse border border-border"
+                className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-muted via-muted/60 to-muted animate-pulse border border-border"
+                style={{ boxShadow: '0 4px 12px -4px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.5)' }}
               />
             ))}
           </div>
+
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
