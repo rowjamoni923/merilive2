@@ -183,15 +183,21 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      // Auto-switch threshold logic: 
-      // If price < $10.00, use round-robin fallback.
-      // If price >= $10.00, strict mode (only user-selected currency).
+      // Routing rule:
+      //   < $10  → small payment: auto-route through every network that can
+      //            accept this amount (cheapest first) so it always succeeds.
+      //   ≥ $10  → large payment: use the exact network the user selected.
       const price = pkg.price_usd;
-      const isSmallDeposit = price < 10.0;
-      
-      const tryOrder = isSmallDeposit 
-        ? [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)]
+      const isSmallDeposit = price < LARGE_PAYMENT_THRESHOLD_USD;
+
+      const eligibleCheapestFirst = BASE_CRYPTO_OPTIONS
+        .filter((o) => price >= o.minUsd)
+        .map((o) => o.value);
+
+      const tryOrder = isSmallDeposit
+        ? Array.from(new Set([currency, ...eligibleCheapestFirst]))
         : [currency];
+
 
       let lastErrMsg: string | null = null;
       let lastErrIsMinimum = false;
