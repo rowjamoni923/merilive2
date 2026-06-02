@@ -362,21 +362,30 @@ const Leaderboard = () => {
         }}
       >
         <div className="flex items-center justify-between h-12 px-3">
-          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-full transition-all duration-200 active:scale-95 touch-manipulation bg-white hover:-translate-y-0.5"
+            style={{ boxShadow: '0 3px 8px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
+          >
             <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900">
+          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900 tracking-tight">
             {customIcons?.leaderboard_header_icon ? (
-              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain"/>
+              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain drop-shadow"/>
             ) : (
-              <Crown className="w-4 h-4 text-amber-500" />
+              <Crown className="w-4 h-4 text-amber-500 drop-shadow" />
             )}
             Leaderboard
           </h1>
-          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
-            <HelpCircle className="w-5 h-5 text-slate-400" />
+          <button
+            onClick={() => setShowRules(true)}
+            className="p-2 -mr-1 rounded-full transition-all duration-200 active:scale-95 touch-manipulation bg-white hover:-translate-y-0.5"
+            style={{ boxShadow: '0 3px 8px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
+          >
+            <HelpCircle className="w-5 h-5 text-slate-500" />
           </button>
         </div>
+
 
         {/* Category Tabs - Golden Shield Style */}
         <div className="flex items-center gap-1.5 px-3 pb-2">
