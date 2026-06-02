@@ -388,7 +388,7 @@ const Leaderboard = () => {
 
 
         {/* Category Tabs - Golden Shield Style */}
-        <div className="flex items-center gap-1.5 px-3 pb-2">
+        <div className="flex items-center gap-1 px-2 pb-2">
           {([
             { id: "host_earning" as const, label: "Charm", icon: Gift, activeGrad: "linear-gradient(135deg, #be185d, #ec4899, #be185d)", shadow: "rgba(236,72,153,0.4)" },
             { id: "game_ranking" as const, label: "Game", icon: Gamepad2, activeGrad: "linear-gradient(135deg, #8b0000, #cd5c5c, #8b0000)", shadow: "rgba(139,0,0,0.4)" },
@@ -402,7 +402,7 @@ const Leaderboard = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all duration-200 touch-manipulation active:scale-95",
+                  "flex-1 min-w-0 flex items-center justify-center gap-1 py-2 px-1 text-[11px] font-bold transition-all duration-200 touch-manipulation active:scale-95 whitespace-nowrap",
                   isActive ? "text-white" : "text-slate-600 hover:-translate-y-0.5"
                 )}
                 style={isActive ? {
