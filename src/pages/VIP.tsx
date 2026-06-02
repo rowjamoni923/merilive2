@@ -1408,57 +1408,86 @@ const VIP = () => {
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={!!selectedTier} onOpenChange={() => setSelectedTier(null)}>
-        <DialogContent className="bg-white border-purple-500/30 max-w-sm">
+        <DialogContent
+          className="border-0 max-w-sm"
+          style={{
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.40)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.30), 0 0 40px rgba(168,85,247,0.15)',
+          }}
+        >
           <DialogHeader>
-            <DialogTitle className="text-heading text-center">Confirm VIP Purchase</DialogTitle>
+            <DialogTitle className="text-heading text-center text-lg font-bold">Confirm VIP Purchase</DialogTitle>
           </DialogHeader>
-          
+
           {selectedTier && (
             <div className="space-y-4">
               <div className="text-center">
                 <VIPBadge tier={selectedTier.tier_level} size="lg" />
-                <h3 className="text-heading font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
-                <p className="text-heading">{selectedTier.duration_days} Days Membership</p>
+                <h3 className="text-heading font-bold text-xl mt-3" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.6)' }}>{selectedTier.tier_name}</h3>
+                <p className="text-body text-sm">{selectedTier.duration_days} Days Membership</p>
               </div>
 
-              <div className="flex items-center justify-center gap-2 py-4 bg-amber-500/10 rounded-xl">
-                <Diamond3DIcon size={24} />
+              <div
+                className="flex items-center justify-center gap-2 py-4 rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(217,182,107,0.14))',
+                  border: '1px solid rgba(217,182,107,0.40)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(180,140,40,0.10)',
+                }}
+              >
+                <Diamond3DIcon size={26} />
                 <span className="text-amber-700 font-bold text-2xl">
                   {selectedTier.price_diamonds.toLocaleString()}
                 </span>
               </div>
 
-              <div className="text-center text-sm text-heading">
-                Your balance: {userDiamonds.toLocaleString()} diamonds
+              <div className="text-center text-xs text-body">
+                Your balance: <span className="text-heading font-semibold">{userDiamonds.toLocaleString()}</span> diamonds
               </div>
 
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
+                <button
                   onClick={() => setSelectedTier(null)}
-                  className="flex-1 border-amber-200/70 text-heading"
+                  className="flex-1 py-3 rounded-full font-semibold text-heading transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                  style={{
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.45)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                  }}
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => handlePurchase(selectedTier)}
                   disabled={purchasing || userDiamonds < selectedTier.price_diamonds}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
+                  className="flex-1 py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:hover:translate-y-0"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                    boxShadow: '0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+                  }}
                 >
                   {purchasing ? "Processing..." : "Confirm"}
-                </Button>
+                </button>
               </div>
 
               {userDiamonds < selectedTier.price_diamonds && (
-                <Button
+                <button
                   onClick={() => {
                     setSelectedTier(null);
                     navigate("/recharge");
                   }}
-                  className="w-full bg-amber-500 hover:bg-amber-600"
+                  className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                    boxShadow: '0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+                  }}
                 >
+                  <Diamond3DIcon size={16} />
                   Recharge Diamonds
-                </Button>
+                </button>
               )}
             </div>
           )}
