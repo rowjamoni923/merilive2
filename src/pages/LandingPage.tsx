@@ -10,7 +10,6 @@ import heroBg from "@/assets/landing-bg-hero.jpg";
 import HostProgramCard from "@/components/landing/HostProgramCard";
 import AgencyCard from "@/components/landing/AgencyCard";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
-import { mainAppHref } from "@/utils/publicRoutes";
 import { generateAgencyJoinLink } from "@/utils/shareLinks";
 
 interface AgencyListItem {
