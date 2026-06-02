@@ -362,21 +362,30 @@ const Leaderboard = () => {
         }}
       >
         <div className="flex items-center justify-between h-12 px-3">
-          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-full transition-all duration-200 active:scale-95 touch-manipulation bg-white hover:-translate-y-0.5"
+            style={{ boxShadow: '0 3px 8px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
+          >
             <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900">
+          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900 tracking-tight">
             {customIcons?.leaderboard_header_icon ? (
-              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain"/>
+              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain drop-shadow"/>
             ) : (
-              <Crown className="w-4 h-4 text-amber-500" />
+              <Crown className="w-4 h-4 text-amber-500 drop-shadow" />
             )}
             Leaderboard
           </h1>
-          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
-            <HelpCircle className="w-5 h-5 text-slate-400" />
+          <button
+            onClick={() => setShowRules(true)}
+            className="p-2 -mr-1 rounded-full transition-all duration-200 active:scale-95 touch-manipulation bg-white hover:-translate-y-0.5"
+            style={{ boxShadow: '0 3px 8px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
+          >
+            <HelpCircle className="w-5 h-5 text-slate-500" />
           </button>
         </div>
+
 
         {/* Category Tabs - Golden Shield Style */}
         <div className="flex items-center gap-1.5 px-3 pb-2">
@@ -393,32 +402,34 @@ const Leaderboard = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all touch-manipulation active:scale-95",
-                  isActive ? "text-white" : "text-slate-500"
+                  "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all duration-200 touch-manipulation active:scale-95",
+                  isActive ? "text-white" : "text-slate-600 hover:-translate-y-0.5"
                 )}
                 style={isActive ? {
                   background: cat.activeGrad,
-                  boxShadow: `0 4px 15px ${cat.shadow}`,
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.4)',
+                  boxShadow: `0 6px 16px -4px ${cat.shadow}, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)`,
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.45)',
                 } : {
-                  background: '#F1F5F9',
-                  border: '1px solid rgba(15,23,42,0.06)',
-                  borderRadius: '8px',
+                  background: '#ffffff',
+                  border: '1px solid rgba(15,23,42,0.08)',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                 }}
               >
                 {customIcons?.[`leaderboard_${cat.id}_icon`] ? (
-                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className="w-3 h-3 object-contain"/>
+                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className={cn("w-3 h-3 object-contain", isActive && "drop-shadow")}/>
                 ) : (
-                  <Icon className="w-3 h-3" />
+                  <Icon className={cn("w-3 h-3", isActive && "drop-shadow")} />
                 )}
                 {cat.label}
               </button>
+
             );
           })}
         </div>
 
-        {/* Period Toggle - Golden */}
+        {/* Period Toggle - Golden 3D */}
         {activeCategory !== "pk_competition" && (
           <div className="flex justify-center gap-2 px-4 pb-2">
             {(["daily", "weekly", "monthly"] as PeriodType[]).map(p => {
@@ -428,15 +439,17 @@ const Leaderboard = () => {
                   key={p}
                   onClick={() => setPeriodType(p)}
                   className={cn(
-                    "px-5 py-1.5 rounded-full text-xs font-semibold transition-all touch-manipulation active:scale-95",
-                    isActive ? "text-amber-900" : "text-slate-500"
+                    "px-5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 touch-manipulation active:scale-95",
+                    isActive ? "text-amber-950" : "text-slate-600 hover:-translate-y-0.5"
                   )}
                   style={isActive ? {
-                    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                    boxShadow: '0 4px 15px rgba(251,191,36,0.3)',
+                    background: 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%)',
+                    boxShadow: '0 6px 16px -4px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(146,64,14,0.18)',
+                    border: '1px solid rgba(245,158,11,0.5)',
                   } : {
-                    background: '#F1F5F9',
-                    border: '1px solid rgba(15,23,42,0.06)',
+                    background: '#ffffff',
+                    border: '1px solid rgba(15,23,42,0.08)',
+                    boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                   }}
                 >
                   {p === "daily" ? "Day" : p === "weekly" ? "Week" : "Month"}
@@ -445,6 +458,7 @@ const Leaderboard = () => {
             })}
           </div>
         )}
+
 
         {/* PK Competition Info */}
         {activeCategory === "pk_competition" && activePK && (

@@ -418,24 +418,34 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "border-danger/50 shadow-lg shadow-danger/20";
-      if (displayLevel >= 40) return "border-warning/50 shadow-lg shadow-warning/20";
-      if (displayLevel >= 20) return "border-brand/40 shadow-lg shadow-brand/15";
-      if (displayLevel >= 10) return "border-info/40 shadow-lg shadow-info/15";
-      return "border-border shadow-sm";
+      if (user.isLive) return "border-danger/60";
+      if (displayLevel >= 40) return "border-warning/55";
+      if (displayLevel >= 20) return "border-brand/45";
+      if (displayLevel >= 10) return "border-info/45";
+      return "border-border";
     };
 
-    
+    const getCardShadow = (): string => {
+      if (user.isLive)
+        return '0 10px 24px -8px hsl(var(--danger) / 0.35), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
+      if (displayLevel >= 40)
+        return '0 10px 24px -8px hsl(var(--warning) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.6)';
+      if (displayLevel >= 20)
+        return '0 8px 20px -8px hsl(var(--brand) / 0.28), 0 3px 8px -3px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.55)';
+      return '0 6px 16px -6px rgba(15,23,42,0.14), 0 2px 4px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.55)';
+    };
+
     return (
       <div
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         className={cn(
-          "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97]",
+          "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97] transition-all duration-300 hover:-translate-y-0.5",
           "bg-card border",
           getBorderGlow()
         )}
-        style={{ contain: 'layout style paint' }}
+        style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
+
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
@@ -481,7 +491,10 @@ const Index = () => {
           {user.isLive && (
             <>
               <div className="absolute top-2.5 left-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary shadow-lg shadow-danger/30">
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary"
+                  style={{ boxShadow: '0 6px 14px -4px hsl(var(--danger) / 0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)' }}
+                >
                   <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full animate-pulse" />
                   <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
                 </div>
@@ -489,7 +502,10 @@ const Index = () => {
               {/* Viewer Count */}
               {(user.viewerCount ?? 0) > 0 && (
                 <div className="absolute top-2.5 right-2">
-                  <div className="flex items-center gap-1 bg-foreground/60 backdrop-blur-sm rounded-full px-2 py-1">
+                  <div
+                    className="flex items-center gap-1 bg-foreground/65 backdrop-blur-md rounded-full px-2 py-1"
+                    style={{ boxShadow: '0 3px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)' }}
+                  >
                     <Eye className="w-3 h-3 text-on-dark" />
                     <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
                   </div>
@@ -501,25 +517,34 @@ const Index = () => {
           {/* Online / Busy Indicator - subtle dot only, no text (industry standard) */}
           {!user.isLive && user.is_online && (
             <div className="absolute top-2.5 left-2">
-              <div className={cn(
-                "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/80 shadow-md",
-                isActuallyBusy
-                  ? "bg-warning"
-                  : "bg-success animate-pulse"
-              )} />
+              <div
+                className={cn(
+                  "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/90",
+                  isActuallyBusy ? "bg-warning" : "bg-success animate-pulse"
+                )}
+                style={{
+                  boxShadow: isActuallyBusy
+                    ? '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--warning) / 0.6)'
+                    : '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--success) / 0.65)'
+                }}
+              />
             </div>
           )}
 
           {/* VIP/Verified Badge */}
           {(user.is_verified || user.is_face_verified) && (
             <div className="absolute top-2.5 right-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center shadow-lg shadow-info/30 border border-primary-foreground/30">
-                <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">
+              <div
+                className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center border border-primary-foreground/40"
+                style={{ boxShadow: '0 4px 10px -2px hsl(var(--info) / 0.45), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15)' }}
+              >
+                <svg className="w-3 h-3 text-on-dark drop-shadow" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
           )}
+
 
           {/* Bottom Info */}
           <div className="absolute bottom-0 left-0 right-0 p-2.5">
@@ -593,21 +618,25 @@ const Index = () => {
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Header */}
       <header
-        className="shrink-0 bg-card border-b border-border"
-        style={{ zIndex: 40 }}
+        className="shrink-0 bg-card/95 backdrop-blur-md border-b border-border"
+        style={{ zIndex: 40, boxShadow: '0 4px 12px -6px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)' }}
       >
         <div className="flex items-center justify-center px-3 py-2.5 relative">
           {/* Search Button - Left Side (icon only, matches home white theme) */}
           <button
             aria-label="Search"
             onClick={() => navigate('/search')}
-            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
+            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-card border border-border hover:-translate-y-0.5"
+            style={{ boxShadow: '0 4px 10px -3px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
           >
             <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
           </button>
 
           {/* Sub Tabs - Centered */}
-          <div className="flex items-center gap-0.5 bg-muted rounded-full p-0.5 border border-border">
+          <div
+            className="flex items-center gap-0.5 bg-muted rounded-full p-0.5 border border-border"
+            style={{ boxShadow: 'inset 0 2px 4px rgba(15,23,42,0.06), inset 0 -1px 0 rgba(255,255,255,0.5)' }}
+          >
             {(["popular", "live", "new", "following"] as SubTab[]).map((tab) => {
               const labels: Record<SubTab, string> = { popular: "Popular", live: "Live", new: "New", following: "Follow" };
               const isActive = subTab === tab;
@@ -618,9 +647,10 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "bg-gradient-primary text-on-dark shadow-md" : "text-muted-pro hover:text-foreground"
+                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 touch-manipulation flex items-center gap-1",
+                    isActive ? "bg-gradient-primary text-on-dark" : "text-muted-pro hover:text-foreground"
                   )}
+                  style={isActive ? { boxShadow: '0 4px 10px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' } : undefined}
                 >
                   {tab === "live" && <span className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-primary-foreground" : "bg-danger animate-pulse")} />}
                   {labels[tab]}
@@ -633,9 +663,10 @@ const Index = () => {
           <button
             aria-label="Leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
+            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/70 hover:-translate-y-0.5"
+            style={{ boxShadow: '0 4px 12px -3px rgba(217,119,6,0.25), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(146,64,14,0.08)' }}
           >
-            <Trophy className="w-[18px] h-[18px] text-money" strokeWidth={2.5} fill="currentColor" />
+            <Trophy className="w-[18px] h-[18px] text-amber-600" strokeWidth={2.5} fill="currentColor" />
           </button>
         </div>
 
@@ -647,11 +678,16 @@ const Index = () => {
                   key={country.code}
                   onClick={() => setSelectedCountry(country.code)}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-95 touch-manipulation border",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap active:scale-95 touch-manipulation border",
                     selectedCountry === country.code
-                      ? "bg-gradient-primary text-on-dark shadow-md border-transparent"
-                      : "bg-background text-heading border-border hover:bg-muted"
+                      ? "bg-gradient-primary text-on-dark border-transparent"
+                      : "bg-card text-heading border-border hover:bg-muted hover:-translate-y-0.5"
                   )}
+                  style={
+                    selectedCountry === country.code
+                      ? { boxShadow: '0 4px 12px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' }
+                      : { boxShadow: '0 2px 4px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)' }
+                  }
                 >
                   <span className="text-sm">{country.flag}</span>
                   <span>{country.name}</span>
@@ -660,6 +696,7 @@ const Index = () => {
             </div>
         </div>
       </header>
+
 
       {/* Main Content - ONLY this part scrolls */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
@@ -695,10 +732,12 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-muted animate-pulse border border-border"
+                className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-muted via-muted/60 to-muted animate-pulse border border-border"
+                style={{ boxShadow: '0 4px 12px -4px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.5)' }}
               />
             ))}
           </div>
+
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
