@@ -1192,23 +1192,23 @@ const App = () => {
                 <Route path="/landing" element={<Navigate to="/" replace />} />
                 <Route path="/download" element={<Navigate to="/" replace />} />
 
-                <Route path="/smart-link" element={<SmartLink />} />
-                <Route path="/share" element={<ShareReceive />} />
-                <Route path="/link" element={<SmartLink />} />
-                <Route path="/policies" element={<PublicPolicies />} />
-                <Route path="/policies/:policyId" element={<PolicyDetail />} />
+                <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                <Route path="/share" element={publicPage(<ShareReceive />)} />
+                <Route path="/link" element={publicPage(<SmartLink />)} />
+                <Route path="/policies" element={publicPage(<PublicPolicies />)} />
+                <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
-                <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
-                <Route path="/terms" element={<PublicTerms />} />
-                <Route path="/account-deletion" element={<PublicAccountDeletion />} />
+                <Route path="/privacy-policy" element={publicPage(<PublicPrivacyPolicy />)} />
+                <Route path="/terms" element={publicPage(<PublicTerms />)} />
+                <Route path="/account-deletion" element={publicPage(<PublicAccountDeletion />)} />
                 <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
-                <Route path="/google-library-order-rules" element={<GoogleLibraryOrderRules />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<PublicContact />} />
-                <Route path="/support" element={<PublicContact />} />
-                <Route path="/agency-policy" element={<AgencyPolicy />} />
-                <Route path="/policies-benefits" element={<PoliciesAndBenefits />} />
-                <Route path="/helper-policy" element={<AgencyPolicy />} />
+                <Route path="/google-library-order-rules" element={publicPage(<GoogleLibraryOrderRules />)} />
+                <Route path="/about" element={publicPage(<About />)} />
+                <Route path="/contact" element={publicPage(<PublicContact />)} />
+                <Route path="/support" element={publicPage(<PublicContact />)} />
+                <Route path="/agency-policy" element={publicPage(<AgencyPolicy />)} />
+                <Route path="/policies-benefits" element={publicPage(<PoliciesAndBenefits />)} />
+                <Route path="/helper-policy" element={publicPage(<AgencyPolicy />)} />
                 <Route path="/sync-test" element={<SyncTest />} />
                 
                 {/* ============================================= */}
@@ -1253,8 +1253,8 @@ const App = () => {
                 <Route path="/host-application" element={<ProtectedRoute session={session}><HostApplication /></ProtectedRoute>} />
                 <Route path="/agent-wallet" element={<ProtectedRoute session={session}><AgentWallet /></ProtectedRoute>} />
                 <Route path="/transfer-history" element={<ProtectedRoute session={session}><TransferHistory /></ProtectedRoute>} />
-                <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : <AgencySignup />} />
-                <Route path="/agency-signup" element={<AgencySignup />} />
+                <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : publicPage(<AgencySignup />)} />
+                <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
                 <Route path="/agency-dashboard" element={<ProtectedRoute session={session}><AgencyDashboard /></ProtectedRoute>} />
                 <Route path="/agency-withdrawal" element={<ProtectedRoute session={session}><AgencyWithdrawal /></ProtectedRoute>} />
                 <Route path="/agency-coin-exchange" element={<ProtectedRoute session={session}><AgencyCoinExchange /></ProtectedRoute>} />
@@ -1263,7 +1263,7 @@ const App = () => {
                 <Route path="/agency-commission-history" element={<ProtectedRoute session={session}><AgencyCommissionHistory /></ProtectedRoute>} />
                 <Route path="/agency-host-management" element={<ProtectedRoute session={session}><AgencyHostManagement /></ProtectedRoute>} />
                 <Route path="/join-agency" element={<ProtectedRoute session={session}><JoinAgency /></ProtectedRoute>} />
-                <Route path="/become-sub-agent" element={<BecomeSubAgent />} />
+                <Route path="/become-sub-agent" element={publicPage(<BecomeSubAgent />)} />
                 <Route path="/agency-details" element={<ProtectedRoute session={session}><AgencyDetails /></ProtectedRoute>} />
                 <Route path="/host-transfer-history" element={<ProtectedRoute session={session}><HostTransferHistory /></ProtectedRoute>} />
                 <Route path="/call-history" element={<ProtectedRoute session={session}><CallHistory /></ProtectedRoute>} />
@@ -1283,7 +1283,7 @@ const App = () => {
                 <Route path="/dev/avatar-ring-check" element={<ProtectedRoute session={session}><AvatarFrameRingCheck /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
-                <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
+                <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
