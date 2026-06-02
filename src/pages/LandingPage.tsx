@@ -164,19 +164,19 @@ const LandingPage = () => {
 
   return (
  <div
-   className="min-h-screen bg-[#030308] text-white overflow-x-hidden selection:bg-pink-500/30"
+   className="min-h-screen bg-white text-slate-900 overflow-x-hidden selection:bg-pink-500/30"
    data-public-scroll="true"
    style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}
  >
       {/* Floating Header */}
       <motion.header
         style={{ opacity: headerOpacity }}
- className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#030308]/80 border-b border-slate-200/[0.04]"
+ className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-white/85 border-b border-slate-200"
       >
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg"/>
-            <span className="font-bold text-lg bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">MeriLive</span>
+            <span className="font-bold text-lg bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">MeriLive</span>
           </div>
           <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
             <img src={googlePlayBadge} alt="Get it on Google Play" className="h-10 hover:scale-105 transition-transform"/>
@@ -189,7 +189,7 @@ const LandingPage = () => {
         {/* Full Background Image */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40"/>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#030308]/30 via-[#030308]/60 to-[#030308]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/60 to-white" />
           {/* Extra ambient orbs */}
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-radial from-pink-500/10 via-purple-500/5 to-transparent rounded-full blur-[120px] animate-pulse" />
           <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-blue-600/8 rounded-full blur-[180px]" />
@@ -239,7 +239,7 @@ const LandingPage = () => {
             transition={{ delay: 0.4 }}
             className="text-6xl md:text-8xl font-black mb-4 tracking-tight"
           >
-            <span className="bg-gradient-to-b from-white via-white/95 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]">
+            <span className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-500 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(15,23,42,0.06)]">
               Meri
             </span>
             <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(236,72,153,0.3)]">
@@ -251,7 +251,7 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
- className="text-lg md:text-xl text-white/80 mb-3 font-light tracking-wide"
+ className="text-lg md:text-xl text-slate-700 mb-3 font-light tracking-wide"
           >
             Live Streaming · Video Call · Party Room · Virtual Gifts
           </motion.p>
@@ -260,7 +260,7 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
- className="text-sm text-white/60 mb-12 max-w-md mx-auto"
+ className="text-sm text-slate-500 mb-12 max-w-md mx-auto"
           >
             Stream live, connect with friends, earn money as a host, and experience the future of social entertainment
           </motion.p>
@@ -290,7 +290,7 @@ const LandingPage = () => {
               className="group relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
- <div className="relative bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="relative bg-white backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14"/>
               </div>
             </a>
@@ -305,7 +305,7 @@ const LandingPage = () => {
           >
             <button
               onClick={handleAPKDownload}
- className="text-xs text-white/60 hover:text-white/75 transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
+ className="text-xs text-slate-500 hover:text-slate-600 transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
             >
               Or download APK directly
             </button>
@@ -324,15 +324,15 @@ const LandingPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 + i * 0.1 }}
- className="relative text-center group p-5 rounded-2xl bg-white/[0.03] border border-slate-200/[0.06] backdrop-blur-xl hover:bg-white/[0.06] hover:border-slate-200/[0.12] transition-all duration-500 overflow-hidden"
+ className="relative text-center group p-5 rounded-2xl bg-white border border-slate-200 backdrop-blur-xl hover:bg-white hover:border-slate-200 transition-all duration-500 overflow-hidden"
               >
                 {/* Glow effect */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500 rounded-2xl`} />
                 <div className={`w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
  <stat.icon className="w-5 h-5 text-slate-900" />
                 </div>
-                <div className="text-2xl font-black bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent relative z-10">{stat.value}</div>
- <div className="text-[10px] text-white/65 uppercase tracking-[0.2em] font-bold mt-1 relative z-10">{stat.label}</div>
+                <div className="text-2xl font-black bg-gradient-to-b from-slate-900 to-slate-500 bg-clip-text text-transparent relative z-10">{stat.value}</div>
+ <div className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold mt-1 relative z-10">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -343,7 +343,7 @@ const LandingPage = () => {
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
         >
- <ChevronDown className="w-5 h-5 text-white/40" />
+ <ChevronDown className="w-5 h-5 text-slate-400" />
         </motion.div>
       </section>
 
@@ -369,7 +369,7 @@ const LandingPage = () => {
                   
                   <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${event.gradient_colors}`}>
                     {/* Inner glass overlay */}
- <div className="absolute inset-0 bg-slate-100/15 backdrop-blur-[2px]" />
+ <div className="absolute inset-0 bg-white/15 backdrop-blur-[2px]" />
                     
                     {/* Ambient orbs */}
                     <div className="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
@@ -377,7 +377,7 @@ const LandingPage = () => {
                     
                     {/* Shine sweep animation */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12 pointer-events-none"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-200 to-transparent -skew-x-12 pointer-events-none"
                       initial={{ x: '-150%' }}
                       whileInView={{ x: '250%' }}
                       viewport={{ once: true }}
@@ -418,7 +418,7 @@ const LandingPage = () => {
                     </div>
                     
                     {/* Bottom shimmer line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
                   </div>
                 </motion.div>
               );
@@ -445,13 +445,13 @@ const LandingPage = () => {
                   {/* Subtle border glow */}
                   <div className="absolute -inset-[0.5px] bg-gradient-to-r from-blue-500/30 via-indigo-500/20 to-purple-500/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
- <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white/[0.03] border border-slate-200/[0.07] backdrop-blur-xl hover:bg-white/[0.06] hover:border-slate-200/[0.15] transition-all duration-500 overflow-hidden">
+ <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white border border-slate-200 backdrop-blur-xl hover:bg-white hover:border-slate-200 transition-all duration-500 overflow-hidden">
                     {/* Ambient glow on hover */}
                     <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
                     {/* Shine sweep */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -skew-x-12 pointer-events-none"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100 to-transparent -skew-x-12 pointer-events-none"
                       initial={{ x: '-100%' }}
                       whileInView={{ x: '200%' }}
                       viewport={{ once: true }}
@@ -465,8 +465,8 @@ const LandingPage = () => {
                     
                     {/* Content */}
                     <div className="flex-1 min-w-0">
- <h4 className="text-sm font-bold text-white/95 truncate">{item.title}</h4>
- {item.description && <p className="text-xs text-white/70 truncate mt-0.5 leading-relaxed">{item.description}</p>}
+ <h4 className="text-sm font-bold text-slate-900 truncate">{item.title}</h4>
+ {item.description && <p className="text-xs text-slate-600 truncate mt-0.5 leading-relaxed">{item.description}</p>}
                     </div>
                     
                     {/* Badge */}
@@ -477,7 +477,7 @@ const LandingPage = () => {
                     )}
                     
                     {/* Arrow indicator */}
- <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white/70 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
+ <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
                   </div>
                 </motion.div>
               );
@@ -504,7 +504,7 @@ const LandingPage = () => {
               Everything in{" "}
               <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent">One App</span>
             </h2>
- <p className="text-white/65 max-w-lg mx-auto text-sm leading-relaxed">
+ <p className="text-slate-500 max-w-lg mx-auto text-sm leading-relaxed">
               From live streaming to video calls, party rooms to virtual gifts — the complete entertainment platform
             </p>
           </motion.div>
@@ -519,16 +519,16 @@ const LandingPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
- className="group relative p-7 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-slate-200/[0.06] hover:border-slate-200/[0.15] transition-all duration-500 hover:bg-white/[0.06] backdrop-blur-xl overflow-hidden"
+ className="group relative p-7 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-slate-200 hover:border-slate-200 transition-all duration-500 hover:bg-white backdrop-blur-xl overflow-hidden"
                 >
                   {/* Background glow */}
                   <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${feature.gradient_colors} rounded-full blur-[60px] opacity-10 group-hover:opacity-25 transition-opacity duration-500`} />
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient_colors} flex items-center justify-center mb-5 shadow-xl shadow-black/20 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10`}>
  <IconComp className="w-7 h-7 text-slate-900" />
                   </div>
- <h3 className="text-lg font-bold mb-1.5 text-white/95 relative z-10">{feature.title}</h3>
+ <h3 className="text-lg font-bold mb-1.5 text-slate-900 relative z-10">{feature.title}</h3>
                   {feature.subtitle && <p className="text-xs text-pink-600/60 mb-2 relative z-10">{feature.subtitle}</p>}
- <p className="text-sm text-white/70 leading-relaxed relative z-10">{feature.description}</p>
+ <p className="text-sm text-slate-600 leading-relaxed relative z-10">{feature.description}</p>
                 </motion.div>
               );
             })}
@@ -546,7 +546,7 @@ const LandingPage = () => {
       <section className="py-28 px-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 rotate-180"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#030308] via-[#030308]/80 to-[#030308]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white" />
         </div>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -562,7 +562,7 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
             Start Your <span className="bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Journey</span>
           </h2>
- <p className="text-white/65 mb-12 text-sm max-w-md mx-auto leading-relaxed">
+ <p className="text-slate-500 mb-12 text-sm max-w-md mx-auto leading-relaxed">
             Download MeriLive and join a community of millions. Your audience is waiting.
           </p>
           
@@ -573,7 +573,7 @@ const LandingPage = () => {
               rel="noopener noreferrer"
               className="group"
             >
- <div className="bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="bg-white backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-14 md:h-16"/>
               </div>
             </a>
@@ -581,7 +581,7 @@ const LandingPage = () => {
             <Button
               onClick={handleAPKDownload}
               size="lg"
-              className="h-16 px-10 bg-white/[0.08] hover:bg-white/[0.12] border border-slate-200/10 text-white font-bold rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              className="h-16 px-10 bg-white hover:bg-slate-50 border border-slate-200/10 text-white font-bold rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
             >
               <Download className="w-5 h-5 mr-2" />
               APK Download
@@ -591,24 +591,24 @@ const LandingPage = () => {
       </section>
 
       {/* SEO Content Section - visible to crawlers, subtle for users */}
- <section className="py-16 px-4 border-t border-slate-200/[0.03]">
+ <section className="py-16 px-4 border-t border-slate-200">
         <div className="max-w-5xl mx-auto">
- <h2 className="text-2xl font-bold text-white/80 mb-6">Best Live Streaming App - MeriLive</h2>
- <div className="grid md:grid-cols-2 gap-8 text-sm text-white/50 leading-relaxed">
+ <h2 className="text-2xl font-bold text-slate-700 mb-6">Best Live Streaming App - MeriLive</h2>
+ <div className="grid md:grid-cols-2 gap-8 text-sm text-slate-500 leading-relaxed">
             <article>
- <h3 className="text-white/70 font-semibold mb-2">🎬 Live Streaming & Video Call Platform</h3>
+ <h3 className="text-slate-600 font-semibold mb-2">🎬 Live Streaming & Video Call Platform</h3>
               <p>MeriLive is the best free live streaming app for Android. Go live, start live video streaming, join live video chat rooms, and connect with millions worldwide. Our live broadcast platform supports HD live streaming, multi-guest live rooms, PK battles, and real-time live interaction. Whether you want to watch live streams, become a live streamer, or earn money from live streaming - MeriLive is the #1 choice.</p>
             </article>
             <article>
- <h3 className="text-white/70 font-semibold mb-2">💰 Earn Money as a Live Streaming Host</h3>
+ <h3 className="text-slate-600 font-semibold mb-2">💰 Earn Money as a Live Streaming Host</h3>
               <p>Become a host on MeriLive and earn $10-$100+ per day through virtual gifts, video calls, and daily task rewards. Join a live streaming agency, complete host verification, and start your live streaming career. Our agency system connects you with top agencies offering training, support, and higher earnings. The best platform for content creators and live streamers to monetize their talent.</p>
             </article>
             <article>
- <h3 className="text-white/70 font-semibold mb-2">🎉 Party Rooms & Social Entertainment</h3>
+ <h3 className="text-slate-600 font-semibold mb-2">🎉 Party Rooms & Social Entertainment</h3>
               <p>Join live party rooms, sing karaoke, play interactive games, and socialize with friends. MeriLive offers the best social live streaming experience with virtual gifts, animated effects, beauty filters, and AR face filters. Send luxury gifts, climb the leaderboard, and become a VIP. The ultimate live entertainment app for social interaction and fun.</p>
             </article>
             <article>
- <h3 className="text-white/70 font-semibold mb-2">📱 Download MeriLive - Free Live Streaming App</h3>
+ <h3 className="text-slate-600 font-semibold mb-2">📱 Download MeriLive - Free Live Streaming App</h3>
               <p>Download MeriLive free from Google Play Store. Available worldwide with support for English, Bengali, Hindi, and Arabic. Features include live streaming, video calls, party rooms, virtual gifts, games, PK competitions, host earnings, agency system, daily rewards, and 24/7 customer support. The most popular live streaming app in Bangladesh, India, and South Asia. Start streaming live today!</p>
             </article>
           </div>
@@ -616,7 +616,7 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
- <footer className="py-16 px-4 border-t border-slate-200/[0.06] bg-gradient-to-t from-black/60 to-transparent">
+ <footer className="py-16 px-4 border-t border-slate-200 bg-gradient-to-t from-slate-50 to-transparent">
         <div className="max-w-5xl mx-auto space-y-10">
           {/* Top: Brand + Links */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -624,31 +624,31 @@ const LandingPage = () => {
             <div className="flex items-center gap-3.5">
               <img src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"/>
               <div>
-                <span className="font-bold text-xl bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">MeriLive</span>
- <p className="text-xs text-white/65 mt-0.5">Best Live Streaming & Video Call Platform</p>
+                <span className="font-bold text-xl bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">MeriLive</span>
+ <p className="text-xs text-slate-500 mt-0.5">Best Live Streaming & Video Call Platform</p>
               </div>
             </div>
 
             {/* Navigation Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Footer navigation">
- <a href="/privacy-policy" className="text-white/70 hover:text-white/85 transition-colors duration-200">
+ <a href="/privacy-policy" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
                 Privacy
               </a>
- <a href="/terms" className="text-white/70 hover:text-white/85 transition-colors duration-200">
+ <a href="/terms" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
                 Terms
               </a>
- <a href="/contact" className="text-white/70 hover:text-white/85 transition-colors duration-200">
+ <a href="/contact" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
                 Contact
               </a>
             </nav>
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
           {/* Bottom: Download + Copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
- <p className="text-xs text-white/50 order-2 sm:order-1">© 2026 MeriLive. All rights reserved.</p>
+ <p className="text-xs text-slate-500 order-2 sm:order-1">© 2026 MeriLive. All rights reserved.</p>
             <div className="flex items-center gap-4 order-1 sm:order-2">
               <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Download MeriLive on Google Play Store">
                 <img src={googlePlayBadge} alt="Download MeriLive on Google Play" className="h-10 hover:scale-105 transition-transform duration-200"/>
@@ -679,10 +679,10 @@ const LandingPage = () => {
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-pink-600 p-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
- <Building2 className="w-6 h-6 text-slate-900" />
+ <Building2 className="w-6 h-6 text-white" />
                   <div>
- <h3 className="text-slate-900 font-bold text-lg">Our Agencies</h3>
- <p className="text-white/85 text-xs">Join any agency to become a host</p>
+ <h3 className="text-white font-bold text-lg">Our Agencies</h3>
+ <p className="text-white/90 text-xs">Join any agency to become a host</p>
                   </div>
                 </div>
  <button onClick={() => setShowAgencyList(false)} className="text-white/85 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
@@ -691,13 +691,13 @@ const LandingPage = () => {
               </div>
 
               {/* Agency List */}
-              <div className="bg-gradient-to-b from-[#1a1000] to-[#0d0800] overflow-y-auto max-h-[60vh] p-4 space-y-3">
+              <div className="bg-gradient-to-b from-amber-50/60 to-amber-50/30 overflow-y-auto max-h-[60vh] p-4 space-y-3">
                 {loadingAgencies ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : agencies.length === 0 ? (
- <p className="text-center text-white/70 py-16">No agencies available</p>
+ <p className="text-center text-slate-600 py-16">No agencies available</p>
                 ) : (
                   agencies.map((agency, i) => (
                     <motion.div
@@ -723,7 +723,7 @@ const LandingPage = () => {
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-mono font-bold border border-amber-500/20">
                             {agency.agency_code}
                           </span>
- <span className="text-[11px] text-white/65">
+ <span className="text-[11px] text-slate-500">
                             {agency.total_hosts || 0} hosts
                           </span>
                         </div>
@@ -738,7 +738,7 @@ const LandingPage = () => {
                       </a>
                       <button
                         onClick={() => copyCode(agency.agency_code)}
-                        className="flex-shrink-0 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-xs transition-all duration-200"
+                        className="flex-shrink-0 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-200 text-slate-600 text-xs transition-all duration-200"
                         title="Copy code"
                       >
                         {copiedCode === agency.agency_code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -749,8 +749,8 @@ const LandingPage = () => {
               </div>
 
               {/* Footer */}
-              <div className="bg-[#0d0800] border-t border-amber-500/10 p-4 text-center">
- <p className="text-white/65 text-xs">
+              <div className="bg-slate-50 border-t border-amber-500/10 p-4 text-center">
+ <p className="text-slate-500 text-xs">
                   Download the app → Apply as Host → Enter the agency code
                 </p>
               </div>
