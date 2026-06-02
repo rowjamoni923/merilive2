@@ -48,6 +48,25 @@ export default function AdminAuth() {
   const [pendingSessionToken, setPendingSessionToken] = useState<string | null>(null);
   const [pendingAuthData, setPendingAuthData] = useState<PendingAuthData | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const MAX_LOGIN_ATTEMPTS = 3;
+
+  // After 3 failed login attempts on the owner/sub-admin secret link, kick
+  // the visitor out to the public landing page. Prevents brute-force probing
+  // and matches the user's "auto-redirect to landing on repeated failure" rule.
+  const handleAuthFailure = (reason: string) => {
+    const next = failedAttempts + 1;
+    setFailedAttempts(next);
+    toast.error(reason);
+    if (next >= MAX_LOGIN_ATTEMPTS) {
+      toast.error(`Too many failed attempts. Redirecting...`);
+      revokeAdminAccess();
+      clearAdminSession();
+      setTimeout(() => {
+        window.location.replace('/landing');
+      }, 600);
+    }
+  };
 
   const getAdminAuthPath = () => {
     const accessToken = getAdminLinkToken() || searchParams.get('access')?.trim() || null;
