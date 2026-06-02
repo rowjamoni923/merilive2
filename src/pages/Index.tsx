@@ -491,7 +491,10 @@ const Index = () => {
           {user.isLive && (
             <>
               <div className="absolute top-2.5 left-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary shadow-lg shadow-danger/30">
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary"
+                  style={{ boxShadow: '0 6px 14px -4px hsl(var(--danger) / 0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)' }}
+                >
                   <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full animate-pulse" />
                   <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
                 </div>
@@ -499,7 +502,10 @@ const Index = () => {
               {/* Viewer Count */}
               {(user.viewerCount ?? 0) > 0 && (
                 <div className="absolute top-2.5 right-2">
-                  <div className="flex items-center gap-1 bg-foreground/60 backdrop-blur-sm rounded-full px-2 py-1">
+                  <div
+                    className="flex items-center gap-1 bg-foreground/65 backdrop-blur-md rounded-full px-2 py-1"
+                    style={{ boxShadow: '0 3px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)' }}
+                  >
                     <Eye className="w-3 h-3 text-on-dark" />
                     <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
                   </div>
@@ -511,25 +517,34 @@ const Index = () => {
           {/* Online / Busy Indicator - subtle dot only, no text (industry standard) */}
           {!user.isLive && user.is_online && (
             <div className="absolute top-2.5 left-2">
-              <div className={cn(
-                "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/80 shadow-md",
-                isActuallyBusy
-                  ? "bg-warning"
-                  : "bg-success animate-pulse"
-              )} />
+              <div
+                className={cn(
+                  "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/90",
+                  isActuallyBusy ? "bg-warning" : "bg-success animate-pulse"
+                )}
+                style={{
+                  boxShadow: isActuallyBusy
+                    ? '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--warning) / 0.6)'
+                    : '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--success) / 0.65)'
+                }}
+              />
             </div>
           )}
 
           {/* VIP/Verified Badge */}
           {(user.is_verified || user.is_face_verified) && (
             <div className="absolute top-2.5 right-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center shadow-lg shadow-info/30 border border-primary-foreground/30">
-                <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">
+              <div
+                className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center border border-primary-foreground/40"
+                style={{ boxShadow: '0 4px 10px -2px hsl(var(--info) / 0.45), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15)' }}
+              >
+                <svg className="w-3 h-3 text-on-dark drop-shadow" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
           )}
+
 
           {/* Bottom Info */}
           <div className="absolute bottom-0 left-0 right-0 p-2.5">
