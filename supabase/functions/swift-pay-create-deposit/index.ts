@@ -26,6 +26,11 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// SwiftPay currently enables ONLY these 4 networks (verified via gateway probe).
+// Anything else triggers "currency not enabled". Keep this list in sync with
+// the gateway's enabled set.
+const SUPPORTED_CURRENCIES = new Set<string>(["usdtbsc", "usdterc20", "usdttrc20", "btc"]);
+
 function gatewayErrorMessage(body: any): string {
   return String(body?.error ?? body?.message ?? body?.details?.error ?? body?.details?.message ?? body?.raw ?? "gateway_error");
 }
@@ -38,15 +43,22 @@ function isGatewayFallbackError(message: string): boolean {
     normalized.includes("not enabled") ||
     normalized.includes("not supported") ||
     normalized.includes("unsupported currency") ||
-    normalized.includes("disabled") ||
-    normalized.includes("gateway_error")
+    normalized.includes("disabled")
   );
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
   const normalized = message.toLowerCase();
-  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
+  return (
+    normalized.includes("less than minimal") ||
+    normalized.includes("less than minimum") ||
+    normalized.includes("amount too low") ||
+    normalized.includes("minimum required") ||
+    normalized.includes("below minimum") ||
+    normalized.includes("too small")
+  );
 }
+
 
 function roundUsd(value: number): number {
   return Number(value.toFixed(2));
