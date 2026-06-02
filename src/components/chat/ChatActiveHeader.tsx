@@ -55,17 +55,19 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
       style={{ zIndex: 10, position: "relative", borderRadius: 0, borderLeft: "none", borderRight: "none", borderTop: "none" }}
     >
       <div className="flex items-center gap-3 px-3 py-2.5 h-14">
-        {/* Back Button */}
+        {/* Back Button — premium 3D glass orb */}
         <button
           type="button"
-          className="flex items-center justify-center w-9 h-9 rounded-full profile-home-icon-button active:scale-95 transition-all duration-150 shrink-0"
+          className="relative flex items-center justify-center w-9 h-9 rounded-full bg-card/95 border border-border/70 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shrink-0 overflow-hidden"
+          style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onBack();
           }}
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+          <ArrowLeft className="w-5 h-5 text-foreground relative" />
         </button>
 
         {/* User Avatar with Premium Frame */}
@@ -164,10 +166,15 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
             onClick={() => {
               if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
             }}
-            className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 active:scale-95 transition-all"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 overflow-hidden"
+            style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #bbf7d0 0%, #22c55e 45%, #14532d 100%)',
+              boxShadow: '0 6px 16px -6px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 5px rgba(0,0,0,0.3)'
+            }}
             aria-label="Video call"
           >
-            <VideoCallIcon className="w-[18px] h-[18px] text-success-600" />
+            <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+            <VideoCallIcon className="w-[18px] h-[18px] text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
           </button>
         )}
 
@@ -175,14 +182,16 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
         {isGroup && (
           <button
             type="button"
-            className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20"
+            className="relative w-9 h-9 rounded-full bg-card/95 border border-border/70 flex items-center justify-center shrink-0 z-20 overflow-hidden hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+            style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setShowGroupSettings(true);
             }}
           >
-            <Settings className="w-5 h-5 text-foreground pointer-events-none" />
+            <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+            <Settings className="w-5 h-5 text-foreground pointer-events-none relative" />
           </button>
         )}
 
@@ -192,9 +201,11 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20 backdrop-blur-xl"
+                className="relative w-9 h-9 rounded-full bg-card/95 border border-border/70 flex items-center justify-center shrink-0 z-20 overflow-hidden hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+                style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
               >
-                <MoreVertical className="w-5 h-5 text-foreground pointer-events-none" />
+                <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+                <MoreVertical className="w-5 h-5 text-foreground pointer-events-none relative" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
