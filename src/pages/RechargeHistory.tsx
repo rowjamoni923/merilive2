@@ -331,16 +331,23 @@ const RechargeHistory = () => {
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-4">
-              <Receipt className="w-10 h-10 text-slate-500" />
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-pink-500/20 blur-2xl scale-125" />
+              <div
+                className="relative w-24 h-24 rounded-full bg-gradient-to-br from-white to-amber-50 border border-amber-200/70 flex items-center justify-center"
+                style={{ boxShadow: '0 12px 28px -12px rgba(168,85,247,0.35), inset 0 2px 0 rgba(255,255,255,0.9), inset 0 -2px 6px rgba(168,85,247,0.08)' }}
+              >
+                <Receipt className="w-10 h-10 text-purple-500" style={{ filter: 'drop-shadow(0 2px 4px rgba(168,85,247,0.35))' }} />
+              </div>
             </div>
-            <p className="text-slate-400 font-medium text-lg">No recharge history</p>
+            <p className="text-slate-700 font-bold text-lg">No recharge history</p>
             <p className="text-slate-500 text-sm mt-1">Your transactions will appear here</p>
-            <Button 
-              className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl px-6 h-12"
+            <Button
+              className="mt-6 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-2xl px-6 h-12 font-semibold active:scale-95 hover:-translate-y-0.5 transition-all"
+              style={{ boxShadow: '0 10px 24px -10px rgba(168,85,247,0.6), inset 0 1px 0 rgba(255,255,255,0.35)' }}
               onClick={() => navigate('/recharge')}
             >
-              <Gem className="w-5 h-5 mr-2" />
+              <Gem className="w-5 h-5 mr-2" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
               Recharge Now
             </Button>
           </div>
@@ -349,24 +356,28 @@ const RechargeHistory = () => {
             {filteredRequests.map((request, index) => (
               <div
                 key={request.id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 hover:border-purple-500/30 transition-all duration-300"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="relative bg-white rounded-2xl p-4 border border-amber-200/60 hover:border-purple-400/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                style={{ boxShadow: '0 8px 22px -14px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.9)', animationDelay: `${index * 50}ms` }}
               >
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent" />
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center text-2xl">
-                       {getPaymentMethodIcon(request.payment_method || '')}
+                    <div
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 via-pink-50 to-white border border-purple-200/60 flex items-center justify-center text-2xl"
+                      style={{ boxShadow: '0 6px 16px -8px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -2px 4px rgba(168,85,247,0.08)' }}
+                    >
+                      {getPaymentMethodIcon(request.payment_method || '')}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800 text-lg">
-                        +{request.coin_amount?.toLocaleString() || 0} 
-                        <span className="text-purple-400 ml-1">💎</span>
+                      <p className="font-extrabold text-slate-800 text-lg leading-tight">
+                        +{request.coin_amount?.toLocaleString() || 0}
+                        <span className="text-purple-500 ml-1">💎</span>
                       </p>
-                      <p className="text-slate-400 text-sm">
-                        {request.source === 'google_play' 
-                          ? '🟢 Google Play' 
-                          : request.helper_name 
-                            ? `👤 ${request.helper_name}` 
+                      <p className="text-slate-500 text-sm font-medium">
+                        {request.source === 'google_play'
+                          ? '🟢 Google Play'
+                          : request.helper_name
+                            ? `👤 ${request.helper_name}`
                             : getPaymentMethodLabel(request.payment_method || '')}
                       </p>
                     </div>
