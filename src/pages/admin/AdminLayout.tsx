@@ -1558,7 +1558,13 @@ export default function AdminLayout() {
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.contentCount", message: formatAdminError(error) });
+      const message = formatAdminError(error);
+      recordAdminError({
+        kind: "rpc",
+        label: "AdminLayout.admin_layout_counts",
+        message,
+        silent: /not authorized|unauthorized|admin session|jwt|session/i.test(message),
+      });
     }
   };
 

@@ -56,10 +56,16 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
  */
 const SAFETY_LIMIT = 500;
 const DEDUPE_MS = 250;
+const ADMIN_SESSION_PREFLIGHT_TTL_MS = 5 * 60 * 1000;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
+let adminSessionPreflightUntil = 0;
+let adminSessionPreflightPromise: Promise<void> | null = null;
 
 if (typeof window !== 'undefined') {
-  const clearAdminReadCache = () => clearInstantRestCache('admin');
+  const clearAdminReadCache = () => {
+    adminSessionPreflightUntil = 0;
+    clearInstantRestCache('admin');
+  };
   window.addEventListener('admin-table-update', clearAdminReadCache);
   window.addEventListener('admin-session-change', clearAdminReadCache);
 }
@@ -80,6 +86,50 @@ function applySafetyLimit(url: string): string {
   const sep = url.includes('?') ? '&' : '?';
   return `${url}${sep}limit=${SAFETY_LIMIT}`;
 }
+
+const ensureAdminSessionDeviceBound = (token: string): Promise<void> => {
+  if (!token || Date.now() < adminSessionPreflightUntil) return Promise.resolve();
+
+  const session = getAdminSession();
+  const fingerprint = session?.device_fingerprint;
+  if (!session?.admin_id || !fingerprint || fingerprint.length < 16) return Promise.resolve();
+
+  if (adminSessionPreflightPromise) return adminSessionPreflightPromise;
+
+  adminSessionPreflightPromise = fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_request_device_access`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      'content-type': 'application/json',
+      'x-admin-token': token,
+    },
+    body: JSON.stringify({
+      _admin_id: session.admin_id,
+      _device_fingerprint: fingerprint,
+      _device_name: session.display_name || null,
+      _device_info: { ua: typeof navigator !== 'undefined' ? navigator.userAgent : null },
+      _ip_address: null,
+      _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    }),
+  })
+    .then(async (resp) => {
+      if (!resp.ok) return;
+      const payload = await resp.json().catch(() => null) as any;
+      const row = Array.isArray(payload) ? payload[0] : payload;
+      if (row?.status === 'approved' || row?.success === true) {
+        adminSessionPreflightUntil = Date.now() + ADMIN_SESSION_PREFLIGHT_TTL_MS;
+      }
+    })
+    .catch((error) => {
+      console.warn('[adminClient] Admin session preflight failed; request will continue', error);
+    })
+    .finally(() => {
+      adminSessionPreflightPromise = null;
+    });
+
+  return adminSessionPreflightPromise;
+};
 
 /**
  * Custom fetch wrapper that attaches the admin session token header on every request,
@@ -187,6 +237,10 @@ const adminFetch: typeof fetch = (input, init) => {
     return resp;
   };
 
+  const sessionPreflight = token && isAdminRest && !isLoginRpc
+    ? ensureAdminSessionDeviceBound(token)
+    : Promise.resolve();
+
   // Dedupe identical in-flight reads (GET only, no body).
   if (method === 'GET') {
     const key = url + '|' + (headers.get('range') || '') + '|' + (headers.get('prefer') || '');
@@ -195,7 +249,7 @@ const adminFetch: typeof fetch = (input, init) => {
     if (hit && now - hit.t < DEDUPE_MS) {
       return hit.p.then((r) => r.clone());
     }
-    const p = fetchWithInstantRestCache(url, opts, {
+    const p = sessionPreflight.then(() => fetchWithInstantRestCache(url, opts, {
       namespace: 'admin',
       ttlMs: 3_000,
       staleWhileRevalidateMs: 0,
@@ -204,7 +258,7 @@ const adminFetch: typeof fetch = (input, init) => {
       // Never serve them from session cache: stale RPC JSON made dashboard counts
       // show old zero values even after the database was already correct.
       skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
-    }).then(logIfFailed);
+    })).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
       setTimeout(() => {
@@ -215,7 +269,7 @@ const adminFetch: typeof fetch = (input, init) => {
     return p.then((r) => r.clone());
   }
 
-  return fetch(url, opts).then(logIfFailed);
+  return sessionPreflight.then(() => fetch(url, opts)).then(logIfFailed);
 };
 
 /**
@@ -284,3 +338,29 @@ const getSyntheticAdminSession = () => {
   data: { session: getSyntheticAdminSession() },
   error: null,
 });
+
+(adminSupabase.auth as any).refreshSession = async () => ({
+  data: { session: getSyntheticAdminSession(), user: getSyntheticAdminUser() },
+  error: null,
+});
+
+(adminSupabase.auth as any).onAuthStateChange = (callback: (event: string, session: any) => void) => {
+  const emitInitial = () => callback('INITIAL_SESSION', getSyntheticAdminSession());
+  if (typeof queueMicrotask === 'function') queueMicrotask(emitInitial);
+  else setTimeout(emitInitial, 0);
+
+  const handler = () => callback('SIGNED_IN', getSyntheticAdminSession());
+  if (typeof window !== 'undefined') window.addEventListener('admin-session-change', handler);
+
+  return {
+    data: {
+      subscription: {
+        id: 'synthetic-admin-auth',
+        callback,
+        unsubscribe: () => {
+          if (typeof window !== 'undefined') window.removeEventListener('admin-session-change', handler);
+        },
+      },
+    },
+  };
+};
