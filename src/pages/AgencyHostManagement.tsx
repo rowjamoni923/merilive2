@@ -429,13 +429,13 @@ const AgencyHostManagement = () => {
                   placeholder="Search by name or UID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-warning-200/60 text-slate-800"
+                  className="pl-10 bg-white border-slate-200 text-slate-900"
                 />
               </div>
               <Button
                 variant={filterOnline ? "default" : "outline"}
                 onClick={() => setFilterOnline(!filterOnline)}
-                className={filterOnline ? "bg-success-500" : "bg-white/5 border-warning-200/60 text-slate-800"}
+                className={filterOnline ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-white border-slate-200 text-slate-800"}
               >
                 <UserCheck className="w-4 h-4" />
               </Button>
@@ -443,7 +443,7 @@ const AgencyHostManagement = () => {
 
             {filteredHosts.length === 0 ? (
               <div className="text-center py-10">
-                <Users className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
+                <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500">
                   {searchQuery || filterOnline ? "No hosts found" : "No hosts in agency"}
                 </p>
@@ -452,26 +452,27 @@ const AgencyHostManagement = () => {
               filteredHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-warning-200/60"
+                  className="bg-white rounded-2xl p-4 border border-slate-200 cursor-pointer hover:-translate-y-0.5 transition-transform"
+                  style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.1), 0 2px 4px -2px rgba(15,23,42,0.06)' }}
                   onClick={() => navigate(`/profile/${hostData.host_id}`)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={hostData.host?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/20 text-primary">
+                        <AvatarFallback className="bg-primary/10 text-primary">
                           {hostData.host?.display_name?.charAt(0) || "H"}
                         </AvatarFallback>
                       </Avatar>
                       {hostData.host?.is_online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-warning-200/60" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-900 font-medium">{hostData.host?.display_name || "Unknown"}</p>
                       <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
-                    <Badge className={hostData.host?.is_online ? "bg-success-500/20 text-success-400" : "bg-gray-500/20 text-gray-400"}>
+                    <Badge className={hostData.host?.is_online ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-600 border border-slate-200"}>
                       {hostData.host?.is_online ? "Online" : "Offline"}
                     </Badge>
                   </div>
