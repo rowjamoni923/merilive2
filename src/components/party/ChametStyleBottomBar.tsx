@@ -59,14 +59,14 @@ interface ChametStyleBottomBarProps {
 }
 
 const MENU_ITEMS = [
-  { id: "seat", icon: Armchair, label: "Seat", gradient: "from-emerald-400 to-teal-600", glow: "rgba(52,211,153,0.3)" },
-  { id: "background", icon: Image, label: "Background", gradient: "from-sky-400 to-blue-600", glow: "rgba(56,189,248,0.3)" },
-  { id: "music", icon: Music, label: "Music", gradient: "from-fuchsia-500 to-purple-700", glow: "rgba(217,70,239,0.3)" },
-  { id: "layout", icon: LayoutDashboard, label: "Layout", gradient: "from-violet-500 to-indigo-700", glow: "rgba(139,92,246,0.3)" },
-  { id: "messages", icon: MessageSquare, label: "Messages", gradient: "from-rose-400 to-pink-600", glow: "rgba(251,113,133,0.3)" },
-  { id: "share", icon: Share2, label: "Share", gradient: "from-orange-400 to-amber-600", glow: "rgba(251,146,60,0.3)" },
-  { id: "topup", icon: Diamond, label: "Top Up", gradient: "from-yellow-400 to-amber-500", glow: "rgba(250,204,21,0.3)" },
-  { id: "settings", icon: Settings, label: "Settings", gradient: "from-slate-400 to-gray-600", glow: "rgba(148,163,184,0.2)" },
+  { id: "seat", icon: Armchair, label: "Seat", radial: "radial-gradient(120% 120% at 30% 20%, #6ee7b7 0%, #10b981 45%, #047857 100%)", glow: "rgba(16,185,129,0.55)" },
+  { id: "background", icon: Image, label: "Background", radial: "radial-gradient(120% 120% at 30% 20%, #bae6fd 0%, #38bdf8 45%, #075985 100%)", glow: "rgba(56,189,248,0.55)" },
+  { id: "music", icon: Music, label: "Music", radial: "radial-gradient(120% 120% at 30% 20%, #f5d0fe 0%, #d946ef 45%, #86198f 100%)", glow: "rgba(217,70,239,0.55)" },
+  { id: "layout", icon: LayoutDashboard, label: "Layout", radial: "radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #4c1d95 100%)", glow: "rgba(139,92,246,0.55)" },
+  { id: "messages", icon: MessageSquare, label: "Messages", radial: "radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #f43f5e 45%, #9f1239 100%)", glow: "rgba(244,63,94,0.55)" },
+  { id: "share", icon: Share2, label: "Share", radial: "radial-gradient(120% 120% at 30% 20%, #fed7aa 0%, #f97316 45%, #9a3412 100%)", glow: "rgba(249,115,22,0.55)" },
+  { id: "topup", icon: Diamond, label: "Top Up", radial: "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #92400e 100%)", glow: "rgba(245,158,11,0.55)" },
+  { id: "settings", icon: Settings, label: "Settings", radial: "radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.28) 0%, rgba(100,116,139,0.85) 45%, rgba(30,41,59,0.95) 100%)", glow: "rgba(148,163,184,0.4)" },
 ];
 
 export const ChametStyleBottomBar = ({
