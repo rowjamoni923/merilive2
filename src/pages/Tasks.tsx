@@ -654,23 +654,38 @@ const Tasks = () => {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className={`bg-white backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
-                  status === 'claimed' 
-                    ? 'border-green-300 bg-green-50' 
+                className="relative overflow-hidden rounded-2xl p-4 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                style={{
+                  background: status === 'claimed'
+                    ? 'linear-gradient(135deg, rgba(16,185,129,0.10), rgba(34,197,94,0.06))'
                     : status === 'completed'
-                    ? 'border-amber-400 shadow-amber-300/30'
-                    : 'border-amber-200/60'
-                }`}
+                      ? 'linear-gradient(135deg, #ffffff, rgba(254,243,199,0.95))'
+                      : 'linear-gradient(135deg, #ffffff, rgba(255,251,240,0.95))',
+                  border: status === 'claimed'
+                    ? '1px solid rgba(34,197,94,0.45)'
+                    : status === 'completed'
+                      ? '1px solid rgba(245,158,11,0.55)'
+                      : '1px solid rgba(217,182,107,0.4)',
+                  boxShadow: status === 'completed'
+                    ? '0 12px 28px -10px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.95)'
+                    : '0 6px 18px -10px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95)',
+                }}
               >
-                <div className="flex items-center gap-4">
+                {status === 'completed' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer pointer-events-none" />
+                )}
+                <div className="relative flex items-center gap-4">
                   {/* Icon */}
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${task.icon_color}20` }}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, ${task.icon_color}, ${task.icon_color}cc)`,
+                      boxShadow: `0 8px 18px -6px ${task.icon_color}66, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.15)`
+                    }}
                   >
-                    <IconComponent 
-                      className="w-6 h-6" 
-                      style={{ color: task.icon_color }}
+                    <IconComponent
+                      className="w-6 h-6 text-white"
+                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }}
                     />
                   </div>
 
