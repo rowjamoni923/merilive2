@@ -24,6 +24,28 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
+async function verifyHmac(secret: string, rawBody: string, signature: string, timestamp: string): Promise<boolean> {
+  try {
+    if (!signature || !timestamp) return false;
+    // Reject stale timestamps (>5 min skew) to block replays.
+    const tsNum = parseInt(timestamp, 10);
+    if (!Number.isFinite(tsNum) || Math.abs(Date.now() / 1000 - tsNum) > 300) return false;
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${timestamp}.${rawBody}`));
+    const expected = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    // Constant-time compare
+    const a = expected.toLowerCase();
+    const b = signature.toLowerCase().replace(/^sha256=/, '');
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+  } catch { return false; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,30 +57,38 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Support both GET (query params) and POST (body)
+    // Read raw body once so we can both HMAC-verify and parse it.
+    let rawBody = '';
     let params: Record<string, string> = {};
-    
+
     if (req.method === 'GET') {
       const url = new URL(req.url);
       url.searchParams.forEach((v, k) => { params[k] = v; });
+      rawBody = url.search;
     } else {
+      rawBody = await req.text();
       const contentType = req.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
-        const body = await req.json();
-        params = body;
-      } else if (contentType.includes('form')) {
-        const formData = await req.formData();
-        formData.forEach((v, k) => { params[k] = String(v); });
+        try { params = JSON.parse(rawBody); } catch { params = {}; }
+      } else if (contentType.includes('form') || rawBody.includes('=')) {
+        const searchParams = new URLSearchParams(rawBody);
+        searchParams.forEach((v, k) => { params[k] = v; });
       } else {
-        // Try JSON first, fallback to text parsing
-        try {
-          const body = await req.json();
-          params = body;
-        } catch {
-          const text = await req.text();
-          const searchParams = new URLSearchParams(text);
-          searchParams.forEach((v, k) => { params[k] = v; });
-        }
+        try { params = JSON.parse(rawBody); } catch { params = {}; }
+      }
+    }
+
+    // SECURITY: require provider HMAC signature when GAME_CALLBACK_HMAC_SECRET is configured.
+    // Header: X-Signature (hex sha256), X-Timestamp (unix seconds). Falls back to body fields for legacy providers.
+    const hmacSecret = Deno.env.get('GAME_CALLBACK_HMAC_SECRET') || '';
+    if (hmacSecret) {
+      const sig = req.headers.get('x-signature') || params.signature || params.sign || '';
+      const ts = req.headers.get('x-timestamp') || params.timestamp || params.ts || '';
+      const ok = await verifyHmac(hmacSecret, rawBody, sig, ts);
+      if (!ok) {
+        return new Response(JSON.stringify({
+          success: false, code: 401, message: 'Invalid signature', status: 0,
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -68,14 +98,30 @@ serve(async (req) => {
     const gameId = params.game_id || params.gameId || params.game_code || '';
     const roundId = params.round_id || params.roundId || params.transaction_id || '';
 
+    // Validate action whitelist + amount sanity before doing anything privileged.
+    const allowedActions = new Set([
+      'getUserInfo','getBalance','placeBet','bet','debit',
+      'settleBet','win','credit','refund','rollback',
+    ]);
+    if (!allowedActions.has(action)) {
+      return new Response(JSON.stringify({
+        success: false, code: 400, message: 'Unknown action', status: 0,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000_000) {
+      return new Response(JSON.stringify({
+        success: false, code: 400, message: 'Invalid amount', status: 0,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (!token) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        code: 401, 
+      return new Response(JSON.stringify({
+        success: false,
+        code: 401,
         message: 'Token required',
-        status: 0 
+        status: 0,
       }), {
-        status: 200, // Many game providers expect 200 even on errors
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
