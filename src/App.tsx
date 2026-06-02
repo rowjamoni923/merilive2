@@ -461,7 +461,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isPublicPage = ((!hasSession && location.pathname === '/') || ['/landing', '/download', '/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
+  const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
+  const isPublicPage = isLandingDomain || ((!hasSession && location.pathname === '/') || ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
@@ -479,7 +480,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
   return (
     <>
-      {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      {!isAdminRoute && !isLandingDomain && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
       {(!isPublicPage || hasSession) && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
