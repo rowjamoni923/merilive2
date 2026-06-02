@@ -61,62 +61,48 @@ const LandingPage = () => {
     if (agencies.length > 0) return;
     setLoadingAgencies(true);
     try {
-      // Detect visitor country via free IP API
+      // Detect visitor country via IP (try ipapi.co, fallback to ipwho.is)
       let visitorCountryCode = '';
       try {
         const ipRes = await fetch('https://ipapi.co/json/');
         const ipData = await ipRes.json();
-        visitorCountryCode = (ipData.country_code || '').toUpperCase();
-      } catch { /* fallback: show all */ }
+        visitorCountryCode = (ipData.country_code || ipData.country || '').toUpperCase();
+      } catch { /* ignore */ }
+      if (!visitorCountryCode) {
+        try {
+          const r = await fetch('https://ipwho.is/');
+          const j = await r.json();
+          visitorCountryCode = (j.country_code || '').toUpperCase();
+        } catch { /* ignore */ }
+      }
 
-      // Fetch agencies with owner's country_code
-      const { data } = await supabase
-        .from("agencies")
-        .select("id, name, agency_code, logo_url, total_hosts, owner_id")
-        .eq("is_active", true)
-        .eq("is_blocked", false)
-        .order("total_hosts", { ascending: false });
-
-      if (!data || data.length === 0) {
+      // Country is required — without it we cannot filter, so show nothing.
+      if (!visitorCountryCode) {
         setAgencies([]);
         setLoadingAgencies(false);
         return;
       }
 
-      // Get owner profiles for country info
-      const ownerIds = data.map(a => a.owner_id).filter(Boolean);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, country_code, country_flag")
-        .in("id", ownerIds);
-
-      const profileMap: Record<string, { country_code: string | null; country_flag: string | null }> = {};
-      (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
-
-      // Build a map: agency_id -> owner country_code
-      const agencyCountryMap: Record<string, string> = {};
-      data.forEach(a => {
-        if (a.owner_id && profileMap[a.owner_id]?.country_code) {
-          agencyCountryMap[a.id] = (profileMap[a.owner_id].country_code || '').toUpperCase();
-        }
+      // Public RPC: returns active, non-blocked agencies for the given country,
+      // excluding internal admin agencies (Official Admin & Bd Officials).
+      const { data, error } = await supabase.rpc('get_public_landing_agencies', {
+        _country_code: visitorCountryCode,
       });
 
-      const allAgencies: AgencyListItem[] = data.map(a => ({
+      if (error || !data) {
+        setAgencies([]);
+        setLoadingAgencies(false);
+        return;
+      }
+
+      setAgencies((data as any[]).map(a => ({
         id: a.id,
         name: a.name,
         agency_code: a.agency_code,
         logo_url: a.logo_url,
-        total_hosts: a.total_hosts,
-        country_flag: a.owner_id ? profileMap[a.owner_id]?.country_flag || null : null,
-      }));
-
-      // Filter by visitor country if detected
-      if (visitorCountryCode) {
-        const countryAgencies = allAgencies.filter(a => agencyCountryMap[a.id] === visitorCountryCode);
-        setAgencies(countryAgencies.length > 0 ? countryAgencies : allAgencies);
-      } else {
-        setAgencies(allAgencies);
-      }
+        total_hosts: a.total_hosts ?? 0,
+        country_flag: a.country_flag || null,
+      })));
     } catch {
       setAgencies([]);
     }
