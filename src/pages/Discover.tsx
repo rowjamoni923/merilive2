@@ -601,17 +601,25 @@ const Discover = () => {
                       <div className="flex items-center gap-1.5">
                         {/* Small Avatar with level frame */}
                         <div className="relative flex-shrink-0">
-                          <div className={cn(
-                            "rounded-full p-0.5 bg-gradient-to-br",
-                            hostLevel >= 40 ? "from-danger to-warning" :
-                            hostLevel >= 20 ? "from-warning to-accent" :
-                            hostLevel >= 10 ? "from-secondary to-primary" :
-                            hostLevel >= 5 ? "from-info to-primary" :
-                            "from-muted-foreground to-muted-foreground/70"
-                          )}>
-                            <Avatar className="w-6 h-6 border border-card">
+                          <div
+                            className={cn(
+                              "rounded-full p-0.5 bg-gradient-to-br",
+                              hostLevel >= 40 ? "from-danger to-warning" :
+                              hostLevel >= 20 ? "from-warning to-accent" :
+                              hostLevel >= 10 ? "from-secondary to-primary" :
+                              hostLevel >= 5 ? "from-info to-primary" :
+                              "from-muted-foreground to-muted-foreground/70"
+                            )}
+                            style={{
+                              boxShadow:
+                                hostLevel >= 20
+                                  ? '0 4px 10px -3px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4)'
+                                  : '0 2px 6px -2px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.4)',
+                            }}
+                          >
+                            <Avatar className="w-7 h-7 border-2 border-card">
                               <AvatarImage src={hostAvatar || undefined} />
-                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[8px]">
+                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[9px]">
                                 {room.host?.display_name?.charAt(0) || 'H'}
                               </AvatarFallback>
                             </Avatar>
