@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import agencyHeroImg from "@/assets/landing-agency-hero.jpg";
 import payrollImg from "@/assets/landing-payroll.jpg";
+import { mainAppHref } from "@/utils/publicRoutes";
+import { generateAgencyJoinLink } from "@/utils/shareLinks";
 
 interface Agency {
   id: string;
