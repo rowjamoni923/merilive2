@@ -1880,10 +1880,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           size="icon"
           variant="ghost"
           aria-label="Back"
-          className="w-11 h-11 rounded-full profile-home-icon-button hover:bg-slate-50 active:scale-95 transition-transform"
+          className="w-11 h-11 rounded-full profile-home-icon-button bg-white hover:bg-slate-50 active:scale-95 hover:-translate-y-0.5 transition-all"
+          style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="w-5 h-5 text-body" />
+          <ArrowLeft className="w-5 h-5 text-body" style={{ filter: 'drop-shadow(0 1px 1px rgba(15,23,42,0.15))' }} />
         </Button>
       </div>
 
