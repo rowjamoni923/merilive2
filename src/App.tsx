@@ -1208,7 +1208,7 @@ const App = () => {
                 <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session
                     ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
