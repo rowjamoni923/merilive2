@@ -1160,6 +1160,13 @@ const App = () => {
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
+                  {isLandingDomain ? (
+                    // merilive.top is the landing-only marketing domain.
+                    // Every path renders the LandingPage — no app, no auth, no admin.
+                    <Routes>
+                      <Route path="*" element={<LandingPage />} />
+                    </Routes>
+                  ) : (
                   <Routes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
