@@ -637,6 +637,8 @@ const App = () => {
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
+    if (isStandalonePublicLocation()) return;
+
     // 🚀 Initialize WebView performance tuning only inside native WebView
     if (Capacitor.isNativePlatform()) {
       initWebViewPerformance();
@@ -1152,10 +1154,10 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
-              <AndroidBackButtonHandler />
-              {session ? <MandatoryPermissionsGate /> : null}
-              <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
-              <Suspense fallback={null}><AppLockGate /></Suspense>
+              {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
+              {session && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
