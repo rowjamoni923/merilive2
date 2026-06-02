@@ -14,6 +14,7 @@ import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const loginSchema = z.object({
