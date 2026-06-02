@@ -537,6 +537,8 @@ const LANDING_ONLY_HOSTS = new Set([
   'www.perilive.top',
 ]);
 
+const isLandingOnlyHostname = (host: string): boolean => LANDING_ONLY_HOSTS.has(host.toLowerCase());
+
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
@@ -553,7 +555,7 @@ const App = () => {
       if (sessionStorage.getItem('splash_shown') === '1') return false;
       const host = window.location.hostname;
       // Landing-only marketing domain — never show the app splash.
-      if (LANDING_ONLY_HOSTS.has(host)) return false;
+      if (isLandingOnlyHostname(host)) return false;
       const p = window.location.pathname;
       if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
       if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
@@ -630,8 +632,11 @@ const App = () => {
   }, [isAuthenticated, session?.user?.id]);
   
   // 🔐 SINGLE DEVICE SESSION & APP RESUME - Deferred via lazy component
-  const isAdminRoute = window.location.pathname.startsWith('/admin');
-  const isStandalonePublicRoute = isStandalonePublicPath(window.location.pathname) || (window.location.pathname === '/' && !session);
+  const hostname = window.location.hostname;
+  const currentPath = window.location.pathname;
+  const isLandingDomain = isLandingOnlyHostname(hostname);
+  const isAdminRoute = currentPath.startsWith('/admin');
+  const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
@@ -1070,9 +1075,6 @@ const App = () => {
 
   // 🔒 BROWSER GUARD - Block browser access, only allow native app + Lovable preview
   const isNative = Capacitor.isNativePlatform();
-  const hostname = window.location.hostname;
-  const currentPath = window.location.pathname;
-
   // Allow Lovable preview/development environments
   const isLovablePreview = hostname.includes('lovable.app') || 
                            hostname.includes('lovableproject.com') || 
@@ -1081,8 +1083,6 @@ const App = () => {
 
   // Landing page is ONLY served on merilive.top (the marketing/download domain).
   // Main domain (merilive.com / native app / lovable preview) always boots the main app.
-  const isLandingDomain = LANDING_ONLY_HOSTS.has(hostname);
-
   
   // Routes allowed in public browser
   const BROWSER_ALLOWED_ROUTES = [
