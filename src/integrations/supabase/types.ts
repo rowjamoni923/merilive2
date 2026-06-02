@@ -18958,6 +18958,18 @@ export type Database = {
           country_flag: string
         }[]
       }
+      get_public_landing_agencies: {
+        Args: { _country_code?: string }
+        Returns: {
+          agency_code: string
+          country_code: string
+          country_flag: string
+          id: string
+          logo_url: string
+          name: string
+          total_hosts: number
+        }[]
+      }
       get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }
       get_task_center_calendar: { Args: never; Returns: Json }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
