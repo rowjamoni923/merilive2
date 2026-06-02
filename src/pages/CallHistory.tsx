@@ -243,16 +243,19 @@ const CallHistory = () => {
   return (
     <div className="mobile-page bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border/50 safe-area-top">
+      <header
+        className="sticky top-0 z-40 bg-card/95 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 4px 14px -8px rgba(15,23,42,0.18), inset 0 -1px 0 hsl(var(--border))' }}
+      >
         <div className="px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-card flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 10px -4px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px hsl(var(--border))' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold">Call History</h1>
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Call History</h1>
         </div>
       </header>
 
@@ -263,10 +266,13 @@ const CallHistory = () => {
           </div>
         ) : calls.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-              <Phone className="w-10 h-10 text-muted-foreground" />
+            <div
+              className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"
+              style={{ boxShadow: '0 14px 30px -14px rgba(79,70,229,0.45), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(15,23,42,0.08)' }}
+            >
+              <Phone className="w-10 h-10 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Call History</h3>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No Call History</h3>
             <p className="text-muted-foreground">
               Your call history will appear here
             </p>
@@ -276,8 +282,10 @@ const CallHistory = () => {
             {calls.map((call) => (
               <div
                 key={call.id}
-                className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
+                className="flex items-center gap-3 p-4 bg-card rounded-2xl cursor-pointer transition-all hover:-translate-y-0.5 active:scale-[0.99]"
+                style={{ boxShadow: '0 8px 20px -12px rgba(15,23,42,0.18), 0 1px 3px -1px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.7)' }}
                 onClick={() => call.other_user && navigate(`/profile/${call.other_user.id}`)}
+
               >
                 {/* Avatar */}
                 <div className="relative">
