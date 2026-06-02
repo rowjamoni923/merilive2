@@ -21,6 +21,8 @@ import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
+import AdminAccessGuard from "./components/admin/AdminAccessGuard";
+import AdminAuth from "./pages/admin/AdminAuth";
 
 
 // =============================================
@@ -167,11 +169,13 @@ const AgencyPolicy = lazy(lazyRetry(() => import("./pages/AgencyPolicy")));
 const PoliciesAndBenefits = lazy(lazyRetry(() => import("./pages/PoliciesAndBenefits")));
 const PublicPolicies = lazy(lazyRetry(() => import("./pages/PublicPolicies")));
 const PublicPrivacyPolicy = lazy(lazyRetry(() => import("./pages/PublicPrivacyPolicy")));
+const PublicTerms = lazy(lazyRetry(() => import("./pages/PublicTerms")));
 const PublicAccountDeletion = lazy(lazyRetry(() => import("./pages/PublicAccountDeletion")));
 const PolicyDetail = lazy(lazyRetry(() => import("./pages/PolicyDetail")));
 const GoogleLibraryOrderRules = lazy(lazyRetry(() => import("./pages/GoogleLibraryOrderRules")));
 const About = lazy(lazyRetry(() => import("./pages/About")));
 const PublicContact = lazy(lazyRetry(() => import("./pages/PublicContact")));
+const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
 const SyncTest = lazy(lazyRetry(() => import("./pages/SyncTest")));
 const HostTransferHistory = lazy(lazyRetry(() => import("./pages/HostTransferHistory")));
 const NotFound = lazy(lazyRetry(() => import("./pages/NotFound")));
@@ -194,11 +198,9 @@ const AdminBlueprint = lazy(lazyRetry(() => import("./pages/admin/AdminBlueprint
 const AdminAllowedLinks = lazy(lazyRetry(() => import("./pages/admin/AdminAllowedLinks")));
 const AdminChatInspector = lazy(lazyRetry(() => import("./pages/admin/AdminChatInspector")));
 const AdminNumberSharing = lazy(lazyRetry(() => import("./pages/admin/AdminNumberSharing")));
-const AdminAccessGuard = lazy(lazyRetry(() => import("./components/admin/AdminAccessGuard")));
 const AdminRouteGuard = lazy(lazyRetry(() => import("./components/admin/AdminRouteGuard")));
 const SubAdminDashboardGuard = lazy(lazyRetry(() => import("./components/admin/AdminRouteGuard").then(m => ({ default: m.SubAdminDashboardGuard }))));
 const AdminLayout = lazy(lazyRetry(() => import("./pages/admin/AdminLayout")));
-const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 const AdminDashboard = lazy(lazyRetry(() => import("./pages/admin/AdminDashboard")));
 const AdminSettings = lazy(lazyRetry(() => import("./pages/admin/AdminSettings")));
 const AdminAgencies = lazy(lazyRetry(() => import("./pages/admin/AdminAgencies")));
@@ -420,11 +422,8 @@ RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
 // users see when entering /admin?access=<token> on a cold cache.
 const AdminChunkLoader = memo(() => (
-  <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
-    <div className="text-center">
-      <div className="h-8 w-8 mx-auto mb-3 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
-      <p className="text-slate-400 text-sm">Verifying access...</p>
-    </div>
+  <div className="min-h-screen w-full bg-slate-950" aria-hidden="true">
+    <div className="sr-only">Loading admin panel</div>
   </div>
 ));
 AdminChunkLoader.displayName = "AdminChunkLoader";
@@ -462,7 +461,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r));
+  const isPublicPage = ((!hasSession && location.pathname === '/') || ['/landing', '/download', '/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
@@ -481,7 +480,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   return (
     <>
       {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
-      <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>
+      {(!isPublicPage || hasSession) && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
           <WelcomeOnboarding />
@@ -525,6 +524,10 @@ const hasStoredSupabaseSession = (): boolean => {
   return false;
 };
 
+const isStandalonePublicPath = (path: string): boolean => (
+  ['/landing', '/download', '/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some((route) => path.startsWith(route))
+);
+
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
@@ -541,6 +544,7 @@ const App = () => {
       if (sessionStorage.getItem('splash_shown') === '1') return false;
       const p = window.location.pathname;
       if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
+      if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
       return true;
     } catch { return false; }
   });
@@ -1064,15 +1068,15 @@ const App = () => {
   
   // Routes allowed in public browser
   const BROWSER_ALLOWED_ROUTES = [
-    '/admin', '/agency-signup', '/smart-link', '/link', 
+    '/', '/landing', '/download', '/admin', '/agency-signup', '/smart-link', '/link', 
     '/policies', '/policies-benefits', '/about', '/google-library-order-rules', '/policies/',
     '/agency-policy', '/helper-policy', '/agency',
-    '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account', '/become-sub-agent', '/payroll-helper-guide',
+    '/privacy-policy', '/terms', '/contact', '/support', '/account-deletion', '/delete-account', '/become-sub-agent', '/payroll-helper-guide',
     '/create-agency', '/join-agency',
     '/auth/callback', '/reset-password', '/~oauth'
   ];
   
-  const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => currentPath.startsWith(route));
+  const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => route === '/' ? currentPath === '/' : currentPath.startsWith(route));
 
   if (loading) {
     // No full-screen "Checking your session…" loader — render nothing so the
@@ -1158,6 +1162,9 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/" element={session ? <ProtectedRoute session={session}><Index /></ProtectedRoute> : <LandingPage />} />
+                <Route path="/landing" element={<LandingPage />} />
+                <Route path="/download" element={<LandingPage />} />
                 <Route path="/smart-link" element={<SmartLink />} />
                 <Route path="/share" element={<ShareReceive />} />
                 <Route path="/link" element={<SmartLink />} />
@@ -1165,12 +1172,13 @@ const App = () => {
                 <Route path="/policies/:policyId" element={<PolicyDetail />} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
                 <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
-                <Route path="/terms" element={<PublicPrivacyPolicy />} />
+                <Route path="/terms" element={<PublicTerms />} />
                 <Route path="/account-deletion" element={<PublicAccountDeletion />} />
                 <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
                 <Route path="/google-library-order-rules" element={<GoogleLibraryOrderRules />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<PublicContact />} />
+                <Route path="/support" element={<PublicContact />} />
                 <Route path="/agency-policy" element={<AgencyPolicy />} />
                 <Route path="/policies-benefits" element={<PoliciesAndBenefits />} />
                 <Route path="/helper-policy" element={<AgencyPolicy />} />
@@ -1180,7 +1188,6 @@ const App = () => {
                 {/* PROTECTED ROUTES - Authentication required */}
                 {/* Users MUST sign up first before accessing these */}
                 {/* ============================================= */}
-                <Route path="/" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
                 <Route path="/index" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
                 <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
@@ -1208,18 +1215,18 @@ const App = () => {
                 <Route path="/settings/user-management" element={<ProtectedRoute session={session}><UserManagement /></ProtectedRoute>} />
                 <Route path="/settings/notifications" element={<ProtectedRoute session={session}><NotificationSettings /></ProtectedRoute>} />
                 <Route path="/settings/customer-service" element={<ProtectedRoute session={session}><CustomerService /></ProtectedRoute>} />
-                <Route path="/support" element={<Navigate to="/settings/customer-service" replace />} />
+                <Route path="/app-support" element={<Navigate to="/settings/customer-service" replace />} />
                 <Route path="/rewards" element={<ProtectedRoute session={session}><Rewards /></ProtectedRoute>} />
                 <Route path="/rewards/rating-history" element={<ProtectedRoute session={session}><RatingProofHistory /></ProtectedRoute>} />
                 <Route path="/parcels" element={<ProtectedRoute session={session}><Parcels /></ProtectedRoute>} />
-                <Route path="/agency" element={<ProtectedRoute session={session}><Agency /></ProtectedRoute>} />
+                <Route path="/agency" element={session ? <ProtectedRoute session={session}><Agency /></ProtectedRoute> : <LandingPage />} />
                 <Route path="/agent-rank" element={<ProtectedRoute session={session}><AgentRank /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<ProtectedRoute session={session}><Leaderboard /></ProtectedRoute>} />
                 <Route path="/pk-leaderboard/:id" element={<ProtectedRoute session={session}><PKLeaderboard /></ProtectedRoute>} />
                 <Route path="/host-application" element={<ProtectedRoute session={session}><HostApplication /></ProtectedRoute>} />
                 <Route path="/agent-wallet" element={<ProtectedRoute session={session}><AgentWallet /></ProtectedRoute>} />
                 <Route path="/transfer-history" element={<ProtectedRoute session={session}><TransferHistory /></ProtectedRoute>} />
-                <Route path="/create-agency" element={<ProtectedRoute session={session}><CreateAgency /></ProtectedRoute>} />
+                <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : <AgencySignup />} />
                 <Route path="/agency-signup" element={<AgencySignup />} />
                 <Route path="/agency-dashboard" element={<ProtectedRoute session={session}><AgencyDashboard /></ProtectedRoute>} />
                 <Route path="/agency-withdrawal" element={<ProtectedRoute session={session}><AgencyWithdrawal /></ProtectedRoute>} />
