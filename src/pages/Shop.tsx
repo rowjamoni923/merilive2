@@ -685,37 +685,48 @@ const Shop = () => {
                 {isOwned(selectedItem.id) ? (
                   <div
                     className="w-full py-3 rounded-full text-center font-bold text-emerald-700"
-                    style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)' }}
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+                      border: '1px solid rgba(16,185,129,0.40)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 4px rgba(16,185,129,0.10)',
+                    }}
                   >
                     ✓ Already Owned
                   </div>
                 ) : !meetsLevel(selectedItem.min_level) ? (
                   <div
-                    className="w-full py-3 rounded-full text-center font-bold text-red-600"
-                    style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)' }}
+                    className="w-full py-3 rounded-full text-center font-bold text-red-600 flex items-center justify-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.14) 0%, rgba(220,38,38,0.10) 100%)',
+                      border: '1px solid rgba(239,68,68,0.35)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
+                    }}
                   >
-                    <Lock className="w-4 h-4 inline mr-2" />
+                    <Lock className="w-4 h-4" />
                     Requires Level {selectedItem.min_level}
                   </div>
                 ) : !canAfford(selectedItem.price_diamonds) ? (
                   <button 
                     onClick={() => navigate("/recharge")}
-                    className="w-full py-3 rounded-full font-bold text-heading transition-all active:scale-95"
+                    className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                      boxShadow: '0 4px 20px rgba(245,158,11,0.4)',
+                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                      boxShadow: '0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.20)',
                     }}
                   >
-                    <Diamond3DIcon size={16} /> Recharge Diamonds
+                    <Diamond3DIcon size={16} />
+                    Recharge Diamonds
                   </button>
                 ) : (
                   <button
                     onClick={() => handlePurchase(selectedItem)}
                     disabled={purchasing}
-                    className="w-full py-3 rounded-full font-bold text-heading transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:hover:translate-y-0"
                     style={{
                       background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
-                      boxShadow: '0 4px 25px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.15)',
+                      boxShadow: '0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.22)',
                     }}
                   >
                     {purchasing ? (
