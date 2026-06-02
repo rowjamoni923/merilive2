@@ -291,7 +291,7 @@ export function FullScreenPromoBanners() {
             {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
             className={
               currentBanner.fullScreen
-                ? "h-full w-full object-contain"
+                ? "h-full w-full object-cover"
                 : "h-auto w-full rounded-3xl object-contain"
             }/>
 
