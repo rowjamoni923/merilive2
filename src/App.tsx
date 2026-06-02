@@ -1082,17 +1082,16 @@ const App = () => {
   // Landing page is ONLY served on merilive.top (the marketing/download domain).
   // Main domain (merilive.com / native app / lovable preview) always boots the main app.
   
-  // Routes allowed in public browser
-  const BROWSER_ALLOWED_ROUTES = [
-    '/', '/landing', '/download', '/admin', '/agency-signup', '/smart-link', '/link', 
-    '/policies', '/policies-benefits', '/about', '/google-library-order-rules', '/policies/',
-    '/agency-policy', '/helper-policy', '/agency',
-    '/privacy-policy', '/terms', '/contact', '/support', '/account-deletion', '/delete-account', '/become-sub-agent', '/payroll-helper-guide',
-    '/create-agency', '/join-agency',
-    '/auth/callback', '/reset-password', '/~oauth'
-  ];
-  
-  const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => route === '/' ? currentPath === '/' : currentPath.startsWith(route));
+  const isBrowserAllowedRoute = currentPath === '/'
+    || currentPath.startsWith('/admin')
+    || currentPath.startsWith('/auth')
+    || currentPath.startsWith('/reset-password')
+    || currentPath.startsWith('/~oauth')
+    || currentPath.startsWith('/landing')
+    || currentPath.startsWith('/download')
+    || currentPath.startsWith('/agency')
+    || currentPath.startsWith('/join-agency')
+    || isStandalonePublicPath(currentPath);
 
   if (loading) {
     // No full-screen "Checking your session…" loader — render nothing so the
