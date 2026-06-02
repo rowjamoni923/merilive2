@@ -597,7 +597,8 @@ export const NotificationBell = ({ onClick }: NotificationBellProps) => {
   return (
     <button
       onClick={onClick}
-      className="relative p-2 hover:bg-accent/50 rounded-full transition-colors"
+      className="relative p-2 rounded-full bg-card border border-border/70 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+      style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.8)" }}
     >
       <Bell className="w-5 h-5 text-foreground" />
       <AnimatePresence>
@@ -606,7 +607,8 @@ export const NotificationBell = ({ onClick }: NotificationBellProps) => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-medium"
+            className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gradient-to-br from-rose-500 to-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
+            style={{ boxShadow: "0 3px 8px -2px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.4)" }}
           >
             {unreadCounts.notifications > 9 ? '9+' : unreadCounts.notifications}
           </motion.span>
