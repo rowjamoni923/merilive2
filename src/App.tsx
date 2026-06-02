@@ -542,6 +542,9 @@ const App = () => {
     try {
       if (typeof window === 'undefined') return false;
       if (sessionStorage.getItem('splash_shown') === '1') return false;
+      const host = window.location.hostname;
+      // Landing-only marketing domain — never show the app splash.
+      if (host === 'merilive.top' || host === 'www.merilive.top') return false;
       const p = window.location.pathname;
       if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
       if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
