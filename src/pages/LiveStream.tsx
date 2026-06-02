@@ -3201,20 +3201,22 @@ const LiveStream = () => {
               </div>
             </button>
 
-            {/* Close Button — 36px tap target */}
+            {/* Close Button — Premium 3D orb */}
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.04 }}
               onClick={isHost ? handleEndStream : handleLeaveStream}
               aria-label={isHost ? 'End live stream' : 'Leave live stream'}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
+              className="relative w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.64), rgba(20,15,35,0.76))',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-                backdropFilter: 'blur(12px)',
+                background: 'radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.2) 0%, rgba(40,30,55,0.88) 45%, rgba(10,8,20,0.96) 100%)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -2px 4px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(14px)',
               }}
             >
-              <X className="w-4 h-4 text-white/85" />
+              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.35), transparent)' }} />
+              <X className="w-4 h-4 text-white relative z-10" strokeWidth={2.4} />
             </motion.button>
           </div>
         </div>
@@ -3429,163 +3431,201 @@ const LiveStream = () => {
         {/* Host Filter Controls - Ultra Compact */}
         {/* Host filter controls moved to More Options panel */}
 
-        {/* Input & Action Buttons Bar - Professional Design */}
-        <div className="px-2 md:px-6 flex items-center gap-1.5 md:gap-3 pt-2 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 70%, transparent 100%)' }}
+        {/* Input & Action Buttons Bar - Premium 3D Design */}
+        <div className="px-2 md:px-6 flex items-center gap-1.5 md:gap-3 pt-3 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.28) 65%, transparent 100%)' }}
         >
-          {/* Chat Input — compact 36px tap target */}
+          {/* Chat Input — Glass pill with gradient send FAB */}
           <div className="flex-1 min-w-0 relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-9 rounded-full text-white text-xs pl-3.5 pr-9"
-
+              className="w-full h-10 rounded-full text-white text-xs pl-4 pr-11 placeholder:text-white/55"
               style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
+                border: '1px solid rgba(255,255,255,0.18)',
                 color: 'white',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 14px rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(14px)',
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <Button
-              size="icon"
-              variant="ghost"
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.06 }}
               aria-label="Send message"
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-white/80 hover:text-white hover:bg-white/10"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+              style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 40%, #6d28d9 100%)',
+                boxShadow: '0 4px 12px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 4px rgba(0,0,0,0.25)',
+              }}
               onClick={handleSendMessage}
             >
-              <Send className="w-4 h-4" />
-            </Button>
+              <span className="absolute inset-x-1 top-0.5 h-1.5 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.6), transparent)' }} />
+              <Send className="w-4 h-4 text-white relative z-10" strokeWidth={2.3} />
+            </motion.button>
           </div>
 
-          {/* Action Buttons — uniform 40px tap targets */}
+          {/* Action Buttons — Premium 3D orbs */}
           {shouldShowCallButton && (
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.06 }}
               onClick={handleCall}
               aria-label="Start private call"
-              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #22c55e, #10b981)',
-                boxShadow: '0 2px 12px rgba(34,197,94,0.4)',
+                background: 'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #047857 100%)',
+                boxShadow: '0 6px 18px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
               }}
             >
-              <Phone className="w-4 h-4 md:w-6 md:h-6 text-white" />
+              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+              <Phone className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
             </motion.button>
           )}
 
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.06 }}
             onClick={() => setShowGamePanel(true)}
             aria-label="Open games"
-            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-              boxShadow: '0 2px 12px rgba(139,92,246,0.4)',
+              background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%)',
+              boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
             }}
           >
-            <Gamepad2 className="w-4 h-4 md:w-6 md:h-6 text-white" />
+            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+            <Gamepad2 className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
           </motion.button>
 
           {isHost && (
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.06 }}
               onClick={() => {
                 const newState = !isHostMicMuted;
                 setIsHostMicMuted(newState);
                 toggleAudio(!newState);
               }}
               aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: isHostMicMuted 
-                  ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
-                  : 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                boxShadow: isHostMicMuted 
-                  ? '0 2px 12px rgba(239,68,68,0.4)' 
-                  : '0 2px 12px rgba(6,182,212,0.4)',
+                background: isHostMicMuted
+                  ? 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #991b1b 100%)'
+                  : 'radial-gradient(120% 120% at 30% 20%, #67e8f9 0%, #06b6d4 45%, #0e7490 100%)',
+                boxShadow: isHostMicMuted
+                  ? '0 6px 18px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)'
+                  : '0 6px 18px rgba(6,182,212,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
               }}
             >
+              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
               {isHostMicMuted ? (
-                <MicOff className="w-4 h-4 md:w-6 md:h-6 text-white" />
+                <MicOff className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
               ) : (
-                <Mic className="w-4 h-4 md:w-6 md:h-6 text-white" />
+                <Mic className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
               )}
             </motion.button>
           )}
 
           {isHost && (
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.06 }}
               onClick={handleOpenPKPanel}
               aria-label="Start PK battle"
-              className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
+                background: 'radial-gradient(120% 120% at 30% 20%, #fcd34d 0%, #f59e0b 45%, #b45309 100%)',
+                boxShadow: '0 6px 18px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
               }}
             >
-              <Swords className="w-4 h-4 md:w-6 md:h-6 text-white" />
+              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+              <Swords className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
             </motion.button>
           )}
 
-          {/* Like/Heart Button */}
+          {/* Like/Heart Button — Pulse on tap */}
           <motion.button
-            whileTap={{ scale: 0.85 }}
+            whileTap={{ scale: 0.82 }}
+            whileHover={{ scale: 1.08 }}
             onClick={handleLike}
             aria-label="Like"
-            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
-              boxShadow: '0 2px 12px rgba(244,63,94,0.4)',
+              background: 'radial-gradient(120% 120% at 30% 20%, #fda4af 0%, #f43f5e 45%, #9f1239 100%)',
+              boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
             }}
           >
-            <Heart className="w-4 h-4 md:w-6 md:h-6 text-white fill-white" />
+            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-white fill-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
           </motion.button>
 
-          {/* Gift Button */}
+          {/* Gift Button — Premium pink orb with shine sweep */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.06 }}
             onClick={() => setShowGiftPanel(true)}
             aria-label="Send gift"
-            className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #ec4899, #db2777)',
-              boxShadow: '0 2px 12px rgba(236,72,153,0.4)',
+              background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #ec4899 45%, #9d174d 100%)',
+              boxShadow: '0 6px 20px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.22)',
             }}
           >
-            <Gift className="w-4 h-4 md:w-6 md:h-6 text-white" />
+            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.6), transparent)' }} />
+            <motion.span
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)' }}
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.6 }}
+            />
+            <Gift className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
           </motion.button>
 
-          {/* More Options Button */}
+          {/* More Options Button — Glass orb */}
           <Sheet open={showMoreOptions} onOpenChange={setShowMoreOptions}>
             <SheetTrigger asChild>
               <motion.button
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
                 aria-label="More options"
-                className="w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
+                className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  background: 'radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.22) 0%, rgba(40,30,55,0.85) 45%, rgba(10,8,20,0.95) 100%)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -2px 4px rgba(0,0,0,0.3)',
+                  backdropFilter: 'blur(14px)',
                 }}
               >
-                <Grid3X3 className="w-4 h-4 md:w-6 md:h-6 text-white/85" />
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.35), transparent)' }} />
+                <Grid3X3 className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" />
               </motion.button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-[24px] h-auto p-0 border-0"
+            <SheetContent side="bottom" className="rounded-t-[28px] h-auto p-0 border-0"
               style={{
-                background: 'linear-gradient(180deg, rgba(15,10,30,0.97) 0%, rgba(10,8,25,0.99) 100%)',
-                
-                borderTop: '1px solid rgba(255,255,255,0.08)',
+                background: 'linear-gradient(180deg, rgba(20,14,40,0.98) 0%, rgba(10,8,22,0.99) 100%)',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 -20px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08)',
               }}
             >
+              {/* Glass top sheen */}
+              <div className="absolute inset-x-0 top-0 h-24 pointer-events-none rounded-t-[28px]" style={{ background: 'radial-gradient(80% 100% at 50% 0%, rgba(139,92,246,0.22), transparent 70%)' }} />
+
               {/* Handle */}
-              <div className="flex justify-center pt-3 pb-3">
-                <div className="w-8 h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+              <div className="relative flex justify-center pt-3 pb-2">
+                <div className="w-10 h-[4px] rounded-full" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.35), rgba(255,255,255,0.15))' }} />
               </div>
-              
-              <div className="pb-8 pt-1 px-4">
+
+              {/* Title */}
+              <div className="relative px-5 pb-3">
+                <h3 className="text-white text-[15px] font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>More Options</h3>
+                <p className="text-white/55 text-[11px] mt-0.5">Tools and controls for your live session</p>
+              </div>
+
+              <div className="relative pb-8 pt-1 px-4">
                 <div className="grid grid-cols-5 gap-y-5 gap-x-2">
                   {moreOptions.map((option, index) => {
                     const iconMap: Record<string, React.ReactNode> = {
@@ -3608,28 +3648,30 @@ const LiveStream = () => {
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
-                    
+
                     return (
                       <motion.button
                         key={option.id}
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.02 }}
+                        transition={{ delay: index * 0.025 }}
                         className="flex flex-col items-center gap-1.5"
-                        whileTap={{ scale: 0.92 }}
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ y: -2 }}
                         onClick={option.action}
                       >
-                        <div 
-                          className={`w-[48px] h-[48px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center`}
+                        <div
+                          className={`relative w-[52px] h-[52px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center overflow-hidden`}
                           style={{
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.25)',
                           }}
                         >
-                          <div className="text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
+                          <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.45), transparent)' }} />
+                          <div className="text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
                             {IconComponent}
                           </div>
                         </div>
-                        <span className="text-white/75 text-[10px] font-medium">{option.name}</span>
+                        <span className="text-white/85 text-[10px] font-semibold tracking-tight">{option.name}</span>
                       </motion.button>
                     );
                   })}
