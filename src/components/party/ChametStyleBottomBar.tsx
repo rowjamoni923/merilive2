@@ -382,6 +382,7 @@ function BarButton({
   return (
     <motion.button
       whileTap={{ scale: 0.88 }}
+      whileHover={{ y: -2, scale: 1.05 }}
       transition={{ type: "spring", damping: 14, stiffness: 480 }}
       onClick={handlePress}
       className="flex flex-col items-center gap-0.5 px-1.5 py-0.5 will-change-transform"
@@ -393,12 +394,14 @@ function BarButton({
         className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
         style={{
           background: bg,
-          boxShadow: shadow !== "none" ? `0 6px 16px ${shadow}` : undefined,
+          boxShadow: shadow !== "none"
+            ? `0 8px 20px ${shadow}, inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)`
+            : `inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 4px rgba(0,0,0,0.18)`,
           border: border ? `1px solid ${border}` : undefined,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent" />
-        <Icon className="w-5 h-5 text-white relative z-10 drop-shadow-sm" />
+        <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />
+        <Icon className="w-5 h-5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
         {badge && badge > 0 && (
           <motion.div
             initial={{ scale: 0 }}
@@ -411,7 +414,7 @@ function BarButton({
           </motion.div>
         )}
       </motion.div>
-      <span className="text-white/65 text-[9px] font-medium">{label}</span>
+      <span className="text-white/80 text-[9px] font-semibold tracking-tight" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>{label}</span>
     </motion.button>
   );
 }
