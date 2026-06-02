@@ -874,20 +874,32 @@ export function ActiveCallScreen({
                 showFrame={true}
                 showAnimation={false}
               />
-              <h2 className="text-white text-xl font-bold mt-4 drop-shadow-lg">{remoteUserName}</h2>
-              <div className="flex items-center gap-2 mt-2">
+              <h2
+                className="text-white text-2xl font-extrabold mt-4 tracking-wide"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}
+              >
+                {remoteUserName}
+              </h2>
+              <div className="flex items-center gap-2 mt-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15"
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.35)' }}
+              >
                 <div className="flex gap-1">
                   {[0,1,2].map(i => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/70 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s`, boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
                   ))}
                 </div>
-                <span className="text-white/70 text-sm font-medium drop-shadow">
+                <span className="text-white/90 text-xs font-bold tracking-wide">
                   {callStatus === 'ringing' ? 'Ringing...' : callStatus === 'calling' ? 'Calling...' : 'Connecting...'}
                 </span>
               </div>
               {isHost && (
-                <div className="flex items-center gap-2.5 mt-4 bg-black/40 border border-white/10 px-5 py-2.5 rounded-2xl">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <div className="flex items-center gap-2.5 mt-4 px-5 py-2.5 rounded-2xl border border-emerald-300/40 backdrop-blur-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.28) 0%, rgba(5,150,105,0.2) 100%)',
+                    boxShadow: '0 8px 22px -8px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  }}
+                >
+                  <TrendingUp className="w-4 h-4 text-emerald-200" />
                   <BeansIcon size={18} />
                   <span className="text-emerald-200 text-lg font-bold">{formatCoins(displayedHostEarned)}</span>
                 </div>
