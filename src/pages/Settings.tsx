@@ -856,22 +856,33 @@ const Settings = () => {
   return (
     <div className="mobile-page bg-background">
       {/* Header */}
-      <div className="mobile-header bg-background border-b">
+      <div
+        className="mobile-header bg-card/95 backdrop-blur-xl"
+        style={{ boxShadow: '0 4px 14px -8px rgba(15,23,42,0.18), inset 0 -1px 0 hsl(var(--border))' }}
+      >
         <div className="flex items-center h-14 px-4">
-          <button 
+          <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="h-9 w-9 -ml-1 rounded-full bg-card flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 10px -4px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px hsl(var(--border))' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">{t("settings.title")}</h1>
+          <h1
+            className="flex-1 text-center text-lg font-bold pr-7 text-foreground tracking-tight"
+            style={{ textShadow: '0 1px 0 rgba(255,255,255,0.6)' }}
+          >
+            {t("settings.title")}
+          </h1>
         </div>
       </div>
 
       {/* Scrollable Content */}
       <div className="mobile-page-scrollable">
       {/* Settings List */}
-      <div className="divide-y">
+      <div className="mx-3 my-3 rounded-2xl bg-card overflow-hidden divide-y divide-border"
+        style={{ boxShadow: '0 8px 24px -14px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+      >
         {/* Recording toggle hidden from UI per product decision — do not surface to users/hosts/agencies. */}
         {/* <AutoRecordSettingsRow /> */}
 
@@ -886,18 +897,24 @@ const Settings = () => {
           <button
             key={index}
             onClick={item.onClick}
-            className={`w-full flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-4 transition-colors hover:bg-muted/60 active:bg-muted ${
               item.danger ? 'text-destructive' : ''
             }`}
             disabled={!item.onClick}
           >
             <div className="flex items-center gap-3">
-              <item.icon className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
-              <span className={item.danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.danger ? 'bg-destructive/10' : 'bg-muted'}`}
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px -1px rgba(15,23,42,0.1)' }}
+              >
+                <item.icon className={`w-4.5 h-4.5 ${item.danger ? 'text-destructive' : 'text-foreground'}`} />
+              </div>
+              <span className={`font-medium ${item.danger ? 'text-destructive' : 'text-foreground'}`}>{item.label}</span>
             </div>
             <div className="flex items-center gap-2">
               {item.value && (
                 <span className={`text-sm ${item.danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+
               )}
               {item.showArrow !== false && item.onClick && (
                 <ChevronRight className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
