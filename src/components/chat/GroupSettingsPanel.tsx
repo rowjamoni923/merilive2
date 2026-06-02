@@ -169,16 +169,25 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <header className="flex-shrink-0 bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 shadow-lg">
+      {/* Header - Premium 3D Glass */}
+      <header
+        className="flex-shrink-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"
+        style={{ boxShadow: "0 10px 30px -10px rgba(99,102,241,0.55), inset 0 -1px 0 rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.35)" }}
+      >
         <div className="flex items-center gap-3 px-3 py-2.5 h-14 safe-area-top">
           <button
-            className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+            style={{ boxShadow: "0 4px 10px -4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)" }}
             onClick={onClose}
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
           </button>
-          <h2 className="font-bold text-white text-lg">Group Info</h2>
+          <h2
+            className="font-bold text-white text-lg"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
+          >
+            Group Info
+          </h2>
         </div>
       </header>
 
@@ -187,19 +196,23 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
           {/* Group Avatar & Name */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <Avatar className="w-24 h-24">
+              <Avatar
+                className="w-24 h-24 ring-2 ring-purple-500/30"
+                style={{ boxShadow: "0 14px 32px -10px rgba(168,85,247,0.45), inset 0 1px 0 rgba(255,255,255,0.4)" }}
+              >
                 <AvatarImage src={group.avatar_url || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-2xl">
-                  <Users className="w-10 h-10" />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 text-white text-2xl">
+                  <Users className="w-10 h-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
                 </AvatarFallback>
               </Avatar>
               {isOwner && (
                 <button
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                  className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-gradient-primary flex items-center justify-center hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+                  style={{ boxShadow: "0 6px 14px -4px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.35)" }}
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
-                  <Camera className="w-4 h-4 text-primary-foreground" />
+                  <Camera className="w-4 h-4 text-primary-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
                 </button>
               )}
               <input
@@ -210,25 +223,30 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                 onChange={handlePhotoUpload}
               />
             </div>
-            <h3 className="text-xl font-bold">{group.name}</h3>
-            <Badge variant="outline" className="text-xs">
+            <h3 className="text-xl font-bold text-foreground">{group.name}</h3>
+            <Badge
+              variant="outline"
+              className="text-xs bg-card border-border/60"
+              style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)" }}
+            >
               {group.group_type === 'family' ? '👨‍👩‍👧‍👦 Family Group' : '👥 General Group'}
             </Badge>
 
             {/* Group Code */}
             <button
               onClick={copyGroupCode}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border/60 text-sm hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+              style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
             >
               <span className="text-muted-foreground">Code:</span>
-              <span className="font-mono font-bold">{group.group_code}</span>
-              {codeCopied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+              <span className="font-mono font-bold text-foreground">{group.group_code}</span>
+              {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
             </button>
           </div>
 
           {/* Members */}
           <div>
-            <h4 className="font-semibold text-sm text-muted-foreground mb-3">
+            <h4 className="font-semibold text-sm text-muted-foreground mb-3 px-1">
               Members ({members.length})
             </h4>
             <div className="space-y-2">
@@ -236,7 +254,11 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                 <p className="text-center text-muted-foreground py-4">Loading...</p>
               ) : (
                 members.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                  <div
+                    key={member.id}
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60"
+                    style={{ boxShadow: "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
+                  >
                     <AvatarWithFrame
                       userId={member.user_id}
                       src={member.profile?.avatar_url}
@@ -246,7 +268,7 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                       showFrame={false}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
+                      <p className="font-medium text-sm truncate text-foreground">
                         {member.profile?.display_name || 'Unknown'}
                       </p>
                       {member.profile?.app_uid && (
@@ -254,7 +276,10 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                       )}
                     </div>
                     {member.role === 'owner' && (
-                      <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 text-xs">
+                      <Badge
+                        className="bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white border-0 text-xs"
+                        style={{ boxShadow: "0 3px 8px -2px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4)" }}
+                      >
                         <Crown className="w-3 h-3 mr-1" />
                         Owner
                       </Badge>
@@ -263,7 +288,7 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        className="text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-full"
                         onClick={() => setConfirmRemove(member.id)}
                       >
                         <UserMinus className="w-4 h-4" />
@@ -279,7 +304,8 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
           {!isOwner && (
             <Button
               variant="destructive"
-              className="w-full"
+              className="w-full rounded-full font-bold hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+              style={{ boxShadow: "0 8px 20px -6px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.25)" }}
               onClick={handleLeaveGroup}
             >
               <LogOut className="w-4 h-4 mr-2" />
