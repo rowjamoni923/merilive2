@@ -336,22 +336,38 @@ const Discover = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="bg-gradient-primary pb-5">
+      <div
+        className="bg-gradient-primary pb-5 relative"
+        style={{ boxShadow: '0 10px 24px -12px rgba(79,70,229,0.45)' }}
+      >
         <header className="safe-area-top">
           <div className="flex items-center justify-between px-4 py-2">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
+              className="rounded-full text-on-dark h-9 w-9 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{
+                background: 'rgba(255,255,255,0.14)',
+                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-on-dark">Party Rooms</h1>
+            <h1
+              className="text-lg font-bold text-on-dark tracking-tight"
+              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.28)' }}
+            >
+              Party Rooms
+            </h1>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
+              className="rounded-full text-on-dark h-9 w-9 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{
+                background: 'rgba(255,255,255,0.14)',
+                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);
@@ -366,13 +382,19 @@ const Discover = () => {
 
           {/* Search */}
           <div className="px-4 mt-1">
-            <div className="relative">
+            <div
+              className="relative rounded-full"
+              style={{
+                background: 'rgba(255,255,255,0.18)',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.18)',
+              }}
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-dark-faint" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms or hosts..."
-                className="w-full pl-9 h-9 bg-primary-foreground/20 border-primary-foreground/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-transparent border-transparent text-on-dark placeholder:text-on-dark-faint rounded-full text-sm focus-visible:ring-0 focus-visible:border-transparent"
               />
             </div>
           </div>
@@ -383,19 +405,37 @@ const Discover = () => {
       {/* Tabs */}
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-muted rounded-full p-0.5 border border-border h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-primary data-[state=active]:text-on-dark">
+          <TabsList
+            className="w-full rounded-full p-1 h-10 border-0"
+            style={{
+              background: 'hsl(var(--muted))',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.6)',
+            }}
+          >
+            <TabsTrigger
+              value="all"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-gradient-primary data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-success data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="video"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-success data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(16,185,129,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-info data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="audio"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-info data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(59,130,246,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="game"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>
@@ -404,21 +444,29 @@ const Discover = () => {
 
         {/* Country Filter */}
         <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          {partyCountries.map((country) => (
-            <button
-              key={country.code}
-              onClick={() => setSelectedCountry(country.code)}
-              className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
-                selectedCountry === country.code
-                  ? "bg-gradient-primary text-on-dark border-transparent shadow-md shadow-brand/20"
-                  : "bg-card text-foreground border-border hover:border-muted-foreground/30"
-              )}
-            >
-              <span className="text-sm">{country.flag}</span>
-              <span>{country.name}</span>
-            </button>
-          ))}
+          {partyCountries.map((country) => {
+            const active = selectedCountry === country.code;
+            return (
+              <button
+                key={country.code}
+                onClick={() => setSelectedCountry(country.code)}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap shrink-0",
+                  active
+                    ? "bg-gradient-primary text-on-dark -translate-y-px"
+                    : "bg-card text-foreground hover:-translate-y-px"
+                )}
+                style={
+                  active
+                    ? { boxShadow: '0 8px 16px -6px rgba(79,70,229,0.5), inset 0 1px 0 rgba(255,255,255,0.35)' }
+                    : { boxShadow: '0 2px 6px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px hsl(var(--border))' }
+                }
+              >
+                <span className="text-sm">{country.flag}</span>
+                <span>{country.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
