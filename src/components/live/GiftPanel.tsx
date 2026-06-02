@@ -422,13 +422,15 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       <div
         ref={containerRef}
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-[9999] bg-gradient-to-b from-[#1a1a28] via-[#0f0f18] to-[#08080c] rounded-t-3xl border-t border-purple-500/20",
+          "fixed bottom-0 left-0 right-0 z-[9999] rounded-t-3xl border-t border-white/10",
           "md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[700px] md:rounded-3xl md:bottom-10 md:border md:shadow-2xl"
         )}
-        style={{ 
-          boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.15), 0 -2px 20px rgba(0,0,0,0.8)', 
-          maxHeight: isLandscape ? '95dvh' : 'calc(70vh - env(safe-area-inset-bottom, 0px))', 
-
+        style={{
+          background:
+            'radial-gradient(120% 80% at 50% 0%, rgba(236,72,153,0.18), transparent 55%), radial-gradient(120% 80% at 50% 100%, rgba(139,92,246,0.18), transparent 60%), linear-gradient(180deg, #1a1226 0%, #100a1a 55%, #06040c 100%)',
+          boxShadow:
+            '0 -18px 60px -10px rgba(139,92,246,0.35), 0 -4px 24px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08)',
+          maxHeight: isLandscape ? '95dvh' : 'calc(70vh - env(safe-area-inset-bottom, 0px))',
           paddingBottom: 'max(env(safe-area-inset-bottom, 16px), 16px)',
           display: 'flex',
           flexDirection: 'column',
@@ -438,56 +440,72 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           transition: 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)',
           backfaceVisibility: 'hidden',
           WebkitBackfaceVisibility: 'hidden',
-          contain: 'layout style paint'
+          contain: 'layout style paint',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header - Fixed, no shrink */}
-        <div className="relative flex-shrink-0 md:pt-2" style={{ minHeight: '60px' }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full mt-2 md:hidden" />
-          
-          <div className="relative flex items-center justify-between px-4 py-3 border-b border-white/5">
+        {/* Header — Premium 3D */}
+        <div className="relative flex-shrink-0 md:pt-2" style={{ minHeight: '64px' }}>
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/15 via-fuchsia-500/10 to-indigo-500/15" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full mt-2 md:hidden" />
+
+          <div className="relative flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                <Gift className="w-4 h-4 text-white" />
+              <div
+                className="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 via-fuchsia-500 to-indigo-600 flex items-center justify-center"
+                style={{
+                  boxShadow:
+                    '0 8px 18px -6px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.25)',
+                }}
+              >
+                <Gift className="w-4 h-4 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
               </div>
               <div>
-                <span className="text-white font-bold text-sm tracking-wide">Send Gift</span>
-                <p className="text-[9px] text-white/65 font-medium">Choose a premium gift</p>
+                <span
+                  className="text-white font-extrabold text-sm tracking-wide"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                >
+                  Send Gift
+                </span>
+                <p className="text-[10px] text-white/70 font-medium">Choose a premium gift</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              {/* Balance Display */}
-              <div 
+              <div
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-colors duration-200",
-                  isAnimating 
-                    ? "bg-gradient-to-r from-amber-500/25 to-orange-500/25 border-amber-400/50" 
-                    : "bg-gradient-to-r from-cyan-500/15 to-blue-500/15 border-cyan-400/30"
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-colors duration-200',
+                  isAnimating
+                    ? 'bg-gradient-to-r from-amber-500/30 to-orange-500/30 border-amber-300/60'
+                    : 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-300/40'
                 )}
+                style={{
+                  boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px -4px rgba(34,211,238,0.35)',
+                }}
               >
                 <Diamond3DIcon size={16} />
-                <span 
+                <span
                   className={cn(
-                    "font-bold text-xs tabular-nums bg-clip-text text-transparent",
-                    isAnimating 
-                      ? "bg-gradient-to-r from-amber-300 to-orange-400" 
-                      : "bg-gradient-to-r from-cyan-300 to-blue-400"
+                    'font-extrabold text-xs tabular-nums bg-clip-text text-transparent',
+                    isAnimating
+                      ? 'bg-gradient-to-r from-amber-200 to-orange-300'
+                      : 'bg-gradient-to-r from-cyan-200 to-blue-300'
                   )}
                 >
                   {formatCoinValue(displayCoins)}
                 </span>
               </div>
-              
-              {/* Close Button */}
-              <button 
-                onClick={onClose} 
-                className="w-8 h-8 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center transition-colors"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
+
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-white/10 active:bg-white/20 border border-white/15 flex items-center justify-center transition-all hover:-translate-y-0.5"
+                style={{
+                  WebkitTapHighlightColor: 'transparent',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 10px -4px rgba(0,0,0,0.5)',
+                }}
               >
-                <X className="w-4 h-4 text-white/60" />
+                <X className="w-4 h-4 text-white/75" />
               </button>
             </div>
           </div>
@@ -510,20 +528,28 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     setSelectedGift(null);
                     resetCombo();
                   }}
-
                   className={cn(
-                    "flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap flex-shrink-0 border transition-all duration-150",
+                    "flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 border transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-pink-500/90 via-purple-500/90 to-indigo-500/90 text-white border-purple-400/50"
-                      : "bg-white/5 text-white/60 border-white/10 active:bg-white/15"
+                      ? "bg-gradient-to-r from-pink-500 via-fuchsia-500 to-indigo-500 text-white border-white/30 -translate-y-0.5"
+                      : "bg-white/[0.06] text-white/65 border-white/10 active:bg-white/15 hover:-translate-y-0.5"
                   )}
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  style={{
+                    WebkitTapHighlightColor: 'transparent',
+                    boxShadow: isActive
+                      ? '0 6px 16px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'
+                      : 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                  }}
                 >
-                  <span>{cat.name}</span>
-                  <span className={cn(
-                    "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
-                    isActive ? "bg-white/30 text-white" : "bg-white/10 text-white/70"
-                  )}>
+                  <span style={isActive ? { textShadow: '0 1px 2px rgba(0,0,0,0.35)' } : undefined}>
+                    {cat.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
+                      isActive ? "bg-white/25 text-white" : "bg-white/10 text-white/70"
+                    )}
+                  >
                     {giftsInCategory}
                   </span>
                 </button>

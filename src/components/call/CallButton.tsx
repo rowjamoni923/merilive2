@@ -1,7 +1,6 @@
 import { Phone, Diamond } from "lucide-react";
 import { motion } from "framer-motion";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
-import { toast } from "sonner";
 
 interface CallButtonProps {
   hostId: string;
@@ -13,19 +12,18 @@ interface CallButtonProps {
   preloadedRate?: number | null;
 }
 
-export function CallButton({ 
-  hostId, 
-  onClick, 
-  size = "md", 
+export function CallButton({
+  hostId,
+  onClick,
+  size = "md",
   showRate = true,
   className = "",
   preloadedRate,
 }: CallButtonProps) {
-  // Only fetch if no preloaded rate is provided (avoids N+1 queries on list pages)
   const { callRate: fetchedRate, loading } = useHostCallRate(
     preloadedRate !== undefined ? null : hostId
   );
-  
+
   const callRate = preloadedRate !== undefined ? preloadedRate : fetchedRate;
 
   const formatRate = (rate: number): string => {
@@ -45,39 +43,76 @@ export function CallButton({
     lg: "w-6 h-6",
   };
 
-  const handleClick = () => {
-    onClick();
-  };
-
   return (
     <div className={`flex flex-col items-center gap-1 ${className}`}>
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleClick}
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/40 flex items-center justify-center relative overflow-hidden`}
+        whileHover={{ scale: 1.06, y: -2 }}
+        whileTap={{ scale: 0.94, y: 0 }}
+        onClick={onClick}
+        className={`${sizeClasses[size]} rounded-full text-white flex items-center justify-center relative overflow-hidden`}
+        style={{
+          background:
+            'radial-gradient(120% 120% at 30% 20%, #fb923c 0%, #ec4899 45%, #a855f7 100%)',
+          boxShadow:
+            '0 10px 24px -6px rgba(236,72,153,0.6), 0 4px 10px -2px rgba(168,85,247,0.45), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(0,0,0,0.25)',
+        }}
+        aria-label="Call host"
       >
-        {/* Animated ring */}
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-white/30"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
+        {/* Inner glossy highlight */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background:
+              'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.55), transparent 70%)',
+          }}
         />
-        <Phone className={iconSizes[size]} />
+        {/* Pulse ring */}
+        <motion.span
+          aria-hidden
+          className="absolute inset-0 rounded-full border-2 border-white/50"
+          animate={{ scale: [1, 1.45, 1], opacity: [0.55, 0, 0.55] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+        />
+        {/* Sweep shine */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/2 rotate-12 animate-[giftSendShine_2.8s_ease-in-out_infinite]"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)',
+          }}
+        />
+        <Phone
+          className={`${iconSizes[size]} relative`}
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }}
+        />
       </motion.button>
 
       {/* Rate Display */}
       {showRate && callRate && callRate > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-0.5 bg-gradient-to-r from-amber-500/90 to-orange-500/90 px-2 py-0.5 rounded-full shadow-lg -mt-2 relative z-10"
+          className="flex items-center gap-0.5 px-2 py-0.5 rounded-full -mt-2 relative z-10 border border-white/40"
+          style={{
+            background:
+              'linear-gradient(180deg, #fbbf24 0%, #f97316 100%)',
+            boxShadow:
+              '0 6px 14px -4px rgba(249,115,22,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
+          }}
         >
-          <Diamond className="w-2.5 h-2.5 text-white" />
-          <span className="text-[10px] font-bold text-white">
+          <Diamond
+            className="w-2.5 h-2.5 text-white"
+            style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.35))' }}
+          />
+          <span
+            className="text-[10px] font-extrabold text-white tabular-nums"
+            style={{ textShadow: '0 1px 1px rgba(0,0,0,0.3)' }}
+          >
             {preloadedRate !== undefined ? formatRate(callRate) : (loading ? "..." : formatRate(callRate))}
           </span>
-          <span className="text-[8px] text-white/80">/min</span>
+          <span className="text-[8px] text-white/85 font-semibold">/min</span>
         </motion.div>
       )}
     </div>
