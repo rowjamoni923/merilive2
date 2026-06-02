@@ -435,7 +435,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, provider_id, game_code, user_id, bet_amount, bet_data } = await req.json() as GameProviderRequest;
+    const { action, provider_id, game_code, bet_amount, bet_data } = await req.json() as GameProviderRequest;
+    // SECURITY: ignore any client-supplied user_id; always use the authenticated user.
+    const user_id = user.id;
 
     console.log(`Game Provider Action: ${action} for provider: ${provider_id}`);
 
