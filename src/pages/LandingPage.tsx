@@ -731,7 +731,7 @@ const LandingPage = () => {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
- <h4 className="text-slate-900 font-semibold text-sm truncate">{agency.country_flag && <span className="mr-1">{agency.country_flag}</span>}{agency.name}</h4>
+ <h4 className="text-white font-semibold text-sm truncate">{agency.country_flag && <span className="mr-1">{agency.country_flag}</span>}{agency.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-mono font-bold border border-amber-500/20">
                             {agency.agency_code}
