@@ -223,7 +223,7 @@ export default function AdminAuth() {
       if (authError) throw authError;
       const auth = authData as any;
       if (!auth?.success) {
-        toast.error(auth?.error || 'Invalid credentials');
+        handleAuthFailure(auth?.error || 'Invalid credentials');
         return;
       }
 
