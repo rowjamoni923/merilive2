@@ -266,7 +266,7 @@ export function FullScreenPromoBanners() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-black"
         onClick={handleSkip}
       >
         <motion.div
@@ -276,11 +276,25 @@ export function FullScreenPromoBanners() {
           transition={{ type: "spring", damping: 22, stiffness: 280 }}
           className={
             currentBanner.fullScreen
-              ? "relative flex h-full w-full items-center justify-center"
+              ? "relative h-full w-full overflow-hidden"
               : "relative w-[85%] max-w-sm overflow-hidden rounded-3xl shadow-2xl"
           }
           onClick={handleBannerClick}
         >
+          {currentBanner.fullScreen && (
+            <>
+              {/* Blurred fill — eliminates the empty letterbox bands so the
+                  screen never shows raw black bars above/below the banner. */}
+              <img
+                src={currentBanner.image}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-70"
+              />
+              <div className="absolute inset-0 bg-black/30" />
+            </>
+          )}
+
           <img 
             src={currentBanner.image}
             alt={currentBanner.alt}
@@ -291,7 +305,7 @@ export function FullScreenPromoBanners() {
             {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
             className={
               currentBanner.fullScreen
-                ? "h-full w-full object-cover"
+                ? "relative z-10 h-full w-full object-contain"
                 : "h-auto w-full rounded-3xl object-contain"
             }/>
 
@@ -303,20 +317,20 @@ export function FullScreenPromoBanners() {
                 event.stopPropagation();
                 closeBanner();
               }}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 backdrop-blur-md"
+              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 backdrop-blur-md"
             >
               <X className="h-4 w-4 text-on-dark" />
             </motion.button>
           )}
 
           {!canSkip && (
-            <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-black/60 px-3 py-1 backdrop-blur-md">
+            <div className="absolute right-4 top-4 z-20 rounded-full border border-white/20 bg-black/60 px-3 py-1 backdrop-blur-md">
               <span className="text-xs font-medium text-on-dark">{countdown}s</span>
             </div>
           )}
 
           {currentBanner.id === "rating" && (
-            <div className="absolute inset-x-0 bottom-4 flex justify-center px-4 pointer-events-none">
+            <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 pointer-events-none">
               <div className="rounded-full border border-white/15 bg-black/55 px-4 py-2 backdrop-blur-md">
                 <span className="text-xs font-semibold tracking-wide text-on-dark">Tap banner to claim your reward</span>
               </div>
