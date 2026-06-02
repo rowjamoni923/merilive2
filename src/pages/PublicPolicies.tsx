@@ -54,11 +54,11 @@ const PublicPolicies = () => {
   const navigate = useNavigate();
   
   return (
-  <div className="min-h-screen bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2]">
+  <div className="min-h-screen bg-background text-foreground" style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
     {/* Header */}
     <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 py-5 px-4 text-center sticky top-0 z-50">
-      <h1 className="text-xl font-bold text-slate-800">MeriLive — Policies & Benefits</h1>
-      <p className="text-slate-600 text-xs mt-1">All Policies in One Place</p>
+      <h1 className="text-xl font-bold text-white">MeriLive — Policies & Benefits</h1>
+      <p className="text-white/80 text-xs mt-1">All Policies in One Place</p>
     </div>
 
     {/* All banners */}
