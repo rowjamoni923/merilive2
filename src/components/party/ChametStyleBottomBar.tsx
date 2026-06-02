@@ -240,8 +240,8 @@ export const ChametStyleBottomBar = ({
               icon={Gamepad2}
               label="Game"
               onClick={onGameClick}
-              bg="linear-gradient(135deg, #f97316, #ea580c)"
-              shadow="rgba(249,115,22,0.35)"
+              bg="radial-gradient(120% 120% at 30% 20%, #fed7aa 0%, #f97316 45%, #9a3412 100%)"
+              shadow="rgba(249,115,22,0.55)"
             />
 
             {/* Gift — Hero button (premium breathing glow + haptic) */}
