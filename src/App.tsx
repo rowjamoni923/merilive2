@@ -461,7 +461,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isPublicPage = ((!hasSession && location.pathname === '/') || ['/landing', '/download', '/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
+  const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
+  const isPublicPage = isLandingDomain || ((!hasSession && location.pathname === '/') || ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
@@ -479,7 +480,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
   return (
     <>
-      {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      {!isAdminRoute && !isLandingDomain && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
       {(!isPublicPage || hasSession) && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
@@ -525,8 +526,19 @@ const hasStoredSupabaseSession = (): boolean => {
 };
 
 const isStandalonePublicPath = (path: string): boolean => (
-  ['/landing', '/download', '/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some((route) => path.startsWith(route))
+  ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some((route) => path.startsWith(route))
 );
+
+const LANDING_ONLY_HOSTS = new Set([
+  'merilive.top',
+  'www.merilive.top',
+  'marilive.top',
+  'www.marilive.top',
+  'perilive.top',
+  'www.perilive.top',
+]);
+
+const isLandingOnlyHostname = (host: string): boolean => LANDING_ONLY_HOSTS.has(host.toLowerCase());
 
 const App = () => {
   useAnalyticsBootstrap();
@@ -544,7 +556,7 @@ const App = () => {
       if (sessionStorage.getItem('splash_shown') === '1') return false;
       const host = window.location.hostname;
       // Landing-only marketing domain — never show the app splash.
-      if (host === 'merilive.top' || host === 'www.merilive.top') return false;
+      if (isLandingOnlyHostname(host)) return false;
       const p = window.location.pathname;
       if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
       if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
@@ -621,8 +633,11 @@ const App = () => {
   }, [isAuthenticated, session?.user?.id]);
   
   // 🔐 SINGLE DEVICE SESSION & APP RESUME - Deferred via lazy component
-  const isAdminRoute = window.location.pathname.startsWith('/admin');
-  const isStandalonePublicRoute = isStandalonePublicPath(window.location.pathname) || (window.location.pathname === '/' && !session);
+  const hostname = window.location.hostname;
+  const currentPath = window.location.pathname;
+  const isLandingDomain = isLandingOnlyHostname(hostname);
+  const isAdminRoute = currentPath.startsWith('/admin');
+  const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
@@ -1061,9 +1076,6 @@ const App = () => {
 
   // 🔒 BROWSER GUARD - Block browser access, only allow native app + Lovable preview
   const isNative = Capacitor.isNativePlatform();
-  const hostname = window.location.hostname;
-  const currentPath = window.location.pathname;
-
   // Allow Lovable preview/development environments
   const isLovablePreview = hostname.includes('lovable.app') || 
                            hostname.includes('lovableproject.com') || 
@@ -1072,8 +1084,6 @@ const App = () => {
 
   // Landing page is ONLY served on merilive.top (the marketing/download domain).
   // Main domain (merilive.com / native app / lovable preview) always boots the main app.
-  const isLandingDomain = hostname === 'merilive.top' || hostname === 'www.merilive.top';
-
   
   // Routes allowed in public browser
   const BROWSER_ALLOWED_ROUTES = [
@@ -1181,10 +1191,10 @@ const App = () => {
                 <Route path="/" element={
                   session
                     ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
-                    : (isLandingDomain ? <LandingPage /> : <Navigate to="/auth" replace />)
+                    : <Navigate to="/auth" replace />
                 } />
-                <Route path="/landing" element={<LandingPage />} />
-                <Route path="/download" element={<LandingPage />} />
+                <Route path="/landing" element={<Navigate to="/" replace />} />
+                <Route path="/download" element={<Navigate to="/" replace />} />
 
                 <Route path="/smart-link" element={<SmartLink />} />
                 <Route path="/share" element={<ShareReceive />} />
@@ -1240,7 +1250,7 @@ const App = () => {
                 <Route path="/rewards" element={<ProtectedRoute session={session}><Rewards /></ProtectedRoute>} />
                 <Route path="/rewards/rating-history" element={<ProtectedRoute session={session}><RatingProofHistory /></ProtectedRoute>} />
                 <Route path="/parcels" element={<ProtectedRoute session={session}><Parcels /></ProtectedRoute>} />
-                <Route path="/agency" element={session ? <ProtectedRoute session={session}><Agency /></ProtectedRoute> : <LandingPage />} />
+                <Route path="/agency" element={session ? <ProtectedRoute session={session}><Agency /></ProtectedRoute> : <Navigate to="/auth" replace />} />
                 <Route path="/agent-rank" element={<ProtectedRoute session={session}><AgentRank /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<ProtectedRoute session={session}><Leaderboard /></ProtectedRoute>} />
                 <Route path="/pk-leaderboard/:id" element={<ProtectedRoute session={session}><PKLeaderboard /></ProtectedRoute>} />

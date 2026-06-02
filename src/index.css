@@ -3784,6 +3784,26 @@ input:focus-visible, textarea:focus-visible {
   overscroll-behavior-y: none;
 }
 
+html:has([data-public-scroll="true"]),
+body:has([data-public-scroll="true"]),
+body:has([data-public-scroll="true"]) #root {
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: auto !important;
+  touch-action: pan-y pinch-zoom !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+[data-public-scroll="true"] {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  touch-action: pan-y pinch-zoom !important;
+  overscroll-behavior-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
 /* Admin mobile emergency scroll unlock — must stay after global native locks.
    Desktop keeps the fixed-pane model above; phones/tablets use document scroll. */
 @media (max-width: 1023px) {
