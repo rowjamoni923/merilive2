@@ -268,9 +268,9 @@ const AgencyHostManagement = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF]">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-warning-200/60 px-4 py-3 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-3 safe-area-top" style={{ boxShadow: '0 2px 8px -2px rgba(15,23,42,0.06)' }}>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -281,7 +281,7 @@ const AgencyHostManagement = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-slate-800">Host Management</h1>
+            <h1 className="text-lg font-bold text-slate-900">Host Management</h1>
             <p className="text-xs text-slate-500">{agency?.name}</p>
           </div>
         </div>
@@ -291,10 +291,10 @@ const AgencyHostManagement = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="p-4 space-y-4">
         {/* Agency Info */}
-        <div className="bg-white/5 rounded-xl p-4 border border-warning-200/60">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200" style={{ boxShadow: '0 8px 20px -8px rgba(15,23,42,0.12), 0 2px 6px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.8)' }}>
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-slate-800 font-semibold">{agency?.name}</p>
+              <p className="text-slate-900 font-semibold">{agency?.name}</p>
               <p className="text-slate-500 text-sm">Code: {agency?.agency_code}</p>
             </div>
             <div className="text-right">
@@ -306,11 +306,11 @@ const AgencyHostManagement = () => {
           {/* Pending notification */}
           {pendingHosts.length > 0 && (
             <div 
-              className="flex items-center gap-2 p-2 bg-warning-500/10 rounded-lg cursor-pointer"
+              className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer"
               onClick={() => setActiveTab("pending")}
             >
-              <Bell className="w-4 h-4 text-warning-400" />
-              <span className="text-warning-400 text-sm font-medium">
+              <Bell className="w-4 h-4 text-amber-600" />
+              <span className="text-amber-700 text-sm font-medium">
                 {pendingHosts.length} Pending Request{pendingHosts.length > 1 ? 's' : ''}
               </span>
             </div>
@@ -318,44 +318,47 @@ const AgencyHostManagement = () => {
         </div>
 
         {/* Invite Link Card */}
-        <div className="bg-gradient-to-r from-primary/10 to-brand-500/10 rounded-xl p-4 border border-primary/20">
-          <div className="flex items-center gap-2 mb-3">
-            <LinkIcon className="w-5 h-5 text-primary" />
-            <span className="text-slate-800 font-medium">Host Invite Link</span>
-          </div>
-          <div className="bg-white/80 rounded-lg p-3 mb-3">
-            <p className="text-slate-600 text-sm break-all">{inviteLink}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={copyLink}
-              className="flex-1 bg-white/10 hover:bg-white/20 text-slate-800"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy
-            </Button>
-            <Button
-              onClick={shareLink}
-              className="flex-1 bg-primary hover:bg-primary/90"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
+        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 rounded-2xl p-4" style={{ boxShadow: '0 12px 28px -10px rgba(99,102,241,0.5), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-3">
+              <LinkIcon className="w-5 h-5 text-white drop-shadow" />
+              <span className="text-white font-semibold drop-shadow-sm">Host Invite Link</span>
+            </div>
+            <div className="bg-white/95 rounded-lg p-3 mb-3 border border-white/40" style={{ boxShadow: 'inset 0 1px 2px rgba(15,23,42,0.06)' }}>
+              <p className="text-slate-700 text-sm break-all">{inviteLink}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={copyLink}
+                className="flex-1 bg-white/15 hover:bg-white/25 text-white border border-white/30 backdrop-blur-sm"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy
+              </Button>
+              <Button
+                onClick={shareLink}
+                className="flex-1 bg-white text-purple-700 hover:bg-white/90"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full bg-white/5 border border-warning-200/60">
+          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl" style={{ boxShadow: '0 2px 8px -2px rgba(15,23,42,0.08)' }}>
             <TabsTrigger 
               value="pending" 
-              className="flex-1 data-[state=active]:bg-warning-500/20 data-[state=active]:text-warning-400 text-slate-600"
+              className="flex-1 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
               Pending ({pendingHosts.length})
             </TabsTrigger>
             <TabsTrigger 
               value="hosts" 
-              className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-slate-600"
+              className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
               Hosts ({hosts.length})
             </TabsTrigger>
@@ -372,17 +375,18 @@ const AgencyHostManagement = () => {
               pendingHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-warning-500/20"
+                  className="bg-white rounded-2xl p-4 border border-slate-200"
+                  style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.1), 0 2px 4px -2px rgba(15,23,42,0.06)' }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="w-12 h-12 border-2 border-warning-500/30">
+                    <Avatar className="w-12 h-12 border-2 border-amber-300">
                       <AvatarImage src={hostData.host?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-warning-500/20 text-warning-400">
+                      <AvatarFallback className="bg-amber-100 text-amber-700">
                         {hostData.host?.display_name?.charAt(0) || "H"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-900 font-medium">{hostData.host?.display_name || "Unknown"}</p>
                       <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
                   </div>
@@ -390,7 +394,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setApproveDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-success-500/20 hover:bg-success-500/30 text-success-400"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
                       {processingId === hostData.host_id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -404,7 +408,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setRejectDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-danger-500/20 hover:bg-danger-500/30 text-danger-400"
+                      className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
                       Reject
@@ -425,13 +429,13 @@ const AgencyHostManagement = () => {
                   placeholder="Search by name or UID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-warning-200/60 text-slate-800"
+                  className="pl-10 bg-white border-slate-200 text-slate-900"
                 />
               </div>
               <Button
                 variant={filterOnline ? "default" : "outline"}
                 onClick={() => setFilterOnline(!filterOnline)}
-                className={filterOnline ? "bg-success-500" : "bg-white/5 border-warning-200/60 text-slate-800"}
+                className={filterOnline ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-white border-slate-200 text-slate-800"}
               >
                 <UserCheck className="w-4 h-4" />
               </Button>
@@ -439,7 +443,7 @@ const AgencyHostManagement = () => {
 
             {filteredHosts.length === 0 ? (
               <div className="text-center py-10">
-                <Users className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
+                <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500">
                   {searchQuery || filterOnline ? "No hosts found" : "No hosts in agency"}
                 </p>
@@ -448,26 +452,27 @@ const AgencyHostManagement = () => {
               filteredHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-warning-200/60"
+                  className="bg-white rounded-2xl p-4 border border-slate-200 cursor-pointer hover:-translate-y-0.5 transition-transform"
+                  style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.1), 0 2px 4px -2px rgba(15,23,42,0.06)' }}
                   onClick={() => navigate(`/profile/${hostData.host_id}`)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={hostData.host?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/20 text-primary">
+                        <AvatarFallback className="bg-primary/10 text-primary">
                           {hostData.host?.display_name?.charAt(0) || "H"}
                         </AvatarFallback>
                       </Avatar>
                       {hostData.host?.is_online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-warning-200/60" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-900 font-medium">{hostData.host?.display_name || "Unknown"}</p>
                       <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
-                    <Badge className={hostData.host?.is_online ? "bg-success-500/20 text-success-400" : "bg-gray-500/20 text-gray-400"}>
+                    <Badge className={hostData.host?.is_online ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-600 border border-slate-200"}>
                       {hostData.host?.is_online ? "Online" : "Offline"}
                     </Badge>
                   </div>
