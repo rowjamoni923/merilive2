@@ -9,6 +9,7 @@ import googlePlayBadge from "@/assets/google-play-badge.png";
 import heroBg from "@/assets/landing-bg-hero.jpg";
 import HostProgramCard from "@/components/landing/HostProgramCard";
 import AgencyCard from "@/components/landing/AgencyCard";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 interface AgencyListItem {
   id: string;
