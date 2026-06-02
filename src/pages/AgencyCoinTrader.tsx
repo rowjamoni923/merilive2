@@ -454,16 +454,37 @@ const AgencyCoinTrader = () => {
   const tradeCalc = calculateTrade();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-success-600 to-success-600 text-white safe-area-top">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold">Diamond Trader</h1>
-            <p className="text-xs text-white/80">{agency?.name}</p>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-emerald-50/40 via-background to-background dark:from-emerald-950/20">
+      {/* Premium gradient header */}
+      <header className="flex-shrink-0 sticky top-0 z-40 safe-area-top">
+        <div
+          className="relative bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white"
+          style={{ boxShadow: '0 8px 24px -8px rgba(16,185,129,0.5)' }}
+        >
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.35), transparent 60%), radial-gradient(circle at 90% 100%, rgba(20,184,166,0.5), transparent 60%)',
+            }}
+            aria-hidden
+          />
+          <div className="relative px-4 py-3 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-xl text-white hover:bg-white/25 border-0 transition-all hover:-translate-y-0.5 active:scale-95"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 10px -4px rgba(0,0,0,0.25)' }}
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold tracking-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}>
+                Diamond Trader
+              </h1>
+              <p className="text-xs text-white/85">{agency?.name}</p>
+            </div>
           </div>
         </div>
       </header>
@@ -471,48 +492,63 @@ const AgencyCoinTrader = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-4">
-        {/* Trader Wallet — unified diamond pool (helper + agency) */}
-        <Card className="bg-gradient-to-br from-success-500 to-success-600 text-white border-0">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                <Coins className="w-7 h-7" />
-              </div>
-              <div>
-                <p className="text-white/85 text-sm">Trader Wallet</p>
-                <p className="text-3xl font-bold">
-                  {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()}
-                </p>
-                <p className="text-xs text-white/80">
-                  Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} + Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
-                </p>
-              </div>
+        {/* Premium Trader Wallet card */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 text-white bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600"
+          style={{
+            boxShadow:
+              '0 16px 36px -10px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/15 rounded-full blur-3xl" />
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-300/25 rounded-full blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            <div
+              className="w-16 h-16 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 14px -4px rgba(0,0,0,0.25)' }}
+            >
+              <Coins className="w-8 h-8" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="min-w-0">
+              <p className="text-white/85 text-xs font-medium uppercase tracking-wider">Trader Wallet</p>
+              <p className="text-3xl font-extrabold mt-0.5" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()}
+              </p>
+              <p className="text-[11px] text-white/80 mt-1">
+                Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} • Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Trade Rates */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-info-50 border-info-200">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <ShoppingCart className="w-4 h-4 text-info-600" />
-                <span className="text-xs text-info-600 font-medium">Buy Rate</span>
+          <div
+            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-sky-950/40 dark:via-cyan-950/30 dark:to-blue-950/40 border border-sky-200/60 dark:border-sky-800/40 transition-all hover:-translate-y-0.5"
+            style={{ boxShadow: '0 8px 20px -10px rgba(14,165,233,0.35), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white" style={{ boxShadow: '0 4px 10px -2px rgba(14,165,233,0.5)' }}>
+                <ShoppingCart className="w-4 h-4" />
               </div>
-              <p className="text-lg font-bold text-info-700">{tradeSettings.buy_rate.toLocaleString()}</p>
-              <p className="text-xs text-info-500">Diamonds / $1</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-success-50 border-success-200">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Banknote className="w-4 h-4 text-success-600" />
-                <span className="text-xs text-success-600 font-medium">Sell Rate</span>
+              <span className="text-xs text-sky-700 dark:text-sky-300 font-semibold uppercase tracking-wide">Buy Rate</span>
+            </div>
+            <p className="text-2xl font-extrabold text-sky-700 dark:text-sky-200">{tradeSettings.buy_rate.toLocaleString()}</p>
+            <p className="text-[11px] text-sky-600/80 dark:text-sky-400/80">Diamonds / $1</p>
+          </div>
+          <div
+            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/40 dark:via-green-950/30 dark:to-teal-950/40 border border-emerald-200/60 dark:border-emerald-800/40 transition-all hover:-translate-y-0.5"
+            style={{ boxShadow: '0 8px 20px -10px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white" style={{ boxShadow: '0 4px 10px -2px rgba(16,185,129,0.5)' }}>
+                <Banknote className="w-4 h-4" />
               </div>
-              <p className="text-lg font-bold text-success-700">{tradeSettings.sell_rate.toLocaleString()}</p>
-              <p className="text-xs text-success-500">Diamonds / $1</p>
-            </CardContent>
-          </Card>
+              <span className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold uppercase tracking-wide">Sell Rate</span>
+            </div>
+            <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-200">{tradeSettings.sell_rate.toLocaleString()}</p>
+            <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">Diamonds / $1</p>
+          </div>
         </div>
 
         {/* Trade Tabs */}

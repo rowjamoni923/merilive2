@@ -604,17 +604,36 @@ const AgencyCoinExchange = () => {
   if (!agency) return null;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-warning-50 to-white">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-brand-600 to-brand-600 text-white safe-area-top">
-        <div className="flex items-center h-14 px-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-warning-50 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Diamond Exchange</h1>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20">
+      {/* Premium gradient header */}
+      <header className="flex-shrink-0 sticky top-0 z-40 safe-area-top">
+        <div
+          className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white"
+          style={{ boxShadow: '0 8px 24px -8px rgba(245,158,11,0.45)' }}
+        >
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.35), transparent 60%), radial-gradient(circle at 90% 100%, rgba(244,63,94,0.45), transparent 60%)',
+            }}
+            aria-hidden
+          />
+          <div className="relative flex items-center h-14 px-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 -ml-1 rounded-full bg-white/15 backdrop-blur-xl flex items-center justify-center transition-all hover:bg-white/25 hover:-translate-y-0.5 active:scale-95"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 10px -4px rgba(0,0,0,0.25)' }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1
+              className="flex-1 text-center text-lg font-bold tracking-tight pr-10"
+              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}
+            >
+              Diamond Exchange
+            </h1>
+          </div>
         </div>
       </header>
 
@@ -622,65 +641,104 @@ const AgencyCoinExchange = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Balance Cards */}
         <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-        {/* Agency Beans Balance - from agencies.beans_balance */}
-        <div className="bg-gradient-to-br from-warning-500 to-warning-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+        {/* Agency Beans Balance */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 transition-all hover:-translate-y-0.5"
+          style={{
+            boxShadow:
+              '0 14px 32px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/15 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-orange-300/30 rounded-full blur-2xl" />
+          <div className="relative">
+            <div
+              className="w-10 h-10 mb-2 bg-white/25 backdrop-blur-sm rounded-xl flex items-center justify-center"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
               <Coins className="w-5 h-5" />
             </div>
+            <p className="text-white/90 text-[11px] font-medium uppercase tracking-wide">Total Beans</p>
+            <p className="text-2xl font-extrabold mt-0.5" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}>
+              {(agency.beans_balance || 0).toLocaleString()}
+            </p>
+            <p className="text-white/75 text-[10px] mt-1">Exchangeable to Diamonds</p>
           </div>
-          <p className="text-white/85 text-xs">Total Beans</p>
-          <p className="text-2xl font-bold">{(agency.beans_balance || 0).toLocaleString()}</p>
-          <p className="text-white/70 text-[10px] mt-1">Exchangeable to Diamonds</p>
         </div>
 
         {/* Diamond Balance */}
-        <div className="bg-gradient-to-br from-info-500 to-info-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+        <div
+          className="relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-br from-sky-400 via-cyan-500 to-blue-600 transition-all hover:-translate-y-0.5"
+          style={{
+            boxShadow:
+              '0 14px 32px -10px rgba(14,165,233,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/15 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-cyan-300/30 rounded-full blur-2xl" />
+          <div className="relative">
+            <div
+              className="w-10 h-10 mb-2 bg-white/25 backdrop-blur-sm rounded-xl flex items-center justify-center"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
               <Diamond className="w-5 h-5" />
             </div>
+            <p className="text-white/90 text-[11px] font-medium uppercase tracking-wide">Diamond Balance</p>
+            <p className="text-2xl font-extrabold mt-0.5" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}>
+              {agency.diamond_balance.toLocaleString()}
+            </p>
+            <p className="text-white/75 text-[10px] mt-1">Ready to spend</p>
           </div>
-          <p className="text-white/85 text-xs">Diamond Balance</p>
-          <p className="text-2xl font-bold">{agency.diamond_balance.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Exchange Info */}
-      <div className="mx-4 mt-3 bg-white rounded-xl p-3 border border-warning-200 shadow-sm">
+      <div
+        className="mx-4 mt-3 bg-card rounded-2xl p-3.5 border border-border"
+        style={{ boxShadow: '0 6px 16px -8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+      >
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Exchange Rate:</span>
-          <div className="flex items-center gap-1">
-            <span className="font-semibold text-slate-800">{exchangeSettings.beans_to_diamonds_rate} Beans = 1</span>
-            <Diamond className="w-4 h-4 text-info-600" />
+          <span className="text-muted-foreground">Exchange Rate</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-foreground">{exchangeSettings.beans_to_diamonds_rate} Beans = 1</span>
+            <Diamond className="w-4 h-4 text-sky-500" />
           </div>
         </div>
-        <div className="flex items-center justify-between text-sm mt-1">
-          <span className="text-slate-500">Exchange Fee:</span>
-          <span className="font-semibold text-danger-600">{exchangeSettings.exchange_fee_percent}%</span>
+        <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-border/60">
+          <span className="text-muted-foreground">Exchange Fee</span>
+          <span className="font-bold text-rose-500">{exchangeSettings.exchange_fee_percent}%</span>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mx-4 mt-4 flex gap-2">
-        <Button
-          variant={activeTab === "exchange" ? "default" : "outline"}
+      {/* Sunken-track tabs */}
+      <div
+        className="mx-4 mt-4 grid grid-cols-2 gap-1 p-1 rounded-2xl bg-muted/60 border border-border/60"
+        style={{ boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.4)' }}
+      >
+        <button
           onClick={() => setActiveTab("exchange")}
-          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-warning-500 to-warning-600 border-0" : "border-warning-300 text-warning-700 hover:bg-warning-50"}`}
+          className={`h-11 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+            activeTab === "exchange"
+              ? "bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white shadow-md"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={activeTab === "exchange" ? { boxShadow: '0 4px 10px -2px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.35)' } : undefined}
         >
-          <ArrowRightLeft className="w-4 h-4 mr-2" />
+          <ArrowRightLeft className="w-4 h-4" />
           Beans → Diamond
-        </Button>
-        <Button
-          variant={activeTab === "send" ? "default" : "outline"}
+        </button>
+        <button
           onClick={() => setActiveTab("send")}
-          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-info-500 to-info-600 border-0" : "border-warning-300 text-warning-700 hover:bg-warning-50"}`}
+          className={`h-11 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+            activeTab === "send"
+              ? "bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-600 text-white shadow-md"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={activeTab === "send" ? { boxShadow: '0 4px 10px -2px rgba(14,165,233,0.45), inset 0 1px 0 rgba(255,255,255,0.35)' } : undefined}
         >
-          <Send className="w-4 h-4 mr-2" />
+          <Send className="w-4 h-4" />
           Send Diamond
-        </Button>
+        </button>
       </div>
 
       {/* Exchange Tab */}
