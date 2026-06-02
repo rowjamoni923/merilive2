@@ -1031,27 +1031,49 @@ const VIP = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-3 bg-slate-50 border border-amber-200/60 p-1 rounded-xl">
-          <TabsTrigger 
-            value="vip" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
+        <TabsList
+          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
+          style={{
+            background: 'rgba(15,23,42,0.08)',
+            boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
+            border: '1px solid rgba(217,182,107,0.45)',
+          }}
+        >
+          <TabsTrigger
+            value="vip"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'vip' ? {
+              background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Crown className="w-4 h-4 mr-2" />
-            VIP Plans
+            <Crown className="w-4 h-4 mr-1.5" />
+            VIP
           </TabsTrigger>
-          <TabsTrigger 
-            value="noble" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500"
+          <TabsTrigger
+            value="noble"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'noble' ? {
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Crown className="w-4 h-4 mr-2" />
+            <Crown className="w-4 h-4 mr-1.5" />
             Noble
           </TabsTrigger>
-          <TabsTrigger 
-            value="privileges" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
+          <TabsTrigger
+            value="privileges"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'privileges' ? {
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Sparkles className="w-4 h-4 mr-2" />
-            My Privileges
+            <Sparkles className="w-4 h-4 mr-1.5" />
+            Mine
           </TabsTrigger>
         </TabsList>
 
