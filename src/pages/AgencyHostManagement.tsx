@@ -349,16 +349,16 @@ const AgencyHostManagement = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full bg-white/5 border border-warning-200/60">
+          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl" style={{ boxShadow: '0 2px 8px -2px rgba(15,23,42,0.08)' }}>
             <TabsTrigger 
               value="pending" 
-              className="flex-1 data-[state=active]:bg-warning-500/20 data-[state=active]:text-warning-400 text-slate-600"
+              className="flex-1 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
               Pending ({pendingHosts.length})
             </TabsTrigger>
             <TabsTrigger 
               value="hosts" 
-              className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-slate-600"
+              className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
               Hosts ({hosts.length})
             </TabsTrigger>
