@@ -33,6 +33,8 @@ interface PendingAuthData {
 }
 
 export default function AdminAuth() {
+  // Public browser admin entry — enable native scroll + pinch-zoom.
+  useEnableBrowserPageInteraction();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
