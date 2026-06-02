@@ -1045,43 +1045,37 @@ export function ActiveCallScreen({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="absolute bottom-24 right-3 z-30"
+            className="absolute bottom-24 right-3 z-30 backdrop-blur-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(15,5,30,0.92) 100%)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '16px',
-              padding: '6px',
-              minWidth: '170px',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 20px rgba(168,85,247,0.08)'
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(25,12,50,0.88) 100%)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '20px',
+              padding: '8px',
+              minWidth: '180px',
+              boxShadow: '0 18px 44px -10px rgba(0,0,0,0.7), 0 0 24px rgba(168,85,247,0.18), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
-            {/* Mic Toggle */}
-            <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-400" /> : <MicOff className="w-5 h-5 text-red-400" />}
-              <span className="text-xs font-medium">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
+            <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-300" /> : <MicOff className="w-5 h-5 text-red-300" />}
+              <span className="text-xs font-bold tracking-wide">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
             </button>
-            {/* Flip Camera removed per request (no video icons in call) */}
-            {/* Swap View — local↔remote tile */}
-            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              <Maximize2 className="w-5 h-5 text-cyan-400" />
-              <span className="text-xs font-medium">Swap View</span>
+            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              <Maximize2 className="w-5 h-5 text-cyan-300" />
+              <span className="text-xs font-bold tracking-wide">Swap View</span>
             </button>
-            {/* Beauty — Cross-platform */}
-              <button onClick={() => { beauty.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-                <Sparkles className="w-5 h-5 text-pink-400" />
-                <span className="text-xs font-medium">Beauty</span>
+              <button onClick={() => { beauty.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+                <Sparkles className="w-5 h-5 text-pink-300" />
+                <span className="text-xs font-bold tracking-wide">Beauty</span>
               </button>
-            {/* Sticker — REAL native beauty Native */}
             {beauty.isNativeAndroid && (
-              <button onClick={() => { void beauty.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-                <Smile className="w-5 h-5 text-orange-400" />
-                <span className="text-xs font-medium">{beauty.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
+              <button onClick={() => { void beauty.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+                <Smile className="w-5 h-5 text-orange-300" />
+                <span className="text-xs font-bold tracking-wide">{beauty.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
               </button>
             )}
-            {/* Speaker */}
-            <button onClick={() => { setIsSpeakerOn(!isSpeakerOn); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
-              {isSpeakerOn ? <Volume2 className="w-5 h-5 text-amber-400" /> : <VolumeX className="w-5 h-5 text-red-400" />}
-              <span className="text-xs font-medium">{isSpeakerOn ? 'Speaker On' : 'Speaker Off'}</span>
+            <button onClick={() => { setIsSpeakerOn(!isSpeakerOn); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
+              {isSpeakerOn ? <Volume2 className="w-5 h-5 text-amber-300" /> : <VolumeX className="w-5 h-5 text-red-300" />}
+              <span className="text-xs font-bold tracking-wide">{isSpeakerOn ? 'Speaker On' : 'Speaker Off'}</span>
             </button>
           </motion.div>
         )}
