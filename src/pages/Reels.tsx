@@ -596,7 +596,8 @@ const Reels = () => {
       userCoinsRef.current = previousCoins;
       setUserCoins(previousCoins);
       updateCachedBalance(previousCoins);
-      toast.error("Failed to send gift");
+      const msg = error instanceof Error ? error.message : 'Failed to send gift';
+      toast.error(msg);
     }
   };
 
