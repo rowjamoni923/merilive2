@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isStandalonePublicLocation } from '@/utils/publicRoutes';
 
 // Module-level balance cache (singleton)
 interface BalanceCache {
@@ -163,6 +164,7 @@ export function useUserBalancePrefetch(): void {
   const prefetched = useRef(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && isStandalonePublicLocation()) return;
     if (prefetched.current) return;
     prefetched.current = true;
 

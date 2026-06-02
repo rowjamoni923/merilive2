@@ -10,6 +10,7 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
+import { isStandalonePublicLocation } from "./utils/publicRoutes";
 
 // =============================================
 // 🛡️ CRITICAL: Install realtime guard BEFORE anything else
@@ -21,7 +22,7 @@ installRealtimeGuard();
 // even in legacy or third-party code we don't own. Single source of truth.
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
-if (!window.location.pathname.startsWith('/admin')) {
+if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
   startNetworkResilienceEngine();
 }
 // 🔊 Install global audio unlock — first user tap unlocks SVGA gift sounds
@@ -53,7 +54,7 @@ window.addEventListener('unhandledrejection', (e) => {
 // Fixes 100vh issue on mobile browsers (address bar)
 // =============================================
 function setViewportHeight() {
-  if (window.location.pathname.startsWith('/admin')) return;
+  if (window.location.pathname.startsWith('/admin') || isStandalonePublicLocation()) return;
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
 }

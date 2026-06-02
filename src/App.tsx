@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, lazy, Suspense, memo } from "react";
+import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -17,10 +18,12 @@ import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache, useUserBalancePrefetch } from '@/hooks/useUserBalance';
 import { useAnalyticsBootstrap } from '@/hooks/useAnalyticsBootstrap';
+import { useEnableBrowserPageInteraction } from '@/hooks/useEnableBrowserPageInteraction';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
+import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import AdminAuth from "./pages/admin/AdminAuth";
 
@@ -102,7 +105,7 @@ function preloadCoreRoutes() {
 // Pkg51: Fire preload at module-evaluation time too (before <App /> mounts).
 // The useEffect inside App still calls it as a safety net — preloadCoreRoutes
 // is idempotent. Guarded by `window` so SSR/test environments stay safe.
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
   const schedule = (cb: () => void) => {
     const w = window as any;
     if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 1800 });
@@ -462,7 +465,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
-  const isPublicPage = isLandingDomain || ((!hasSession && location.pathname === '/') || ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r)));
+  const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
@@ -480,8 +483,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
   return (
     <>
-      {!isAdminRoute && !isLandingDomain && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
-      {(!isPublicPage || hasSession) && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
+      {!isAdminRoute && !isPublicPage && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      {!isPublicPage && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
           <WelcomeOnboarding />
@@ -490,7 +493,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
           <RatingRewardPopup />
         </ErrorBoundary>
       ) : null}
-      {!isAdminRoute && (
+      {!isAdminRoute && !isPublicPage && (
         <>
           <AppUpdateChecker />
           <NetworkStatusBar />
@@ -525,27 +528,19 @@ const hasStoredSupabaseSession = (): boolean => {
   return false;
 };
 
-const isStandalonePublicPath = (path: string): boolean => (
-  ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some((route) => path.startsWith(route))
-);
+const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
+  useEnableBrowserPageInteraction();
+  return <>{children}</>;
+};
 
-const LANDING_ONLY_HOSTS = new Set([
-  'merilive.top',
-  'www.merilive.top',
-  'marilive.top',
-  'www.marilive.top',
-  'perilive.top',
-  'www.perilive.top',
-]);
-
-const isLandingOnlyHostname = (host: string): boolean => LANDING_ONLY_HOSTS.has(host.toLowerCase());
+const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</StandalonePublicShell>;
 
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
   // ⚡ Skip the splash loader entirely if we already have a stored session.
   // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !hasStoredSupabaseSession());
+  const [loading, setLoading] = useState(() => !isStandalonePublicLocation() && !hasStoredSupabaseSession());
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -642,6 +637,8 @@ const App = () => {
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
+    if (isStandalonePublicLocation()) return;
+
     // 🚀 Initialize WebView performance tuning only inside native WebView
     if (Capacitor.isNativePlatform()) {
       initWebViewPerformance();
@@ -1085,17 +1082,16 @@ const App = () => {
   // Landing page is ONLY served on merilive.top (the marketing/download domain).
   // Main domain (merilive.com / native app / lovable preview) always boots the main app.
   
-  // Routes allowed in public browser
-  const BROWSER_ALLOWED_ROUTES = [
-    '/', '/landing', '/download', '/admin', '/agency-signup', '/smart-link', '/link', 
-    '/policies', '/policies-benefits', '/about', '/google-library-order-rules', '/policies/',
-    '/agency-policy', '/helper-policy', '/agency',
-    '/privacy-policy', '/terms', '/contact', '/support', '/account-deletion', '/delete-account', '/become-sub-agent', '/payroll-helper-guide',
-    '/create-agency', '/join-agency',
-    '/auth/callback', '/reset-password', '/~oauth'
-  ];
-  
-  const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => route === '/' ? currentPath === '/' : currentPath.startsWith(route));
+  const isBrowserAllowedRoute = currentPath === '/'
+    || currentPath.startsWith('/admin')
+    || currentPath.startsWith('/auth')
+    || currentPath.startsWith('/reset-password')
+    || currentPath.startsWith('/~oauth')
+    || currentPath.startsWith('/landing')
+    || currentPath.startsWith('/download')
+    || currentPath.startsWith('/agency')
+    || currentPath.startsWith('/join-agency')
+    || isStandalonePublicPath(currentPath);
 
   if (loading) {
     // No full-screen "Checking your session…" loader — render nothing so the
@@ -1157,10 +1153,10 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
-              <AndroidBackButtonHandler />
-              {session ? <MandatoryPermissionsGate /> : null}
-              <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
-              <Suspense fallback={null}><AppLockGate /></Suspense>
+              {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
+              {session && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
@@ -1174,9 +1170,34 @@ const App = () => {
                   <Suspense fallback={<RouteSuspenseFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
-                    // merilive.top is the landing-only marketing domain.
-                    // Every path renders the LandingPage — no app, no auth, no admin.
+                    // merilive.top is landing-only for app routes, but public/legal/share
+                    // URLs must render directly without the app splash or app-only popups.
                     <Routes>
+                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/landing" element={<LandingPage />} />
+                      <Route path="/download" element={<LandingPage />} />
+                      <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                      <Route path="/share" element={publicPage(<ShareReceive />)} />
+                      <Route path="/link" element={publicPage(<SmartLink />)} />
+                      <Route path="/policies" element={publicPage(<PublicPolicies />)} />
+                      <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
+                      <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+                      <Route path="/privacy-policy" element={publicPage(<PublicPrivacyPolicy />)} />
+                      <Route path="/terms" element={publicPage(<PublicTerms />)} />
+                      <Route path="/account-deletion" element={publicPage(<PublicAccountDeletion />)} />
+                      <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
+                      <Route path="/google-library-order-rules" element={publicPage(<GoogleLibraryOrderRules />)} />
+                      <Route path="/about" element={publicPage(<About />)} />
+                      <Route path="/contact" element={publicPage(<PublicContact />)} />
+                      <Route path="/support" element={publicPage(<PublicContact />)} />
+                      <Route path="/agency-policy" element={publicPage(<AgencyPolicy />)} />
+                      <Route path="/policies-benefits" element={publicPage(<PoliciesAndBenefits />)} />
+                      <Route path="/helper-policy" element={publicPage(<AgencyPolicy />)} />
+                      <Route path="/create-agency" element={publicPage(<AgencySignup />)} />
+                      <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
+                      <Route path="/become-sub-agent" element={publicPage(<BecomeSubAgent />)} />
+                      <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
+                      <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                       <Route path="*" element={<LandingPage />} />
                     </Routes>
                   ) : (
@@ -1187,7 +1208,7 @@ const App = () => {
                 <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session
                     ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
@@ -1196,23 +1217,23 @@ const App = () => {
                 <Route path="/landing" element={<Navigate to="/" replace />} />
                 <Route path="/download" element={<Navigate to="/" replace />} />
 
-                <Route path="/smart-link" element={<SmartLink />} />
-                <Route path="/share" element={<ShareReceive />} />
-                <Route path="/link" element={<SmartLink />} />
-                <Route path="/policies" element={<PublicPolicies />} />
-                <Route path="/policies/:policyId" element={<PolicyDetail />} />
+                <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                <Route path="/share" element={publicPage(<ShareReceive />)} />
+                <Route path="/link" element={publicPage(<SmartLink />)} />
+                <Route path="/policies" element={publicPage(<PublicPolicies />)} />
+                <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
-                <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
-                <Route path="/terms" element={<PublicTerms />} />
-                <Route path="/account-deletion" element={<PublicAccountDeletion />} />
+                <Route path="/privacy-policy" element={publicPage(<PublicPrivacyPolicy />)} />
+                <Route path="/terms" element={publicPage(<PublicTerms />)} />
+                <Route path="/account-deletion" element={publicPage(<PublicAccountDeletion />)} />
                 <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
-                <Route path="/google-library-order-rules" element={<GoogleLibraryOrderRules />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<PublicContact />} />
-                <Route path="/support" element={<PublicContact />} />
-                <Route path="/agency-policy" element={<AgencyPolicy />} />
-                <Route path="/policies-benefits" element={<PoliciesAndBenefits />} />
-                <Route path="/helper-policy" element={<AgencyPolicy />} />
+                <Route path="/google-library-order-rules" element={publicPage(<GoogleLibraryOrderRules />)} />
+                <Route path="/about" element={publicPage(<About />)} />
+                <Route path="/contact" element={publicPage(<PublicContact />)} />
+                <Route path="/support" element={publicPage(<PublicContact />)} />
+                <Route path="/agency-policy" element={publicPage(<AgencyPolicy />)} />
+                <Route path="/policies-benefits" element={publicPage(<PoliciesAndBenefits />)} />
+                <Route path="/helper-policy" element={publicPage(<AgencyPolicy />)} />
                 <Route path="/sync-test" element={<SyncTest />} />
                 
                 {/* ============================================= */}
@@ -1257,8 +1278,8 @@ const App = () => {
                 <Route path="/host-application" element={<ProtectedRoute session={session}><HostApplication /></ProtectedRoute>} />
                 <Route path="/agent-wallet" element={<ProtectedRoute session={session}><AgentWallet /></ProtectedRoute>} />
                 <Route path="/transfer-history" element={<ProtectedRoute session={session}><TransferHistory /></ProtectedRoute>} />
-                <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : <AgencySignup />} />
-                <Route path="/agency-signup" element={<AgencySignup />} />
+                <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : publicPage(<AgencySignup />)} />
+                <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
                 <Route path="/agency-dashboard" element={<ProtectedRoute session={session}><AgencyDashboard /></ProtectedRoute>} />
                 <Route path="/agency-withdrawal" element={<ProtectedRoute session={session}><AgencyWithdrawal /></ProtectedRoute>} />
                 <Route path="/agency-coin-exchange" element={<ProtectedRoute session={session}><AgencyCoinExchange /></ProtectedRoute>} />
@@ -1267,7 +1288,7 @@ const App = () => {
                 <Route path="/agency-commission-history" element={<ProtectedRoute session={session}><AgencyCommissionHistory /></ProtectedRoute>} />
                 <Route path="/agency-host-management" element={<ProtectedRoute session={session}><AgencyHostManagement /></ProtectedRoute>} />
                 <Route path="/join-agency" element={<ProtectedRoute session={session}><JoinAgency /></ProtectedRoute>} />
-                <Route path="/become-sub-agent" element={<BecomeSubAgent />} />
+                <Route path="/become-sub-agent" element={publicPage(<BecomeSubAgent />)} />
                 <Route path="/agency-details" element={<ProtectedRoute session={session}><AgencyDetails /></ProtectedRoute>} />
                 <Route path="/host-transfer-history" element={<ProtectedRoute session={session}><HostTransferHistory /></ProtectedRoute>} />
                 <Route path="/call-history" element={<ProtectedRoute session={session}><CallHistory /></ProtectedRoute>} />
@@ -1287,7 +1308,7 @@ const App = () => {
                 <Route path="/dev/avatar-ring-check" element={<ProtectedRoute session={session}><AvatarFrameRingCheck /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
-                <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
+                <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
