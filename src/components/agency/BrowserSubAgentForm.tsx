@@ -340,7 +340,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Loading
   if (loadingAgency) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a14] via-[#12102a] to-[#1a0f2e] flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse"/>
         <Loader2 className="w-8 h-8 text-white animate-spin" />
         <p className="text-slate-600 text-sm mt-3">Loading...</p>
@@ -351,7 +351,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Agency not found
   if (!agency) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-danger-900 via-danger-800 to-warning-900 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-[#1a0a0a] via-[#2a1010] to-[#1a0a0a] flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4"/>
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
@@ -372,7 +372,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Success state
   if (formState === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-success-800 via-success-700 to-success-800 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a1a14] via-[#10261c] to-[#0a1a14] flex flex-col items-center justify-center p-6">
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-warning-200/60">
           <div className="w-20 h-20 bg-gradient-to-br from-success-400 to-success-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <PartyPopper className="w-10 h-10 text-white" />
@@ -428,7 +428,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
   // Form state
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 py-6 px-4 safe-area-inset overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-[#0a0a14] via-[#12102a] to-[#1a0f2e] py-6 px-4 safe-area-inset overflow-x-hidden">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
