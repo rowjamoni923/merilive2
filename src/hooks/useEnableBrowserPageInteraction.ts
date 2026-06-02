@@ -26,9 +26,16 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
     const previousBodyOverflow = body.style.overflow;
     const previousHtmlTouchAction = html.style.touchAction;
     const previousBodyTouchAction = body.style.touchAction;
+    const previousHtmlOverscroll = html.style.overscrollBehavior;
+    const previousHtmlOverscrollY = html.style.overscrollBehaviorY;
     const previousBodyOverscroll = body.style.overscrollBehavior;
+    const previousBodyOverscrollY = body.style.overscrollBehaviorY;
     const previousRootOverflow = root?.style.overflow ?? "";
     const previousRootHeight = root?.style.height ?? "";
+    const previousRootMinHeight = root?.style.minHeight ?? "";
+    const previousRootTouchAction = root?.style.touchAction ?? "";
+    const previousRootOverscroll = root?.style.overscrollBehavior ?? "";
+    const previousRootOverscrollY = root?.style.overscrollBehaviorY ?? "";
 
     if (viewport) {
       viewport.setAttribute("content", ZOOMABLE_VIEWPORT_CONTENT);
@@ -41,11 +48,18 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
     body.style.overflow = "auto";
     html.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
     body.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
-    body.style.overscrollBehavior = mode === "app-shell" ? "auto" : "auto";
+    html.style.overscrollBehavior = "auto";
+    html.style.overscrollBehaviorY = "auto";
+    body.style.overscrollBehavior = "auto";
+    body.style.overscrollBehaviorY = "auto";
 
     if (root) {
       root.style.overflow = "visible";
       root.style.height = "auto";
+      root.style.minHeight = mode === "app-shell" ? "100dvh" : "auto";
+      root.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
+      root.style.overscrollBehavior = "auto";
+      root.style.overscrollBehaviorY = "auto";
     }
 
     return () => {
@@ -61,11 +75,18 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
       body.style.overflow = previousBodyOverflow;
       html.style.touchAction = previousHtmlTouchAction;
       body.style.touchAction = previousBodyTouchAction;
+      html.style.overscrollBehavior = previousHtmlOverscroll;
+      html.style.overscrollBehaviorY = previousHtmlOverscrollY;
       body.style.overscrollBehavior = previousBodyOverscroll;
+      body.style.overscrollBehaviorY = previousBodyOverscrollY;
 
       if (root) {
         root.style.overflow = previousRootOverflow;
         root.style.height = previousRootHeight;
+        root.style.minHeight = previousRootMinHeight;
+        root.style.touchAction = previousRootTouchAction;
+        root.style.overscrollBehavior = previousRootOverscroll;
+        root.style.overscrollBehaviorY = previousRootOverscrollY;
       }
     };
   }, [options.mode]);
