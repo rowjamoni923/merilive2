@@ -1011,14 +1011,24 @@ export function ActiveCallScreen({
                   animate={{ opacity: 1, x: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="max-w-[80%] px-3 py-1.5 rounded-2xl rounded-bl-sm text-xs bg-black/50 border border-white/5">
+                  <div
+                    className="max-w-[80%] px-3 py-1.5 rounded-2xl rounded-bl-sm text-xs backdrop-blur-md border border-white/10"
+                    style={{
+                      background: isMe
+                        ? 'linear-gradient(135deg, rgba(168,85,247,0.35), rgba(99,102,241,0.3))'
+                        : 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(30,15,55,0.5))',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 12px -6px rgba(0,0,0,0.5)',
+                    }}
+                  >
                     <span className={cn(
-                      "text-[10px] font-bold block mb-0.5",
-                      isMe ? "text-purple-300" : "text-pink-300"
-                    )}>
+                      "text-[10px] font-extrabold block mb-0.5 tracking-wide",
+                      isMe ? "text-purple-200" : "text-pink-200"
+                    )}
+                      style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
+                    >
                       {msg.senderName}
                     </span>
-                    <span className="text-white/90">{msg.message}</span>
+                    <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
                   </div>
                 </motion.div>
               );
