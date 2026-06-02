@@ -220,19 +220,32 @@ const BecomeSubAgent = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-amber-500 text-white safe-area-top">
-        <div className="flex items-center h-14 px-4">
-          <button 
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+      {/* Premium 3D Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">
-            Become Sub-Agent
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center"
+              style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.25)' }}
+            >
+              <Users className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
+            </div>
+            <div>
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Become Sub-Agent</h1>
+              <p className="text-slate-500 text-[10px]">Grow your earnings network</p>
+            </div>
+          </div>
         </div>
       </header>
 
