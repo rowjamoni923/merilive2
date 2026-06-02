@@ -979,14 +979,20 @@ const VIP = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)' }}
+      >
+        <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden">
+    <div
+      className="fixed inset-0 flex flex-col overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)' }}
+    >
       {/* Header */}
       <div
         className="sticky top-0 z-50 bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 backdrop-blur-xl safe-area-top"
@@ -1025,27 +1031,49 @@ const VIP = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-3 bg-slate-50 border border-amber-200/60 p-1 rounded-xl">
-          <TabsTrigger 
-            value="vip" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
+        <TabsList
+          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
+          style={{
+            background: 'rgba(15,23,42,0.08)',
+            boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
+            border: '1px solid rgba(217,182,107,0.45)',
+          }}
+        >
+          <TabsTrigger
+            value="vip"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'vip' ? {
+              background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Crown className="w-4 h-4 mr-2" />
-            VIP Plans
+            <Crown className="w-4 h-4 mr-1.5" />
+            VIP
           </TabsTrigger>
-          <TabsTrigger 
-            value="noble" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500"
+          <TabsTrigger
+            value="noble"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'noble' ? {
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Crown className="w-4 h-4 mr-2" />
+            <Crown className="w-4 h-4 mr-1.5" />
             Noble
           </TabsTrigger>
-          <TabsTrigger 
-            value="privileges" 
-            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
+          <TabsTrigger
+            value="privileges"
+            className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
+            style={activeTab === 'privileges' ? {
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            } : undefined}
           >
-            <Sparkles className="w-4 h-4 mr-2" />
-            My Privileges
+            <Sparkles className="w-4 h-4 mr-1.5" />
+            Mine
           </TabsTrigger>
         </TabsList>
 
@@ -1062,18 +1090,37 @@ const VIP = () => {
         <TabsContent value="vip" className="flex-1 overflow-y-auto mt-0 px-4 py-4" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
           {/* Current VIP Status */}
           {currentVIPTier > 0 && (
-            <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-              <div className="flex items-center justify-between">
+            <div
+              className="mb-4 p-4 rounded-2xl relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                boxShadow: '0 14px 32px -10px rgba(168,85,247,0.50), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -3px 6px rgba(0,0,0,0.15)',
+              }}
+            >
+              <div
+                className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl opacity-40"
+                style={{ background: 'radial-gradient(circle, #fff, transparent 70%)' }}
+              />
+              <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <VIPBadge tier={currentVIPTier} size="lg" />
                   <div>
-                    <p className="text-heading font-semibold">Current Status</p>
-                    <p className="text-heading text-sm">
-                      Expires: {vipExpiresAt ? new Date(vipExpiresAt).toLocaleDateString() : 'N/A'}
+                    <p className="text-white font-bold text-base" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>Active Membership</p>
+                    <p className="text-white/85 text-xs" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.20)' }}>
+                      Expires {vipExpiresAt ? new Date(vipExpiresAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>
-                <Sparkles className="w-6 h-6 text-purple-700" />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.22)',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)',
+                  }}
+                >
+                  <Sparkles className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
+                </div>
               </div>
             </div>
           )}
@@ -1090,16 +1137,40 @@ const VIP = () => {
                   key={tier.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`relative rounded-2xl overflow-hidden border ${
-                    isOwned ? 'border-green-500/50' : 'border-amber-200/60'
-                  }`}
+                  transition={{ delay: index * 0.08 }}
+                  className="relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                  style={{
+                    border: isOwned ? '1px solid rgba(16,185,129,0.55)' : '1px solid rgba(217,182,107,0.50)',
+                    boxShadow: isOwned
+                      ? '0 14px 32px -10px rgba(16,185,129,0.35), 0 2px 6px -2px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7)'
+                      : '0 14px 32px -12px rgba(180,140,40,0.30), 0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)',
+                  }}
                 >
+                  {/* Featured ribbon */}
+                  {!isOwned && tier.tier_level >= 3 && (
+                    <div
+                      className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-bold text-white tracking-wider"
+                      style={{
+                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                        boxShadow: '0 4px 10px -2px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.40)',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                      }}
+                    >
+                      ★ BEST
+                    </div>
+                  )}
+
                   {/* Tier Header */}
-                  <div className={`p-4 bg-gradient-to-r ${getTierGradient(tier.tier_level)}`}>
+                  <div className={`p-4 bg-gradient-to-r ${getTierGradient(tier.tier_level)} relative`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100/80 flex items-center justify-center overflow-hidden">
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,251,242,0.7))',
+                            boxShadow: '0 6px 14px -4px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.85)',
+                          }}
+                        >
                           {tier.badge_animation_url ? (
                             <UniversalAnimationPlayer
                               src={tier.badge_animation_url}
@@ -1108,55 +1179,83 @@ const VIP = () => {
                               autoPlay
                             />
                           ) : (
-                            <TierIcon className="w-6 h-6 text-heading" />
+                            <TierIcon className="w-7 h-7 text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
                           )}
                         </div>
                         <div>
-                          <h3 className="text-heading font-bold text-lg">{tier.tier_name}</h3>
-                          <p className="text-body text-sm">{tier.duration_days} Days</p>
+                          <h3 className="text-heading font-bold text-lg" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
+                          <p className="text-body text-xs font-medium">{tier.duration_days} Days Membership</p>
                         </div>
                       </div>
                       {isOwned && (
-                        <Badge className="bg-green-500 text-heading border-0">
-                          <Check className="w-3 h-3 mr-1" /> Active
-                        </Badge>
+                        <span
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white"
+                          style={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            boxShadow: '0 6px 14px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.40)',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                          }}
+                        >
+                          <Check className="w-3 h-3" /> Active
+                        </span>
                       )}
                     </div>
                   </div>
 
                   {/* Privileges */}
                   <div className="p-4 bg-white/95">
-                    <p className="text-heading text-sm mb-3">{tier.description}</p>
-                    
+                    {tier.description && <p className="text-heading text-sm mb-3 leading-snug">{tier.description}</p>}
+
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {privileges.slice(0, 6).map((priv, i) => (
-                        <div key={i} className="flex items-center gap-2 text-body text-sm">
-                          <priv.icon className="w-4 h-4 text-purple-700" />
-                          <span>{priv.label}</span>
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 text-body text-xs font-medium px-2 py-1.5 rounded-lg"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(147,51,234,0.08), rgba(236,72,153,0.06))',
+                            border: '1px solid rgba(147,51,234,0.18)',
+                          }}
+                        >
+                          <priv.icon className="w-3.5 h-3.5 text-purple-700 flex-shrink-0" />
+                          <span className="truncate">{priv.label}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Price & Action */}
                     <div className="flex items-center justify-between pt-3 border-t border-amber-200/60">
-                      <div className="flex items-center gap-2">
-                        <Diamond3DIcon size={20} />
-                        <span className="text-heading font-bold text-lg">
+                      <div
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(251,191,36,0.20), rgba(217,182,107,0.14))',
+                          border: '1px solid rgba(217,182,107,0.40)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                        }}
+                      >
+                        <Diamond3DIcon size={18} />
+                        <span className="text-heading font-bold text-base">
                           {tier.price_diamonds.toLocaleString()}
                         </span>
                       </div>
-                      
-                      <Button
+
+                      <button
                         onClick={() => setSelectedTier(tier)}
                         disabled={isOwned || purchasing}
-                        className={`px-6 ${
-                          isOwned 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-on-dark'
-                        }`}
+                        className="px-5 py-2 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
+                        style={isOwned ? {
+                          background: 'linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.12))',
+                          color: '#065f46',
+                          border: '1px solid rgba(16,185,129,0.40)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+                        } : {
+                          background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                          color: '#fff',
+                          boxShadow: '0 10px 22px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+                        }}
                       >
-                        {isOwned ? 'Active' : 'Subscribe'}
-                      </Button>
+                        {isOwned ? '✓ Active' : 'Subscribe'}
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -1242,7 +1341,7 @@ const VIP = () => {
                             {/* Equipped indicator */}
                             {priv.is_equipped && (
                               <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-heading" />
+                                <Check className="w-3 h-3 text-white" strokeWidth={3} />
                               </div>
                             )}
                             
@@ -1284,8 +1383,8 @@ const VIP = () => {
                               handleEquip(priv);
                             }}
                             className={priv.is_equipped
-                              ? 'mt-2 h-7 rounded-full bg-green-100 text-green-700 hover:bg-green-100'
-                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-heading'}
+                              ? 'mt-2 h-7 rounded-full bg-green-100 text-green-700 hover:bg-green-100 font-semibold'
+                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-purple-500/30'}
                           >
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>
@@ -1309,57 +1408,86 @@ const VIP = () => {
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={!!selectedTier} onOpenChange={() => setSelectedTier(null)}>
-        <DialogContent className="bg-white border-purple-500/30 max-w-sm">
+        <DialogContent
+          className="border-0 max-w-sm"
+          style={{
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.40)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.30), 0 0 40px rgba(168,85,247,0.15)',
+          }}
+        >
           <DialogHeader>
-            <DialogTitle className="text-heading text-center">Confirm VIP Purchase</DialogTitle>
+            <DialogTitle className="text-heading text-center text-lg font-bold">Confirm VIP Purchase</DialogTitle>
           </DialogHeader>
-          
+
           {selectedTier && (
             <div className="space-y-4">
               <div className="text-center">
                 <VIPBadge tier={selectedTier.tier_level} size="lg" />
-                <h3 className="text-heading font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
-                <p className="text-heading">{selectedTier.duration_days} Days Membership</p>
+                <h3 className="text-heading font-bold text-xl mt-3" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.6)' }}>{selectedTier.tier_name}</h3>
+                <p className="text-body text-sm">{selectedTier.duration_days} Days Membership</p>
               </div>
 
-              <div className="flex items-center justify-center gap-2 py-4 bg-amber-500/10 rounded-xl">
-                <Diamond3DIcon size={24} />
+              <div
+                className="flex items-center justify-center gap-2 py-4 rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(217,182,107,0.14))',
+                  border: '1px solid rgba(217,182,107,0.40)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(180,140,40,0.10)',
+                }}
+              >
+                <Diamond3DIcon size={26} />
                 <span className="text-amber-700 font-bold text-2xl">
                   {selectedTier.price_diamonds.toLocaleString()}
                 </span>
               </div>
 
-              <div className="text-center text-sm text-heading">
-                Your balance: {userDiamonds.toLocaleString()} diamonds
+              <div className="text-center text-xs text-body">
+                Your balance: <span className="text-heading font-semibold">{userDiamonds.toLocaleString()}</span> diamonds
               </div>
 
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
+                <button
                   onClick={() => setSelectedTier(null)}
-                  className="flex-1 border-amber-200/70 text-heading"
+                  className="flex-1 py-3 rounded-full font-semibold text-heading transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                  style={{
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.45)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                  }}
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => handlePurchase(selectedTier)}
                   disabled={purchasing || userDiamonds < selectedTier.price_diamonds}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
+                  className="flex-1 py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:hover:translate-y-0"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                    boxShadow: '0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+                  }}
                 >
                   {purchasing ? "Processing..." : "Confirm"}
-                </Button>
+                </button>
               </div>
 
               {userDiamonds < selectedTier.price_diamonds && (
-                <Button
+                <button
                   onClick={() => {
                     setSelectedTier(null);
                     navigate("/recharge");
                   }}
-                  className="w-full bg-amber-500 hover:bg-amber-600"
+                  className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                    boxShadow: '0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+                  }}
                 >
+                  <Diamond3DIcon size={16} />
                   Recharge Diamonds
-                </Button>
+                </button>
               )}
             </div>
           )}

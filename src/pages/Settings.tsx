@@ -881,7 +881,7 @@ const Settings = () => {
       <div className="mobile-page-scrollable">
       {/* Settings List */}
       <div className="mx-3 my-3 rounded-2xl bg-card overflow-hidden divide-y divide-border"
-        style={{ boxShadow: '0 8px 24px -14px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+        style={{ boxShadow: '0 12px 32px -16px rgba(15,23,42,0.22), 0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.85)' }}
       >
         {/* Recording toggle hidden from UI per product decision — do not surface to users/hosts/agencies. */}
         {/* <AutoRecordSettingsRow /> */}
@@ -893,47 +893,107 @@ const Settings = () => {
           </div>
         )}
 
-        {settingsItems.map((item, index) => (
-          <button
-            key={index}
-            onClick={item.onClick}
-            className={`w-full flex items-center justify-between px-4 py-4 transition-colors hover:bg-muted/60 active:bg-muted ${
-              item.danger ? 'text-destructive' : ''
-            }`}
-            disabled={!item.onClick}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.danger ? 'bg-destructive/10' : 'bg-muted'}`}
-                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px -1px rgba(15,23,42,0.1)' }}
-              >
-                <item.icon className={`w-4.5 h-4.5 ${item.danger ? 'text-destructive' : 'text-foreground'}`} />
-              </div>
-              <span className={`font-medium ${item.danger ? 'text-destructive' : 'text-foreground'}`}>{item.label}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {item.value && (
-                <span className={`text-sm ${item.danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+        {settingsItems.map((item, index) => {
+          // Color-coded icon tile mapping
+          const tileStyles: Record<string, { bg: string; fg: string; glow: string }> = {
+            [t("settings.notifications")]: { bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', fg: 'text-amber-700', glow: 'rgba(245,158,11,0.30)' },
+            [t("settings.language")]: { bg: 'linear-gradient(135deg, #dbeafe, #bfdbfe)', fg: 'text-blue-700', glow: 'rgba(59,130,246,0.30)' },
+            'Blacklist': { bg: 'linear-gradient(135deg, #fee2e2, #fecaca)', fg: 'text-red-700', glow: 'rgba(239,68,68,0.30)' },
+            'User Management': { bg: 'linear-gradient(135deg, #ede9fe, #ddd6fe)', fg: 'text-violet-700', glow: 'rgba(139,92,246,0.30)' },
+            [t("settings.privacyPolicy")]: { bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)', fg: 'text-emerald-700', glow: 'rgba(16,185,129,0.30)' },
+            'Share usage data': { bg: 'linear-gradient(135deg, #cffafe, #a5f3fc)', fg: 'text-cyan-700', glow: 'rgba(6,182,212,0.30)' },
+            [t("settings.userAgreement")]: { bg: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', fg: 'text-indigo-700', glow: 'rgba(99,102,241,0.30)' },
+            [t("settings.aboutUs")]: { bg: 'linear-gradient(135deg, #f3e8ff, #e9d5ff)', fg: 'text-purple-700', glow: 'rgba(168,85,247,0.30)' },
+            [t("settings.rateMeriLive")]: { bg: 'linear-gradient(135deg, #fef9c3, #fef08a)', fg: 'text-yellow-700', glow: 'rgba(234,179,8,0.30)' },
+            [t("settings.clearCache")]: { bg: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', fg: 'text-slate-700', glow: 'rgba(100,116,139,0.30)' },
+            [t("settings.version")]: { bg: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', fg: 'text-slate-600', glow: 'rgba(100,116,139,0.25)' },
+            [t("settings.customerService")]: { bg: 'linear-gradient(135deg, #fce7f3, #fbcfe8)', fg: 'text-pink-700', glow: 'rgba(236,72,153,0.30)' },
+          };
+          const tile = tileStyles[item.label] ?? { bg: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', fg: 'text-slate-700', glow: 'rgba(100,116,139,0.25)' };
 
-              )}
-              {item.showArrow !== false && item.onClick && (
-                <ChevronRight className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
-              )}
-            </div>
-          </button>
-        ))}
+          // Detect On/Off + Days-left for premium badge styling
+          const isOnOff = item.value === 'On' || item.value === 'Off';
+          const isDanger = item.danger;
+
+          return (
+            <button
+              key={index}
+              onClick={item.onClick}
+              className={`w-full flex items-center justify-between px-4 py-3.5 transition-all duration-200 hover:bg-muted/50 active:bg-muted active:scale-[0.995] ${
+                isDanger ? 'text-destructive' : ''
+              }`}
+              disabled={!item.onClick}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: isDanger ? 'linear-gradient(135deg, #fee2e2, #fecaca)' : tile.bg,
+                    boxShadow: `0 4px 10px -4px ${isDanger ? 'rgba(239,68,68,0.35)' : tile.glow}, inset 0 1px 0 rgba(255,255,255,0.75), inset 0 -1px 0 rgba(15,23,42,0.04)`,
+                  }}
+                >
+                  <item.icon className={`w-[18px] h-[18px] ${isDanger ? 'text-red-700' : tile.fg}`} strokeWidth={2.2} />
+                </div>
+                <span className={`font-medium ${isDanger ? 'text-destructive' : 'text-foreground'}`}>{item.label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {item.value && (
+                  isOnOff ? (
+                    <span
+                      className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+                      style={
+                        item.value === 'On'
+                          ? {
+                              background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+                              color: '#065f46',
+                              boxShadow: '0 2px 6px -2px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.7)',
+                            }
+                          : {
+                              background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                              color: '#475569',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(15,23,42,0.05)',
+                            }
+                      }
+                    >
+                      {item.value}
+                    </span>
+                  ) : isDanger && item.value ? (
+                    <span
+                      className="text-[11px] font-bold px-2.5 py-1 rounded-full text-red-700"
+                      style={{
+                        background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                        boxShadow: '0 2px 6px -2px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.7)',
+                      }}
+                    >
+                      {item.value}
+                    </span>
+                  ) : (
+                    <span className={`text-sm ${isDanger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+                  )
+                )}
+                {item.showArrow !== false && item.onClick && (
+                  <ChevronRight className={`w-5 h-5 ${isDanger ? 'text-destructive' : 'text-muted-foreground/60'}`} />
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Log Out Button */}
       <div className="mt-6 px-4">
-        <Button
-          variant="outline"
+        <button
           onClick={() => setShowLogoutDialog(true)}
-          className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/10"
+          className="w-full h-12 rounded-2xl font-semibold text-destructive flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)',
+            border: '1px solid hsl(var(--destructive) / 0.3)',
+            boxShadow: '0 8px 20px -10px hsl(var(--destructive) / 0.30), inset 0 1px 0 rgba(255,255,255,0.7)',
+          }}
         >
-          <LogOut className="w-5 h-5 mr-2" />
+          <LogOut className="w-5 h-5" />
           {t("settings.logout")}
-        </Button>
+        </button>
       </div>
       </div>
 
