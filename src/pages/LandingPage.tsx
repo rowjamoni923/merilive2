@@ -698,7 +698,7 @@ const LandingPage = () => {
  <p className="text-white/85 text-xs">Join any agency to become a host</p>
                   </div>
                 </div>
- <button onClick={() => setShowAgencyList(false)} className="text-white/85 hover:text-slate-900 p-1.5 rounded-full hover:bg-white/10 transition-colors">
+ <button onClick={() => setShowAgencyList(false)} className="text-white/85 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
