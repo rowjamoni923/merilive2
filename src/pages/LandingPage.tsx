@@ -171,7 +171,11 @@ const LandingPage = () => {
   ];
 
   return (
- <div className="min-h-screen bg-[#030308] text-slate-900 overflow-x-hidden selection:bg-pink-500/30">
+ <div
+   className="min-h-screen bg-[#030308] text-slate-900 overflow-x-hidden selection:bg-pink-500/30"
+   data-public-scroll="true"
+   style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}
+ >
       {/* Floating Header */}
       <motion.header
         style={{ opacity: headerOpacity }}
@@ -582,17 +586,14 @@ const LandingPage = () => {
               </div>
             </a>
 
-            {/* Google Play Store Badge */}
-            <a
-              href={PLAY_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
+            <Button
+              onClick={handleAPKDownload}
+              size="lg"
+              className="h-16 px-10 bg-white/[0.08] hover:bg-white/[0.12] border border-slate-200/10 text-white font-bold rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
             >
- <div className="bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-                <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14"/>
-              </div>
-            </a>
+              <Download className="w-5 h-5 mr-2" />
+              APK Download
+            </Button>
           </div>
         </motion.div>
       </section>
