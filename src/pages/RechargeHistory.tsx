@@ -238,62 +238,84 @@ const RechargeHistory = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-amber-50 to-orange-50 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 pb-6">
-        <header className="safe-area-top">
+      {/* Premium 3D Gradient Header */}
+      <div
+        className="relative bg-gradient-to-br from-purple-600 via-fuchsia-600 to-rose-500 pb-7 overflow-hidden"
+        style={{ boxShadow: '0 10px 28px -16px rgba(168,85,247,0.55)' }}
+      >
+        <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-pink-300/25 blur-3xl pointer-events-none" />
+
+        <header className="relative safe-area-top">
           <div className="flex items-center gap-3 px-4 py-3">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-white hover:bg-white/20"
+              className="rounded-xl text-white bg-white/20 hover:bg-white/30 active:scale-95 hover:-translate-y-0.5 transition-all border border-white/25 w-10 h-10"
+              style={{ boxShadow: '0 6px 16px -8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35)' }}
               onClick={() => navigate(-1)}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
             </Button>
-            <h1 className="text-xl font-bold text-slate-800">Recharge History</h1>
+            <h1 className="text-xl font-bold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>Recharge History</h1>
           </div>
         </header>
 
-        {/* Stats Summary */}
-        <div className="px-4 mt-2">
+        {/* 3D Stats Summary */}
+        <div className="relative px-4 mt-2">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-amber-300" />
-                <span className="text-slate-600 text-xs">Pending</span>
+            <div
+              className="relative bg-gradient-to-br from-white/30 via-white/20 to-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/30 overflow-hidden"
+              style={{ boxShadow: '0 10px 24px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
+              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-amber-300/30 blur-2xl pointer-events-none" />
+              <div className="relative flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-amber-400/30 border border-amber-200/40 flex items-center justify-center" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}>
+                  <Clock className="w-4 h-4 text-amber-100" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                </div>
+                <span className="text-white/85 text-xs font-semibold uppercase tracking-wider" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>Pending</span>
               </div>
-              <p className="text-2xl font-bold text-slate-800">{pendingCount}</p>
+              <p className="relative text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>{pendingCount}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
-              <div className="flex items-center gap-2 mb-1">
-                <Check className="w-4 h-4 text-green-300" />
-                <span className="text-slate-600 text-xs">Processed</span>
+            <div
+              className="relative bg-gradient-to-br from-white/30 via-white/20 to-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/30 overflow-hidden"
+              style={{ boxShadow: '0 10px 24px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
+              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-emerald-300/30 blur-2xl pointer-events-none" />
+              <div className="relative flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-emerald-400/30 border border-emerald-200/40 flex items-center justify-center" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}>
+                  <Check className="w-4 h-4 text-emerald-100" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                </div>
+                <span className="text-white/85 text-xs font-semibold uppercase tracking-wider" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>Processed</span>
               </div>
-              <p className="text-2xl font-bold text-slate-800">{completedCount}</p>
+              <p className="relative text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>{completedCount}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 -mt-3">
+      {/* Sunken Tab Track */}
+      <div className="px-4 -mt-3 relative z-10">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="w-full bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-1 h-auto">
-            <TabsTrigger 
-              value="all" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+          <TabsList
+            className="w-full bg-white border border-amber-200/60 rounded-2xl p-1 h-auto"
+            style={{ boxShadow: '0 10px 24px -14px rgba(15,23,42,0.22), inset 0 2px 4px rgba(15,23,42,0.06)' }}
+          >
+            <TabsTrigger
+              value="all"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
-               All ({rechargeOrders.length})
+              All ({rechargeOrders.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="pending" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
+            <TabsTrigger
+              value="pending"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
               Pending ({pendingCount})
             </TabsTrigger>
-            <TabsTrigger 
-              value="completed" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
+            <TabsTrigger
+              value="completed"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(16,185,129,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
               Done ({completedCount})
             </TabsTrigger>
