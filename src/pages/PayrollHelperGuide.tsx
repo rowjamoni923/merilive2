@@ -334,12 +334,12 @@ const PayrollHelperGuide = () => {
         </section>
 
         {/* Important Notes */}
-        <section className="bg-slate-900 rounded-3xl p-6 border border-white/5 shadow-2xl">
+        <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-brand-400" />
+            <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-brand-600" />
             </div>
-            <h3 className="font-black text-base text-white">Security Guidelines</h3>
+            <h3 className="font-black text-base text-slate-900">Security Guidelines</h3>
           </div>
           <div className="space-y-4">
             {[
@@ -350,10 +350,10 @@ const PayrollHelperGuide = () => {
               "Violations will result in status revocation"
             ].map((item, idx) => (
               <div key={idx} className="flex items-start gap-4">
-                <div className="w-6 h-6 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[10px] font-black text-brand-400">{idx + 1}</span>
+                <div className="w-6 h-6 rounded-full bg-brand-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[10px] font-black text-brand-600">{idx + 1}</span>
                 </div>
-                <span className="text-xs font-bold text-white/60 leading-relaxed">{item}</span>
+                <span className="text-xs font-bold text-slate-600 leading-relaxed">{item}</span>
               </div>
             ))}
           </div>
