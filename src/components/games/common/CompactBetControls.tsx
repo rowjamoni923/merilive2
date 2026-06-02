@@ -36,9 +36,16 @@ export const formatBetAmount = (amount: number): string => {
 export function DiamondBalanceHeader({ userCoins, rightElement }: { userCoins: number; rightElement?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-1 mb-1">
-      <div className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border border-cyan-500/40">
-        <Diamond className="w-2.5 h-2.5 text-cyan-400" />
-        <span className="text-cyan-300 font-bold text-[10px]">{userCoins.toLocaleString()}</span>
+      <div
+        className="flex items-center gap-1 px-2.5 py-1 rounded-full relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(34,211,238,0.28), rgba(168,85,247,0.28))',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px -2px rgba(34,211,238,0.35)',
+          border: '1px solid rgba(34,211,238,0.4)'
+        }}
+      >
+        <Diamond className="w-2.5 h-2.5 text-cyan-300 drop-shadow-[0_1px_2px_rgba(34,211,238,0.5)]" />
+        <span className="text-cyan-200 font-bold text-[10px] tracking-wide">{userCoins.toLocaleString()}</span>
       </div>
       {rightElement}
     </div>
@@ -57,25 +64,34 @@ export function CompactPresetBets({
   
   return (
     <div className="flex justify-center gap-1 py-0.5">
-      {presetBets.map((amount) => (
-        <motion.button
-          key={amount}
-          whileTap={{ scale: 0.93 }}
-          onClick={() => setBetAmount(amount)}
-          disabled={amount > userCoins}
-          className={cn(
-            "px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all min-w-[44px]",
-
-            betAmount === amount
-              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30"
-              : amount > userCoins
-                ? "bg-white/5 text-white/30"
-                : "bg-white/10 text-white/80 hover:bg-white/20"
-          )}
-        >
-          {formatBetAmount(amount)}
-        </motion.button>
-      ))}
+      {presetBets.map((amount) => {
+        const active = betAmount === amount;
+        const disabled = amount > userCoins;
+        return (
+          <motion.button
+            key={amount}
+            whileHover={!disabled ? { y: -1, scale: 1.04 } : undefined}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => setBetAmount(amount)}
+            disabled={disabled}
+            className={cn(
+              "px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all min-w-[44px] relative overflow-hidden",
+              active
+                ? "text-white"
+                : disabled
+                  ? "bg-white/[0.04] text-white/30 border border-white/5"
+                  : "bg-white/[0.08] text-white/85 hover:bg-white/15 border border-white/10"
+            )}
+            style={active ? {
+              background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 50%, #6d28d9 100%)',
+              boxShadow: '0 6px 14px -4px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
+            } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}
+          >
+            {active && <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />}
+            <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">{formatBetAmount(amount)}</span>
+          </motion.button>
+        );
+      })}
     </div>
   );
 }
@@ -83,11 +99,18 @@ export function CompactPresetBets({
 // Compact Bet Info Display
 export function CompactBetInfo({ betAmount, label = "Your Bet" }: { betAmount: number; label?: string }) {
   return (
-    <div className="flex items-center justify-between bg-black/30 rounded-lg px-2 py-1 border border-white/10">
-      <span className="text-white/50 text-[9px]">{label}</span>
+    <div
+      className="flex items-center justify-between rounded-lg px-2.5 py-1.5"
+      style={{
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.25))',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)'
+      }}
+    >
+      <span className="text-white/55 text-[9px] uppercase tracking-wider">{label}</span>
       <div className="flex items-center gap-1">
-        <Diamond className="w-2.5 h-2.5 text-cyan-400" />
-        <span className="text-cyan-300 font-bold text-[10px]">{betAmount.toLocaleString()}</span>
+        <Diamond className="w-2.5 h-2.5 text-cyan-300" />
+        <span className="text-cyan-200 font-bold text-[10px]">{betAmount.toLocaleString()}</span>
       </div>
     </div>
   );
@@ -111,23 +134,24 @@ export function CompactBetButton({
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={!disabled ? { y: -1, scale: 1.02 } : undefined}
+      whileTap={{ scale: 0.97 }}
       onClick={onClick}
       disabled={disabled || isLoading}
       className={cn(
-        "w-full h-10 rounded-lg text-xs font-bold text-white relative overflow-hidden disabled:opacity-50",
-        "bg-gradient-to-r from-green-500 to-emerald-600",
+        "w-full h-10 rounded-xl text-xs font-extrabold tracking-wide text-white relative overflow-hidden disabled:opacity-50",
         className
       )}
       style={{
-        boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3), inset 0 2px 0 rgba(255,255,255,0.2)'
+        background: 'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #15803d 100%)',
+        boxShadow: '0 8px 20px -6px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 6px rgba(0,0,0,0.3)'
       }}
     >
+      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
       {isLoading ? (
-        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+        <Loader2 className="w-4 h-4 animate-spin mx-auto relative" />
       ) : (
-        <span className="relative z-10 flex items-center justify-center gap-1.5">
+        <span className="relative z-10 flex items-center justify-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
           {icon}
           {label}
         </span>
