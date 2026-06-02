@@ -2256,43 +2256,55 @@ const Recharge = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-on-dark hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-on-dark bg-white/15 hover:bg-white/25 active:scale-95 hover:-translate-y-0.5 w-10 h-10 transition-all border border-white/20"
+              style={{ boxShadow: '0 6px 16px -8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' }}
               onClick={() => navigate(-1)}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
             </Button>
-            <h1 className="text-on-dark font-bold text-lg drop-shadow-sm">Diamond Store</h1>
+            <h1 className="text-on-dark font-bold text-lg" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>Diamond Store</h1>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-on-dark hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-on-dark bg-white/15 hover:bg-white/25 active:scale-95 hover:-translate-y-0.5 w-10 h-10 transition-all border border-white/20"
+              style={{ boxShadow: '0 6px 16px -8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' }}
               onClick={() => navigate('/recharge-history')}
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-5 h-5" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
             </Button>
           </div>
         </header>
 
-        {/* Compact Balance Display */}
+        {/* Premium 3D Balance Card */}
         <div className="relative px-3 pt-1 pb-4">
-  <div className="relative bg-white/15 backdrop-blur-xl rounded-xl p-3 border border-white/25">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Diamond3DIcon size={24} />
+          <div
+            className="relative bg-gradient-to-br from-white/25 via-white/15 to-white/10 backdrop-blur-xl rounded-2xl p-3.5 border border-white/30 overflow-hidden"
+            style={{ boxShadow: '0 12px 32px -14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15)' }}
+          >
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-amber-300/30 to-pink-400/20 blur-2xl pointer-events-none" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center border border-white/30"
+                  style={{ boxShadow: '0 6px 14px -6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+                >
+                  <Diamond3DIcon size={26} />
                 </div>
                 <div>
-                  <p className="text-on-dark-muted text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
-                  <span className="text-xl font-bold text-on-dark drop-shadow-sm">
+                  <p className="text-on-dark-muted text-[10px] font-semibold uppercase tracking-[0.14em]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>Your Balance</p>
+                  <span className="text-2xl font-extrabold text-on-dark leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
                     {formatNumber(currentBalance)}
                   </span>
                 </div>
               </div>
-              
+
               {currencyRate && (
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
+                <div
+                  className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-right border border-white/25"
+                  style={{ boxShadow: '0 4px 10px -4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.3)' }}
+                >
                   <p className="text-on-dark-muted text-[9px] font-semibold uppercase tracking-wider">Currency</p>
-                  <p className="text-on-dark font-bold text-sm drop-shadow-sm">
+                  <p className="text-on-dark font-bold text-sm" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
                 </div>
@@ -2301,19 +2313,23 @@ const Recharge = () => {
           </div>
         </div>
 
-        {/* Compact Tabs */}
+        {/* 3D Sunken Tab Track */}
         <div className="relative px-3 pb-2">
-          <div className="flex gap-1 bg-white/10 backdrop-blur-sm rounded-lg p-0.5">
+          <div
+            className="flex gap-1 bg-black/25 backdrop-blur-sm rounded-xl p-1 border border-white/10"
+            style={{ boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.08)' }}
+          >
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id)}
                 className={cn(
-                  "flex-1 py-2 px-2 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1",
+                  "flex-1 py-2 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 active:scale-95",
                   selectedTab === tab.id
-                    ? "bg-white text-primary shadow-md"
-                    : "text-on-dark-muted hover:text-white hover:bg-white/15"
+                    ? "bg-gradient-to-b from-white to-white/90 text-primary"
+                    : "text-on-dark-muted hover:text-white hover:bg-white/10"
                 )}
+                style={selectedTab === tab.id ? { boxShadow: '0 4px 12px -4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)' } : undefined}
               >
                 {tab.icon}
                 <span className="hidden xs:inline">{tab.label}</span>

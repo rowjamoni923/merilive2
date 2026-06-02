@@ -238,62 +238,84 @@ const RechargeHistory = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-amber-50 to-orange-50 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 pb-6">
-        <header className="safe-area-top">
+      {/* Premium 3D Gradient Header */}
+      <div
+        className="relative bg-gradient-to-br from-purple-600 via-fuchsia-600 to-rose-500 pb-7 overflow-hidden"
+        style={{ boxShadow: '0 10px 28px -16px rgba(168,85,247,0.55)' }}
+      >
+        <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-pink-300/25 blur-3xl pointer-events-none" />
+
+        <header className="relative safe-area-top">
           <div className="flex items-center gap-3 px-4 py-3">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-white hover:bg-white/20"
+              className="rounded-xl text-white bg-white/20 hover:bg-white/30 active:scale-95 hover:-translate-y-0.5 transition-all border border-white/25 w-10 h-10"
+              style={{ boxShadow: '0 6px 16px -8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35)' }}
               onClick={() => navigate(-1)}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
             </Button>
-            <h1 className="text-xl font-bold text-slate-800">Recharge History</h1>
+            <h1 className="text-xl font-bold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>Recharge History</h1>
           </div>
         </header>
 
-        {/* Stats Summary */}
-        <div className="px-4 mt-2">
+        {/* 3D Stats Summary */}
+        <div className="relative px-4 mt-2">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-amber-300" />
-                <span className="text-slate-600 text-xs">Pending</span>
+            <div
+              className="relative bg-gradient-to-br from-white/30 via-white/20 to-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/30 overflow-hidden"
+              style={{ boxShadow: '0 10px 24px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
+              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-amber-300/30 blur-2xl pointer-events-none" />
+              <div className="relative flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-amber-400/30 border border-amber-200/40 flex items-center justify-center" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}>
+                  <Clock className="w-4 h-4 text-amber-100" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                </div>
+                <span className="text-white/85 text-xs font-semibold uppercase tracking-wider" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>Pending</span>
               </div>
-              <p className="text-2xl font-bold text-slate-800">{pendingCount}</p>
+              <p className="relative text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>{pendingCount}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
-              <div className="flex items-center gap-2 mb-1">
-                <Check className="w-4 h-4 text-green-300" />
-                <span className="text-slate-600 text-xs">Processed</span>
+            <div
+              className="relative bg-gradient-to-br from-white/30 via-white/20 to-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/30 overflow-hidden"
+              style={{ boxShadow: '0 10px 24px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+            >
+              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-emerald-300/30 blur-2xl pointer-events-none" />
+              <div className="relative flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-emerald-400/30 border border-emerald-200/40 flex items-center justify-center" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}>
+                  <Check className="w-4 h-4 text-emerald-100" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                </div>
+                <span className="text-white/85 text-xs font-semibold uppercase tracking-wider" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>Processed</span>
               </div>
-              <p className="text-2xl font-bold text-slate-800">{completedCount}</p>
+              <p className="relative text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}>{completedCount}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 -mt-3">
+      {/* Sunken Tab Track */}
+      <div className="px-4 -mt-3 relative z-10">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="w-full bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-1 h-auto">
-            <TabsTrigger 
-              value="all" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+          <TabsList
+            className="w-full bg-white border border-amber-200/60 rounded-2xl p-1 h-auto"
+            style={{ boxShadow: '0 10px 24px -14px rgba(15,23,42,0.22), inset 0 2px 4px rgba(15,23,42,0.06)' }}
+          >
+            <TabsTrigger
+              value="all"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
-               All ({rechargeOrders.length})
+              All ({rechargeOrders.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="pending" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
+            <TabsTrigger
+              value="pending"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
               Pending ({pendingCount})
             </TabsTrigger>
-            <TabsTrigger 
-              value="completed" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
+            <TabsTrigger
+              value="completed"
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-6px_rgba(16,185,129,0.5),inset_0_1px_0_rgba(255,255,255,0.35)]"
             >
               Done ({completedCount})
             </TabsTrigger>
@@ -309,16 +331,23 @@ const RechargeHistory = () => {
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-4">
-              <Receipt className="w-10 h-10 text-slate-500" />
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-pink-500/20 blur-2xl scale-125" />
+              <div
+                className="relative w-24 h-24 rounded-full bg-gradient-to-br from-white to-amber-50 border border-amber-200/70 flex items-center justify-center"
+                style={{ boxShadow: '0 12px 28px -12px rgba(168,85,247,0.35), inset 0 2px 0 rgba(255,255,255,0.9), inset 0 -2px 6px rgba(168,85,247,0.08)' }}
+              >
+                <Receipt className="w-10 h-10 text-purple-500" style={{ filter: 'drop-shadow(0 2px 4px rgba(168,85,247,0.35))' }} />
+              </div>
             </div>
-            <p className="text-slate-400 font-medium text-lg">No recharge history</p>
+            <p className="text-slate-700 font-bold text-lg">No recharge history</p>
             <p className="text-slate-500 text-sm mt-1">Your transactions will appear here</p>
-            <Button 
-              className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl px-6 h-12"
+            <Button
+              className="mt-6 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-2xl px-6 h-12 font-semibold active:scale-95 hover:-translate-y-0.5 transition-all"
+              style={{ boxShadow: '0 10px 24px -10px rgba(168,85,247,0.6), inset 0 1px 0 rgba(255,255,255,0.35)' }}
               onClick={() => navigate('/recharge')}
             >
-              <Gem className="w-5 h-5 mr-2" />
+              <Gem className="w-5 h-5 mr-2" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
               Recharge Now
             </Button>
           </div>
@@ -327,24 +356,28 @@ const RechargeHistory = () => {
             {filteredRequests.map((request, index) => (
               <div
                 key={request.id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 hover:border-purple-500/30 transition-all duration-300"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="relative bg-white rounded-2xl p-4 border border-amber-200/60 hover:border-purple-400/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                style={{ boxShadow: '0 8px 22px -14px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.9)', animationDelay: `${index * 50}ms` }}
               >
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent" />
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center text-2xl">
-                       {getPaymentMethodIcon(request.payment_method || '')}
+                    <div
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 via-pink-50 to-white border border-purple-200/60 flex items-center justify-center text-2xl"
+                      style={{ boxShadow: '0 6px 16px -8px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -2px 4px rgba(168,85,247,0.08)' }}
+                    >
+                      {getPaymentMethodIcon(request.payment_method || '')}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800 text-lg">
-                        +{request.coin_amount?.toLocaleString() || 0} 
-                        <span className="text-purple-400 ml-1">💎</span>
+                      <p className="font-extrabold text-slate-800 text-lg leading-tight">
+                        +{request.coin_amount?.toLocaleString() || 0}
+                        <span className="text-purple-500 ml-1">💎</span>
                       </p>
-                      <p className="text-slate-400 text-sm">
-                        {request.source === 'google_play' 
-                          ? '🟢 Google Play' 
-                          : request.helper_name 
-                            ? `👤 ${request.helper_name}` 
+                      <p className="text-slate-500 text-sm font-medium">
+                        {request.source === 'google_play'
+                          ? '🟢 Google Play'
+                          : request.helper_name
+                            ? `👤 ${request.helper_name}`
                             : getPaymentMethodLabel(request.payment_method || '')}
                       </p>
                     </div>
