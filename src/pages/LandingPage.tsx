@@ -188,14 +188,14 @@ const LandingPage = () => {
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-16">
         {/* Full Background Image */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40"/>
-          <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/60 to-white" />
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25"/>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white" />
           {/* Extra ambient orbs */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-radial from-pink-500/10 via-purple-500/5 to-transparent rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-radial from-pink-500/15 via-purple-500/10 to-transparent rounded-full blur-[120px] animate-pulse" />
           <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-blue-600/8 rounded-full blur-[180px]" />
           <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-amber-500/6 rounded-full blur-[150px]" />
           {/* Floating particles effect */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.008)_1px,transparent_1px)] bg-[size:80px_80px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.04)_1px,transparent_1px)] bg-[size:80px_80px]" />
         </div>
 
         <motion.div
@@ -229,7 +229,7 @@ const LandingPage = () => {
           >
             <div className="absolute inset-[-12px] bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 rounded-[2rem] blur-2xl opacity-50 animate-pulse" />
             <div className="absolute inset-[-4px] bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-amber-500/30 rounded-[1.8rem] animate-spin-slow" style={{ animationDuration: '8s' }} />
-            <img src={meriliveLogo} alt="MeriLive" className="relative w-32 h-32 rounded-3xl shadow-2xl ring-2 ring-white/20"/>
+            <img src={meriliveLogo} alt="MeriLive" className="relative w-32 h-32 rounded-3xl shadow-2xl ring-2 ring-slate-200"/>
           </motion.div>
 
           {/* Title */}
@@ -290,7 +290,7 @@ const LandingPage = () => {
               className="group relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
- <div className="relative bg-white backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="relative bg-white border border-slate-200 rounded-2xl p-3 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-md">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14"/>
               </div>
             </a>
@@ -324,7 +324,7 @@ const LandingPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 + i * 0.1 }}
- className="relative text-center group p-5 rounded-2xl bg-white border border-slate-200 backdrop-blur-xl hover:bg-white hover:border-slate-200 transition-all duration-500 overflow-hidden"
+ className="relative text-center group p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-500 overflow-hidden"
               >
                 {/* Glow effect */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500 rounded-2xl`} />
@@ -445,7 +445,7 @@ const LandingPage = () => {
                   {/* Subtle border glow */}
                   <div className="absolute -inset-[0.5px] bg-gradient-to-r from-blue-500/30 via-indigo-500/20 to-purple-500/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
- <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white border border-slate-200 backdrop-blur-xl hover:bg-white hover:border-slate-200 transition-all duration-500 overflow-hidden">
+ <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-500 overflow-hidden">
                     {/* Ambient glow on hover */}
                     <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
@@ -523,7 +523,7 @@ const LandingPage = () => {
                 >
                   {/* Background glow */}
                   <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${feature.gradient_colors} rounded-full blur-[60px] opacity-10 group-hover:opacity-25 transition-opacity duration-500`} />
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient_colors} flex items-center justify-center mb-5 shadow-xl shadow-black/20 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10`}>
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient_colors} flex items-center justify-center mb-5 shadow-xl shadow-black/20 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ring-1 ring-slate-200`}>
  <IconComp className="w-7 h-7 text-slate-900" />
                   </div>
  <h3 className="text-lg font-bold mb-1.5 text-slate-900 relative z-10">{feature.title}</h3>
@@ -545,7 +545,7 @@ const LandingPage = () => {
       {/* Final CTA */}
       <section className="py-28 px-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 rotate-180"/>
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 rotate-180"/>
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white" />
         </div>
         <motion.div
@@ -556,7 +556,7 @@ const LandingPage = () => {
         >
           <div className="relative mx-auto mb-8 w-24 h-24">
             <div className="absolute inset-[-8px] bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 rounded-3xl blur-2xl opacity-40 animate-pulse" />
-            <img src={meriliveLogo} alt="MeriLive" className="relative w-24 h-24 rounded-3xl ring-2 ring-white/20 shadow-2xl"/>
+            <img src={meriliveLogo} alt="MeriLive" className="relative w-24 h-24 rounded-3xl ring-2 ring-slate-200 shadow-2xl"/>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
@@ -573,7 +573,7 @@ const LandingPage = () => {
               rel="noopener noreferrer"
               className="group"
             >
- <div className="bg-white backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="bg-white border border-slate-200 rounded-2xl p-3 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-md">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-14 md:h-16"/>
               </div>
             </a>
@@ -622,7 +622,7 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             {/* Brand */}
             <div className="flex items-center gap-3.5">
-              <img src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"/>
+              <img src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-slate-200"/>
               <div>
                 <span className="font-bold text-xl bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">MeriLive</span>
  <p className="text-xs text-slate-500 mt-0.5">Best Live Streaming & Video Call Platform</p>
