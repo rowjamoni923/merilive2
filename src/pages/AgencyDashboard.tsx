@@ -1214,17 +1214,19 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+          className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 rounded-2xl p-4 cursor-pointer transition-all active:scale-[0.98] hover:-translate-y-0.5"
+          style={{ boxShadow: '0 10px 24px -8px rgba(99,102,241,0.45), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
+          <div className="relative flex items-center gap-3">
+            <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.15)' }}>
+              <FileText className="w-5 h-5 text-white drop-shadow" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/60 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white font-bold text-sm drop-shadow-sm">📖 Payroll Helper Guide</p>
+              <p className="text-white/85 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/50" />
+            <ArrowRight className="w-4 h-4 text-white" />
           </div>
         </div>
       </div>
