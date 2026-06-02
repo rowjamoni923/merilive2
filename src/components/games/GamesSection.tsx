@@ -72,21 +72,33 @@ export function GamesSection() {
     <div className="px-4 py-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <span className="text-lg">🎮</span>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: -4 }}
+            whileTap={{ scale: 0.94 }}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center relative overflow-hidden"
+            style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 45%, #6b21a8 100%)',
+              boxShadow: '0 10px 24px -8px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.35)'
+            }}
+          >
+            <span className="text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">🎮</span>
+            <div className="absolute inset-x-2 top-1 h-2 rounded-full bg-white/35 blur-[2px]" />
+          </motion.div>
           <div>
-            <h2 className="text-white font-bold text-lg">Games</h2>
-            <p className="text-white/50 text-xs">Win diamonds!</p>
+            <h2 className="text-white font-extrabold text-lg tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Games</h2>
+            <p className="text-white/55 text-[11px] font-medium">Win diamonds instantly!</p>
           </div>
         </div>
-        <button 
+        <motion.button
+          whileHover={{ scale: 1.05, x: 2 }}
+          whileTap={{ scale: 0.94 }}
           onClick={() => navigate("/games/roulette")}
-          className="flex items-center gap-1 text-purple-400 text-sm"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-purple-200 text-xs font-semibold bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10"
+          style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)' }}
         >
-          See All <ArrowRight className="w-4 h-4" />
-        </button>
+          See All <ArrowRight className="w-3.5 h-3.5" />
+        </motion.button>
       </div>
 
       {/* Featured Games */}
@@ -98,7 +110,9 @@ export function GamesSection() {
                 key={game.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.08 }}
+                whileHover={{ y: -3, scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => handleGameClick(game)}
                 className={cn(
                   "flex-shrink-0 w-40 h-28 rounded-2xl p-3",
@@ -106,28 +120,30 @@ export function GamesSection() {
                   game.game_color || "from-purple-500 to-pink-500",
                   "relative overflow-hidden group"
                 )}
+                style={{
+                  boxShadow: '0 14px 30px -10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -3px 8px rgba(0,0,0,0.3)'
+                }}
               >
-                {/* Featured Badge */}
-                <div className="absolute top-2 right-2 bg-yellow-400 rounded-full p-1">
+                <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none" />
+
+                <div className="absolute top-2 right-2 bg-yellow-400 rounded-full p-1 shadow-[0_2px_8px_rgba(250,204,21,0.6)] ring-1 ring-yellow-200/60">
                   <Star className="w-3 h-3 text-yellow-900" fill="currentColor" />
                 </div>
 
-                {/* Game Info */}
                 <div className="relative z-10 h-full flex flex-col justify-between">
                   <div>
-                    <span className="text-3xl">{game.game_emoji}</span>
+                    <span className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">{game.game_emoji}</span>
                   </div>
                   <div>
-                    <p className="text-white font-bold text-sm">{game.game_name}</p>
+                    <p className="text-white font-bold text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{game.game_name}</p>
                     <div className="flex items-center gap-1 mt-1">
-                      <Diamond className="w-3 h-3 text-white/80" />
-                      <span className="text-white/80 text-xs">×{game.max_multiplier}</span>
+                      <Diamond className="w-3 h-3 text-white/85" />
+                      <span className="text-white/85 text-xs font-semibold">×{game.max_multiplier}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Hover Effect */}
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12" />
               </motion.button>
             ))}
           </div>
@@ -136,24 +152,29 @@ export function GamesSection() {
 
       {/* Other Games Grid */}
       {otherGames.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2.5">
           {otherGames.map((game, index) => (
             <motion.button
               key={game.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -2, scale: 1.05 }}
+              whileTap={{ scale: 0.94 }}
               onClick={() => handleGameClick(game)}
               className={cn(
-                "aspect-square rounded-xl p-2",
+                "aspect-square rounded-2xl p-2 relative overflow-hidden",
                 "bg-gradient-to-br",
                 game.game_color || "from-gray-700 to-gray-800",
-                "flex flex-col items-center justify-center gap-1",
-                "group hover:scale-105 transition-transform"
+                "flex flex-col items-center justify-center gap-1"
               )}
+              style={{
+                boxShadow: '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 6px rgba(0,0,0,0.3)'
+              }}
             >
-              <span className="text-2xl">{game.game_emoji}</span>
-              <p className="text-white text-xs font-medium text-center truncate w-full">
+              <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+              <span className="text-2xl relative drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{game.game_emoji}</span>
+              <p className="text-white text-[11px] font-semibold text-center truncate w-full relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                 {game.game_name}
               </p>
             </motion.button>

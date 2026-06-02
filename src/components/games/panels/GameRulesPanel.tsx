@@ -149,21 +149,30 @@ export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesP
       >
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/30">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <HelpCircle className="w-4 h-4 text-purple-400" />
-            </div>
-            <h2 className="text-white font-bold">{rules.title} Rules</h2>
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40 backdrop-blur-sm">
+          <div className="flex items-center gap-2.5">
+            <motion.div
+              whileHover={{ rotate: -6, scale: 1.05 }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
+              style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #d8b4fe 0%, #a855f7 45%, #6b21a8 100%)',
+                boxShadow: '0 8px 18px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              <HelpCircle className="w-4 h-4 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
+              <div className="absolute inset-x-1.5 top-1 h-1.5 rounded-full bg-white/40 blur-[2px]" />
+            </motion.div>
+            <h2 className="text-white font-extrabold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{rules.title} Rules</h2>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
+          <motion.button
+            whileHover={{ scale: 1.08, rotate: 90 }}
+            whileTap={{ scale: 0.92 }}
             onClick={onClose}
-            className="text-white/60 hover:text-white hover:bg-white/10 w-8 h-8"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 text-white flex items-center justify-center border border-white/10"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
           >
             <X className="w-4 h-4" />
-          </Button>
+          </motion.button>
         </div>
 
         <ScrollArea 

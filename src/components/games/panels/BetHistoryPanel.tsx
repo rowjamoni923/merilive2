@@ -132,42 +132,51 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
       >
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/30">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-              <History className="w-4 h-4 text-blue-400" />
-            </div>
-            <h2 className="text-white font-bold">Bet History</h2>
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40 backdrop-blur-sm">
+          <div className="flex items-center gap-2.5">
+            <motion.div
+              whileHover={{ rotate: -6, scale: 1.05 }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
+              style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #93c5fd 0%, #3b82f6 45%, #1e3a8a 100%)',
+                boxShadow: '0 8px 18px -6px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              <History className="w-4 h-4 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
+              <div className="absolute inset-x-1.5 top-1 h-1.5 rounded-full bg-white/35 blur-[2px]" />
+            </motion.div>
+            <h2 className="text-white font-extrabold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Bet History</h2>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
+          <motion.button
+            whileHover={{ scale: 1.08, rotate: 90 }}
+            whileTap={{ scale: 0.92 }}
             onClick={onClose}
-            className="text-white/60 hover:text-white hover:bg-white/10 w-8 h-8"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 text-white flex items-center justify-center border border-white/10"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
           >
             <X className="w-4 h-4" />
-          </Button>
+          </motion.button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-1 p-2 bg-black/20">
-          <div className="text-center p-2 rounded-lg bg-white/5">
-            <div className="text-white/50 text-[9px]">Total Bets</div>
-            <div className="text-white font-bold text-sm">{stats.totalBets}</div>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-green-500/10">
-            <div className="text-green-400/70 text-[9px]">Won</div>
-            <div className="text-green-400 font-bold text-sm">{stats.totalWon.toLocaleString()}</div>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-red-500/10">
-            <div className="text-red-400/70 text-[9px]">Lost</div>
-            <div className="text-red-400 font-bold text-sm">{stats.totalLost.toLocaleString()}</div>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-amber-500/10">
-            <div className="text-amber-400/70 text-[9px]">Win Rate</div>
-            <div className="text-amber-400 font-bold text-sm">{stats.winRate.toFixed(0)}%</div>
-          </div>
+        <div className="grid grid-cols-4 gap-1.5 p-2.5 bg-black/20">
+          {[
+            { label: 'Total Bets', value: stats.totalBets, color: 'text-white', bg: 'from-white/10 to-white/5', glow: '' },
+            { label: 'Won', value: stats.totalWon.toLocaleString(), color: 'text-emerald-300', bg: 'from-emerald-500/20 to-emerald-500/5', glow: 'rgba(16,185,129,0.3)' },
+            { label: 'Lost', value: stats.totalLost.toLocaleString(), color: 'text-rose-300', bg: 'from-rose-500/20 to-rose-500/5', glow: 'rgba(244,63,94,0.3)' },
+            { label: 'Win Rate', value: `${stats.winRate.toFixed(0)}%`, color: 'text-amber-300', bg: 'from-amber-500/20 to-amber-500/5', glow: 'rgba(245,158,11,0.3)' },
+          ].map((s, i) => (
+            <div
+              key={i}
+              className={cn("text-center p-2 rounded-xl bg-gradient-to-b border border-white/10", s.bg)}
+              style={{ boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)${s.glow ? `, 0 4px 12px -4px ${s.glow}` : ''}` }}
+            >
+              <div className="text-white/55 text-[9px] font-medium uppercase tracking-wider">{s.label}</div>
+              <div className={cn("font-extrabold text-sm mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]", s.color)}>{s.value}</div>
+            </div>
+          ))}
         </div>
+
 
         <ScrollArea 
           className="relative"

@@ -55,17 +55,18 @@ const Game3DCard = ({
           "transition-transform duration-200 active:scale-95"
         )}
         style={{
-          boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.5)'
+          boxShadow: '0 14px 30px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 6px rgba(0,0,0,0.35)',
+          border: '1px solid rgba(255,255,255,0.08)'
         }}
       >
-        {/* Logo fills the card. object-contain so the whole logo is visible
-            (no cropping). Padding keeps the artwork off the rounded edge. */}
+        {/* Top glossy sheen */}
+        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none z-10" />
         <div className="absolute inset-0 flex items-center justify-center p-1.5">
           {game.logo_url ? (
             <img
               src={getProxiedUrl(game.logo_url)}
               alt={game.game_name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
              
               decoding="async"
               draggable={false}
