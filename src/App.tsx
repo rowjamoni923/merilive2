@@ -528,20 +528,12 @@ const hasStoredSupabaseSession = (): boolean => {
   return false;
 };
 
-const isStandalonePublicPath = (path: string): boolean => (
-  ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/support', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/privacy', '/google-library-order-rules', '/account-deletion', '/delete-account'].some((route) => path.startsWith(route))
-);
+const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
+  useEnableBrowserPageInteraction();
+  return <>{children}</>;
+};
 
-const LANDING_ONLY_HOSTS = new Set([
-  'merilive.top',
-  'www.merilive.top',
-  'marilive.top',
-  'www.marilive.top',
-  'perilive.top',
-  'www.perilive.top',
-]);
-
-const isLandingOnlyHostname = (host: string): boolean => LANDING_ONLY_HOSTS.has(host.toLowerCase());
+const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</StandalonePublicShell>;
 
 const App = () => {
   useAnalyticsBootstrap();
