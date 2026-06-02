@@ -382,26 +382,26 @@ const SearchUsers = () => {
     <div className="mobile-page bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border safe-area-top">
-        <div className="px-4 py-3 flex items-center gap-3">
+        <div className="px-3 py-2.5 flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-foreground hover:bg-muted"
+            className="h-9 w-9 shrink-0 rounded-full text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Enter App ID (10 digits)..."
+              placeholder="App ID (10 digits)"
               value={searchQuery}
               onChange={(e) => {
                 // Only allow digits
                 const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                 setSearchQuery(value);
               }}
-              className="pl-10 pr-10 rounded-full bg-muted border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"
+              className="pl-9 pr-9 h-9 rounded-full bg-muted border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring text-sm"
               autoFocus
               inputMode="numeric"
               maxLength={10}
@@ -410,7 +410,7 @@ const SearchUsers = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
+                className="absolute right-0.5 top-1/2 -translate-y-1/2 w-7 h-7"
                 onClick={() => setSearchQuery("")}
               >
                 <X className="w-4 h-4 text-muted-foreground" />
@@ -418,21 +418,17 @@ const SearchUsers = () => {
             )}
           </div>
 
-          {/* ID Icon */}
-          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
-            <span className="text-accent-foreground font-bold text-sm">ID</span>
-          </div>
           {/* Filter Button */}
           <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className={`relative ${selectedTags.length > 0 ? 'border-primary text-primary' : ''}`}
+                className={`relative h-9 w-9 shrink-0 ${selectedTags.length > 0 ? 'border-primary text-primary' : ''}`}
               >
-                <Filter className="w-5 h-5" />
+                <Filter className="w-4 h-4" />
                 {selectedTags.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                     {selectedTags.length}
                   </span>
                 )}
@@ -478,6 +474,7 @@ const SearchUsers = () => {
             </SheetContent>
           </Sheet>
         </div>
+
 
 
         {/* Selected Tags */}
