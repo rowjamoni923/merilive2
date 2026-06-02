@@ -296,27 +296,28 @@ export const ChametStyleBottomBar = ({
                 icon={Armchair}
                 label="Seat"
                 onClick={onJoinSeatClick}
-                bg="linear-gradient(135deg, #34d399, #059669)"
-                shadow="rgba(52,211,153,0.35)"
+                bg="radial-gradient(120% 120% at 30% 20%, #6ee7b7 0%, #10b981 45%, #047857 100%)"
+                shadow="rgba(16,185,129,0.55)"
                 badge={applicantCount > 0 ? applicantCount : undefined}
               />
             ) : (
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ y: -2, scale: 1.03 }}
                 transition={{ type: "spring", damping: 14, stiffness: 480 }}
                 onClick={!isWaitingToJoin ? () => { haptic(10); onJoinRequest?.(); } : undefined}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl relative overflow-hidden"
                 style={{
                   background: isWaitingToJoin
-                    ? "linear-gradient(135deg, #f59e0b, #ea580c)"
-                    : "linear-gradient(135deg, #06b6d4, #6366f1)",
+                    ? "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #92400e 100%)"
+                    : "radial-gradient(120% 120% at 30% 20%, #a5f3fc 0%, #06b6d4 45%, #3730a3 100%)",
                   boxShadow: isWaitingToJoin
-                    ? "0 6px 16px rgba(245,158,11,0.35)"
-                    : "0 6px 16px rgba(99,102,241,0.35)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                    ? "0 8px 20px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)"
+                    : "0 8px 20px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(255,255,255,0.18)",
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-white/12 to-transparent" />
+                <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.55), transparent)" }} />
                 {isWaitingToJoin ? (
                   <>
                     <motion.div
@@ -324,12 +325,12 @@ export const ChametStyleBottomBar = ({
                       transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                       className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full relative z-10"
                     />
-                    <span className="text-white font-bold text-[11px] relative z-10">Waiting</span>
+                    <span className="text-white font-bold text-[11px] relative z-10" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}>Waiting</span>
                   </>
                 ) : (
                   <>
-                    <Hand className="w-3.5 h-3.5 text-white relative z-10" />
-                    <span className="text-white font-bold text-[11px] relative z-10">Join</span>
+                    <Hand className="w-3.5 h-3.5 text-white relative z-10" style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.4))" }} />
+                    <span className="text-white font-bold text-[11px] relative z-10" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}>Join</span>
                   </>
                 )}
               </motion.button>
@@ -343,9 +344,11 @@ export const ChametStyleBottomBar = ({
                 setShowMoreMenu(!showMoreMenu);
                 onMenuClick?.();
               }}
-              bg={showMoreMenu ? "linear-gradient(135deg, rgba(168,85,247,0.35), rgba(236,72,153,0.25))" : "rgba(255,255,255,0.07)"}
-              shadow={showMoreMenu ? "rgba(168,85,247,0.25)" : "none"}
-              border={showMoreMenu ? "rgba(168,85,247,0.35)" : "rgba(255,255,255,0.06)"}
+              bg={showMoreMenu
+                ? "radial-gradient(120% 120% at 30% 20%, rgba(236,72,153,0.55) 0%, rgba(168,85,247,0.85) 45%, rgba(76,29,149,0.95) 100%)"
+                : "radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.2) 0%, rgba(40,30,55,0.85) 45%, rgba(10,8,20,0.95) 100%)"}
+              shadow={showMoreMenu ? "rgba(168,85,247,0.55)" : "rgba(0,0,0,0.4)"}
+              border={showMoreMenu ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.12)"}
             />
           </div>
         </motion.div>
