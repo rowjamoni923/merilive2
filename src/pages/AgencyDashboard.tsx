@@ -758,27 +758,40 @@ const AgencyDashboard = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button 
+      {/* Premium 3D Header */}
+      <header
+        className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl flex-shrink-0 safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Agency Dashboard
-          </h1>
-          <button 
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
+              style={{ boxShadow: '0 10px 20px -8px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(76,29,149,0.25)' }}
+            >
+              <Sparkles className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
+            </div>
+            <div>
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Agency Dashboard</h1>
+              <p className="text-slate-500 text-[10px]">Manage your hosts &amp; earnings</p>
+            </div>
+          </div>
+          <button
             onClick={() => navigate("/agent-rank")}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <Trophy className="w-5 h-5 text-white" />
+            <Trophy className="w-5 h-5 text-amber-600" />
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Scrollable Content */}
       <div 
