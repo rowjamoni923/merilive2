@@ -540,7 +540,7 @@ const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   // ⚡ Skip the splash loader entirely if we already have a stored session.
   // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !hasStoredSupabaseSession());
+  const [loading, setLoading] = useState(() => !isStandalonePublicLocation() && !hasStoredSupabaseSession());
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
