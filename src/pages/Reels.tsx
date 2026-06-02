@@ -455,19 +455,30 @@ const Reels = () => {
     }
   };
 
+  // First-tap auto-unmute: mobile browsers require muted for autoplay, but the
+  // very first user gesture inside Reels is a strong signal that they want sound.
+  const autoUnmutedRef = useRef(false);
+
   const togglePlay = () => {
     const currentVideo = videoRefs.current[reels[currentIndex]?.id];
     if (currentVideo) {
+      // On the FIRST tap inside Reels, also unmute — user clearly wants sound.
+      if (isMuted && !autoUnmutedRef.current) {
+        autoUnmutedRef.current = true;
+        Object.values(videoRefs.current).forEach(v => { if (v) v.muted = false; });
+        setIsMuted(false);
+      }
       if (isPlaying) {
         currentVideo.pause();
       } else {
-        currentVideo.play();
+        currentVideo.play().catch(() => {});
       }
       setIsPlaying(!isPlaying);
     }
   };
 
   const toggleMute = () => {
+    autoUnmutedRef.current = true;
     Object.values(videoRefs.current).forEach(video => {
       if (video) video.muted = !isMuted;
     });
@@ -479,6 +490,8 @@ const Reels = () => {
     Object.entries(videoRefs.current).forEach(([id, video]) => {
       if (video) {
         if (id === reels[currentIndex]?.id) {
+          // Honour user's unmute decision across reel switches.
+          video.muted = isMuted;
           video.play().catch(() => {});
           setIsPlaying(true);
         } else {
@@ -493,7 +506,7 @@ const Reels = () => {
     if (currentReel) {
       supabase.rpc('increment_reel_view', { reel_uuid: currentReel.id });
     }
-  }, [currentIndex, reels]);
+  }, [currentIndex, reels, isMuted]);
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
