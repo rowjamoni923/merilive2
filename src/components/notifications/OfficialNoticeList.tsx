@@ -218,28 +218,41 @@ export const OfficialNoticeList = () => {
   if (notices.length === 0) {
     return (
       <div className="p-8 text-center">
-        <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-full flex items-center justify-center">
-          <Shield className="w-10 h-10 text-primary" />
+        <div
+          className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-indigo-500/15 via-blue-500/10 to-transparent border border-indigo-500/25 rounded-full flex items-center justify-center"
+          style={{ boxShadow: "0 12px 30px -10px rgba(79,70,229,0.4), inset 0 1px 0 rgba(255,255,255,0.5)" }}
+        >
+          <Shield className="w-10 h-10 text-indigo-500 drop-shadow-[0_1px_2px_rgba(79,70,229,0.4)]" />
         </div>
         <p className="text-foreground font-semibold text-lg">Official Notices</p>
+        <p className="text-sm text-muted-foreground mt-1">You're all caught up</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-to-r from-primary/5 via-indigo-500/5 to-purple-500/5">
+      {/* Header - 3D */}
+      <div
+        className="flex items-center justify-between p-4 border-b border-border/60 bg-gradient-to-r from-indigo-500/8 via-blue-500/5 to-purple-500/8"
+        style={{ boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.5)" }}
+      >
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/10">
-            <Shield className="w-4.5 h-4.5 text-white drop-shadow-sm" />
+          <div
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center ring-1 ring-white/15"
+            style={{ boxShadow: "0 6px 14px -4px rgba(79,70,229,0.5), inset 0 1px 0 rgba(255,255,255,0.35)" }}
+          >
+            <Shield className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
           </div>
           <div>
             <h3 className="font-bold text-foreground text-sm">Official Notices</h3>
             <p className="text-xs text-muted-foreground">{notices.length} notices</p>
           </div>
           {unreadCount > 0 && (
-            <Badge className="bg-red-500 text-white text-xs ml-1">
+            <Badge
+              className="bg-gradient-to-br from-rose-500 to-red-600 text-white text-xs border-0 ml-1"
+              style={{ boxShadow: "0 3px 8px -2px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.4)" }}
+            >
               {unreadCount} new
             </Badge>
           )}
@@ -249,7 +262,7 @@ export const OfficialNoticeList = () => {
             variant="ghost"
             size="sm"
             onClick={markAllAsRead}
-            className="text-xs text-primary hover:text-primary/80"
+            className="text-xs text-primary hover:text-primary/80 hover:bg-primary/5 rounded-full"
           >
             <CheckCheck className="w-4 h-4 mr-1" />
             Mark all read
