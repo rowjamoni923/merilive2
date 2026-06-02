@@ -593,21 +593,25 @@ const Index = () => {
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Header */}
       <header
-        className="shrink-0 bg-card border-b border-border"
-        style={{ zIndex: 40 }}
+        className="shrink-0 bg-card/95 backdrop-blur-md border-b border-border"
+        style={{ zIndex: 40, boxShadow: '0 4px 12px -6px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)' }}
       >
         <div className="flex items-center justify-center px-3 py-2.5 relative">
           {/* Search Button - Left Side (icon only, matches home white theme) */}
           <button
             aria-label="Search"
             onClick={() => navigate('/search')}
-            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
+            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-card border border-border hover:-translate-y-0.5"
+            style={{ boxShadow: '0 4px 10px -3px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
           >
             <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
           </button>
 
           {/* Sub Tabs - Centered */}
-          <div className="flex items-center gap-0.5 bg-muted rounded-full p-0.5 border border-border">
+          <div
+            className="flex items-center gap-0.5 bg-muted rounded-full p-0.5 border border-border"
+            style={{ boxShadow: 'inset 0 2px 4px rgba(15,23,42,0.06), inset 0 -1px 0 rgba(255,255,255,0.5)' }}
+          >
             {(["popular", "live", "new", "following"] as SubTab[]).map((tab) => {
               const labels: Record<SubTab, string> = { popular: "Popular", live: "Live", new: "New", following: "Follow" };
               const isActive = subTab === tab;
@@ -618,9 +622,10 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "bg-gradient-primary text-on-dark shadow-md" : "text-muted-pro hover:text-foreground"
+                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 touch-manipulation flex items-center gap-1",
+                    isActive ? "bg-gradient-primary text-on-dark" : "text-muted-pro hover:text-foreground"
                   )}
+                  style={isActive ? { boxShadow: '0 4px 10px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' } : undefined}
                 >
                   {tab === "live" && <span className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-primary-foreground" : "bg-danger animate-pulse")} />}
                   {labels[tab]}
@@ -633,9 +638,10 @@ const Index = () => {
           <button
             aria-label="Leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
+            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/70 hover:-translate-y-0.5"
+            style={{ boxShadow: '0 4px 12px -3px rgba(217,119,6,0.25), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(146,64,14,0.08)' }}
           >
-            <Trophy className="w-[18px] h-[18px] text-money" strokeWidth={2.5} fill="currentColor" />
+            <Trophy className="w-[18px] h-[18px] text-amber-600" strokeWidth={2.5} fill="currentColor" />
           </button>
         </div>
 
@@ -647,11 +653,16 @@ const Index = () => {
                   key={country.code}
                   onClick={() => setSelectedCountry(country.code)}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-95 touch-manipulation border",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap active:scale-95 touch-manipulation border",
                     selectedCountry === country.code
-                      ? "bg-gradient-primary text-on-dark shadow-md border-transparent"
-                      : "bg-background text-heading border-border hover:bg-muted"
+                      ? "bg-gradient-primary text-on-dark border-transparent"
+                      : "bg-card text-heading border-border hover:bg-muted hover:-translate-y-0.5"
                   )}
+                  style={
+                    selectedCountry === country.code
+                      ? { boxShadow: '0 4px 12px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' }
+                      : { boxShadow: '0 2px 4px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)' }
+                  }
                 >
                   <span className="text-sm">{country.flag}</span>
                   <span>{country.name}</span>
@@ -660,6 +671,7 @@ const Index = () => {
             </div>
         </div>
       </header>
+
 
       {/* Main Content - ONLY this part scrolls */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
