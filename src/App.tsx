@@ -1170,9 +1170,34 @@ const App = () => {
                   <Suspense fallback={<RouteSuspenseFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
-                    // merilive.top is the landing-only marketing domain.
-                    // Every path renders the LandingPage — no app, no auth, no admin.
+                    // merilive.top is landing-only for app routes, but public/legal/share
+                    // URLs must render directly without the app splash or app-only popups.
                     <Routes>
+                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/landing" element={<LandingPage />} />
+                      <Route path="/download" element={<LandingPage />} />
+                      <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                      <Route path="/share" element={publicPage(<ShareReceive />)} />
+                      <Route path="/link" element={publicPage(<SmartLink />)} />
+                      <Route path="/policies" element={publicPage(<PublicPolicies />)} />
+                      <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
+                      <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+                      <Route path="/privacy-policy" element={publicPage(<PublicPrivacyPolicy />)} />
+                      <Route path="/terms" element={publicPage(<PublicTerms />)} />
+                      <Route path="/account-deletion" element={publicPage(<PublicAccountDeletion />)} />
+                      <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
+                      <Route path="/google-library-order-rules" element={publicPage(<GoogleLibraryOrderRules />)} />
+                      <Route path="/about" element={publicPage(<About />)} />
+                      <Route path="/contact" element={publicPage(<PublicContact />)} />
+                      <Route path="/support" element={publicPage(<PublicContact />)} />
+                      <Route path="/agency-policy" element={publicPage(<AgencyPolicy />)} />
+                      <Route path="/policies-benefits" element={publicPage(<PoliciesAndBenefits />)} />
+                      <Route path="/helper-policy" element={publicPage(<AgencyPolicy />)} />
+                      <Route path="/create-agency" element={publicPage(<AgencySignup />)} />
+                      <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
+                      <Route path="/become-sub-agent" element={publicPage(<BecomeSubAgent />)} />
+                      <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
+                      <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                       <Route path="*" element={<LandingPage />} />
                     </Routes>
                   ) : (
