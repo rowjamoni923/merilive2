@@ -1060,12 +1060,17 @@ const App = () => {
   const isNative = Capacitor.isNativePlatform();
   const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
-  
+
   // Allow Lovable preview/development environments
   const isLovablePreview = hostname.includes('lovable.app') || 
                            hostname.includes('lovableproject.com') || 
                            hostname === 'localhost' || 
                            hostname === '127.0.0.1';
+
+  // Landing page is ONLY served on merilive.top (the marketing/download domain).
+  // Main domain (merilive.com / native app / lovable preview) always boots the main app.
+  const isLandingDomain = hostname === 'merilive.top' || hostname === 'www.merilive.top';
+
   
   // Routes allowed in public browser
   const BROWSER_ALLOWED_ROUTES = [
