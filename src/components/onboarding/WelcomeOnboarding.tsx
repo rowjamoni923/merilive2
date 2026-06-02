@@ -110,18 +110,20 @@ const WelcomeOnboarding = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.85, opacity: 0, y: 16 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.85, opacity: 0, y: 16 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-sm bg-card rounded-3xl overflow-hidden shadow-2xl border border-primary/20"
+          className="relative w-full max-w-sm bg-card rounded-3xl overflow-hidden border border-border"
+          style={{ boxShadow: '0 30px 60px -20px rgba(15,23,42,0.35), 0 12px 24px -12px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.6)' }}
         >
           {/* Skip button */}
           {!isLast && (
             <button
               onClick={handleSkip}
               aria-label="Skip onboarding"
-              className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/90 hover:bg-background text-foreground shadow-md transition-colors"
+              className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/95 hover:bg-background text-foreground transition-all hover:-translate-y-0.5"
+              style={{ boxShadow: '0 6px 14px -4px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.8)' }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -138,17 +140,19 @@ const WelcomeOnboarding = () => {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
               {/* Real illustration image */}
-              <div className="w-full aspect-square overflow-hidden">
-                <img 
+              <div className="w-full aspect-square overflow-hidden relative">
+                <img
                   src={step.image}
                   alt={step.title}
                   className="w-full h-full object-cover"
                   draggable={false}/>
+                {/* subtle bottom fade for text legibility */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent" />
               </div>
 
               {/* Text content */}
               <div className="px-6 pt-5 pb-2">
-                <h2 className="text-xl font-bold text-center text-foreground mb-2">
+                <h2 className="text-xl font-bold text-center text-foreground mb-2 tracking-tight">
                   {step.title}
                 </h2>
                 <p className="text-sm text-center text-muted-foreground leading-relaxed">
@@ -164,11 +168,12 @@ const WelcomeOnboarding = () => {
               <motion.div
                 key={i}
                 animate={{
-                  width: i === currentStep ? 24 : 8,
+                  width: i === currentStep ? 26 : 8,
                   backgroundColor: i === currentStep ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
                 }}
                 className="h-2 rounded-full"
                 transition={{ duration: 0.3 }}
+                style={i === currentStep ? { boxShadow: '0 2px 8px -2px hsl(var(--primary) / 0.55)' } : undefined}
               />
             ))}
           </div>
@@ -180,7 +185,7 @@ const WelcomeOnboarding = () => {
               size="sm"
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className="text-muted-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back
@@ -189,7 +194,8 @@ const WelcomeOnboarding = () => {
             <Button
               onClick={handleNext}
               size="sm"
-              className={`bg-gradient-to-r ${step.gradient} text-white border-0 px-6 font-semibold`}
+              className={`bg-gradient-to-r ${step.gradient} text-white border-0 px-6 font-semibold rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]`}
+              style={{ boxShadow: '0 10px 24px -8px rgba(15,23,42,0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
             >
               {isLast ? (
                 <>🚀 Let's Go!</>

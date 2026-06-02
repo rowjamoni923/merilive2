@@ -40,77 +40,86 @@ const BannedScreen = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-50 via-rose-50/40 to-slate-100 flex items-center justify-center p-6 overflow-hidden">
+      {/* subtle decorative glows */}
+      <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-rose-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-rose-200/40 blur-3xl" />
+
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="max-w-md w-full text-center space-y-6"
+        initial={{ scale: 0.92, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 220, damping: 22 }}
+        className="relative max-w-md w-full text-center space-y-6 bg-white/95 backdrop-blur-xl rounded-3xl p-7 border border-rose-200/60"
+        style={{ boxShadow: '0 30px 60px -20px rgba(244,63,94,0.25), 0 12px 24px -12px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9)' }}
       >
         {/* Icon */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring" }}
-          className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-500/30 to-red-900/30 border-2 border-red-500/50 flex items-center justify-center"
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 14 }}
+          className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-rose-500 via-red-500 to-rose-600 flex items-center justify-center"
+          style={{ boxShadow: '0 18px 36px -12px rgba(244,63,94,0.55), inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -8px 16px rgba(0,0,0,0.18)' }}
         >
-          <ShieldX className="w-12 h-12 text-red-400" />
+          <ShieldX className="w-12 h-12 text-white drop-shadow" />
         </motion.div>
 
         {/* Title */}
         <motion.h1
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 14, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-2xl font-bold text-white"
+          className="text-2xl font-bold text-slate-900 tracking-tight"
         >
           Your Account Has Been Permanently Banned
         </motion.h1>
 
         {/* Description */}
         <motion.p
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 14, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-white/60 text-sm leading-relaxed"
+          className="text-slate-600 text-sm leading-relaxed"
         >
-          Your account has been permanently suspended for violating our Community Guidelines. 
+          Your account has been permanently suspended for violating our Community Guidelines.
           If you believe this is a mistake, please contact our support team.
         </motion.p>
 
         {/* Ban Reason */}
         {banReason && (
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.45 }}
-            className="bg-red-500/10 border border-red-500/30 rounded-xl p-4"
+            className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-left"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 6px -2px rgba(244,63,94,0.15)' }}
           >
-            <p className="text-red-300 text-xs font-medium mb-1.5">🚫 Ban Reason</p>
-            <p className="text-white/90 text-sm font-medium">{banReason}</p>
+            <p className="text-rose-700 text-xs font-semibold mb-1.5 flex items-center gap-1.5">🚫 Ban Reason</p>
+            <p className="text-slate-800 text-sm font-medium leading-relaxed">{banReason}</p>
           </motion.div>
         )}
 
         {/* Support info */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 14, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-4"
+          className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left"
+          style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)' }}
         >
-          <p className="text-white/50 text-xs font-medium mb-1">Support Email</p>
-          <p className="text-white/80 text-sm">support@merilive.com</p>
+          <p className="text-slate-500 text-xs font-semibold mb-1">Support Email</p>
+          <p className="text-slate-800 text-sm font-medium">support@merilive.com</p>
         </motion.div>
 
         {/* Logout button */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 14, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
           <Button
             onClick={handleLogout}
-            variant="outline"
-            className="w-full bg-white/5 border-white/10 text-white hover:bg-white/10"
+            className="w-full h-11 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-semibold rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+            style={{ boxShadow: '0 10px 24px -8px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.15)' }}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Log Out
