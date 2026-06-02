@@ -400,9 +400,12 @@ export default function SwiftPayDepositModal({
                 </SelectTrigger>
                 <SelectContent>
                   {getCryptoOptions(pkg.price_usd).map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value} disabled={o.disabled}>
+                      {o.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
+
               </Select>
             </div>
             <Button
