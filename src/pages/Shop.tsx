@@ -121,18 +121,21 @@ const ShopItemCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.4 }}
       onClick={onPreview}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
-        border: '1px solid rgba(217,182,107,0.35)',
-        boxShadow: '0 6px 22px rgba(180,140,40,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
+        border: '1px solid rgba(217,182,107,0.40)',
+        boxShadow: '0 10px 28px -10px rgba(180,140,40,0.22), 0 2px 6px -2px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -2px 4px rgba(180,140,40,0.05)',
       }}
     >
       {/* Featured indicator */}
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <Zap className="w-3.5 h-3.5 text-on-dark" />
+          <div
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center"
+            style={{ boxShadow: '0 6px 14px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+          >
+            <Zap className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
           </div>
         </div>
       )}
@@ -140,8 +143,11 @@ const ShopItemCard = ({
       {/* Owned checkmark */}
       {owned && (
         <div className="absolute top-2 left-2 z-10">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <Check className="w-3.5 h-3.5 text-on-dark" />
+          <div
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-300 via-emerald-500 to-green-600 flex items-center justify-center"
+            style={{ boxShadow: '0 6px 14px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.55)' }}
+          >
+            <Check className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
           </div>
         </div>
       )}
@@ -150,9 +156,9 @@ const ShopItemCard = ({
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
-          className="absolute inset-0 opacity-60"
+          className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300"
           style={{
-            background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.0) 70%)',
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.22) 0%, rgba(255,251,242,0.0) 70%)',
           }}
         />
 
@@ -162,7 +168,7 @@ const ShopItemCard = ({
             <img 
               src={item.preview_url}
               alt={item.name}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-500 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
@@ -179,12 +185,15 @@ const ShopItemCard = ({
             <img 
               src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-500 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
         ) : (
-          <div className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40">
+          <div
+            className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
+            style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+          >
             <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
           </div>
         )}
@@ -196,12 +205,19 @@ const ShopItemCard = ({
         <p className="text-heading text-sm font-semibold truncate text-center">{item.name}</p>
 
         {/* Price with diamond icon */}
-        <div className="flex items-center justify-center gap-1.5">
+        <div
+          className="flex items-center justify-center gap-1.5 mx-auto w-fit px-2.5 py-1 rounded-full"
+          style={{
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,182,107,0.12) 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+          }}
+        >
           <Diamond3DIcon size={14} />
           <span className="text-heading text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-body font-normal">/{item.duration_days}day</span>
+              <span className="text-body font-normal">/{item.duration_days}d</span>
             )}
           </span>
         </div>
@@ -209,10 +225,11 @@ const ShopItemCard = ({
         {/* Purchase / Owned Button */}
         {owned ? (
           <div
-            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-200"
+            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
             style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.16) 100%)',
-              border: '1px solid rgba(16,185,129,0.45)',
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+              border: '1px solid rgba(16,185,129,0.40)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
           >
             ✓ Owned
@@ -220,10 +237,11 @@ const ShopItemCard = ({
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-on-dark transition-all active:scale-95"
+            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
             style={{
               background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
-              boxShadow: '0 6px 18px rgba(147,51,234,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
+              boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.15)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
             }}
           >
             Purchase
