@@ -585,7 +585,10 @@ const EditProfile = () => {
         {/* Profile Settings */}
         <div className="px-4 space-y-4">
           {/* Basic Info Card */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+          <div
+            className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden"
+            style={{ boxShadow: '0 10px 28px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)' }}
+          >
             {/* My Avatar */}
             <label className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70 cursor-pointer">
               <div className="flex items-center gap-3">
