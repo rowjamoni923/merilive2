@@ -83,8 +83,12 @@ function formatCountdown(seconds: number): string {
 
 const SESSION_KEY = 'campaign_session_start';
 const PURCHASED_KEY = 'campaign_purchased_';
+// Session-only dismiss key. Cleared when the app process / tab closes,
+// so the campaign re-appears next time the user opens the app.
+const DISMISSED_SESSION_KEY = 'campaign_dismissed_';
 
 const getCampaignSessionKey = (campaignId: string) => `${SESSION_KEY}_${campaignId}`;
+const getCampaignDismissedKey = (campaignId: string) => `${DISMISSED_SESSION_KEY}${campaignId}`;
 
 type PaymentTab = 'google' | 'local' | string; // string = auto gateway id
 type PopupView = 'main' | 'payment_select' | 'payment_number';
