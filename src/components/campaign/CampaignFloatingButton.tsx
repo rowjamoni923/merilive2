@@ -208,6 +208,17 @@ function CampaignFloatingButton() {
         return;
       }
 
+      // Session-only dismiss check — reappears on next app open.
+      try {
+        if (sessionStorage.getItem(getCampaignDismissedKey(c.id))) {
+          setDismissed(true);
+          setCampaign(null);
+          setRemainingSeconds(0);
+          return;
+        }
+      } catch {}
+      setDismissed(false);
+
       setPurchased(false);
       const sessionKey = getCampaignSessionKey(c.id);
       if (resetSession) {
