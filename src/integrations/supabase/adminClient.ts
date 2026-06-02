@@ -62,7 +62,10 @@ let adminSessionPreflightUntil = 0;
 let adminSessionPreflightPromise: Promise<void> | null = null;
 
 if (typeof window !== 'undefined') {
-  const clearAdminReadCache = () => clearInstantRestCache('admin');
+  const clearAdminReadCache = () => {
+    adminSessionPreflightUntil = 0;
+    clearInstantRestCache('admin');
+  };
   window.addEventListener('admin-table-update', clearAdminReadCache);
   window.addEventListener('admin-session-change', clearAdminReadCache);
 }
@@ -335,3 +338,29 @@ const getSyntheticAdminSession = () => {
   data: { session: getSyntheticAdminSession() },
   error: null,
 });
+
+(adminSupabase.auth as any).refreshSession = async () => ({
+  data: { session: getSyntheticAdminSession(), user: getSyntheticAdminUser() },
+  error: null,
+});
+
+(adminSupabase.auth as any).onAuthStateChange = (callback: (event: string, session: any) => void) => {
+  const emitInitial = () => callback('INITIAL_SESSION', getSyntheticAdminSession());
+  if (typeof queueMicrotask === 'function') queueMicrotask(emitInitial);
+  else setTimeout(emitInitial, 0);
+
+  const handler = () => callback('SIGNED_IN', getSyntheticAdminSession());
+  if (typeof window !== 'undefined') window.addEventListener('admin-session-change', handler);
+
+  return {
+    data: {
+      subscription: {
+        id: 'synthetic-admin-auth',
+        callback,
+        unsubscribe: () => {
+          if (typeof window !== 'undefined') window.removeEventListener('admin-session-change', handler);
+        },
+      },
+    },
+  };
+};
