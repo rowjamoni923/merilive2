@@ -476,24 +476,29 @@ const Tasks = () => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-white p-4 shadow-lg safe-area-top">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+      {/* Premium Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-40 bg-white/90 backdrop-blur-xl safe-area-top"
+        style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
             onClick={() => navigate(-1)}
-            className="text-white hover:bg-white/20"
+            className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+            style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Star className="w-5 h-5 text-slate-800" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"
+              style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.2)' }}
+            >
+              <Star className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
             </div>
-          <div>
-              <h1 className="text-xl font-bold">Task Center</h1>
-              <p className="text-xs text-white/85">Complete daily tasks, earn rewards</p>
+            <div>
+              <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Task Center</h1>
+              <p className="text-slate-500 text-[10px]">Complete daily tasks, earn rewards</p>
             </div>
           </div>
         </div>
