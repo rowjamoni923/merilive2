@@ -519,7 +519,7 @@ const LandingPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
- className="group relative p-7 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-slate-200 hover:border-slate-200 transition-all duration-500 hover:bg-white backdrop-blur-xl overflow-hidden"
+ className="group relative p-7 rounded-3xl bg-white border border-slate-200 hover:border-slate-300 transition-all duration-500 hover:shadow-xl shadow-sm overflow-hidden"
                 >
                   {/* Background glow */}
                   <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${feature.gradient_colors} rounded-full blur-[60px] opacity-10 group-hover:opacity-25 transition-opacity duration-500`} />
