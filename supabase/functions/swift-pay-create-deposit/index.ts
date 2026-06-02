@@ -145,6 +145,15 @@ Deno.serve(async (req) => {
     if (!/^[a-z0-9_]{2,20}$/.test(payCurrency)) {
       return json({ error: "invalid pay_currency" }, 400);
     }
+    if (!SUPPORTED_CURRENCIES.has(payCurrency)) {
+      return json({
+        ok: false,
+        error: "currency_not_enabled",
+        fallback: true,
+        message: `${payCurrency} is not enabled on the gateway. Supported: ${[...SUPPORTED_CURRENCIES].join(", ")}.`,
+      });
+    }
+
 
     const target = body.target === "helper_wallet" ? "helper_wallet" : "user_diamond";
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
