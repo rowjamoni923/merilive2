@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Analytics } from '@/plugins/Analytics';
 import { getConsent, onConsentChange, applyConsent } from '@/lib/privacyConsent';
+import { isStandalonePublicLocation } from '@/utils/publicRoutes';
 
 /**
  * Pkg213 — Analytics bootstrap.
@@ -12,6 +13,8 @@ import { getConsent, onConsentChange, applyConsent } from '@/lib/privacyConsent'
  */
 export function useAnalyticsBootstrap() {
   useEffect(() => {
+    if (typeof window !== 'undefined' && isStandalonePublicLocation()) return;
+
     // Apply current consent to the native layer up-front.
     applyConsent(getConsent());
 
