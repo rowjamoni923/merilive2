@@ -560,13 +560,24 @@ const Shop = () => {
       >
         {filteredItems.length === 0 ? (
           <div className="text-center py-16">
-            <div
-              className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'rgba(217,182,107,0.12)', border: '1px solid rgba(217,182,107,0.3)' }}
-            >
-              <ShoppingBag className="w-10 h-10 text-amber-600/60" />
+            <div className="relative w-24 h-24 mx-auto mb-5">
+              <div
+                className="absolute inset-0 rounded-full blur-2xl opacity-50"
+                style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.45), transparent 70%)' }}
+              />
+              <div
+                className="relative w-24 h-24 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(160deg, #FFFBF2 0%, #F5EFDF 100%)',
+                  border: '1px solid rgba(217,182,107,0.45)',
+                  boxShadow: '0 12px 28px -10px rgba(180,140,40,0.30), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -3px 6px rgba(180,140,40,0.10)',
+                }}
+              >
+                <ShoppingBag className="w-11 h-11 text-amber-600/70" strokeWidth={1.5} />
+              </div>
             </div>
-            <p className="text-body text-sm">No items in this category</p>
+            <p className="text-heading text-base font-semibold mb-1">Nothing here yet</p>
+            <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
           <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
