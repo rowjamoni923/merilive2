@@ -515,8 +515,16 @@ const Discover = () => {
                   <div
                     key={room.id}
                     onClick={() => joinRoom(room)}
-                    className="relative rounded-xl overflow-hidden bg-card cursor-pointer active:scale-[0.98] transition-transform border border-border shadow-sm"
-                    style={{ contain: 'layout style paint' }}
+                    className="relative rounded-2xl overflow-hidden bg-card cursor-pointer transition-all hover:-translate-y-0.5 active:scale-[0.98]"
+                    style={{
+                      contain: 'layout style paint',
+                      boxShadow:
+                        hostLevel >= 40
+                          ? '0 12px 24px -10px rgba(244,63,94,0.45), 0 2px 6px -2px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)'
+                          : hostLevel >= 20
+                          ? '0 10px 22px -10px rgba(245,158,11,0.45), 0 2px 6px -2px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.85)'
+                          : '0 6px 16px -8px rgba(15,23,42,0.22), 0 1px 3px -1px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
+                    }}
                   >
                     {/* Background - Use host avatar or gradient */}
                     <div 
@@ -536,23 +544,32 @@ const Discover = () => {
                       
                       {/* Room type badge & participant count */}
                       <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
-                        <Badge className={cn("border-0 text-on-dark text-[10px] px-1.5 py-0.5 bg-gradient-to-r", getRoomTypeColor(room.room_type))}>
+                        <Badge
+                          className={cn("border-0 text-on-dark text-[10px] px-1.5 py-0.5 bg-gradient-to-r font-semibold", getRoomTypeColor(room.room_type))}
+                          style={{ boxShadow: '0 4px 10px -4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+                        >
                           <TypeIcon className="w-2.5 h-2.5 mr-0.5" />
                           {room.room_type}
                         </Badge>
-                        <div className="flex items-center gap-0.5 bg-card/85 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-border/60">
+                        <div
+                          className="flex items-center gap-0.5 bg-card/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full"
+                          style={{ boxShadow: '0 3px 8px -3px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+                        >
                           <Users className="w-2.5 h-2.5 text-heading" />
-                          <span className="text-[10px] text-heading font-medium">{room.current_participants}</span>
+                          <span className="text-[10px] text-heading font-semibold">{room.current_participants}</span>
                         </div>
                       </div>
 
                       {/* Game Mode Emoji - Show if game is running */}
                       {gameEmoji && (
                         <div className="absolute bottom-1.5 left-1.5">
-                          <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-accent/40 bg-gradient-to-br",
-                            gameColor
-                          )}>
+                          <div
+                            className={cn(
+                              "w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-gradient-to-br",
+                              gameColor
+                            )}
+                            style={{ boxShadow: '0 8px 18px -6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(0,0,0,0.15)' }}
+                          >
                             {gameEmoji}
                           </div>
                         </div>
@@ -561,12 +578,16 @@ const Discover = () => {
                       {/* Lock icon */}
                       {room.is_private && (
                         <div className="absolute bottom-1.5 right-1.5">
-                          <div className="w-5 h-5 rounded-full bg-card/85 backdrop-blur-sm flex items-center justify-center border border-border/60">
-                            <Lock className="w-2.5 h-2.5 text-money" />
+                          <div
+                            className="w-6 h-6 rounded-full bg-card/95 backdrop-blur-sm flex items-center justify-center"
+                            style={{ boxShadow: '0 4px 10px -3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+                          >
+                            <Lock className="w-3 h-3 text-money" />
                           </div>
                         </div>
                       )}
                     </div>
+
 
                     {/* Room info with host avatar */}
                     <div className="p-2 bg-card">
