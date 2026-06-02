@@ -3000,15 +3000,20 @@ const Chat = () => {
               </>
             ) : (
               <>
-                {/* WhatsApp-style single pill: emoji • input • attach • camera */}
-                <div className={cn(
-                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border shadow-sm backdrop-blur-xl transition-colors",
-                  inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/70"
-                )}>
+                {/* WhatsApp-style single pill — premium 3D glass */}
+                <div
+                  className={cn(
+                    "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border/70 backdrop-blur-xl transition-colors",
+                    inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/70"
+                  )}
+                  style={{ boxShadow: "inset 0 2px 4px rgba(15,23,42,0.12), inset 0 -1px 0 rgba(255,255,255,0.55), 0 4px 12px -8px rgba(15,23,42,0.2)" }}
+                >
                   <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.08, y: -1 }}
+                    whileTap={{ scale: 0.88 }}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 hover:bg-muted transition-colors"
+                    style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)" }}
                     aria-label="Emoji"
                   >
                     <Smile className="w-[20px] h-[20px] text-muted-foreground" />
@@ -3023,41 +3028,54 @@ const Chat = () => {
                     onFocus={() => setShowEmojiPicker(false)}
                   />
                   <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.08, y: -1 }}
+                    whileTap={{ scale: 0.88 }}
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 hover:bg-muted transition-colors"
+                    style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)" }}
                     aria-label="Gallery"
                   >
                     <Camera className="w-[18px] h-[18px] text-muted-foreground" />
                   </motion.button>
                 </div>
 
-                {/* Right-side circular action: mic when empty, send when typing */}
+                {/* Right-side FAB — premium 3D orb */}
                 <motion.button
                   initial={false}
+                  whileHover={{ y: -2, scale: 1.06 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={message.trim() ? handleSend : handleVoiceRecord}
                   disabled={sending}
-                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-primary flex items-center justify-center shadow-md shadow-primary/30"
+                  className="relative shrink-0 w-11 h-11 rounded-full flex items-center justify-center overflow-hidden"
+                  style={{
+                    background: message.trim()
+                      ? 'radial-gradient(120% 120% at 30% 20%, #c7d2fe 0%, #6366f1 45%, #4338ca 100%)'
+                      : 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #ef4444 45%, #991b1b 100%)',
+                    boxShadow: message.trim()
+                      ? '0 10px 24px -8px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                      : '0 10px 24px -8px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                  }}
                   aria-label={message.trim() ? "Send" : "Record voice"}
                 >
+                  <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
                   {message.trim() ? (
-                    <Send className="w-5 h-5 text-primary-foreground" />
+                    <Send className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   ) : (
-                    <Mic className="w-5 h-5 text-primary-foreground" />
+                    <Mic className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   )}
                 </motion.button>
               </>
             )}
           </div>
           
-          {/* Action Buttons Row - Ultra Premium Dark Glass */}
+          {/* Action Buttons Row — premium 3D orbs */}
           {!isGroup && (
             <div className="px-4 pb-3">
               <div className="flex justify-center gap-5">
                 {/* Translator */}
                 <motion.button
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => {
                     setInlineTranslateEnabled(!inlineTranslateEnabled);
                     if (!inlineTranslateEnabled && message.trim()) {
@@ -3066,53 +3084,76 @@ const Chat = () => {
                   }}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
-                    inlineTranslateEnabled 
-                      ? "bg-gradient-primary border-primary/40 shadow-lg shadow-primary/20" 
- :"bg-card/70 border-border hover:bg-muted"
-                  )}>
+                  <div
+                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-300"
+                    style={inlineTranslateEnabled ? {
+                      background: 'radial-gradient(120% 120% at 30% 20%, #c7d2fe 0%, #6366f1 45%, #4338ca 100%)',
+                      boxShadow: '0 10px 22px -8px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                    } : {
+                      background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)',
+                      boxShadow: '0 6px 16px -8px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 4px rgba(15,23,42,0.08)',
+                      border: '1px solid hsl(var(--border))'
+                    }}
+                  >
+                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/35 blur-[2px] pointer-events-none" />
                     <Languages className={cn(
-                      "w-5 h-5",
-                      inlineTranslateEnabled ? "text-primary" : "text-foreground"
+                      "w-5 h-5 relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]",
+                      inlineTranslateEnabled ? "text-white" : "text-foreground"
                     )} />
                   </div>
                   <span className={cn(
-                    "text-[9px] font-semibold",
+                    "text-[9px] font-bold tracking-wide",
                     inlineTranslateEnabled ? "text-primary" : "text-muted-foreground"
                   )}>
                     {inlineTranslateEnabled ? "ON" : "Translate"}
                   </span>
                 </motion.button>
-                
+
                 {/* Gift */}
                 <motion.button
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setShowGiftPanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary/10 border border-primary/20 backdrop-blur-xl hover:bg-primary/15 transition-all duration-300">
-                    <Gift className="w-5 h-5 text-primary" />
+                  <div
+                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+                    style={{
+                      background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #ec4899 45%, #9d174d 100%)',
+                      boxShadow: '0 10px 22px -8px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+                    <Gift className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   </div>
-                  <span className="text-[9px] font-semibold text-muted-foreground">Gift</span>
+                  <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Gift</span>
                 </motion.button>
-                
+
                 {/* Games */}
                 <motion.button
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setShowGamePanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-secondary/70 border border-border backdrop-blur-xl hover:bg-secondary transition-all duration-300">
-                    <Gamepad2 className="w-5 h-5 text-primary" />
+                  <div
+                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+                    style={{
+                      background: 'radial-gradient(120% 120% at 30% 20%, #a7f3d0 0%, #10b981 45%, #065f46 100%)',
+                      boxShadow: '0 10px 22px -8px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+                    <Gamepad2 className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   </div>
-                  <span className="text-[9px] font-semibold text-muted-foreground">Games</span>
+                  <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Games</span>
                 </motion.button>
-                
+
                 {/* Video Call */}
                 {selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
                   <motion.button
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ y: -2, scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={() => {
                       if (selectedConversation?.other_user?.id) {
                         startCall(selectedConversation.other_user.id);
@@ -3120,14 +3161,21 @@ const Chat = () => {
                     }}
                     className="flex flex-col items-center gap-1.5 group"
                   >
-                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-destructive/10 border border-destructive/20 backdrop-blur-xl hover:bg-destructive/15 transition-all duration-300">
-                      <div className="absolute inset-0 rounded-2xl bg-destructive/10 animate-pulse" />
-                      <VideoCallIcon className="w-5 h-5 text-destructive relative z-10" />
+                    <div
+                      className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+                      style={{
+                        background: 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #ef4444 45%, #7f1d1d 100%)',
+                        boxShadow: '0 10px 22px -8px rgba(239,68,68,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
+                      }}
+                    >
+                      <div className="absolute inset-0 rounded-2xl bg-white/10 animate-pulse" />
+                      <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
+                      <VideoCallIcon className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-semibold text-muted-foreground">Video Call</span>
+                      <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
-                        <span className="text-[8px] text-warning-600/80 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
+                        <span className="text-[8px] text-warning-600/85 font-semibold">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
                     </div>
                   </motion.button>
