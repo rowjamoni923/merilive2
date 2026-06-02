@@ -511,22 +511,30 @@ const Tasks = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-white mb-6"
+          className="relative overflow-hidden rounded-2xl p-5 mb-6 text-white"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #fbbf24 100%)',
+            boxShadow: '0 16px 36px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(146,64,14,0.25)'
+          }}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(255,255,255,0.35),transparent_55%)] pointer-events-none" />
+          <div className="relative flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-bold">Today's Tasks</h2>
-              <p className="text-sm text-white/90">
+              <h2 className="text-lg font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.18)' }}>Today's Tasks</h2>
+              <p className="text-sm text-white/95">
                 {Object.values(progress).filter(p => p.is_claimed).length}/{tasks.length} Completed
               </p>
             </div>
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-              <Gift className="w-7 h-7" />
+            <div
+              className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-sm flex items-center justify-center"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 14px -6px rgba(0,0,0,0.25)' }}
+            >
+              <Gift className="w-7 h-7 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
             </div>
           </div>
-          <Progress 
-            value={(Object.values(progress).filter(p => p.is_claimed).length / Math.max(tasks.length, 1)) * 100} 
-            className="h-2 bg-white/30"
+          <Progress
+            value={(Object.values(progress).filter(p => p.is_claimed).length / Math.max(tasks.length, 1)) * 100}
+            className="relative h-2 bg-white/30"
           />
         </motion.div>
 
