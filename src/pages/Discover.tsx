@@ -336,22 +336,38 @@ const Discover = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="bg-gradient-primary pb-5">
+      <div
+        className="bg-gradient-primary pb-5 relative"
+        style={{ boxShadow: '0 10px 24px -12px rgba(79,70,229,0.45)' }}
+      >
         <header className="safe-area-top">
           <div className="flex items-center justify-between px-4 py-2">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
+              className="rounded-full text-on-dark h-9 w-9 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{
+                background: 'rgba(255,255,255,0.14)',
+                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-on-dark">Party Rooms</h1>
+            <h1
+              className="text-lg font-bold text-on-dark tracking-tight"
+              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.28)' }}
+            >
+              Party Rooms
+            </h1>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
+              className="rounded-full text-on-dark h-9 w-9 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{
+                background: 'rgba(255,255,255,0.14)',
+                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);
@@ -366,13 +382,19 @@ const Discover = () => {
 
           {/* Search */}
           <div className="px-4 mt-1">
-            <div className="relative">
+            <div
+              className="relative rounded-full"
+              style={{
+                background: 'rgba(255,255,255,0.18)',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.18)',
+              }}
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-dark-faint" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms or hosts..."
-                className="w-full pl-9 h-9 bg-primary-foreground/20 border-primary-foreground/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-transparent border-transparent text-on-dark placeholder:text-on-dark-faint rounded-full text-sm focus-visible:ring-0 focus-visible:border-transparent"
               />
             </div>
           </div>
@@ -383,19 +405,37 @@ const Discover = () => {
       {/* Tabs */}
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-muted rounded-full p-0.5 border border-border h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-primary data-[state=active]:text-on-dark">
+          <TabsList
+            className="w-full rounded-full p-1 h-10 border-0"
+            style={{
+              background: 'hsl(var(--muted))',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.6)',
+            }}
+          >
+            <TabsTrigger
+              value="all"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-gradient-primary data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-success data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="video"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-success data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(16,185,129,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-info data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="audio"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-info data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(59,130,246,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-on-dark">
+            <TabsTrigger
+              value="game"
+              className="flex-1 rounded-full h-8 text-xs font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-on-dark data-[state=active]:shadow-[0_6px_14px_-6px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            >
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>
@@ -404,21 +444,29 @@ const Discover = () => {
 
         {/* Country Filter */}
         <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          {partyCountries.map((country) => (
-            <button
-              key={country.code}
-              onClick={() => setSelectedCountry(country.code)}
-              className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
-                selectedCountry === country.code
-                  ? "bg-gradient-primary text-on-dark border-transparent shadow-md shadow-brand/20"
-                  : "bg-card text-foreground border-border hover:border-muted-foreground/30"
-              )}
-            >
-              <span className="text-sm">{country.flag}</span>
-              <span>{country.name}</span>
-            </button>
-          ))}
+          {partyCountries.map((country) => {
+            const active = selectedCountry === country.code;
+            return (
+              <button
+                key={country.code}
+                onClick={() => setSelectedCountry(country.code)}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap shrink-0",
+                  active
+                    ? "bg-gradient-primary text-on-dark -translate-y-px"
+                    : "bg-card text-foreground hover:-translate-y-px"
+                )}
+                style={
+                  active
+                    ? { boxShadow: '0 8px 16px -6px rgba(79,70,229,0.5), inset 0 1px 0 rgba(255,255,255,0.35)' }
+                    : { boxShadow: '0 2px 6px -2px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px hsl(var(--border))' }
+                }
+              >
+                <span className="text-sm">{country.flag}</span>
+                <span>{country.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -438,19 +486,22 @@ const Discover = () => {
             <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredRooms.length === 0 ? (
-          <div 
-            className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl shadow-sm border border-border min-h-[50vh]"
+          <div
+            className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl min-h-[50vh]"
+            style={{ boxShadow: '0 10px 30px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.8)' }}
           >
-            {/* Static Icon */}
             <div className="relative mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center border border-border/50">
+              <div
+                className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center"
+                style={{ boxShadow: '0 18px 36px -14px rgba(79,70,229,0.55), inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -3px 0 rgba(0,0,0,0.18)' }}
+              >
                 <Gamepad2 className="w-10 h-10 text-on-dark" />
               </div>
             </div>
-            
+
             <h3 className="text-lg font-semibold text-display mb-2 relative z-10">No Active Rooms</h3>
-            <p className="text-sm text-muted-pro text-center max-w-[200px] relative z-10">Rooms will appear when hosts start streaming!</p>
-            
+            <p className="text-sm text-muted-pro text-center max-w-[220px] relative z-10">Rooms will appear when hosts start streaming!</p>
+
             <div className="mt-6 w-24 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent rounded-full animate-pulse" />
           </div>
         ) : (
@@ -467,8 +518,16 @@ const Discover = () => {
                   <div
                     key={room.id}
                     onClick={() => joinRoom(room)}
-                    className="relative rounded-xl overflow-hidden bg-card cursor-pointer active:scale-[0.98] transition-transform border border-border shadow-sm"
-                    style={{ contain: 'layout style paint' }}
+                    className="relative rounded-2xl overflow-hidden bg-card cursor-pointer transition-all hover:-translate-y-0.5 active:scale-[0.98]"
+                    style={{
+                      contain: 'layout style paint',
+                      boxShadow:
+                        hostLevel >= 40
+                          ? '0 12px 24px -10px rgba(244,63,94,0.45), 0 2px 6px -2px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.85)'
+                          : hostLevel >= 20
+                          ? '0 10px 22px -10px rgba(245,158,11,0.45), 0 2px 6px -2px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.85)'
+                          : '0 6px 16px -8px rgba(15,23,42,0.22), 0 1px 3px -1px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
+                    }}
                   >
                     {/* Background - Use host avatar or gradient */}
                     <div 
@@ -488,23 +547,32 @@ const Discover = () => {
                       
                       {/* Room type badge & participant count */}
                       <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
-                        <Badge className={cn("border-0 text-on-dark text-[10px] px-1.5 py-0.5 bg-gradient-to-r", getRoomTypeColor(room.room_type))}>
+                        <Badge
+                          className={cn("border-0 text-on-dark text-[10px] px-1.5 py-0.5 bg-gradient-to-r font-semibold", getRoomTypeColor(room.room_type))}
+                          style={{ boxShadow: '0 4px 10px -4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+                        >
                           <TypeIcon className="w-2.5 h-2.5 mr-0.5" />
                           {room.room_type}
                         </Badge>
-                        <div className="flex items-center gap-0.5 bg-card/85 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-border/60">
+                        <div
+                          className="flex items-center gap-0.5 bg-card/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full"
+                          style={{ boxShadow: '0 3px 8px -3px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+                        >
                           <Users className="w-2.5 h-2.5 text-heading" />
-                          <span className="text-[10px] text-heading font-medium">{room.current_participants}</span>
+                          <span className="text-[10px] text-heading font-semibold">{room.current_participants}</span>
                         </div>
                       </div>
 
                       {/* Game Mode Emoji - Show if game is running */}
                       {gameEmoji && (
                         <div className="absolute bottom-1.5 left-1.5">
-                          <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-accent/40 bg-gradient-to-br",
-                            gameColor
-                          )}>
+                          <div
+                            className={cn(
+                              "w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-gradient-to-br",
+                              gameColor
+                            )}
+                            style={{ boxShadow: '0 8px 18px -6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(0,0,0,0.15)' }}
+                          >
                             {gameEmoji}
                           </div>
                         </div>
@@ -513,12 +581,16 @@ const Discover = () => {
                       {/* Lock icon */}
                       {room.is_private && (
                         <div className="absolute bottom-1.5 right-1.5">
-                          <div className="w-5 h-5 rounded-full bg-card/85 backdrop-blur-sm flex items-center justify-center border border-border/60">
-                            <Lock className="w-2.5 h-2.5 text-money" />
+                          <div
+                            className="w-6 h-6 rounded-full bg-card/95 backdrop-blur-sm flex items-center justify-center"
+                            style={{ boxShadow: '0 4px 10px -3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+                          >
+                            <Lock className="w-3 h-3 text-money" />
                           </div>
                         </div>
                       )}
                     </div>
+
 
                     {/* Room info with host avatar */}
                     <div className="p-2 bg-card">
@@ -529,17 +601,25 @@ const Discover = () => {
                       <div className="flex items-center gap-1.5">
                         {/* Small Avatar with level frame */}
                         <div className="relative flex-shrink-0">
-                          <div className={cn(
-                            "rounded-full p-0.5 bg-gradient-to-br",
-                            hostLevel >= 40 ? "from-danger to-warning" :
-                            hostLevel >= 20 ? "from-warning to-accent" :
-                            hostLevel >= 10 ? "from-secondary to-primary" :
-                            hostLevel >= 5 ? "from-info to-primary" :
-                            "from-muted-foreground to-muted-foreground/70"
-                          )}>
-                            <Avatar className="w-6 h-6 border border-card">
+                          <div
+                            className={cn(
+                              "rounded-full p-0.5 bg-gradient-to-br",
+                              hostLevel >= 40 ? "from-danger to-warning" :
+                              hostLevel >= 20 ? "from-warning to-accent" :
+                              hostLevel >= 10 ? "from-secondary to-primary" :
+                              hostLevel >= 5 ? "from-info to-primary" :
+                              "from-muted-foreground to-muted-foreground/70"
+                            )}
+                            style={{
+                              boxShadow:
+                                hostLevel >= 20
+                                  ? '0 4px 10px -3px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4)'
+                                  : '0 2px 6px -2px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.4)',
+                            }}
+                          >
+                            <Avatar className="w-7 h-7 border-2 border-card">
                               <AvatarImage src={hostAvatar || undefined} />
-                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[8px]">
+                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[9px]">
                                 {room.host?.display_name?.charAt(0) || 'H'}
                               </AvatarFallback>
                             </Avatar>
