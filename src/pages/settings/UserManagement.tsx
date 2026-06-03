@@ -140,7 +140,7 @@ const UserManagement = () => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-card border border-border rounded-xl p-3 text-center">
             <UserX className="w-5 h-5 mx-auto mb-1 text-destructive" />
-            <p className="text-lg font-bold">{blockedUsers.length}</p>
+            <p className="text-lg font-bold">{(blockedUsers ?? []).length}</p>
             <p className="text-xs text-muted-foreground">Blocked Users</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-3 text-center">
