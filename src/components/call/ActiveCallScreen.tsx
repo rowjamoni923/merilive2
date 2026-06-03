@@ -812,7 +812,7 @@ export function ActiveCallScreen({
             )}
 
             {/* Signal bars */}
-            <div className="flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
+            <div className="hidden sm:flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
               style={{
                 background: isConnected
                   ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
@@ -944,7 +944,7 @@ export function ActiveCallScreen({
             <motion.div
               whileTap={{ scale: 0.93 }}
               onClick={handleSwapVideos}
-              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
+              className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
               style={{
                 boxShadow:
                   '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
@@ -998,7 +998,7 @@ export function ActiveCallScreen({
       {chatMessages.length > 0 && (
         <div
           ref={chatScrollRef}
-          className="absolute bottom-[116px] left-3 right-16 z-10 max-h-[40vh] overflow-y-auto"
+          className="absolute bottom-[108px] sm:bottom-[116px] left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto"
           style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           <div className="space-y-1.5 pb-1">
@@ -1083,11 +1083,11 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
-        <div className="px-3 pb-4 pt-2">
+        <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Message input pill */}
-            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full backdrop-blur-xl"
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(25,12,50,0.5) 100%)',
                 border: '1px solid rgba(255,255,255,0.14)',
@@ -1125,7 +1125,7 @@ export function ActiveCallScreen({
               whileTap={{ scale: 0.88, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={handleEndCall}
-              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 40%, #b91c1c 100%)',
                 boxShadow: '0 10px 24px -6px rgba(239,68,68,0.65), 0 4px 10px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
@@ -1143,7 +1143,7 @@ export function ActiveCallScreen({
               whileTap={{ scale: 0.88, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => setShowGiftPanel(true)}
-              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #f9a8d4 0%, #ec4899 40%, #a855f7 100%)',
                 boxShadow: '0 10px 24px -6px rgba(236,72,153,0.55), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.28)',
@@ -1161,7 +1161,7 @@ export function ActiveCallScreen({
               whileTap={{ scale: 0.88, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
                 border: '1px solid rgba(255,255,255,0.18)',
