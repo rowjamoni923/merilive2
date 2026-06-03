@@ -1510,7 +1510,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
   }, [currentUser?.id, hostAvailability, toast, navigate]);
 
-  const menuItems = [
+  // Phase-4 perf: this 200-line array (with IIFE call-rate math + JSX children)
+  // was being rebuilt on every Profile re-render. Memoize so unrelated state
+  // updates (scroll, dialogs, optimistic toggles elsewhere) don't pay the cost.
+  const menuItems = useMemo(() => [
     // Go Offline button - ONLY for hosts
     {
       icon: Power,
