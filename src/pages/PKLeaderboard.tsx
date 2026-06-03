@@ -180,7 +180,7 @@ const PKLeaderboard = () => {
     return num.toString();
   };
 
-  if (loading) {
+  if (loading && !competition) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
