@@ -37,46 +37,45 @@ interface Props {
 
 }
 
-// Recommendation logic (corrected — based on real SwiftPay/network minimums):
-//  - TRC20 / BEP20 / SOL have the lowest network minimums (~$0.50-1) and lowest gas.
-//  - ERC20 / BTC / ETH have HIGH gateway minimums ($5-30+) due to Ethereum gas.
-//  - Therefore TRC20 is recommended for ALL sizes (it works for both small + large).
-const LARGE_PAYMENT_THRESHOLD_USD = 0.50;
+// SwiftPay enabled currencies (verified live against the gateway API).
+// Anything outside this list returns "currency not enabled" — do NOT add
+// networks here unless you've confirmed they're enabled on the gateway.
+//
+// Real minimums observed:
+//   usdtbsc   (BEP20)  ≈ $0.50   ← cheapest, best for small payments
+//   usdterc20 (ERC20)  ≈ $0.85
+//   usdttrc20 (TRC20)  ≈ $11.28
+//   btc                ≈ $17.51
+const LARGE_PAYMENT_THRESHOLD_USD = 10.0;
 
-// Order matters — first option is tried first in the auto-fallback loop.
-// Low-min networks come first so small amounts succeed on the first try.
-const BASE_CRYPTO_OPTIONS = [
-  { value: "usdttrc20", label: "USDT (TRC20)" },
-  { value: "usdtbsc", label: "USDT (BEP20 / BSC)" },
-  { value: "usdtsol", label: "USDT (Solana)" },
-  { value: "usdtmatic", label: "USDT (Polygon)" },
-  { value: "usdterc20", label: "USDT (ERC20)" },
-  { value: "btc", label: "Bitcoin (BTC)" },
-  { value: "eth", label: "Ethereum (ETH)" },
-  { value: "ltc", label: "Litecoin (LTC)" },
-  { value: "trx", label: "TRON (TRX)" },
-  { value: "bnbbsc", label: "BNB (BEP20)" },
-  { value: "doge", label: "Dogecoin (DOGE)" },
-  { value: "sol", label: "Solana (SOL)" },
+type CryptoOption = { value: string; label: string; minUsd: number };
+
+const BASE_CRYPTO_OPTIONS: CryptoOption[] = [
+  { value: "usdtbsc", label: "USDT (BEP20 / BSC)", minUsd: 0.5 },
+  { value: "usdterc20", label: "USDT (ERC20)", minUsd: 0.85 },
+  { value: "usdttrc20", label: "USDT (TRC20)", minUsd: 11.28 },
+  { value: "btc", label: "Bitcoin (BTC)", minUsd: 17.51 },
 ];
 
-const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
-  return "usdttrc20";
+// Recommend the cheapest network that can actually accept this amount.
+const getRecommendedCurrency = (priceUsd: number | null | undefined): string => {
+  const usd = Number(priceUsd ?? 0);
+  const eligible = BASE_CRYPTO_OPTIONS.filter((o) => usd >= o.minUsd);
+  return (eligible[0] ?? BASE_CRYPTO_OPTIONS[0]).value;
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
+  const usd = Number(priceUsd ?? 0);
   const recommended = getRecommendedCurrency(priceUsd);
-  const isSmall = !priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD;
   return BASE_CRYPTO_OPTIONS.map((o) => {
-    if (o.value === recommended) {
-      return { ...o, label: `${o.label} — recommended, lowest minimum` };
-    }
-    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth" || o.value === "usdttrc20")) {
-      return { ...o, label: `${o.label} — high minimum, large payments only` };
-    }
-    return o;
+    const tooSmall = usd > 0 && usd < o.minUsd;
+    let label = o.label;
+    if (o.value === recommended) label = `${o.label} — recommended`;
+    else if (tooSmall) label = `${o.label} — min $${o.minUsd.toFixed(2)}`;
+    return { ...o, label, disabled: tooSmall };
   });
 };
+
 
 type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 
@@ -139,18 +138,15 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdttrc20");
+  const [currency, setCurrency] = useState<string>(BASE_CRYPTO_OPTIONS[0].value);
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
-
-
-
 
   useEffect(() => {
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdttrc20");
+      setCurrency(BASE_CRYPTO_OPTIONS[0].value);
       setDeposit(null);
       setCreating(false);
       return;
@@ -174,26 +170,34 @@ export default function SwiftPayDepositModal({
     }
   }, [open, initialPackageId, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomLabel]);
 
-  // Remove auto-reset of currency when package changes to respect user selection
-  /*
+  // Auto-select the cheapest network that can actually accept this amount.
+  // For ≥$10 the user can still override; for <$10 only eligible networks
+  // are pickable so the deposit always succeeds on the first try.
   useEffect(() => {
-    if (pkg) setCurrency(getRecommendedCurrency(pkg.price_usd));
-  }, [pkg?.id]);
-  */
+    if (!pkg) return;
+    setCurrency(getRecommendedCurrency(pkg.price_usd));
+  }, [pkg?.id, pkg?.price_usd]);
+
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
     setCreating(true);
     try {
-      // Auto-switch threshold logic: 
-      // If price < $10.00, use round-robin fallback.
-      // If price >= $10.00, strict mode (only user-selected currency).
+      // Routing rule:
+      //   < $10  → small payment: auto-route through every network that can
+      //            accept this amount (cheapest first) so it always succeeds.
+      //   ≥ $10  → large payment: use the exact network the user selected.
       const price = pkg.price_usd;
-      const isSmallDeposit = price < 10.0;
-      
-      const tryOrder = isSmallDeposit 
-        ? [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)]
+      const isSmallDeposit = price < LARGE_PAYMENT_THRESHOLD_USD;
+
+      const eligibleCheapestFirst = BASE_CRYPTO_OPTIONS
+        .filter((o) => price >= o.minUsd)
+        .map((o) => o.value);
+
+      const tryOrder = isSmallDeposit
+        ? Array.from(new Set([currency, ...eligibleCheapestFirst]))
         : [currency];
+
 
       let lastErrMsg: string | null = null;
       let lastErrIsMinimum = false;
@@ -396,9 +400,12 @@ export default function SwiftPayDepositModal({
                 </SelectTrigger>
                 <SelectContent>
                   {getCryptoOptions(pkg.price_usd).map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value} disabled={o.disabled}>
+                      {o.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
+
               </Select>
             </div>
             <Button
