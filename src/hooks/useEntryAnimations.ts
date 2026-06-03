@@ -36,6 +36,7 @@ export interface AddEntryParams {
   entryNameBarUrl?: string;
   vehicleAnimationUrl?: string;
   soundUrl?: string;
+  rankCode?: string; // NEW: To trigger cinematic overlays (e.g., 'duke', 'king')
 }
 
 export function useEntryAnimations() {
