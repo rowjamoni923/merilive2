@@ -316,14 +316,14 @@ const AgencyHostManagement = () => {
           </div>
 
           {/* Pending notification */}
-          {pendingHosts.length > 0 && (
+          {(pendingHosts ?? []).length > 0 && (
             <div 
               className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer"
               onClick={() => setActiveTab("pending")}
             >
               <Bell className="w-4 h-4 text-amber-600" />
               <span className="text-amber-700 text-sm font-medium">
-                {pendingHosts.length} Pending Request{pendingHosts.length > 1 ? 's' : ''}
+                {(pendingHosts ?? []).length} Pending Request{(pendingHosts ?? []).length > 1 ? 's' : ''}
               </span>
             </div>
           )}
