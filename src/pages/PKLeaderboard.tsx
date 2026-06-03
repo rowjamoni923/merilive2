@@ -43,10 +43,12 @@ const PKLeaderboard = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [competition, setCompetition] = useState<Competition | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [rewards, setRewards] = useState<RewardTier[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Pkg420: persist per-competition snapshot → instant paint on revisit.
+  const cacheKey = `pk-leaderboard:${id ?? "none"}`;
+  const [competition, setCompetition, hadCompCache] = usePersistedCache<Competition | null>(`${cacheKey}:comp`, null);
+  const [participants, setParticipants] = usePersistedCache<Participant[]>(`${cacheKey}:parts`, []);
+  const [rewards, setRewards] = usePersistedCache<RewardTier[]>(`${cacheKey}:rewards`, []);
+  const [loading, setLoading] = useState(!hadCompCache);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
 
