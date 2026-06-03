@@ -121,7 +121,7 @@ export default function NotificationSettings() {
         }, { onConflict: 'user_id,category' });
 
       if (error) {
-        setPrefs(prev => ({ ...prev, [category]: current }));
+        setPrefs(prev => ({ ...(prev ?? {}), [category]: current }));
         console.error('Failed to update preference:', error);
         recordClientError({ label: "NotificationSettings.updated", message: error instanceof Error ? error.message : String(error) });
         toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
