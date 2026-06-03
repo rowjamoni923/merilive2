@@ -445,6 +445,32 @@ const LiveStream = () => {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (!id || !currentUserId || isHost) return;
+    const sendViewerLeave = () => {
+      const accessToken = sessionAccessTokenRef.current;
+      if (!accessToken) return;
+      try {
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/leave_live_stream_viewer`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ p_stream_id: id }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch { /* ignore unload failures */ }
+    };
+    window.addEventListener('pagehide', sendViewerLeave);
+    window.addEventListener('beforeunload', sendViewerLeave);
+    return () => {
+      window.removeEventListener('pagehide', sendViewerLeave);
+      window.removeEventListener('beforeunload', sendViewerLeave);
+    };
+  }, [id, currentUserId, isHost]);
+
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
   }, []);
@@ -1874,7 +1900,7 @@ const LiveStream = () => {
       if (connectionInitiated.current) {
         leaveChannel();
         connectionInitiated.current = false;
-        if (id) {
+        if (!wasHost && id) {
             supabase
               .rpc('leave_live_stream_viewer', { p_stream_id: id })
               .then(({ error }) => {
