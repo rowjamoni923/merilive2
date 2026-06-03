@@ -559,7 +559,7 @@ const AgencySignup = () => {
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <Mail className="w-4 h-4 text-info-400" />
-                  Email Address <span className="text-danger-500">*</span>
+                  Email Address <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input type="email" placeholder="example@gmail.com" value={formData.email}
