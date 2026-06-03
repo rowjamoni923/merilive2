@@ -776,9 +776,9 @@ export function ActiveCallScreen({
           </div>
 
           {/* Right - Earnings/Coins + Connection */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isHost ? (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
                 style={{
                   background: 'linear-gradient(135deg, rgba(245,158,11,0.28) 0%, rgba(234,88,12,0.22) 100%)',
                   border: '1px solid rgba(252,211,77,0.5)',
