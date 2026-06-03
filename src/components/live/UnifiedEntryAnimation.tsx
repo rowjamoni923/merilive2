@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
+import CinematicEntranceOverlay from "./CinematicEntranceOverlay";
 
 export interface EntryAnimation {
   id: string;
@@ -24,6 +25,7 @@ export interface EntryAnimation {
   animationUrl: string;
   animationType: 'entrance' | 'vehicle';
   soundUrl?: string;
+  rankCode?: string; // NEW: Support for cinematic overlays
 }
 
 interface UnifiedEntryAnimationProps {
