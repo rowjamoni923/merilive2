@@ -42,6 +42,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'face-violations': 'user-hub',
   'moderation': 'user-hub',
   'user-reports': 'user-hub',
+  'online-users': 'user-hub',
 
   // Agency System
   'agency-hub': 'agency-hub',
@@ -64,6 +65,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'vip-medals': 'vip-hub',
   'vip-privileges': 'vip-hub',
   'noble-cards': 'vip-hub',
+  'noble-subscriptions': 'vip-hub',
   'ranking-rewards': 'vip-hub',
 
   // Visual Assets
@@ -124,10 +126,19 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'content': 'content-hub',
   'streams': 'content-hub',
   'recordings': 'content-hub',
+  'track-recordings': 'content-hub',
+  'sip-inbound': 'content-hub',
+  'livekit-rooms': 'content-hub',
+  'livekit-egress': 'content-hub',
+  'livekit-ingress': 'content-hub',
+  'livekit-sip': 'content-hub',
+  'livekit-webhook': 'content-hub',
   'reels': 'content-hub',
   'leaderboard-management': 'content-hub',
   'tasks-settings': 'content-hub',
   'rewards-management': 'content-hub',
+  'reward-claims': 'content-hub',
+  'rating-rewards': 'content-hub',
 
   // Party
   'party-management': 'party-hub',
@@ -139,11 +150,17 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   // Support & Moderation
   'contact-violations': 'moderation-hub',
   'support-tickets': 'moderation-hub',
+  'support-reports': 'moderation-hub',
+  'pending-approvals': 'moderation-hub',
+  'auto-actions': 'moderation-hub',
+  'cost-monitor': 'moderation-hub',
+  'moderation-audit': 'moderation-hub',
   'gmail-support': 'moderation-hub',
   'chat-inspector': 'moderation-hub',
   'number-sharing': 'moderation-hub',
   'reports': 'moderation-hub',
   'logs': 'moderation-hub',
+  'error-log': 'moderation-hub',
   'error-logs': 'moderation-hub',
 
   // Content extras
@@ -160,6 +177,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'notice-broadcast': 'settings-hub',
   'email-broadcast': 'settings-hub',
   'notification-templates': 'settings-hub',
+  'ai-image-studio': 'settings-hub',
   'app-settings-hub': 'settings-hub',
   'host-feed-ranking': 'settings-hub',
   'party-discovery-ranking': 'settings-hub',
@@ -168,6 +186,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'branding': 'settings-hub',
   'invitation-settings': 'settings-hub',
   'popup-banners': 'settings-hub',
+  'rating-banners': 'settings-hub',
   'app-version': 'settings-hub',
   'device-management': 'settings-hub',
   'allowed-links': 'settings-hub',
