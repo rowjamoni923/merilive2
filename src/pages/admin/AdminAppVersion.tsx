@@ -28,12 +28,12 @@ interface VersionSettings {
 const normalizeVersionSettings = (row: any): VersionSettings => ({
   id: row.id,
   platform: row.platform,
-  current_version_code: Number((parseSettingValue<string>(row.current_version) || '0').toString().split('.').join('')) || 0,
-  current_version_name: parseSettingValue<string>(row.current_version) || '1.0.0',
-  min_version_code: Number((parseSettingValue<string>(row.minimum_version) || '0').toString().split('.').join('')) || 0,
+  current_version_code: row.current_version_code || 0,
+  current_version_name: row.current_version_name || row.current_version || '1.0.0',
+  min_version_code: row.min_version_code || 0,
   force_update: Boolean(row.force_update),
-  update_message: parseSettingValue<string>(row.changelog) || '',
-  play_store_url: parseSettingValue<string>(row.update_url) || '',
+  update_message: row.update_message || row.changelog || '',
+  play_store_url: row.play_store_url || row.update_url || '',
   updated_at: row.updated_at,
 });
 
