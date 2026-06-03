@@ -1161,7 +1161,7 @@ export function ActiveCallScreen({
               whileTap={{ scale: 0.88, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
                 border: '1px solid rgba(255,255,255,0.18)',
