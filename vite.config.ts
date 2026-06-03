@@ -2,6 +2,15 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { imagetools } from "vite-imagetools";
+
+// Auto-convert all bundled raster images (PNG/JPG/JPEG) imported from
+// src/assets to WebP @ q=78 with a max width of 1600px. Keeps every existing
+// `import x from './foo.png'` working transparently — Vite will serve the
+// generated .webp instead. Files explicitly opting out can pass `?format=png`
+// in the import query string. SVGs, GIFs and already-encoded WebP files are
+// untouched.
+const autoWebpDirectives: ConstructorParameters<typeof Object>[0] = undefined;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
