@@ -1490,14 +1490,14 @@ const Chat = () => {
           m.message_type !== newMessage.message_type
       );
 
-      if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
+      if (baseMessages.find(m => m.id === newMessage.id)) return dedupeAndSortMessages(baseMessages);
 
-      return [
+      return dedupeAndSortMessages([
         ...baseMessages,
         newMessage.sender_id === currentUserId
           ? { ...newMessage, status: (newMessage.status || 'sent') as Message['status'] }
           : newMessage,
-      ];
+      ]);
     });
 
     if (newMessage.sender_id === currentUserId) return;
@@ -1590,9 +1590,7 @@ const Chat = () => {
           _optimistic: true,
         }) as any)
       : [];
-    setMessages([...serverMsgs, ...queued].sort((a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    ));
+    setMessages(dedupeAndSortMessages([...serverMsgs, ...queued]));
 
     // Fetch reply-to messages for quote rendering
     const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
