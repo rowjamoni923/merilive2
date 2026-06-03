@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 export interface FlyingGift {
   id: string;
@@ -146,10 +148,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     // Skip — SVGAPlayerWithAudio will handle sound for SVGA gifts (embedded + fallback)
     if (isSVGA) return;
     soundPlayedRef.current = true;
-    const audio = new Audio(gift.soundUrl);
-    audio.volume = 0.6;
-    audio.play().catch(() => {});
+    // Pkg422: central player — anti-GC, unlock-aware, limiter-bus,
+    // per-URL concurrency cap so 50-combo gifts don't crackle.
+    playSoundUrl(gift.soundUrl, { volume: 0.6, maxConcurrent: 2 });
   }, [isSVGA, gift.soundUrl]);
+
 
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
 

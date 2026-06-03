@@ -51,6 +51,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { playSynthSequence } from "@/utils/soundPlayer";
+
 import { getCachedUser } from "@/utils/cachedAuth";
 import { HostsIcon3D, WithdrawIcon3D, RankingIcon3D, HelperIcon3D, DiamondExchangeIcon3D, PolicyIcon3D, HistoryIcon3D } from "@/components/agency/Premium3DIcons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -207,58 +209,17 @@ const AgencyDashboard = () => {
   const [subAgencies, setSubAgencies] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // Initialize notification sound
-  useEffect(() => {
-    // Create audio element for notification sound
-    audioRef.current = new Audio('data:audio/wav;base64,UklGRl9vT19telefonering/2FBBQw==');
-    // Use a simple beep sound created via Web Audio API
-    return () => {
-      if (audioRef.current) {
-        audioRef.current = null;
-      }
-    };
+  // Pkg422: notification sound now uses the shared limiter bus from
+  // soundPlayer.ts. Previously created a fresh AudioContext per ping
+  // (iOS 6-context cap → silenced after a busy session) and had a
+  // broken inline data-URI containing non-base64 characters.
+  const playNotificationSound = useCallback(() => {
+    playSynthSequence([
+      { freq: 800,  startOffset: 0,    duration: 0.4, gain: 0.28, type: 'sine' },
+      { freq: 1000, startOffset: 0.2,  duration: 0.3, gain: 0.28, type: 'sine' },
+    ]);
   }, []);
 
-  // Play notification sound function
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 800; // Frequency in Hz
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
-      
-      // Play second beep
-      setTimeout(() => {
-        const oscillator2 = audioContext.createOscillator();
-        const gainNode2 = audioContext.createGain();
-        
-        oscillator2.connect(gainNode2);
-        gainNode2.connect(audioContext.destination);
-        
-        oscillator2.frequency.value = 1000;
-        oscillator2.type = 'sine';
-        
-        gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator2.start(audioContext.currentTime);
-        oscillator2.stop(audioContext.currentTime + 0.3);
-      }, 200);
-    } catch (error) {
-      console.log('Could not play notification sound:', error);
-    }
-  }, []);
 
   // Watch for helper pending count changes and play sound
   useEffect(() => {

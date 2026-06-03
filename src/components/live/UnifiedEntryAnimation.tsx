@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 export interface EntryAnimation {
   id: string;
   userId: string;
@@ -61,11 +63,13 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
   useEffect(() => {
     if (!soundPlayedRef.current && entry.soundUrl) {
       soundPlayedRef.current = true;
-      const audio = new Audio(entry.soundUrl);
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
+      // Pkg422: routed through central player (anti-GC + unlock-aware +
+      // concurrency-capped + limiter-bus). Previous bare `new Audio` was
+      // GC'd mid-play on busy streams and ate the iOS context budget.
+      playSoundUrl(entry.soundUrl, { volume: 0.6, maxConcurrent: 2 });
       console.log('[UnifiedEntryAnimation] 🔊 Playing entry sound:', entry.soundUrl);
     }
+
     
     console.log('[UnifiedEntryAnimation] 🚗 RENDERING ENTRY ANIMATION:', {
       userId: entry.userId,

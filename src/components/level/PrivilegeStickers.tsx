@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Lottie from "lottie-react";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 interface Sticker {
   id: string;
@@ -27,17 +29,12 @@ interface PrivilegeStickersProps {
   selectedCategory?: string;
 }
 
-// Play sticker sound
-const playStickerSound = async (soundUrl?: string | null) => {
+// Play sticker sound — Pkg422 central player (anti-GC, unlock-aware, limiter-bus)
+const playStickerSound = (soundUrl?: string | null) => {
   if (!soundUrl) return;
-  try {
-    const audio = new Audio(soundUrl);
-    audio.volume = 0.5;
-    await audio.play();
-  } catch (error) {
-    console.log('[Sticker] Sound error:', error);
-  }
+  playSoundUrl(soundUrl, { volume: 0.5, maxConcurrent: 2 });
 };
+
 
 // Sticker categories
 const stickerCategories = [

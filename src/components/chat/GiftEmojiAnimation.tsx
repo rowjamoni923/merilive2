@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, memo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
@@ -68,16 +70,14 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
 
   useEffect(() => {
     if (!soundUrl || isSvga) return;
-    const audio = new Audio(soundUrl);
-    audio.volume = 0.8;
-    audio.play().catch(() => {});
+    // Pkg422: routed through central player (anti-GC + unlock-aware
+    // + limiter-bus + per-URL concurrency cap so combo gifts don't crackle).
+    const handle = playSoundUrl(soundUrl, { volume: 0.8, maxConcurrent: 2 });
     return () => {
-      try {
-        audio.pause();
-        audio.src = '';
-      } catch {}
+      try { handle.stop(); } catch { /* noop */ }
     };
   }, [soundUrl, isSvga]);
+
   
   useEffect(() => {
     mountedRef.current = true;
