@@ -1429,6 +1429,7 @@ const PartyRoom = () => {
         entranceSoundUrl: selfEntranceSound || null,
         entryNameBarUrl: selfNameBarUrl || null,
         vehicleAnimationUrl: selfVehicleUrl || null,
+        rankCode: rankCode || null,
         timestamp: Date.now(),
       }).then((sent) => {
         if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);
