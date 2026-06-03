@@ -424,6 +424,11 @@ const LiveStream = () => {
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
   const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  useEffect(() => {
+    activeViewerIdsRef.current = new Set();
+    activeViewerIdsHydratedRef.current = false;
+  }, [id]);
+
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
   }, []);
@@ -1359,9 +1364,8 @@ const LiveStream = () => {
 
       if (p.type === 'viewer_left') {
         // LiveKit ParticipantDisconnected — translated locally on every client.
-        const wasTracked = activeViewerIdsRef.current.has(p.userId);
         activeViewerIdsRef.current.delete(p.userId);
-        setViewerCount(prev => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(0, prev - (wasTracked ? 1 : 0)));
+        setViewerCount(prev => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(0, prev - 1));
         setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== p.userId));
         return;
       }
