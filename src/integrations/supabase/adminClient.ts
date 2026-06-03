@@ -281,7 +281,7 @@ const adminFetch: typeof fetch = (input, init) => {
 
   const sessionPreflight = token && isAdminRest && !isLoginRpc
     ? ensureAdminSessionDeviceBound(token)
-    : Promise.resolve();
+    : Promise.resolve(true);
 
   // Dedupe identical in-flight reads (GET only, no body).
   if (method === 'GET') {
@@ -292,15 +292,18 @@ const adminFetch: typeof fetch = (input, init) => {
       return hit.p.then((r) => r.clone());
     }
     const p = sessionPreflight.then(() => fetchWithInstantRestCache(url, opts, {
-      namespace: 'admin',
-      ttlMs: 3_000,
-      staleWhileRevalidateMs: 0,
-      maxEntries: 320,
-      // Admin RPCs power live counters, permissions, and financial summaries.
-      // Never serve them from session cache: stale RPC JSON made dashboard counts
-      // show old zero values even after the database was already correct.
-      skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
-    })).then(logIfFailed);
+      if (!ok) return buildInvalidAdminSessionResponse();
+      return fetchWithInstantRestCache(url, opts, {
+        namespace: 'admin',
+        ttlMs: 3_000,
+        staleWhileRevalidateMs: 0,
+        maxEntries: 320,
+        // Admin RPCs power live counters, permissions, and financial summaries.
+        // Never serve them from session cache: stale RPC JSON made dashboard counts
+        // show old zero values even after the database was already correct.
+        skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
+      });
+    }).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
       setTimeout(() => {
@@ -311,7 +314,7 @@ const adminFetch: typeof fetch = (input, init) => {
     return p.then((r) => r.clone());
   }
 
-  return sessionPreflight.then(() => fetch(url, opts)).then(logIfFailed);
+  return sessionPreflight.then((ok) => ok ? fetch(url, opts) : buildInvalidAdminSessionResponse()).then(logIfFailed);
 };
 
 /**
