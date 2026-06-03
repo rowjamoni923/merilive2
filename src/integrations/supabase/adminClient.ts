@@ -291,7 +291,7 @@ const adminFetch: typeof fetch = (input, init) => {
     if (hit && now - hit.t < DEDUPE_MS) {
       return hit.p.then((r) => r.clone());
     }
-    const p = sessionPreflight.then(() => fetchWithInstantRestCache(url, opts, {
+    const p = sessionPreflight.then((ok) => {
       if (!ok) return buildInvalidAdminSessionResponse();
       return fetchWithInstantRestCache(url, opts, {
         namespace: 'admin',
