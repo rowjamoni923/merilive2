@@ -1083,11 +1083,11 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
-        <div className="px-3 pb-4 pt-2">
+        <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Message input pill */}
-            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full backdrop-blur-xl"
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(25,12,50,0.5) 100%)',
                 border: '1px solid rgba(255,255,255,0.14)',
