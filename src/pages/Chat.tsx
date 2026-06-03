@@ -234,6 +234,8 @@ const Chat = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const MESSAGES_PAGE_SIZE = 100;
+  const [visibleMessageCount, setVisibleMessageCount] = useState<number>(MESSAGES_PAGE_SIZE);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
@@ -925,6 +927,8 @@ const Chat = () => {
     if (isNewConversation) {
       // Instant jump – never animate the whole history on open.
       lastScrollConvIdRef.current = convId;
+      // Reset windowed view to the most-recent slice for the freshly opened thread.
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
       container.scrollTop = container.scrollHeight;
       requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
       setTimeout(() => { container.scrollTop = container.scrollHeight; }, 80);
@@ -2214,7 +2218,11 @@ const Chat = () => {
     const isGroup = !!selectedGroup;
     const chatName = isGroup ? selectedGroup?.name : selectedConversation?.other_user?.display_name || 'User';
     const chatAvatar = isGroup ? selectedGroup?.avatar_url : selectedConversation?.other_user?.avatar_url;
-    const currentMessages = isGroup ? groupMessages : messages;
+    const allMessages = isGroup ? groupMessages : messages;
+    // Phase-3 perf: window the rendered slice. Clusters/day-separators stay
+    // contiguous because we always render the most-recent tail.
+    const hasOlder = allMessages.length > visibleMessageCount;
+    const currentMessages = hasOlder ? allMessages.slice(-visibleMessageCount) : allMessages;
     const userLevel = pickDisplayLevel(selectedConversation?.other_user as any);
     const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
 
@@ -2244,6 +2252,28 @@ const Chat = () => {
         {/* Messages */}
         <div ref={chatScrollRef} className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length > 0 && <div className="mt-auto" aria-hidden />}
+          {hasOlder && (
+            <div className="flex justify-center py-2">
+              <button
+                onClick={() => {
+                  const container = chatScrollRef.current;
+                  const prevHeight = container?.scrollHeight ?? 0;
+                  const prevTop = container?.scrollTop ?? 0;
+                  setVisibleMessageCount((c) => c + MESSAGES_PAGE_SIZE);
+                  // After the larger slice renders, restore scroll so the user
+                  // stays anchored on the same message they were reading.
+                  requestAnimationFrame(() => {
+                    const c = chatScrollRef.current;
+                    if (!c) return;
+                    c.scrollTop = c.scrollHeight - prevHeight + prevTop;
+                  });
+                }}
+                className="text-[11px] font-semibold text-muted-foreground bg-card/80 border border-border rounded-full px-3 py-1 shadow-sm hover:bg-card transition-colors"
+              >
+                Load older messages
+              </button>
+            </div>
+          )}
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
