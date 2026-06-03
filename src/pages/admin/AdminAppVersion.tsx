@@ -172,14 +172,17 @@ const AdminAppVersion = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Version Code</Label>
+              <Label>Version Code (Integer)</Label>
               <Input
                 key={`code-${settings?.updated_at}`}
                 type="number"
                 value={localSettings.current_version_code}
                 onChange={(e) => handleLocalChange({ current_version_code: parseInt(e.target.value) || 0 })}
-                placeholder="e.g., 4"
+                placeholder="e.g., 101"
               />
+              <p className="text-[10px] text-muted-foreground">
+                Must be higher than current app's build number
+              </p>
             </div>
           </div>
 
