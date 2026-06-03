@@ -20,6 +20,36 @@ const ADMIN_SECRET_LINK_SESSION_KEY = 'meri_admin_link_token';
 
 const hasWindow = () => typeof window !== 'undefined';
 
+const parseStoredAdminSession = (raw: string | null): AdminSession | null => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as AdminSession;
+    if (parsed?.version !== ADMIN_SESSION_VERSION) return null;
+    if (!parsed.admin_id || !parsed.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const getBestStoredAdminSession = (): AdminSession | null => {
+  if (!hasWindow()) return null;
+  const sessionSession = parseStoredAdminSession(window.sessionStorage.getItem(ADMIN_SESSION_KEY));
+  const localSession = parseStoredAdminSession(window.localStorage.getItem(ADMIN_SESSION_KEY));
+  if (sessionSession && localSession) {
+    return (localSession.signed_in_at || 0) > (sessionSession.signed_in_at || 0)
+      ? localSession
+      : sessionSession;
+  }
+  return sessionSession || localSession;
+};
+
+const isAdminAuthRoute = (): boolean => {
+  if (!hasWindow()) return false;
+  const path = window.location.pathname;
+  return path === '/admin/auth' || path === '/admin/login';
+};
+
 export interface AdminSession {
   version: string;
   admin_id: string;
@@ -40,26 +70,23 @@ export interface AdminSession {
 export const getAdminSessionToken = (): string => {
   if (!hasWindow()) return '';
   try {
-    // NOTE: We intentionally do NOT gate this on the secret-link sessionStorage key.
-    // That key is for INITIAL admin-panel access control; once the server has issued
-    // a valid session_token (stored in localStorage), every subsequent API call must
-    // send it as x-admin-token — otherwise private storage signing, RLS reads, and
-    // edge functions all fail after a tab close / hard refresh / bookmark entry.
-    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (direct && direct.length >= 16) return direct;
-    // Recovery: older sessions stored the server token only inside the session blob.
-    // Hydrate the dedicated token key so the x-admin-token header is sent on every request.
-    const raw =
-      window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
-      window.localStorage.getItem(ADMIN_SESSION_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as AdminSession;
-        if (parsed?.session_token && parsed.session_token.length >= 16) {
-          window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
-          return parsed.session_token;
-        }
-      } catch { /* ignore */ }
+    // The session blob is the source of truth. A standalone token key can become
+    // stale after re-login, pending-device flows, tab restore, or old migrations;
+    // if we prefer that stale key, every admin page sends a dead x-admin-token and
+    // every RPC fails with P0001 "unauthorized". Always read the current session
+    // first, then hydrate/repair the standalone key from it.
+    const parsed = getBestStoredAdminSession();
+    if (parsed?.session_token && parsed.session_token.length >= 16) {
+      window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
+      return parsed.session_token;
+    }
+    // During admin login / device approval, the server issues a temporary token
+    // before the final session blob is saved. Allow that only on auth routes.
+    // On real admin pages, never send a leftover token key: that stale-token drift
+    // is what caused global P0001 RPC failures across every page.
+    if (isAdminAuthRoute()) {
+      const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+      if (direct && direct.length >= 16) return direct;
     }
     return '';
   } catch {
@@ -108,11 +135,8 @@ export const saveAdminSession = (session: Omit<AdminSession, 'version' | 'signed
 export const getAdminSession = (): AdminSession | null => {
   if (!hasWindow()) return null;
   try {
-    const raw =
-      window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
-      window.localStorage.getItem(ADMIN_SESSION_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as AdminSession;
+    const parsed = getBestStoredAdminSession();
+    if (!parsed) return null;
     if (parsed.version !== ADMIN_SESSION_VERSION) {
       clearAdminSession();
       return null;
@@ -125,10 +149,11 @@ export const getAdminSession = (): AdminSession | null => {
     // just because tab-scoped secret-link storage was lost on refresh/new tab.
     // The route guard still requires secret-link access for first entry, but a
     // saved admin session must remain usable until manual logout.
-    // Sync to sessionStorage if only in localStorage
-    if (!window.sessionStorage.getItem(ADMIN_SESSION_KEY)) {
-      window.sessionStorage.setItem(ADMIN_SESSION_KEY, raw);
-    }
+    // Keep both stores aligned to the newest valid session so future RPCs never
+    // fall back to an older x-admin-token from the other storage bucket.
+    const json = JSON.stringify(parsed);
+    window.localStorage.setItem(ADMIN_SESSION_KEY, json);
+    window.sessionStorage.setItem(ADMIN_SESSION_KEY, json);
     if (parsed.session_token && parsed.session_token.length >= 16) {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
     }
