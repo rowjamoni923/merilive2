@@ -944,7 +944,7 @@ export function ActiveCallScreen({
             <motion.div
               whileTap={{ scale: 0.93 }}
               onClick={handleSwapVideos}
-              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
+              className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-10 cursor-pointer"
               style={{
                 boxShadow:
                   '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
