@@ -34,6 +34,8 @@ import AdminAuth from "./pages/admin/AdminAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MotionConfig } from "framer-motion";
+import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
