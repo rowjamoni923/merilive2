@@ -927,6 +927,8 @@ const Chat = () => {
     if (isNewConversation) {
       // Instant jump – never animate the whole history on open.
       lastScrollConvIdRef.current = convId;
+      // Reset windowed view to the most-recent slice for the freshly opened thread.
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
       container.scrollTop = container.scrollHeight;
       requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
       setTimeout(() => { container.scrollTop = container.scrollHeight; }, 80);
