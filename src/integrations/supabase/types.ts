@@ -16491,10 +16491,10 @@ export type Database = {
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
       admin_gift_frame_to_user: {
         Args: {
-          p_expires_at?: string
+          p_expires_at: string
           p_frame_id: string
-          p_notes?: string
-          p_source_table?: string
+          p_notes: string
+          p_source_table: string
           p_user_id: string
         }
         Returns: Json
@@ -17946,7 +17946,7 @@ export type Database = {
               _image_url: string
               _is_active: boolean
               _is_premium: boolean
-              _min_level?: number
+              _min_level: number
               _name: string
               _price_diamonds: number
             }
