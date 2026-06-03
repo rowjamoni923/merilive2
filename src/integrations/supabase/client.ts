@@ -47,6 +47,24 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     fetch: (input, init) => {
       const method = (init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
       if (method !== 'GET' && method !== 'HEAD') clearInstantRestCache('app');
+
+      // Pkg381: When an admin session exists, attach x-admin-token to EVERY request
+      // from the regular client too. ~89 admin pages still call `supabase.rpc(...)`
+      // / `supabase.from(...)` on admin-gated RPCs/tables; without this header those
+      // RPCs see `current_admin_id_from_header() = NULL` and fail with P0001
+      // "unauthorized" across the entire admin panel. Header is harmless for
+      // non-admin endpoints (ignored server-side) and absent when no admin session.
+      try {
+        const adminToken = getAdminSessionToken();
+        if (adminToken) {
+          const opts: RequestInit = init ? { ...init } : {};
+          const headers = new Headers(opts.headers || {});
+          if (!headers.has('x-admin-token')) headers.set('x-admin-token', adminToken);
+          opts.headers = headers;
+          init = opts;
+        }
+      } catch {}
+
       return fetchWithInstantRestCache(input, init, {
         namespace: 'app',
         ttlMs: 45_000,
@@ -60,5 +78,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     },
   },
 });
+
 
 
