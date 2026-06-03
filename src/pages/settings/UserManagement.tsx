@@ -89,7 +89,7 @@ const UserManagement = () => {
 
       if (error) throw error;
 
-      setBlockedUsers(prev => prev.filter(u => u.id !== blockedUserId));
+      setBlockedUsers(prev => (prev ?? []).filter(u => u.id !== blockedUserId));
       if (targetBlock?.blocked_id) {
         window.dispatchEvent(new CustomEvent("app-sync", {
           detail: { topic: "blocked_users", eventType: "DELETE", rowId: blockedUserId, payload: { blocked_id: targetBlock.blocked_id } }
