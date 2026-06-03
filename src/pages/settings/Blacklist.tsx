@@ -107,7 +107,7 @@ const Blacklist = () => {
 
       if (error) throw error;
 
-      setBlockedUsers(prev => prev.filter(u => u.id !== blockId));
+      setBlockedUsers(prev => (prev ?? []).filter(u => u.id !== blockId));
       if (targetBlock?.blocked_id) {
         window.dispatchEvent(new CustomEvent("app-sync", {
           detail: { topic: "user_blocks", eventType: "DELETE", rowId: blockId, payload: { blocked_id: targetBlock.blocked_id } }
