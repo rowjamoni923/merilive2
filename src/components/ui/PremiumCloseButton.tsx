@@ -1,13 +1,12 @@
 import * as React from "react";
 import { X } from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
  * Pkg420 — Unified premium close/exit button used across the app.
  *
  * Features:
- * - 36px tap target (Apple HIG minimum) with motion press feedback
+ * - 36px tap target (Apple HIG minimum) with CSS press/hover feedback
  * - Built-in double-fire guard: disables itself for `lockMs` after first click
  *   so leave-room / end-stream RPCs never fire twice from a frantic double-tap
  * - Three visual variants: `dark` (default, on video/live), `glass` (on light
@@ -20,7 +19,7 @@ type Variant = "dark" | "glass" | "solid";
 interface PremiumCloseButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
   onClick?: (
-    e: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement>,
+    e: React.MouseEvent<HTMLButtonElement>,
   ) => void | Promise<void>;
   variant?: Variant;
   size?: number; // pixel size, default 36
@@ -75,6 +74,14 @@ export const PremiumCloseButton = React.forwardRef<
   ) => {
     const [busy, setBusy] = React.useState(false);
     const busyRef = React.useRef(false);
+    const timerRef = React.useRef<number | null>(null);
+
+    React.useEffect(
+      () => () => {
+        if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+      },
+      [],
+    );
 
     const handleClick = React.useCallback(
       async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -84,9 +91,10 @@ export const PremiumCloseButton = React.forwardRef<
         try {
           await onClick?.(e);
         } finally {
-          window.setTimeout(() => {
+          timerRef.current = window.setTimeout(() => {
             busyRef.current = false;
             setBusy(false);
+            timerRef.current = null;
           }, lockMs);
         }
       },
@@ -97,18 +105,17 @@ export const PremiumCloseButton = React.forwardRef<
     const iconColor = isGlass ? "text-slate-700" : "text-white";
 
     return (
-      <motion.button
+      <button
         ref={ref}
         type="button"
-        whileTap={{ scale: 0.88 }}
-        whileHover={{ scale: 1.04 }}
         onClick={handleClick}
         disabled={disabled || busy}
         aria-busy={busy || undefined}
         className={cn(
           "relative rounded-full flex items-center justify-center overflow-hidden",
-          "transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-0",
-          "disabled:opacity-60 disabled:cursor-not-allowed",
+          "transition-transform duration-150 ease-out hover:scale-105 active:scale-90",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-0",
+          "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100",
           className,
         )}
         style={{
@@ -119,7 +126,6 @@ export const PremiumCloseButton = React.forwardRef<
         }}
         {...rest}
       >
-        {/* Top sheen — only on dark/solid */}
         {!isGlass && (
           <span
             aria-hidden
@@ -136,7 +142,7 @@ export const PremiumCloseButton = React.forwardRef<
           strokeWidth={2.4}
         />
         <span className="sr-only">{rest["aria-label"]}</span>
-      </motion.button>
+      </button>
     );
   },
 );
