@@ -289,8 +289,8 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         margin: 0, padding: 0,
       }}
     >
-      {/* Cinematic Overlay for Duke/King Ranks */}
-      {(entry.rankCode?.toLowerCase() === 'duke' || entry.rankCode?.toLowerCase() === 'king') && (
+      {/* Cinematic Overlay for Duke/King/Marquis Ranks */}
+      {(['duke', 'king', 'marquis'].includes(entry.rankCode?.toLowerCase() || '')) && (
         <CinematicEntranceOverlay
           displayName={entry.displayName}
           avatarUrl={entry.avatarUrl}
@@ -299,7 +299,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         />
       )}
 
-      {!['duke', 'king'].includes(entry.rankCode?.toLowerCase() || '') && (
+      {!['duke', 'king', 'marquis'].includes(entry.rankCode?.toLowerCase() || '') && (
         <>
           {/* Radial vignette — keeps video visible, focuses attention on the entry */}
           <motion.div
