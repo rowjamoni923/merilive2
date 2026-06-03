@@ -25,53 +25,31 @@ interface EntryBarData {
   sound_url?: string;
 }
 
-// Sound effect player
+// Sound effect player — Pkg422: routed through the shared AudioContext
+// + URL player. Previously created a fresh `new AudioContext()` per entry
+// which hit the iOS 6-context cap on busy streams and killed all audio.
 const playEntrySound = async (level: number, customSoundUrl?: string) => {
-  try {
-    if (customSoundUrl) {
-      const audio = new Audio(customSoundUrl);
-      audio.volume = 0.5;
-      await audio.play();
-      return;
-    }
-
-    // Synthesized sounds based on level
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    if (level >= 40) {
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(1320, audioContext.currentTime + 0.1);
-      oscillator.frequency.exponentialRampToValueAtTime(660, audioContext.currentTime + 0.2);
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    } else if (level >= 20) {
-      oscillator.type = 'triangle';
-      oscillator.frequency.setValueAtTime(660, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.15);
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.25);
-    } else if (level >= 10) {
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.15);
-    }
-  } catch (error) {
-    console.log('[EntryBar] Could not play sound:', error);
+  if (customSoundUrl) {
+    playSoundUrl(customSoundUrl, { volume: 0.5 });
+    return;
+  }
+  // Level-based synthesized fallback on the shared limiter bus
+  if (level >= 40) {
+    playSynthSequence([
+      { freq: 880, toFreq: 1320, duration: 0.1, gain: 0.3, type: 'sine' },
+      { freq: 1320, toFreq: 660, startOffset: 0.1, duration: 0.3, gain: 0.25, type: 'sine' },
+    ]);
+  } else if (level >= 20) {
+    playSynthSequence([
+      { freq: 660, toFreq: 880, duration: 0.25, gain: 0.2, type: 'triangle' },
+    ]);
+  } else if (level >= 10) {
+    playSynthSequence([
+      { freq: 440, duration: 0.15, gain: 0.15, type: 'sine' },
+    ]);
   }
 };
+
 
 // Get gradient color based on level
 const getBarGradient = (level: number) => {
