@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import { Save, RefreshCw, MessageSquare, Radio, Headphones, Video, Gamepad2, AlertTriangle } from "lucide-react";
+import {Save, RefreshCw, MessageSquare, Radio, Headphones, Camera, Gamepad2, AlertTriangle} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,8 +39,8 @@ const roomTypeConfig = [
   },
   {
     key: "party_video",
-    label: "Video Party Room",
-    icon: Video,
+    label: "Camera Party Room",
+    icon: Camera,
     color: "from-blue-500 to-cyan-500",
     description: "Message shown when users join a video party",
     placeholder: "Keep video content appropriate and friendly.",

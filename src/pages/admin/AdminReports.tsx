@@ -232,7 +232,7 @@ export default function AdminReports() {
           colorClass="bg-gradient-to-br from-pink-500/20 to-pink-600/10 border-pink-500/30 text-pink-300"
         />
         <StatCardNew
-          icon={Video}
+          icon={Camera}
           label="Total Streams"
           value={stats.totalStreams}
           change={-3}

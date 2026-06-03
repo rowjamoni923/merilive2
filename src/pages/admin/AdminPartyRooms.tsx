@@ -3,22 +3,21 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import {
-  Search,
-  Filter,
-  MoreVertical,
-  Ban,
-  Eye,
-  PartyPopper,
-  Users,
-  Video,
-  Mic,
-  Gamepad2,
-  ChevronLeft,
-  ChevronRight,
-  XCircle,
-  Clock,
-  Crown
-} from "lucide-react";
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Ban, 
+  Eye, 
+  PartyPopper, 
+  Users, 
+  Camera, 
+  Mic, 
+  Gamepad2, 
+  ChevronLeft, 
+  ChevronRight, 
+  XCircle, 
+  Clock, 
+  Crown} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -200,7 +199,7 @@ export default function AdminPartyRooms() {
 
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
-      case "video": return Video;
+      case "video": return Camera;
       case "audio": return Mic;
       case "game": return Gamepad2;
       default: return PartyPopper;
@@ -255,7 +254,7 @@ export default function AdminPartyRooms() {
                 <SelectItem value="all">All Rooms</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive {inactiveRoomCount > 0 && `(${inactiveRoomCount})`}</SelectItem>
-                <SelectItem value="video">Video</SelectItem>
+                <SelectItem value="video">Camera</SelectItem>
                 <SelectItem value="audio">Audio</SelectItem>
                 <SelectItem value="game">Game</SelectItem>
               </SelectContent>
