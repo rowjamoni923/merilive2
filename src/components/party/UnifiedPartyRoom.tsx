@@ -627,6 +627,27 @@ export function UnifiedPartyRoom({
   
   // Join notifications for stacking display
   const [joinNotifications, setJoinNotifications] = useState<JoinNotification[]>([]);
+  const addJoinNotification = useCallback((notification: Omit<JoinNotification, 'id' | 'timestamp'>) => {
+    const now = Date.now();
+    const next: JoinNotification = {
+      ...notification,
+      id: `party_join_${notification.userId}_${now}`,
+      timestamp: now,
+    };
+    setJoinNotifications((prev) => {
+      const withoutRecentDuplicate = prev.filter((n) => n.userId !== notification.userId || now - n.timestamp > 1200);
+      return [...withoutRecentDuplicate.slice(-5), next];
+    });
+  }, []);
+
+  useEffect(() => {
+    if (joinNotifications.length === 0) return;
+    const timer = window.setInterval(() => {
+      const now = Date.now();
+      setJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 3500));
+    }, 300);
+    return () => window.clearInterval(timer);
+  }, [joinNotifications.length]);
   
   // CRITICAL: Real-time viewers state for header display (NOT relying on props)
   const [realtimeViewers, setRealtimeViewers] = useState<RealtimeViewer[]>([]);
@@ -817,14 +838,12 @@ export function UnifiedPartyRoom({
 
       console.log('[UnifiedPartyRoom] ⚡ Pkg81b livekit participant_joined:', data.userName);
 
-      setJoinNotifications(prev => [...prev.slice(-5), {
-        id: `livekit_join_${joinKey}`,
+      addJoinNotification({
         userId: data.userId,
         userName: data.userName,
         userLevel: data.userLevel,
         userAvatar: data.userAvatar,
-        timestamp: Date.now(),
-      }]);
+      });
 
       const triggerCallback = onTriggerEntryEffectRef.current;
       const animationKey = `${data.userId}_${roomId}`;
