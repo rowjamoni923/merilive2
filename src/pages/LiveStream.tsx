@@ -1196,8 +1196,9 @@ const LiveStream = () => {
                 ...prev.filter((v: any) => v.id !== uid),
               ].slice(0, 5));
               addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
+              addLiveJoinNotification({ userId: uid, userName, userAvatar, userLevel });
               setMessages((prev) => {
-                if (prev.some((m) => m.id.includes(`join_${uid}`) && Date.now() - parseInt(m.id.split('_')[2] || '0') < 5000)) return prev;
+                if (prev.some((m) => m.id.startsWith(`join_${uid}_`) && Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000)) return prev;
                 return [...prev, {
                   id: `join_${uid}_${Date.now()}`,
                   user: userName,
@@ -1392,13 +1393,19 @@ const LiveStream = () => {
         userAvatar: p.userAvatar || undefined,
         userLevel: p.userLevel,
       });
+      addLiveJoinNotification({
+        userId: p.userId,
+        userName: p.userName,
+        userAvatar: p.userAvatar || undefined,
+        userLevel: p.userLevel,
+      });
 
       // 3. INSTANT chat message (dedup within 5s window)
       setMessages((prev) => {
         const hasJoinMessage = prev.some(
           (m) =>
-            m.id.includes(`join_${p.userId}`) &&
-            Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000,
+            m.id.startsWith(`join_${p.userId}_`) &&
+            Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000,
         );
         if (hasJoinMessage) return prev;
         return [
