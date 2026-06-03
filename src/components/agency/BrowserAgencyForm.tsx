@@ -538,25 +538,40 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3"/>
-          <h1 className="text-2xl font-bold text-white">Create Sub-Agency</h1>
-          <p className="text-white/65 text-sm mt-1">Fill the form and start your agency</p>
+          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3 drop-shadow-[0_8px_24px_rgba(124,58,237,0.45)]"/>
+          <h1 className="text-2xl font-black text-white tracking-tight" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>Create Sub-Agency</h1>
+          <p className="text-white/70 text-sm mt-1 font-medium">Fill the form and start your agency</p>
         </div>
 
         {/* Parent Agency Info */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15 mb-5">
+        <div
+          className="rounded-3xl p-4 mb-5"
+          style={{
+            background: 'linear-gradient(180deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.04) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            boxShadow: '0 14px 30px -10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
+          }}
+        >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
-                <LinkIcon className="w-6 h-6 text-white" />
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                  boxShadow: '0 8px 20px -4px rgba(124,58,237,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}
+              >
+                <LinkIcon className="w-6 h-6 text-white drop-shadow" />
               </div>
-              <div className="flex-1">
-                <p className="text-white/65 text-xs uppercase tracking-wider font-semibold">Parent Agency</p>
-                <p className="text-white font-semibold">{parentAgency.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/65 text-[10px] uppercase tracking-[0.15em] font-bold">Parent Agency</p>
+                <p className="text-white font-bold truncate">{parentAgency.name}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className="bg-brand-500/30 text-brand-200 text-xs border-brand-400/30">
+                  <Badge className="bg-brand-500/30 text-brand-100 text-[10px] border border-brand-400/40 font-bold">
                     {parentAgency.level}
                   </Badge>
-                  <span className="text-white/70 text-xs font-mono">{parentAgencyCode}</span>
+                  <span className="text-white/70 text-xs font-mono font-bold">{parentAgencyCode}</span>
                 </div>
               </div>
               <a
@@ -565,19 +580,22 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                 rel="noopener noreferrer"
                 className="shrink-0"
               >
-                <img 
-                  src={googlePlayBadge} 
-                  alt="Get it on Google Play" 
+                <img
+                  src={googlePlayBadge}
+                  alt="Get it on Google Play"
                   className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity"/>
               </a>
             </div>
-            <p className="text-brand-300 text-xs mt-3">
+            <p className="text-brand-200 text-xs mt-3 font-semibold">
               ✨ Join this agency as a Sub-Agent
             </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl p-5 shadow-xl">
+        {/* Premium Form Card */}
+        <div
+          className="bg-white rounded-3xl p-5"
+          style={{ boxShadow: '0 30px 60px -20px rgba(0,0,0,0.5), 0 8px 24px -8px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+        >
           <div className="space-y-5">
             {/* Agency Name */}
             <div>
