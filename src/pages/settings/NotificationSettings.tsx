@@ -42,14 +42,15 @@ const DEFAULT_PREF: PrefState = { enabled: true, push_enabled: true, sound_enabl
 export default function NotificationSettings() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [prefs, setPrefs] = useState<Record<string, PrefState>>({});
-  const [loading, setLoading] = useState(true);
+  // Pkg421 Phase-3: cache prefs map so toggles appear instantly on revisit.
+  const [prefs, setPrefs, hadPrefsCache] = usePersistedCache<Record<string, PrefState>>('settings:notifPrefs', null);
+  const [loading, setLoading] = useState(!hadPrefsCache);
   const [globalSound, setGlobalSound] = useState(true);
   const savingRef = useRef(false);
 
   const loadPreferences = useCallback(async (showLoading = false) => {
     try {
-      if (showLoading) setLoading(true);
+      if (showLoading && !prefs) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
