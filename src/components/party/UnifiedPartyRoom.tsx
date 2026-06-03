@@ -61,6 +61,7 @@ import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPa
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
+import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
@@ -1398,16 +1399,14 @@ export function UnifiedPartyRoom({
             )}
           </button>
 
-          {/* Close Button — 36px tap target */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={isHost ? 'End party' : 'Leave party'}
-            className="w-9 h-9 rounded-full bg-black/50 text-white hover:bg-black/70"
+          {/* Close Button — shared premium component with double-fire guard */}
+          <PremiumCloseButton
+            variant="dark"
+            size={36}
+            iconSize={18}
             onClick={() => onClose()}
-          >
-            <X className="w-[18px] h-[18px]" />
-          </Button>
+            aria-label={isHost ? 'End party' : 'Leave party'}
+          />
         </div>
       </header>
 
@@ -1607,23 +1606,22 @@ export function UnifiedPartyRoom({
               />
             </div>
             
-            {/* Close button — 36px tap target, doesn't overlap bet controls */}
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+            {/* Close button — shared premium w/ double-fire guard */}
+            <PremiumCloseButton
+              variant="solid"
+              size={36}
+              iconSize={18}
+              className="absolute top-2 right-2 z-50"
               onClick={() => {
                 console.log('[UnifiedPartyRoom] Closing game board via X button');
                 setShowGameBoard(false);
                 setSelectedGameId(null);
-                // For game rooms, minimize the board
                 if (roomType === 'game') {
                   setIsGameBoardMinimized(true);
                 }
               }}
               aria-label="Close mini-game"
-              className="absolute top-2 right-2 z-50 w-9 h-9 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90 border border-white/20 shadow-lg"
-            >
-              <X className="w-[18px] h-[18px]" />
-            </motion.button>
+            />
           </motion.div>
         )}
         
