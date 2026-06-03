@@ -81,7 +81,7 @@ const UserManagement = () => {
 
   const handleUnblock = async (blockedUserId: string, name: string) => {
     try {
-      const targetBlock = blockedUsers.find((u) => u.id === blockedUserId);
+      const targetBlock = (blockedUsers ?? []).find((u) => u.id === blockedUserId);
       const { error } = await supabase
         .from("blocked_users")
         .delete()
