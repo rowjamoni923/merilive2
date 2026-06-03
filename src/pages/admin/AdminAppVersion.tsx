@@ -78,10 +78,15 @@ const AdminAppVersion = () => {
         .from('app_version_settings')
         .update({
           current_version: settings.current_version_name,
+          current_version_name: settings.current_version_name,
+          current_version_code: settings.current_version_code,
           minimum_version: settings.min_version_code > 0 ? String(settings.min_version_code) : settings.current_version_name,
+          min_version_code: settings.min_version_code,
           force_update: settings.force_update,
           changelog: settings.update_message,
+          update_message: settings.update_message,
           update_url: settings.play_store_url,
+          play_store_url: settings.play_store_url,
           updated_at: new Date().toISOString(),
         })
         .eq('id', settings.id);
