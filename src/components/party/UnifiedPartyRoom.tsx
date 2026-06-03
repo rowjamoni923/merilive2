@@ -61,6 +61,7 @@ import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPa
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
+import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
