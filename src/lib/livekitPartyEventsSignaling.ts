@@ -69,6 +69,7 @@ export interface ParticipantJoinedPayload {
   entranceSoundUrl?: string | null;
   entryNameBarUrl?: string | null;
   vehicleAnimationUrl?: string | null;
+  rankCode?: string | null;
   timestamp: number;
 }
 
