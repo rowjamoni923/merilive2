@@ -374,13 +374,18 @@ const Index = () => {
       }, 300); // Reduced from 500ms to 300ms for near-instant feel
     };
 
-    // Realtime push: LIVE via live_streams, Busy via private_calls, Online/Offline via profiles
-    // (heartbeat is_online + manual host_availability toggle). Debounced 300ms — push, not poll.
+    // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms.
+    // NOTE: `profiles` is intentionally NOT subscribed here — every is_online heartbeat
+    // from ANY user on the platform fires a profiles UPDATE, which would invalidate this
+    // query every few seconds and cause the home feed to visibly re-render ("auto-refresh"
+    // flicker). Online/offline transitions of hosts are still reflected on next legitimate
+    // stream/call/party event or the next page mount. (Pkg356 no-auto-refresh policy.)
     const unsubscribe = subscribeToTables(
       `home-hosts-${Date.now()}`,
-      ["live_streams", "private_calls", "party_rooms", "profiles"],
+      ["live_streams", "private_calls", "party_rooms"],
       queueHomeInvalidate
     );
+
 
     return () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
