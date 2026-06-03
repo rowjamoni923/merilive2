@@ -5,6 +5,7 @@ import { ArrowLeft, Trophy, Crown, Medal, Award, Gem, Clock, Users, RefreshCw } 
 import { Button } from "@/components/ui/button";
 import { Session } from "@supabase/supabase-js";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface Competition {
   id: string;
