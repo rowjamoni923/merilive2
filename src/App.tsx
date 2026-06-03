@@ -34,6 +34,8 @@ import AdminAuth from "./pages/admin/AdminAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MotionConfig } from "framer-motion";
+import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
@@ -1147,6 +1149,11 @@ const App = () => {
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
+          {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
+              tells every <motion.*> in the app to skip transform/opacity transitions
+              and snap to final values. Falls back to `"user"` (honour OS setting) on
+              capable devices so animations remain rich. */}
+          <MotionConfig reducedMotion={isLowEndDevice() ? "always" : "user"}>
           <TooltipProvider>
             <Toaster />
             <SonnerToaster />
@@ -1502,6 +1509,7 @@ const App = () => {
               </CallProvider>
             </BrowserRouter>
           </TooltipProvider>
+          </MotionConfig>
         </PresenceProvider>
       </RealtimeProvider>
     </PersistQueryClientProvider>

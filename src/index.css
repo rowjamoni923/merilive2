@@ -4109,3 +4109,44 @@ body:has([data-public-scroll="true"]) #root {
 @media (prefers-reduced-motion: reduce) {
   [class*="tileShimmer"], [class*="tileLivePulse"], [class*="hostRingSweep"] { animation: none !important; }
 }
+
+/* =============================================================================
+   PHASE 6 — LOW-END ANDROID ANIMATION THROTTLE
+   `applyLowEndMotionClass()` in src/utils/lowEndDevice.ts adds `.reduce-motion`
+   to <html> on devices with ≤2 GB RAM, ≤4 CPU cores, save-data, or slow-net.
+   These rules nuke expensive keyframes/transitions globally — framer-motion
+   is already throttled via <MotionConfig reducedMotion="always"> at App root.
+   ============================================================================= */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+/* Kill expensive infinite shimmers/pulses/glows entirely on low-end. */
+html.reduce-motion [class*="shimmer"],
+html.reduce-motion [class*="Shimmer"],
+html.reduce-motion [class*="pulse"],
+html.reduce-motion [class*="Pulse"],
+html.reduce-motion [class*="glow"],
+html.reduce-motion [class*="Glow"],
+html.reduce-motion [class*="sweep"],
+html.reduce-motion [class*="Sweep"] {
+  animation: none !important;
+  background-image: none !important;
+}
+/* Drop heavy backdrop-filter on low-end — Mali GPUs choke on it. */
+html.reduce-motion [style*="backdrop-filter"],
+html.reduce-motion .backdrop-blur,
+html.reduce-motion .backdrop-blur-sm,
+html.reduce-motion .backdrop-blur-md,
+html.reduce-motion .backdrop-blur-lg,
+html.reduce-motion .backdrop-blur-xl,
+html.reduce-motion .backdrop-blur-2xl,
+html.reduce-motion .backdrop-blur-3xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

@@ -11,6 +11,12 @@ import "./index.css";
 import "./i18n";
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
+import { applyLowEndMotionClass } from "./utils/lowEndDevice";
+
+// 🐌 Tag <html> with .reduce-motion on budget Android / data-saver / OS
+// reduced-motion so global CSS + framer-motion's MotionConfig can throttle
+// expensive animations on low-end hardware. Cheap, sync, runs once.
+applyLowEndMotionClass();
 
 // =============================================
 // 🛡️ CRITICAL: Install realtime guard BEFORE anything else
