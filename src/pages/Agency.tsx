@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { getCachedUser } from "@/utils/cachedAuth";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface CommissionTier {
   id: string;
