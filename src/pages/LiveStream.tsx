@@ -3432,16 +3432,16 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Premium 3D Design */}
-        <div className="px-2 md:px-6 flex items-center gap-1.5 md:gap-3 pt-3 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
+        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.28) 65%, transparent 100%)' }}
         >
           {/* Chat Input — Glass pill with gradient send FAB */}
-          <div className="flex-1 min-w-0 relative">
+          <div className="flex-1 min-w-[88px] relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-10 rounded-full text-white text-xs pl-4 pr-11 placeholder:text-white/55"
+              className="w-full h-9 md:h-10 rounded-full text-white text-xs pl-3.5 md:pl-4 pr-10 placeholder:text-white/55"
               style={{
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
                 border: '1px solid rgba(255,255,255,0.18)',
@@ -3475,7 +3475,7 @@ const LiveStream = () => {
               whileHover={{ scale: 1.06 }}
               onClick={handleCall}
               aria-label="Start private call"
-              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #047857 100%)',
                 boxShadow: '0 6px 18px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
@@ -3491,7 +3491,7 @@ const LiveStream = () => {
             whileHover={{ scale: 1.06 }}
             onClick={() => setShowGamePanel(true)}
             aria-label="Open games"
-            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
               background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%)',
               boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
@@ -3511,7 +3511,7 @@ const LiveStream = () => {
                 toggleAudio(!newState);
               }}
               aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: isHostMicMuted
                   ? 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #991b1b 100%)'
@@ -3536,7 +3536,7 @@ const LiveStream = () => {
               whileHover={{ scale: 1.06 }}
               onClick={handleOpenPKPanel}
               aria-label="Start PK battle"
-              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #fcd34d 0%, #f59e0b 45%, #b45309 100%)',
                 boxShadow: '0 6px 18px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
@@ -3553,7 +3553,7 @@ const LiveStream = () => {
             whileHover={{ scale: 1.08 }}
             onClick={handleLike}
             aria-label="Like"
-            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
               background: 'radial-gradient(120% 120% at 30% 20%, #fda4af 0%, #f43f5e 45%, #9f1239 100%)',
               boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
@@ -3569,7 +3569,7 @@ const LiveStream = () => {
             whileHover={{ scale: 1.06 }}
             onClick={() => setShowGiftPanel(true)}
             aria-label="Send gift"
-            className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
               background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #ec4899 45%, #9d174d 100%)',
               boxShadow: '0 6px 20px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.22)',
@@ -3592,7 +3592,7 @@ const LiveStream = () => {
                 whileTap={{ scale: 0.88 }}
                 whileHover={{ scale: 1.06 }}
                 aria-label="More options"
-                className="relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
                   background: 'radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.22) 0%, rgba(40,30,55,0.85) 45%, rgba(10,8,20,0.95) 100%)',
                   border: '1px solid rgba(255,255,255,0.2)',
