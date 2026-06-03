@@ -30,11 +30,23 @@ interface ServiceAccountCredentials {
   client_x509_cert_url: string;
 }
 
+// Pkg425: FCM HTTP v1 API rejects payloads whose `data` map contains reserved
+// keys. Per https://firebase.google.com/docs/cloud-messaging/concept-options,
+// reserved keys are: `from`, `notification`, `message_type`, and anything
+// starting with `google.` or `gcm.`. ROOT CAUSE: chat-message notifications
+// carried `message_type: 'gift'` etc. in their data jsonb, causing every push
+// to be rejected with 400 INVALID_ARGUMENT and silently dropped. We strip /
+// rename these defensively so a single bad key never kills the whole push.
+const FCM_RESERVED_KEYS = new Set(["from", "notification", "message_type"]);
+const isFcmReservedKey = (k: string) =>
+  FCM_RESERVED_KEYS.has(k) || k.startsWith("google.") || k.startsWith("gcm.");
+
 const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, string> => {
   const output: Record<string, string> = {};
   for (const [key, value] of Object.entries(input)) {
     if (value === undefined || value === null) continue;
-    output[key] = typeof value === "string" ? value : JSON.stringify(value);
+    const safeKey = isFcmReservedKey(key) ? `app_${key.replace(/\./g, "_")}` : key;
+    output[safeKey] = typeof value === "string" ? value : JSON.stringify(value);
   }
   return output;
 };
