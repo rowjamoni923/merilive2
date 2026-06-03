@@ -216,8 +216,8 @@ const handler = async (req: Request): Promise<Response> => {
                 type: "message",
                 title: senderName,
                 body,
-                image_url: pushImageUrl,
-                media_url: messageMediaUrl,
+                image_url: pushImageUrl ?? "",
+                media_url: messageMediaUrl ?? "",
                 icon_emoji: messageType === "voice" ? "🎤"
                           : messageType === "image" ? "📷"
                           : messageType === "video" ? "🎥"
@@ -225,9 +225,11 @@ const handler = async (req: Request): Promise<Response> => {
                           : "💬",
                 conversationId,
                 senderId,
-                senderName,
-                senderAvatar,
-                messageType,
+                senderName: senderName ?? "",
+                senderAvatar: senderAvatar ?? "",
+                // Pkg425: was `messageType` (safe), kept as `msg_type` to make
+                // it explicit this is NOT FCM-reserved `message_type`.
+                msg_type: messageType ?? "text",
                 click_action: "OPEN_CHAT",
               },
               android: {
