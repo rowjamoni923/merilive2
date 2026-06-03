@@ -48,12 +48,23 @@ const CinematicEntranceOverlay = memo(({
   }, [onComplete]);
 
   const isKing = rankCode?.toLowerCase() === 'king';
-  const rankLabel = isKing ? "KING" : "DUKE";
-  const primaryColor = isKing ? "text-amber-400" : "text-yellow-300";
-  const glowColor = isKing ? "shadow-[0_0_50px_rgba(251,191,36,0.8)]" : "shadow-[0_0_40px_rgba(253,224,71,0.6)]";
+  const isDuke = rankCode?.toLowerCase() === 'duke';
+  const isMarquis = rankCode?.toLowerCase() === 'marquis';
+  
+  const rankLabel = isKing ? "KING" : isDuke ? "DUKE" : "MARQUIS";
+  
+  const primaryColor = isKing ? "text-amber-400" : isDuke ? "text-yellow-300" : "text-purple-300";
+  const glowColor = isKing 
+    ? "shadow-[0_0_50px_rgba(251,191,36,0.8)]" 
+    : isDuke 
+      ? "shadow-[0_0_40px_rgba(253,224,71,0.6)]" 
+      : "shadow-[0_0_35px_rgba(192,132,252,0.5)]";
+  
   const bgGradient = isKing 
     ? "from-amber-900/60 via-amber-800/40 to-transparent" 
-    : "from-yellow-900/40 via-yellow-800/30 to-transparent";
+    : isDuke
+      ? "from-yellow-900/40 via-yellow-800/30 to-transparent"
+      : "from-purple-900/40 via-purple-800/30 to-transparent";
 
   return (
     <div className="fixed inset-0 z-[100001] flex items-center justify-center pointer-events-none overflow-hidden">
