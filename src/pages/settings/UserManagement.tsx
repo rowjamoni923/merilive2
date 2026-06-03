@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface BlockedUser {
   id: string;
@@ -19,8 +20,9 @@ interface BlockedUser {
 const UserManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Pkg421: persist blocked-users list so settings page renders instantly on revisit.
+  const [blockedUsers, setBlockedUsers, hadBlockedCache] = usePersistedCache<BlockedUser[]>('settings:blockedUsers', null);
+  const [loading, setLoading] = useState(!hadBlockedCache);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchBlockedUsers = useCallback(async () => {
