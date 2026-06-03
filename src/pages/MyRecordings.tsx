@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { listMyRecordings } from "@/lib/livekitEgress";
 import { listMyHlsRecordings } from "@/lib/livekitHlsEgress";
 import { listMySimulcasts } from "@/lib/livekitStreamEgress";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { toast } from "sonner";
 
 type Row = Record<string, any>;
@@ -51,9 +52,10 @@ function fmtDate(iso?: string | null) {
 
 export default function MyRecordings() {
   const [tab, setTab] = useState<"mp4" | "hls" | "simulcast">("mp4");
-  const [mp4, setMp4] = useState<Row[]>([]);
-  const [hls, setHls] = useState<Row[]>([]);
-  const [sim, setSim] = useState<Row[]>([]);
+  // Pkg421 — instant cached render across tabs; refresh button forces re-fetch.
+  const [mp4, setMp4] = usePersistedCache<Row[]>("myRecordings:mp4", []);
+  const [hls, setHls] = usePersistedCache<Row[]>("myRecordings:hls", []);
+  const [sim, setSim] = usePersistedCache<Row[]>("myRecordings:sim", []);
   const [loading, setLoading] = useState(false);
   const [inspect, setInspect] = useState<Row | null>(null);
 
@@ -75,12 +77,18 @@ export default function MyRecordings() {
 
   useEffect(() => { load(); }, []);
 
-  const stats = useMemo(() => ({
-    mp4: mp4.length,
-    hls: hls.length,
-    simulcast: sim.length,
-    totalBytes: [...mp4, ...hls].reduce((s, r) => s + (Number(r.size_bytes) || Number(r.file_size_bytes) || 0), 0),
-  }), [mp4, hls, sim]);
+  const stats = useMemo(() => {
+    const mp4Arr = mp4 ?? [];
+    const hlsArr = hls ?? [];
+    const simArr = sim ?? [];
+    return {
+      mp4: mp4Arr.length,
+      hls: hlsArr.length,
+      simulcast: simArr.length,
+      totalBytes: [...mp4Arr, ...hlsArr].reduce((s, r) => s + (Number(r.size_bytes) || Number(r.file_size_bytes) || 0), 0),
+    };
+  }, [mp4, hls, sim]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
@@ -121,7 +129,7 @@ export default function MyRecordings() {
 
           <TabsContent value="mp4" className="mt-4">
             <RecordingList
-              rows={mp4}
+              rows={mp4 ?? []}
               empty="No MP4 recordings yet. Start recording from your live stream's More menu."
               renderUrl={(r) => r.file_url || r.recording_url}
               onInspect={setInspect}
@@ -130,7 +138,7 @@ export default function MyRecordings() {
 
           <TabsContent value="hls" className="mt-4">
             <RecordingList
-              rows={hls}
+              rows={hls ?? []}
               empty="No HLS recordings yet. Start an HLS recording for instant browser playback."
               renderUrl={(r) => r.playlist_url}
               onInspect={setInspect}
@@ -138,7 +146,7 @@ export default function MyRecordings() {
           </TabsContent>
 
           <TabsContent value="simulcast" className="mt-4">
-            <SimulcastList rows={sim} onInspect={setInspect} />
+            <SimulcastList rows={sim ?? []} onInspect={setInspect} />
           </TabsContent>
         </Tabs>
       </main>

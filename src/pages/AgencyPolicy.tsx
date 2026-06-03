@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { 
   ArrowLeft, 
   FileText, 
@@ -139,25 +140,30 @@ const STRUCTURED_KEYS = new Set([
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [policyData, setPolicyData] = useState<PolicyData | null>(null);
-  const [dynamicSections, setDynamicSections] = useState<DynamicPolicySection[]>([]);
-  const [levelTiers, setLevelTiers] = useState<Array<{
+  // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
+  // Instant cached render; background refresh keeps content fresh.
+  const [policyData, setPolicyData, hadPolicyCache] = usePersistedCache<PolicyData>("agencyPolicy:data");
+  const [dynamicSections, setDynamicSections] = usePersistedCache<DynamicPolicySection[]>("agencyPolicy:dynamic", []);
+  const [levelTiers, setLevelTiers] = usePersistedCache<Array<{
     level_code: string;
     level_name: string;
     min_weekly_income: number;
     max_weekly_income: number;
     commission_rate: number;
-  }>>([]);
+  }>>("agencyPolicy:tiers", []);
+  const [loading, setLoading] = useState(!hadPolicyCache);
 
   useEffect(() => {
     fetchPolicies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const fetchPolicies = async () => {
     try {
-      setLoading(true);
-      
+      // Only block UI with spinner if we have nothing cached yet.
+      if (!policyData) setLoading(true);
+
       // Fetch policies and level tiers in parallel
       const [policiesResult, tiersResult] = await Promise.all([
         supabase
@@ -206,6 +212,7 @@ const AgencyPolicy = () => {
       setLoading(false);
     }
   };
+
 
 
   const formatIncome = (min: number, max: number | null) => {
