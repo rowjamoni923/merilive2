@@ -378,13 +378,13 @@ const AgencyHostManagement = () => {
 
           {/* Pending Tab */}
           <TabsContent value="pending" className="mt-4 space-y-3">
-            {pendingHosts.length === 0 ? (
+            {(pendingHosts ?? []).length === 0 ? (
               <div className="text-center py-10">
                 <Clock className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
                 <p className="text-slate-500">No pending requests</p>
               </div>
             ) : (
-              pendingHosts.map((hostData) => (
+              (pendingHosts ?? []).map((hostData) => (
                 <div
                   key={hostData.id}
                   className="bg-white rounded-2xl p-4 border border-slate-200"
