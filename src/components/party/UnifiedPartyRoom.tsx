@@ -646,7 +646,7 @@ export function UnifiedPartyRoom({
     if (joinNotifications.length === 0) return;
     const timer = window.setInterval(() => {
       const now = Date.now();
-      setJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 3500));
+      setJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 6000));
     }, 300);
     return () => window.clearInterval(timer);
   }, [joinNotifications.length]);
