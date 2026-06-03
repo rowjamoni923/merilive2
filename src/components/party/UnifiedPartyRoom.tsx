@@ -863,12 +863,13 @@ export function UnifiedPartyRoom({
           level: data.userLevel,
           entranceUrl,
           entryNameBarUrl,
+          vehicleAnimationUrl: vehicleUrl,
         });
       }
     };
     window.addEventListener('livekit-party-event', handlePartyEvent);
     return () => window.removeEventListener('livekit-party-event', handlePartyEvent);
-  }, [roomId]);
+  }, [roomId, addJoinNotification]);
 
   
   // ==================== LIVEKIT CHAT FANOUT ====================
@@ -1078,6 +1079,12 @@ export function UnifiedPartyRoom({
       
       // NOTE: Flying banner is handled by direct participant subscription
       // This only adds chat message to prevent duplicate banners
+      addJoinNotification({
+        userId: jm.userId,
+        userName: jm.userName,
+        userLevel: jm.userLevel,
+        userAvatar: jm.avatarUrl,
+      });
       
       // Add to chat as a join message (SINGLE ADD - no duplicates)
       const joinChatMsg: RoomChatMessage = {
@@ -1100,7 +1107,7 @@ export function UnifiedPartyRoom({
         return [...prev.slice(-100), joinChatMsg];
       });
     });
-  }, [joinMessages]);
+  }, [joinMessages, addJoinNotification]);
   
   // ==================== ROOM CLOSED DETECTION ====================
 
