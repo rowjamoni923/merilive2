@@ -1360,31 +1360,49 @@ const ProfileDetail = () => {
               </button>
               <div className="flex items-center gap-3">
                 {isOwnProfile && (
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1 shadow-sm cursor-pointer select-none">
+                  <label
+                    className={cn(
+                      "flex items-center gap-2 text-xs font-semibold rounded-full px-3 py-1.5 shadow-sm cursor-pointer select-none transition-all duration-300 border",
+                      profile?.hide_gift_senders
+                        ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white border-transparent shadow-fuchsia-300/50"
+                        : "bg-white text-slate-700 border-slate-200",
+                    )}
+                  >
                     {profile?.hide_gift_senders ? (
-                      <EyeOff className="w-3.5 h-3.5 text-fuchsia-600" />
+                      <EyeOff className="w-3.5 h-3.5" />
                     ) : (
                       <Eye className="w-3.5 h-3.5 text-slate-500" />
                     )}
-                    <span>Hide senders</span>
+                    <span>{profile?.hide_gift_senders ? "Senders hidden" : "Hide senders"}</span>
                     <Switch
                       checked={!!profile?.hide_gift_senders}
                       onCheckedChange={async (v) => {
                         if (!profile?.id) return;
                         const prev = !!profile.hide_gift_senders;
-                        setProfile({ ...profile, hide_gift_senders: v } as ProfileData);
-                        const { error } = await supabase
+                        // Optimistic update
+                        setProfile((p) => (p ? ({ ...p, hide_gift_senders: v } as ProfileData) : p));
+                        const { data, error } = await supabase
                           .from('profiles')
                           .update({ hide_gift_senders: v })
-                          .eq('id', profile.id);
-                        if (error) {
-                          setProfile({ ...profile, hide_gift_senders: prev } as ProfileData);
-                          toast({ title: 'Could not update', description: error.message, variant: 'destructive' });
-                        } else {
-                          toast({ title: v ? 'Gift senders hidden' : 'Gift senders visible', description: v ? 'Visitors will no longer see who sent your gifts.' : 'Visitors can now see who sent your gifts.' });
+                          .eq('id', profile.id)
+                          .select('hide_gift_senders')
+                          .single();
+                        if (error || !data) {
+                          // Revert on failure
+                          setProfile((p) => (p ? ({ ...p, hide_gift_senders: prev } as ProfileData) : p));
+                          toast({ title: 'Could not update', description: error?.message || 'Please try again', variant: 'destructive' });
+                          return;
                         }
+                        // Confirm with server value (handles realtime overwrite races)
+                        setProfile((p) => (p ? ({ ...p, hide_gift_senders: data.hide_gift_senders } as ProfileData) : p));
+                        toast({
+                          title: data.hide_gift_senders ? 'Gift senders hidden' : 'Gift senders visible',
+                          description: data.hide_gift_senders
+                            ? 'Visitors will no longer see who sent your gifts.'
+                            : 'Visitors can now see who sent your gifts.',
+                        });
                       }}
-                      className="ml-1 scale-75"
+                      className="ml-0.5"
                     />
                   </label>
                 )}
