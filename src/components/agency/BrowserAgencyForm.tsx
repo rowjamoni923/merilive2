@@ -346,16 +346,17 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       setErrorMessage("Please enter agency name");
       return;
     }
-    if (!appVerified) {
-      setErrorMessage("Please complete app verification first");
+    if (!appVerified || !appVerifiedToken) {
+      setErrorMessage("Please complete in-app OTP verification first");
       return;
     }
-    if (!formData.email.trim() || !isValidEmail(formData.email)) {
-      setErrorMessage("Please enter a valid Gmail address");
+    // Email is optional; only validate format and OTP if user provided one
+    if (formData.email.trim() && !isValidEmail(formData.email)) {
+      setErrorMessage("Please enter a valid email address (or leave it blank)");
       return;
     }
-    if (!emailVerified || !emailVerifiedToken) {
-      setErrorMessage("Please verify your email OTP first");
+    if (formData.email.trim() && (!emailVerified || !emailVerifiedToken)) {
+      setErrorMessage("You entered an email — please verify the email OTP, or clear the email field to skip");
       return;
     }
     if (!formData.phone.trim() || !isValidPhone(formData.phone)) {
@@ -376,8 +377,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         body: {
           name: formData.agencyName.trim(),
           userId: foundUser?.id,
-          email: formData.email.trim(),
-          emailVerifiedToken,
+          email: formData.email.trim() || null,
+          emailVerifiedToken: formData.email.trim() ? emailVerifiedToken : null,
           appVerifiedToken,
           phone: formData.phone.trim(),
           parentAgencyCode: parentAgencyCode
@@ -768,7 +769,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
             <div>
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                 <Mail className="w-4 h-4 text-brand-600" />
-                Email Address <span className="text-danger-500">*</span>
+                Email Address <span className="text-gray-400 text-xs">(Optional)</span>
               </Label>
               <Input
                 type="email"

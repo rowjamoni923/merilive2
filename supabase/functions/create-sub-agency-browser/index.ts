@@ -68,34 +68,36 @@ serve(async (req) => {
       );
     }
 
-    if (!email || !email.includes("@")) {
-      return new Response(
-        JSON.stringify({ error: "Please enter a valid email" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Email is OPTIONAL. App OTP is the only required identity proof.
+    // If the user provided an email, we still validate format and (if a token was
+    // also sent) consume the OTP token; otherwise we just skip the email flow.
+    const normalizedEmail = email ? String(email).trim().toLowerCase() : "";
+    if (normalizedEmail) {
+      if (!normalizedEmail.includes("@")) {
+        return new Response(
+          JSON.stringify({ error: "Please enter a valid email or leave it blank" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (emailVerifiedToken) {
+        const { data: emailOtpOk, error: emailOtpError } = await supabaseAdmin.rpc("consume_otp_exchange_token", {
+          p_verified_token: emailVerifiedToken,
+          p_identifier: normalizedEmail,
+          p_channel: "email",
+          p_purpose: "verify",
+        });
+        if (emailOtpError) throw emailOtpError;
+        if (!emailOtpOk) {
+          return new Response(
+            JSON.stringify({ error: "Email OTP expired. Please request a new code or remove the email." }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+      // If no token was provided alongside the email, we accept the email as a
+      // contact field without OTP verification (Gmail OTP system is OFF).
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!emailVerifiedToken) {
-      return new Response(
-        JSON.stringify({ error: "Please verify your email OTP first" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: emailOtpOk, error: emailOtpError } = await supabaseAdmin.rpc("consume_otp_exchange_token", {
-      p_verified_token: emailVerifiedToken,
-      p_identifier: normalizedEmail,
-      p_channel: "email",
-      p_purpose: "verify",
-    });
-    if (emailOtpError) throw emailOtpError;
-    if (!emailOtpOk) {
-      return new Response(
-        JSON.stringify({ error: "Email OTP expired. Please request a new code." }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     if (!appVerifiedToken) {
       return new Response(
@@ -160,7 +162,7 @@ serve(async (req) => {
     }
 
     const authEmail = (user.email || "").trim().toLowerCase();
-    if (authEmail && normalizedEmail !== authEmail) {
+    if (normalizedEmail && authEmail && normalizedEmail !== authEmail) {
       return new Response(
         JSON.stringify({ error: "Email must match your logged-in account" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }

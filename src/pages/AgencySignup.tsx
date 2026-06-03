@@ -277,12 +277,13 @@ const AgencySignup = () => {
 
   const isFormValid = formData.agencyName.trim() !== "" &&
     foundUser !== null &&
-    emailVerified &&
+    appVerified &&
+    (!formData.email.trim() || isValidEmail(formData.email)) &&
     (!formData.whatsapp.trim() || isValidWhatsApp(formData.whatsapp));
 
   const submitAgencyRegistration = async () => {
-    if (!emailVerified) {
-      toast({ title: "Email Verification Required", description: "Please verify your email first", variant: "destructive" });
+    if (!appVerified) {
+      toast({ title: "App OTP required", description: "Please verify the in-app OTP first", variant: "destructive" });
       return;
     }
 
@@ -472,7 +473,7 @@ const AgencySignup = () => {
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <MessageCircle className="w-4 h-4 text-warning-400" />
-                  App Notification OTP <span className="text-slate-500 text-xs">(Optional)</span>
+                  App Notification OTP <span className="text-danger-500">*</span>
                 </Label>
                 <div className="p-4 bg-warning-900/30 rounded-xl space-y-3 border border-warning-700/30">
                   <div className="flex items-center justify-between">
@@ -558,7 +559,7 @@ const AgencySignup = () => {
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <Mail className="w-4 h-4 text-info-400" />
-                  Email Address <span className="text-danger-500">*</span>
+                  Email Address <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input type="email" placeholder="example@gmail.com" value={formData.email}
@@ -633,7 +634,8 @@ const AgencySignup = () => {
           )}
 
           {/* WhatsApp Number */}
-          {emailVerified && (
+          {appVerified && (
+
             <>
               <div className="border-t border-slate-200" />
               <div className="space-y-3">
