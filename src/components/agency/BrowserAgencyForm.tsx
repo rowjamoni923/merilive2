@@ -377,8 +377,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         body: {
           name: formData.agencyName.trim(),
           userId: foundUser?.id,
-          email: formData.email.trim(),
-          emailVerifiedToken,
+          email: formData.email.trim() || null,
+          emailVerifiedToken: formData.email.trim() ? emailVerifiedToken : null,
           appVerifiedToken,
           phone: formData.phone.trim(),
           parentAgencyCode: parentAgencyCode
