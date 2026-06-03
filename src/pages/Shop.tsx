@@ -267,7 +267,7 @@ const ShopItemCard = ({
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
