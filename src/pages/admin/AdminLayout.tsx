@@ -24,6 +24,8 @@ import { getAdminSession, getAdminSessionToken } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { playSoundUrl, playSynthSequence } from "@/utils/soundPlayer";
+
 import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
 // installAdminMediaAutoResolver removed (Pkg42) — see useEffect below for rationale.
 
