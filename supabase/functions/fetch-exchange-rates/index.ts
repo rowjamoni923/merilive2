@@ -41,6 +41,7 @@ const countryCodes = [
   { code: 'JO', currency: 'JOD', symbol: 'JD', name: 'Jordanian Dinar' },
 ];
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 serve(async (req) => {
@@ -50,10 +51,14 @@ serve(async (req) => {
 
   // Pkg342: lock down to admins with finance/coin-packages permission so this
   // endpoint cannot be abused to burn the LOVABLE_API_KEY quota (cost-DoS).
-  const admin = await requireAdminSession(req, { sectionKey: "coin-packages" });
-  if (!admin.ok) {
-    return new Response(JSON.stringify({ success: false, error: "unauthorized" }), {
-      status: 401,
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  );
+  const adminCheck = await requireAdminSession(req, supabaseAdmin, { sectionKey: "coin-packages" });
+  if (!adminCheck.ok) {
+    return new Response(JSON.stringify({ success: false, error: adminCheck.error }), {
+      status: adminCheck.status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
