@@ -17532,7 +17532,7 @@ export type Database = {
         Returns: Json
       }
       admin_reject_payment_transaction: {
-        Args: { _reason?: string; _transaction_id: string }
+        Args: { _reason: string; _transaction_id: string }
         Returns: Json
       }
       admin_reject_pending_action: {
