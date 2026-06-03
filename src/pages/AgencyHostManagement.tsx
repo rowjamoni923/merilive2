@@ -32,6 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface HostProfile {
   id: string;
@@ -57,10 +58,11 @@ const AgencyHostManagement = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [agency, setAgency] = useState<any>(null);
-  const [hosts, setHosts] = useState<AgencyHost[]>([]);
-  const [pendingHosts, setPendingHosts] = useState<AgencyHost[]>([]);
+  // Pkg421: persist agency + hosts + pendingHosts so revisits render instantly.
+  const [agency, setAgency, hadAgencyCache] = usePersistedCache<any>('agencyHostMgmt:agency', null);
+  const [hosts, setHosts, hadHostsCache] = usePersistedCache<AgencyHost[]>('agencyHostMgmt:hosts', null);
+  const [pendingHosts, setPendingHosts, hadPendingCache] = usePersistedCache<AgencyHost[]>('agencyHostMgmt:pending', null);
+  const [loading, setLoading] = useState(!(hadAgencyCache && (hadHostsCache || hadPendingCache)));
   const [activeTab, setActiveTab] = useState("pending");
   const [filterOnline, setFilterOnline] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
