@@ -22,41 +22,39 @@ export interface GiftServiceResponse {
 }
 
 export async function callGiftService(payload: GiftServicePayload): Promise<GiftServiceResponse> {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
-
-  if (!token) {
+  // Force a fresh user check — this triggers an auto refresh if the cached
+  // access token has been revoked server-side (single-device displacement,
+  // password change, etc.), avoiding a stale-token 401 from the edge fn.
+  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  if (userErr || !userData?.user) {
     throw new Error("No active session. Please sign in again.");
   }
 
   // Pkg306 audit: header was hardcoded "android-webview" — wrong for web.
-  // Detect Capacitor native shell vs browser at call time.
   const isNative = typeof (globalThis as any)?.Capacitor?.isNativePlatform === 'function'
     && (globalThis as any).Capacitor.isNativePlatform();
   const platform = isNative ? 'android-webview' : 'web';
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gift-service`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      "x-client-platform": platform,
-    },
-    body: JSON.stringify(payload),
+  // supabase.functions.invoke auto-attaches the (refreshed) access token.
+  const { data, error } = await supabase.functions.invoke<GiftServiceResponse>('gift-service', {
+    body: payload,
+    headers: { 'x-client-platform': platform },
   });
 
-  const text = await response.text();
-  let body: GiftServiceResponse = { success: false };
-  try {
-    body = text ? JSON.parse(text) : body;
-  } catch {
-    body = { success: false, error: text || `Gift request failed (${response.status})` };
+  if (error) {
+    // FunctionsHttpError exposes the response body via .context
+    let serverMsg: string | undefined;
+    try {
+      const ctxResp = (error as any)?.context;
+      if (ctxResp && typeof ctxResp.json === 'function') {
+        const parsed = await ctxResp.json();
+        serverMsg = parsed?.error;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(serverMsg || error.message || 'Gift request failed');
   }
 
-  if (!response.ok) {
-    throw new Error(body.error || `Gift request failed (${response.status})`);
-  }
-
-  return body;
+  return data ?? { success: false };
 }
