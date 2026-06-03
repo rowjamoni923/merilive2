@@ -53,6 +53,7 @@ export interface EntryAnimationResult {
   entryNameBarSoundUrl?: string;
   vehicleAnimationUrl?: string;
   vehicleSoundUrl?: string;
+  rankCode?: string; // NEW: The user's active noble rank code
 }
 
 /**
