@@ -211,17 +211,30 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         )}
       </AnimatePresence>
 
-      {/* Main Navigation Bar — clean white, no dark gap above */}
+      {/* Main Navigation Bar — premium pearl-cream glass with champagne accents */}
       <nav
         className="fixed bottom-0 left-0 right-0"
         style={{
           zIndex: 9990,
           paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))',
-          background: '#ffffff',
-          borderTop: '1px solid rgba(15, 23, 42, 0.06)',
-          boxShadow: '0 -8px 24px -12px rgba(15, 23, 42, 0.10)',
+          background:
+            'linear-gradient(180deg, rgba(255,253,248,0.96) 0%, rgba(252,247,237,0.98) 100%)',
+          backdropFilter: 'saturate(160%) blur(18px)',
+          WebkitBackdropFilter: 'saturate(160%) blur(18px)',
+          borderTop: '1px solid rgba(201,168,76,0.18)',
+          boxShadow:
+            '0 -10px 28px -14px rgba(120,80,20,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
         }}
       >
+        {/* champagne sheen line on top edge */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-0 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.45) 50%, transparent 100%)',
+          }}
+        />
         <div className="relative flex items-center justify-around py-1.5 px-3 max-w-lg mx-auto">
           {navItems.map((item, index) => {
             const isActive = item.path === "/"
@@ -234,31 +247,58 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                 <button
                   key={`center-${index}`}
                   onClick={() => handleNavClick(item)}
-                  className="relative -mt-5 active:scale-90 transition-all duration-200 touch-manipulation"
+                  className="relative -mt-6 active:scale-90 transition-all duration-200 touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  aria-label="Create"
                 >
-                  <div className="absolute -inset-3 rounded-full blur-2xl" style={{ background: 'rgba(168,85,247,0.30)' }} />
+                  <div
+                    className="absolute -inset-4 rounded-full blur-2xl"
+                    style={{
+                      background:
+                        'radial-gradient(circle, rgba(236,72,153,0.35) 0%, rgba(168,85,247,0.25) 45%, transparent 70%)',
+                    }}
+                  />
                   <motion.div
                     animate={showActionMenu ? { rotate: 45 } : { rotate: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="relative w-[52px] h-[52px] rounded-full flex items-center justify-center"
+                    transition={{ duration: 0.25 }}
+                    className="relative w-[58px] h-[58px] rounded-full flex items-center justify-center overflow-hidden"
                     style={{
-                      background: 'linear-gradient(135deg, #ec4899, #a855f7, #6366f1)',
-                      boxShadow: '0 6px 20px rgba(168,85,247,0.45), 0 0 0 4px #ffffff',
+                      background:
+                        'radial-gradient(circle at 30% 25%, #ffd1ea 0%, #ec4899 35%, #a855f7 70%, #6366f1 100%)',
+                      boxShadow:
+                        '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
                     }}
                   >
-                    <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-white/30 via-transparent to-transparent" />
-                    <motion.div animate={showActionMenu ? { rotate: -45 } : { rotate: 0 }} className="relative z-10">
+                    <div
+                      className="absolute inset-x-1 top-1 h-1/2 rounded-full pointer-events-none"
+                      style={{
+                        background:
+                          'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-[3px] rounded-full ring-1 ring-white/30 pointer-events-none" />
+                    <motion.div
+                      animate={showActionMenu ? { rotate: -45 } : { rotate: 0 }}
+                      className="relative z-10"
+                    >
                       {showActionMenu ? (
-                        <X className="w-5 h-5 text-white" />
+                        <X className="w-5 h-5 text-white drop-shadow" strokeWidth={2.6} />
                       ) : (
-                        <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
+                        <Plus className="w-6 h-6 text-white drop-shadow" strokeWidth={2.6} />
                       )}
                     </motion.div>
                   </motion.div>
                   <motion.span
                     initial={false}
                     animate={{ opacity: showActionMenu ? 0 : 1 }}
-                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-500 font-medium whitespace-nowrap"
+                    className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 text-[9px] font-bold whitespace-nowrap tracking-wide"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, #b8860b 0%, #c9a84c 50%, #8b6914 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
                   >
                     Create
                   </motion.span>
@@ -272,39 +312,79 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                 onClick={() => handleNavClick(item)}
                 onPointerDown={() => prefetchRoute(item.path)}
                 onMouseEnter={() => prefetchRoute(item.path)}
-                className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-300 min-w-[52px] active:scale-90 touch-manipulation relative"
+                className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-300 min-w-[54px] active:scale-90 touch-manipulation relative"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
+                aria-label={item.label}
               >
+                {isActive && (
+                  <motion.span
+                    layoutId="bottomnav-active-pill"
+                    className="absolute inset-0 rounded-2xl -z-0"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, rgba(255,240,250,0.95) 0%, rgba(253,228,243,0.85) 100%)',
+                      boxShadow:
+                        '0 4px 12px -4px rgba(236,72,153,0.30), inset 0 0 0 1px rgba(236,72,153,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+                    }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
                 <div className="relative">
+                  {isActive && (
+                    <svg width="0" height="0" className="absolute" aria-hidden>
+                      <defs>
+                        <linearGradient id={`bn-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ec4899" />
+                          <stop offset="100%" stopColor="#a855f7" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  )}
                   <Icon
                     className={cn(
                       "w-[22px] h-[22px] transition-all duration-300 relative z-10",
-                      isActive ? "text-pink-600" : "text-slate-500"
+                      isActive ? "" : "text-slate-500"
                     )}
-                    strokeWidth={isActive ? 2.4 : 2}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    style={
+                      isActive
+                        ? ({ stroke: `url(#bn-grad-${index})` } as React.CSSProperties)
+                        : undefined
+                    }
                   />
 
                   {item.path === '/profile' && unreadCounts.total > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span
+                      className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-white text-[8px] font-bold rounded-full flex items-center justify-center z-20"
+                      style={{
+                        background: 'linear-gradient(135deg,#ef4444,#ec4899)',
+                        boxShadow: '0 2px 6px rgba(239,68,68,0.5), 0 0 0 2px #fffdf8',
+                      }}
+                    >
                       {formatBadgeCount(unreadCounts.total)}
                     </span>
                   )}
                 </div>
 
-                <span className={cn(
-                  "text-[10px] font-semibold transition-all duration-300",
-                  isActive ? "text-pink-600" : "text-slate-500"
-                )}>
+                <span
+                  className={cn(
+                    "text-[10px] font-bold transition-all duration-300 relative z-10 tracking-wide",
+                    isActive ? "" : "text-slate-500"
+                  )}
+                  style={
+                    isActive
+                      ? {
+                          background:
+                            'linear-gradient(90deg,#ec4899 0%,#a855f7 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                        }
+                      : undefined
+                  }
+                >
                   {item.label}
                 </span>
-
-                {isActive && (
-                  <motion.span
-                    layoutId="bottomnav-active-dot"
-                    className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-pink-500"
-                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                  />
-                )}
               </button>
             );
           })}
