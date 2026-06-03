@@ -93,7 +93,7 @@ export default function NotificationSettings() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const current = prefs[category] || { ...DEFAULT_PREF };
+    const current = (prefs ?? {})[category] || { ...DEFAULT_PREF };
     const updated = { ...current, [field]: value };
 
     // If disabling main toggle, also disable push
