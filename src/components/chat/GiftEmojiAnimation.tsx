@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, memo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
