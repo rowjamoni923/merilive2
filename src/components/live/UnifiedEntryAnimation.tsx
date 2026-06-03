@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 export interface EntryAnimation {
   id: string;
   userId: string;
