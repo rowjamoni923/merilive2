@@ -1721,25 +1721,25 @@ export function UnifiedPartyRoom({
             <Gamepad2 className="w-4 h-4" />
           </motion.button>
 
-          {/* Beauty Button — only for video/game (cameras) */}
+          {/* Beauty Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
           {onBeautyClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onBeautyClick}
               aria-label="Beauty filters"
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white items-center justify-center shadow-lg shrink-0"
             >
               <Sparkles className="w-4 h-4" />
             </motion.button>
           )}
 
-          {/* Sticker Button — only for video/game (cameras) */}
+          {/* Sticker Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
           {onStickerClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onStickerClick}
               aria-label="AR stickers"
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white items-center justify-center shadow-lg shrink-0"
             >
               <Smile className="w-4 h-4" />
             </motion.button>
