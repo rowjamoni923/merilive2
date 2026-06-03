@@ -3,11 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { supabaseAuthStorage } from './nativeStorage';
 import { clearInstantRestCache, fetchWithInstantRestCache, installInstantRestCacheInvalidation } from '@/utils/instantRestCache';
+import { getAdminSessionToken } from '@/utils/adminSession';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
 
 installInstantRestCacheInvalidation('app');
+
 
 const authLockQueue = new Map<string, Promise<unknown>>();
 const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
@@ -45,6 +47,24 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     fetch: (input, init) => {
       const method = (init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
       if (method !== 'GET' && method !== 'HEAD') clearInstantRestCache('app');
+
+      // Pkg381: When an admin session exists, attach x-admin-token to EVERY request
+      // from the regular client too. ~89 admin pages still call `supabase.rpc(...)`
+      // / `supabase.from(...)` on admin-gated RPCs/tables; without this header those
+      // RPCs see `current_admin_id_from_header() = NULL` and fail with P0001
+      // "unauthorized" across the entire admin panel. Header is harmless for
+      // non-admin endpoints (ignored server-side) and absent when no admin session.
+      try {
+        const adminToken = getAdminSessionToken();
+        if (adminToken) {
+          const opts: RequestInit = init ? { ...init } : {};
+          const headers = new Headers(opts.headers || {});
+          if (!headers.has('x-admin-token')) headers.set('x-admin-token', adminToken);
+          opts.headers = headers;
+          init = opts;
+        }
+      } catch {}
+
       return fetchWithInstantRestCache(input, init, {
         namespace: 'app',
         ttlMs: 45_000,
@@ -58,5 +78,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     },
   },
 });
+
 
 
