@@ -12,8 +12,10 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Clock, CheckCircle2, XCircle, Star, ImageIcon, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
 
 type ClaimStatus = "pending" | "approved" | "rejected";
 
@@ -45,12 +47,14 @@ const STATUS_META: Record<ClaimStatus, { label: string; Icon: typeof Clock; pill
 };
 
 export default function RatingProofHistory() {
-  const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState<ClaimHistoryRow[]>([]);
+  // Pkg421 — instant cached render; user can click refresh to force re-fetch.
+  const [rows, setRows, hadCache] = usePersistedCache<ClaimHistoryRow[]>("ratingProofRows", []);
+  const [loading, setLoading] = useState(!hadCache);
   const [userId, setUserId] = useState<string | null>(null);
 
-  const load = useCallback(async (uid: string) => {
-    setLoading(true);
+  const load = useCallback(async (uid: string, opts?: { force?: boolean }) => {
+    // Only show spinner on cold cache OR explicit refresh button.
+    if (opts?.force || !(rows && rows.length > 0)) setLoading(true);
     const { data, error } = await supabase
       .from("rating_reward_claims")
       .select("id, status, rejection_reason, screenshot_url, created_at, reviewed_at, reward_amount, reward_type, platform")
@@ -59,12 +63,12 @@ export default function RatingProofHistory() {
     if (error) {
       console.error("Rating history load error:", error);
       toast.error("Failed to load history");
-      setRows([]);
+      // Don't wipe cached rows on transient error.
     } else {
       setRows((data ?? []) as ClaimHistoryRow[]);
     }
     setLoading(false);
-  }, []);
+  }, [rows, setRows]);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,7 +82,9 @@ export default function RatingProofHistory() {
       await load(user.id);
     })();
     return () => { cancelled = true; };
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   // Pkg91: rating_reward_claims not in supabase_realtime publication. Use app_sync.
   useAppSyncEvent(
@@ -109,7 +115,7 @@ export default function RatingProofHistory() {
             </div>
           </div>
           <button
-            onClick={() => userId && load(userId)}
+            onClick={() => userId && load(userId, { force: true })}
             className="ml-auto w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-100"
             aria-label="Refresh"
           >
@@ -118,8 +124,9 @@ export default function RatingProofHistory() {
         </div>
       </header>
 
+
       <main className="max-w-md mx-auto px-3 py-4 space-y-2.5">
-        {loading && rows.length === 0 ? (
+        {loading && (rows ?? []).length === 0 ? (
           <div className="space-y-2.5">
             {[0, 1, 2].map((i) => (
               <div key={i} className="rounded-xl bg-white border border-slate-200 p-3 animate-pulse">
@@ -128,7 +135,7 @@ export default function RatingProofHistory() {
               </div>
             ))}
           </div>
-        ) : rows.length === 0 ? (
+        ) : (rows ?? []).length === 0 ? (
           <div className="rounded-xl bg-white border border-slate-200 p-8 text-center">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
               <Star className="w-5 h-5 text-slate-400" />
@@ -139,7 +146,8 @@ export default function RatingProofHistory() {
             </p>
           </div>
         ) : (
-          rows.map((row, idx) => {
+          (rows ?? []).map((row, idx) => {
+
             const status = (row.status || "pending") as ClaimStatus;
             const meta = STATUS_META[status] ?? STATUS_META.pending;
             return (
@@ -175,7 +183,7 @@ export default function RatingProofHistory() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-semibold text-slate-400">
-                        #{rows.length - idx}
+                        #{(rows ?? []).length - idx}
                       </span>
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold",

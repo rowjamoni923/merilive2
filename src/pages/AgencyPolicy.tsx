@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { 
   ArrowLeft, 
   FileText, 
@@ -139,25 +140,30 @@ const STRUCTURED_KEYS = new Set([
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [policyData, setPolicyData] = useState<PolicyData | null>(null);
-  const [dynamicSections, setDynamicSections] = useState<DynamicPolicySection[]>([]);
-  const [levelTiers, setLevelTiers] = useState<Array<{
+  // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
+  // Instant cached render; background refresh keeps content fresh.
+  const [policyData, setPolicyData, hadPolicyCache] = usePersistedCache<PolicyData>("agencyPolicy:data");
+  const [dynamicSections, setDynamicSections] = usePersistedCache<DynamicPolicySection[]>("agencyPolicy:dynamic", []);
+  const [levelTiers, setLevelTiers] = usePersistedCache<Array<{
     level_code: string;
     level_name: string;
     min_weekly_income: number;
     max_weekly_income: number;
     commission_rate: number;
-  }>>([]);
+  }>>("agencyPolicy:tiers", []);
+  const [loading, setLoading] = useState(!hadPolicyCache);
 
   useEffect(() => {
     fetchPolicies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const fetchPolicies = async () => {
     try {
-      setLoading(true);
-      
+      // Only block UI with spinner if we have nothing cached yet.
+      if (!policyData) setLoading(true);
+
       // Fetch policies and level tiers in parallel
       const [policiesResult, tiersResult] = await Promise.all([
         supabase
@@ -208,6 +214,7 @@ const AgencyPolicy = () => {
   };
 
 
+
   const formatIncome = (min: number, max: number | null) => {
     const formatNumber = (num: number) => {
       if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -248,8 +255,8 @@ const AgencyPolicy = () => {
   const exchangeRate = policyData?.exchange_rate || { rate: 9000, currency: 'Beans', display: '9,000 Beans = $1 USD' };
   
   // Use agency_level_tiers data for commission tiers (real source of truth)
-  const commissionTiers = levelTiers.length > 0 
-    ? levelTiers.map(tier => ({
+  const commissionTiers = (levelTiers ?? []).length > 0
+    ? (levelTiers ?? []).map(tier => ({
         level: tier.level_code,
         name: tier.level_name,
         income_min: tier.min_weekly_income,
@@ -257,6 +264,7 @@ const AgencyPolicy = () => {
         rate: tier.commission_rate
       }))
     : policyData?.commission_tiers?.tiers || [];
+
   const hostRequirements = policyData?.host_requirements?.requirements || [];
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
@@ -372,9 +380,9 @@ const AgencyPolicy = () => {
               <TabsTrigger value="more" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1 relative">
                 <FileText className="w-3.5 h-3.5 mr-0.5" />
                 More
-                {dynamicSections.length > 0 && (
+                {(dynamicSections ?? []).length > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-brand-600 text-white border-0">
-                    {dynamicSections.length}
+                    {(dynamicSections ?? []).length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -778,7 +786,7 @@ const AgencyPolicy = () => {
 
             {/* More Tab — Admin-managed dynamic policy sections */}
             <TabsContent value="more" className="mt-4 space-y-4">
-              {dynamicSections.length === 0 ? (
+              {(dynamicSections ?? []).length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="p-8 text-center">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
@@ -788,7 +796,7 @@ const AgencyPolicy = () => {
                   </CardContent>
                 </Card>
               ) : (
-                dynamicSections.map((section) => {
+                (dynamicSections ?? []).map((section) => {
                   const visual = sectionVisuals[section.section_key] || {
                     icon: <FileText className="w-5 h-5" />,
                     gradient: "from-gray-500 to-gray-700",

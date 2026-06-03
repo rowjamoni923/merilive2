@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import BeansIcon from "@/components/common/BeansIcon";
 import { getTaskDate } from "@/utils/taskDateUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
+
 
 interface HourRow {
   hour_number: number;
@@ -65,13 +67,15 @@ const rangeBounds = (key: RangeKey): { from: string | null; to: string | null } 
 
 const HostBonusLedger = () => {
   const navigate = useNavigate();
-  const [ledger, setLedger] = useState<Ledger | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Pkg421 — instant render from localStorage cache; background refetch updates silently.
+  const [ledger, setLedger, hadCache] = usePersistedCache<Ledger>("hostBonusLedger");
+  const [loading, setLoading] = useState(!hadCache);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<RangeKey>("last7");
 
   const load = async () => {
-    setLoading(true);
+    // Only show spinner on cold cache; revisits render instantly.
+    if (!ledger) setLoading(true);
     setError(null);
     const { data, error } = await supabase.rpc("get_my_host_bonus_ledger", { _limit_days: 30 });
     if (error) {
@@ -84,7 +88,9 @@ const HostBonusLedger = () => {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // Filter days by selected range and compute a cap-aware summary.
   const { filteredDays, summary } = useMemo(() => {
