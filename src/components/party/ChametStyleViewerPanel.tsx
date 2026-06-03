@@ -123,11 +123,13 @@ export const ChametStyleViewerPanel = ({
   }, []);
 
   // Pkg184: LiveKit DataPacket = primary instant path for in-memory delta.
-  // Pkg382: Supabase Realtime on `party_room_participants` filtered to this
-  // room = authoritative DB-backed fallback (LiveKit packets are best-effort
-  // and can be dropped during connect/reconnect races). Both paths converge
-  // because realtime callback triggers fetchPartyViewers() which becomes the
-  // source-of-truth list — duplicates are impossible.
+  // Phase 7 realtime-dedupe: the Postgres-changes safety-net that used to
+  // live here duplicated PartyRoom's subscription on `party_room_participants`
+  // for the same room_id. Two channels = double realtime cost for zero
+  // functional gain. Removed. PartyRoom now dispatches
+  // `party-participants-refetched` after every debounced refetch; this
+  // panel listens and pulls a fresh list — same authoritative DB-backed
+  // fallback at half the cost.
   useEffect(() => {
     isMountedRef.current = true;
     if (!isOpen || !roomId) return;
@@ -164,28 +166,17 @@ export const ChametStyleViewerPanel = ({
     };
     window.addEventListener('livekit-party-event', onPartyEvent);
 
-    // Pkg382 — Supabase Realtime fallback (debounced refetch).
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    const scheduleRefetch = () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (isMountedRef.current) fetchPartyViewers();
-      }, 250);
+    const onParentRefetch = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.roomId !== roomId) return;
+      if (isMountedRef.current) fetchPartyViewers();
     };
-    const channel = supabase
-      .channel(`viewer-panel-participants-${roomId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
-        scheduleRefetch,
-      )
-      .subscribe();
+    window.addEventListener('party-participants-refetched', onParentRefetch);
 
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('livekit-party-event', onPartyEvent);
-      if (debounceTimer) clearTimeout(debounceTimer);
-      try { supabase.removeChannel(channel); } catch { /* ignore */ }
+      window.removeEventListener('party-participants-refetched', onParentRefetch);
     };
   }, [isOpen, roomId, fetchPartyViewers]);
 

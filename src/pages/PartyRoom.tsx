@@ -1228,6 +1228,12 @@ const PartyRoom = () => {
         if (isMountedRef.current) {
           void fetchParticipants();
           void fetchSeatRequests();
+          // Phase 7 dedupe: notify ChametStyleViewerPanel (and any other
+          // mounted listeners) so they can pull fresh data WITHOUT opening
+          // their own duplicate Realtime channel.
+          try {
+            window.dispatchEvent(new CustomEvent('party-participants-refetched', { detail: { roomId } }));
+          } catch { /* ignore */ }
         }
       }, 250);
     };
