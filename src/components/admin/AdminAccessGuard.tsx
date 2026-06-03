@@ -275,8 +275,9 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     if (hasFreshAccessToken && !isLoginRoute()) {
       return <Navigate to={`/admin/auth?access=${encodeURIComponent(accessToken || accessTokenFromRoute || '')}`} replace />;
     }
-    // Secret link + existing session → go straight to /admin (no re-login screen).
-    if (isLoginRoute() && session) {
+    // Existing session without a fresh link can enter instantly. With a fresh
+    // link, render AdminAuth so it can server-validate or clear stale sessions.
+    if (isLoginRoute() && session && !hasFreshAccessToken) {
       return <Navigate to="/admin" replace />;
     }
     if (!session && !isLoginRoute()) {
