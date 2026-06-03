@@ -234,6 +234,8 @@ const Chat = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const MESSAGES_PAGE_SIZE = 100;
+  const [visibleMessageCount, setVisibleMessageCount] = useState<number>(MESSAGES_PAGE_SIZE);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
