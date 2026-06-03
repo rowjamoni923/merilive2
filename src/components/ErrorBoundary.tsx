@@ -88,9 +88,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback UI
-      if (this.props.fallback) {
-        return this.props.fallback;
+      // Custom fallback UI — respect explicit `null` (caller wants silent failure)
+      if ('fallback' in this.props) {
+        return this.props.fallback ?? null;
       }
 
         const isRecoveringChunk = this.state.recovering && this.state.error && isChunkLoadError(this.state.error);
