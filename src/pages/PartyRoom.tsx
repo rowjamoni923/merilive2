@@ -948,7 +948,7 @@ const PartyRoom = () => {
           content: 'joined the room ✨',
           message_type: 'join',
         });
-        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl) && isMountedRef.current) {
+        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl || data.rankCode) && isMountedRef.current) {
           addEntryAnimation({
             userId: data.userId,
             displayName: data.userName,
@@ -958,6 +958,7 @@ const PartyRoom = () => {
             entryNameBarUrl: data.entryNameBarUrl || undefined,
             vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
             soundUrl: data.entranceSoundUrl || undefined,
+            rankCode: data.rankCode || undefined,
           });
         }
         return;
