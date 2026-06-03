@@ -195,7 +195,7 @@ const AgencyHostManagement = () => {
 
     setProcessingId(hostData.host_id);
     // Optimistic: instantly remove from pending
-    setPendingHosts(prev => prev.filter(h => h.id !== hostData.id));
+    setPendingHosts(prev => (prev ?? []).filter(h => h.id !== hostData.id));
     setRejectDialog(null);
 
     try {
