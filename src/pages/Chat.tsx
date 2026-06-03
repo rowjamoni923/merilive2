@@ -916,7 +916,7 @@ const Chat = () => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
     if (!container || !end) return;
-    const convId = selectedConversation?.id || null;
+    const convId = selectedConversation?.id || selectedGroup?.id || null;
     const isNewConversation = lastScrollConvIdRef.current !== convId;
     // Distance from bottom in px BEFORE the new render-induced layout shift
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -936,7 +936,7 @@ const Chat = () => {
         container.scrollTop = container.scrollHeight;
       });
     }
-  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id]);
+  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id]);
 
   // Track whether the user is sitting near the bottom of the thread.
   useEffect(() => {
