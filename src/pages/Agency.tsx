@@ -55,7 +55,7 @@ const Agency = () => {
 
     const fetchData = async () => {
       // Only show spinner on cold cache; otherwise refresh silently.
-      if (!(commissionTiers && commissionTiers.length && helperTiers && helperTiers.length)) {
+      if (!(commissionTiers && commissionTiers.length && helperTiers && helperTiersSafe.length)) {
         setLoading(true);
       }
       try {
@@ -411,20 +411,20 @@ const Agency = () => {
               <Crown className="w-4 h-4" />
               Helper Level Commission Rates
             </h5>
-            {helperTiers.length > 0 ? (
+            {helperTiersSafe.length > 0 ? (
               <>
-                <div className={`grid gap-2 text-center text-xs ${helperTiers.length <= 5 ? `grid-cols-${helperTiers.length}` : 'grid-cols-5'}`}>
-                  {helperTiers.map((tier, index) => (
+                <div className={`grid gap-2 text-center text-xs ${helperTiersSafe.length <= 5 ? `grid-cols-${helperTiersSafe.length}` : 'grid-cols-5'}`}>
+                  {helperTiersSafe.map((tier, index) => (
                     <div 
                       key={tier.id} 
                       className={`rounded-lg p-2 ${
-                        index === helperTiers.length - 1 
+                        index === helperTiersSafe.length - 1 
                           ? 'bg-white/30 ring-2 ring-white/50' 
                           : 'bg-white/20'
                       }`}
                     >
                       <p className="font-bold">{tier.level_name}</p>
-                      <p className={index === helperTiers.length - 1 ? 'text-slate-700' : 'text-slate-700'}>
+                      <p className={index === helperTiersSafe.length - 1 ? 'text-slate-700' : 'text-slate-700'}>
                         {tier.commission_rate}%
                       </p>
                     </div>
