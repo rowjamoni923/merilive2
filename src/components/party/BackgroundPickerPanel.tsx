@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Sparkles, Lock, Diamond, Loader2 } from "lucide-react";
+import { X, Check, Sparkles, Lock, Loader2, ImageOff, Crown, ShieldAlert, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { Diamond3DIcon } from "@/components/icons/Diamond3DIcon";
 
 interface Background {
   id: string;
@@ -32,7 +33,7 @@ export function BackgroundPickerPanel({
   roomId,
   currentBackgroundId,
   onSelectBackground,
-  isHost
+  isHost,
 }: BackgroundPickerPanelProps) {
   const [backgrounds, setBackgrounds] = useState<Background[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +42,13 @@ export function BackgroundPickerPanel({
   const [userLevel, setUserLevel] = useState(0);
   const [purchasedBgs, setPurchasedBgs] = useState<string[]>([]);
   const [updating, setUpdating] = useState(false);
+  const [confirmBg, setConfirmBg] = useState<Background | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      fetchBackgrounds();
-      fetchUserData();
+      void fetchBackgrounds();
+      void fetchUserData();
     }
   }, [isOpen]);
 
@@ -57,19 +60,16 @@ export function BackgroundPickerPanel({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('party_room_backgrounds')
-        .select('*')
-        .eq('is_active', true)
-        .not('image_url', 'is', null) // CRITICAL: Only backgrounds WITH image_url (no gradient-only)
-        .order('display_order', { ascending: true });
-
+        .from("party_room_backgrounds")
+        .select("*")
+        .eq("is_active", true)
+        .not("image_url", "is", null)
+        .order("display_order", { ascending: true });
       if (error) throw error;
-      
-      // Filter out any that have empty image_url strings
-      const validBackgrounds = (data || []).filter(bg => bg.image_url && bg.image_url.trim() !== '');
-      setBackgrounds(validBackgrounds);
+      const valid = (data || []).filter((bg: any) => bg.image_url && bg.image_url.trim() !== "");
+      setBackgrounds(valid as Background[]);
     } catch (error) {
-      console.error('Error fetching backgrounds:', error);
+      console.error("Error fetching backgrounds:", error);
     } finally {
       setLoading(false);
     }
@@ -77,102 +77,240 @@ export function BackgroundPickerPanel({
 
   const fetchUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('coins, user_level')
-        .eq('id', user.id)
-        .single();
-      
-      if (data) {
-        setUserDiamonds((data as any).coins || 0);
-        setUserLevel((data as any).user_level || 0);
-      }
-      
-      // Fetch purchased backgrounds
-      const { data: purchasedData } = await (supabase
-        .from('user_purchased_backgrounds' as any)
-        .select('background_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true) as any);
-      
-      if (purchasedData) {
-        setPurchasedBgs(purchasedData.map((p: any) => p.background_id));
-      }
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("coins, user_level")
+      .eq("id", user.id)
+      .single();
+    if (data) {
+      setUserDiamonds((data as any).coins || 0);
+      setUserLevel((data as any).user_level || 0);
     }
+    const { data: purchasedData } = await (supabase
+      .from("user_purchased_backgrounds" as any)
+      .select("background_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true) as any);
+    if (purchasedData) setPurchasedBgs(purchasedData.map((p: any) => p.background_id));
   };
 
-  const handleSelect = async (bg: Background) => {
-    if (!isHost) {
-      toast.error("Only host can change background");
-      return;
-    }
-
-    // Level gate
-    const required = bg.min_level ?? 0;
-    if (required > 0 && userLevel < required) {
-      toast.error(`Requires Level ${required}+ (you are Level ${userLevel})`);
-      return;
-    }
-
-    // Check if premium and not purchased
-    if (bg.is_premium && !purchasedBgs.includes(bg.id)) {
-      // Show purchase dialog
-      if (userDiamonds < bg.price_diamonds) {
-        toast.error(`Not enough diamonds! Need ${bg.price_diamonds} 💎`);
-        return;
-      }
-      
-      // TODO: Implement purchase flow
-      toast.info(`Premium background - ${bg.price_diamonds} diamonds required`);
-      return;
-    }
-
+  const applyBackground = async (bg: Background | null) => {
     setUpdating(true);
-    setSelectedId(bg.id);
-
+    if (bg) setSelectedId(bg.id);
     try {
       const { error } = await supabase
-        .from('party_rooms')
-        .update({ background_url: bg.image_url || null } as any)
-        .eq('id', roomId);
-
+        .from("party_rooms")
+        .update({ background_url: bg?.image_url || null } as any)
+        .eq("id", roomId);
       if (error) throw error;
 
-      // Pkg81: LiveKit-only fanout — replaces `party-room-bg-${roomId}`
-      // Supabase Realtime background_id listener. Host is the sole writer;
-      // every participant receives within ~50ms via DataPacket, no extra
-      // `party_room_backgrounds` round-trip needed (we pack the row).
-      void import('@/lib/livekitPartyEventsSignaling').then(({ publishRoomStateChanged }) =>
+      void import("@/lib/livekitPartyEventsSignaling").then(({ publishRoomStateChanged }) =>
         publishRoomStateChanged(roomId, {
-          background: {
-            id: bg.id,
-            image_url: bg.image_url ?? null,
-            gradient_css: (bg as any).gradient_css ?? null,
-          },
-          background_url: bg.image_url ?? null,
-        })
+          background: bg
+            ? {
+                id: bg.id,
+                image_url: bg.image_url ?? null,
+                gradient_css: (bg as any).gradient_css ?? null,
+              }
+            : null,
+          background_url: bg?.image_url ?? null,
+        }),
       );
 
       onSelectBackground(bg);
-      toast.success("Background updated!");
+      toast.success(bg ? "Background updated" : "Reset to default");
       onClose();
     } catch (error: any) {
-      console.error('Error updating background:', error);
+      console.error("Error updating background:", error);
       toast.error(error?.message || "Failed to update background");
     } finally {
       setUpdating(false);
     }
   };
 
-  const freeBackgrounds = backgrounds.filter(bg => !bg.is_premium);
-  const premiumBackgrounds = backgrounds.filter(bg => bg.is_premium);
+  const handleSelect = (bg: Background) => {
+    if (!isHost) {
+      toast.error("Only the host can change the background");
+      return;
+    }
+    const required = bg.min_level ?? 0;
+    if (required > 0 && userLevel < required) {
+      toast.error(`Requires Level ${required}+ (you are Level ${userLevel})`);
+      return;
+    }
+    if (bg.is_premium && !purchasedBgs.includes(bg.id)) {
+      setConfirmBg(bg);
+      return;
+    }
+    void applyBackground(bg);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!confirmBg) return;
+    if (userDiamonds < confirmBg.price_diamonds) {
+      toast.error(`Need ${confirmBg.price_diamonds.toLocaleString()} diamonds`);
+      return;
+    }
+    setPurchasing(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("purchase_party_background", {
+        _background_id: confirmBg.id,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (!result?.success) throw new Error(result?.error || "Purchase failed");
+
+      const newBalance = Number(result.new_balance ?? userDiamonds - (result.price_paid ?? confirmBg.price_diamonds));
+      setUserDiamonds(Number.isFinite(newBalance) ? newBalance : userDiamonds - confirmBg.price_diamonds);
+      setPurchasedBgs((prev) => [...prev, confirmBg.id]);
+      toast.success(`Unlocked ${confirmBg.name}`);
+      const bg = confirmBg;
+      setConfirmBg(null);
+      await applyBackground(bg);
+    } catch (error: any) {
+      console.error("Purchase error:", error);
+      toast.error(error?.message || "Purchase failed");
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  const { freeBackgrounds, premiumBackgrounds } = useMemo(() => {
+    return {
+      freeBackgrounds: backgrounds.filter((bg) => !bg.is_premium),
+      premiumBackgrounds: backgrounds.filter((bg) => bg.is_premium),
+    };
+  }, [backgrounds]);
+
+  const renderBgTile = (bg: Background, accent: "violet" | "amber") => {
+    const selected = selectedId === bg.id;
+    const isLocked = (bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0);
+    const isPremiumLocked = bg.is_premium && !purchasedBgs.includes(bg.id);
+    const isOwned = bg.is_premium && purchasedBgs.includes(bg.id);
+    const tone = accent === "amber"
+      ? { ring: "rgba(251,191,36,0.85)", glow: "rgba(251,191,36,0.55)", base: "rgba(251,191,36,0.18)" }
+      : { ring: "rgba(168,85,247,0.85)", glow: "rgba(168,85,247,0.55)", base: "rgba(255,255,255,0.08)" };
+
+    return (
+      <motion.button
+        key={bg.id}
+        whileTap={{ scale: 0.96 }}
+        onClick={() => handleSelect(bg)}
+        disabled={updating || !isHost}
+        className={cn(
+          "relative aspect-[4/3] rounded-2xl overflow-hidden transition-all",
+          !isHost && "opacity-60 cursor-not-allowed",
+        )}
+        style={{
+          border: selected ? `2px solid ${tone.ring}` : `1px solid ${tone.base}`,
+          boxShadow: selected
+            ? `0 6px 22px -6px ${tone.glow}, inset 0 1px 0 rgba(255,255,255,0.10)`
+            : "inset 0 1px 0 rgba(255,255,255,0.06)",
+        }}
+      >
+        {bg.image_url ? (
+          <img
+            src={getProxiedUrl(bg.image_url)}
+            alt={bg.name}
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <div className={cn("absolute inset-0", bg.gradient_css)} />
+        )}
+
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.40) 100%)",
+          }}
+        />
+
+        {isLocked && (
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 z-10">
+            <Lock className="w-4 h-4 text-white" />
+            <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+          </div>
+        )}
+
+        {isPremiumLocked && !isLocked && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div
+              className="flex items-center gap-1 px-2 py-1 rounded-full border border-amber-400/40"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.55))",
+                boxShadow: "0 4px 12px -2px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.10)",
+              }}
+            >
+              <Diamond3DIcon size={12} />
+              <span className="text-white text-[10px] font-bold tabular-nums">
+                {bg.price_diamonds.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {selected && (
+          <>
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)",
+                animation: "giftSendShine 2.6s ease-in-out infinite",
+              }}
+            />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", damping: 18, stiffness: 420 }}
+              className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
+              style={{
+                background:
+                  accent === "amber"
+                    ? "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
+                    : "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
+                boxShadow: `0 4px 12px -2px ${tone.glow}, inset 0 1px 0 rgba(255,255,255,0.4)`,
+              }}
+            >
+              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+            </motion.div>
+          </>
+        )}
+
+        {bg.is_premium && (
+          <div className="absolute top-1.5 left-1.5">
+            <Crown className="w-3.5 h-3.5 text-amber-300 drop-shadow-[0_2px_6px_rgba(251,191,36,0.6)]" />
+          </div>
+        )}
+
+        {isOwned && !selected && (
+          <div
+            className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-emerald-50"
+            style={{
+              background: "linear-gradient(135deg, rgba(16,185,129,0.85), rgba(5,150,105,0.85))",
+              boxShadow: "0 2px 6px -1px rgba(16,185,129,0.55)",
+            }}
+          >
+            OWNED
+          </div>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-2 py-1.5">
+          <span className="text-white text-[10px] font-semibold truncate block">{bg.name}</span>
+        </div>
+      </motion.button>
+    );
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -182,306 +320,370 @@ export function BackgroundPickerPanel({
             onClick={onClose}
           />
 
-          {/* Panel — Pkg164-parity dark glass sheet */}
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[82dvh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[85dvh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)] flex flex-col"
             style={{
-              background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
+              background: "linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             }}
           >
-            {/* Aurora overlay */}
             <div
               className="pointer-events-none absolute inset-0 opacity-[0.35]"
               style={{
                 background:
-                  'radial-gradient(60% 40% at 15% 0%, rgba(34,211,238,0.20), transparent 70%), radial-gradient(50% 35% at 90% 10%, rgba(168,85,247,0.18), transparent 70%)',
+                  "radial-gradient(60% 40% at 15% 0%, rgba(34,211,238,0.20), transparent 70%), radial-gradient(50% 35% at 90% 10%, rgba(168,85,247,0.18), transparent 70%)",
               }}
             />
 
             {/* Header */}
-            <div className="relative flex items-center justify-between px-5 pt-3 pb-3 border-b border-white/10">
+            <div className="relative flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/10 shrink-0">
               <div className="absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-white/25" />
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-3 mt-1 min-w-0">
                 <div
-                  className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
+                  className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden shrink-0"
                   style={{
-                    background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)',
-                    boxShadow: '0 6px 18px -4px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+                    background: "linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)",
+                    boxShadow: "0 6px 18px -4px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.35)",
                   }}
                 >
                   <Sparkles className="w-5 h-5 text-white relative z-10" />
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                      background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%)',
-                      animation: 'giftSendShine 3.2s ease-in-out infinite',
+                      background:
+                        "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%)",
+                      animation: "giftSendShine 3.2s ease-in-out infinite",
                     }}
                   />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3
-                    className="text-lg font-bold leading-tight"
+                    className="text-lg font-bold leading-tight truncate"
                     style={{
-                      background: 'linear-gradient(90deg, #ffffff, #cffafe 60%, #67e8f9)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
+                      background: "linear-gradient(90deg, #ffffff, #cffafe 60%, #67e8f9)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
                     }}
                   >
                     Room Background
                   </h3>
-                  <p className="text-[11px] text-white/55 mt-0.5">Choose a background theme</p>
+                  <p className="text-[11px] text-white/55 mt-0.5 truncate">
+                    {isHost ? "Set the vibe for your room" : "Only the host can change this"}
+                  </p>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="w-8 h-8 mt-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
+              <div className="flex items-center gap-2 mt-1 shrink-0">
+                <div
+                  className="hidden xs:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(217,119,6,0.10))",
+                    border: "1px solid rgba(251,191,36,0.30)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <Diamond3DIcon size={12} />
+                  <span className="text-white text-xs font-bold tabular-nums">
+                    {userDiamonds.toLocaleString()}
+                  </span>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
+
+            {/* Non-host banner */}
+            {!isHost && (
+              <div className="relative px-4 py-2.5 border-b border-white/5 shrink-0">
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.10), rgba(251,191,36,0.05))",
+                    border: "1px solid rgba(251,191,36,0.20)",
+                  }}
+                >
+                  <ShieldAlert className="w-4 h-4 text-amber-300 shrink-0" />
+                  <span className="text-amber-100/90 text-[11px]">
+                    Only the room host can change the background.
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Content */}
             <div
-              className="overflow-y-auto max-h-[68dvh] p-4 pb-safe relative"
-              style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+              className="overflow-y-auto flex-1 p-4 pb-safe relative"
+              style={{ WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}
             >
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+                <div className="space-y-6">
+                  {[0, 1].map((s) => (
+                    <div key={s}>
+                      <div className="h-3 w-24 rounded bg-white/10 mb-3 animate-pulse" />
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="aspect-[4/3] rounded-2xl bg-white/[0.06] border border-white/5 animate-pulse"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : backgrounds.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <ImageOff className="w-7 h-7 text-white/40" />
+                  </div>
+                  <p className="text-white/80 text-sm font-semibold">No backgrounds available</p>
+                  <p className="text-white/50 text-xs mt-1">Check back soon — new themes drop weekly</p>
                 </div>
               ) : (
                 <>
-                  {/* Free Backgrounds */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <h4 className="text-xs font-semibold text-white/75 uppercase tracking-wider">Free Backgrounds</h4>
-                      <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
+                  {/* Reset to default */}
+                  {isHost && (
+                    <button
+                      onClick={() => void applyBackground(null)}
+                      disabled={updating || !currentBackgroundId}
+                      className={cn(
+                        "w-full mb-5 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold transition-all",
+                        "border border-white/10 text-white/85 hover:text-white",
+                        "disabled:opacity-40 disabled:cursor-not-allowed",
+                      )}
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+                      }}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Reset to default
+                    </button>
+                  )}
+
+                  {/* Free */}
+                  {freeBackgrounds.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-[11px] font-semibold text-white/75 uppercase tracking-wider">
+                          Free Backgrounds
+                        </h4>
+                        <span className="text-[10px] text-white/40 tabular-nums">
+                          {freeBackgrounds.length}
+                        </span>
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
+                      </div>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {freeBackgrounds.map((bg) => renderBgTile(bg, "violet"))}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2.5">
-                      {freeBackgrounds.map((bg, idx) => {
-                        const selected = selectedId === bg.id;
-                        return (
-                          <motion.button
-                            key={bg.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.025, 0.18) }}
-                            whileTap={{ scale: 0.96 }}
-                            onClick={() => handleSelect(bg)}
-                            disabled={updating || !isHost}
-                            className={cn(
-                              "relative aspect-[4/3] rounded-2xl overflow-hidden transition-all",
-                              !isHost && "opacity-60"
-                            )}
-                            style={{
-                              border: selected
-                                ? '2px solid rgba(168,85,247,0.85)'
-                                : '1px solid rgba(255,255,255,0.08)',
-                              boxShadow: selected
-                                ? '0 6px 22px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)'
-                                : 'inset 0 1px 0 rgba(255,255,255,0.06)',
-                            }}
-                          >
-                            {/* Background Preview */}
-                            {bg.image_url ? (
-                              <img 
-                                src={getProxiedUrl(bg.image_url)}
-                                alt={bg.name}
-                                className="absolute inset-0 w-full h-full object-cover"/>
-                            ) : (
-                              <div className={cn("absolute inset-0", bg.gradient_css)} />
-                            )}
+                  )}
 
-                            {/* Edge vignette */}
-                            <div
-                              className="pointer-events-none absolute inset-0"
-                              style={{
-                                background:
-                                  'radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.35) 100%)',
-                              }}
-                            />
-
-                            {/* Level lock overlay */}
-                            {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
-                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1">
-                                <Lock className="w-4 h-4 text-white" />
-                                <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
-                              </div>
-                            )}
-
-                            {selected && (
-                              <>
-                                <div
-                                  className="absolute inset-0 pointer-events-none"
-                                  style={{
-                                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.18) 50%, transparent 58%)',
-                                    animation: 'giftSendShine 2.6s ease-in-out infinite',
-                                  }}
-                                />
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ type: 'spring', damping: 18, stiffness: 420 }}
-                                  className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-                                    boxShadow: '0 4px 12px -2px rgba(168,85,247,0.65), inset 0 1px 0 rgba(255,255,255,0.4)',
-                                  }}
-                                >
-                                  <Check className="w-3 h-3 text-white" />
-                                </motion.div>
-                              </>
-                            )}
-
-                            {/* Label */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
-                              <span className="text-white text-[10px] font-medium">{bg.name}</span>
-                            </div>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Premium Backgrounds */}
+                  {/* Premium */}
                   {premiumBackgrounds.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider"
+                        <h4
+                          className="text-[11px] font-semibold uppercase tracking-wider"
                           style={{
-                            background: 'linear-gradient(90deg, #fde68a, #fbbf24)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
+                            background: "linear-gradient(90deg, #fde68a, #fbbf24)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
                           }}
                         >
                           Premium Backgrounds
                         </h4>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <Crown className="w-3.5 h-3.5 text-amber-300" />
+                        <span className="text-[10px] text-amber-200/50 tabular-nums">
+                          {premiumBackgrounds.length}
+                        </span>
                         <div className="flex-1 h-px bg-gradient-to-r from-amber-400/30 to-transparent" />
                       </div>
                       <div className="grid grid-cols-3 gap-2.5">
-                        {premiumBackgrounds.map((bg, idx) => {
-                          const isPurchased = purchasedBgs.includes(bg.id);
-                          const selected = selectedId === bg.id;
-
-                          return (
-                            <motion.button
-                              key={bg.id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.025, 0.18) }}
-                              whileTap={{ scale: 0.96 }}
-                              onClick={() => handleSelect(bg)}
-                              disabled={updating || !isHost}
-                              className={cn(
-                                "relative aspect-[4/3] rounded-2xl overflow-hidden transition-all",
-                                !isHost && "opacity-60"
-                              )}
-                              style={{
-                                border: selected
-                                  ? '2px solid rgba(251,191,36,0.85)'
-                                  : '1px solid rgba(251,191,36,0.18)',
-                                boxShadow: selected
-                                  ? '0 6px 22px -6px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.10)'
-                                  : 'inset 0 1px 0 rgba(255,255,255,0.06)',
-                              }}
-                            >
-                              {/* Background Preview */}
-                              {bg.image_url ? (
-                                <img 
-                                  src={getProxiedUrl(bg.image_url)}
-                                  alt={bg.name}
-                                  className="absolute inset-0 w-full h-full object-cover"/>
-                              ) : (
-                                <div className={cn("absolute inset-0", bg.gradient_css)} />
-                              )}
-
-                              {/* Edge vignette */}
-                              <div
-                                className="pointer-events-none absolute inset-0"
-                                style={{
-                                  background:
-                                    'radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.35) 100%)',
-                                }}
-                              />
-
-                              {/* Level lock overlay */}
-                              {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 z-10">
-                                  <Lock className="w-4 h-4 text-white" />
-                                  <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
-                                </div>
-                              )}
-
-                              {/* Premium Overlay */}
-                              {!isPurchased && (
-                                <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
-                                  <div
-                                    className="flex items-center gap-1 px-2 py-1 rounded-full border border-amber-400/40"
-                                    style={{
-                                      background: 'linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.5))',
-                                      boxShadow: '0 4px 12px -2px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.10)',
-                                    }}
-                                  >
-                                    <Diamond className="w-3 h-3 text-cyan-300" />
-                                    <span className="text-white text-[10px] font-bold tabular-nums">
-                                      {bg.price_diamonds}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-
-                              {selected && (
-                                <>
-                                  <div
-                                    className="absolute inset-0 pointer-events-none"
-                                    style={{
-                                      background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)',
-                                      animation: 'giftSendShine 2.6s ease-in-out infinite',
-                                    }}
-                                  />
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: 'spring', damping: 18, stiffness: 420 }}
-                                    className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-                                    style={{
-                                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                                      boxShadow: '0 4px 12px -2px rgba(251,191,36,0.65), inset 0 1px 0 rgba(255,255,255,0.45)',
-                                    }}
-                                  >
-                                    <Check className="w-3 h-3 text-white" />
-                                  </motion.div>
-                                </>
-                              )}
-
-                              {/* Premium badge */}
-                              <div className="absolute top-1.5 left-1.5">
-                                <Sparkles className="w-4 h-4 text-amber-300 drop-shadow-[0_2px_6px_rgba(251,191,36,0.6)]" />
-                              </div>
-
-                              {/* Label */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
-                                <span className="text-white text-[10px] font-medium">{bg.name}</span>
-                              </div>
-                            </motion.button>
-                          );
-                        })}
+                        {premiumBackgrounds.map((bg) => renderBgTile(bg, "amber"))}
                       </div>
                     </div>
                   )}
                 </>
               )}
             </div>
+
+            {/* Updating overlay */}
+            {updating && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15">
+                  <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
+                  <span className="text-white text-xs font-medium">Applying…</span>
+                </div>
+              </div>
+            )}
           </motion.div>
+
+          {/* Purchase confirmation */}
+          <AnimatePresence>
+            {confirmBg && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-4"
+                onClick={() => !purchasing && setConfirmBg(null)}
+              >
+                <motion.div
+                  initial={{ y: 40, opacity: 0, scale: 0.96 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 40, opacity: 0, scale: 0.96 }}
+                  transition={{ type: "spring", damping: 26, stiffness: 320 }}
+                  className="w-full max-w-sm rounded-3xl overflow-hidden border border-white/10"
+                  style={{
+                    background: "linear-gradient(180deg, rgba(28,20,48,0.98) 0%, rgba(14,10,28,0.99) 100%)",
+                    boxShadow: "0 30px 80px -10px rgba(0,0,0,0.7), 0 0 40px rgba(251,191,36,0.10)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    {confirmBg.image_url ? (
+                      <img
+                        src={getProxiedUrl(confirmBg.image_url)}
+                        alt={confirmBg.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className={cn("absolute inset-0", confirmBg.gradient_css)} />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/45 border border-amber-300/40 backdrop-blur-sm">
+                      <Crown className="w-3 h-3 text-amber-300" />
+                      <span className="text-amber-100 text-[10px] font-bold tracking-wider uppercase">
+                        Premium
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => !purchasing && setConfirmBg(null)}
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 border border-white/15 flex items-center justify-center backdrop-blur-sm"
+                      aria-label="Close"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <h3 className="text-white text-lg font-bold drop-shadow">{confirmBg.name}</h3>
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div
+                        className="rounded-xl p-3 text-center"
+                        style={{
+                          background: "rgba(255,255,255,0.05)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <p className="text-white/55 text-[10px] uppercase tracking-wider mb-1">Price</p>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Diamond3DIcon size={14} />
+                          <span className="text-amber-200 font-bold tabular-nums">
+                            {confirmBg.price_diamonds.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className="rounded-xl p-3 text-center"
+                        style={{
+                          background: "rgba(255,255,255,0.05)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <p className="text-white/55 text-[10px] uppercase tracking-wider mb-1">Balance</p>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Diamond3DIcon size={14} />
+                          <span
+                            className={cn(
+                              "font-bold tabular-nums",
+                              userDiamonds >= confirmBg.price_diamonds ? "text-emerald-300" : "text-red-300",
+                            )}
+                          >
+                            {userDiamonds.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-white/60 text-[11px] text-center leading-relaxed">
+                      One-time unlock. This background stays yours forever.
+                    </p>
+
+                    {userDiamonds < confirmBg.price_diamonds ? (
+                      <button
+                        onClick={() => {
+                          setConfirmBg(null);
+                          onClose();
+                          window.location.href = "/recharge";
+                        }}
+                        className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95"
+                        style={{
+                          background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
+                          boxShadow:
+                            "0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.30)",
+                        }}
+                      >
+                        Recharge Diamonds
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleConfirmPurchase}
+                        disabled={purchasing}
+                        className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95 disabled:opacity-60"
+                        style={{
+                          background: "linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)",
+                          boxShadow:
+                            "0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.25)",
+                        }}
+                      >
+                        {purchasing ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Unlocking…
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center gap-2">
+                            <Diamond3DIcon size={14} />
+                            Unlock & Apply
+                          </span>
+                        )}
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => !purchasing && setConfirmBg(null)}
+                      disabled={purchasing}
+                      className="w-full py-2 text-white/55 text-xs font-medium hover:text-white/80 transition-colors disabled:opacity-40"
+                    >
+                      Maybe later
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>
