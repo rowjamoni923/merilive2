@@ -774,6 +774,13 @@ export function UnifiedPartyRoom({
       console.error('[UnifiedPartyRoom] Exception fetching viewers:', err);
     }
   }, []); // No dependencies - uses refs
+
+  // Keep DB-backed parent state authoritative after Supabase fallback refetches.
+  // LiveKit count events give instant deltas; parent `participants` corrects any
+  // packet loss, reconnect drift, or join/leave races without polling.
+  useEffect(() => {
+    setRealtimeViewerCount(viewerCount);
+  }, [viewerCount]);
   
   // Pkg81b: `unified-room-viewers-${roomId}` Supabase channel DELETED.
   // Viewer list now refreshes off LiveKit `participant_joined` /
@@ -799,7 +806,10 @@ export function UnifiedPartyRoom({
     const handleViewerCount = (ev: Event) => {
       const detail = (ev as CustomEvent<{ streamId: string; count: number }>).detail;
       if (detail?.streamId !== roomId) return;
-      setRealtimeViewerCount(Math.max(0, detail.count || 0));
+      // livekitViewerCount reports remoteParticipants only. Every mounted party
+      // client also has the local participant, so +1 gives the actual room total
+      // for host and viewers alike.
+      setRealtimeViewerCount(Math.max(0, (detail.count || 0) + (currentUserId ? 1 : 0)));
     };
     window.addEventListener('livekit-party-event', handlePartyEvent);
     window.addEventListener('livekit-viewer-count', handleViewerCount);
@@ -808,7 +818,7 @@ export function UnifiedPartyRoom({
       window.removeEventListener('livekit-party-event', handlePartyEvent);
       window.removeEventListener('livekit-viewer-count', handleViewerCount);
     };
-  }, [roomId, fetchRealtimeViewers]);
+  }, [roomId, currentUserId, fetchRealtimeViewers]);
   
   // Re-fetch viewers when hostInfo changes (to properly filter)
   useEffect(() => {

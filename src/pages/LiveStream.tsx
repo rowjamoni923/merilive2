@@ -418,10 +418,58 @@ const LiveStream = () => {
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+  const activeViewerIdsHydratedRef = useRef(false);
+  const sessionAccessTokenRef = useRef<string | null>(null);
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
   const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(() => {
+    activeViewerIdsRef.current = new Set();
+    activeViewerIdsHydratedRef.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) sessionAccessTokenRef.current = data.session?.access_token ?? null;
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      sessionAccessTokenRef.current = session?.access_token ?? null;
+    });
+    return () => {
+      cancelled = true;
+      data.subscription.unsubscribe();
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || !currentUserId || isHost) return;
+    const sendViewerLeave = () => {
+      const accessToken = sessionAccessTokenRef.current;
+      if (!accessToken) return;
+      try {
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/leave_live_stream_viewer`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ p_stream_id: id }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch { /* ignore unload failures */ }
+    };
+    window.addEventListener('pagehide', sendViewerLeave);
+    window.addEventListener('beforeunload', sendViewerLeave);
+    return () => {
+      window.removeEventListener('pagehide', sendViewerLeave);
+      window.removeEventListener('beforeunload', sendViewerLeave);
+    };
+  }, [id, currentUserId, isHost]);
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
@@ -896,7 +944,7 @@ const LiveStream = () => {
 
           // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
           activeViewerIdsRef.current.add(currentUserId);
-          setViewerCount(activeViewerIdsRef.current.size);
+          setViewerCount(prev => Math.max(prev, activeViewerIdsRef.current.size));
 
           // Reliable server-side join (no silent fail) + exact count sync
           void supabase
@@ -1164,7 +1212,7 @@ const LiveStream = () => {
         
         // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
-          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id)
+          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id).is('left_at', null)
             .then(({ count }) => {
               if (count !== null) setViewerCount(count);
             });
@@ -1359,7 +1407,7 @@ const LiveStream = () => {
       if (p.type === 'viewer_left') {
         // LiveKit ParticipantDisconnected — translated locally on every client.
         activeViewerIdsRef.current.delete(p.userId);
-        setViewerCount(activeViewerIdsRef.current.size);
+        setViewerCount(prev => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(0, prev - 1));
         setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== p.userId));
         return;
       }
@@ -1374,7 +1422,7 @@ const LiveStream = () => {
 
       // 1. INSTANT viewer count + avatar list patch
       activeViewerIdsRef.current.add(p.userId);
-      setViewerCount(activeViewerIdsRef.current.size);
+      setViewerCount(prev => Math.max(prev, activeViewerIdsRef.current.size));
       setRecentViewerAvatars((prev) => [
         {
           id: p.userId,
@@ -1489,12 +1537,7 @@ const LiveStream = () => {
       const detail = (evt as CustomEvent).detail || {};
       if (detail.streamId !== id) return;
       const lkCount: number = typeof detail.count === 'number' ? detail.count : 0;
-      if (isHost) {
-        setViewerCount(Math.max(0, lkCount));
-      } else {
-        const adjusted = Math.max(0, lkCount - 1) + 1;
-        setViewerCount(adjusted);
-      }
+      setViewerCount(Math.max(0, lkCount));
     };
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
 
@@ -1677,6 +1720,7 @@ const LiveStream = () => {
 
       if (mountedRef.current) {
         activeViewerIdsRef.current = new Set(viewerIds);
+        activeViewerIdsHydratedRef.current = true;
         setRecentViewerAvatars(avatars);
 
         if (typeof count === 'number') {
@@ -1856,7 +1900,7 @@ const LiveStream = () => {
       if (connectionInitiated.current) {
         leaveChannel();
         connectionInitiated.current = false;
-        if (id) {
+        if (!wasHost && id) {
             supabase
               .rpc('leave_live_stream_viewer', { p_stream_id: id })
               .then(({ error }) => {

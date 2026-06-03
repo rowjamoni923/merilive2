@@ -266,6 +266,11 @@ Deno.serve(async (req) => {
       identity,
       name: participantName,
       ttl: TTL_SECONDS,
+      metadata: JSON.stringify({
+        appRole: roomType === "host_stream" ? "host" : "viewer",
+        roomType,
+        hidden: hide,
+      }),
     });
     at.addGrant({
       room: roomName,

@@ -47,14 +47,23 @@ function dispatch(streamId: string, count: number) {
   );
 }
 
-function currentCount(room: Room): number {
-  // remoteParticipants does not include the local participant. For the host,
-  // every remote is a viewer (viewers are subscribe-only / hidden). For a
-  // viewer, this includes the host + other viewers — slightly inflated, but
-  // LiveStream.tsx merges via Math.max with the Supabase truth so the displayed
-  // value never under-counts.
+function isRemoteHost(participant: unknown): boolean {
+  const raw = (participant as { metadata?: string | null } | null)?.metadata;
+  if (!raw) return false;
   try {
-    return room.remoteParticipants?.size ?? 0;
+    const meta = JSON.parse(raw);
+    return meta?.appRole === 'host' || meta?.roomType === 'host_stream';
+  } catch {
+    return false;
+  }
+}
+
+function currentCount(room: Room): number {
+  // remoteParticipants does not include the local participant. Count only
+  // non-host remotes so PK/co-host rooms don't add the other host(s) to the
+  // viewer badge. Callers that need a total people count add the local user.
+  try {
+    return Array.from(room.remoteParticipants?.values?.() ?? []).filter((p) => !isRemoteHost(p)).length;
   } catch {
     return 0;
   }

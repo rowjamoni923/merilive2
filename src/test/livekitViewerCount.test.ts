@@ -34,6 +34,8 @@ function makeFakeRoom(initialCount = 0) {
   return room;
 }
 
+const hostMeta = { metadata: JSON.stringify({ appRole: 'host', roomType: 'host_stream' }) };
+
 describe('Pkg77 livekitViewerCount', () => {
   beforeEach(() => {
     __resetViewerCountRegistryForTests();
@@ -115,5 +117,12 @@ describe('Pkg77 livekitViewerCount', () => {
     expect(() => registerViewerCountRoom(null, null)).not.toThrow();
     expect(() => unregisterViewerCountRoom(null)).not.toThrow();
     expect(getLiveKitViewerCount(undefined)).toBe(0);
+  });
+
+  it('excludes host metadata so PK/co-host rooms do not over-count viewers', () => {
+    const room = makeFakeRoom(2);
+    room.remoteParticipants.set('host-2', hostMeta);
+    registerViewerCountRoom('pk', room as never);
+    expect(getLiveKitViewerCount('pk')).toBe(2);
   });
 });

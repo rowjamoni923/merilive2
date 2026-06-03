@@ -910,6 +910,20 @@ const PartyRoom = () => {
 
         console.log('[PartyRoom] 🟣 ⚡ Pkg80 livekit participant_joined:', data.userName);
 
+        setParticipants(prev => prev.some(p => p.user_id === data.userId)
+          ? prev
+          : [...prev, {
+              id: `livekit-${data.userId}`,
+              user_id: data.userId,
+              role: 'audience',
+              position: null,
+              user: {
+                id: data.userId,
+                display_name: data.userName,
+                avatar_url: data.userAvatar || null,
+                user_level: data.userLevel,
+              },
+            }]);
         fetchParticipants();
         addBigoJoinNotification({
           userId: data.userId,
@@ -987,7 +1001,9 @@ const PartyRoom = () => {
       // postgres_changes. Just refresh participants list — DB state is
       // already reconciled by the leaving client's leaveRoom RPC.
       if (payload.type === 'participant_left') {
-        console.log('[PartyRoom] 🟣 ⚡ Pkg81b livekit participant_left:', (payload as any).userId);
+        const userId = (payload as any).userId;
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81b livekit participant_left:', userId);
+        if (userId) setParticipants(prev => prev.filter(p => p.user_id !== userId));
         fetchParticipants();
         return;
       }
