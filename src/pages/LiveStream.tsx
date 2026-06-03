@@ -370,6 +370,29 @@ const LiveStream = () => {
     addNotification: addBigoJoinNotification, 
     completeNotification: completeBigoJoin 
   } = useBigoJoinNotifications();
+  const [liveJoinNotifications, setLiveJoinNotifications] = useState<JoinNotification[]>([]);
+
+  useEffect(() => {
+    if (liveJoinNotifications.length === 0) return;
+    const timer = window.setInterval(() => {
+      const now = Date.now();
+      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 3500));
+    }, 300);
+    return () => window.clearInterval(timer);
+  }, [liveJoinNotifications.length]);
+
+  const addLiveJoinNotification = useCallback((notification: Omit<JoinNotification, 'id' | 'timestamp'>) => {
+    const now = Date.now();
+    const next: JoinNotification = {
+      ...notification,
+      id: `live_join_${notification.userId}_${now}`,
+      timestamp: now,
+    };
+    setLiveJoinNotifications((prev) => {
+      const withoutRecentDuplicate = prev.filter((n) => n.userId !== notification.userId || now - n.timestamp > 1200);
+      return [...withoutRecentDuplicate.slice(-5), next];
+    });
+  }, []);
   
   // Sound hook
   const { playSound } = useSound();
