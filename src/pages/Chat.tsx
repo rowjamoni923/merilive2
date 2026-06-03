@@ -1321,7 +1321,11 @@ const Chat = () => {
         other_user: conv.other_user,
         last_message: cleanGiftMessageForPreview(conv.last_message || ''),
         unread_count: conv.unread_count || 0
-      }));
+      })).sort((a, b) => {
+        const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return bTime - aTime;
+      });
 
       setConversations(formattedConversations);
     } catch (err) {
@@ -1581,7 +1585,9 @@ const Chat = () => {
           _optimistic: true,
         }) as any)
       : [];
-    setMessages([...serverMsgs, ...queued]);
+    setMessages([...serverMsgs, ...queued].sort((a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    ));
 
     // Fetch reply-to messages for quote rendering
     const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
