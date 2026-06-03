@@ -71,6 +71,11 @@ export default defineConfig(({ mode }) => ({
         open: false,
       }),
   ].filter(Boolean),
+  define: {
+    __ANDROID_VERSION_NAME__: JSON.stringify(ANDROID_VERSION.name),
+    __ANDROID_VERSION_CODE__: JSON.stringify(ANDROID_VERSION.code),
+  },
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
