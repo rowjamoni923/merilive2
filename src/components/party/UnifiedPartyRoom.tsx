@@ -818,7 +818,7 @@ export function UnifiedPartyRoom({
       window.removeEventListener('livekit-party-event', handlePartyEvent);
       window.removeEventListener('livekit-viewer-count', handleViewerCount);
     };
-  }, [roomId, fetchRealtimeViewers]);
+  }, [roomId, currentUserId, fetchRealtimeViewers]);
   
   // Re-fetch viewers when hostInfo changes (to properly filter)
   useEffect(() => {
