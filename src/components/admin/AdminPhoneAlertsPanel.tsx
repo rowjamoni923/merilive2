@@ -9,6 +9,8 @@ import { adminSupabase as supabase } from '@/integrations/supabase/adminClient';
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from '@/hooks/useAdminRealtime';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { playSoundUrl } from '@/utils/soundPlayer';
+
 
 interface PhoneAlert {
   id: string;
