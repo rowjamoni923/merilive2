@@ -543,7 +543,7 @@ export default function AdminLiveKitRooms() {
                                   className="flex flex-wrap items-center gap-2"
                                 >
                                   {isVideo ? (
-                                    <Video className="w-3 h-3 text-sky-400 shrink-0" />
+                                    <Camera className="w-3 h-3 text-sky-400 shrink-0" />
                                   ) : (
                                     <Mic className="w-3 h-3 text-emerald-400 shrink-0" />
                                   )}

@@ -383,7 +383,7 @@ export default function AdminBranding() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Video className="w-5 h-5" />
+                <Camera className="w-5 h-5" />
                 Background Settings
               </CardTitle>
               <CardDescription>
@@ -414,7 +414,7 @@ export default function AdminBranding() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="video" id="bg-video" />
                     <Label htmlFor="bg-video" className="flex items-center gap-1 cursor-pointer">
-                      <Video className="w-4 h-4" /> Video
+                      <Camera className="w-4 h-4" /> Video
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">

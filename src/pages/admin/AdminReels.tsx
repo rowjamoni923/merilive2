@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Video, Trash2, Eye, EyeOff, Star, StarOff, Search, Filter, Play, User, Calendar, Heart, MessageCircle, Share2, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { Camera, Trash2, Eye, EyeOff, Star, StarOff, Search, Filter, Play, User, Calendar, Heart, MessageCircle, Share2, RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -317,7 +317,7 @@ const AdminReels = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Video className="w-6 h-6 text-pink-500" />
+            <Camera className="w-6 h-6 text-pink-500" />
             Reels Management
           </h1>
           <p className="text-muted-foreground">Manage user uploaded reels and categories</p>
@@ -422,7 +422,7 @@ const AdminReels = () => {
                         className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Video className="w-8 h-8 text-muted-foreground" />
+                        <Camera className="w-8 h-8 text-muted-foreground" />
                       </div>
                     )}
                     
@@ -656,7 +656,7 @@ const AdminReels = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Video Preview Dialog */}
+      {/* Camera Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="sm:max-w-lg p-0 bg-black">
           <DialogHeader className="p-4">

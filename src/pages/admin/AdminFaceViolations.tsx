@@ -221,7 +221,7 @@ const AdminFaceViolations = () => {
                         {format(new Date(v.created_at), 'dd MMM yyyy, hh:mm a')}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Video className="w-3 h-3" />
+                        <Camera className="w-3 h-3" />
                         {v.violation_type === 'no_face' ? 'No Face' : v.violation_type === 'dark_camera' ? 'Dark Camera' : v.violation_type}
                       </span>
                     </div>

@@ -611,7 +611,7 @@ export default function AdminHostApplications() {
                         )}
                         {app.video_url && (
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px]">
-                            <Video className="w-2.5 h-2.5" />Video
+                            <Camera className="w-2.5 h-2.5" />Video
                           </span>
                         )}
                         {app.host_photos && app.host_photos.length > 0 && (

@@ -102,7 +102,7 @@ interface PenaltyTier {
 
 const sourceTypeIcons: Record<string, React.ReactNode> = {
   chat: <MessageSquare className="w-4 h-4" />,
-  live_stream: <Video className="w-4 h-4" />,
+  live_stream: <Camera className="w-4 h-4" />,
   private_call: <PhoneCall className="w-4 h-4" />,
   private_message: <MessageSquare className="w-4 h-4" />,
 };

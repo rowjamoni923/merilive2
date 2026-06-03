@@ -2408,7 +2408,7 @@ export default function AdminLayout() {
       case 'agency_host_added':
         return <Building2 className="w-4 h-4 text-indigo-500" />;
       case 'live_started':
-        return <Video className="w-4 h-4 text-red-500" />;
+        return <Camera className="w-4 h-4 text-red-500" />;
       case 'party_invite':
       case 'room_joined':
         return <PartyPopper className="w-4 h-4 text-pink-500" />;

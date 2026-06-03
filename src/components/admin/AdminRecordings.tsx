@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Film, Play, Clock, User, Search, Download, Calendar, Video, Gift, Diamond, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Film, Play, Clock, User, Search, Download, Calendar, Camera, Gift, Diamond, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -252,7 +252,7 @@ export default function AdminRecordings() {
             <p className="font-bold text-pink-500">{day.totalGifts}</p>
           </div>
           <div className="sm:hidden flex items-center gap-2 text-xs text-slate-500">
-            <Video className="w-3 h-3" />{day.totalStreams}
+            <Camera className="w-3 h-3" />{day.totalStreams}
             <Clock className="w-3 h-3 ml-1" />{formatDuration(day.totalDuration)}
           </div>
           {expandedDays.has(day.date) ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -274,7 +274,7 @@ export default function AdminRecordings() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                        <Video className="w-4 h-4 text-slate-400" />
+                        <Camera className="w-4 h-4 text-slate-400" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -422,7 +422,7 @@ export default function AdminRecordings() {
         )
       )}
 
-      {/* Video Player Dialog */}
+      {/* Camera Player Dialog */}
       <Dialog open={!!playingUrl} onOpenChange={() => setPlayingUrl(null)}>
         <DialogContent className="max-w-4xl w-[95vw] p-0 bg-black border-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2">

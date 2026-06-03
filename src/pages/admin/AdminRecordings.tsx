@@ -372,7 +372,7 @@ export default function AdminRecordings() {
                           className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Video className="w-10 h-10 text-slate-600" />
+                          <Camera className="w-10 h-10 text-slate-600" />
                         </div>
                       )}
                       {isRecordingPlayable(recording) && (

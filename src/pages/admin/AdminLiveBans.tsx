@@ -433,7 +433,7 @@ export default function AdminLiveBans() {
           <Card className="bg-gradient-to-br from-purple-500/10 to-violet-500/10 border-purple-500/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <Video className="w-8 h-8 text-purple-500" />
+                <Camera className="w-8 h-8 text-purple-500" />
                 <div>
                   <p className="text-2xl font-bold">{stats.total.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Total Bans</p>

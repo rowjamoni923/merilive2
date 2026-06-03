@@ -359,7 +359,7 @@ export default function AdminReports() {
         <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Video className="w-5 h-5 text-red-400" />
+              <Camera className="w-5 h-5 text-red-400" />
               Live Streams
             </CardTitle>
           </CardHeader>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Video } from "lucide-react";
+import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Camera } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl, tryResolvePublicAdminStorageUrlSync } from "@/utils/adminStorageImages";
@@ -253,7 +253,7 @@ export function AdminMediaFrame({
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
         <p className="text-sm font-medium text-foreground">
-          {effectiveMediaKind === "video" ? "Video could not be played." : "Media could not be loaded."}
+          {effectiveMediaKind === "video" ? "Camera could not be played." : "Media could not be loaded."}
         </p>
         {failReason && <p className="text-[11px] text-muted-foreground">{failReason}</p>}
         {effectiveMediaKind === "video" && (videoDuration > 0 || videoTime > 0) && (
@@ -354,7 +354,7 @@ export function AdminMediaDialog({ open, src, title = "Media Preview", kind = "a
       <DialogContent className="w-[calc(100vw-24px)] max-w-5xl border-border bg-background/95 p-2 text-foreground">
         <DialogHeader className="px-2 pb-2">
           <DialogTitle className="flex items-center gap-2 text-sm">
-            {mediaKind === "video" ? <Video className="h-4 w-4 text-primary" /> : <ImageIcon className="h-4 w-4 text-primary" />}
+            {mediaKind === "video" ? <Camera className="h-4 w-4 text-primary" /> : <ImageIcon className="h-4 w-4 text-primary" />}
             {title}
           </DialogTitle>
         </DialogHeader>

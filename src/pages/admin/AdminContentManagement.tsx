@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Video, Film, Play, Image, FileText } from "lucide-react";
+import { Camera, Film, Play, Image, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,7 @@ export default function AdminContentManagement() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-pink-500">
-            <Video className="w-6 h-6 text-white" />
+            <Camera className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Content Management</h1>
@@ -74,7 +74,7 @@ export default function AdminContentManagement() {
         <Card className="bg-slate-900/50 border-slate-800">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/20">
-              <Video className="w-5 h-5 text-red-400" />
+              <Camera className="w-5 h-5 text-red-400" />
             </div>
             <div>
               <p className="text-slate-400 text-xs">Live Streams</p>
@@ -127,7 +127,7 @@ export default function AdminContentManagement() {
             value="streams" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white gap-2"
           >
-            <Video className="w-4 h-4" />
+            <Camera className="w-4 h-4" />
             Live Streams
             {stats.activeStreams > 0 && (
               <Badge className="bg-red-500/30 text-red-300 ml-1">{stats.activeStreams}</Badge>
@@ -170,7 +170,7 @@ export default function AdminContentManagement() {
           <Card className="bg-slate-900/30 border-slate-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
-                <Video className="w-5 h-5 text-red-400" />
+                <Camera className="w-5 h-5 text-red-400" />
                 Live Streams
                 <Badge variant="outline" className="ml-2 text-red-400 border-red-500/50">
                   Moderation

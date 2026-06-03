@@ -504,7 +504,7 @@ export default function AdminStreams() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <Video className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               Live Stream Monitoring
             </h1>
             <p className="text-white/80 text-xs sm:text-sm mt-1">Real-time stream observation & recordings</p>
@@ -612,7 +612,7 @@ export default function AdminStreams() {
           ) : filteredStreams.length === 0 ? (
             <Card className="bg-white border-slate-200 shadow-lg">
               <CardContent className="p-8 sm:p-12 text-center">
-                <Video className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <Camera className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No streams found</p>
               </CardContent>
             </Card>
@@ -631,7 +631,7 @@ export default function AdminStreams() {
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Video className="w-12 h-12 text-slate-300" />
+                          <Camera className="w-12 h-12 text-slate-300" />
                         </div>
                       )}
                       {stream.is_active && (
