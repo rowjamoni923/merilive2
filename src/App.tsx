@@ -1149,6 +1149,11 @@ const App = () => {
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
+          {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
+              tells every <motion.*> in the app to skip transform/opacity transitions
+              and snap to final values. Falls back to `"user"` (honour OS setting) on
+              capable devices so animations remain rich. */}
+          <MotionConfig reducedMotion={isLowEndDevice() ? "always" : "user"}>
           <TooltipProvider>
             <Toaster />
             <SonnerToaster />
