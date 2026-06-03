@@ -44,6 +44,12 @@ const getBestStoredAdminSession = (): AdminSession | null => {
   return sessionSession || localSession;
 };
 
+const isAdminAuthRoute = (): boolean => {
+  if (!hasWindow()) return false;
+  const path = window.location.pathname;
+  return path === '/admin/auth' || path === '/admin/login';
+};
+
 export interface AdminSession {
   version: string;
   admin_id: string;
@@ -74,9 +80,14 @@ export const getAdminSessionToken = (): string => {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
       return parsed.session_token;
     }
-    // No valid session blob means no trustworthy admin identity. Do not send a
-    // leftover token key: that is exactly what caused global P0001 RPC failures
-    // across admin pages after token/session drift.
+    // During admin login / device approval, the server issues a temporary token
+    // before the final session blob is saved. Allow that only on auth routes.
+    // On real admin pages, never send a leftover token key: that stale-token drift
+    // is what caused global P0001 RPC failures across every page.
+    if (isAdminAuthRoute()) {
+      const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+      if (direct && direct.length >= 16) return direct;
+    }
     return '';
   } catch {
     return '';
