@@ -215,7 +215,7 @@ const LandingPage = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-pink-500 to-rose-400" />
             </span>
-            <span className="text-sm font-semibold bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+            <span className="text-sm font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               #1 Live Streaming Platform
             </span>
           </motion.div>
@@ -242,7 +242,7 @@ const LandingPage = () => {
             <span className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-500 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(15,23,42,0.06)]">
               Meri
             </span>
-            <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(236,72,153,0.3)]">
+            <span className="bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(236,72,153,0.3)]">
               Live
             </span>
           </motion.h1>
@@ -275,7 +275,7 @@ const LandingPage = () => {
             <Button
               onClick={openAgencyList}
               size="lg"
- className="h-16 px-12 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-slate-900 font-extrabold rounded-2xl shadow-[0_8px_40px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_50px_rgba(245,158,11,0.5)] transition-all duration-300 text-lg group"
+ className="h-16 px-12 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-white font-extrabold rounded-2xl shadow-[0_8px_40px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_50px_rgba(245,158,11,0.5)] transition-all duration-300 text-lg group"
             >
               <Users className="w-6 h-6 mr-2.5 group-hover:scale-110 transition-transform" />
               Become a Host
@@ -305,7 +305,7 @@ const LandingPage = () => {
           >
             <button
               onClick={handleAPKDownload}
- className="text-xs text-slate-500 hover:text-slate-600 transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
+ className="text-xs text-slate-500 hover:text-slate-600 transition-colors underline underline-offset-4 decoration-slate-300 hover:decoration-slate-500"
             >
               Or download APK directly
             </button>
@@ -329,7 +329,7 @@ const LandingPage = () => {
                 {/* Glow effect */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500 rounded-2xl`} />
                 <div className={`w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
- <stat.icon className="w-5 h-5 text-slate-900" />
+ <stat.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-2xl font-black bg-gradient-to-b from-slate-900 to-slate-500 bg-clip-text text-transparent relative z-10">{stat.value}</div>
  <div className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold mt-1 relative z-10">{stat.label}</div>
@@ -502,7 +502,7 @@ const LandingPage = () => {
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-pink-600/50 mb-4 block">Features</span>
             <h2 className="text-4xl md:text-6xl font-black mb-5 tracking-tight">
               Everything in{" "}
-              <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent">One App</span>
+              <span className="bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 bg-clip-text text-transparent">One App</span>
             </h2>
  <p className="text-slate-500 max-w-lg mx-auto text-sm leading-relaxed">
               From live streaming to video calls, party rooms to virtual gifts — the complete entertainment platform
@@ -524,7 +524,7 @@ const LandingPage = () => {
                   {/* Background glow */}
                   <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${feature.gradient_colors} rounded-full blur-[60px] opacity-10 group-hover:opacity-25 transition-opacity duration-500`} />
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient_colors} flex items-center justify-center mb-5 shadow-xl shadow-black/20 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ring-1 ring-slate-200`}>
- <IconComp className="w-7 h-7 text-slate-900" />
+ <IconComp className="w-7 h-7 text-white" />
                   </div>
  <h3 className="text-lg font-bold mb-1.5 text-slate-900 relative z-10">{feature.title}</h3>
                   {feature.subtitle && <p className="text-xs text-pink-600/60 mb-2 relative z-10">{feature.subtitle}</p>}
@@ -560,7 +560,7 @@ const LandingPage = () => {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
-            Start Your <span className="bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Journey</span>
+            Start Your <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Journey</span>
           </h2>
  <p className="text-slate-500 mb-12 text-sm max-w-md mx-auto leading-relaxed">
             Download MeriLive and join a community of millions. Your audience is waiting.
