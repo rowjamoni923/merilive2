@@ -1388,18 +1388,18 @@ const PartyRoom = () => {
       
       console.log('[PartyRoom] 🔍 FRESH Profile equipped IDs:', { entranceId, nameBarId, vehicleId });
       
-      // Fetch user's equipped entrance animation - uses centralized function that checks ALL tables
-      const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl } = await fetchUserEntryAnimations(
+      const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl, rankCode } = await fetchUserEntryAnimations(
         entranceId,
         nameBarId,
         vehicleId,
-        userLevel
+        userLevel,
+        currentUser.id
       );
       
-      console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl });
+      console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
       
-      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl) {
-        console.log('[PartyRoom] 🚗 Self has equipped animation:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl });
+      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl || rankCode) {
+        console.log('[PartyRoom] 🚗 Self has equipped animation or rank:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
         // TRIGGER entry animation for SELF using UNIFIED system (like gifts)
         addEntryAnimation({
           userId: currentUser.id,
@@ -1410,6 +1410,7 @@ const PartyRoom = () => {
           entryNameBarUrl: selfNameBarUrl || undefined,
           vehicleAnimationUrl: selfVehicleUrl || undefined,
           soundUrl: selfEntranceSound || undefined,
+          rankCode: rankCode || undefined,
         });
       } else {
         console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
