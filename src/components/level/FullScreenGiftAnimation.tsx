@@ -111,20 +111,13 @@ const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
   _lastGiftSoundAt = nowMs;
 
   if (customSoundUrl) {
-    try {
-      const audio = new Audio(customSoundUrl);
-      audio.volume = 0.6;
-      audio.preload = 'auto';
-      const p = audio.play();
-      if (p && typeof (p as Promise<void>).then === 'function') {
-        await (p as Promise<void>);
-      }
-      return;
-    } catch (err) {
-      // Custom URL failed (404/autoplay-block/CORS) → fall through to synthetic chime
-      console.log('[GiftSound] Custom URL failed, fallback to synth:', err);
-    }
+    // Pkg422: central player — anti-GC, unlock-aware, limiter-bus.
+    // The 80ms throttle above prevents combo-stack crackle even before
+    // the per-URL concurrency cap kicks in.
+    playSoundUrl(customSoundUrl, { volume: 0.6, maxConcurrent: 2 });
+    return;
   }
+
 
   try {
     playSyntheticChime(coinValue);
