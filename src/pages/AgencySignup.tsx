@@ -277,12 +277,13 @@ const AgencySignup = () => {
 
   const isFormValid = formData.agencyName.trim() !== "" &&
     foundUser !== null &&
-    emailVerified &&
+    appVerified &&
+    (!formData.email.trim() || isValidEmail(formData.email)) &&
     (!formData.whatsapp.trim() || isValidWhatsApp(formData.whatsapp));
 
   const submitAgencyRegistration = async () => {
-    if (!emailVerified) {
-      toast({ title: "Email Verification Required", description: "Please verify your email first", variant: "destructive" });
+    if (!appVerified) {
+      toast({ title: "App OTP required", description: "Please verify the in-app OTP first", variant: "destructive" });
       return;
     }
 
