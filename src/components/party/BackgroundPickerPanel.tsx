@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
-import { Diamond3DIcon } from "@/components/icons/Diamond3DIcon";
+import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 
 interface Background {
   id: string;
