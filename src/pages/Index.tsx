@@ -374,11 +374,11 @@ const Index = () => {
       }, 300); // Reduced from 500ms to 300ms for near-instant feel
     };
 
-    // Pkg360 NO-AUTO-REFRESH: removed noisy 'profiles' and 'party_room_participants' tables.
-    // Feed status (LIVE/Busy) now updates via 'live_streams' and 'private_calls' only.
+    // Realtime push: LIVE via live_streams, Busy via private_calls, Online/Offline via profiles
+    // (heartbeat is_online + manual host_availability toggle). Debounced 300ms — push, not poll.
     const unsubscribe = subscribeToTables(
       `home-hosts-${Date.now()}`,
-      ["live_streams", "private_calls", "party_rooms"],
+      ["live_streams", "private_calls", "party_rooms", "profiles"],
       queueHomeInvalidate
     );
 
@@ -487,47 +487,75 @@ const Index = () => {
           {/* Lightweight gradient overlay - single layer */}
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
 
-          {/* Live Badge + Viewer Count */}
-          {user.isLive && (
-            <>
-              <div className="absolute top-2.5 left-2">
+          {/* Premium 3D Status Badge — LIVE (red) / BUSY (amber) / ONLINE (green) */}
+          {(() => {
+            const status: "live" | "busy" | "online" | null = user.isLive
+              ? "live"
+              : isActuallyBusy
+                ? "busy"
+                : user.is_online
+                  ? "online"
+                  : null;
+            if (!status) return null;
+
+            const cfg = {
+              live: {
+                label: "LIVE",
+                gradient: "linear-gradient(180deg,#ff5a6b 0%,#ef3344 55%,#b91222 100%)",
+                ring: "rgba(255,255,255,0.55)",
+                glow: "0 8px 18px -4px rgba(239,51,68,0.65), 0 0 0 1px rgba(185,18,34,0.35), inset 0 1.5px 0 rgba(255,255,255,0.55), inset 0 -1.5px 0 rgba(0,0,0,0.25)",
+                dot: "#ffffff",
+                pulse: true,
+              },
+              busy: {
+                label: "BUSY",
+                gradient: "linear-gradient(180deg,#fde68a 0%,#f59e0b 55%,#b45309 100%)",
+                ring: "rgba(255,255,255,0.6)",
+                glow: "0 8px 18px -4px rgba(245,158,11,0.6), 0 0 0 1px rgba(180,83,9,0.35), inset 0 1.5px 0 rgba(255,255,255,0.6), inset 0 -1.5px 0 rgba(120,53,15,0.3)",
+                dot: "#fffbeb",
+                pulse: false,
+              },
+              online: {
+                label: "ONLINE",
+                gradient: "linear-gradient(180deg,#86efac 0%,#22c55e 55%,#15803d 100%)",
+                ring: "rgba(255,255,255,0.6)",
+                glow: "0 8px 18px -4px rgba(34,197,94,0.6), 0 0 0 1px rgba(21,128,61,0.35), inset 0 1.5px 0 rgba(255,255,255,0.55), inset 0 -1.5px 0 rgba(20,83,45,0.3)",
+                dot: "#ffffff",
+                pulse: true,
+              },
+            }[status];
+
+            return (
+              <div className="absolute top-2.5 left-2 z-10">
                 <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary"
-                  style={{ boxShadow: '0 6px 14px -4px hsl(var(--danger) / 0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)' }}
+                  className="flex items-center gap-1.5 px-2.5 py-[5px] rounded-full"
+                  style={{ background: cfg.gradient, boxShadow: cfg.glow }}
                 >
-                  <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full animate-pulse" />
-                  <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
+                  <span
+                    className={cn("w-[6px] h-[6px] rounded-full", cfg.pulse && "animate-pulse")}
+                    style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}, inset 0 0 1px rgba(0,0,0,0.2)` }}
+                  />
+                  <span
+                    className="text-[10px] font-black tracking-[0.08em] text-white"
+                    style={{ textShadow: "0 1px 0 rgba(0,0,0,0.35), 0 0 6px rgba(255,255,255,0.25)" }}
+                  >
+                    {cfg.label}
+                  </span>
                 </div>
               </div>
-              {/* Viewer Count */}
-              {(user.viewerCount ?? 0) > 0 && (
-                <div className="absolute top-2.5 right-2">
-                  <div
-                    className="flex items-center gap-1 bg-foreground/65 backdrop-blur-md rounded-full px-2 py-1"
-                    style={{ boxShadow: '0 3px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)' }}
-                  >
-                    <Eye className="w-3 h-3 text-on-dark" />
-                    <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+            );
+          })()}
 
-          {/* Online / Busy Indicator - subtle dot only, no text (industry standard) */}
-          {!user.isLive && user.is_online && (
-            <div className="absolute top-2.5 left-2">
+          {/* Live viewer count */}
+          {user.isLive && (user.viewerCount ?? 0) > 0 && (
+            <div className="absolute top-2.5 right-2">
               <div
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/90",
-                  isActuallyBusy ? "bg-warning" : "bg-success animate-pulse"
-                )}
-                style={{
-                  boxShadow: isActuallyBusy
-                    ? '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--warning) / 0.6)'
-                    : '0 0 0 1px rgba(0,0,0,0.05), 0 2px 6px hsl(var(--success) / 0.65)'
-                }}
-              />
+                className="flex items-center gap-1 bg-foreground/65 backdrop-blur-md rounded-full px-2 py-1"
+                style={{ boxShadow: '0 3px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)' }}
+              >
+                <Eye className="w-3 h-3 text-on-dark" />
+                <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
+              </div>
             </div>
           )}
 
