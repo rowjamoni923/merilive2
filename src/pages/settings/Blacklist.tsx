@@ -161,7 +161,7 @@ const Blacklist = () => {
         </div>
       ) : (
         <div className="divide-y">
-          {blockedUsers.map((blocked) => (
+          {(blockedUsers ?? []).map((blocked) => (
             <div
               key={blocked.id}
               className="flex items-center justify-between px-4 py-3"
