@@ -725,7 +725,7 @@ export function ActiveCallScreen({
               </div>
 
               {/* Remote user avatar mini */}
-              <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-white/30"
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden border-2 border-white/30"
                 style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
               >
                 {remoteUserAvatar ? (
