@@ -41,15 +41,23 @@ interface HelperTier {
 
 const Agency = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>([]);
-  const [helperTiers, setHelperTiers] = useState<HelperTier[]>([]);
+  // Pkg420: read last-known tiers from localStorage on mount so the page
+  // renders instantly without a spinner on every visit. Background refresh
+  // still runs in the useEffect below.
+  const [commissionTiers, setCommissionTiers, hadCommissionCache] =
+    usePersistedCache<CommissionTier[]>("agency:commission-tiers", []);
+  const [helperTiers, setHelperTiers, hadHelperCache] =
+    usePersistedCache<HelperTier[]>("agency:helper-tiers", []);
+  const [loading, setLoading] = useState(!(hadCommissionCache && hadHelperCache));
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchData = async () => {
-      setLoading(true);
+      // Only show spinner on cold cache; otherwise refresh silently.
+      if (!(commissionTiers && commissionTiers.length && helperTiers && helperTiers.length)) {
+        setLoading(true);
+      }
       try {
         const user = await getCachedUser();
         if (user) {
