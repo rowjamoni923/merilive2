@@ -161,19 +161,20 @@ export const ProfessionalChatMessage = ({
     );
   }
 
-  // Regular chat message with level badge
+  // Regular chat message with level badge — wrapped in glass chip for
+  // premium readability over live video / party scene / call background.
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-start gap-1 py-0.5"
+      className="flex flex-wrap items-center gap-1 py-0.5 px-2.5 rounded-2xl bg-black/35 backdrop-blur-md border border-white/10 shadow-[0_1px_6px_rgba(0,0,0,0.35)] w-fit max-w-full"
     >
       {/* Level Badge */}
       <InlineLevelBadge level={userLevel} />
       
       {/* Host Badge */}
       {isHost && (
-        <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white">
+        <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-[0_1px_3px_rgba(244,63,94,0.5)]">
           Host
         </span>
       )}
@@ -196,21 +197,21 @@ export const ProfessionalChatMessage = ({
       {/* User Name */}
       <span 
         className={cn(
-          "font-semibold text-xs",
-          isHost ? "text-pink-400" : 
+          "font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]",
+          isHost ? "text-pink-300" : 
           isVIP && vipTier >= 3 ? "text-cyan-300" :
           isVIP ? "text-amber-300" :
           userLevel >= 30 ? "text-amber-300" :
           userLevel >= 20 ? "text-purple-300" :
           userLevel >= 10 ? "text-cyan-300" :
-          "text-white/80"
+          "text-white/90"
         )}
       >
         {userName}:
       </span>
       
       {/* Message */}
-      <span className="text-white/90 text-xs break-words">{message}</span>
+      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">{message}</span>
     </motion.div>
   );
 };
