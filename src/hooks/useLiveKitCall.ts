@@ -149,6 +149,13 @@ export function useLiveKitCall(
       if (s === 'started') {
         window.dispatchEvent(new Event('beauty:reapply'));
         setState(p => ({ ...p, localMediaReady: true, isVideoEnabled: true }));
+        // Pkg423 — defense-in-depth: re-attach every remote TextureView after
+        // the local camera (re)starts. If the other party was already in the
+        // room before our event listeners registered, the `track-subscribed`
+        // event may have fired before useNativeLiveKitEvents was wired —
+        // without this sweep the remote video stays black on native Android.
+        // Mirrors useLiveKitClient.ts:266.
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
@@ -378,6 +385,16 @@ export function useLiveKitCall(
               isVideoEnabled: true,
             }));
             console.log('[LiveKitCall/Native] ✅ Connected');
+            // Pkg423 — defense-in-depth: initial remote attach sweep after
+            // connectAndPublish resolves. Covers the case where the peer was
+            // already in the room and their track-subscribed event fired
+            // before useNativeLiveKitEvents wired its listeners. Repeat at
+            // 80/250/600 ms because native participant/track events can be
+            // delivered slightly after `connect()` resolves.
+            nativeLiveKitController.attachAllRemotes().catch(() => {});
+            setTimeout(() => { if (!deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 80);
+            setTimeout(() => { if (!deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 250);
+            setTimeout(() => { if (!deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 600);
             return;
           } catch (nativeErr) {
             console.error('[LiveKitCall/Native] init failed after retry, falling back to web:', nativeErr);
