@@ -50,6 +50,7 @@ interface PartyWebRTCState {
   isConnected: boolean;
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
+  connectionState: ConnectionState;
 }
 
 const isVideoPartyType = (roomType: 'video' | 'audio' | 'game') => roomType === 'video' || roomType === 'game';
@@ -90,7 +91,7 @@ export function usePartyRoomWebRTC(
     isConnected: false,
     isAudioEnabled: true,
     isVideoEnabled: true, // Auto-enable camera by default for 100% video experience
-
+    connectionState: ConnectionState.Disconnected,
   });
   const [restartNonce, setRestartNonce] = useState(0);
 
@@ -210,6 +211,7 @@ export function usePartyRoomWebRTC(
       isConnected: false,
       isAudioEnabled: true,
       isVideoEnabled: true,
+      connectionState: ConnectionState.Disconnected,
     });
   }, [roomId]);
 
@@ -558,14 +560,18 @@ export function usePartyRoomWebRTC(
         }));
         });
 
-        room.on(RoomEvent.ConnectionStateChanged, (connectionState: ConnectionState) => {
-          if (connectionState === ConnectionState.Connected) {
+        room.on(RoomEvent.ConnectionStateChanged, (cState: ConnectionState) => {
+          if (cState === ConnectionState.Connected) {
             if (reconnectTimerRef.current) {
               clearTimeout(reconnectTimerRef.current);
               reconnectTimerRef.current = null;
             }
-            setState(prev => ({ ...prev, isConnected: true }));
           }
+          setState(prev => ({ 
+            ...prev, 
+            isConnected: cState === ConnectionState.Connected,
+            connectionState: cState 
+          }));
         });
 
         room.on(RoomEvent.Disconnected, () => {
