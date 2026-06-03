@@ -4,9 +4,10 @@
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-// Served from /public so it bypasses any stale service-worker cache or
-// private storage bucket and is always reachable as a same-origin asset.
-const appLogo = '/app-logo.png?v=3';
+// Bundled via Vite so the splash logo is hashed, fingerprinted, and served
+// from the same chunk pipeline as the rest of the app — never broken by a
+// stale service worker, missing /public file, or query-string cache bust.
+import appLogo from '@/assets/app-logo.png';
 import { APP_VERSION } from '@/lib/version';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -116,6 +117,17 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
                 alt="MeriLive"
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
+                onError={(e) => {
+                  // Last-resort fallback: if the bundled chunk somehow 404s
+                  // (offline cache miss, corrupted SW), fall back to the
+                  // /public copy. Either way the user always sees the logo.
+                  const img = e.currentTarget;
+                  if (!img.dataset.fallback) {
+                    img.dataset.fallback = '1';
+                    img.src = '/app-logo.png';
+                  }
+                }}
                 className="absolute inset-0 block h-full w-full object-cover"
                 style={{ objectPosition: 'center center' }}/>
             </div>
