@@ -722,9 +722,9 @@ function CampaignFloatingButton() {
                 setCampaign(null);
                 setRemainingSeconds(0);
               }}
-              className="absolute -top-3 -right-2 z-30 w-6 h-6 rounded-full flex items-center justify-center bg-black/70 backdrop-blur border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] active:scale-90 transition-transform"
+              className="absolute -top-3 -left-2 z-30 w-5 h-5 rounded-full flex items-center justify-center bg-black/70 backdrop-blur border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] active:scale-90 transition-transform"
             >
-              <X className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+              <X className="w-3 h-3 text-white" strokeWidth={3} />
             </button>
 
             {/* Countdown pill */}
