@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { getEquippedPrivilegesForUser } from "@/hooks/useUserPrivileges";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl, playSynthSequence } from "@/utils/soundPlayer";
+
 interface UserInfo {
   displayName: string;
   avatarUrl?: string;
