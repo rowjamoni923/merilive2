@@ -370,6 +370,29 @@ const LiveStream = () => {
     addNotification: addBigoJoinNotification, 
     completeNotification: completeBigoJoin 
   } = useBigoJoinNotifications();
+  const [liveJoinNotifications, setLiveJoinNotifications] = useState<JoinNotification[]>([]);
+
+  useEffect(() => {
+    if (liveJoinNotifications.length === 0) return;
+    const timer = window.setInterval(() => {
+      const now = Date.now();
+      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 3500));
+    }, 300);
+    return () => window.clearInterval(timer);
+  }, [liveJoinNotifications.length]);
+
+  const addLiveJoinNotification = useCallback((notification: Omit<JoinNotification, 'id' | 'timestamp'>) => {
+    const now = Date.now();
+    const next: JoinNotification = {
+      ...notification,
+      id: `live_join_${notification.userId}_${now}`,
+      timestamp: now,
+    };
+    setLiveJoinNotifications((prev) => {
+      const withoutRecentDuplicate = prev.filter((n) => n.userId !== notification.userId || now - n.timestamp > 1200);
+      return [...withoutRecentDuplicate.slice(-5), next];
+    });
+  }, []);
   
   // Sound hook
   const { playSound } = useSound();
@@ -1173,8 +1196,9 @@ const LiveStream = () => {
                 ...prev.filter((v: any) => v.id !== uid),
               ].slice(0, 5));
               addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
+              addLiveJoinNotification({ userId: uid, userName, userAvatar, userLevel });
               setMessages((prev) => {
-                if (prev.some((m) => m.id.includes(`join_${uid}`) && Date.now() - parseInt(m.id.split('_')[2] || '0') < 5000)) return prev;
+                if (prev.some((m) => m.id.startsWith(`join_${uid}_`) && Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000)) return prev;
                 return [...prev, {
                   id: `join_${uid}_${Date.now()}`,
                   user: userName,
@@ -1369,13 +1393,19 @@ const LiveStream = () => {
         userAvatar: p.userAvatar || undefined,
         userLevel: p.userLevel,
       });
+      addLiveJoinNotification({
+        userId: p.userId,
+        userName: p.userName,
+        userAvatar: p.userAvatar || undefined,
+        userLevel: p.userLevel,
+      });
 
       // 3. INSTANT chat message (dedup within 5s window)
       setMessages((prev) => {
         const hasJoinMessage = prev.some(
           (m) =>
-            m.id.includes(`join_${p.userId}`) &&
-            Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000,
+            m.id.startsWith(`join_${p.userId}_`) &&
+            Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000,
         );
         if (hasJoinMessage) return prev;
         return [
@@ -3391,7 +3421,7 @@ const LiveStream = () => {
           {/* All messages are PUBLIC and visible to everyone */}
           <RoomChatOverlay 
             messages={messages}
-            joinNotifications={[]}
+            joinNotifications={liveJoinNotifications}
             maxMessages={20}
             maxHeight="35vh"
             showWelcome={true}
