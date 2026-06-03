@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Lottie from "lottie-react";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 interface Sticker {
   id: string;
