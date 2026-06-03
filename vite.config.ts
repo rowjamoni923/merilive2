@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // Auto-convert all bundled raster images (PNG/JPG/JPEG) to WebP @ q=78 with
 // a max width of 1600px. Keeps every existing `import x from './foo.png'`
@@ -36,6 +37,16 @@ export default defineConfig(({ mode }) => ({
     react(),
     imagetools({ defaultDirectives: autoWebpDirectives }),
     mode === "development" && componentTagger(),
+    // Bundle analyzer — set ANALYZE=1 to emit dist/bundle-report.html
+    // (gzip + brotli sizes, treemap). Skipped on normal builds.
+    process.env.ANALYZE === "1" &&
+      visualizer({
+        filename: "dist/bundle-report.html",
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        open: false,
+      }),
   ].filter(Boolean),
   resolve: {
     alias: {
