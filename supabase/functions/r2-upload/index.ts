@@ -469,6 +469,33 @@ async function uploadToR2Direct(
   return `${publicBaseUrl}/${key}`;
 }
 
+async function uploadToSupabaseFallback(
+  serviceClient: any,
+  fileBytes: Uint8Array,
+  key: string,
+  contentType: string
+): Promise<string> {
+  const normalizedType = contentType.startsWith('audio/') || contentType === 'application/octet-stream'
+    ? 'application/octet-stream'
+    : contentType;
+
+  const { data, error } = await serviceClient.storage
+    .from(SUPABASE_FALLBACK_BUCKET)
+    .upload(key, new Blob([fileBytes], { type: normalizedType }), {
+      cacheControl: '3600',
+      contentType: normalizedType,
+      upsert: true,
+    });
+
+  if (error) {
+    console.error('[Direct] Supabase fallback upload failed:', error);
+    throw new Error(error.message || 'Storage fallback upload failed');
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!.replace(/\/+$/, '');
+  return `${supabaseUrl}/storage/v1/object/public/${SUPABASE_FALLBACK_BUCKET}/${data.path}`;
+}
+
 // ============= AWS Signature V4 Helpers =============
 
 async function signRequest(
