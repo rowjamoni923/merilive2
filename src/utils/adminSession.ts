@@ -40,27 +40,30 @@ export interface AdminSession {
 export const getAdminSessionToken = (): string => {
   if (!hasWindow()) return '';
   try {
-    // NOTE: We intentionally do NOT gate this on the secret-link sessionStorage key.
-    // That key is for INITIAL admin-panel access control; once the server has issued
-    // a valid session_token (stored in localStorage), every subsequent API call must
-    // send it as x-admin-token — otherwise private storage signing, RLS reads, and
-    // edge functions all fail after a tab close / hard refresh / bookmark entry.
-    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (direct && direct.length >= 16) return direct;
-    // Recovery: older sessions stored the server token only inside the session blob.
-    // Hydrate the dedicated token key so the x-admin-token header is sent on every request.
+    // The session blob is the source of truth. A standalone token key can become
+    // stale after re-login, pending-device flows, tab restore, or old migrations;
+    // if we prefer that stale key, every admin page sends a dead x-admin-token and
+    // every RPC fails with P0001 "unauthorized". Always read the current session
+    // first, then hydrate/repair the standalone key from it.
     const raw =
       window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
       window.localStorage.getItem(ADMIN_SESSION_KEY);
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as AdminSession;
-        if (parsed?.session_token && parsed.session_token.length >= 16) {
+        if (
+          parsed?.version === ADMIN_SESSION_VERSION &&
+          parsed?.session_token &&
+          parsed.session_token.length >= 16
+        ) {
           window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
           return parsed.session_token;
         }
       } catch { /* ignore */ }
     }
+    // Final fallback for legacy sessions that only have the dedicated token key.
+    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (direct && direct.length >= 16) return direct;
     return '';
   } catch {
     return '';
