@@ -480,24 +480,32 @@ export async function fetchUserEntryAnimations(
 ): Promise<EntryAnimationResult> {
   const result: EntryAnimationResult = {};
 
-  // Fetch all equipped animations in parallel for better performance
-  const [entranceResult, nameBarUrl, vehicleUrl] = await Promise.all([
+  // Fetch all equipped animations + Noble details in parallel
+  const [entranceResult, nameBarUrl, vehicleUrl, nobleDetails] = await Promise.all([
     equippedEntranceId ? fetchAnimationWithSoundById(equippedEntranceId) : Promise.resolve({} as AnimationWithSound),
     equippedEntryNameBarId ? fetchEntryNameBarUrlById(equippedEntryNameBarId) : Promise.resolve(undefined),
     equippedVehicleId ? fetchVehicleAnimationUrlById(equippedVehicleId) : Promise.resolve(undefined),
+    userId ? fetchActiveNobleDetails(userId) : Promise.resolve({} as { url?: string; rankCode?: string }),
   ]);
 
   result.entranceAnimationUrl = entranceResult.animationUrl;
   result.entranceSoundUrl = entranceResult.soundUrl;
   result.entryNameBarUrl = nameBarUrl;
   result.vehicleAnimationUrl = vehicleUrl;
+  result.rankCode = nobleDetails.rankCode;
 
   // AUTO-ASSIGN: For any missing animations, check level-based assignments in parallel
   if (userLevel && userLevel >= 1) {
     const autoAssignPromises: Promise<void>[] = [];
 
+    // Noble subscription entrance wins over level-based fallback if user has no equipped entrance
+    if (!result.entranceAnimationUrl && nobleDetails.url) {
+      result.entranceAnimationUrl = nobleDetails.url;
+    }
+
     // Auto-assign entry name bar from entry_name_bars + level_privileges (entry_bar)
     if (!result.entryNameBarUrl) {
+
       autoAssignPromises.push(
         fetchLevelBasedEntryNameBar(userLevel).then(url => {
           if (url) {
