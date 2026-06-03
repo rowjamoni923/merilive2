@@ -111,10 +111,10 @@ const handler = async (req: Request): Promise<Response> => {
     let callerUserId: string | null = null;
     if (!isServiceRoleCall && bearer) {
       try {
-        const userClient = createClient(supabaseUrl, supabaseServiceKey, {
-          global: { headers: { Authorization: `Bearer ${bearer}` } },
-        });
-        const { data: u } = await userClient.auth.getUser();
+        // Validate the JWT explicitly — passing the token is required in
+        // edge functions because there's no stored auth session for
+        // getUser() to read.
+        const { data: u } = await supabase.auth.getUser(bearer);
         callerUserId = u?.user?.id ?? null;
       } catch (e) {
         console.warn("[MsgPush] auth.getUser failed:", e);
