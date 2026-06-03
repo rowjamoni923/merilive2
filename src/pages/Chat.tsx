@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -191,6 +191,25 @@ const cleanGiftMessageForPreview = (content: string): string => {
   return urlRemoved;
 };
 
+const messageTimestamp = (value?: string | null) => {
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+};
+
+const dedupeAndSortMessages = <T extends { id: string; created_at: string }>(items: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out.sort((a, b) => messageTimestamp(a.created_at) - messageTimestamp(b.created_at));
+};
+
+const sameMessageOrder = <T extends { id: string; created_at: string }>(a: T[], b: T[]) =>
+  a.length === b.length && a.every((item, index) => item.id === b[index]?.id && item.created_at === b[index]?.created_at);
+
 const Chat = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -234,28 +253,14 @@ const Chat = () => {
   // broadcast and persistDirectMessage so the same id never renders twice.
   useEffect(() => {
     setMessages(prev => {
-      const seen = new Set<string>();
-      const out: Message[] = [];
-      for (const m of prev) {
-        const key = String(m.id);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(m);
-      }
-      return out.length === prev.length ? prev : out;
+      const next = dedupeAndSortMessages(prev);
+      return sameMessageOrder(prev, next) ? prev : next;
     });
   }, [messages]);
   useEffect(() => {
     setGroupMessages(prev => {
-      const seen = new Set<string>();
-      const out: GroupMessage[] = [];
-      for (const m of prev) {
-        const key = String(m.id);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(m);
-      }
-      return out.length === prev.length ? prev : out;
+      const next = dedupeAndSortMessages(prev);
+      return sameMessageOrder(prev, next) ? prev : next;
     });
   }, [groupMessages]);
 
@@ -907,11 +912,11 @@ const Chat = () => {
   //    older messages without being yanked away).
   const lastScrollConvIdRef = useRef<string | null>(null);
   const wasNearBottomRef = useRef(true);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
     if (!container || !end) return;
-    const convId = selectedConversation?.id || null;
+    const convId = selectedConversation?.id || selectedGroup?.id || null;
     const isNewConversation = lastScrollConvIdRef.current !== convId;
     // Distance from bottom in px BEFORE the new render-induced layout shift
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -920,18 +925,18 @@ const Chat = () => {
     if (isNewConversation) {
       // Instant jump – never animate the whole history on open.
       lastScrollConvIdRef.current = convId;
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-        wasNearBottomRef.current = true;
-      });
+      container.scrollTop = container.scrollHeight;
+      requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
+      setTimeout(() => { container.scrollTop = container.scrollHeight; }, 80);
+      wasNearBottomRef.current = true;
       return;
     }
     if (wasNearBottom) {
       requestAnimationFrame(() => {
-        end.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        container.scrollTop = container.scrollHeight;
       });
     }
-  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id]);
+  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id]);
 
   // Track whether the user is sitting near the bottom of the thread.
   useEffect(() => {
@@ -1321,7 +1326,11 @@ const Chat = () => {
         other_user: conv.other_user,
         last_message: cleanGiftMessageForPreview(conv.last_message || ''),
         unread_count: conv.unread_count || 0
-      }));
+      })).sort((a, b) => {
+        const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return bTime - aTime;
+      });
 
       setConversations(formattedConversations);
     } catch (err) {
@@ -1481,14 +1490,14 @@ const Chat = () => {
           m.message_type !== newMessage.message_type
       );
 
-      if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
+      if (baseMessages.find(m => m.id === newMessage.id)) return dedupeAndSortMessages(baseMessages);
 
-      return [
+      return dedupeAndSortMessages([
         ...baseMessages,
         newMessage.sender_id === currentUserId
           ? { ...newMessage, status: (newMessage.status || 'sent') as Message['status'] }
           : newMessage,
-      ];
+      ]);
     });
 
     if (newMessage.sender_id === currentUserId) return;
@@ -1581,7 +1590,7 @@ const Chat = () => {
           _optimistic: true,
         }) as any)
       : [];
-    setMessages([...serverMsgs, ...queued]);
+    setMessages(dedupeAndSortMessages([...serverMsgs, ...queued]));
 
     // Fetch reply-to messages for quote rendering
     const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
@@ -2233,7 +2242,8 @@ const Chat = () => {
         />
         
         {/* Messages */}
-        <div ref={chatScrollRef} className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div ref={chatScrollRef} className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {currentMessages.length > 0 && <div className="mt-auto" aria-hidden />}
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
