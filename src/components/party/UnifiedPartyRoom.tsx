@@ -194,6 +194,8 @@ interface UnifiedPartyRoomProps {
     level: number;
     entranceUrl?: string;
     entryNameBarUrl?: string;
+    vehicleAnimationUrl?: string;
+    soundUrl?: string;
   }) => void;
 }
 
