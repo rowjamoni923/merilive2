@@ -96,15 +96,15 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userI
                     className="w-32 h-32"
                   />
                 ) : privilege.preview_url ? (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={privilege.preview_url} 
                     alt={privilege.name}
-                    className="w-32 h-32 object-contain"/>
+                    className="w-32 h-32 object-contain" />
                 ) : privilege.animation_url && (privilege.animation_url.endsWith('.gif') || privilege.animation_url.includes('.gif')) ? (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={privilege.animation_url} 
                     alt={privilege.name}
-                    className="w-32 h-32 object-contain"/>
+                    className="w-32 h-32 object-contain" />
                 ) : (
                   <motion.div 
                     className="w-24 h-24 rounded-3xl flex items-center justify-center bg-white/20 backdrop-blur-sm"

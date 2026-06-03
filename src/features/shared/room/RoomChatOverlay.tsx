@@ -383,7 +383,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
               animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
               transition={{ duration: 0.6, repeat: 3 }}
             >
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={gameLogoUrl} 
                 alt={gameWinData.gameName} 
                 className="w-full h-full object-cover"
@@ -418,7 +418,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 0.4, repeat: 1 }}
         >
-          <img 
+          <img loading="lazy" decoding="async" 
             src={giftIconUrl} 
             alt="Gift" 
             className="w-full h-full object-contain"

@@ -18,7 +18,7 @@ import { isStandalonePublicLocation } from "./utils/publicRoutes";
 // =============================================
 installRealtimeGuard();
 // 🖼️ Global media src auto-normalizer — rewrites raw Supabase storage
-// paths to fully-qualified public URLs on EVERY <img>/<video>/<source>,
+// paths to fully-qualified public URLs on EVERY <img loading="lazy" decoding="async">/<video>/<source>,
 // even in legacy or third-party code we don't own. Single source of truth.
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();

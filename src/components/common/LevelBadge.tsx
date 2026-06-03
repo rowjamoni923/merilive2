@@ -279,7 +279,7 @@ export const LevelBadge = forwardRef<HTMLSpanElement | HTMLDivElement, LevelBadg
       )}
       {showIcon && (
         dbIconUrl ? (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={getProxiedUrl(dbIconUrl)} 
             alt={`Level ${level}`}
             className={cn(imageSizes[size], "object-contain relative z-[1]")}
@@ -476,7 +476,7 @@ export const InlineLevelBadge = ({ level, className }: InlineLevelBadgeProps) =>
         />
       )}
       {dbIconUrl ? (
-        <img 
+        <img loading="lazy" decoding="async" 
           src={getProxiedUrl(dbIconUrl)} 
           alt={`Lv${level}`}
           className="w-3 h-3 object-contain mr-0.5 relative z-[1]"

@@ -2463,7 +2463,7 @@ const Recharge = () => {
                               {globalRank <= 3 ? ['🥇','🥈','🥉'][globalRank-1] : `#${globalRank}`}
                             </div>
                             <div className="relative shrink-0">
-                              <img
+                              <img loading="lazy" decoding="async"
                                 src={helper.avatar || '/placeholder.svg'}
                                 alt={helper.name}
                                
@@ -2474,7 +2474,7 @@ const Recharge = () => {
                                     ? "w-14 h-14 ring-[3px] ring-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
                                     : "w-11 h-11 ring-2 ring-amber-200"
                                 )}
-                              />
+ />
                               <div className={cn(
                                 "absolute -top-1 -left-1 px-1 py-0.5 rounded text-[8px] font-bold text-heading shadow bg-gradient-to-r",
                                 levelColors
@@ -2546,7 +2546,7 @@ const Recharge = () => {
                                       >
                                         <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-100">
                                           {resolved ? (
-                                            <img
+                                            <img loading="lazy" decoding="async"
                                               src={resolved}
                                               alt={m.name}
                                               className="w-full h-full object-contain"
@@ -3141,7 +3141,7 @@ const Recharge = () => {
                             )}
                           >
                             {logoUrl ? (
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={logoUrl} 
                                 alt={methodType} 
                                 className="w-5 h-5 rounded object-cover"
@@ -3471,7 +3471,7 @@ const Recharge = () => {
                     )}>
                       {gateway.logo_url ? (
                         <>
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={gateway.logo_url}
                             alt={gateway.name}
                             className="w-10 h-10 rounded-lg object-cover"
@@ -3624,7 +3624,7 @@ const Recharge = () => {
                   <div className="mt-1.5">
                     {paymentProof ? (
  <div className="relative rounded-xl overflow-hidden border border-slate-200/10">
-                        <img src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover"/>
+                        <img loading="lazy" decoding="async" src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover" />
                         <button
                           onClick={() => setPaymentProof(null)}
                           className="absolute top-2 right-2 bg-red-500 text-heading p-1 rounded-full"
@@ -3758,7 +3758,7 @@ const Recharge = () => {
                           const resolvedLogo = resolveMethodLogo(selectedHelperMethod.logo_url, selectedHelperMethod.method_name);
                           return resolvedLogo ? (
                             <>
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={resolvedLogo}
                                 alt={selectedHelperMethod.method_name}
                                 className="h-6 w-6 object-contain"
@@ -3896,7 +3896,7 @@ const Recharge = () => {
                       <div className="mt-1">
                         {helperPaymentProof ? (
                           <div className="relative rounded-xl overflow-hidden border border-amber-400/20">
-                            <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover"/>
+                            <img loading="lazy" decoding="async" src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
                             <button
                               onClick={() => setHelperPaymentProof(null)}
                               className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"

@@ -148,12 +148,12 @@ export default function HelperPaymentMethodsCard({
                       className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-white border border-amber-200 shadow-sm"
                     >
                       {m.logo_url ? (
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={m.logo_url}
                           alt={m.method_name}
                           className="w-6 h-6 rounded-full object-cover border border-amber-100"
                          
-                        />
+ />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 grid place-items-center text-white text-[10px] font-extrabold">
                           {m.method_name?.charAt(0)?.toUpperCase() || "?"}

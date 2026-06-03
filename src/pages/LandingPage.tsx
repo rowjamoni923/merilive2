@@ -175,11 +175,11 @@ const LandingPage = () => {
       >
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg"/>
+            <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-lg bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">MeriLive</span>
           </div>
           <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
-            <img src={googlePlayBadge} alt="Get it on Google Play" className="h-10 hover:scale-105 transition-transform"/>
+            <img loading="lazy" decoding="async" src={googlePlayBadge} alt="Get it on Google Play" className="h-10 hover:scale-105 transition-transform" />
           </a>
         </div>
       </motion.header>
@@ -188,7 +188,7 @@ const LandingPage = () => {
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-16">
         {/* Full Background Image */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25"/>
+          <img loading="lazy" decoding="async" src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white" />
           {/* Extra ambient orbs */}
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-radial from-pink-500/15 via-purple-500/10 to-transparent rounded-full blur-[120px] animate-pulse" />
@@ -229,7 +229,7 @@ const LandingPage = () => {
           >
             <div className="absolute inset-[-12px] bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 rounded-[2rem] blur-2xl opacity-50 animate-pulse" />
             <div className="absolute inset-[-4px] bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-amber-500/30 rounded-[1.8rem] animate-spin-slow" style={{ animationDuration: '8s' }} />
-            <img src={meriliveLogo} alt="MeriLive" className="relative w-32 h-32 rounded-3xl shadow-2xl ring-2 ring-slate-200"/>
+            <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="relative w-32 h-32 rounded-3xl shadow-2xl ring-2 ring-slate-200" />
           </motion.div>
 
           {/* Title */}
@@ -291,7 +291,7 @@ const LandingPage = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
  <div className="relative bg-white border border-slate-200 rounded-2xl p-3 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-md">
-                <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14"/>
+                <img loading="lazy" decoding="async" src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14" />
               </div>
             </a>
           </motion.div>
@@ -545,7 +545,7 @@ const LandingPage = () => {
       {/* Final CTA */}
       <section className="py-28 px-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 rotate-180"/>
+          <img loading="lazy" decoding="async" src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 rotate-180" />
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white" />
         </div>
         <motion.div
@@ -556,7 +556,7 @@ const LandingPage = () => {
         >
           <div className="relative mx-auto mb-8 w-24 h-24">
             <div className="absolute inset-[-8px] bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 rounded-3xl blur-2xl opacity-40 animate-pulse" />
-            <img src={meriliveLogo} alt="MeriLive" className="relative w-24 h-24 rounded-3xl ring-2 ring-slate-200 shadow-2xl"/>
+            <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="relative w-24 h-24 rounded-3xl ring-2 ring-slate-200 shadow-2xl" />
           </div>
 
           <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
@@ -574,7 +574,7 @@ const LandingPage = () => {
               className="group"
             >
  <div className="bg-white border border-slate-200 rounded-2xl p-3 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-md">
-                <img src={googlePlayBadge} alt="Get it on Google Play" className="h-14 md:h-16"/>
+                <img loading="lazy" decoding="async" src={googlePlayBadge} alt="Get it on Google Play" className="h-14 md:h-16" />
               </div>
             </a>
 
@@ -622,7 +622,7 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             {/* Brand */}
             <div className="flex items-center gap-3.5">
-              <img src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-slate-200"/>
+              <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-slate-200" />
               <div>
                 <span className="font-bold text-xl bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">MeriLive</span>
  <p className="text-xs text-slate-500 mt-0.5">Best Live Streaming & Video Call Platform</p>
@@ -651,7 +651,7 @@ const LandingPage = () => {
  <p className="text-xs text-slate-500 order-2 sm:order-1">© 2026 MeriLive. All rights reserved.</p>
             <div className="flex items-center gap-4 order-1 sm:order-2">
               <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Download MeriLive on Google Play Store">
-                <img src={googlePlayBadge} alt="Download MeriLive on Google Play" className="h-10 hover:scale-105 transition-transform duration-200"/>
+                <img loading="lazy" decoding="async" src={googlePlayBadge} alt="Download MeriLive on Google Play" className="h-10 hover:scale-105 transition-transform duration-200" />
               </a>
             </div>
           </div>
@@ -710,7 +710,7 @@ const LandingPage = () => {
                       {/* Agency Avatar */}
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-600/30 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                         {agency.logo_url ? (
-                          <img src={agency.logo_url} alt={agency.name} className="w-full h-full rounded-xl object-cover"/>
+                          <img loading="lazy" decoding="async" src={agency.logo_url} alt={agency.name} className="w-full h-full rounded-xl object-cover" />
                         ) : (
                           <Building2 className="w-6 h-6 text-amber-600" />
                         )}

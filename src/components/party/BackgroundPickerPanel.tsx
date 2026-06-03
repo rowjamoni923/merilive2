@@ -561,11 +561,11 @@ export function BackgroundPickerPanel({
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
                     {confirmBg.image_url ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={getProxiedUrl(confirmBg.image_url)}
                         alt={confirmBg.name}
                         className="absolute inset-0 w-full h-full object-cover"
-                      />
+ />
                     ) : (
                       <div className={cn("absolute inset-0", confirmBg.gradient_css)} />
                     )}

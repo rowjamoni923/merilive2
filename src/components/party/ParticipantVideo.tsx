@@ -157,11 +157,11 @@ export function ParticipantVideo({
             ) : (
               <>
                 {avatarUrl && (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={avatarUrl} 
                     alt="" 
                     className="absolute inset-0 w-full h-full object-cover opacity-20 blur-xl"
-                  />
+ />
                 )}
                 <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
               </>

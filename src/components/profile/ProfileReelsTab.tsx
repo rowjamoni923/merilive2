@@ -154,10 +154,10 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
           >
             {/* Thumbnail */}
             {reel.thumbnail_url ? (
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={reel.thumbnail_url}
                 alt={reel.caption || 'Reel'}
-                className="w-full h-full object-cover"/>
+                className="w-full h-full object-cover" />
             ) : (
               <video
                 ref={el => { if (el) hardenVideoElementForNative(el, { muted: true }); }}
@@ -202,10 +202,10 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
             {/* Thumbnail */}
             <div onClick={() => handleReelClick(reel.id)} className="w-full h-full">
               {reel.thumbnail_url ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={reel.thumbnail_url}
                   alt={reel.caption || 'Reel'}
-                  className="w-full h-full object-cover"/>
+                  className="w-full h-full object-cover" />
               ) : (
                 <video
                   ref={el => { if (el) hardenVideoElementForNative(el, { muted: true }); }}

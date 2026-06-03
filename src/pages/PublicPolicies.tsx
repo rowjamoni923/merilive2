@@ -64,7 +64,7 @@ const PublicPolicies = () => {
     {/* All banners */}
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
       {banners.map((b) => (
-        <img
+        <img loading="lazy" decoding="async"
           key={b.id}
           src={b.image}
           alt={b.title}

@@ -524,10 +524,10 @@ const Level = () => {
                 )} />
                 <div className="relative w-full h-full flex items-center justify-center">
                   {getCustomLevelIcon(currentLevel) ? (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={getCustomLevelIcon(currentLevel)!} 
                       alt={`Level ${currentLevel}`}
-                      className="w-24 h-24 object-contain drop-shadow-2xl"/>
+                      className="w-24 h-24 object-contain drop-shadow-2xl" />
                   ) : (
                     <span className="text-7xl drop-shadow-2xl">{getCurrentLevelData().icon}</span>
                   )}

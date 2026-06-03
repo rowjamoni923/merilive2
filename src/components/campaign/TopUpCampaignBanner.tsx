@@ -145,12 +145,12 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
           {/* Background */}
           {campaign.banner_image_url ? (
             <div className="relative">
-              <img
+              <img loading="lazy" decoding="async"
                 src={campaign.banner_image_url}
                 alt={campaign.campaign_name}
                 className="w-full h-24 object-cover rounded-2xl"
                
-              />
+ />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl" />
               {/* Content over image */}
               <div className="absolute inset-0 flex items-center justify-between px-4">

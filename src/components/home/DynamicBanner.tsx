@@ -102,7 +102,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
-              <img
+              <img loading="lazy" decoding="async"
                 src={bannerCdn(banner.image_url)}
                 alt={banner.title}
                

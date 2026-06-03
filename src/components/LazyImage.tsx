@@ -33,7 +33,7 @@ export const LazyImage = ({
   const showSrc = !errored ? normalizedSrc : normalizedPlaceholder;
 
   return (
-    <img
+    <img loading="lazy" decoding="async"
       {...rest}
       src={showSrc || placeholder || undefined}
       alt={alt}

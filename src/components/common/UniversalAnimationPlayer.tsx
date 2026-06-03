@@ -284,7 +284,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       {!mediaLoaded && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
-      <img 
+      <img loading="lazy" decoding="async" 
         src={resolvedSrc}
         alt="Animation"
         className={cn(

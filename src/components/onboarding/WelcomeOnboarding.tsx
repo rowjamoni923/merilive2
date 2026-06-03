@@ -141,11 +141,11 @@ const WelcomeOnboarding = () => {
             >
               {/* Real illustration image */}
               <div className="w-full aspect-square overflow-hidden relative">
-                <img
+                <img loading="lazy" decoding="async"
                   src={step.image}
                   alt={step.title}
                   className="w-full h-full object-cover"
-                  draggable={false}/>
+                  draggable={false} />
                 {/* subtle bottom fade for text legibility */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent" />
               </div>

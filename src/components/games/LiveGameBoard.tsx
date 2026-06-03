@@ -499,7 +499,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                 className="w-7 h-7 rounded-lg flex items-center justify-center shadow-lg overflow-hidden relative bg-gradient-to-tr from-[#D4AF37] to-[#F9E498] shrink-0"
               >
                 {currentGame.logo_url ? (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={getProxiedUrl(currentGame.logo_url)}
                     alt={currentGame.game_name}
                     className="w-full h-full object-contain rounded-lg"
@@ -631,7 +631,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                     
                     {/* Show logo from Admin Panel BIG or fallback to emoji */}
                     {game.logo_url ? (
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={getProxiedUrl(game.logo_url)} 
                         alt={game.game_name}
                         className="w-14 h-14 object-contain rounded-xl"

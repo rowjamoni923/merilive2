@@ -417,7 +417,7 @@ const DailyLoginPopup = () => {
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                       className="shrink-0"
                     >
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={treasureChest3D}
                         alt=""
                         width={96}
@@ -427,7 +427,7 @@ const DailyLoginPopup = () => {
                           filter:
                             "drop-shadow(0 6px 10px rgba(120,53,15,0.30)) drop-shadow(0 0 14px rgba(245,158,11,0.55))",
                         }}
-                      />
+ />
                     </motion.div>
                   </div>
                 </motion.div>

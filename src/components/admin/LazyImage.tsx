@@ -32,7 +32,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   const sizeStyle = size ? { width: size, height: size } : undefined;
 
   return (
-    <img
+    <img loading="lazy" decoding="async"
       src={finalSrc}
       alt={alt}
       decoding="async"

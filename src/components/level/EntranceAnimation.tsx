@@ -313,10 +313,10 @@ const EntranceAnimationInner = memo(({
           )}>
             {/* Avatar */}
             {userInfo.avatarUrl ? (
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={userInfo.avatarUrl}
                 alt=""
-                className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-lg"/>
+                className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-lg" />
             ) : (
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-2 border-white/60 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                 {userInfo.displayName.charAt(0).toUpperCase()}

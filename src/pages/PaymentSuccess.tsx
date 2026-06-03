@@ -184,7 +184,7 @@ const PaymentSuccess = () => {
                   />
                   <div className="cursor-pointer rounded-xl border-2 border-dashed border-amber-200/60 p-4 text-center hover:bg-white/5 transition">
                     {proofPreview ? (
-                      <img src={proofPreview} alt="proof" className="max-h-40 mx-auto rounded-lg"/>
+                      <img loading="lazy" decoding="async" src={proofPreview} alt="proof" className="max-h-40 mx-auto rounded-lg" />
                     ) : (
                       <div className="flex flex-col items-center gap-2 text-slate-500">
                         <ImageIcon className="w-8 h-8" />

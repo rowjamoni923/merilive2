@@ -199,7 +199,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           style={mediaStyle}
         />
       ) : showMedia && (branding.background_type === 'image' || branding.background_type === 'gif') ? (
-        <img
+        <img loading="lazy" decoding="async"
           src={hdSrc}
           srcSet={hdSrcSet}
           sizes={hdSrcSet ? '100vw' : undefined}
@@ -2732,7 +2732,7 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse bg-gradient-to-br from-pink-500/50 via-purple-500/40 to-orange-400/30" />
                   <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-pink-500/40 shadow-2xl shadow-pink-500/30">
-                    <img src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover"/>
+                    <img loading="lazy" decoding="async" src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>

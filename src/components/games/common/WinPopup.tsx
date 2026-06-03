@@ -167,7 +167,7 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                 {/* Show Game Logo from Admin Panel if available, otherwise emoji */}
                 {showLogo ? (
                   <div className="relative z-10 w-14 h-14 rounded-xl bg-white/90 p-1.5 shadow-lg border-2 border-yellow-300/50 flex items-center justify-center">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={getProxiedUrl(logoUrl)} 
                       alt="Game"
                       className="w-10 h-10 object-contain"

@@ -198,7 +198,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
             transition={{ duration: 0.5, ease: "easeOut" }}
             style={{ width: '100dvw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <img 
+            <img loading="lazy" decoding="async" 
               src={emoji}
               alt="Gift"
               className="w-full h-full object-contain drop-shadow-2xl"

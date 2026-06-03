@@ -158,10 +158,10 @@ const EntryBannerAnimationInner = memo(({
                   className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-sm"
                 >
                   {avatarUrl && (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={avatarUrl} 
                       alt={userName}
-                      className="w-12 h-12 rounded-full border-2 border-white/80 shadow-lg"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/80 shadow-lg" />
                   )}
                   <span 
                     className="text-white font-bold text-xl tracking-wide max-w-[200px] truncate"
@@ -224,10 +224,10 @@ const EntryBannerAnimationInner = memo(({
                   {avatarUrl ? (
                     <div className="relative">
                       <div className="absolute inset-0 bg-yellow-400/60 rounded-full blur-sm" />
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={avatarUrl} 
                         alt={userName}
-                        className="relative w-10 h-10 rounded-full border-2 border-white shadow-lg"/>
+                        className="relative w-10 h-10 rounded-full border-2 border-white shadow-lg" />
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center border-2 border-white shadow-lg">

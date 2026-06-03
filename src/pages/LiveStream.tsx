@@ -2692,7 +2692,7 @@ const LiveStream = () => {
           />
           
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
-            <img src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover"/>
+            <img loading="lazy" decoding="async" src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg">
             <span className="text-xs font-bold text-black">Lv{hostInfo.level}</span>
@@ -2865,14 +2865,14 @@ const LiveStream = () => {
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
-            <img
+            <img loading="lazy" decoding="async"
               src={hostInfo.avatar}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
               style={{ filter: 'blur(30px) brightness(0.4)', transform: 'scale(1.2)' }}
              
               draggable={false}
-            />
+ />
           </div>
         )}
         {/* Pkg100: PK split-screen — both hosts visible during active battle */}
@@ -3991,7 +3991,7 @@ const LiveStream = () => {
             <div className="relative mb-6">
               <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
                 {hostInfo?.avatar ? (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={hostInfo.avatar}
                     alt={hostInfo?.name || 'Host'}
                     className="w-full h-full object-cover"
@@ -4028,10 +4028,10 @@ const LiveStream = () => {
                     transition={{ delay: idx * 0.15 }}
                     className="w-24 h-32 rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
                   >
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={photo}
                       alt={`${hostInfo?.name} photo ${idx + 1}`}
-                      className="w-full h-full object-cover"/>
+                      className="w-full h-full object-cover" />
                   </motion.div>
                 ))}
               </div>

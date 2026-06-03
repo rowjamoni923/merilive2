@@ -110,21 +110,21 @@ const StickerItem = ({
           className="w-full h-full"
         />
       ) : sticker.preview_url ? (
-        <img 
+        <img loading="lazy" decoding="async" 
           src={sticker.preview_url} 
           alt={sticker.name}
          
           decoding="async"
           className="w-full h-full object-contain"
-        />
+ />
       ) : animationUrl ? (
-        <img 
+        <img loading="lazy" decoding="async" 
           src={animationUrl} 
           alt={sticker.name}
          
           decoding="async"
           className="w-full h-full object-contain"
-        />
+ />
       ) : (
         <div className="text-4xl">{sticker.name}</div>
       )}
@@ -194,10 +194,10 @@ export const StickerSendAnimation = ({
           {isLottie && lottieData ? (
             <Lottie animationData={lottieData} loop={true} />
           ) : animationUrl || sticker.preview_url ? (
-            <img 
+            <img loading="lazy" decoding="async" 
               src={animationUrl || sticker.preview_url || ''} 
               alt={sticker.name}
-              className="w-full h-full object-contain"/>
+              className="w-full h-full object-contain" />
           ) : null}
         </motion.div>
 

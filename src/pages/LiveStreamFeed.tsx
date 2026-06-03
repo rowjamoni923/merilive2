@@ -218,7 +218,7 @@ export default function LiveStreamFeed() {
       className="fixed inset-0 bg-background overflow-hidden"
     >
       <div className="relative h-full w-full">
-        <img 
+        <img loading="lazy" decoding="async" 
           src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
           className="h-full w-full object-cover"

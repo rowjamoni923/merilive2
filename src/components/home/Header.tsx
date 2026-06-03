@@ -41,10 +41,10 @@ export const Header = ({ coins, onRecharge, onSearch, onNotifications }: HeaderP
           {/* Logo - Dynamic from Admin Branding */}
           <div className="flex items-center gap-2">
             {logoImageUrl ? (
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={logoImageUrl} 
                 alt="Logo" 
-                className="w-10 h-10 object-contain rounded-xl"/>
+                className="w-10 h-10 object-contain rounded-xl" />
             ) : (
               <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
                 <span className="text-primary-foreground font-bold text-lg">

@@ -468,7 +468,7 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
             return urls.length > 0 ? (
               <div className={cn("mt-2.5 gap-2", urls.length === 1 ? "flex" : "grid grid-cols-2")}>
                 {urls.map((url, idx) => (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     key={idx}
                     src={getProxiedUrl(url)} 
                     alt={`Notice attachment ${idx + 1}`} 

@@ -501,7 +501,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       {hasValidFrame && (activeFrameType === 'gif' || activeFrameType === 'webp') && (
         <div className="absolute pointer-events-none" 
           style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
+          <img loading="lazy" decoding="async" src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
@@ -510,7 +510,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       {hasValidFrame && isStaticFrame && (
         <div className="absolute pointer-events-none"
           style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
+          <img loading="lazy" decoding="async" src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}

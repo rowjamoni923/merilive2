@@ -183,7 +183,7 @@ const EventPopupBanner = () => {
                 className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
               />
             ) : (
-              <img
+              <img loading="lazy" decoding="async"
                 src={popupCdn(banner.image_url)}
                 alt={banner.title}
                 onClick={handleBannerClick}
