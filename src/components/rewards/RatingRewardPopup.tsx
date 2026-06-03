@@ -330,74 +330,82 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
       <Dialog open={showDialog} onOpenChange={(open) => { if (!open) setShowDialog(false); }}>
         <DialogContent
-          className="max-w-sm mx-auto border-0 p-0 overflow-hidden"
+          className="max-w-sm mx-auto border-0 p-0 overflow-hidden rounded-[24px]"
           style={{
-            background: 'linear-gradient(180deg, #1a0533 0%, #0f0a1a 100%)',
-            border: '1px solid rgba(167,139,250,0.3)',
+            background: 'radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #fff8ec 55%, #fef3e0 100%)',
+            boxShadow:
+              '0 30px 60px -20px rgba(180,83,9,0.30), 0 0 0 1px rgba(251,191,36,0.30), 0 0 60px rgba(245,158,11,0.18)',
           }}
         >
           {step === 'screenshot' && (
             <>
               <DialogHeader className="px-5 pt-5 pb-0">
-                <DialogTitle className="text-white text-center text-base font-bold tracking-wide">
-                  📸 Submit Rating Proof
+                <DialogTitle className="text-center text-base font-extrabold tracking-wide">
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        'linear-gradient(180deg, #f59e0b 0%, #d97706 50%, #92400e 100%)',
+                    }}
+                  >
+                    📸 Submit Rating Proof
+                  </span>
                 </DialogTitle>
               </DialogHeader>
               <div className="p-5 space-y-4">
                 {latestStatus === 'rejected' && (
                   <div className="rounded-xl px-4 py-3 text-xs leading-relaxed"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.05))',
-                      border: '1px solid rgba(239,68,68,0.3)',
-                      color: '#fca5a5',
+                      background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                      border: '1px solid rgba(220,38,38,0.30)',
+                      color: '#7f1d1d',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
                     }}
                   >
-                    <div className="font-bold text-red-300 mb-1">Previous submission rejected</div>
-                    <div className="text-red-200/80">
+                    <div className="font-extrabold text-red-700 mb-1">Previous submission rejected</div>
+                    <div className="text-red-800/85">
                       {rejectionReason || 'Screenshot did not show a valid 5-star rating.'}
                     </div>
-                    <div className="text-red-200/60 mt-1.5">Please upload a clearer screenshot to try again.</div>
+                    <div className="text-red-700/70 mt-1.5">Please upload a clearer screenshot to try again.</div>
                   </div>
                 )}
                 <div className="rounded-2xl p-5 text-center relative overflow-hidden"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(124,58,237,0.06) 100%)',
-                    border: '1px solid rgba(251,191,36,0.2)',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                    background: 'linear-gradient(135deg, #fff7d6 0%, #fef3c7 55%, #ffedd5 100%)',
+                    border: '1px solid rgba(180,83,9,0.25)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px -12px rgba(120,53,15,0.18)',
                   }}
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 rounded-full opacity-20"
-                    style={{ background: 'radial-gradient(ellipse, rgba(251,191,36,0.6), transparent)' }}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 rounded-full opacity-40"
+                    style={{ background: 'radial-gradient(ellipse, rgba(251,191,36,0.65), transparent)' }}
                   />
                   <div className="relative">
                     <div className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.1))',
-                        border: '1px solid rgba(251,191,36,0.3)',
-                        boxShadow: '0 4px 20px rgba(251,191,36,0.15)',
+                        background: 'linear-gradient(135deg, #fde68a, #f59e0b)',
+                        border: '1px solid rgba(180,83,9,0.35)',
+                        boxShadow: '0 6px 18px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.6)',
                       }}
                     >
-                      <Gift className="w-7 h-7 text-amber-400" />
+                      <Gift className="w-7 h-7 text-amber-950" />
                     </div>
-                    <p className="text-amber-300 font-bold text-lg tracking-wide">Claim Your Reward</p>
-                    <div className="flex items-center justify-center gap-3 mt-3">
-                      <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
+                    <p className="font-extrabold text-lg tracking-wide text-amber-900">Claim Your Reward</p>
+                    <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+                      <span className="text-[11px] font-extrabold px-3 py-1.5 rounded-lg text-amber-900"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.06))',
-                          border: '1px solid rgba(251,191,36,0.25)',
-                          color: '#fbbf24',
-                          boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
+                          background: 'linear-gradient(180deg, #ffffff, #fde68a)',
+                          border: '1px solid rgba(180,83,9,0.30)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(180,83,9,0.08)',
                         }}
                       >
                         Hosts: {rewardAmounts.host_beans.toLocaleString()} 🫘
                       </span>
-                      <span className="text-purple-400/40 text-xs">•</span>
-                      <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
+                      <span className="text-amber-700/60 text-xs">•</span>
+                      <span className="text-[11px] font-extrabold px-3 py-1.5 rounded-lg text-violet-900"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.06))',
-                          border: '1px solid rgba(139,92,246,0.25)',
-                          color: '#a78bfa',
-                          boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
+                          background: 'linear-gradient(180deg, #ffffff, #ede9fe)',
+                          border: '1px solid rgba(139,92,246,0.30)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(139,92,246,0.10)',
                         }}
                       >
                         Users: {rewardAmounts.user_diamonds.toLocaleString()} 💎
@@ -407,7 +415,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-purple-200/60 text-xs text-center leading-relaxed">
+                  <p className="text-slate-600 text-xs text-center leading-relaxed font-medium">
                     Take a screenshot of your 5-star rating on Play Store and upload it below
                   </p>
 
@@ -422,17 +430,21 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                   <Button
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
-                    className="w-full h-12 gap-2 font-bold rounded-xl text-white border-0"
+                    className="w-full h-12 gap-2 font-black rounded-2xl border-0 relative overflow-hidden"
                     style={{
                       background: uploading
-                        ? 'rgba(167,139,250,0.15)'
-                        : 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                      boxShadow: uploading ? 'none' : '0 4px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+                        ? 'linear-gradient(180deg, #fde68a, #fbbf24)'
+                        : 'linear-gradient(180deg, #fde68a 0%, #f59e0b 38%, #b45309 100%)',
+                      boxShadow: uploading
+                        ? 'inset 0 1px 0 rgba(255,255,255,0.5)'
+                        : '0 14px 30px -10px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(120,53,15,0.5)',
+                      color: '#3b1e05',
+                      textShadow: '0 1px 0 rgba(255,255,255,0.5)',
                     }}
                   >
                     {uploading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-amber-200/60 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-amber-950/30 border-t-amber-950 rounded-full animate-spin" />
                         Uploading...
                       </>
                     ) : (
@@ -444,7 +456,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                   </Button>
                 </div>
 
-                <p className="text-purple-300/25 text-[10px] text-center">
+                <p className="text-slate-500 text-[10px] text-center font-medium">
                   Your reward will be credited after admin verification
                 </p>
               </div>
@@ -460,30 +472,32 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
               >
                 <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
-                    border: '1px solid rgba(16,185,129,0.3)',
-                    boxShadow: '0 4px 20px rgba(16,185,129,0.2)',
+                    background: 'linear-gradient(180deg, #34d399, #059669)',
+                    border: '1px solid rgba(5,150,105,0.40)',
+                    boxShadow: '0 8px 24px rgba(16,185,129,0.40), inset 0 1px 0 rgba(255,255,255,0.5)',
                   }}
                 >
-                  <CheckCircle className="w-9 h-9 text-emerald-400" />
+                  <CheckCircle className="w-9 h-9 text-white" />
                 </div>
               </motion.div>
               <div>
-                <p className="text-white font-bold text-lg">Submitted Successfully! 🎉</p>
-                <p className="text-purple-200/50 text-sm mt-2 leading-relaxed">
+                <p className="font-black text-lg text-emerald-900">Submitted Successfully! 🎉</p>
+                <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                   Your screenshot has been submitted for review. You'll receive your reward once approved by admin.
                 </p>
               </div>
-              <div className="flex items-center justify-center gap-2 text-amber-400/50 text-xs">
+              <div className="flex items-center justify-center gap-2 text-amber-700 text-xs font-semibold">
                 <Clock className="w-3.5 h-3.5" />
                 Usually reviewed within 24 hours
               </div>
               <Button
                 onClick={() => setShowDialog(false)}
-                className="w-full h-10 rounded-xl text-white font-bold border-0"
+                className="w-full h-11 rounded-2xl font-black border-0 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                  boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
+                  background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 38%, #b45309 100%)',
+                  boxShadow: '0 12px 26px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(120,53,15,0.5)',
+                  color: '#3b1e05',
+                  textShadow: '0 1px 0 rgba(255,255,255,0.5)',
                 }}
               >
                 Got it!
