@@ -704,7 +704,7 @@ export function ActiveCallScreen({
         <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-xl"
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
                 border: '1px solid rgba(255,255,255,0.14)',
