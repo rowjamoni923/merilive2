@@ -6,6 +6,8 @@ import {
   markAgencyHostRequestAsRead,
   markAgencyHostRequestsAsRead,
 } from '@/utils/agencyHostRequestReadState';
+import { playSynthSequence } from '@/utils/soundPlayer';
+
 
 export interface Notification {
   id: string;
