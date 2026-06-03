@@ -34,12 +34,14 @@ interface BlockedUser {
 const Blacklist = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Pkg421 Phase-3: cache blocked list so the page renders instantly on revisit.
+  // Limited scope: only the list is cached; mutations always hit the network.
+  const [blockedUsers, setBlockedUsers, hadBlockedCache] = usePersistedCache<BlockedUser[]>('settings:blacklist', null);
+  const [loading, setLoading] = useState(!hadBlockedCache);
   const [unblockUserId, setUnblockUserId] = useState<string | null>(null);
 
   const fetchBlockedUsers = useCallback(async () => {
-    setLoading(true);
+    if (!blockedUsers) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
