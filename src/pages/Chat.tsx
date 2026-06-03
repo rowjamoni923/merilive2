@@ -899,9 +899,50 @@ const Chat = () => {
     }
   }, [searchParams, currentUserId]);
 
+  // Pro-app scroll behavior (WhatsApp/Messenger/Chamet style):
+  //  • On conversation switch / first paint → JUMP to bottom instantly (no animation).
+  //  • On new incoming/outgoing messages → smooth-scroll only if user is already
+  //    near the bottom; otherwise leave them where they are (so they can read
+  //    older messages without being yanked away).
+  const lastScrollConvIdRef = useRef<string | null>(null);
+  const wasNearBottomRef = useRef(true);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, groupMessages, isOtherTyping]);
+    const container = chatScrollRef.current;
+    const end = messagesEndRef.current;
+    if (!container || !end) return;
+    const convId = selectedConversation?.id || null;
+    const isNewConversation = lastScrollConvIdRef.current !== convId;
+    // Distance from bottom in px BEFORE the new render-induced layout shift
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const wasNearBottom = wasNearBottomRef.current || distanceFromBottom < 120;
+
+    if (isNewConversation) {
+      // Instant jump – never animate the whole history on open.
+      lastScrollConvIdRef.current = convId;
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+        wasNearBottomRef.current = true;
+      });
+      return;
+    }
+    if (wasNearBottom) {
+      requestAnimationFrame(() => {
+        end.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      });
+    }
+  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id]);
+
+  // Track whether the user is sitting near the bottom of the thread.
+  useEffect(() => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      wasNearBottomRef.current = distanceFromBottom < 120;
+    };
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, [selectedConversation?.id]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
