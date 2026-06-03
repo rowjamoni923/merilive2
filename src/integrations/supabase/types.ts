@@ -17630,10 +17630,10 @@ export type Database = {
       }
       admin_send_notification: {
         Args: {
-          _data?: Json
+          _data: Json
           _message: string
           _title: string
-          _type?: string
+          _type: string
           _user_id: string
         }
         Returns: string

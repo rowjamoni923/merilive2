@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret, x-internal-secret, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 /**
@@ -18,6 +18,18 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Pkg349: cron-only — any anon trigger could mass-spam push to every inactive user app-wide
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? Deno.env.get("CRON_SECRET");
+  const headerSecret = req.headers.get("x-cron-secret") ?? req.headers.get("x-internal-secret");
+  const serviceJwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const isServiceRole = serviceJwt && serviceJwt === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!isServiceRole && (!internalSecret || headerSecret !== internalSecret)) {
+    return new Response(JSON.stringify({ error: "Cron/service-role auth required" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
