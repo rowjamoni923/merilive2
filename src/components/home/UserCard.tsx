@@ -72,8 +72,6 @@ export const UserCard = ({
         <img loading="lazy" decoding="async"
           src={normalizedPhotoUrl}
           alt={name}
-         
-          decoding="sync"
           // @ts-expect-error – fetchpriority is a standard HTML hint
           fetchpriority="high"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -84,8 +84,6 @@ const GiftItem = memo(({
           <img loading="lazy" decoding="async"
             src={gift.icon_url}
             alt={gift.name}
-           
-            decoding="async"
             className="w-11 h-11 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />

@@ -37,8 +37,6 @@ export const LazyImage = ({
       {...rest}
       src={showSrc || placeholder || undefined}
       alt={alt}
-     
-      decoding="async"
       {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
       className={cn(className)}
       onLoad={(e) => onLoad?.(e)}

@@ -67,8 +67,6 @@ const Game3DCard = ({
               src={getProxiedUrl(game.logo_url)}
               alt={game.game_name}
               className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-             
-              decoding="async"
               draggable={false}
  />
           ) : (

@@ -2466,8 +2466,6 @@ const Recharge = () => {
                               <img loading="lazy" decoding="async"
                                 src={helper.avatar || '/placeholder.svg'}
                                 alt={helper.name}
-                               
-                                decoding="async"
                                 className={cn(
                                   "object-cover rounded-xl",
                                   isLv5

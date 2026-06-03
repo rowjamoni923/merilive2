@@ -41,8 +41,6 @@ export const LiveStreamCard = ({
       <img loading="lazy" decoding="async"
         src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
-       
-        decoding="sync"
         // @ts-expect-error – fetchpriority is a standard HTML hint
         fetchpriority="high"
         onError={(e) => {

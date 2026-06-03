@@ -448,7 +448,7 @@ const Index = () => {
 
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
-          <img loading="lazy" decoding="async" 
+          <img 
             src={(() => {
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
               return (user.isLive && normalizedLiveThumb)

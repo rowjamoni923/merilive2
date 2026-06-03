@@ -113,16 +113,12 @@ const StickerItem = ({
         <img loading="lazy" decoding="async" 
           src={sticker.preview_url} 
           alt={sticker.name}
-         
-          decoding="async"
           className="w-full h-full object-contain"
  />
       ) : animationUrl ? (
         <img loading="lazy" decoding="async" 
           src={animationUrl} 
           alt={sticker.name}
-         
-          decoding="async"
           className="w-full h-full object-contain"
  />
       ) : (
