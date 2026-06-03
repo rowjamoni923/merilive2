@@ -20,6 +20,30 @@ const ADMIN_SECRET_LINK_SESSION_KEY = 'meri_admin_link_token';
 
 const hasWindow = () => typeof window !== 'undefined';
 
+const parseStoredAdminSession = (raw: string | null): AdminSession | null => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as AdminSession;
+    if (parsed?.version !== ADMIN_SESSION_VERSION) return null;
+    if (!parsed.admin_id || !parsed.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const getBestStoredAdminSession = (): AdminSession | null => {
+  if (!hasWindow()) return null;
+  const sessionSession = parseStoredAdminSession(window.sessionStorage.getItem(ADMIN_SESSION_KEY));
+  const localSession = parseStoredAdminSession(window.localStorage.getItem(ADMIN_SESSION_KEY));
+  if (sessionSession && localSession) {
+    return (localSession.signed_in_at || 0) > (sessionSession.signed_in_at || 0)
+      ? localSession
+      : sessionSession;
+  }
+  return sessionSession || localSession;
+};
+
 export interface AdminSession {
   version: string;
   admin_id: string;
@@ -45,21 +69,10 @@ export const getAdminSessionToken = (): string => {
     // if we prefer that stale key, every admin page sends a dead x-admin-token and
     // every RPC fails with P0001 "unauthorized". Always read the current session
     // first, then hydrate/repair the standalone key from it.
-    const raw =
-      window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
-      window.localStorage.getItem(ADMIN_SESSION_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as AdminSession;
-        if (
-          parsed?.version === ADMIN_SESSION_VERSION &&
-          parsed?.session_token &&
-          parsed.session_token.length >= 16
-        ) {
-          window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
-          return parsed.session_token;
-        }
-      } catch { /* ignore */ }
+    const parsed = getBestStoredAdminSession();
+    if (parsed?.session_token && parsed.session_token.length >= 16) {
+      window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
+      return parsed.session_token;
     }
     // Final fallback for legacy sessions that only have the dedicated token key.
     const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
@@ -111,11 +124,8 @@ export const saveAdminSession = (session: Omit<AdminSession, 'version' | 'signed
 export const getAdminSession = (): AdminSession | null => {
   if (!hasWindow()) return null;
   try {
-    const raw =
-      window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
-      window.localStorage.getItem(ADMIN_SESSION_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as AdminSession;
+    const parsed = getBestStoredAdminSession();
+    if (!parsed) return null;
     if (parsed.version !== ADMIN_SESSION_VERSION) {
       clearAdminSession();
       return null;
