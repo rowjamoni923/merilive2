@@ -374,11 +374,11 @@ const Index = () => {
       }, 300); // Reduced from 500ms to 300ms for near-instant feel
     };
 
-    // Pkg360 NO-AUTO-REFRESH: removed noisy 'profiles' and 'party_room_participants' tables.
-    // Feed status (LIVE/Busy) now updates via 'live_streams' and 'private_calls' only.
+    // Realtime push: LIVE via live_streams, Busy via private_calls, Online/Offline via profiles
+    // (heartbeat is_online + manual host_availability toggle). Debounced 300ms — push, not poll.
     const unsubscribe = subscribeToTables(
       `home-hosts-${Date.now()}`,
-      ["live_streams", "private_calls", "party_rooms"],
+      ["live_streams", "private_calls", "party_rooms", "profiles"],
       queueHomeInvalidate
     );
 
