@@ -37,6 +37,16 @@ export default defineConfig(({ mode }) => ({
     react(),
     imagetools({ defaultDirectives: autoWebpDirectives }),
     mode === "development" && componentTagger(),
+    // Bundle analyzer — set ANALYZE=1 to emit dist/bundle-report.html
+    // (gzip + brotli sizes, treemap). Skipped on normal builds.
+    process.env.ANALYZE === "1" &&
+      visualizer({
+        filename: "dist/bundle-report.html",
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        open: false,
+      }),
   ].filter(Boolean),
   resolve: {
     alias: {
