@@ -310,7 +310,7 @@ const AgencyHostManagement = () => {
               <p className="text-slate-500 text-sm">Code: {agency?.agency_code}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-primary">{hosts.length}</p>
+              <p className="text-2xl font-bold text-primary">{(hosts ?? []).length}</p>
               <p className="text-slate-500 text-xs">Total Hosts</p>
             </div>
           </div>
