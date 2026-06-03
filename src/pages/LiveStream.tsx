@@ -1475,7 +1475,7 @@ const LiveStream = () => {
       // 4. INSTANT entry animation — URLs are pre-resolved in the envelope,
       // ZERO extra fetch round-trips needed.
       if (
-        (p.entranceAnimationUrl || p.entryNameBarUrl || p.vehicleAnimationUrl) &&
+        (p.entranceAnimationUrl || p.entryNameBarUrl || p.vehicleAnimationUrl || p.rankCode) &&
         mountedRef.current
       ) {
         addEntryAnimation({
@@ -1487,6 +1487,7 @@ const LiveStream = () => {
           entryNameBarUrl: p.entryNameBarUrl || undefined,
           vehicleAnimationUrl: p.vehicleAnimationUrl || undefined,
           soundUrl: p.entranceSoundUrl || undefined,
+          rankCode: p.rankCode || undefined,
         });
       }
     };
