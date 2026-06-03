@@ -200,7 +200,6 @@ const Discover = () => {
         .sort((a, b) => b.current_participants - a.current_participants);
 
       setRooms(visibleRooms);
-      setSessionCache('discover-rooms', visibleRooms);
     } catch (error) {
       console.error('Error fetching rooms:', error);
       recordClientError({ label: "Discover.visibleRooms", message: error instanceof Error ? error.message : String(error) });
