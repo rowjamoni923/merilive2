@@ -417,32 +417,43 @@ async function fetchLevelBasedVehicle(userLevel: number): Promise<string | undef
 }
 
 /**
- * Fetch active Noble subscription entrance animation for a user.
- * Active monthly Noble subscription beats level-based entrance and acts as a fallback
- * if user has no other equipped entrance.
+ * Fetch active Noble subscription details for a user.
  */
-async function fetchActiveNobleEntrance(userId: string): Promise<string | undefined> {
-  if (!userId) return undefined;
-  const cacheKey = `noble-entrance:${userId}`;
+async function fetchActiveNobleDetails(userId: string): Promise<{ url?: string; rankCode?: string }> {
+  if (!userId) return {};
+  const cacheKey = `noble-details:${userId}`;
   const cached = getCached(cacheKey);
-  if (cached !== null) return cached;
+  if (cached !== null) return JSON.parse(cached);
   try {
     const { data } = await supabase
       .from('user_noble_subscriptions')
-      .select('noble_cards:noble_card_id ( entrance_animation_url )')
+      .select('noble_cards:noble_card_id ( entrance_animation_url, rank_code )')
       .eq('user_id', userId)
       .eq('is_active', true)
       .gt('expires_at', new Date().toISOString())
       .order('expires_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    const url = (data?.noble_cards as any)?.entrance_animation_url || undefined;
-    setCache(cacheKey, url);
-    return url;
+    
+    const result = {
+      url: (data?.noble_cards as any)?.entrance_animation_url || undefined,
+      rankCode: (data?.noble_cards as any)?.rank_code || undefined
+    };
+    
+    setCache(cacheKey, JSON.stringify(result));
+    return result;
   } catch (err) {
-    console.error('[fetchActiveNobleEntrance] error:', err);
-    return undefined;
+    console.error('[fetchActiveNobleDetails] error:', err);
+    return {};
   }
+}
+
+/**
+ * DEPRECATED: Use fetchActiveNobleDetails
+ */
+async function fetchActiveNobleEntrance(userId: string): Promise<string | undefined> {
+  const details = await fetchActiveNobleDetails(userId);
+  return details.url;
 }
 
 /**
