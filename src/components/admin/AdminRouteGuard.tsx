@@ -89,6 +89,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'payment-gateways': 'finance-hub',
   'topup-payment-methods': 'finance-hub',
   'withdrawals': 'finance-hub',
+  'agency-commission-log': 'finance-hub',
   'balance-deduction': 'finance-hub',
   'transfer-history': 'finance-hub',
   'recharge-history': 'finance-hub',
