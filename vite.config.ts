@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // Auto-convert all bundled raster images (PNG/JPG/JPEG) to WebP @ q=78 with
 // a max width of 1600px. Keeps every existing `import x from './foo.png'`
