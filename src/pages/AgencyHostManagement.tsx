@@ -253,7 +253,7 @@ const AgencyHostManagement = () => {
   };
 
   // Filter hosts by search
-  const filteredHosts = hosts.filter(h => {
+  const filteredHosts = (hosts ?? []).filter(h => {
     const matchesSearch = !searchQuery || 
       h.host?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       h.host?.app_uid?.toLowerCase().includes(searchQuery.toLowerCase());
