@@ -3432,16 +3432,16 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Premium 3D Design */}
-        <div className="px-2 md:px-6 flex items-center gap-1.5 md:gap-3 pt-3 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
+        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.28) 65%, transparent 100%)' }}
         >
           {/* Chat Input — Glass pill with gradient send FAB */}
-          <div className="flex-1 min-w-0 relative">
+          <div className="flex-1 min-w-[88px] relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-10 rounded-full text-white text-xs pl-4 pr-11 placeholder:text-white/55"
+              className="w-full h-9 md:h-10 rounded-full text-white text-xs pl-3.5 md:pl-4 pr-10 placeholder:text-white/55"
               style={{
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
                 border: '1px solid rgba(255,255,255,0.18)',
