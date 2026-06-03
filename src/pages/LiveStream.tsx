@@ -3427,7 +3427,7 @@ const LiveStream = () => {
               {/* Count */}
               <div className="flex items-center gap-[3px] px-1.5">
                 <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
-                <span className="text-white text-[10px] font-bold tabular-nums">{viewerCount}</span>
+                <AnimatedViewerCount value={viewerCount} />
               </div>
             </button>
 
