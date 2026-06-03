@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import {
-  Video,
+  Camera,
   Square,
   Loader2,
   RefreshCw,
