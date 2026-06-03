@@ -224,7 +224,7 @@ const AgencyHostManagement = () => {
       }
     } catch (error: any) {
       // Rollback on failure
-      setPendingHosts(prev => [...prev, hostData]);
+      setPendingHosts(prev => [...(prev ?? []), hostData]);
       toast({ title: "Error", description: error.message || "Failed to reject request", variant: "destructive" });
     } finally {
       setProcessingId(null);
