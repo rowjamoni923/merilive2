@@ -2233,7 +2233,7 @@ const Chat = () => {
         />
         
         {/* Messages */}
-        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div ref={chatScrollRef} className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
