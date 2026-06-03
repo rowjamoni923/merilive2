@@ -757,7 +757,7 @@ export function ActiveCallScreen({
           </div>
 
           {/* Center - Duration timer */}
-          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full backdrop-blur-xl"
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full backdrop-blur-xl shrink-0"
             style={{
               background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(20,8,40,0.6) 100%)',
               border: '1px solid rgba(255,255,255,0.12)',
