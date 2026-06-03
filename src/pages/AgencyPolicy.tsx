@@ -380,9 +380,9 @@ const AgencyPolicy = () => {
               <TabsTrigger value="more" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1 relative">
                 <FileText className="w-3.5 h-3.5 mr-0.5" />
                 More
-                {dynamicSections.length > 0 && (
+                {(dynamicSections ?? []).length > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-brand-600 text-white border-0">
-                    {dynamicSections.length}
+                    {(dynamicSections ?? []).length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -786,7 +786,7 @@ const AgencyPolicy = () => {
 
             {/* More Tab — Admin-managed dynamic policy sections */}
             <TabsContent value="more" className="mt-4 space-y-4">
-              {dynamicSections.length === 0 ? (
+              {(dynamicSections ?? []).length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="p-8 text-center">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
@@ -796,7 +796,7 @@ const AgencyPolicy = () => {
                   </CardContent>
                 </Card>
               ) : (
-                dynamicSections.map((section) => {
+                (dynamicSections ?? []).map((section) => {
                   const visual = sectionVisuals[section.section_key] || {
                     icon: <FileText className="w-5 h-5" />,
                     gradient: "from-gray-500 to-gray-700",
