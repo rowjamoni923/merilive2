@@ -2,6 +2,26 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { imagetools } from "vite-imagetools";
+
+// Auto-convert all bundled raster images (PNG/JPG/JPEG) to WebP @ q=78 with
+// a max width of 1600px. Keeps every existing `import x from './foo.png'`
+// working transparently — Vite serves the generated .webp instead. To opt
+// out (e.g. need true PNG transparency or original size), append
+// `?format=png&w=original` or `?no-imagetools` to the import.
+const autoWebpDirectives = (url: URL) => {
+  const params = new URLSearchParams();
+  if (url.searchParams.has("no-imagetools")) return params;
+  const pathname = url.pathname.toLowerCase();
+  if (!/\.(png|jpe?g)$/.test(pathname)) return params;
+  if (!url.searchParams.has("format")) params.set("format", "webp");
+  if (!url.searchParams.has("quality")) params.set("quality", "78");
+  if (!url.searchParams.has("w") && !url.searchParams.has("width")) {
+    params.set("w", "1600");
+    params.set("withoutEnlargement", "true");
+  }
+  return params;
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,7 +32,11 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    imagetools({ defaultDirectives: autoWebpDirectives }),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
