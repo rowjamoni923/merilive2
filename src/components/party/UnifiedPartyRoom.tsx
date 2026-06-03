@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
@@ -1422,7 +1423,7 @@ export function UnifiedPartyRoom({
             <div className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full ml-1">
               <Users className="w-3 h-3 text-white/70" />
               {/* CRITICAL: Use realtimeViewerCount for instant updates */}
-              <span className="text-white text-[10px] font-medium">{realtimeViewerCount ?? viewerCount}</span>
+              <AnimatedViewerCount value={realtimeViewerCount ?? viewerCount} className="text-white text-[10px] font-medium tabular-nums" />
             </div>
             
             {/* 🔴 PENDING SEAT REQUEST BADGE - ONLY for Host */}

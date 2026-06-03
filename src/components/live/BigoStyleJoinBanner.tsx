@@ -49,21 +49,33 @@ interface BigoStyleBannerProps {
   onComplete: () => void;
 }
 
+// Pkg424 — Tier-based hold duration. Premium users get a longer spotlight on screen,
+// matching Bigo Noble cadence (Baron ~5s; everyone else 2.1s default).
+const getHoldDurationMs = (level: number): number => {
+  if (level >= 60) return 5000; // Legendary — full Baron-class spotlight
+  if (level >= 40) return 3500; // Epic
+  if (level >= 20) return 2800; // Platinum/Gold extended
+  return 2100;                  // Default (matches prior cadence)
+};
+
 const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBannerProps) => {
   const [phase, setPhase] = useState<'entering' | 'visible' | 'exiting'>('entering');
   const level = ensureValidLevel(notification.userLevel);
 
   useEffect(() => {
-    // Pkg-polish: Pro Bigo/Chamet cadence — enter ~280ms, hold 2.1s, exit ~420ms (total ~2.8s)
-    const visibleTimer = setTimeout(() => setPhase('visible'), 280);
-    const exitTimer = setTimeout(() => setPhase('exiting'), 2400);
-    const completeTimer = setTimeout(() => onComplete(), 2820);
+    // Pkg424: Pro Bigo cadence — enter ~280ms, tier-based hold, exit ~420ms.
+    const ENTER_MS = 280;
+    const EXIT_MS = 420;
+    const holdMs = getHoldDurationMs(level);
+    const visibleTimer = setTimeout(() => setPhase('visible'), ENTER_MS);
+    const exitTimer = setTimeout(() => setPhase('exiting'), ENTER_MS + holdMs);
+    const completeTimer = setTimeout(() => onComplete(), ENTER_MS + holdMs + EXIT_MS);
     return () => {
       clearTimeout(visibleTimer);
       clearTimeout(exitTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, [onComplete, level]);
 
   return (
     <motion.div
@@ -201,7 +213,32 @@ export function useBigoJoinNotifications() {
       id: `bigo_join_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       timestamp: Date.now(),
     };
-    setQueue(prev => [...prev, newNotification]);
+    const incomingLevel = ensureValidLevel(newNotification.userLevel);
+    setQueue(prev => {
+      const HIGH_TIER = 40; // Epic+ pre-empt the queue (matches Bigo Noble preempt)
+      const MAX_QUEUE = 8;  // Hard cap so viral bursts don't pile up minutes of banners
+      // VIP/Noble (level >= HIGH_TIER): jump to the front, after any other VIPs already queued
+      if (incomingLevel >= HIGH_TIER) {
+        const lastVipIdx = prev.reduce(
+          (acc, n, i) => (ensureValidLevel(n.userLevel) >= HIGH_TIER ? i : acc),
+          -1
+        );
+        const next = [...prev];
+        next.splice(lastVipIdx + 1, 0, newNotification);
+        // Trim from the tail (always the lowest-priority regular users)
+        return next.length > MAX_QUEUE ? next.slice(0, MAX_QUEUE) : next;
+      }
+      // Regular user: append, but if cap hit, drop the OLDEST regular (never drop a VIP)
+      const next = [...prev, newNotification];
+      if (next.length <= MAX_QUEUE) return next;
+      const firstRegularIdx = next.findIndex(n => ensureValidLevel(n.userLevel) < HIGH_TIER);
+      if (firstRegularIdx === -1) {
+        // All slots are VIPs — drop the new regular silently
+        return prev;
+      }
+      next.splice(firstRegularIdx, 1);
+      return next;
+    });
   }, []);
 
   const completeNotification = useCallback(() => {
