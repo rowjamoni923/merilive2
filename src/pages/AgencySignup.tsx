@@ -634,7 +634,8 @@ const AgencySignup = () => {
           )}
 
           {/* WhatsApp Number */}
-          {emailVerified && (
+          {appVerified && (
+
             <>
               <div className="border-t border-slate-200" />
               <div className="space-y-3">
