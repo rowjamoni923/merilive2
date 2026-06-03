@@ -147,8 +147,20 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             if (!mounted) return;
             if (data && String(data) === session.admin_id) {
               grantAdminAccess(session.is_owner);
+              return;
             }
-            // On failure: keep session intact (NO-AUTO-LOGOUT). User stays in.
+            // Stale local sessions are not real sessions. Keeping them sends a
+            // dead x-admin-token to every admin RPC and creates app-wide P0001
+            // failures. Self-heal by clearing only the invalid admin session and
+            // sending the user back through the saved secret link.
+            clearAdminSession();
+            revokeAdminAccess();
+            const linkToken = getAdminLinkToken();
+            if (linkToken) {
+              window.location.replace(`/admin/auth?access=${encodeURIComponent(linkToken)}`);
+            } else {
+              setIsAuthorized(false);
+            }
           } catch (e) {
             console.warn('[AdminAccessGuard] background session validation failed (kept session)', e);
           }
