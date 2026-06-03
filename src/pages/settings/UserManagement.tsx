@@ -26,7 +26,7 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchBlockedUsers = useCallback(async () => {
-    setLoading(true);
+    if (!blockedUsers) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
