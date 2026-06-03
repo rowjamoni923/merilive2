@@ -279,83 +279,115 @@ const CreateAgency = () => {
   ];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Premium Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-10 text-white safe-area-top"
+        style={{
+          background: 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 45%,#4f46e5 100%)',
+          boxShadow: '0 8px 24px -8px rgba(79,70,229,0.45), inset 0 -1px 0 rgba(255,255,255,0.12)',
+        }}
+      >
         <div className="flex items-center h-14 px-4">
-          <button 
+          <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-white/15 active:bg-white/25 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Create Agency</h1>
+          <h1 className="flex-1 text-center text-lg font-bold tracking-tight pr-7" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Create Agency</h1>
         </div>
       </header>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        {/* Hero Section */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-            <Building2 className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">Start Your Agency</h2>
-            <p className="text-white/90 text-sm">Build your team and earn together</p>
+        {/* Premium Hero */}
+        <div
+          className="mx-4 mt-4 rounded-3xl p-6 text-white relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg,#7c3aed 0%,#6366f1 50%,#3b82f6 100%)',
+            boxShadow: '0 18px 40px -12px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.22)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.15)' }}
+              >
+                <Building2 className="w-6 h-6 drop-shadow" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black tracking-tight" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Start Your Agency</h2>
+                <p className="text-white/90 text-sm font-medium">Build your team and earn together</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              {[{v:'4%',l:'Commission'},{v:'∞',l:'Hosts'},{v:'24/7',l:'Support'}].map(s => (
+                <div
+                  key={s.l}
+                  className="rounded-2xl p-3 text-center"
+                  style={{ background: 'rgba(255,255,255,0.14)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)' }}
+                >
+                  <p className="text-2xl font-black" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>{s.v}</p>
+                  <p className="text-[10px] text-white/85 uppercase tracking-wider font-bold mt-0.5">{s.l}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold">4%</p>
-            <p className="text-xs text-white/80">Commission</p>
-          </div>
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold">∞</p>
-            <p className="text-xs text-white/80">Hosts</p>
-          </div>
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold">24/7</p>
-            <p className="text-xs text-white/80">Support</p>
-          </div>
-        </div>
-      </div>
 
       {/* Parent Agency Info (for sub-agency) */}
       {parentAgency && (
-        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
+        <div
+          className="mx-4 mt-4 rounded-3xl p-4 border border-purple-200/70"
+          style={{
+            background: 'linear-gradient(135deg,#faf5ff 0%,#eef2ff 100%)',
+            boxShadow: '0 8px 24px -10px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.7)',
+          }}
+        >
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <LinkIcon className="w-5 h-5 text-white" />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                boxShadow: '0 4px 12px -2px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.3)',
+              }}
+            >
+              <LinkIcon className="w-5 h-5 text-white drop-shadow" />
             </div>
             <div>
-              <h3 className="font-semibold text-purple-800">Creating as Sub-Agency</h3>
-              <p className="text-xs text-purple-600">Under the following agency</p>
+              <h3 className="font-bold text-purple-900">Creating as Sub-Agency</h3>
+              <p className="text-xs text-purple-700/80 font-medium">Under the following agency</p>
             </div>
           </div>
-          <div className="bg-white/70 rounded-xl p-3 border border-purple-100">
+          <div className="bg-white/90 rounded-2xl p-3 border border-purple-100" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)' }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-gray-800">{parentAgency.name}</p>
-                <Badge className="bg-purple-100 text-purple-700 text-xs mt-1">
+                <p className="font-bold text-slate-900">{parentAgency.name}</p>
+                <Badge className="bg-purple-100 text-purple-700 text-xs mt-1 font-bold">
                   {parentAgency.level}
                 </Badge>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-500">Parent Agency Code</p>
-                <p className="font-mono font-bold text-purple-600">{parentAgencyCode}</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Parent Agency Code</p>
+                <p className="font-mono font-black text-purple-700 mt-0.5">{parentAgencyCode}</p>
               </div>
             </div>
           </div>
-          <p className="text-xs text-purple-600 mt-2">
+          <p className="text-xs text-purple-700 font-semibold mt-2">
             ✅ Your agency will be added as a sub-agency of the above agency
           </p>
         </div>
       )}
 
-      {/* Form */}
-      <div className="mx-4 mt-4 bg-white rounded-2xl p-5 shadow-sm border space-y-5">
+      {/* Premium Form Card */}
+      <div
+        className="mx-4 mt-4 bg-white rounded-3xl p-5 border border-slate-200 space-y-5"
+        style={{ boxShadow: '0 10px 30px -12px rgba(15,23,42,0.12), 0 2px 6px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+      >
         {/* Agency Name */}
         <div>
           <Label className="text-sm font-medium">Agency Name *</Label>
