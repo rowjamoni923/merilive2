@@ -24,6 +24,25 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
+const formatRelativeTime = (iso: string): string => {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return '';
+  const diff = Math.max(0, Date.now() - then);
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w}w`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo`;
+  return `${Math.floor(d / 365)}y`;
+};
+
 // Module-scoped instant cache — re-entering Reels shows the last list immediately
 // (zero-refresh feel) while realtime + background fetch keep it fresh.
 const reelsCache: { byCategory: Map<string, any[]>; categories: any[] | null } = {
@@ -939,56 +958,117 @@ const Reels = () => {
         )}
       </div>
 
-      {/* Comments Sheet */}
+      {/* Comments Sheet — premium dark glass to match Reels theme */}
       <Sheet open={showComments} onOpenChange={setShowComments}>
-        <SheetContent side="bottom" className="h-[70vh] bg-background rounded-t-3xl">
-          <SheetHeader>
-            <SheetTitle>{currentReel?.comment_count || 0} Comments</SheetTitle>
+        <SheetContent
+          side="bottom"
+          className="h-[78vh] p-0 border-t border-white/10 rounded-t-3xl bg-gradient-to-b from-[#0F1320] via-[#0B0F19] to-[#070A12] shadow-[0_-20px_60px_rgba(0,0,0,0.7)] text-white [&>button]:hidden flex flex-col"
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="h-1.5 w-12 rounded-full bg-white/20" />
+          </div>
+
+          {/* Header */}
+          <SheetHeader className="px-5 pt-2 pb-3 shrink-0">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-white text-base font-semibold flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-white/70" />
+                <span>{currentReel?.comment_count || 0}</span>
+                <span className="text-white/60 font-normal">
+                  {(currentReel?.comment_count || 0) === 1 ? 'Comment' : 'Comments'}
+                </span>
+              </SheetTitle>
+              <button
+                onClick={() => setShowComments(false)}
+                className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
           </SheetHeader>
-          
-          <ScrollArea className="h-[calc(100%-120px)] mt-4">
+
+          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
+
+          {/* List */}
+          <ScrollArea className="flex-1 min-h-0">
             {comments.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No comments yet. Be the first!
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                  <MessageCircle className="w-7 h-7 text-white/40" />
+                </div>
+                <p className="text-white font-medium">No comments yet</p>
+                <p className="text-white/50 text-sm mt-1">Be the first to share your thoughts</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {comments.map(comment => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={comment.user?.avatar_url || ''} />
-                      <AvatarFallback>{comment.user?.display_name?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{comment.user?.display_name || 'User'}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comment.created_at).toLocaleDateString()}
-                        </span>
+              <div className="px-4 py-3 space-y-1">
+                <AnimatePresence initial={false}>
+                  {comments.map((comment) => (
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.22, ease: 'easeOut' }}
+                      className="flex gap-3 px-2 py-3 rounded-2xl hover:bg-white/[0.03] transition"
+                    >
+                      <Avatar className="w-9 h-9 ring-2 ring-white/10 shrink-0">
+                        <AvatarImage src={comment.user?.avatar_url || ''} />
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-semibold">
+                          {comment.user?.display_name?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-white truncate max-w-[140px]">
+                            {comment.user?.display_name || 'User'}
+                          </span>
+                          {comment.user?.user_level ? (
+                            <LevelBadge level={comment.user.user_level} size="xs" />
+                          ) : null}
+                          <span className="text-[11px] text-white/40">
+                            {formatRelativeTime(comment.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-white/85 mt-0.5 leading-snug break-words whitespace-pre-wrap">
+                          {comment.content}
+                        </p>
                       </div>
-                      <p className="text-sm mt-1">{comment.content}</p>
-                    </div>
-                  </div>
-                ))}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div className="h-2" />
               </div>
             )}
           </ScrollArea>
 
-          {/* Comment Input */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t flex gap-2">
-            <Input
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendComment()}
-              className="flex-1"
-            />
-            <Button onClick={sendComment} disabled={!newComment.trim() || sendingComment} size="icon">
-              <Send className="w-4 h-4" />
-            </Button>
+          {/* Input */}
+          <div className="shrink-0 border-t border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendComment()}
+                  maxLength={500}
+                  className="h-11 rounded-full bg-white/[0.06] border-white/10 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:border-pink-400/40 px-4"
+                />
+              </div>
+              <Button
+                onClick={sendComment}
+                disabled={!newComment.trim() || sendingComment}
+                size="icon"
+                className="h-11 w-11 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-500 hover:to-purple-700 disabled:opacity-40 disabled:from-white/10 disabled:to-white/10 shadow-[0_4px_18px_rgba(236,72,153,0.35)] active:scale-95 transition"
+              >
+                <Send className="w-4 h-4 text-white" />
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
+
 
       {/* Upload Modal */}
       <ReelUploadModal
