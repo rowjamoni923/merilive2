@@ -5,7 +5,7 @@ import { SmartImage } from "@/components/ui/smart-image";
 import {
   Search, Plus, Trash2, Save, Edit2, Upload, Copy, Check,
   Image, Palette, Eye, Filter, X, Home, Diamond, Gem, Users,
-  Phone, Video, Music, Gift, Shield, Star, Heart, Zap,
+  Phone, Camera, Music, Gift, Shield, Star, Heart, Zap,
   Crown, Sparkles, Globe, Wallet, Award, Settings, Bell,
   MessageCircle, Play, Trophy, Clock, Target, Coins,
   ArrowRight, ChevronDown, Package, Layers
@@ -58,7 +58,7 @@ const ICON_TYPES = [
 ];
 
 const POPULAR_LUCIDE_ICONS = [
-  'Home', 'Diamond', 'Gem', 'Users', 'Phone', 'Video', 'Music', 'Gift',
+  'Home', 'Diamond', 'Gem', 'Users', 'Phone', 'Camera', 'Music', 'Gift',
   'Shield', 'Star', 'Heart', 'Zap', 'Crown', 'Sparkles', 'Globe', 'Wallet',
   'Award', 'Settings', 'Bell', 'MessageCircle', 'Play', 'Trophy', 'Clock',
   'Target', 'Coins', 'Package', 'Layers', 'Eye', 'Search', 'Filter',
