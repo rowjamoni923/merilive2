@@ -138,10 +138,11 @@ export const getAdminSession = (): AdminSession | null => {
     // just because tab-scoped secret-link storage was lost on refresh/new tab.
     // The route guard still requires secret-link access for first entry, but a
     // saved admin session must remain usable until manual logout.
-    // Sync to sessionStorage if only in localStorage
-    if (!window.sessionStorage.getItem(ADMIN_SESSION_KEY)) {
-      window.sessionStorage.setItem(ADMIN_SESSION_KEY, raw);
-    }
+    // Keep both stores aligned to the newest valid session so future RPCs never
+    // fall back to an older x-admin-token from the other storage bucket.
+    const json = JSON.stringify(parsed);
+    window.localStorage.setItem(ADMIN_SESSION_KEY, json);
+    window.sessionStorage.setItem(ADMIN_SESSION_KEY, json);
     if (parsed.session_token && parsed.session_token.length >= 16) {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
     }
