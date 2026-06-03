@@ -171,7 +171,7 @@ const PKLeaderboard = () => {
   };
 
   const getRewardForRank = (rank: number): RewardTier | null => {
-    return rewards.find(r => rank >= r.rank_from && rank <= r.rank_to) || null;
+    return (rewards ?? []).find(r => rank >= r.rank_from && rank <= r.rank_to) || null;
   };
 
   const formatNumber = (num: number): string => {
@@ -225,7 +225,7 @@ const PKLeaderboard = () => {
             </div>
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5">
               <Users className="w-3.5 h-3.5 text-slate-800" />
-              <span className="text-slate-800 text-xs font-medium">{participants.length} participants</span>
+              <span className="text-slate-800 text-xs font-medium">{(participants ?? []).length} participants</span>
             </div>
           </div>
 
@@ -252,13 +252,13 @@ const PKLeaderboard = () => {
 
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
       {/* Reward Tiers */}
-      {rewards.length > 0 && (
+      {(rewards ?? []).length > 0 && (
         <div className="px-4 mt-4">
           <h3 className="text-foreground text-sm font-semibold mb-2 flex items-center gap-2">
             <Gem className="w-4 h-4 text-cyan-400" /> Rewards
           </h3>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {rewards.map((r, i) => (
+            {(rewards ?? []).map((r, i) => (
               <div key={i} className="flex-shrink-0 bg-card border border-border rounded-lg p-3 min-w-[120px] text-center">
                 <p className="text-xs text-muted-foreground mb-1">
                   {r.rank_from === r.rank_to ? `#${r.rank_from}` : `#${r.rank_from}-${r.rank_to}`}
@@ -286,7 +286,7 @@ const PKLeaderboard = () => {
           <Trophy className="w-4 h-4 text-yellow-500" /> Rankings
         </h3>
 
-        {participants.length === 0 ? (
+        {(participants ?? []).length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No participants yet</p>
@@ -294,7 +294,7 @@ const PKLeaderboard = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {participants.map((p) => {
+            {(participants ?? []).map((p) => {
               const rank = p.rank_position || 0;
               const reward = getRewardForRank(rank);
               const isMe = currentUserId === p.user_id;
