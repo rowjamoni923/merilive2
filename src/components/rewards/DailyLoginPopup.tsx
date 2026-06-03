@@ -9,12 +9,8 @@ import { motion } from "framer-motion";
 import treasureChest3D from "@/assets/rewards/treasure-chest-3d.png";
 
 /**
- * Ultra-Premium HD 3D Daily Login Reward Popup
- *
- * - Photoreal 3D treasure-chest hero render
- * - Conic-gradient gilded frame, deep obsidian glass surface
- * - Embossed reward day cells with metallic finishes
- * - Cinematic motion + ambient particle field
+ * Ultra-Premium HD Daily Login Reward Popup — LIGHT THEME
+ * Matches app's white surface, with rich amber + slate text for high contrast.
  */
 const DailyLoginPopup = () => {
   const {
@@ -45,9 +41,9 @@ const DailyLoginPopup = () => {
           style={{ perspective: 1400, transformStyle: "preserve-3d" }}
         >
           {/* === Outer ambient halo === */}
-          <div className="pointer-events-none absolute -inset-12 opacity-80">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(251,191,36,0.18),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.16),transparent_55%)]" />
+          <div className="pointer-events-none absolute -inset-12 opacity-90">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(251,191,36,0.28),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.18),transparent_55%)]" />
           </div>
 
           {/* === Conic gilded frame === */}
@@ -57,26 +53,26 @@ const DailyLoginPopup = () => {
               background:
                 "conic-gradient(from 140deg at 50% 50%, #fde68a 0deg, #b45309 70deg, #fbbf24 130deg, #92400e 200deg, #fde68a 260deg, #d97706 320deg, #fde68a 360deg)",
               boxShadow:
-                "0 30px 60px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(251,191,36,0.25), 0 0 80px rgba(245,158,11,0.18)",
+                "0 30px 60px -20px rgba(180,83,9,0.35), 0 0 0 1px rgba(251,191,36,0.35), 0 0 80px rgba(245,158,11,0.22)",
             }}
           >
-            {/* === Obsidian glass body === */}
+            {/* === Pearl white body === */}
             <div
               className="relative rounded-[28px] overflow-hidden"
               style={{
                 background:
-                  "radial-gradient(120% 80% at 50% 0%, #1a1330 0%, #0c0820 45%, #06030f 100%)",
+                  "radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #fff8ec 50%, #fef3e0 100%)",
               }}
             >
               {/* Inner top sheen */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.07] to-transparent" />
-              {/* Vignette */}
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_120%,rgba(0,0,0,0.6),transparent_60%)]" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/80 to-transparent" />
+              {/* Soft warm vignette */}
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_120%,rgba(245,158,11,0.10),transparent_60%)]" />
 
               {/* Soft color blooms */}
-              <div className="pointer-events-none absolute -top-24 -left-16 w-64 h-64 bg-amber-500/20 rounded-full blur-[60px]" />
-              <div className="pointer-events-none absolute -bottom-24 -right-16 w-64 h-64 bg-fuchsia-600/15 rounded-full blur-[70px]" />
-              <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-48 h-48 bg-cyan-500/10 rounded-full blur-[60px]" />
+              <div className="pointer-events-none absolute -top-24 -left-16 w-64 h-64 bg-amber-300/40 rounded-full blur-[70px]" />
+              <div className="pointer-events-none absolute -bottom-24 -right-16 w-64 h-64 bg-fuchsia-300/30 rounded-full blur-[70px]" />
+              <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-48 h-48 bg-cyan-200/30 rounded-full blur-[60px]" />
 
               {/* Floating particles */}
               {[...Array(14)].map((_, i) => (
@@ -89,13 +85,13 @@ const DailyLoginPopup = () => {
                     width: i % 3 === 0 ? 2.5 : 1.5,
                     height: i % 3 === 0 ? 2.5 : 1.5,
                     background:
-                      ["#fde68a", "#fbbf24", "#a78bfa", "#67e8f9", "#fb7185"][i % 5],
+                      ["#f59e0b", "#d97706", "#a855f7", "#06b6d4", "#ec4899"][i % 5],
                     boxShadow: "0 0 8px currentColor",
-                    color: ["#fde68a", "#fbbf24", "#a78bfa", "#67e8f9", "#fb7185"][i % 5],
+                    color: ["#f59e0b", "#d97706", "#a855f7", "#06b6d4", "#ec4899"][i % 5],
                   }}
                   animate={{
                     y: [0, -14 - (i % 5) * 4, 0],
-                    opacity: [0.15, 0.9, 0.15],
+                    opacity: [0.25, 0.95, 0.25],
                     scale: [0.6, 1.2, 0.6],
                   }}
                   transition={{
@@ -111,12 +107,12 @@ const DailyLoginPopup = () => {
               <button
                 onClick={() => setShowPopup(false)}
                 aria-label="Close"
-                className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full grid place-items-center text-slate-500 hover:text-white transition-all"
+                className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full grid place-items-center text-slate-500 hover:text-slate-900 transition-all"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                    "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(254,243,224,0.7))",
+                  border: "1px solid rgba(180,83,9,0.18)",
+                  boxShadow: "0 2px 6px rgba(120,53,15,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -133,13 +129,13 @@ const DailyLoginPopup = () => {
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3"
                   style={{
                     background:
-                      "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(245,158,11,0.06))",
-                    border: "1px solid rgba(251,191,36,0.35)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+                      "linear-gradient(180deg, #fff7d6, #fde68a)",
+                    border: "1px solid rgba(180,83,9,0.30)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(180,83,9,0.08)",
                   }}
                 >
                   <Sparkles className="w-3 h-3 text-amber-700" />
-                  <span className="text-[10px] font-bold tracking-[0.22em] uppercase bg-gradient-to-b from-amber-100 to-amber-300 bg-clip-text text-transparent">
+                  <span className="text-[10px] font-extrabold tracking-[0.22em] uppercase text-amber-900">
                     Premium Daily Reward
                   </span>
                 </motion.div>
@@ -147,8 +143,8 @@ const DailyLoginPopup = () => {
                 {/* === 3D Treasure Hero === */}
                 <div className="relative mx-auto" style={{ width: 200, height: 168 }}>
                   {/* Pedestal glow */}
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-44 h-6 rounded-[50%] bg-amber-500/40 blur-2xl" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-32 h-3 rounded-[50%] bg-amber-300/50 blur-md" />
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-44 h-6 rounded-[50%] bg-amber-400/45 blur-2xl" />
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-32 h-3 rounded-[50%] bg-amber-300/55 blur-md" />
 
                   {/* Orbiting halo ring */}
                   <motion.div
@@ -156,9 +152,9 @@ const DailyLoginPopup = () => {
                     animate={{ rotate: 360 }}
                     transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
                   >
-                    <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]" />
-                    <Sparkles className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 text-cyan-200 drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
-                    <Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-700 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />
+                    <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-500 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]" />
+                    <Sparkles className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 text-cyan-500 drop-shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
+                    <Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-500 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />
                   </motion.div>
 
                   {/* Floating chest */}
@@ -170,7 +166,7 @@ const DailyLoginPopup = () => {
                     className="relative z-10 mx-auto w-[180px] h-[180px] object-contain"
                     style={{
                       filter:
-                        "drop-shadow(0 14px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 28px rgba(245,158,11,0.45))",
+                        "drop-shadow(0 14px 22px rgba(120,53,15,0.30)) drop-shadow(0 0 28px rgba(245,158,11,0.55))",
                     }}
                     animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
@@ -206,36 +202,38 @@ const DailyLoginPopup = () => {
                     className="bg-clip-text text-transparent"
                     style={{
                       backgroundImage:
-                        "linear-gradient(180deg, #fff7d6 0%, #fde68a 30%, #f59e0b 60%, #92400e 100%)",
-                      WebkitTextStroke: "0.4px rgba(120,53,15,0.4)",
-                      filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.35))",
+                        "linear-gradient(180deg, #f59e0b 0%, #d97706 45%, #92400e 100%)",
+                      WebkitTextStroke: "0.4px rgba(120,53,15,0.20)",
+                      filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.30))",
                     }}
                   >
                     Daily Reward
                   </span>
                 </h2>
-                <p className="mt-1 text-[11px] text-slate-600 tracking-wider">
+                <p className="mt-1 text-[11px] text-slate-600 tracking-wider font-medium">
                   Sign in every day to climb the streak
                 </p>
 
                 {/* Pills */}
                 <div className="flex items-center justify-center gap-2 mt-3">
                   <span
-                    className="text-[10px] font-bold tracking-wider px-3 py-1 rounded-full text-amber-100"
+                    className="text-[10px] font-extrabold tracking-wider px-3 py-1 rounded-full text-amber-900"
                     style={{
                       background:
-                        "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(180,83,9,0.10))",
-                      border: "1px solid rgba(251,191,36,0.35)",
+                        "linear-gradient(180deg, #fef3c7, #fde68a)",
+                      border: "1px solid rgba(180,83,9,0.28)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                     }}
                   >
                     DAY {currentDay} / 7
                   </span>
                   <span
-                    className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider px-3 py-1 rounded-full text-orange-100"
+                    className="inline-flex items-center gap-1 text-[10px] font-extrabold tracking-wider px-3 py-1 rounded-full text-orange-900"
                     style={{
                       background:
-                        "linear-gradient(180deg, rgba(249,115,22,0.20), rgba(127,29,29,0.10))",
-                      border: "1px solid rgba(249,115,22,0.35)",
+                        "linear-gradient(180deg, #ffedd5, #fed7aa)",
+                      border: "1px solid rgba(194,65,12,0.28)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                     }}
                   >
                     <Flame className="w-3 h-3 text-orange-600" />
@@ -264,18 +262,18 @@ const DailyLoginPopup = () => {
                       )}
                       style={{
                         background: isToday
-                          ? "linear-gradient(180deg, rgba(251,191,36,0.28) 0%, rgba(180,83,9,0.18) 100%)"
+                          ? "linear-gradient(180deg, #fde68a 0%, #fbbf24 100%)"
                           : isClaimed
-                          ? "linear-gradient(180deg, rgba(16,185,129,0.14) 0%, rgba(6,78,59,0.10) 100%)"
-                          : "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                          ? "linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%)"
+                          : "linear-gradient(180deg, #ffffff 0%, #fff8ec 100%)",
                         border: isToday
-                          ? "1px solid rgba(251,191,36,0.55)"
+                          ? "1px solid rgba(180,83,9,0.45)"
                           : isClaimed
-                          ? "1px solid rgba(16,185,129,0.30)"
-                          : "1px solid rgba(255,255,255,0.06)",
+                          ? "1px solid rgba(5,150,105,0.35)"
+                          : "1px solid rgba(180,83,9,0.15)",
                         boxShadow: isToday
-                          ? "0 8px 22px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.18)"
-                          : "inset 0 1px 0 rgba(255,255,255,0.04)",
+                          ? "0 8px 22px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.7)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 6px rgba(180,83,9,0.06)",
                       }}
                     >
                       {isToday && (
@@ -283,7 +281,7 @@ const DailyLoginPopup = () => {
                           className="absolute -top-px left-1/2 -translate-x-1/2 w-7 h-1 rounded-full"
                           style={{
                             background:
-                              "linear-gradient(90deg, transparent, #fde68a, #f59e0b, #fde68a, transparent)",
+                              "linear-gradient(90deg, transparent, #b45309, #92400e, #b45309, transparent)",
                           }}
                           animate={{ opacity: [0.5, 1, 0.5] }}
                           transition={{ duration: 1.6, repeat: Infinity }}
@@ -294,10 +292,10 @@ const DailyLoginPopup = () => {
                         className={cn(
                           "text-[8px] font-extrabold uppercase tracking-[0.18em]",
                           isToday
-                            ? "text-amber-200"
+                            ? "text-amber-900"
                             : isClaimed
-                            ? "text-emerald-700/70"
-                            : "text-slate-600"
+                            ? "text-emerald-800"
+                            : "text-slate-500"
                         )}
                       >
                         D{day.day_number}
@@ -313,7 +311,7 @@ const DailyLoginPopup = () => {
                               background:
                                 "linear-gradient(180deg, #34d399, #059669)",
                               boxShadow:
-                                "0 4px 10px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
+                                "0 4px 10px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.5)",
                             }}
                           >
                             <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
@@ -324,7 +322,7 @@ const DailyLoginPopup = () => {
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           >
                             <Crown
-                              className="w-6 h-6 text-amber-700 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                              className="w-6 h-6 text-amber-600 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
                               fill="currentColor"
                             />
                           </motion.div>
@@ -337,10 +335,10 @@ const DailyLoginPopup = () => {
                         className={cn(
                           "text-[10px] font-black tabular-nums tracking-wide",
                           isToday
-                            ? "text-amber-100"
+                            ? "text-amber-950"
                             : isClaimed
-                            ? "text-emerald-200/70"
-                            : "text-slate-600"
+                            ? "text-emerald-900"
+                            : "text-slate-700"
                         )}
                       >
                         {day.reward_coins}
@@ -359,17 +357,17 @@ const DailyLoginPopup = () => {
                   className="mx-4 mb-4 relative overflow-hidden rounded-2xl"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(245,158,11,0.14), rgba(168,85,247,0.10) 55%, rgba(6,182,212,0.10))",
-                    border: "1px solid rgba(251,191,36,0.25)",
+                      "linear-gradient(135deg, #fff7d6 0%, #fef3c7 55%, #ffedd5 100%)",
+                    border: "1px solid rgba(180,83,9,0.25)",
                     boxShadow:
-                      "inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 24px -12px rgba(0,0,0,0.6)",
+                      "inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px -12px rgba(120,53,15,0.18)",
                   }}
                 >
                   <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
-                        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%)",
+                        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)",
                     }}
                     animate={{ x: ["-100%", "200%"] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -377,7 +375,7 @@ const DailyLoginPopup = () => {
 
                   <div className="relative z-10 flex items-center justify-between p-3.5">
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-amber-700/80 mb-1.5">
+                      <p className="text-[9px] font-extrabold uppercase tracking-[0.24em] text-amber-800 mb-1.5">
                         Today's Reward
                       </p>
                       <div className="flex items-center gap-2">
@@ -385,13 +383,13 @@ const DailyLoginPopup = () => {
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
                           style={{
                             background:
-                              "linear-gradient(180deg, rgba(251,191,36,0.20), rgba(180,83,9,0.10))",
-                            border: "1px solid rgba(251,191,36,0.30)",
-                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
+                              "linear-gradient(180deg, #ffffff, #fef3c7)",
+                            border: "1px solid rgba(180,83,9,0.28)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(180,83,9,0.08)",
                           }}
                         >
                           <Diamond3DIcon size={20} />
-                          <span className="text-xl font-black text-white tabular-nums">
+                          <span className="text-xl font-black text-amber-950 tabular-nums">
                             {todayReward.reward_coins}
                           </span>
                         </div>
@@ -400,13 +398,13 @@ const DailyLoginPopup = () => {
                             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl"
                             style={{
                               background:
-                                "linear-gradient(180deg, rgba(6,182,212,0.20), rgba(15,118,110,0.10))",
-                              border: "1px solid rgba(6,182,212,0.30)",
-                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+                                "linear-gradient(180deg, #ffffff, #cffafe)",
+                              border: "1px solid rgba(8,145,178,0.30)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(8,145,178,0.08)",
                             }}
                           >
                             <Gem className="w-4 h-4 text-cyan-600" />
-                            <span className="text-lg font-black text-cyan-200 tabular-nums">
+                            <span className="text-lg font-black text-cyan-900 tabular-nums">
                               +{todayReward.reward_diamonds}
                             </span>
                           </div>
@@ -424,11 +422,10 @@ const DailyLoginPopup = () => {
                         alt=""
                         width={96}
                         height={96}
-                       
                         className="w-12 h-12 object-contain"
                         style={{
                           filter:
-                            "drop-shadow(0 6px 10px rgba(0,0,0,0.55)) drop-shadow(0 0 14px rgba(245,158,11,0.5))",
+                            "drop-shadow(0 6px 10px rgba(120,53,15,0.30)) drop-shadow(0 0 14px rgba(245,158,11,0.55))",
                         }}
                       />
                     </motion.div>
@@ -497,7 +494,7 @@ const DailyLoginPopup = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.15 }}
-                    className="text-center text-[11px] text-amber-700/75 mt-3 font-semibold tracking-wide"
+                    className="text-center text-[11px] text-amber-800 mt-3 font-semibold tracking-wide"
                   >
                     🏆 Complete 7 days for the MEGA bonus
                   </motion.p>
