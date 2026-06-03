@@ -102,8 +102,6 @@ export const PremiumLiveStreamCard = ({
           <img loading="lazy" decoding="async"
             src={primarySrc}
             alt={hostName}
-           
-            decoding="sync"
             // @ts-expect-error – fetchpriority is a standard HTML hint
             fetchpriority="high"
             onError={(e) => {

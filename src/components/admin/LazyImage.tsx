@@ -35,7 +35,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
     <img loading="lazy" decoding="async"
       src={finalSrc}
       alt={alt}
-      decoding="async"
       {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
       onError={(e) => {
         const t = e.currentTarget;

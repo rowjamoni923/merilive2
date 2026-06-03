@@ -127,9 +127,7 @@ const GiftItem = memo(({
           <img loading="lazy" decoding="async" 
             src={url} 
             alt={gift.name} 
-            className="w-10 h-10 object-contain" 
-           
-            decoding="async"
+            className="w-10 h-10 object-contain"
  />
         ) : (
           <div className="w-10 h-10 rounded-lg bg-white/5" />

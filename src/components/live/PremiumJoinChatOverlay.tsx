@@ -235,8 +235,6 @@ const PremiumChatMessage = memo(({ message }: PremiumChatMessageProps) => {
             src={giftIconUrl} 
             alt="Gift" 
             className="w-full h-full object-contain"
-           
-            decoding="async"
             onError={(e) => {
               // Fallback if image fails to load
               (e.target as HTMLImageElement).style.display = 'none';

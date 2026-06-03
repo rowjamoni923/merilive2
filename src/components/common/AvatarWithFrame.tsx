@@ -502,7 +502,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         <div className="absolute pointer-events-none" 
           style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
           <img loading="lazy" decoding="async" src={activeFrameUrl} alt="" className="w-full h-full object-contain"
-            onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
+            onError={handleFrameError} onLoad={handleFrameLoad} />
         </div>
       )}
 
@@ -511,7 +511,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         <div className="absolute pointer-events-none"
           style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
           <img loading="lazy" decoding="async" src={activeFrameUrl} alt="" className="w-full h-full object-contain"
-            onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
+            onError={handleFrameError} onLoad={handleFrameLoad} />
         </div>
       )}
 

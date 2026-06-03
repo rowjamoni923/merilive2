@@ -422,8 +422,6 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
             src={giftIconUrl} 
             alt="Gift" 
             className="w-full h-full object-contain"
-           
-            decoding="async"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}

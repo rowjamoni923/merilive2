@@ -187,7 +187,6 @@ const EventPopupBanner = () => {
                 src={popupCdn(banner.image_url)}
                 alt={banner.title}
                 onClick={handleBannerClick}
-                decoding="sync"
                 {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
                 className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
                 draggable={false}

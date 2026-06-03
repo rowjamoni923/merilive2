@@ -205,7 +205,6 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           sizes={hdSrcSet ? '100vw' : undefined}
           alt="MeriLive background"
           className="absolute inset-0 w-full h-full object-cover"
-          decoding="async"
          
           {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
           onError={() => setMediaFailed(true)}
