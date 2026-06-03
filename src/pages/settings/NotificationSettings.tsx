@@ -157,7 +157,7 @@ export default function NotificationSettings() {
         toast({ title: 'Error', description: 'Failed to save sound preference', variant: 'destructive' });
       } else {
         setPrefs(prev => {
-          const next = { ...prev };
+          const next = { ...(prev ?? {}) };
           CATEGORIES.forEach(cat => {
             next[cat.key] = { ...(next[cat.key] || DEFAULT_PREF), sound_enabled: value };
           });
