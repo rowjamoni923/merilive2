@@ -812,7 +812,7 @@ export function ActiveCallScreen({
             )}
 
             {/* Signal bars */}
-            <div className="flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
+            <div className="hidden sm:flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
               style={{
                 background: isConnected
                   ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
