@@ -15,21 +15,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Radio,
-  RefreshCw,
-  Loader2,
-  Search,
-  Users,
-  Eye,
-  Mic,
-  Video,
-  Clock,
-  X,
-  Circle,
-  Square,
-  Bot,
-} from "lucide-react";
+import {Radio, RefreshCw, Loader2, Search, Users, Eye, Mic, Camera, Clock, X, Circle, Square, Bot, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
