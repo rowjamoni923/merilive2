@@ -418,6 +418,7 @@ const LiveStream = () => {
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+  const activeViewerIdsHydratedRef = useRef(false);
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
@@ -896,7 +897,7 @@ const LiveStream = () => {
 
           // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
           activeViewerIdsRef.current.add(currentUserId);
-          setViewerCount(activeViewerIdsRef.current.size);
+          setViewerCount(prev => Math.max(prev, activeViewerIdsRef.current.size));
 
           // Reliable server-side join (no silent fail) + exact count sync
           void supabase
@@ -1164,7 +1165,7 @@ const LiveStream = () => {
         
         // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
-          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id)
+          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id).is('left_at', null)
             .then(({ count }) => {
               if (count !== null) setViewerCount(count);
             });
@@ -1358,8 +1359,9 @@ const LiveStream = () => {
 
       if (p.type === 'viewer_left') {
         // LiveKit ParticipantDisconnected — translated locally on every client.
+        const wasTracked = activeViewerIdsRef.current.has(p.userId);
         activeViewerIdsRef.current.delete(p.userId);
-        setViewerCount(activeViewerIdsRef.current.size);
+        setViewerCount(prev => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(0, prev - (wasTracked ? 1 : 0)));
         setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== p.userId));
         return;
       }
@@ -1374,7 +1376,7 @@ const LiveStream = () => {
 
       // 1. INSTANT viewer count + avatar list patch
       activeViewerIdsRef.current.add(p.userId);
-      setViewerCount(activeViewerIdsRef.current.size);
+      setViewerCount(prev => Math.max(prev, activeViewerIdsRef.current.size));
       setRecentViewerAvatars((prev) => [
         {
           id: p.userId,
@@ -1677,6 +1679,7 @@ const LiveStream = () => {
 
       if (mountedRef.current) {
         activeViewerIdsRef.current = new Set(viewerIds);
+        activeViewerIdsHydratedRef.current = true;
         setRecentViewerAvatars(avatars);
 
         if (typeof count === 'number') {
