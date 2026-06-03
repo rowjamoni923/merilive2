@@ -419,6 +419,7 @@ const LiveStream = () => {
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
   const activeViewerIdsHydratedRef = useRef(false);
+  const sessionAccessTokenRef = useRef<string | null>(null);
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
@@ -427,6 +428,21 @@ const LiveStream = () => {
   useEffect(() => {
     activeViewerIdsRef.current = new Set();
     activeViewerIdsHydratedRef.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) sessionAccessTokenRef.current = data.session?.access_token ?? null;
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      sessionAccessTokenRef.current = session?.access_token ?? null;
+    });
+    return () => {
+      cancelled = true;
+      data.subscription.unsubscribe();
+    };
   }, [id]);
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
@@ -1495,12 +1511,7 @@ const LiveStream = () => {
       const detail = (evt as CustomEvent).detail || {};
       if (detail.streamId !== id) return;
       const lkCount: number = typeof detail.count === 'number' ? detail.count : 0;
-      if (isHost) {
-        setViewerCount(Math.max(0, lkCount));
-      } else {
-        const adjusted = Math.max(0, lkCount - 1) + 1;
-        setViewerCount(adjusted);
-      }
+      setViewerCount(Math.max(0, lkCount));
     };
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
 
