@@ -28,12 +28,12 @@ interface VersionSettings {
 const normalizeVersionSettings = (row: any): VersionSettings => ({
   id: row.id,
   platform: row.platform,
-  current_version_code: Number((parseSettingValue<string>(row.current_version) || '0').toString().split('.').join('')) || 0,
-  current_version_name: parseSettingValue<string>(row.current_version) || '1.0.0',
-  min_version_code: Number((parseSettingValue<string>(row.minimum_version) || '0').toString().split('.').join('')) || 0,
+  current_version_code: row.current_version_code || 0,
+  current_version_name: row.current_version_name || row.current_version || '1.0.0',
+  min_version_code: row.min_version_code || 0,
   force_update: Boolean(row.force_update),
-  update_message: parseSettingValue<string>(row.changelog) || '',
-  play_store_url: parseSettingValue<string>(row.update_url) || '',
+  update_message: row.update_message || row.changelog || '',
+  play_store_url: row.play_store_url || row.update_url || '',
   updated_at: row.updated_at,
 });
 
@@ -78,10 +78,15 @@ const AdminAppVersion = () => {
         .from('app_version_settings')
         .update({
           current_version: settings.current_version_name,
+          current_version_name: settings.current_version_name,
+          current_version_code: settings.current_version_code,
           minimum_version: settings.min_version_code > 0 ? String(settings.min_version_code) : settings.current_version_name,
+          min_version_code: settings.min_version_code,
           force_update: settings.force_update,
           changelog: settings.update_message,
+          update_message: settings.update_message,
           update_url: settings.play_store_url,
+          play_store_url: settings.play_store_url,
           updated_at: new Date().toISOString(),
         })
         .eq('id', settings.id);
@@ -160,21 +165,22 @@ const AdminAppVersion = () => {
             <div className="space-y-2">
               <Label>Current Version Name</Label>
               <Input
-                key={`name-${settings?.updated_at}`}
                 value={localSettings.current_version_name}
                 onChange={(e) => handleLocalChange({ current_version_name: e.target.value })}
-                placeholder="e.g., 4.0.0"
+                placeholder="e.g., 8.2.1"
               />
             </div>
             <div className="space-y-2">
-              <Label>Version Code</Label>
+              <Label>Version Code (Integer)</Label>
               <Input
-                key={`code-${settings?.updated_at}`}
                 type="number"
                 value={localSettings.current_version_code}
                 onChange={(e) => handleLocalChange({ current_version_code: parseInt(e.target.value) || 0 })}
-                placeholder="e.g., 4"
+                placeholder="e.g., 101"
               />
+              <p className="text-[10px] text-muted-foreground">
+                Must be higher than current app's build number
+              </p>
             </div>
           </div>
 

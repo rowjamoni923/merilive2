@@ -126,10 +126,13 @@ export const useAppUpdate = () => {
       } catch (e) {}
       
       // Get version info from database
+      const platform = Capacitor.getPlatform();
+      console.log('[AppUpdate] Detected platform:', platform);
+      
       const { data, error } = await supabase
         .from('app_version_settings')
         .select('*')
-        .eq('platform', 'android')
+        .eq('platform', platform === 'web' ? 'android' : platform)
         .maybeSingle();
 
       if (error) {
