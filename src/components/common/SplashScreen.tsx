@@ -4,9 +4,10 @@
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-// Served from /public so it bypasses any stale service-worker cache or
-// private storage bucket and is always reachable as a same-origin asset.
-const appLogo = '/app-logo.png?v=3';
+// Bundled via Vite so the splash logo is hashed, fingerprinted, and served
+// from the same chunk pipeline as the rest of the app — never broken by a
+// stale service worker, missing /public file, or query-string cache bust.
+import appLogo from '@/assets/app-logo.png';
 import { APP_VERSION } from '@/lib/version';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
