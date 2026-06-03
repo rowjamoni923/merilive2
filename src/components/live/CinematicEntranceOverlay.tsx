@@ -171,27 +171,39 @@ const CinematicEntranceOverlay = memo(({
           </motion.div>
         </motion.div>
 
-        {/* Text Reveal */}
+        {/* Text Reveal with Shine */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-center"
+          className="text-center relative"
         >
-          <div className={cn(
-            "text-5xl font-black uppercase tracking-tighter drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]",
-            primaryColor
-          )}>
-            {displayName}
+          <div className="relative group">
+            <div className={cn(
+              "text-6xl font-black uppercase tracking-tighter drop-shadow-[0_5px_15px_rgba(0,0,0,0.7)]",
+              primaryColor,
+              "relative z-10"
+            )}>
+              {displayName}
+            </div>
+            
+            {/* Animated Shine Sweep across text */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ delay: 1.5, duration: 1.2, repeat: Infinity, repeatDelay: 3 }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] z-20"
+            />
           </div>
+
           <motion.div 
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ delay: 1.2, duration: 1 }}
-            className="h-px w-64 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto my-2"
+            className="h-[2px] w-80 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto my-4"
           />
-          <div className="text-white/90 text-xl font-bold italic tracking-wide">
-            has arrived in glory
+          <div className="text-white/90 text-2xl font-bold italic tracking-wider drop-shadow-md">
+            THE {rankLabel} HAS ARRIVED
           </div>
         </motion.div>
       </div>
