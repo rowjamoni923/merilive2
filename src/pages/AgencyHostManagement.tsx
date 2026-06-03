@@ -182,8 +182,8 @@ const AgencyHostManagement = () => {
       }
     } catch (error: any) {
       // Rollback on failure
-      setPendingHosts(prev => [...prev, hostData]);
-      setHosts(prev => prev.filter(h => h.id !== hostData.id));
+      setPendingHosts(prev => [...(prev ?? []), hostData]);
+      setHosts(prev => (prev ?? []).filter(h => h.id !== hostData.id));
       toast({ title: "Error", description: error.message || "Failed to approve host", variant: "destructive" });
     } finally {
       setProcessingId(null);
