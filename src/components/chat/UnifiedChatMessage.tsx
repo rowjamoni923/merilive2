@@ -123,13 +123,13 @@ export const RoomChatBubble = memo(function RoomChatBubble({
         initial={{ x: -60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 60, opacity: 0 }}
-        className="flex items-center gap-1.5 py-1 px-2 rounded-full bg-gradient-to-r from-purple-500/25 to-pink-500/25 backdrop-blur-sm w-fit"
+        className="flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full bg-gradient-to-r from-purple-500/35 via-fuchsia-500/25 to-pink-500/35 backdrop-blur-md border border-white/15 shadow-[0_2px_10px_rgba(168,85,247,0.25)] w-fit"
       >
         <InlineLevelBadge level={userLevel} />
-        <span className="text-white font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+        <span className="text-white font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
           {userName}
         </span>
-        <span className="text-white/70 text-[11px]">entered the room</span>
+        <span className="text-white/75 text-[11px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">entered the room</span>
       </motion.div>
     );
   }
@@ -140,18 +140,18 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       <motion.div
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500/30 to-orange-500/30 backdrop-blur-sm w-fit border border-amber-400/30"
+        className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/40 via-orange-500/35 to-rose-500/35 backdrop-blur-md w-fit border border-amber-300/40 shadow-[0_2px_12px_rgba(251,191,36,0.3)]"
       >
         <InlineLevelBadge level={userLevel} />
-        <span className="text-amber-200 font-semibold text-xs">{userName}</span>
-        <span className="text-white/80 text-xs">sent</span>
-        {giftEmoji && <span className="text-lg">{giftEmoji}</span>}
+        <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
+        <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
+        {giftEmoji && <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>}
         {giftName && (
-          <span className="text-amber-300 font-bold text-xs">{giftName}</span>
+          <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         )}
         {giftCount && giftCount > 1 && (
           <motion.span
-            className="text-amber-400 font-black text-sm"
+            className="text-amber-300 font-black text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]"
             animate={{ scale: [1, 1.25, 1] }}
             transition={{ duration: 0.5, repeat: 2 }}
           >
@@ -166,7 +166,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
   if (type === "system" || type === "leave") {
     return (
       <div className="text-center py-1">
-        <span className="text-white/60 text-[11px] bg-white/5 backdrop-blur-sm px-3 py-1 rounded-full">
+        <span className="text-white/70 text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           {message}
         </span>
       </div>
