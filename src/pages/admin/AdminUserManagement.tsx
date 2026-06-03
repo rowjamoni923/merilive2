@@ -6,44 +6,43 @@ import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
 import { useAdminSignedUrl } from "@/hooks/useAdminSignedUrl";
 import { motion } from "framer-motion";
 import {
-  Users,
-  UserCheck,
-  Shield,
-  ScanFace,
-  Ban,
-  Search,
-  Filter,
-  MoreVertical,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Crown,
-  Clock,
-  Coins,
-  Video,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Building2,
-  Unlock,
-  AlertTriangle,
-  Phone,
-  Settings,
-  Star,
-  Download,
-  RefreshCw,
-  Loader2,
-  Calendar,
-  Languages,
-  FileText,
-  Play,
-  Image,
-  Trash2,
-  Globe,
-  Smartphone,
-  Wifi,
-  MapPin
-} from "lucide-react";
+  Users, 
+  UserCheck, 
+  Shield, 
+  ScanFace, 
+  Ban, 
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Eye, 
+  CheckCircle, 
+  XCircle, 
+  Crown, 
+  Clock, 
+  Coins, 
+  Camera, 
+  ChevronLeft, 
+  ChevronRight, 
+  User, 
+  Building2, 
+  Unlock, 
+  AlertTriangle, 
+  Phone, 
+  Settings, 
+  Star, 
+  Download, 
+  RefreshCw, 
+  Loader2, 
+  Calendar, 
+  Languages, 
+  FileText, 
+  Play, 
+  Image, 
+  Trash2, 
+  Globe, 
+  Smartphone, 
+  Wifi, 
+  MapPin} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,7 +150,7 @@ function HostApplicationDetailMedia({ application }: { application: HostApplicat
         <AdminMediaFrame src={safePhotoUrl} alt="Application photo" kind="image" bucket="host-verification" className="aspect-square border-border bg-background" mediaClassName="object-cover" />
       </div>
       <div className="space-y-2">
-        <p className="text-xs font-medium text-slate-400">Intro Video</p>
+        <p className="text-xs font-medium text-slate-400">Intro Camera</p>
         <AdminMediaFrame src={safeVideoUrl} alt="Intro video" kind="video" bucket="host-verification" poster={safePhotoUrl} className="aspect-square border-border bg-background" />
       </div>
     </div>
@@ -162,8 +161,8 @@ function HostApplicationDetailMedia({ application }: { application: HostApplicat
 function getVerificationSteps(sub: any) {
   const steps = [
     { label: 'Profile Photo', done: !!sub.profile_photo_url || !!sub.profile?.avatar_url },
-    { label: 'Face Video', done: !!sub.face_image_url },
-    { label: 'Intro Video', done: !!sub.video_url },
+    { label: 'Face Camera', done: !!sub.face_image_url },
+    { label: 'Intro Camera', done: !!sub.video_url },
     { label: 'Face Detected', done: sub.admin_notes?.includes('Confidence:') || sub.admin_notes?.includes('Gender:') },
     { label: 'Face Match', done: sub.admin_notes?.includes('Face Match:') && !sub.admin_notes?.includes('Face Match: 0.0%') },
   ];

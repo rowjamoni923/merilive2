@@ -3,30 +3,29 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import {
-  Users,
-  UserCheck,
-  Building2,
-  Video,
-  PartyPopper,
-  Gift,
-  Coins,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Eye,
-  Ban,
-  Clock,
-  Zap,
-  ArrowRight,
-  Shield,
-  Wallet,
-  Phone,
-  CalendarCheck,
-  CreditCard,
-  RefreshCw,
-  Sparkles,
-  BarChart3
-} from "lucide-react";
+  Users, 
+  UserCheck, 
+  Building2, 
+  Camera, 
+  PartyPopper, 
+  Gift, 
+  Coins, 
+  TrendingUp, 
+  TrendingDown, 
+  Activity, 
+  Eye, 
+  Ban, 
+  Clock, 
+  Zap, 
+  ArrowRight, 
+  Shield, 
+  Wallet, 
+  Phone, 
+  CalendarCheck, 
+  CreditCard, 
+  RefreshCw, 
+  Sparkles, 
+  BarChart3} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -413,7 +412,7 @@ export default function AdminDashboard() {
         <StatCard
           title="Active Streams"
           value={stats?.active_streams || 0}
-          icon={Video}
+          icon={Camera}
           accentFrom="from-rose-500"
           accentTo="to-pink-400"
           glowColor="#f43f5e"

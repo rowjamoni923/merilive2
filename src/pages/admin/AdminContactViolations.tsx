@@ -21,23 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
-import { 
-  Search, 
-  ShieldAlert, 
-  Ban, 
-  Phone, 
-  MessageSquare, 
-  Video, 
-  PhoneCall,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  Eye,
-  Trash2,
-  MoreVertical,
-  Clock,
-} from "lucide-react";
+import {Search, ShieldAlert, Ban, Phone, MessageSquare, Camera, PhoneCall, AlertTriangle, CheckCircle, XCircle, RefreshCw, Eye, Trash2, MoreVertical, Clock, } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,7 +86,7 @@ interface PenaltyTier {
 
 const sourceTypeIcons: Record<string, React.ReactNode> = {
   chat: <MessageSquare className="w-4 h-4" />,
-  live_stream: <Video className="w-4 h-4" />,
+  live_stream: <Camera className="w-4 h-4" />,
   private_call: <PhoneCall className="w-4 h-4" />,
   private_message: <MessageSquare className="w-4 h-4" />,
 };

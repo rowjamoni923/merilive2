@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Plus, Edit2, Trash2, Save, X, Star, Video, Clock, Users, Gift, MessageCircle, Flame, Settings } from "lucide-react";
+import {Plus, Edit2, Trash2, Save, X, Star, Camera, Clock, Users, Gift, MessageCircle, Flame, Settings} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,7 @@ interface BonusGlobals {
 }
 
 const iconOptions = [
-  { value: 'video', label: 'Video', icon: Video },
+  { value: 'video', label: 'Camera', icon: Camera },
   { value: 'clock', label: 'Clock', icon: Clock },
   { value: 'users', label: 'Users', icon: Users },
   { value: 'gift', label: 'Gift', icon: Gift },

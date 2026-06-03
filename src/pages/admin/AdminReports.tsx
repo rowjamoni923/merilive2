@@ -1,17 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {
-  TrendingUp,
-  Users,
-  Coins,
-  Gift,
-  Video,
-  Phone,
-  Calendar,
-  Download,
-  ArrowUp,
-  ArrowDown
-} from "lucide-react";
+import {TrendingUp, Users, Coins, Gift, Camera, Phone, Calendar, Download, ArrowUp, ArrowDown} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -243,7 +232,7 @@ export default function AdminReports() {
           colorClass="bg-gradient-to-br from-pink-500/20 to-pink-600/10 border-pink-500/30 text-pink-300"
         />
         <StatCardNew
-          icon={Video}
+          icon={Camera}
           label="Total Streams"
           value={stats.totalStreams}
           change={-3}
@@ -359,7 +348,7 @@ export default function AdminReports() {
         <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Video className="w-5 h-5 text-red-400" />
+              <Camera className="w-5 h-5 text-red-400" />
               Live Streams
             </CardTitle>
           </CardHeader>

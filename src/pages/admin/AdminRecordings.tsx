@@ -2,26 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  Video,
-  Search,
-  Eye,
-  Clock,
-  Users,
-  Gift,
-  Diamond,
-  RefreshCw,
-  Play,
-  Download,
-  Trash2,
-  Calendar,
-  Filter,
-  User,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  Film
-} from "lucide-react";
+import {Camera, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, Play, Download, Trash2, Calendar, Filter, User, CheckCircle, XCircle, Loader2, Film} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -372,7 +353,7 @@ export default function AdminRecordings() {
                           className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Video className="w-10 h-10 text-slate-600" />
+                          <Camera className="w-10 h-10 text-slate-600" />
                         </div>
                       )}
                       {isRecordingPlayable(recording) && (

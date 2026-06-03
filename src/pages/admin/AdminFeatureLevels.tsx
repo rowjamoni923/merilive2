@@ -11,13 +11,13 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Video, Users, UserPlus, Phone, Gift, MessageCircle, 
+  Camera, Users, UserPlus, Phone, Gift, MessageCircle, 
   Save, Settings2, Loader2, Shield, Crown
 } from "lucide-react";
 import { adminStyles } from "@/styles/adminStyles";
 
 const iconMap: Record<string, React.ComponentType<any>> = {
-  Video,
+  Camera,
   Users,
   UserPlus,
   Phone,
@@ -51,7 +51,7 @@ interface FeatureRequirement {
 }
 
 const featureMetaMap: Record<string, { icon_name: string; category: string; feature_name: string }> = {
-  go_live: { icon_name: "Video", category: "streaming", feature_name: "Go Live" },
+  go_live: { icon_name: "Camera", category: "streaming", feature_name: "Go Live" },
   join_party: { icon_name: "Users", category: "party", feature_name: "Join Party" },
   create_party: { icon_name: "UserPlus", category: "party", feature_name: "Create Party" },
   private_call: { icon_name: "Phone", category: "communication", feature_name: "Private Call" },

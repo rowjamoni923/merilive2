@@ -5,33 +5,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { bucketOfStatus, invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
 import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Filter,
-  CheckCircle,
-  XCircle,
-  Eye,
-  Clock,
-  User,
-  Video,
-  Camera,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Languages,
-  FileText,
-  Building2,
-  Image as ImageIcon,
-  RefreshCw,
-  Shield,
-  Star,
-  Hash,
-  Play,
-  ZoomIn,
-  X,
-  UserCheck,
-  AlertTriangle
-} from "lucide-react";
+import {Search, Filter, CheckCircle, XCircle, Eye, Clock, User, Camera, ChevronLeft, ChevronRight, Calendar, Languages, FileText, Building2, Image as ImageIcon, RefreshCw, Shield, Star, Hash, Play, ZoomIn, X, UserCheck, AlertTriangle} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -611,7 +585,7 @@ export default function AdminHostApplications() {
                         )}
                         {app.video_url && (
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px]">
-                            <Video className="w-2.5 h-2.5" />Video
+                            <Camera className="w-2.5 h-2.5" />Camera
                           </span>
                         )}
                         {app.host_photos && app.host_photos.length > 0 && (
@@ -891,9 +865,9 @@ export default function AdminHostApplications() {
 
                 <Separator className="bg-white/10" />
 
-                {/* ---- Video ---- */}
+                {/* ---- Camera ---- */}
                 <section>
-                  <SectionHeader icon={Video} title="Introduction Video" />
+                  <SectionHeader icon={Camera} title="Introduction Camera" />
                   {sel.video_url ? (
                     <div className="mt-3 max-w-sm mx-auto">
                       <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-background border border-white/10 shadow-xl">
@@ -901,7 +875,7 @@ export default function AdminHostApplications() {
                       </div>
                     </div>
                   ) : (
-                    <EmptyState icon={Video} text="No video uploaded" />
+                    <EmptyState icon={Camera} text="No video uploaded" />
                   )}
                 </section>
 

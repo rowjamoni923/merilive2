@@ -1,27 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Save,
-  Phone,
-  TrendingUp,
-  Building2,
-  Users,
-  Percent,
-  Gift,
-  PartyPopper,
-  Music,
-  Gamepad2,
-  Video,
-  Plus,
-  Trash2,
-  Clock,
-  Calendar,
-  DollarSign,
-  ArrowRightLeft,
-  Diamond,
-  Coins
-} from "lucide-react";
+import {Save, Phone, TrendingUp, Building2, Users, Percent, Gift, PartyPopper, Music, Gamepad2, Camera, Plus, Trash2, Clock, Calendar, DollarSign, ArrowRightLeft, Diamond, Coins} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -696,7 +676,7 @@ export default function AdminCommissions() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/20">
                   <div className="flex items-center gap-2 mb-3">
-                    <Video className="w-5 h-5 text-blue-400" />
+                    <Camera className="w-5 h-5 text-blue-400" />
                     <h3 className="text-white font-medium">Video Room</h3>
                   </div>
                   <Label className="text-white/60 text-sm">Max Participants</Label>

@@ -15,21 +15,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Radio,
-  RefreshCw,
-  Loader2,
-  Search,
-  Users,
-  Eye,
-  Mic,
-  Video,
-  Clock,
-  X,
-  Circle,
-  Square,
-  Bot,
-} from "lucide-react";
+import {Radio, RefreshCw, Loader2, Search, Users, Eye, Mic, Camera, Clock, X, Circle, Square, Bot, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -543,7 +529,7 @@ export default function AdminLiveKitRooms() {
                                   className="flex flex-wrap items-center gap-2"
                                 >
                                   {isVideo ? (
-                                    <Video className="w-3 h-3 text-sky-400 shrink-0" />
+                                    <Camera className="w-3 h-3 text-sky-400 shrink-0" />
                                   ) : (
                                     <Mic className="w-3 h-3 text-emerald-400 shrink-0" />
                                   )}

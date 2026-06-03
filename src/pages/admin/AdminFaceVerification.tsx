@@ -3,31 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
-import { 
-  ScanFace, 
-  Search, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Eye,
-  User,
-  Video,
-  Image,
-  RefreshCw,
-  Loader2,
-  Calendar,
-  Trash2,
-  AlertTriangle,
-  CircleCheckBig,
-  Camera,
-  FileCheck,
-  Languages,
-  CakeSlice,
-  ImagePlus,
-  Fingerprint,
-  Shield,
-  Mic
-} from "lucide-react";
+import {ScanFace, Search, CheckCircle2, XCircle, Clock, Eye, User, Camera, Image, RefreshCw, Loader2, Calendar, Trash2, AlertTriangle, CircleCheckBig, FileCheck, Languages, CakeSlice, ImagePlus, Fingerprint, Shield, Mic} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -508,7 +484,7 @@ const AdminFaceVerification = () => {
 
     if (isHost) {
       steps.push(
-        { label: '10s Intro Video', icon: <Video className="w-4 h-4" />, done: !!sub.video_url },
+        { label: '10s Intro Video', icon: <Camera className="w-4 h-4" />, done: !!sub.video_url },
         { label: 'Host Photos', icon: <ImagePlus className="w-4 h-4" />, done: !!(sub.host_photos && sub.host_photos.length > 0), preview: sub.host_photos?.length ? <span className="text-xs text-muted-foreground">{sub.host_photos.length} photo{sub.host_photos.length > 1 ? 's' : ''}</span> : undefined },
       );
     }
@@ -951,7 +927,7 @@ const AdminFaceVerification = () => {
                                   />
                                   <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
                                     <span className="rounded-full bg-white/95 p-2 shadow-lg">
-                                      <Video className="w-5 h-5 text-purple-700" />
+                                      <Camera className="w-5 h-5 text-purple-700" />
                                     </span>
                                   </span>
                                   <span className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/70 text-[10px] text-white px-1.5 py-0.5 truncate">
@@ -1194,7 +1170,7 @@ const AdminFaceVerification = () => {
                   return (
                     <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/8 via-purple-500/5 to-transparent p-4 shadow-[0_10px_40px_-12px_rgba(251,191,36,0.35)]">
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
-                        <Video className="w-5 h-5 text-amber-300" /> Verification Video
+                        <Camera className="w-5 h-5 text-amber-300" /> Verification Video
                         <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">10s Intro</span>
                       </h4>
                       <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)]" mediaClassName="max-h-96" />
