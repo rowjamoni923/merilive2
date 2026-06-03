@@ -22,6 +22,7 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB max
+const SUPABASE_FALLBACK_BUCKET = 'animations';
 
 type UploadPrincipal = {
   id: string;
@@ -282,11 +283,22 @@ serve(async (req) => {
       const fileBuffer = await file.arrayBuffer();
       const fileBytes = new Uint8Array(fileBuffer);
       
-      const publicUrlResult = await uploadToR2Direct(
-        fileBytes, key,
-        file.type || 'application/octet-stream',
-        R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL
-      );
+      let publicUrlResult: string;
+      try {
+        publicUrlResult = await uploadToR2Direct(
+          fileBytes, key,
+          file.type || 'application/octet-stream',
+          R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL
+        );
+      } catch (r2Error) {
+        console.error('[Direct] R2 upload failed, falling back to Supabase Storage:', r2Error);
+        publicUrlResult = await uploadToSupabaseFallback(
+          serviceClient,
+          fileBytes,
+          key,
+          file.type || 'application/octet-stream'
+        );
+      }
 
       console.log(`[Direct] Success: ${publicUrlResult}`);
 
@@ -455,6 +467,33 @@ async function uploadToR2Direct(
   }
   
   return `${publicBaseUrl}/${key}`;
+}
+
+async function uploadToSupabaseFallback(
+  serviceClient: any,
+  fileBytes: Uint8Array,
+  key: string,
+  contentType: string
+): Promise<string> {
+  const normalizedType = contentType.startsWith('audio/') || contentType === 'application/octet-stream'
+    ? 'application/octet-stream'
+    : contentType;
+
+  const { data, error } = await serviceClient.storage
+    .from(SUPABASE_FALLBACK_BUCKET)
+    .upload(key, new Blob([fileBytes], { type: normalizedType }), {
+      cacheControl: '3600',
+      contentType: normalizedType,
+      upsert: true,
+    });
+
+  if (error) {
+    console.error('[Direct] Supabase fallback upload failed:', error);
+    throw new Error(error.message || 'Storage fallback upload failed');
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!.replace(/\/+$/, '');
+  return `${supabaseUrl}/storage/v1/object/public/${SUPABASE_FALLBACK_BUCKET}/${data.path}`;
 }
 
 // ============= AWS Signature V4 Helpers =============
