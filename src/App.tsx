@@ -1509,6 +1509,7 @@ const App = () => {
               </CallProvider>
             </BrowserRouter>
           </TooltipProvider>
+          </MotionConfig>
         </PresenceProvider>
       </RealtimeProvider>
     </PersistQueryClientProvider>
