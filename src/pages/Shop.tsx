@@ -116,16 +116,30 @@ const ShopItemCard = ({
   const [imageError, setImageError] = useState(false);
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.4 }}
+    <div
       onClick={onPreview}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
+      onPointerDown={() => {
+        // Pre-warm asset + animation chunk so detail modal opens with zero delay
+        const src = item.animation_file_url || item.preview_url;
+        if (src) {
+          if (src.endsWith('.svga')) {
+            import('@/components/common/SVGAPlayerWithAudio');
+            try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
+          } else if (src.endsWith('.json')) {
+            import('lottie-react' as any).catch(() => {});
+            try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
+          } else {
+            const img = new Image();
+            img.src = src;
+          }
+        }
+      }}
+      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
         border: '1px solid rgba(217,182,107,0.40)',
         boxShadow: '0 10px 28px -10px rgba(180,140,40,0.22), 0 2px 6px -2px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -2px 4px rgba(180,140,40,0.05)',
+        contain: 'content',
       }}
     >
       {/* Featured indicator */}
@@ -156,19 +170,21 @@ const ShopItemCard = ({
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
-          className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
             background: 'radial-gradient(circle at center, rgba(251,191,36,0.22) 0%, rgba(255,251,242,0.0) 70%)',
           }}
         />
 
         {(item.animation_file_url || item.preview_url) && !imageError ? (
-          // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
           item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
-            <img 
+            <img
               src={item.preview_url}
               alt={item.name}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-500 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+              loading="eager"
+              decoding="async"
+              {...({ fetchpriority: 'high' } as any)}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
@@ -182,10 +198,13 @@ const ShopItemCard = ({
               />
             </div>
           ) : (
-            <img 
+            <img
               src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-500 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+              loading="eager"
+              decoding="async"
+              {...({ fetchpriority: 'high' } as any)}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
