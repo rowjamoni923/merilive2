@@ -269,6 +269,12 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   if (isAuthorized) {
     const session = getAdminSession();
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
+    // Fresh secret links must pass through /admin/auth first. Otherwise a
+    // restored/stale local admin session can open /admin?access=... directly,
+    // send a dead x-admin-token, and make every page show P0001 RPC failures.
+    if (hasFreshAccessToken && !isLoginRoute()) {
+      return <Navigate to={`/admin/auth?access=${encodeURIComponent(accessToken || accessTokenFromRoute || '')}`} replace />;
+    }
     // Secret link + existing session → go straight to /admin (no re-login screen).
     if (isLoginRoute() && session) {
       return <Navigate to="/admin" replace />;
