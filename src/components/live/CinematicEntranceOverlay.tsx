@@ -109,9 +109,21 @@ const CinematicEntranceOverlay = memo(({
             damping: 15, 
             delay: 0.4 
           }}
-          className="relative mb-6"
+          className="relative mb-8"
         >
-          {/* Rank Glow Ring */}
+          {/* Pulsing Outer Glows */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.4, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className={cn(
+              "absolute -inset-8 rounded-full blur-2xl",
+              isKing ? "bg-amber-500/30" : "bg-yellow-400/20"
+            )}
+          />
+          
           <motion.div
             animate={{ 
               scale: [1, 1.2, 1],
@@ -124,18 +136,27 @@ const CinematicEntranceOverlay = memo(({
             )}
           />
 
-          <Avatar className={cn(
-            "w-28 h-28 border-4 border-yellow-400 p-1 bg-black",
-            glowColor
-          )}>
-            <AvatarImage 
-              src={avatarUrl || getDisplayAvatar(displayName)} 
-              className="rounded-full object-cover"
+          <div className="relative">
+            <Avatar className={cn(
+              "w-32 h-32 border-4 border-yellow-400 p-1 bg-black",
+              glowColor
+            )}>
+              <AvatarImage 
+                src={avatarUrl || getDisplayAvatar(displayName)} 
+                className="rounded-full object-cover"
+              />
+              <AvatarFallback className="bg-yellow-600 text-white font-bold text-3xl">
+                {displayName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Rotating Shine Ring */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-2 border-2 border-dashed border-yellow-400/30 rounded-full"
             />
-            <AvatarFallback className="bg-yellow-600 text-white font-bold text-2xl">
-              {displayName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          </div>
 
           {/* Rank Badge on Avatar */}
           <motion.div
