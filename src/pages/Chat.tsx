@@ -300,6 +300,7 @@ const Chat = () => {
   const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   
   // Group creation
   const [showGroupActions, setShowGroupActions] = useState(false);
