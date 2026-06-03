@@ -4,6 +4,8 @@ import Lottie from "lottie-react";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { playSoundUrl } from "@/utils/soundPlayer";
+
 
 // Lazy load remaining specialty players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
