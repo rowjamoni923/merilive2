@@ -429,7 +429,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       <div className="min-h-screen bg-gradient-to-br from-[#0a0a14] via-[#12102a] to-[#1a0f2e] flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse"/>
         <Loader2 className="w-8 h-8 text-white animate-spin" />
-        <p className="text-slate-600 text-sm mt-3">Loading...</p>
+        <p className="text-white/70 text-sm mt-3 font-medium">Loading...</p>
       </div>
     );
   }
@@ -441,7 +441,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4"/>
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
-        <p className="text-slate-600 text-center text-sm">
+        <p className="text-white/75 text-center text-sm">
           No agency found with code "{parentAgencyCode}".
         </p>
         <Button
@@ -459,42 +459,69 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   if (formState === 'success') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0a1a14] via-[#10261c] to-[#0a1a14] flex flex-col items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-warning-200/60">
-          <div className="w-20 h-20 bg-gradient-to-br from-success-400 to-success-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PartyPopper className="w-10 h-10 text-white" />
+        <div
+          className="rounded-[28px] p-8 max-w-sm w-full text-center"
+          style={{
+            background: 'linear-gradient(180deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.04) 100%)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            boxShadow: '0 30px 60px -20px rgba(16,38,28,0.6), inset 0 1px 0 rgba(255,255,255,0.18)',
+          }}
+        >
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{
+              background: 'linear-gradient(135deg,#34d399,#10b981)',
+              boxShadow: '0 14px 30px -8px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+            }}
+          >
+            <PartyPopper className="w-10 h-10 text-white drop-shadow" />
           </div>
-          
-          <h1 className="text-2xl font-bold text-white mb-2">
+
+          <h1 className="text-2xl font-black text-white mb-2 tracking-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
             🎉 Congratulations!
           </h1>
-          <p className="text-slate-700 mb-4">
+          <p className="text-white/85 mb-4 font-medium">
             Your sub-agency has been created successfully!
           </p>
-          
-          <div className="bg-white/20 rounded-xl p-4 mb-6">
-            <p className="text-slate-500 text-xs mb-1">Your Agency Code</p>
-            <p className="text-2xl font-mono font-bold text-white">{createdAgencyCode}</p>
+
+          <div
+            className="rounded-2xl p-4 mb-6"
+            style={{
+              background: 'rgba(255,255,255,0.10)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+            }}
+          >
+            <p className="text-white/60 text-[10px] mb-1 uppercase tracking-[0.15em] font-bold">Your Agency Code</p>
+            <p className="text-2xl font-mono font-black text-white tracking-wider" style={{ textShadow: '0 1px 8px rgba(52,211,153,0.5)' }}>{createdAgencyCode}</p>
           </div>
-          
-          <div className="bg-warning-500/20 rounded-xl p-3 mb-6 border border-warning-400/30">
-            <p className="text-warning-200 text-sm">
+
+          <div className="bg-warning-500/20 rounded-2xl p-3 mb-6 border border-warning-400/30">
+            <p className="text-warning-100 text-sm font-medium">
               ⚠️ Open the app to access your agency dashboard.
             </p>
           </div>
-          
+
           <div className="space-y-3">
             <Button
               onClick={() => window.location.href = PLAY_STORE_URL}
-              className="w-full h-12 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold rounded-xl"
+              className="w-full h-12 text-white font-bold rounded-2xl active:scale-[0.98] transition-transform"
+              style={{
+                background: 'linear-gradient(180deg,#34d399 0%,#10b981 60%,#047857 100%)',
+                boxShadow: '0 10px 24px -6px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1.5px 0 rgba(0,0,0,0.2)',
+                textShadow: '0 1px 0 rgba(0,0,0,0.25)',
+              }}
             >
               <Download className="w-5 h-5 mr-2" />
               Download from Play Store
             </Button>
-            
+
             <Button
               onClick={() => window.location.href = APK_DOWNLOAD_URL}
               variant="outline"
-              className="w-full h-11 border-warning-200/60 text-white hover:bg-white/10 rounded-xl"
+              className="w-full h-11 border-white/25 bg-white/5 text-white hover:bg-white/15 hover:text-white rounded-2xl font-semibold"
             >
               Direct APK Download
             </Button>
@@ -504,31 +531,47 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     );
   }
 
+
   // Form state
   return (
     <div className="min-h-[100dvh] bg-gradient-to-br from-[#0a0a14] via-[#12102a] to-[#1a0f2e] py-6 px-4 safe-area-inset overflow-x-hidden">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3"/>
-          <h1 className="text-2xl font-bold text-white">Create Sub-Agency</h1>
-          <p className="text-slate-500 text-sm mt-1">Fill the form and start your agency</p>
+          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3 drop-shadow-[0_8px_24px_rgba(124,58,237,0.45)]"/>
+          <h1 className="text-2xl font-black text-white tracking-tight" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>Create Sub-Agency</h1>
+          <p className="text-white/70 text-sm mt-1 font-medium">Fill the form and start your agency</p>
         </div>
 
         {/* Parent Agency Info */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-warning-200/60 mb-5">
+        <div
+          className="rounded-3xl p-4 mb-5"
+          style={{
+            background: 'linear-gradient(180deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.04) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            boxShadow: '0 14px 30px -10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
+          }}
+        >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
-                <LinkIcon className="w-6 h-6 text-white" />
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                  boxShadow: '0 8px 20px -4px rgba(124,58,237,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}
+              >
+                <LinkIcon className="w-6 h-6 text-white drop-shadow" />
               </div>
-              <div className="flex-1">
-                <p className="text-slate-500 text-xs">Parent Agency</p>
-                <p className="text-white font-semibold">{parentAgency.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/65 text-[10px] uppercase tracking-[0.15em] font-bold">Parent Agency</p>
+                <p className="text-white font-bold truncate">{parentAgency.name}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className="bg-brand-500/30 text-brand-200 text-xs border-brand-400/30">
+                  <Badge className="bg-brand-500/30 text-brand-100 text-[10px] border border-brand-400/40 font-bold">
                     {parentAgency.level}
                   </Badge>
-                  <span className="text-slate-500 text-xs font-mono">{parentAgencyCode}</span>
+                  <span className="text-white/70 text-xs font-mono font-bold">{parentAgencyCode}</span>
                 </div>
               </div>
               <a
@@ -537,19 +580,22 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                 rel="noopener noreferrer"
                 className="shrink-0"
               >
-                <img 
-                  src={googlePlayBadge} 
-                  alt="Get it on Google Play" 
+                <img
+                  src={googlePlayBadge}
+                  alt="Get it on Google Play"
                   className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity"/>
               </a>
             </div>
-            <p className="text-brand-300 text-xs mt-3">
+            <p className="text-brand-200 text-xs mt-3 font-semibold">
               ✨ Join this agency as a Sub-Agent
             </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl p-5 shadow-xl">
+        {/* Premium Form Card */}
+        <div
+          className="bg-white rounded-3xl p-5"
+          style={{ boxShadow: '0 30px 60px -20px rgba(0,0,0,0.5), 0 8px 24px -8px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.7)' }}
+        >
           <div className="space-y-5">
             {/* Agency Name */}
             <div>
@@ -830,7 +876,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         </div>
 
         {/* Benefits */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-warning-200/60 mt-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15 mt-5">
           <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
             <Crown className="w-5 h-5 text-warning-400" />
             Agency Benefits

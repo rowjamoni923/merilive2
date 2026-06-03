@@ -357,44 +357,65 @@ const AgencySignup = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white/90">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-brand-600 to-info-600 text-white safe-area-top">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Premium Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-10 text-white safe-area-top"
+        style={{
+          background: 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 45%,#4f46e5 100%)',
+          boxShadow: '0 8px 24px -8px rgba(79,70,229,0.45), inset 0 -1px 0 rgba(255,255,255,0.12)',
+        }}
+      >
         <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/15 active:bg-white/25 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Agency Sign Up</h1>
+          <h1 className="flex-1 text-center text-lg font-bold tracking-tight pr-7" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Agency Sign Up</h1>
         </div>
       </header>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-brand-600 to-info-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6" />
+        {/* Premium Hero */}
+        <div
+          className="mx-4 mt-4 rounded-3xl p-6 text-white relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg,#7c3aed 0%,#6366f1 50%,#3b82f6 100%)',
+            boxShadow: '0 18px 40px -12px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="relative flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.22)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.15)' }}
+            >
+              <Building2 className="w-6 h-6 drop-shadow" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Agency Registration</h2>
-              <p className="text-slate-700 text-sm">Email Verified Registration</p>
+              <h2 className="text-xl font-black tracking-tight" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Agency Registration</h2>
+              <p className="text-white/85 text-sm font-medium">Email Verified Registration</p>
             </div>
           </div>
         </div>
 
-        {/* Form */}
-        <div className="mx-4 mt-4 bg-white/90 rounded-2xl p-5 shadow-sm border border-warning-200/60 space-y-6">
+        {/* Premium Form Card */}
+        <div
+          className="mx-4 mt-4 bg-white rounded-3xl p-5 border border-slate-200 space-y-6"
+          style={{ boxShadow: '0 10px 30px -12px rgba(15,23,42,0.12), 0 2px 6px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+        >
+
           
           {/* Agency Name */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-              <Building2 className="w-4 h-4 text-brand-400" />
-              Agency Name <span className="text-danger-400">*</span>
+              <Building2 className="w-4 h-4 text-brand-500" />
+              Agency Name <span className="text-danger-500">*</span>
             </Label>
             <Input placeholder="Enter your agency name" value={formData.agencyName}
               onChange={(e) => setFormData(prev => ({ ...prev, agencyName: e.target.value }))}
-              className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.agencyName.trim() === "" ? '' : 'border-success-500 focus:border-success-400'}`} />
+              className={`bg-white/80 border-slate-200 text-slate-800 placeholder:text-slate-400 ${formData.agencyName.trim() === "" ? '' : 'border-success-500 focus:border-success-400'}`} />
             {formData.agencyName.trim() !== "" && (
               <div className="flex items-center gap-1 text-success-600">
                 <CheckCircle2 className="w-4 h-4" />
@@ -403,18 +424,18 @@ const AgencySignup = () => {
             )}
           </div>
 
-          <div className="border-t border-warning-200/60" />
+          <div className="border-t border-slate-200" />
 
           {/* App UID */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-              <User className="w-4 h-4 text-brand-400" />
-              App UID <span className="text-danger-400">*</span>
+              <User className="w-4 h-4 text-brand-500" />
+              App UID <span className="text-danger-500">*</span>
             </Label>
             <div className="flex items-center gap-2">
               <Input placeholder="LV1234567890" value={formData.userId}
                 onChange={(e) => { setFormData(prev => ({ ...prev, userId: e.target.value.toUpperCase() })); setFoundUser(null); setUserNotFound(false); setEmailVerified(false); setEmailOtpSent(false); setEmailOtp(""); }}
-                className="flex-1 bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400" disabled={emailVerified} />
+                className="flex-1 bg-white/80 border-slate-200 text-slate-800 placeholder:text-slate-400" disabled={emailVerified} />
               <Button variant="outline" onClick={searchUserById} disabled={searchingUser || emailVerified} className="shrink-0">
                 {searchingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
               </Button>
@@ -431,13 +452,13 @@ const AgencySignup = () => {
                     <p className="font-semibold text-success-300">{foundUser.display_name || "Unknown User"}</p>
                     <p className="text-xs text-success-400">{foundUser.app_uid}</p>
                   </div>
-                  {emailVerified ? <Badge className="bg-success-500 text-slate-800">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-success-500" />}
+                  {emailVerified ? <Badge className="bg-success-500 text-white">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-success-500" />}
                 </div>
               </div>
             )}
 
             {userNotFound && (
-              <div className="p-3 bg-danger-900/30 border border-danger-700/50 rounded-xl flex items-center gap-2 text-danger-400">
+              <div className="p-3 bg-danger-900/30 border border-danger-700/50 rounded-xl flex items-center gap-2 text-danger-500">
                 <AlertCircle className="w-5 h-5" />
                 <span className="text-sm">User not found or not eligible for agency</span>
               </div>
@@ -447,7 +468,7 @@ const AgencySignup = () => {
           {/* In-App Notification OTP (shown after user found) */}
           {foundUser && !appVerified && (
             <>
-              <div className="border-t border-warning-200/60" />
+              <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <MessageCircle className="w-4 h-4 text-warning-400" />
@@ -481,7 +502,7 @@ const AgencySignup = () => {
                         <InputOTP maxLength={6} value={appOtp} onChange={(value) => setAppOtp(value)}>
                           <InputOTPGroup>
                             {[0,1,2,3,4,5].map(i => (
-                              <InputOTPSlot key={i} index={i} className="bg-white/80 text-slate-800 border-slate-600" />
+                              <InputOTPSlot key={i} index={i} className="bg-white/80 text-slate-800" />
                             ))}
                           </InputOTPGroup>
                         </InputOTP>
@@ -510,7 +531,7 @@ const AgencySignup = () => {
 
           {foundUser && (
             <>
-              <div className="border-t border-warning-200/60" />
+              <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <Phone className="w-4 h-4 text-info-400" />
@@ -518,7 +539,7 @@ const AgencySignup = () => {
                 </Label>
                 <Input type="tel" placeholder="+880 1XXXXXXXXX" value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.phone && !isValidPhone(formData.phone) ? 'border-danger-500' : formData.phone && isValidPhone(formData.phone) ? 'border-success-500' : ''}`} />
+                  className={`bg-white/80 border-slate-200 text-slate-800 placeholder:text-slate-400 ${formData.phone && !isValidPhone(formData.phone) ? 'border-danger-500' : formData.phone && isValidPhone(formData.phone) ? 'border-success-500' : ''}`} />
                 {formData.phone && !isValidPhone(formData.phone) && <p className="text-xs text-danger-500">Enter a valid phone number (10-15 digits)</p>}
                 {formData.phone && isValidPhone(formData.phone) && (
                   <div className="flex items-center gap-1 text-success-600">
@@ -533,16 +554,16 @@ const AgencySignup = () => {
           {/* Email (mandatory, with OTP verification) */}
           {foundUser && (
             <>
-              <div className="border-t border-warning-200/60" />
+              <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <Mail className="w-4 h-4 text-info-400" />
-                  Email Address <span className="text-danger-400">*</span>
+                  Email Address <span className="text-danger-500">*</span>
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input type="email" placeholder="example@gmail.com" value={formData.email}
                     onChange={(e) => { setFormData(prev => ({ ...prev, email: e.target.value })); setEmailVerified(false); setEmailOtpSent(false); setEmailOtp(""); }}
-                    className={`flex-1 bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.email && !isValidEmail(formData.email) ? 'border-danger-500' : emailVerified ? 'border-success-500' : ''}`}
+                    className={`flex-1 bg-white/80 border-slate-200 text-slate-800 placeholder:text-slate-400 ${formData.email && !isValidEmail(formData.email) ? 'border-danger-500' : emailVerified ? 'border-success-500' : ''}`}
                     disabled={emailVerified} />
                 </div>
                 {formData.email && !isValidEmail(formData.email) && <p className="text-xs text-danger-500">Enter a valid email address</p>}
@@ -579,12 +600,12 @@ const AgencySignup = () => {
                         <div className="flex items-center gap-3">
                           <InputOTP maxLength={6} value={emailOtp} onChange={(value) => setEmailOtp(value)}>
                             <InputOTPGroup>
-                              <InputOTPSlot index={0} className="bg-white/80 text-slate-800 border-slate-600" />
-                              <InputOTPSlot index={1} className="bg-white/80 text-slate-800 border-slate-600" />
-                              <InputOTPSlot index={2} className="bg-white/80 text-slate-800 border-slate-600" />
-                              <InputOTPSlot index={3} className="bg-white/80 text-slate-800 border-slate-600" />
-                              <InputOTPSlot index={4} className="bg-white/80 text-slate-800 border-slate-600" />
-                              <InputOTPSlot index={5} className="bg-white/80 text-slate-800 border-slate-600" />
+                              <InputOTPSlot index={0} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={1} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={2} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={3} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={4} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={5} className="bg-white/80 text-slate-800" />
                             </InputOTPGroup>
                           </InputOTP>
                           <Button size="sm" onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || emailOtpTimer <= 0 || verifyingEmailOtp} className="bg-info-600 hover:bg-info-700">
@@ -614,7 +635,7 @@ const AgencySignup = () => {
           {/* WhatsApp Number */}
           {emailVerified && (
             <>
-              <div className="border-t border-warning-200/60" />
+              <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <svg className="w-4 h-4 text-success-400" viewBox="0 0 24 24" fill="currentColor">
@@ -624,7 +645,7 @@ const AgencySignup = () => {
                 </Label>
                 <Input type="tel" placeholder="+880 1XXXXXXXXX" value={formData.whatsapp}
                   onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.whatsapp && !isValidWhatsApp(formData.whatsapp) ? 'border-danger-500' : formData.whatsapp && isValidWhatsApp(formData.whatsapp) ? 'border-success-500' : ''}`} />
+                  className={`bg-white/80 border-slate-200 text-slate-800 placeholder:text-slate-400 ${formData.whatsapp && !isValidWhatsApp(formData.whatsapp) ? 'border-danger-500' : formData.whatsapp && isValidWhatsApp(formData.whatsapp) ? 'border-success-500' : ''}`} />
                 {formData.whatsapp && !isValidWhatsApp(formData.whatsapp) && <p className="text-xs text-danger-500">Enter a valid WhatsApp number (10-15 digits)</p>}
                 {formData.whatsapp && isValidWhatsApp(formData.whatsapp) && (
                   <div className="flex items-center gap-1 text-success-600">
