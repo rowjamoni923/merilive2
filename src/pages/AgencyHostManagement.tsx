@@ -32,6 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface HostProfile {
   id: string;
@@ -57,10 +58,11 @@ const AgencyHostManagement = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [agency, setAgency] = useState<any>(null);
-  const [hosts, setHosts] = useState<AgencyHost[]>([]);
-  const [pendingHosts, setPendingHosts] = useState<AgencyHost[]>([]);
+  // Pkg421: persist agency + hosts + pendingHosts so revisits render instantly.
+  const [agency, setAgency, hadAgencyCache] = usePersistedCache<any>('agencyHostMgmt:agency', null);
+  const [hosts, setHosts, hadHostsCache] = usePersistedCache<AgencyHost[]>('agencyHostMgmt:hosts', null);
+  const [pendingHosts, setPendingHosts, hadPendingCache] = usePersistedCache<AgencyHost[]>('agencyHostMgmt:pending', null);
+  const [loading, setLoading] = useState(!(hadAgencyCache && (hadHostsCache || hadPendingCache)));
   const [activeTab, setActiveTab] = useState("pending");
   const [filterOnline, setFilterOnline] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -89,7 +91,7 @@ const AgencyHostManagement = () => {
   }, [searchParams]);
 
   const fetchAgencyData = async () => {
-    setLoading(true);
+    if (!agency && !hosts && !pendingHosts) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -148,8 +150,8 @@ const AgencyHostManagement = () => {
 
     setProcessingId(hostData.host_id);
     // Optimistic: instantly remove from pending, add to hosts
-    setPendingHosts(prev => prev.filter(h => h.id !== hostData.id));
-    setHosts(prev => [{ ...hostData, status: 'active' }, ...prev]);
+    setPendingHosts(prev => (prev ?? []).filter(h => h.id !== hostData.id));
+    setHosts(prev => [{ ...hostData, status: 'active' }, ...(prev ?? [])]);
     setApproveDialog(null);
 
     try {
@@ -180,8 +182,8 @@ const AgencyHostManagement = () => {
       }
     } catch (error: any) {
       // Rollback on failure
-      setPendingHosts(prev => [...prev, hostData]);
-      setHosts(prev => prev.filter(h => h.id !== hostData.id));
+      setPendingHosts(prev => [...(prev ?? []), hostData]);
+      setHosts(prev => (prev ?? []).filter(h => h.id !== hostData.id));
       toast({ title: "Error", description: error.message || "Failed to approve host", variant: "destructive" });
     } finally {
       setProcessingId(null);
@@ -193,7 +195,7 @@ const AgencyHostManagement = () => {
 
     setProcessingId(hostData.host_id);
     // Optimistic: instantly remove from pending
-    setPendingHosts(prev => prev.filter(h => h.id !== hostData.id));
+    setPendingHosts(prev => (prev ?? []).filter(h => h.id !== hostData.id));
     setRejectDialog(null);
 
     try {
@@ -222,7 +224,7 @@ const AgencyHostManagement = () => {
       }
     } catch (error: any) {
       // Rollback on failure
-      setPendingHosts(prev => [...prev, hostData]);
+      setPendingHosts(prev => [...(prev ?? []), hostData]);
       toast({ title: "Error", description: error.message || "Failed to reject request", variant: "destructive" });
     } finally {
       setProcessingId(null);
@@ -251,7 +253,7 @@ const AgencyHostManagement = () => {
   };
 
   // Filter hosts by search
-  const filteredHosts = hosts.filter(h => {
+  const filteredHosts = (hosts ?? []).filter(h => {
     const matchesSearch = !searchQuery || 
       h.host?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       h.host?.app_uid?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -308,20 +310,20 @@ const AgencyHostManagement = () => {
               <p className="text-slate-500 text-sm">Code: {agency?.agency_code}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-primary">{hosts.length}</p>
+              <p className="text-2xl font-bold text-primary">{(hosts ?? []).length}</p>
               <p className="text-slate-500 text-xs">Total Hosts</p>
             </div>
           </div>
 
           {/* Pending notification */}
-          {pendingHosts.length > 0 && (
+          {(pendingHosts ?? []).length > 0 && (
             <div 
               className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer"
               onClick={() => setActiveTab("pending")}
             >
               <Bell className="w-4 h-4 text-amber-600" />
               <span className="text-amber-700 text-sm font-medium">
-                {pendingHosts.length} Pending Request{pendingHosts.length > 1 ? 's' : ''}
+                {(pendingHosts ?? []).length} Pending Request{(pendingHosts ?? []).length > 1 ? 's' : ''}
               </span>
             </div>
           )}
@@ -364,25 +366,25 @@ const AgencyHostManagement = () => {
               value="pending" 
               className="flex-1 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
-              Pending ({pendingHosts.length})
+              Pending ({(pendingHosts ?? []).length})
             </TabsTrigger>
             <TabsTrigger 
               value="hosts" 
               className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
-              Hosts ({hosts.length})
+              Hosts ({(hosts ?? []).length})
             </TabsTrigger>
           </TabsList>
 
           {/* Pending Tab */}
           <TabsContent value="pending" className="mt-4 space-y-3">
-            {pendingHosts.length === 0 ? (
+            {(pendingHosts ?? []).length === 0 ? (
               <div className="text-center py-10">
                 <Clock className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
                 <p className="text-slate-500">No pending requests</p>
               </div>
             ) : (
-              pendingHosts.map((hostData) => (
+              (pendingHosts ?? []).map((hostData) => (
                 <div
                   key={hostData.id}
                   className="bg-white rounded-2xl p-4 border border-slate-200"

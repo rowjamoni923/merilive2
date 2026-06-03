@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface BlockedUser {
   id: string;
@@ -19,12 +20,13 @@ interface BlockedUser {
 const UserManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Pkg421: persist blocked-users list so settings page renders instantly on revisit.
+  const [blockedUsers, setBlockedUsers, hadBlockedCache] = usePersistedCache<BlockedUser[]>('settings:blockedUsers', null);
+  const [loading, setLoading] = useState(!hadBlockedCache);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchBlockedUsers = useCallback(async () => {
-    setLoading(true);
+    if (!blockedUsers) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -79,7 +81,7 @@ const UserManagement = () => {
 
   const handleUnblock = async (blockedUserId: string, name: string) => {
     try {
-      const targetBlock = blockedUsers.find((u) => u.id === blockedUserId);
+      const targetBlock = (blockedUsers ?? []).find((u) => u.id === blockedUserId);
       const { error } = await supabase
         .from("blocked_users")
         .delete()
@@ -87,7 +89,7 @@ const UserManagement = () => {
 
       if (error) throw error;
 
-      setBlockedUsers(prev => prev.filter(u => u.id !== blockedUserId));
+      setBlockedUsers(prev => (prev ?? []).filter(u => u.id !== blockedUserId));
       if (targetBlock?.blocked_id) {
         window.dispatchEvent(new CustomEvent("app-sync", {
           detail: { topic: "blocked_users", eventType: "DELETE", rowId: blockedUserId, payload: { blocked_id: targetBlock.blocked_id } }
@@ -99,7 +101,7 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = blockedUsers.filter(u =>
+  const filteredUsers = (blockedUsers ?? []).filter(u =>
     u.blocked_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -138,7 +140,7 @@ const UserManagement = () => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-card border border-border rounded-xl p-3 text-center">
             <UserX className="w-5 h-5 mx-auto mb-1 text-destructive" />
-            <p className="text-lg font-bold">{blockedUsers.length}</p>
+            <p className="text-lg font-bold">{(blockedUsers ?? []).length}</p>
             <p className="text-xs text-muted-foreground">Blocked Users</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-3 text-center">
