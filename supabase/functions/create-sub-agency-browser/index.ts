@@ -162,7 +162,7 @@ serve(async (req) => {
     }
 
     const authEmail = (user.email || "").trim().toLowerCase();
-    if (authEmail && normalizedEmail !== authEmail) {
+    if (normalizedEmail && authEmail && normalizedEmail !== authEmail) {
       return new Response(
         JSON.stringify({ error: "Email must match your logged-in account" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
