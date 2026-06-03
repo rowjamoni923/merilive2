@@ -296,6 +296,9 @@ const Shop = () => {
   const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
+    // Pre-warm SVGA + Lottie chunks immediately so card-tap previews are instant
+    import('@/components/common/SVGAPlayerWithAudio').catch(() => {});
+    import('lottie-react' as any).catch(() => {});
     fetchData();
     
     // Use universal realtime instead of manual channel
