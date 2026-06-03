@@ -98,7 +98,6 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'shop': 'finance-hub',
   'gifts': 'finance-hub',
   'gift-transactions': 'finance-hub',
-  'reward-claims': 'finance-hub',
   'user-beans-exchange': 'finance-hub',
   'host-conversion': 'finance-hub',
 
@@ -165,10 +164,8 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
 
   // Content extras
   'onboarding-slides': 'settings-hub',
-  'rating-rewards': 'content-hub',
 
   // Dashboard deep links
-  'online-users': 'user-hub',
   'today-calls': 'settings-hub',
 
   // Settings
