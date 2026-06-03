@@ -1886,50 +1886,12 @@ export default function AdminLayout() {
       }
     }
 
-    // Pre-create an HTML5 Audio element as a fallback. Survives Chrome's
-    // AudioContext auto-suspend after long inactivity.
-    try {
-      const a = new Audio('/admin-notify.wav');
-      a.preload = 'auto';
-      a.volume = 0.6;
-      fallbackAudioRef.current = a;
-    } catch {}
-
-    const unlockAudio = () => {
-      try {
-        if (!audioUnlockedRef.current) {
-          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const buffer = ctx.createBuffer(1, 1, 22050);
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          source.connect(ctx.destination);
-          source.start(0);
-          audioCtxRef.current = ctx;
-          audioUnlockedRef.current = true;
-          console.log('[Admin] 🔊 Audio unlocked for notifications');
-        }
-        // Also "unlock" the fallback HTML5 element by playing+pausing on gesture.
-        const fb = fallbackAudioRef.current;
-        if (fb && fb.paused) {
-          fb.play().then(() => { fb.pause(); fb.currentTime = 0; }).catch(() => {});
-        }
-      } catch (e) {
-        console.log('[Admin] Audio unlock failed:', e);
-      }
-    };
-
-    // Use { capture: true } and DON'T use { once: true } — keep listener active
-    // so suspended AudioContexts can be resumed on subsequent interactions.
-    document.addEventListener('click', unlockAudio, { capture: true });
-    document.addEventListener('touchstart', unlockAudio, { capture: true });
-    document.addEventListener('keydown', unlockAudio, { capture: true });
-
-    return () => {
-      document.removeEventListener('click', unlockAudio, { capture: true } as any);
-      document.removeEventListener('touchstart', unlockAudio, { capture: true } as any);
-      document.removeEventListener('keydown', unlockAudio, { capture: true } as any);
-    };
+    // Pkg422: admin notification audio is now fully handled by the central
+    // soundPlayer (shared AudioContext + master limiter + anti-GC + auto
+    // unlock-aware). No per-component AudioContext/HTML5 fallback needed.
+    return () => {};
   }, []);
+
 
   const playNotificationSound = useCallback(() => {
     try {
