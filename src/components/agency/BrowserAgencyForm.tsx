@@ -769,7 +769,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
             <div>
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                 <Mail className="w-4 h-4 text-brand-600" />
-                Email Address <span className="text-danger-500">*</span>
+                Email Address <span className="text-gray-400 text-xs">(Optional)</span>
               </Label>
               <Input
                 type="email"
