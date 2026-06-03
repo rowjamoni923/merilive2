@@ -79,7 +79,7 @@ export function AdminAlertBell() {
       const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
       if (detail?.table !== 'chat_moderation_logs' || detail.eventType !== 'INSERT') return;
       refreshUnreadCount();
-      try { const audio = new Audio('/sounds/alert.mp3'); audio.volume = 0.5; audio.play().catch(() => {}); } catch {}
+      playSoundUrl('/sounds/alert.mp3', { volume: 0.5, maxConcurrent: 1 });
       toast.error('⚠️ New phone number sharing detected!', { duration: 4000 });
     };
     window.addEventListener(ADMIN_REALTIME_EVENT, handleModerationSync);
