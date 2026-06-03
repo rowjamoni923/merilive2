@@ -3421,7 +3421,7 @@ const LiveStream = () => {
           {/* All messages are PUBLIC and visible to everyone */}
           <RoomChatOverlay 
             messages={messages}
-            joinNotifications={[]}
+            joinNotifications={liveJoinNotifications}
             maxMessages={20}
             maxHeight="35vh"
             showWelcome={true}
