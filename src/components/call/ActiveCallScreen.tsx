@@ -701,10 +701,10 @@ export function ActiveCallScreen({
         className="absolute top-0 left-0 right-0 z-10 safe-area-top"
         style={{ contain: 'layout' }}
       >
-        <div className="mx-3 mt-2 flex items-center justify-between gap-2">
+        <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-xl"
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
                 border: '1px solid rgba(255,255,255,0.14)',
@@ -725,7 +725,7 @@ export function ActiveCallScreen({
               </div>
 
               {/* Remote user avatar mini */}
-              <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-white/30"
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden border-2 border-white/30"
                 style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
               >
                 {remoteUserAvatar ? (
@@ -739,7 +739,7 @@ export function ActiveCallScreen({
 
               <div className="flex flex-col leading-tight">
                 <span
-                  className="text-white text-[11px] font-extrabold max-w-[88px] truncate"
+                  className="text-white text-[10px] sm:text-[11px] font-extrabold max-w-[64px] sm:max-w-[88px] truncate"
                   style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
                 >
                   {remoteUserName}
@@ -757,7 +757,7 @@ export function ActiveCallScreen({
           </div>
 
           {/* Center - Duration timer */}
-          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full backdrop-blur-xl"
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full backdrop-blur-xl shrink-0"
             style={{
               background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(20,8,40,0.6) 100%)',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -768,7 +768,7 @@ export function ActiveCallScreen({
               style={{ boxShadow: '0 0 8px rgba(239,68,68,0.75)' }}
             />
             <span
-              className="text-white font-mono font-extrabold text-xs tracking-[0.14em] tabular-nums"
+              className="text-white font-mono font-extrabold text-[11px] sm:text-xs tracking-[0.1em] sm:tracking-[0.14em] tabular-nums"
               style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
             >
               {formatDuration(duration)}
@@ -776,9 +776,9 @@ export function ActiveCallScreen({
           </div>
 
           {/* Right - Earnings/Coins + Connection */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isHost ? (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
                 style={{
                   background: 'linear-gradient(135deg, rgba(245,158,11,0.28) 0%, rgba(234,88,12,0.22) 100%)',
                   border: '1px solid rgba(252,211,77,0.5)',
