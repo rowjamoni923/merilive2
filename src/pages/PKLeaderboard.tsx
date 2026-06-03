@@ -60,7 +60,7 @@ const PKLeaderboard = () => {
 
   const fetchData = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
+    if (!competition) setLoading(true); // only show spinner on cold cache
     try {
       // Fetch competition
       const { data: comp } = await supabase
