@@ -3,6 +3,7 @@
 // Supports exact output dimensions via server-side resize/crop (ImageScript).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { decode, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
