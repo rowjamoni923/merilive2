@@ -41,9 +41,21 @@ const countryCodes = [
   { code: 'JO', currency: 'JOD', symbol: 'JD', name: 'Jordanian Dinar' },
 ];
 
+import { requireAdminSession } from "../_shared/adminAuth.ts";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Pkg342: lock down to admins with finance/coin-packages permission so this
+  // endpoint cannot be abused to burn the LOVABLE_API_KEY quota (cost-DoS).
+  const admin = await requireAdminSession(req, { sectionKey: "coin-packages" });
+  if (!admin.ok) {
+    return new Response(JSON.stringify({ success: false, error: "unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
