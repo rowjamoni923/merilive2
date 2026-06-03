@@ -13,7 +13,8 @@
  * The user app login/logout will NEVER affect admin panel session and vice-versa.
  */
 import { createClient } from '@supabase/supabase-js';
-import { getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
+import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
+import { getAdminLinkToken, revokeAdminAccess } from '@/utils/adminAccessStorage';
 import { recordAdminError } from '@/utils/adminErrorLog';
 import { clearInstantRestCache, fetchWithInstantRestCache } from '@/utils/instantRestCache';
 
@@ -59,7 +60,8 @@ const DEDUPE_MS = 250;
 const ADMIN_SESSION_PREFLIGHT_TTL_MS = 5 * 60 * 1000;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
 let adminSessionPreflightUntil = 0;
-let adminSessionPreflightPromise: Promise<void> | null = null;
+let adminSessionPreflightPromise: Promise<boolean> | null = null;
+let lastInvalidAdminRedirectAt = 0;
 
 if (typeof window !== 'undefined') {
   const clearAdminReadCache = () => {
@@ -87,12 +89,34 @@ function applySafetyLimit(url: string): string {
   return `${url}${sep}limit=${SAFETY_LIMIT}`;
 }
 
-const ensureAdminSessionDeviceBound = (token: string): Promise<void> => {
-  if (!token || Date.now() < adminSessionPreflightUntil) return Promise.resolve();
+const redirectToAdminAuthAfterInvalidSession = () => {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  if (now - lastInvalidAdminRedirectAt < 2_000) return;
+  lastInvalidAdminRedirectAt = now;
+  const linkToken = getAdminLinkToken();
+  clearAdminSession();
+  revokeAdminAccess();
+  window.dispatchEvent(new Event('admin-session-change'));
+  if (window.location.pathname.startsWith('/admin')) {
+    const target = linkToken ? `/admin/auth?access=${encodeURIComponent(linkToken)}` : '/admin/auth';
+    window.location.replace(target);
+  }
+};
+
+const buildInvalidAdminSessionResponse = () => new Response(JSON.stringify({
+  message: 'Invalid admin session — reopen the admin secret link and log in again',
+}), {
+  status: 401,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+const ensureAdminSessionDeviceBound = (token: string): Promise<boolean> => {
+  if (!token || Date.now() < adminSessionPreflightUntil) return Promise.resolve(true);
 
   const session = getAdminSession();
   const fingerprint = session?.device_fingerprint;
-  if (!session?.admin_id || !fingerprint || fingerprint.length < 16) return Promise.resolve();
+  if (!session?.admin_id || !fingerprint || fingerprint.length < 16) return Promise.resolve(true);
 
   if (adminSessionPreflightPromise) return adminSessionPreflightPromise;
 
@@ -114,15 +138,33 @@ const ensureAdminSessionDeviceBound = (token: string): Promise<void> => {
     }),
   })
     .then(async (resp) => {
-      if (!resp.ok) return;
+      if (!resp.ok) return true;
       const payload = await resp.json().catch(() => null) as any;
       const row = Array.isArray(payload) ? payload[0] : payload;
       if (row?.status === 'approved' || row?.success === true) {
-        adminSessionPreflightUntil = Date.now() + ADMIN_SESSION_PREFLIGHT_TTL_MS;
+        const verifyResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/current_admin_id_from_header`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            'content-type': 'application/json',
+            'x-admin-token': token,
+          },
+          body: '{}',
+        });
+        if (!verifyResp.ok) return true;
+        const verifiedAdminId = await verifyResp.json().catch(() => null);
+        if (String(verifiedAdminId || '') === session.admin_id) {
+          adminSessionPreflightUntil = Date.now() + ADMIN_SESSION_PREFLIGHT_TTL_MS;
+          return true;
+        }
       }
+      redirectToAdminAuthAfterInvalidSession();
+      return false;
     })
     .catch((error) => {
       console.warn('[adminClient] Admin session preflight failed; request will continue', error);
+      return true;
     })
     .finally(() => {
       adminSessionPreflightPromise = null;
@@ -239,7 +281,7 @@ const adminFetch: typeof fetch = (input, init) => {
 
   const sessionPreflight = token && isAdminRest && !isLoginRpc
     ? ensureAdminSessionDeviceBound(token)
-    : Promise.resolve();
+    : Promise.resolve(true);
 
   // Dedupe identical in-flight reads (GET only, no body).
   if (method === 'GET') {
@@ -249,16 +291,19 @@ const adminFetch: typeof fetch = (input, init) => {
     if (hit && now - hit.t < DEDUPE_MS) {
       return hit.p.then((r) => r.clone());
     }
-    const p = sessionPreflight.then(() => fetchWithInstantRestCache(url, opts, {
-      namespace: 'admin',
-      ttlMs: 3_000,
-      staleWhileRevalidateMs: 0,
-      maxEntries: 320,
-      // Admin RPCs power live counters, permissions, and financial summaries.
-      // Never serve them from session cache: stale RPC JSON made dashboard counts
-      // show old zero values even after the database was already correct.
-      skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
-    })).then(logIfFailed);
+    const p = sessionPreflight.then((ok) => {
+      if (!ok) return buildInvalidAdminSessionResponse();
+      return fetchWithInstantRestCache(url, opts, {
+        namespace: 'admin',
+        ttlMs: 3_000,
+        staleWhileRevalidateMs: 0,
+        maxEntries: 320,
+        // Admin RPCs power live counters, permissions, and financial summaries.
+        // Never serve them from session cache: stale RPC JSON made dashboard counts
+        // show old zero values even after the database was already correct.
+        skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
+      });
+    }).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
       setTimeout(() => {
@@ -269,7 +314,7 @@ const adminFetch: typeof fetch = (input, init) => {
     return p.then((r) => r.clone());
   }
 
-  return sessionPreflight.then(() => fetch(url, opts)).then(logIfFailed);
+  return sessionPreflight.then((ok) => ok ? fetch(url, opts) : buildInvalidAdminSessionResponse()).then(logIfFailed);
 };
 
 /**
