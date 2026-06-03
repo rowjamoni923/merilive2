@@ -255,8 +255,8 @@ const AgencyPolicy = () => {
   const exchangeRate = policyData?.exchange_rate || { rate: 9000, currency: 'Beans', display: '9,000 Beans = $1 USD' };
   
   // Use agency_level_tiers data for commission tiers (real source of truth)
-  const commissionTiers = levelTiers.length > 0 
-    ? levelTiers.map(tier => ({
+  const commissionTiers = (levelTiers ?? []).length > 0
+    ? (levelTiers ?? []).map(tier => ({
         level: tier.level_code,
         name: tier.level_name,
         income_min: tier.min_weekly_income,
@@ -264,6 +264,7 @@ const AgencyPolicy = () => {
         rate: tier.commission_rate
       }))
     : policyData?.commission_tiers?.tiers || [];
+
   const hostRequirements = policyData?.host_requirements?.requirements || [];
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
