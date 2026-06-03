@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getSessionCache, setSessionCache } from "@/hooks/useSessionCache";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useNavigate } from "react-router-dom";
