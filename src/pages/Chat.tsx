@@ -2218,7 +2218,11 @@ const Chat = () => {
     const isGroup = !!selectedGroup;
     const chatName = isGroup ? selectedGroup?.name : selectedConversation?.other_user?.display_name || 'User';
     const chatAvatar = isGroup ? selectedGroup?.avatar_url : selectedConversation?.other_user?.avatar_url;
-    const currentMessages = isGroup ? groupMessages : messages;
+    const allMessages = isGroup ? groupMessages : messages;
+    // Phase-3 perf: window the rendered slice. Clusters/day-separators stay
+    // contiguous because we always render the most-recent tail.
+    const hasOlder = allMessages.length > visibleMessageCount;
+    const currentMessages = hasOlder ? allMessages.slice(-visibleMessageCount) : allMessages;
     const userLevel = pickDisplayLevel(selectedConversation?.other_user as any);
     const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
 
