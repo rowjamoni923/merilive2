@@ -1049,6 +1049,7 @@ const LiveStream = () => {
                   entranceSoundUrl: entranceSoundUrl || null,
                   entryNameBarUrl: entryNameBarUrl || null,
                   vehicleAnimationUrl: vehicleAnimationUrl || null,
+                  rankCode: rankCode || null,
                 };
                 let published = false;
                 for (let i = 0; i < 30 && !published && mountedRef.current && !cancelled; i++) {
