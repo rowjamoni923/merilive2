@@ -147,8 +147,20 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             if (!mounted) return;
             if (data && String(data) === session.admin_id) {
               grantAdminAccess(session.is_owner);
+              return;
             }
-            // On failure: keep session intact (NO-AUTO-LOGOUT). User stays in.
+            // Stale local sessions are not real sessions. Keeping them sends a
+            // dead x-admin-token to every admin RPC and creates app-wide P0001
+            // failures. Self-heal by clearing only the invalid admin session and
+            // sending the user back through the saved secret link.
+            clearAdminSession();
+            revokeAdminAccess();
+            const linkToken = getAdminLinkToken();
+            if (linkToken) {
+              window.location.replace(`/admin/auth?access=${encodeURIComponent(linkToken)}`);
+            } else {
+              setIsAuthorized(false);
+            }
           } catch (e) {
             console.warn('[AdminAccessGuard] background session validation failed (kept session)', e);
           }
@@ -269,8 +281,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   if (isAuthorized) {
     const session = getAdminSession();
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
-    // Secret link + existing session → go straight to /admin (no re-login screen).
-    if (isLoginRoute() && session) {
+    // Fresh secret links must pass through /admin/auth first. Otherwise a
+    // restored/stale local admin session can open /admin?access=... directly,
+    // send a dead x-admin-token, and make every page show P0001 RPC failures.
+    if (hasFreshAccessToken && !isLoginRoute()) {
+      return <Navigate to={`/admin/auth?access=${encodeURIComponent(accessToken || accessTokenFromRoute || '')}`} replace />;
+    }
+    // Existing session without a fresh link can enter instantly. With a fresh
+    // link, render AdminAuth so it can server-validate or clear stale sessions.
+    if (isLoginRoute() && session && !hasFreshAccessToken) {
       return <Navigate to="/admin" replace />;
     }
     if (!session && !isLoginRoute()) {

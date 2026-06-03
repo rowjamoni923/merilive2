@@ -81,15 +81,31 @@ export default function AdminAuth() {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
   }, [searchParams]);
 
-  // If already signed in, always enter admin instantly — even from a fresh
-  // owner/sub-admin secret link. Never trap an existing valid admin session on
-  // the login form unless the user manually logged out.
+  // Existing sessions must be server-validated before entering /admin. A stale
+  // local session with a dead x-admin-token caused global P0001 RPC failures.
   useEffect(() => {
+    let cancelled = false;
     const existing = getAdminSession();
     if (existing) {
-      grantAdminAccess(existing.is_owner);
-      navigate('/admin', { replace: true });
+      (async () => {
+        try {
+          const { data } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+          if (cancelled) return;
+          if (data && String(data) === existing.admin_id) {
+            grantAdminAccess(existing.is_owner);
+            navigate('/admin', { replace: true });
+            return;
+          }
+        } catch (e) {
+          console.warn('[AdminAuth] existing admin session validation failed', e);
+        }
+        if (!cancelled) {
+          clearAdminSession();
+          revokeAdminAccess();
+        }
+      })();
     }
+    return () => { cancelled = true; };
   }, [navigate, searchParams]);
 
   // Poll device status while in pending state — auto-redirect when owner approves
