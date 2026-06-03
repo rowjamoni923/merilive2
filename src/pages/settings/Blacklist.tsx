@@ -99,7 +99,7 @@ const Blacklist = () => {
 
   const handleUnblock = async (blockId: string) => {
     try {
-      const targetBlock = blockedUsers.find((u) => u.id === blockId);
+      const targetBlock = (blockedUsers ?? []).find((u) => u.id === blockId);
       const { error } = await supabase
         .from("user_blocks")
         .delete()
