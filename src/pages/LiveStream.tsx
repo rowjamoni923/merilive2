@@ -376,7 +376,7 @@ const LiveStream = () => {
     if (liveJoinNotifications.length === 0) return;
     const timer = window.setInterval(() => {
       const now = Date.now();
-      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 3500));
+      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 6000));
     }, 300);
     return () => window.clearInterval(timer);
   }, [liveJoinNotifications.length]);
