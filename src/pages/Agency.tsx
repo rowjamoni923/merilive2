@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { getCachedUser } from "@/utils/cachedAuth";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface CommissionTier {
   id: string;
@@ -40,15 +41,23 @@ interface HelperTier {
 
 const Agency = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>([]);
-  const [helperTiers, setHelperTiers] = useState<HelperTier[]>([]);
+  // Pkg420: read last-known tiers from localStorage on mount so the page
+  // renders instantly without a spinner on every visit. Background refresh
+  // still runs in the useEffect below.
+  const [commissionTiers, setCommissionTiers, hadCommissionCache] =
+    usePersistedCache<CommissionTier[]>("agency:commission-tiers", []);
+  const [helperTiers, setHelperTiers, hadHelperCache] =
+    usePersistedCache<HelperTier[]>("agency:helper-tiers", []);
+  const [loading, setLoading] = useState(!(hadCommissionCache && hadHelperCache));
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchData = async () => {
-      setLoading(true);
+      // Only show spinner on cold cache; otherwise refresh silently.
+      if (!((commissionTiers?.length ?? 0) > 0 && (helperTiers?.length ?? 0) > 0)) {
+        setLoading(true);
+      }
       try {
         const user = await getCachedUser();
         if (user) {
@@ -163,19 +172,21 @@ const Agency = () => {
   }, [navigate]);
 
   // Get min and max commission rates for display
-  const minRate = commissionTiers.length > 0 
-    ? Math.min(...commissionTiers.map(t => t.commission_rate)) 
+  const commissionTiersSafe = commissionTiers ?? [];
+  const helperTiersSafe = helperTiers ?? [];
+  const minRate = commissionTiersSafe.length > 0
+    ? Math.min(...commissionTiersSafe.map(t => t.commission_rate))
     : 2;
-  const maxRate = commissionTiers.length > 0 
-    ? Math.max(...commissionTiers.map(t => t.commission_rate)) 
+  const maxRate = commissionTiersSafe.length > 0
+    ? Math.max(...commissionTiersSafe.map(t => t.commission_rate))
     : 20;
-  
-  // Separate regular tiers and diamond tier
-  const regularTiers = commissionTiers.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
-  const diamondTier = commissionTiers.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
 
-  // Loading state
-  if (loading) {
+  // Separate regular tiers and diamond tier
+  const regularTiers = commissionTiersSafe.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
+  const diamondTier = commissionTiersSafe.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
+
+  // Loading state — only on cold cache (Pkg420 zero-refresh)
+  if (loading && commissionTiersSafe.length === 0) {
     return <LoadingSpinner fullScreen size="lg" text="Loading Agency" />;
   }
 
@@ -400,20 +411,20 @@ const Agency = () => {
               <Crown className="w-4 h-4" />
               Helper Level Commission Rates
             </h5>
-            {helperTiers.length > 0 ? (
+            {helperTiersSafe.length > 0 ? (
               <>
-                <div className={`grid gap-2 text-center text-xs ${helperTiers.length <= 5 ? `grid-cols-${helperTiers.length}` : 'grid-cols-5'}`}>
-                  {helperTiers.map((tier, index) => (
+                <div className={`grid gap-2 text-center text-xs ${helperTiersSafe.length <= 5 ? `grid-cols-${helperTiersSafe.length}` : 'grid-cols-5'}`}>
+                  {helperTiersSafe.map((tier, index) => (
                     <div 
                       key={tier.id} 
                       className={`rounded-lg p-2 ${
-                        index === helperTiers.length - 1 
+                        index === helperTiersSafe.length - 1 
                           ? 'bg-white/30 ring-2 ring-white/50' 
                           : 'bg-white/20'
                       }`}
                     >
                       <p className="font-bold">{tier.level_name}</p>
-                      <p className={index === helperTiers.length - 1 ? 'text-slate-700' : 'text-slate-700'}>
+                      <p className={index === helperTiersSafe.length - 1 ? 'text-slate-700' : 'text-slate-700'}>
                         {tier.commission_rate}%
                       </p>
                     </div>
