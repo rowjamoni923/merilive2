@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -190,6 +190,25 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Fallback - just remove URL part
   return urlRemoved;
 };
+
+const messageTimestamp = (value?: string | null) => {
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+};
+
+const dedupeAndSortMessages = <T extends { id: string; created_at: string }>(items: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out.sort((a, b) => messageTimestamp(a.created_at) - messageTimestamp(b.created_at));
+};
+
+const sameMessageOrder = <T extends { id: string; created_at: string }>(a: T[], b: T[]) =>
+  a.length === b.length && a.every((item, index) => item.id === b[index]?.id && item.created_at === b[index]?.created_at);
 
 const Chat = () => {
   const navigate = useNavigate();
