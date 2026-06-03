@@ -10,7 +10,7 @@
  * Zero new Supabase channels / polls / cross-user reads.
  */
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Video } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,7 +87,7 @@ export const AutoRecordSettingsRow = () => {
       </div>
       <div className="w-full flex items-center justify-between px-4 py-4 border-b">
         <div className="flex items-center gap-3">
-          <Video className="w-5 h-5 text-rose-500" />
+          <Camera className="w-5 h-5 text-rose-500" />
           <div className="flex flex-col text-left">
             <span className="text-foreground font-medium">Auto-Record Live</span>
             <span className="text-[11px] text-muted-foreground">
