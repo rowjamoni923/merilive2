@@ -32,71 +32,45 @@ export interface AdminNotice {
   read_by: string[];
 }
 
-// Sound player for notifications (using Web Audio API)
+// Sound player for notifications — uses the SHARED AudioContext from
+// soundPlayer.ts (Pkg422). Previously created a fresh AudioContext per
+// notification — on iOS Safari that hits the 6-context cap after a
+// busy hour and every subsequent app sound (ringtone/gift/notification)
+// silently dies until reload. Now routed through the master limiter
+// bus so overlap with gift/entry/ringtone never clips.
 const playNotificationSound = (type?: string) => {
   try {
-    // Check localStorage cache for sound preference
     const soundDisabledCategories = JSON.parse(localStorage.getItem('meri_sound_disabled') || '[]');
     const category = getNotificationCategory(type || '');
     if (soundDisabledCategories.includes(category)) return;
 
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-
-    const gainNode = audioContext.createGain();
-    gainNode.connect(audioContext.destination);
-
-    // Different tones for different notification types
     const isCall = type === 'call_received' || type === 'incoming_call';
     const isMissedCall = type === 'call_missed';
     const isGift = type === 'gift_received' || type === 'gift';
     const isCoins = type?.includes('coin') || type?.includes('diamond') || type === 'topup_approved';
 
     let frequencies: number[];
-    let duration: number;
+    if (isCall) frequencies = [784, 988, 784, 988, 784];
+    else if (isMissedCall) frequencies = [523, 392];
+    else if (isGift) frequencies = [1047, 1319, 1568];
+    else if (isCoins) frequencies = [1175, 1397, 1760];
+    else frequencies = [880, 1109, 1319];
 
-    if (isCall) {
-      frequencies = [784, 988, 784, 988, 784]; // Ringtone pattern
-      duration = 0.8;
-    } else if (isMissedCall) {
-      frequencies = [523, 392]; // Descending tone
-      duration = 0.5;
-    } else if (isGift) {
-      frequencies = [1047, 1319, 1568]; // Ascending sparkle
-      duration = 0.4;
-    } else if (isCoins) {
-      frequencies = [1175, 1397, 1760]; // Ka-ching
-      duration = 0.5;
-    } else {
-      frequencies = [880, 1109, 1319]; // Default pleasant chime
-      duration = 0.4;
-    }
-    
-    frequencies.forEach((freq, i) => {
-      const oscillator = audioContext.createOscillator();
-      const noteGain = audioContext.createGain();
-      
-      oscillator.type = isCall ? 'square' : 'sine';
-      oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-      
-      noteGain.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.08);
-      noteGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-      
-      oscillator.connect(noteGain);
-      noteGain.connect(gainNode);
-      
-      oscillator.start(audioContext.currentTime + i * 0.08);
-      oscillator.stop(audioContext.currentTime + duration + 0.1);
-    });
-
-    setTimeout(() => { audioContext.close(); }, 1500);
+    const oscType: OscillatorType = isCall ? 'square' : 'sine';
+    const noteDur = isCall ? 0.18 : 0.22;
+    const notes = frequencies.map((freq, i) => ({
+      freq,
+      startOffset: i * 0.08,
+      duration: noteDur,
+      gain: 0.18,
+      type: oscType,
+    }));
+    playSynthSequence(notes);
   } catch (error) {
     console.error('Error playing notification sound:', error);
   }
 };
+
 
 // Map notification type to category for preference checking
 const getNotificationCategory = (type: string): string => {
