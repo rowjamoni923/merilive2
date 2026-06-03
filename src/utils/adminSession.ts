@@ -74,9 +74,9 @@ export const getAdminSessionToken = (): string => {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
       return parsed.session_token;
     }
-    // Final fallback for legacy sessions that only have the dedicated token key.
-    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (direct && direct.length >= 16) return direct;
+    // No valid session blob means no trustworthy admin identity. Do not send a
+    // leftover token key: that is exactly what caused global P0001 RPC failures
+    // across admin pages after token/session drift.
     return '';
   } catch {
     return '';
