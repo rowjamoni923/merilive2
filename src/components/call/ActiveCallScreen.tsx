@@ -998,7 +998,7 @@ export function ActiveCallScreen({
       {chatMessages.length > 0 && (
         <div
           ref={chatScrollRef}
-          className="absolute bottom-[116px] left-3 right-16 z-10 max-h-[40vh] overflow-y-auto"
+          className="absolute bottom-[108px] sm:bottom-[116px] left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto"
           style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           <div className="space-y-1.5 pb-1">
