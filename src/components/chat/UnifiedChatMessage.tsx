@@ -216,15 +216,17 @@ export const RoomChatBubble = memo(function RoomChatBubble({
   }
 
   // -- Regular room chat line --
+  // Wrapped in a translucent glass chip so chat stays readable over any
+  // background — live video, party scene, private call, game stage.
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-start gap-1 py-0.5"
+      className="flex flex-wrap items-center gap-1 py-0.5 px-2.5 rounded-2xl bg-black/35 backdrop-blur-md border border-white/10 shadow-[0_1px_6px_rgba(0,0,0,0.35)] w-fit max-w-full"
     >
       <InlineLevelBadge level={userLevel} />
       {isHost && (
-        <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white">
+        <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-[0_1px_3px_rgba(244,63,94,0.5)]">
           Host
         </span>
       )}
@@ -232,13 +234,13 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       {isTrader && <TraderBadge level={traderLevel} size="xs" />}
       <span
         className={cn(
-          "font-semibold text-xs",
+          "font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]",
           nameColorClass(isHost, isVIP, vipTier, userLevel),
         )}
       >
         {userName}:
       </span>
-      <span className="text-white/95 text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">
         {message}
       </span>
     </motion.div>
