@@ -184,11 +184,12 @@ export async function publishLiveEvent(
       room.localParticipant?.identity,
     );
     const bytes = encodeEnvelope(env);
-    // Pkg106: viewer_joined entrance banner is ephemeral high-frequency UI on big streams.
-    // Loss is acceptable — Pkg77 ParticipantConnected event keeps viewer count accurate.
-    // Lossy mode saves bandwidth (no SFU retransmit) and reduces head-of-line blocking
-    // for chat/gift reliable packets during viewer-join floods.
-    await room.localParticipant.publishData(bytes, { reliable: false });
+    // Pkg424: switched to reliable. Lossy mode was silently dropping viewer_joined
+    // packets → entry animations + flying name banner + counter increment never
+    // reached some viewers (user-reported "publicly সবার কাছে show করে না").
+    // viewer_joined fires ONCE per join, not high-frequency, so reliable is
+    // the correct tradeoff. Matches PartyRoom (publishPartyEvent reliable:true).
+    await room.localParticipant.publishData(bytes, { reliable: true });
     return true;
   } catch (err) {
     console.warn('[Pkg82a] publishLiveEvent failed:', err);
