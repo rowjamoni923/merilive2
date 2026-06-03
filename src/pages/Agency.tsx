@@ -55,7 +55,7 @@ const Agency = () => {
 
     const fetchData = async () => {
       // Only show spinner on cold cache; otherwise refresh silently.
-      if (!(commissionTiers && commissionTiers.length && helperTiers && helperTiersSafe.length)) {
+      if (!((commissionTiers?.length ?? 0) > 0 && (helperTiers?.length ?? 0) > 0)) {
         setLoading(true);
       }
       try {
