@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
