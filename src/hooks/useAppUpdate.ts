@@ -172,6 +172,7 @@ export const useAppUpdate = () => {
       // Check if this version was already dismissed (only for non-force updates)
       if (updateAvailable && !isForceUpdate && isDismissedVersion(serverVersionCode)) {
         console.log('[AppUpdate] This version was already dismissed by user');
+        setShowUpdateModal(false);
         return;
       }
 
@@ -181,6 +182,7 @@ export const useAppUpdate = () => {
         setShowUpdateModal(true);
       } else {
         console.log('[AppUpdate] App is up to date.');
+        setShowUpdateModal(false);
         // Clear any dismissed version if app is up to date
         try {
           localStorage.removeItem(DISMISSED_VERSION_KEY);
