@@ -1709,7 +1709,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
  iconColor:"text-display",
       show: isOwnProfile && userLevel >= 6
     },
-  ].filter(item => item.show);
+  ].filter(item => item.show), [
+    isOwnProfile, isFemale, isHost, isFaceVerified, isAgencyOwner, isInActiveAgency,
+    showAgencyCenter, canApplyForHost, faceVerificationPending, faceVerificationRejected,
+    hostAvailability, handleToggleAvailability, profile, callRateSettings,
+    userLevel, userVIPTier, levelProgress, nextLevel,
+    globalUnread.messages, notificationCount, hasUnclaimedReward, toast,
+  ]);
 
   const getProfileIconTone = (index: number) => {
     const tones = [
