@@ -739,7 +739,7 @@ export function ActiveCallScreen({
 
               <div className="flex flex-col leading-tight">
                 <span
-                  className="text-white text-[11px] font-extrabold max-w-[88px] truncate"
+                  className="text-white text-[10px] sm:text-[11px] font-extrabold max-w-[64px] sm:max-w-[88px] truncate"
                   style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
                 >
                   {remoteUserName}
