@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,12 +34,14 @@ interface BlockedUser {
 const Blacklist = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Pkg421 Phase-3: cache blocked list so the page renders instantly on revisit.
+  // Limited scope: only the list is cached; mutations always hit the network.
+  const [blockedUsers, setBlockedUsers, hadBlockedCache] = usePersistedCache<BlockedUser[]>('settings:blacklist', null);
+  const [loading, setLoading] = useState(!hadBlockedCache);
   const [unblockUserId, setUnblockUserId] = useState<string | null>(null);
 
   const fetchBlockedUsers = useCallback(async () => {
-    setLoading(true);
+    if (!blockedUsers) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -96,7 +99,7 @@ const Blacklist = () => {
 
   const handleUnblock = async (blockId: string) => {
     try {
-      const targetBlock = blockedUsers.find((u) => u.id === blockId);
+      const targetBlock = (blockedUsers ?? []).find((u) => u.id === blockId);
       const { error } = await supabase
         .from("user_blocks")
         .delete()
@@ -104,7 +107,7 @@ const Blacklist = () => {
 
       if (error) throw error;
 
-      setBlockedUsers(prev => prev.filter(u => u.id !== blockId));
+      setBlockedUsers(prev => (prev ?? []).filter(u => u.id !== blockId));
       if (targetBlock?.blocked_id) {
         window.dispatchEvent(new CustomEvent("app-sync", {
           detail: { topic: "user_blocks", eventType: "DELETE", rowId: blockId, payload: { blocked_id: targetBlock.blocked_id } }
@@ -146,7 +149,7 @@ const Blacklist = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-      {blockedUsers.length === 0 ? (
+      {(blockedUsers ?? []).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
               <UserX className="w-10 h-10 text-muted-foreground" />
@@ -158,7 +161,7 @@ const Blacklist = () => {
         </div>
       ) : (
         <div className="divide-y">
-          {blockedUsers.map((blocked) => (
+          {(blockedUsers ?? []).map((blocked) => (
             <div
               key={blocked.id}
               className="flex items-center justify-between px-4 py-3"

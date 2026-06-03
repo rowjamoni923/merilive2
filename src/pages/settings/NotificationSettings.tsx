@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface NotificationCategory {
   key: string;
@@ -41,14 +42,15 @@ const DEFAULT_PREF: PrefState = { enabled: true, push_enabled: true, sound_enabl
 export default function NotificationSettings() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [prefs, setPrefs] = useState<Record<string, PrefState>>({});
-  const [loading, setLoading] = useState(true);
+  // Pkg421 Phase-3: cache prefs map so toggles appear instantly on revisit.
+  const [prefs, setPrefs, hadPrefsCache] = usePersistedCache<Record<string, PrefState>>('settings:notifPrefs', null);
+  const [loading, setLoading] = useState(!hadPrefsCache);
   const [globalSound, setGlobalSound] = useState(true);
   const savingRef = useRef(false);
 
   const loadPreferences = useCallback(async (showLoading = false) => {
     try {
-      if (showLoading) setLoading(true);
+      if (showLoading && !prefs) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
@@ -91,7 +93,7 @@ export default function NotificationSettings() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const current = prefs[category] || { ...DEFAULT_PREF };
+    const current = (prefs ?? {})[category] || { ...DEFAULT_PREF };
     const updated = { ...current, [field]: value };
 
     // If disabling main toggle, also disable push
@@ -103,7 +105,7 @@ export default function NotificationSettings() {
       updated.enabled = true;
     }
 
-    setPrefs(prev => ({ ...prev, [category]: updated }));
+    setPrefs(prev => ({ ...(prev ?? {}), [category]: updated }));
 
     savingRef.current = true;
     try {
@@ -119,7 +121,7 @@ export default function NotificationSettings() {
         }, { onConflict: 'user_id,category' });
 
       if (error) {
-        setPrefs(prev => ({ ...prev, [category]: current }));
+        setPrefs(prev => ({ ...(prev ?? {}), [category]: current }));
         console.error('Failed to update preference:', error);
         recordClientError({ label: "NotificationSettings.updated", message: error instanceof Error ? error.message : String(error) });
         toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
@@ -139,8 +141,8 @@ export default function NotificationSettings() {
     const updates = CATEGORIES.map(cat => ({
       user_id: user.id,
       category: cat.key,
-      enabled: (prefs[cat.key] || DEFAULT_PREF).enabled,
-      push_enabled: (prefs[cat.key] || DEFAULT_PREF).push_enabled,
+      enabled: ((prefs ?? {})[cat.key] || DEFAULT_PREF).enabled,
+      push_enabled: ((prefs ?? {})[cat.key] || DEFAULT_PREF).push_enabled,
       sound_enabled: value,
       updated_at: new Date().toISOString(),
     }));
@@ -155,7 +157,7 @@ export default function NotificationSettings() {
         toast({ title: 'Error', description: 'Failed to save sound preference', variant: 'destructive' });
       } else {
         setPrefs(prev => {
-          const next = { ...prev };
+          const next = { ...(prev ?? {}) };
           CATEGORIES.forEach(cat => {
             next[cat.key] = { ...(next[cat.key] || DEFAULT_PREF), sound_enabled: value };
           });
@@ -167,7 +169,7 @@ export default function NotificationSettings() {
     }
   };
 
-  const getPref = (key: string): PrefState => prefs[key] || DEFAULT_PREF;
+  const getPref = (key: string): PrefState => (prefs ?? {})[key] || DEFAULT_PREF;
 
   if (loading) {
     return (
