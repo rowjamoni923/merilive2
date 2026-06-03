@@ -169,7 +169,7 @@ export default function NotificationSettings() {
     }
   };
 
-  const getPref = (key: string): PrefState => prefs[key] || DEFAULT_PREF;
+  const getPref = (key: string): PrefState => (prefs ?? {})[key] || DEFAULT_PREF;
 
   if (loading) {
     return (
