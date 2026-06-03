@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { ConnectionState } from "livekit-client";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -153,6 +154,7 @@ interface UnifiedPartyRoomProps {
   isVideoOff?: boolean;
   
   isConnected?: boolean;
+  connectionState?: ConnectionState;
   
   // Actions
   onMicToggle: () => void;
@@ -553,6 +555,7 @@ export function UnifiedPartyRoom({
   isMuted,
   isVideoOff = false,
   isConnected,
+  connectionState,
   onMicToggle,
   onVideoToggle,
   onRequestSeat,
@@ -1429,7 +1432,7 @@ export function UnifiedPartyRoom({
               <AnimatedViewerCount 
                 value={realtimeViewerCount ?? viewerCount} 
                 className="text-white text-[10px] font-medium tabular-nums" 
-                connected={isConnected}
+                connected={connectionState === ConnectionState.Connected}
               />
             </div>
             
