@@ -22,6 +22,7 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB max
+const SUPABASE_FALLBACK_BUCKET = 'animations';
 
 type UploadPrincipal = {
   id: string;
@@ -282,11 +283,22 @@ serve(async (req) => {
       const fileBuffer = await file.arrayBuffer();
       const fileBytes = new Uint8Array(fileBuffer);
       
-      const publicUrlResult = await uploadToR2Direct(
-        fileBytes, key,
-        file.type || 'application/octet-stream',
-        R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL
-      );
+      let publicUrlResult: string;
+      try {
+        publicUrlResult = await uploadToR2Direct(
+          fileBytes, key,
+          file.type || 'application/octet-stream',
+          R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL
+        );
+      } catch (r2Error) {
+        console.error('[Direct] R2 upload failed, falling back to Supabase Storage:', r2Error);
+        publicUrlResult = await uploadToSupabaseFallback(
+          serviceClient,
+          fileBytes,
+          key,
+          file.type || 'application/octet-stream'
+        );
+      }
 
       console.log(`[Direct] Success: ${publicUrlResult}`);
 
