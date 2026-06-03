@@ -365,31 +365,53 @@ const Index = () => {
   // Route-local safety net: keep the home host feed live for stream/call status changes.
   useEffect(() => {
     let invalidateTimer: ReturnType<typeof setTimeout> | null = null;
+    let profilesTimer: ReturnType<typeof setTimeout> | null = null;
 
     const queueHomeInvalidate = () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
       invalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
         queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
-      }, 300); // Reduced from 500ms to 300ms for near-instant feel
+      }, 300);
     };
 
     // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms.
-    // NOTE: `profiles` is intentionally NOT subscribed here — every is_online heartbeat
-    // from ANY user on the platform fires a profiles UPDATE, which would invalidate this
-    // query every few seconds and cause the home feed to visibly re-render ("auto-refresh"
-    // flicker). Online/offline transitions of hosts are still reflected on next legitimate
-    // stream/call/party event or the next page mount. (Pkg356 no-auto-refresh policy.)
     const unsubscribe = subscribeToTables(
       `home-hosts-${Date.now()}`,
       ["live_streams", "private_calls", "party_rooms"],
       queueHomeInvalidate
     );
 
+    // Pkg423: Subscribe to `profiles` UPDATE — but ONLY invalidate when
+    // presence-relevant fields actually change (is_online / host_availability /
+    // is_in_call / host_status). Heartbeat-only last_seen_at writes are ignored,
+    // so the home feed never flickers on idle traffic, but real online/busy/live
+    // transitions surface instantly. 1500ms debounce batches bursts.
+    const unsubscribeProfiles = subscribeToTables(
+      `home-presence-${Date.now()}`,
+      ["profiles"],
+      (_t, event, payload: any) => {
+        if (event !== 'UPDATE') return;
+        const nw = payload?.new || {};
+        const od = payload?.old || {};
+        const changed =
+          nw.is_online !== od.is_online ||
+          nw.host_availability !== od.host_availability ||
+          nw.is_in_call !== od.is_in_call ||
+          nw.host_status !== od.host_status;
+        if (!changed) return;
+        if (profilesTimer) clearTimeout(profilesTimer);
+        profilesTimer = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
+        }, 1500);
+      }
+    );
 
     return () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
+      if (profilesTimer) clearTimeout(profilesTimer);
       unsubscribe();
+      unsubscribeProfiles();
     };
   }, [queryClient]);
 
