@@ -355,8 +355,12 @@ const AdminUserBeansExchange = lazy(lazyRetry(() => import("./pages/admin/AdminU
 if (typeof window !== 'undefined') {
   try {
     const hasFlag = localStorage.getItem('meri_admin_access') === 'true' || localStorage.getItem('meri_owner_access') === 'true';
-    if (hasFlag && window.location.pathname.startsWith('/admin')) {
-      // Prefetch core admin modules after a short idle delay
+    const onAdminPath = window.location.pathname.startsWith('/admin');
+    const hasAccessParam = window.location.search.includes('access=');
+    // Pkg426: also prefetch when a fresh secret link is in the URL (no flag yet)
+    // so AdminLayout/Dashboard/RouteGuard chunks download IN PARALLEL while the
+    // user types credentials → near-instant entry after submit.
+    if (onAdminPath && (hasFlag || hasAccessParam)) {
       const prefetchAdmin = () => {
         import("./components/admin/AdminAccessGuard");
         import("./pages/admin/AdminLayout");
@@ -364,7 +368,11 @@ if (typeof window !== 'undefined') {
         import("./components/admin/AdminRouteGuard");
         prefetchCommonAdminRoutes();
       };
-      if ('requestIdleCallback' in window) {
+      // Fresh secret-link visits prefetch IMMEDIATELY (don't wait for idle —
+      // user is about to log in, network bandwidth should be used now).
+      if (hasAccessParam) {
+        setTimeout(prefetchAdmin, 0);
+      } else if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(prefetchAdmin, { timeout: 2000 });
       } else {
         setTimeout(prefetchAdmin, 300);
@@ -372,6 +380,7 @@ if (typeof window !== 'undefined') {
     }
   } catch {}
 }
+
 
 // Settings Sub-pages
 const Blacklist = lazy(lazyRetry(() => import("./pages/settings/Blacklist")));

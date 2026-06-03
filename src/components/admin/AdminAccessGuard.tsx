@@ -15,9 +15,13 @@ import {
 } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
-const VALIDATE_TIMEOUT_MS = 6_000;
-const VALIDATE_ATTEMPTS = 2;
-const VALIDATE_RETRY_DELAY_MS = 800;
+// Pkg426: tightened from 6s×2 (+800ms retry = up to 13s safety timer) to
+// 3s×1 — `validate-admin-token` cold-start was extending admin-panel entry
+// when a fresh secret link was in the URL. handleLogin re-fetches a fresh
+// challenge anyway, so a single quick attempt is enough.
+const VALIDATE_TIMEOUT_MS = 3_000;
+const VALIDATE_ATTEMPTS = 1;
+const VALIDATE_RETRY_DELAY_MS = 0;
 
 /**
  * AdminAccessGuard

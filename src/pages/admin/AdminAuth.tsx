@@ -83,30 +83,39 @@ export default function AdminAuth() {
 
   // Existing sessions must be server-validated before entering /admin. A stale
   // local session with a dead x-admin-token caused global P0001 RPC failures.
+  // Pkg426: 1500ms race timeout — if PostgREST is slow / cold, the user can
+  // still see + interact with the login form instead of staring at a frozen
+  // screen. Pkg359 NO-AUTO-LOGOUT: on timeout we KEEP the session intact.
   useEffect(() => {
     let cancelled = false;
     const existing = getAdminSession();
     if (existing) {
       (async () => {
         try {
-          const { data } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+          const call = adminSupabase.rpc('current_admin_id_from_header' as any);
+          const timeout = new Promise<{ data: any }>((_, reject) =>
+            setTimeout(() => reject(new Error('admin session pre-validation timeout')), 1500)
+          );
+          const { data } = await Promise.race([call as any, timeout]);
           if (cancelled) return;
           if (data && String(data) === existing.admin_id) {
             grantAdminAccess(existing.is_owner);
             navigate('/admin', { replace: true });
             return;
           }
-        } catch (e) {
-          console.warn('[AdminAuth] existing admin session validation failed', e);
-        }
-        if (!cancelled) {
+          // Server says not us → stale local session; clear so the user can re-log.
           clearAdminSession();
           revokeAdminAccess();
+        } catch (e) {
+          // Network slow / timeout → DO NOT touch the session. Just let the
+          // login form render so the user can act.
+          console.warn('[AdminAuth] existing admin session validation skipped', e);
         }
       })();
     }
     return () => { cancelled = true; };
   }, [navigate, searchParams]);
+
 
   // Poll device status while in pending state — auto-redirect when owner approves
   useEffect(() => {
