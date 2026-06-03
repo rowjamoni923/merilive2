@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
+
 export interface GiftServicePayload {
   receiverId: string;
   giftId: string;
@@ -30,30 +33,39 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     throw new Error("No active session. Please sign in again.");
   }
 
+  const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (sessionErr || !accessToken) {
+    throw new Error("No active session. Please sign in again.");
+  }
+
   // Pkg306 audit: header was hardcoded "android-webview" — wrong for web.
   const isNative = typeof (globalThis as any)?.Capacitor?.isNativePlatform === 'function'
     && (globalThis as any).Capacitor.isNativePlatform();
   const platform = isNative ? 'android-webview' : 'web';
 
-  // supabase.functions.invoke auto-attaches the (refreshed) access token.
-  const { data, error } = await supabase.functions.invoke<GiftServiceResponse>('gift-service', {
-    body: payload,
-    headers: { 'x-client-platform': platform },
+  // Explicit fetch guarantees the Edge Function receives the current user JWT.
+  // functions.invoke can fall back to anon when auth storage is still settling on native/webview.
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/gift-service`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${accessToken}`,
+      'x-client-platform': platform,
+    },
+    body: JSON.stringify(payload),
   });
 
-  if (error) {
-    // FunctionsHttpError exposes the response body via .context
-    let serverMsg: string | undefined;
-    try {
-      const ctxResp = (error as any)?.context;
-      if (ctxResp && typeof ctxResp.json === 'function') {
-        const parsed = await ctxResp.json();
-        serverMsg = parsed?.error;
-      }
-    } catch {
-      // ignore
-    }
-    throw new Error(serverMsg || error.message || 'Gift request failed');
+  let data: GiftServiceResponse | null = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || `Gift request failed (${response.status})`);
   }
 
   return data ?? { success: false };
