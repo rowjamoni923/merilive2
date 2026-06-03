@@ -274,25 +274,17 @@ export function useR2Upload() {
     try {
       let url: string;
       const useR2Multipart = file.size > SUPABASE_THRESHOLD;
-      // Admin panel has no user session — Supabase Storage upload would fail with
-      // "Not authenticated". Route admin uploads through R2 edge fn (accepts x-admin-token).
-      const adminToken = getAdminSessionToken();
-      const { data: { session: userSession } } = await supabase.auth.getSession();
-      const useR2Direct = !useR2Multipart && !!adminToken && !userSession?.access_token;
 
       if (useR2Multipart) {
         toast.info(`Large file (${fileSizeMB}MB) - Uploading to R2...`, { duration: 60000 });
         url = await uploadToR2Multipart(file, options.folder, options.onProgress);
         console.log('[Upload] R2 multipart upload completed:', url);
-      } else if (useR2Direct) {
-        url = await uploadToR2Direct(file, options.folder);
-        console.log('[Upload] R2 direct (admin) completed:', url);
       } else {
         url = await uploadToSupabase(file, options.bucket, options.folder, options.onProgress);
         console.log('[Upload] Supabase completed:', url);
       }
 
-      toast.success(useR2Multipart || useR2Direct ? 'Uploaded successfully! ✨' : 'Upload complete!');
+      toast.success(useR2Multipart ? 'Uploaded successfully! ✨' : 'Upload complete!');
       return { success: true, url };
 
     } catch (error: any) {
