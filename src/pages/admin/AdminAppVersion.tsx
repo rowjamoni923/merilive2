@@ -165,16 +165,14 @@ const AdminAppVersion = () => {
             <div className="space-y-2">
               <Label>Current Version Name</Label>
               <Input
-                key={`name-${settings?.updated_at}`}
                 value={localSettings.current_version_name}
                 onChange={(e) => handleLocalChange({ current_version_name: e.target.value })}
-                placeholder="e.g., 4.0.0"
+                placeholder="e.g., 8.2.1"
               />
             </div>
             <div className="space-y-2">
               <Label>Version Code (Integer)</Label>
               <Input
-                key={`code-${settings?.updated_at}`}
                 type="number"
                 value={localSettings.current_version_code}
                 onChange={(e) => handleLocalChange({ current_version_code: parseInt(e.target.value) || 0 })}
