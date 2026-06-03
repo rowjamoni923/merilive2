@@ -125,11 +125,13 @@ const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBanner
         <div className="flex items-center gap-2 min-w-0">
           {/* Level Badge - Bigo Style - Using Centralized Utilities */}
           <div className={cn(
-            "px-2 py-0.5 rounded-md text-[10px] font-black shadow-lg flex items-center",
+            "px-2 py-0.5 rounded-md text-[10px] font-black shadow-lg flex items-center gap-0.5 tracking-wide",
             getLevelBadgeBg(level),
             getLevelTextColor(level)
           )}>
-            <span className="drop-shadow-sm">{formatLevel(level)}</span>
+            {level >= 50 && <span className="text-[10px] leading-none">👑</span>}
+            {level >= 30 && level < 50 && <span className="text-[10px] leading-none">💎</span>}
+            <span className="drop-shadow-sm tabular-nums">{formatLevel(level)}</span>
           </div>
 
           {/* Username */}
