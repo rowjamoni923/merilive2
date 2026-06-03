@@ -1510,7 +1510,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
   }, [currentUser?.id, hostAvailability, toast, navigate]);
 
-  const menuItems = [
+  // Phase-4 perf: this 200-line array (with IIFE call-rate math + JSX children)
+  // was being rebuilt on every Profile re-render. Memoize so unrelated state
+  // updates (scroll, dialogs, optimistic toggles elsewhere) don't pay the cost.
+  const menuItems = useMemo(() => [
     // Go Offline button - ONLY for hosts
     {
       icon: Power,
@@ -1706,7 +1709,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
  iconColor:"text-display",
       show: isOwnProfile && userLevel >= 6
     },
-  ].filter(item => item.show);
+  ].filter(item => item.show), [
+    isOwnProfile, isFemale, isHost, isFaceVerified, isAgencyOwner, isInActiveAgency,
+    showAgencyCenter, canApplyForHost, faceVerificationPending, faceVerificationRejected,
+    hostAvailability, handleToggleAvailability, profile, callRateSettings,
+    userLevel, userVIPTier, levelProgress, nextLevel,
+    globalUnread.messages, notificationCount, hasUnclaimedReward, toast,
+  ]);
 
   const getProfileIconTone = (index: number) => {
     const tones = [
@@ -2267,7 +2276,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Menu Items - Compact */}
           {menuItems.length > 0 && (
             <div className="profile-home-section rounded-xl overflow-hidden mt-2">
-              {menuItems.filter((item) => item.show !== false).map((item, index) => (
+              {menuItems.map((item, index) => (
                 <button
                   key={index}
                   onClick={() => {
