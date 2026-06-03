@@ -213,7 +213,32 @@ export function useBigoJoinNotifications() {
       id: `bigo_join_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       timestamp: Date.now(),
     };
-    setQueue(prev => [...prev, newNotification]);
+    const incomingLevel = ensureValidLevel(newNotification.userLevel);
+    setQueue(prev => {
+      const HIGH_TIER = 40; // Epic+ pre-empt the queue (matches Bigo Noble preempt)
+      const MAX_QUEUE = 8;  // Hard cap so viral bursts don't pile up minutes of banners
+      // VIP/Noble (level >= HIGH_TIER): jump to the front, after any other VIPs already queued
+      if (incomingLevel >= HIGH_TIER) {
+        const lastVipIdx = prev.reduce(
+          (acc, n, i) => (ensureValidLevel(n.userLevel) >= HIGH_TIER ? i : acc),
+          -1
+        );
+        const next = [...prev];
+        next.splice(lastVipIdx + 1, 0, newNotification);
+        // Trim from the tail (always the lowest-priority regular users)
+        return next.length > MAX_QUEUE ? next.slice(0, MAX_QUEUE) : next;
+      }
+      // Regular user: append, but if cap hit, drop the OLDEST regular (never drop a VIP)
+      const next = [...prev, newNotification];
+      if (next.length <= MAX_QUEUE) return next;
+      const firstRegularIdx = next.findIndex(n => ensureValidLevel(n.userLevel) < HIGH_TIER);
+      if (firstRegularIdx === -1) {
+        // All slots are VIPs — drop the new regular silently
+        return prev;
+      }
+      next.splice(firstRegularIdx, 1);
+      return next;
+    });
   }, []);
 
   const completeNotification = useCallback(() => {
