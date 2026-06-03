@@ -91,7 +91,7 @@ export function usePartyRoomWebRTC(
     isConnected: false,
     isAudioEnabled: true,
     isVideoEnabled: true, // Auto-enable camera by default for 100% video experience
-
+    connectionState: ConnectionState.Disconnected,
   });
   const [restartNonce, setRestartNonce] = useState(0);
 
