@@ -117,6 +117,17 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
                 alt="MeriLive"
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
+                onError={(e) => {
+                  // Last-resort fallback: if the bundled chunk somehow 404s
+                  // (offline cache miss, corrupted SW), fall back to the
+                  // /public copy. Either way the user always sees the logo.
+                  const img = e.currentTarget;
+                  if (!img.dataset.fallback) {
+                    img.dataset.fallback = '1';
+                    img.src = '/app-logo.png';
+                  }
+                }}
                 className="absolute inset-0 block h-full w-full object-cover"
                 style={{ objectPosition: 'center center' }}/>
             </div>
