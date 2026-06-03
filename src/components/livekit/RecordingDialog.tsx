@@ -140,7 +140,7 @@ export function RecordingDialog({ open, onClose, streamId }: Props) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-fuchsia-500" />
+            <Camera className="h-5 w-5 text-fuchsia-500" />
             Record Live Stream
           </DialogTitle>
         </DialogHeader>
@@ -219,7 +219,7 @@ export function RecordingDialog({ open, onClose, streamId }: Props) {
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
-                  <Video className="h-4 w-4 mr-2" />
+                  <Camera className="h-4 w-4 mr-2" />
                 )}
                 Start Recording
               </Button>

@@ -6,7 +6,7 @@
  * the dispatched event and unsubscribes/resubscribes video tracks live.
  */
 import { memo, useCallback, useEffect, useState } from "react";
-import { Headphones, Video } from "lucide-react";
+import { Headphones, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   AUDIO_ONLY_CHANGED_EVENT,
@@ -56,7 +56,7 @@ export const AudioOnlyToggleButton = memo(function AudioOnlyToggleButton({
         className,
       )}
     >
-      {enabled ? <Headphones className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+      {enabled ? <Headphones className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
     </button>
   );
 });
