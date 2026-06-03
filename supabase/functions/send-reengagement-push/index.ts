@@ -20,6 +20,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Pkg349: cron-only — any anon trigger could mass-spam push to every inactive user app-wide
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? Deno.env.get("CRON_SECRET");
+  const headerSecret = req.headers.get("x-cron-secret") ?? req.headers.get("x-internal-secret");
+  const serviceJwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const isServiceRole = serviceJwt && serviceJwt === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!isServiceRole && (!internalSecret || headerSecret !== internalSecret)) {
+    return new Response(JSON.stringify({ error: "Cron/service-role auth required" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
