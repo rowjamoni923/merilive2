@@ -999,19 +999,19 @@ const LiveStream = () => {
               // 🎬 TRIGGER SELF ENTRY ANIMATION - Viewer sees their own entrance effect!
               console.log('[LiveStream] 🎬 Checking self entry animation for:', userName, 'entranceId:', selfProfile.equipped_entrance_id);
               
-              // Fetch Entry Animation URL - uses centralized function that checks ALL tables
-              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode } = await fetchUserEntryAnimations(
                 selfProfile.equipped_entrance_id,
                 selfProfile.equipped_entry_name_bar_id,
                 selfProfile.equipped_vehicle_id,
-                userLevel
+                userLevel,
+                currentUserId // Pass userId for Noble rank lookup
               );
               if (cancelled || !mountedRef.current) return;
               
-              console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
+              console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
               
-              if (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) {
-                console.log('[LiveStream] 🚗 Self has equipped animation:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
+              if (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl || rankCode) {
+                console.log('[LiveStream] 🚗 Self has equipped animation or rank:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
                 addEntryAnimation({
                   userId: currentUserId,
                   displayName: userName,
@@ -1021,6 +1021,7 @@ const LiveStream = () => {
                   entryNameBarUrl: entryNameBarUrl || undefined,
                   vehicleAnimationUrl: vehicleAnimationUrl || undefined,
                   soundUrl: entranceSoundUrl || undefined,
+                  rankCode: rankCode || undefined,
                 });
               } else {
                 console.log('[LiveStream] ⚠️ No animation URL found for self');
