@@ -154,7 +154,7 @@ export const useAppUpdate = () => {
 
       const currentComparableCode = Math.max(CURRENT_VERSION_CODE, versionNameToCode(CURRENT_VERSION_NAME));
       const updateAvailable = serverVersionCode > currentComparableCode;
-      const isForceUpdate = data.force_update && minimumVersionCode > currentComparableCode;
+      const isForceUpdate = Boolean(data.force_update) && minimumVersionCode > currentComparableCode;
 
       const info: AppUpdateInfo = {
         updateAvailable,
