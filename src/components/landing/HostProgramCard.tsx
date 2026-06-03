@@ -87,7 +87,7 @@ const HostProgramCard = () => {
           viewport={{ once: true }}
  className="relative rounded-3xl overflow-hidden mb-14 border border-slate-200 shadow-2xl shadow-amber-500/5"
         >
-          <img src={hostHeroImg} alt="Live Streaming Host" className="w-full h-72 md:h-96 object-cover"/>
+          <img loading="lazy" decoding="async" src={hostHeroImg} alt="Live Streaming Host" className="w-full h-72 md:h-96 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/60 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
@@ -114,7 +114,7 @@ const HostProgramCard = () => {
           viewport={{ once: true }}
           className="relative rounded-3xl overflow-hidden mb-14 border border-amber-500/20"
         >
-          <img src={bonusImg} alt="Host Bonus Rewards" className="w-full h-56 md:h-64 object-cover"/>
+          <img loading="lazy" decoding="async" src={bonusImg} alt="Host Bonus Rewards" className="w-full h-56 md:h-64 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent" />
           <div className="absolute inset-0 flex items-center p-8 md:p-12">
             <div className="max-w-lg">
@@ -249,7 +249,7 @@ const HostProgramCard = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14"
         >
  <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-purple-500/5">
-            <img src={earningsImg} alt="Earnings & Rewards" className="w-full h-72 object-cover"/>
+            <img loading="lazy" decoding="async" src={earningsImg} alt="Earnings & Rewards" className="w-full h-72 object-cover" />
           </div>
           <div className="p-8 rounded-2xl bg-gradient-to-br from-amber-500/5 via-orange-500/3 to-pink-500/5 border border-amber-500/10 flex flex-col justify-center backdrop-blur-sm">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-5 shadow-lg shadow-amber-500/20">

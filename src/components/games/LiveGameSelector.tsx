@@ -63,14 +63,14 @@ const Game3DCard = ({
         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none z-10" />
         <div className="absolute inset-0 flex items-center justify-center p-1.5">
           {game.logo_url ? (
-            <img
+            <img loading="lazy" decoding="async"
               src={getProxiedUrl(game.logo_url)}
               alt={game.game_name}
               className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
              
               decoding="async"
               draggable={false}
-            />
+ />
           ) : (
             <>
               <div className={cn("absolute inset-0 bg-gradient-to-br rounded-2xl", game.game_color)} />

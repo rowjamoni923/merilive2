@@ -339,12 +339,12 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                   />
                                 ) : isVideoOrGif(gift.icon_url) ? (
                                   gift.icon_url.endsWith('.gif') ? (
-                                    <img src={gift.icon_url} alt={gift.name} className="w-10 h-10 object-contain"/>
+                                    <img loading="lazy" decoding="async" src={gift.icon_url} alt={gift.name} className="w-10 h-10 object-contain" />
                                   ) : (
                                     <video src={gift.icon_url} className="w-10 h-10 object-cover pointer-events-none" autoPlay loop muted playsInline controls={false} disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"/>
                                   )
                                 ) : (
-                                  <img 
+                                  <img loading="lazy" decoding="async" 
                                     src={gift.icon_url}
                                     alt={gift.name}
                                     className="w-10 h-10 object-contain"
@@ -429,10 +429,10 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                         muted={true}
                       />
                     ) : (
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
-                        className="w-8 h-8 object-contain"/>
+                        className="w-8 h-8 object-contain" />
                     )}
                   </Suspense>
                 ) : (

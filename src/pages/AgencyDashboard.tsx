@@ -812,11 +812,11 @@ const AgencyDashboard = () => {
           <div className="relative z-10">
             <div className="flex items-start gap-3">
               {agency.logo_url ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={agency.logo_url} 
                   alt={agency.name}
                   className="w-12 h-12 rounded-xl object-cover border-2 border-white/30 shadow-lg"
-                />
+ />
               ) : (
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
                   <Building2 className="w-6 h-6" />

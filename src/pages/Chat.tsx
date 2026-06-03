@@ -2417,7 +2417,7 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isImage && iconUrl ? (
-                                  <img 
+                                  <img loading="lazy" decoding="async" 
                                     src={iconUrl} 
                                     alt="Gift" 
                                     className="w-10 h-10 object-contain"
@@ -2434,7 +2434,7 @@ const Chat = () => {
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-destructive rounded-full shadow-md">
-                                  <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow"/>
+                                  <img loading="lazy" decoding="async" src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
  <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
@@ -2468,7 +2468,7 @@ const Chat = () => {
                         if (isImage) {
                           return (
                             <div className="flex flex-col">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={displayUrl} 
                                 alt="Shared image"
                                 className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
@@ -2936,10 +2936,10 @@ const Chat = () => {
                   <div className="w-full h-11 rounded-full bg-primary/10 flex items-center justify-center gap-2 px-4">
                     {pendingMedia.type === 'image' ? (
                       <>
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url} 
                           alt="Preview" 
-                          className="w-8 h-8 rounded-lg object-cover"/>
+                          className="w-8 h-8 rounded-lg object-cover" />
                         <span className="text-primary font-medium text-sm truncate">
                           📷 Image ready to send
                         </span>

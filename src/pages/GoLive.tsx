@@ -1136,10 +1136,10 @@ const GoLive = () => {
               }}
             >
               {userProfile?.avatar_url ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={userProfile.avatar_url} 
                   alt={userProfile.display_name || "User"} 
-                  className="w-full h-full object-contain"/>
+                  className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-white" />

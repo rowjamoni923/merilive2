@@ -124,7 +124,7 @@ const Game3DCard = ({
           style={{ transform: 'translateZ(30px)' }}
         >
           {game.logo_url ? (
-            <img 
+            <img loading="lazy" decoding="async" 
               src={getProxiedUrl(game.logo_url)} 
               alt={game.name}
               className="w-full h-full object-contain drop-shadow-2xl rounded-xl"

@@ -270,12 +270,12 @@ export function FullScreenPromoBanners() {
         onClick={handleSkip}
       >
         {/* Luxurious gradient backdrop with blurred banner — eliminates raw black bars */}
-        <img
+        <img loading="lazy" decoding="async"
           src={currentBanner.image}
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover scale-125 blur-3xl opacity-50"
-        />
+ />
         <div
           className="absolute inset-0"
           style={{

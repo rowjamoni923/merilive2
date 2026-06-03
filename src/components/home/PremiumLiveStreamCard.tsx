@@ -99,7 +99,7 @@ export const PremiumLiveStreamCard = ({
           : avatarFallback;
 
         return (
-          <img
+          <img loading="lazy" decoding="async"
             src={primarySrc}
             alt={hostName}
            

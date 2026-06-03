@@ -663,7 +663,7 @@ const Shop = () => {
                       className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
                     />
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
                       alt={selectedItem.name}
                       className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}

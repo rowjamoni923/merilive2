@@ -628,10 +628,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
               />
               {idCardFrontPreview ? (
                 <div className="relative">
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={idCardFrontPreview} 
                     alt="ID Front" 
-                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30"/>
+                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30" />
                   <button
                     type="button"
                     onClick={() => { setIdCardFront(null); setIdCardFrontPreview(null); }}
@@ -664,10 +664,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
               />
               {idCardBackPreview ? (
                 <div className="relative">
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={idCardBackPreview} 
                     alt="ID Back" 
-                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30"/>
+                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30" />
                   <button
                     type="button"
                     onClick={() => { setIdCardBack(null); setIdCardBackPreview(null); }}

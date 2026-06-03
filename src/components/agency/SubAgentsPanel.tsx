@@ -261,10 +261,10 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
                     <div className="flex items-start gap-3">
                       {/* Agency Logo/Avatar */}
                       {subAgency.logo_url ? (
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={subAgency.logo_url}
                           alt={subAgency.name}
-                          className="w-12 h-12 rounded-xl object-cover border"/>
+                          className="w-12 h-12 rounded-xl object-cover border" />
                       ) : (
                         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getLevelColor(subAgency.level)} flex items-center justify-center`}>
                           <Building2 className="w-6 h-6 text-white" />

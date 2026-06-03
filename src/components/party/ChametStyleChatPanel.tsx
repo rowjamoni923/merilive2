@@ -260,7 +260,7 @@ export const ChametStyleChatPanel = ({
                           {msg.userName}
                         </span>
                         {giftIconUrl && (
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={giftIconUrl}
                             alt=""
                             className="w-5 h-5 object-contain relative z-10 drop-shadow"

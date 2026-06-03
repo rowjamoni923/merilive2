@@ -267,7 +267,7 @@ const SmartLink = () => {
   if (isCheckingRefType && rawRef && !agencyParam && !isNativeApp) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse"/>
+        <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse" />
         <div className="flex items-center gap-3 text-slate-800">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="text-lg">Checking your link...</span>
@@ -289,7 +289,7 @@ const SmartLink = () => {
   if (invitationRef && !isNativeApp) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
-        <img src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6"/>
+        <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6" />
         <h1 className="text-3xl font-bold text-slate-800 mb-2">MeriLive</h1>
         <p className="text-slate-600 text-center mb-6 max-w-xs">
           Live streaming, video calls, party rooms and more!
@@ -372,7 +372,7 @@ const SmartLink = () => {
   if (isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse"/>
+        <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse" />
         <div className="flex items-center gap-3 text-slate-800">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="text-lg">Opening MeriLive...</span>
@@ -384,7 +384,7 @@ const SmartLink = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
-      <img src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6"/>
+      <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6" />
       <h1 className="text-3xl font-bold text-slate-800 mb-2">MeriLive</h1>
       <p className="text-slate-600 text-center mb-8 max-w-xs">
         Live streaming, video calls, party rooms and more!

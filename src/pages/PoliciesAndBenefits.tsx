@@ -173,10 +173,10 @@ const PoliciesAndBenefits = () => {
       >
         {/* Hero */}
         <div className="px-4 pt-4">
-          <img 
+          <img loading="lazy" decoding="async" 
             src={heroBanner}
             alt="MeriLive — Video Chat Without Limits"
-            className="w-full h-auto rounded-2xl object-cover"/>
+            className="w-full h-auto rounded-2xl object-cover" />
         </div>
 
         {/* Description */}
@@ -194,10 +194,10 @@ const PoliciesAndBenefits = () => {
               onClick={() => navigate(banner.link || `/policies/${banner.id}`)}
               className="rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
             >
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={banner.image}
                 alt={banner.title}
-                className="w-full h-auto object-cover rounded-2xl"/>
+                className="w-full h-auto object-cover rounded-2xl" />
             </div>
           ))}
         </div>

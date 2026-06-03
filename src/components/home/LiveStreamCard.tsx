@@ -38,7 +38,7 @@ export const LiveStreamCard = ({
   return (
     <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-muted">
       {/* Thumbnail */}
-      <img
+      <img loading="lazy" decoding="async"
         src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
        

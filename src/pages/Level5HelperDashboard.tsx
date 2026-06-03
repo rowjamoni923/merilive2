@@ -2476,10 +2476,10 @@ const Level5HelperDashboard = () => {
                           rel="noopener noreferrer"
                           className="inline-block"
                         >
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={reply.screenshot_url} 
                             alt="Screenshot" 
-                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-200 hover:opacity-80 transition-opacity object-cover"/>
+                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-200 hover:opacity-80 transition-opacity object-cover" />
                         </a>
                       </div>
                     )}
@@ -2494,10 +2494,10 @@ const Level5HelperDashboard = () => {
             {/* Screenshot Preview */}
             {replyScreenshot && (
               <div className="relative inline-block mb-2">
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={URL.createObjectURL(replyScreenshot)} 
                   alt="Screenshot preview" 
-                  className="h-16 rounded-lg border border-slate-200"/>
+                  className="h-16 rounded-lg border border-slate-200" />
                 <Button
                   size="sm"
                   variant="ghost"
@@ -2855,10 +2855,10 @@ const Level5HelperDashboard = () => {
                 <div>
                   <Label className="text-slate-500">Payment Screenshot</Label>
                   <div className="mt-2 rounded-xl overflow-hidden">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={selectedWithdrawal.payment_screenshot_url} 
                       alt="Payment proof" 
-                      className="w-full object-cover"/>
+                      className="w-full object-cover" />
                   </div>
                 </div>
               )}
@@ -3127,10 +3127,10 @@ const Level5HelperDashboard = () => {
               <div className="mt-2 flex items-center gap-4">
                 {paymentLogoFile ? (
                   <div className="relative">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={URL.createObjectURL(paymentLogoFile)} 
                       alt="Logo preview" 
-                      className="w-16 h-16 rounded-lg object-cover border border-slate-200"/>
+                      className="w-16 h-16 rounded-lg object-cover border border-slate-200" />
                     <button
                       type="button"
                       onClick={() => setPaymentLogoFile(null)}
@@ -3410,7 +3410,7 @@ const Level5HelperDashboard = () => {
                     📸 Agency Payment Screenshot
                   </p>
                   <div className="rounded-xl overflow-hidden border-2 border-sky-200/30">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={(selectedAgencyWithdrawal.payment_details as any).payment_screenshot_url} 
                       alt="Agency payment proof" 
                       className="w-full object-cover cursor-pointer"
@@ -3521,10 +3521,10 @@ const Level5HelperDashboard = () => {
                 <div>
                   <Label className="text-slate-500">Payment Screenshot</Label>
                   <div className="mt-2 rounded-xl overflow-hidden border border-slate-200">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={selectedAgencyWithdrawal.helper_payment_screenshot} 
                       alt="Payment proof" 
-                      className="w-full object-cover"/>
+                      className="w-full object-cover" />
                   </div>
                 </div>
               )}

@@ -157,12 +157,12 @@ export default function RatingProofHistory() {
                         rel="noopener noreferrer"
                         className="block w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
                       >
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={row.screenshot_url}
                           alt="Rating screenshot"
                           className="w-full h-full object-cover"
                          
-                        />
+ />
                       </a>
                     ) : (
                       <div className="w-14 h-14 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center">

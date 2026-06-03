@@ -69,7 +69,7 @@ export const UserCard = ({
     >
       {/* Photo with Frame Overlay */}
       <div className="relative aspect-[3/4] overflow-hidden">
-        <img
+        <img loading="lazy" decoding="async"
           src={normalizedPhotoUrl}
           alt={name}
          
@@ -77,7 +77,7 @@ export const UserCard = ({
           // @ts-expect-error – fetchpriority is a standard HTML hint
           fetchpriority="high"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+ />
 
         {/* Live Badge - Only show if actually live streaming */}
         {isLive && (

@@ -952,7 +952,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
                   )}
                   
                   {game.logo_url ? (
-                    <img src={getProxiedUrl(game.logo_url)} alt={game.game_name} className="w-8 h-8 rounded object-contain"/>
+                    <img loading="lazy" decoding="async" src={getProxiedUrl(game.logo_url)} alt={game.game_name} className="w-8 h-8 rounded object-contain" />
                   ) : (
                     <span className="text-lg">{game.game_emoji}</span>
                   )}

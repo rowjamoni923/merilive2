@@ -180,10 +180,10 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                     {/* Avatar Container */}
  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-slate-200/20 shadow-2xl">
                       {hostAvatar ? (
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={hostAvatar} 
                           alt={hostName}
-                          className="w-full h-full object-cover"/>
+                          className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
  <span className="text-3xl font-bold text-slate-900">

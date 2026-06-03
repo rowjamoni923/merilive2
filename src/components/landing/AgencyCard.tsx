@@ -92,7 +92,7 @@ const AgencyCard = () => {
           viewport={{ once: true }}
           className="relative rounded-3xl overflow-hidden mb-14 border border-slate-200 shadow-2xl shadow-blue-500/5"
         >
-          <img src={agencyHeroImg} alt="Agency Team" className="w-full h-72 md:h-80 object-cover"/>
+          <img loading="lazy" decoding="async" src={agencyHeroImg} alt="Agency Team" className="w-full h-72 md:h-80 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
             <h3 className="text-3xl md:text-4xl font-extrabold mb-3 text-slate-900">
@@ -144,7 +144,7 @@ const AgencyCard = () => {
           {/* Payroll Hero */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="rounded-2xl overflow-hidden border border-blue-500/10 shadow-xl shadow-blue-500/5">
-              <img src={payrollImg} alt="Payroll System" className="w-full h-72 object-cover"/>
+              <img loading="lazy" decoding="async" src={payrollImg} alt="Payroll System" className="w-full h-72 object-cover" />
             </div>
             <div className="flex flex-col justify-center space-y-5">
               {[

@@ -229,10 +229,10 @@ export const FerrisWheelGame = () => {
             animate={{ rotate: isSpinning ? 720 : 0 }}
             transition={{ duration: 4, ease: "easeOut" }}
           >
-            <img 
+            <img loading="lazy" decoding="async" 
               src={ferrisWheelImage} 
               alt="Ferris Wheel" 
-              className="w-full h-full object-contain"/>
+              className="w-full h-full object-contain" />
           </motion.div>
 
           {/* Center Display - Timer Overlay */}

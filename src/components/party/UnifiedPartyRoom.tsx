@@ -454,11 +454,11 @@ const VideoGridSeat = ({
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
           {participant.avatarUrl && (
-            <img 
+            <img loading="lazy" decoding="async" 
               src={participant.avatarUrl} 
               alt="" 
               className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl"
-            />
+ />
           )}
           {/* Pkg381: No generic user icon in video grid — subtle status only */}
           <div className="relative z-10 flex flex-col items-center">

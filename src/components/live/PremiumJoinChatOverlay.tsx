@@ -231,7 +231,7 @@ const PremiumChatMessage = memo(({ message }: PremiumChatMessageProps) => {
           animate={{ scale: [1, 1.3, 1], rotate: [0, 8, -8, 0] }}
           transition={{ duration: 0.6, repeat: 3 }}
         >
-          <img 
+          <img loading="lazy" decoding="async" 
             src={giftIconUrl} 
             alt="Gift" 
             className="w-full h-full object-contain"

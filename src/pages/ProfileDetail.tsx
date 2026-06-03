@@ -1424,7 +1424,7 @@ const ProfileDetail = () => {
                             }
                             if (normalized) {
                               return (
-                                <img
+                                <img loading="lazy" decoding="async"
                                   src={normalized}
                                   alt={gift.name}
                                  
@@ -1474,7 +1474,7 @@ const ProfileDetail = () => {
                 }
                 if (normalized) {
                   return (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={normalized}
                       alt={selectedGift?.name || 'Gift'}
                      

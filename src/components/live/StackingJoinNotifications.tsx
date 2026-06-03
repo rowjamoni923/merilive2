@@ -136,12 +136,12 @@ const JoinNotificationItem = memo(({ notification, index }: JoinNotificationItem
           boxShadow: `0 0 8px ${tier.glow}`,
         }}
       >
-        <img
+        <img loading="lazy" decoding="async"
           src={notification.userAvatar || getDisplayAvatar(notification.userName)}
           alt=""
           className="w-full h-full object-cover"
          
-        />
+ />
       </div>
 
       {/* Level badge — pill */}

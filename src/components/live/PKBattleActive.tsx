@@ -281,10 +281,10 @@ export const PKBattleActive = ({
                   animate={challengerWinning ? { scale: [1, 1.06, 1] } : {}}
                   transition={{ duration: 0.7, repeat: Infinity }}
                 >
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={challengerAvatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"}
                     alt={challengerName}
-                    className="w-full h-full object-cover"/>
+                    className="w-full h-full object-cover" />
                 </motion.div>
                 {challengerWinning && (
                   <motion.div
@@ -359,10 +359,10 @@ export const PKBattleActive = ({
                   animate={opponentWinning ? { scale: [1, 1.06, 1] } : {}}
                   transition={{ duration: 0.7, repeat: Infinity }}
                 >
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={opponentAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150"}
                     alt={opponentName}
-                    className="w-full h-full object-cover"/>
+                    className="w-full h-full object-cover" />
                 </motion.div>
                 {opponentWinning && (
                   <motion.div

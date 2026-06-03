@@ -3008,7 +3008,7 @@ const FaceVerification = () => {
               {userPhotoPreview ? (
                 <div className="space-y-4">
                   <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden border-2 border-purple-500/50">
-                    <img src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover"/>
+                    <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 border-amber-200/60 text-slate-800" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
@@ -3147,7 +3147,7 @@ const FaceVerification = () => {
                 onClick={() => photoInputRef.current?.click()}
               >
                 {photoPreview ? (
-                  <img src={photoPreview} alt="Profile" className="w-full h-full object-cover"/>
+                  <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <ImagePlus className="w-10 h-10 text-purple-400 opacity-60" />
                 )}
@@ -3327,7 +3327,7 @@ const FaceVerification = () => {
                   onClick={() => hostPhotosInputRef.current?.click()}
                 >
                   {hostPhotosPreviews[index] ? (
-                    <img src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover"/>
+                    <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   ) : (
                     <Camera className="w-8 h-8 text-slate-500" />
                   )}
@@ -3397,7 +3397,7 @@ const FaceVerification = () => {
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-500/50">
                 {existingAccount.avatarUrl ? (
-                  <img src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover"/>
+                  <img loading="lazy" decoding="async" src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-purple-600 flex items-center justify-center">
                     <User className="w-10 h-10 text-slate-800" />

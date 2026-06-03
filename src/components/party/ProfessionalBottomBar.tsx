@@ -138,7 +138,7 @@ const Game3DCard = ({
             className="w-full h-full flex items-center justify-center drop-shadow-2xl"
           >
             {game.logo_url ? (
-              <img src={getProxiedUrl(game.logo_url)} alt={game.name} className="w-full h-full rounded-xl object-contain" decoding="async" draggable={false} />
+              <img loading="lazy" decoding="async" src={getProxiedUrl(game.logo_url)} alt={game.name} className="w-full h-full rounded-xl object-contain" decoding="async" draggable={false} />
             ) : (
               <span className={cn(size === 'small' ? "text-5xl" : "text-6xl")}>{game.emoji}</span>
             )}

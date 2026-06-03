@@ -341,7 +341,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   if (loadingAgency) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0a0a14] via-[#12102a] to-[#1a0f2e] flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse"/>
+        <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
         <Loader2 className="w-8 h-8 text-white animate-spin" />
         <p className="text-slate-600 text-sm mt-3">Loading...</p>
       </div>
@@ -352,7 +352,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   if (!agency) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a0a0a] via-[#2a1010] to-[#1a0a0a] flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4"/>
+        <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
         <p className="text-slate-600 text-center text-sm">
@@ -432,7 +432,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3"/>
+          <img loading="lazy" decoding="async" src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-white">Become Sub-Agent</h1>
           <p className="text-slate-500 text-sm mt-1">Verify your identity and join the agency</p>
         </div>
@@ -441,10 +441,10 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-warning-200/60 mb-5">
           <div className="flex items-center gap-3">
             {agency.logo_url ? (
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={agency.logo_url} 
                 alt={agency.name}
-                className="w-14 h-14 rounded-xl object-cover"/>
+                className="w-14 h-14 rounded-xl object-cover" />
             ) : (
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-info-600 flex items-center justify-center">
                 <Building2 className="w-7 h-7 text-white" />
@@ -467,10 +467,10 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
               rel="noopener noreferrer"
               className="shrink-0"
             >
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={googlePlayBadge} 
                 alt="Get it on Google Play" 
-                className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity"/>
+                className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity" />
             </a>
           </div>
           

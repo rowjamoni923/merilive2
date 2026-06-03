@@ -595,10 +595,10 @@ const FullScreenGiftAnimation = ({
               <div className="flex items-center gap-2">
                 <div className="relative">
                   {senderAvatar ? (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={senderAvatar} 
                       alt={senderName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" />
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"
@@ -638,10 +638,10 @@ const FullScreenGiftAnimation = ({
                 </span>
                 <div className="relative">
                   {receiverAvatar ? (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={receiverAvatar} 
                       alt={receiverName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" />
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"

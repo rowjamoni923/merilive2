@@ -161,10 +161,10 @@ export const PremiumJoinBanner: React.FC<PremiumJoinBannerProps> = ({
             {/* Avatar Container */}
             <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white/50 shadow-lg">
               {avatarUrl ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={avatarUrl}
                   alt={userName}
-                  className="w-full h-full object-cover"/>
+                  className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">

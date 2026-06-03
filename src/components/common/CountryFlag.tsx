@@ -34,7 +34,7 @@ export const CountryFlag = ({ code, emoji, className, title }: CountryFlagProps)
   }
 
   return (
-    <img
+    <img loading="lazy" decoding="async"
       src={`https://flagcdn.com/w40/${normalized}.png`}
       srcSet={`https://flagcdn.com/w80/${normalized}.png 2x`}
       alt={title || normalized.toUpperCase()}

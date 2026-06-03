@@ -124,13 +124,13 @@ const GiftItem = memo(({
             />
           </Suspense>
         ) : url ? (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={url} 
             alt={gift.name} 
             className="w-10 h-10 object-contain" 
            
             decoding="async"
-          />
+ />
         ) : (
           <div className="w-10 h-10 rounded-lg bg-white/5" />
         )}

@@ -815,11 +815,11 @@ function CampaignFloatingButton() {
                   }}
                 >
                   {campaign.banner_image_url ? (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={campaign.banner_image_url}
                       alt=""
                       className="absolute inset-0 block h-full w-full scale-[1.18] object-cover"
-                      style={{ objectPosition: 'center center' }}/>
+                      style={{ objectPosition: 'center center' }} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <motion.span
@@ -1037,7 +1037,7 @@ function CampaignFloatingButton() {
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base overflow-hidden ${isSelected ? 'bg-white/20' : 'bg-indigo-50'}`}>
                                 {gw.logo_url ? (
-                                  <img src={logoCdn(gw.logo_url)} alt="" decoding="async" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (gw.logo_url && t.src !== gw.logo_url) t.src = gw.logo_url; }} />
+                                  <img loading="lazy" decoding="async" src={logoCdn(gw.logo_url)} alt="" decoding="async" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (gw.logo_url && t.src !== gw.logo_url) t.src = gw.logo_url; }} />
                                 ) : (
                                   gatewayIcon(gw)
                                 )}
@@ -1243,7 +1243,7 @@ function CampaignFloatingButton() {
                           <div className="flex items-center gap-2">
                             <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center overflow-hidden">
                               {currentMethod.logo_url ? (
-                                <img src={logoCdn(currentMethod.logo_url)} alt={currentMethod.method_name} decoding="async" className="h-6 w-6 object-contain" onError={(e) => { const t = e.target as HTMLImageElement; if (currentMethod.logo_url && t.src !== currentMethod.logo_url) { t.src = currentMethod.logo_url; return; } t.style.display = 'none'; }} />
+                                <img loading="lazy" decoding="async" src={logoCdn(currentMethod.logo_url)} alt={currentMethod.method_name} decoding="async" className="h-6 w-6 object-contain" onError={(e) => { const t = e.target as HTMLImageElement; if (currentMethod.logo_url && t.src !== currentMethod.logo_url) { t.src = currentMethod.logo_url; return; } t.style.display = 'none'; }} />
                               ) : (
                                 <span className="text-lg">{currentMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : currentMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
                               )}
@@ -1332,7 +1332,7 @@ function CampaignFloatingButton() {
                           <div className="mt-1">
                             {helperPaymentProof ? (
                               <div className="relative rounded-xl overflow-hidden border border-white/10">
-                                <img src={proofCdn(helperPaymentProof)} alt="Proof" decoding="async" className="w-full h-20 object-cover" onError={(e) => { const t = e.currentTarget; if (helperPaymentProof && t.src !== helperPaymentProof) t.src = helperPaymentProof; }} />
+                                <img loading="lazy" decoding="async" src={proofCdn(helperPaymentProof)} alt="Proof" decoding="async" className="w-full h-20 object-cover" onError={(e) => { const t = e.currentTarget; if (helperPaymentProof && t.src !== helperPaymentProof) t.src = helperPaymentProof; }} />
                                 <button onClick={() => setHelperPaymentProof(null)} className="absolute top-1 right-1 bg-red-500/80 text-white p-0.5 rounded-full">
                                   <X className="w-3 h-3" />
                                 </button>

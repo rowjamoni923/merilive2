@@ -1329,10 +1329,10 @@ const VIP = () => {
                                   muted={true}
                                 />
                               ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-full h-full object-cover"/>
+                                  className="w-full h-full object-cover" />
                               ) : (
                                 fallbackIcon
                               )}

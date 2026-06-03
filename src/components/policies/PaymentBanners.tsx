@@ -6,7 +6,7 @@ import countryPaymentBg from "@/assets/banners/country-payment-bg.jpg";
 /* ── ePay Global Banner ── */
 export const EpayGlobalBanner = () => (
   <div className="rounded-2xl overflow-hidden relative">
-    <img src={epayBg} alt="" className="w-full h-auto object-cover"/>
+    <img loading="lazy" decoding="async" src={epayBg} alt="" className="w-full h-auto object-cover" />
     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
     <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-3">
       <div className="flex-1">
@@ -20,10 +20,10 @@ export const EpayGlobalBanner = () => (
           Available when no Local Payroll Helper exists
         </p>
       </div>
-      <img 
+      <img loading="lazy" decoding="async" 
         src={epayLogo}
         alt="ePay Logo"
-        className="w-14 h-14 object-contain bg-white rounded-xl p-1.5 flex-shrink-0 shadow-lg"/>
+        className="w-14 h-14 object-contain bg-white rounded-xl p-1.5 flex-shrink-0 shadow-lg" />
     </div>
   </div>
 );
@@ -31,7 +31,7 @@ export const EpayGlobalBanner = () => (
 /* ── Local Currency Banner ── */
 export const LocalCurrencyBanner = () => (
   <div className="rounded-2xl overflow-hidden relative">
-    <img src={localCurrencyBg} alt="" className="w-full h-auto object-cover"/>
+    <img loading="lazy" decoding="async" src={localCurrencyBg} alt="" className="w-full h-auto object-cover" />
     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
     <div className="absolute bottom-0 left-0 right-0 p-4">
       <p className="text-emerald-600 text-[11px] font-bold tracking-[0.15em] uppercase mb-1 drop-shadow-lg">
@@ -73,7 +73,7 @@ const countries: CountryFlag[] = [
 
 export const DailyTransactionLimitsBanner = () => (
   <div className="rounded-2xl overflow-hidden relative">
-    <img src={countryPaymentBg} alt="" className="absolute inset-0 w-full h-full object-cover"/>
+    <img loading="lazy" decoding="async" src={countryPaymentBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
     <div className="absolute inset-0 bg-black/40" />
 
     <div className="relative z-10 p-4">
