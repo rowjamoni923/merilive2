@@ -172,19 +172,21 @@ const Agency = () => {
   }, [navigate]);
 
   // Get min and max commission rates for display
-  const minRate = commissionTiers.length > 0 
-    ? Math.min(...commissionTiers.map(t => t.commission_rate)) 
+  const commissionTiersSafe = commissionTiers ?? [];
+  const helperTiersSafe = helperTiers ?? [];
+  const minRate = commissionTiersSafe.length > 0
+    ? Math.min(...commissionTiersSafe.map(t => t.commission_rate))
     : 2;
-  const maxRate = commissionTiers.length > 0 
-    ? Math.max(...commissionTiers.map(t => t.commission_rate)) 
+  const maxRate = commissionTiersSafe.length > 0
+    ? Math.max(...commissionTiersSafe.map(t => t.commission_rate))
     : 20;
-  
-  // Separate regular tiers and diamond tier
-  const regularTiers = commissionTiers.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
-  const diamondTier = commissionTiers.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
 
-  // Loading state
-  if (loading) {
+  // Separate regular tiers and diamond tier
+  const regularTiers = commissionTiersSafe.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
+  const diamondTier = commissionTiersSafe.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
+
+  // Loading state — only on cold cache (Pkg420 zero-refresh)
+  if (loading && commissionTiersSafe.length === 0) {
     return <LoadingSpinner fullScreen size="lg" text="Loading Agency" />;
   }
 
