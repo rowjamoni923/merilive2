@@ -53,6 +53,7 @@ export interface EntryAnimationResult {
   entryNameBarSoundUrl?: string;
   vehicleAnimationUrl?: string;
   vehicleSoundUrl?: string;
+  rankCode?: string; // NEW: The user's active noble rank code
 }
 
 /**
@@ -416,32 +417,43 @@ async function fetchLevelBasedVehicle(userLevel: number): Promise<string | undef
 }
 
 /**
- * Fetch active Noble subscription entrance animation for a user.
- * Active monthly Noble subscription beats level-based entrance and acts as a fallback
- * if user has no other equipped entrance.
+ * Fetch active Noble subscription details for a user.
  */
-async function fetchActiveNobleEntrance(userId: string): Promise<string | undefined> {
-  if (!userId) return undefined;
-  const cacheKey = `noble-entrance:${userId}`;
+async function fetchActiveNobleDetails(userId: string): Promise<{ url?: string; rankCode?: string }> {
+  if (!userId) return {};
+  const cacheKey = `noble-details:${userId}`;
   const cached = getCached(cacheKey);
-  if (cached !== null) return cached;
+  if (cached !== null) return JSON.parse(cached);
   try {
     const { data } = await supabase
       .from('user_noble_subscriptions')
-      .select('noble_cards:noble_card_id ( entrance_animation_url )')
+      .select('noble_cards:noble_card_id ( entrance_animation_url, rank_code )')
       .eq('user_id', userId)
       .eq('is_active', true)
       .gt('expires_at', new Date().toISOString())
       .order('expires_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    const url = (data?.noble_cards as any)?.entrance_animation_url || undefined;
-    setCache(cacheKey, url);
-    return url;
+    
+    const result = {
+      url: (data?.noble_cards as any)?.entrance_animation_url || undefined,
+      rankCode: (data?.noble_cards as any)?.rank_code || undefined
+    };
+    
+    setCache(cacheKey, JSON.stringify(result));
+    return result;
   } catch (err) {
-    console.error('[fetchActiveNobleEntrance] error:', err);
-    return undefined;
+    console.error('[fetchActiveNobleDetails] error:', err);
+    return {};
   }
+}
+
+/**
+ * DEPRECATED: Use fetchActiveNobleDetails
+ */
+async function fetchActiveNobleEntrance(userId: string): Promise<string | undefined> {
+  const details = await fetchActiveNobleDetails(userId);
+  return details.url;
 }
 
 /**
@@ -468,24 +480,32 @@ export async function fetchUserEntryAnimations(
 ): Promise<EntryAnimationResult> {
   const result: EntryAnimationResult = {};
 
-  // Fetch all equipped animations in parallel for better performance
-  const [entranceResult, nameBarUrl, vehicleUrl] = await Promise.all([
+  // Fetch all equipped animations + Noble details in parallel
+  const [entranceResult, nameBarUrl, vehicleUrl, nobleDetails] = await Promise.all([
     equippedEntranceId ? fetchAnimationWithSoundById(equippedEntranceId) : Promise.resolve({} as AnimationWithSound),
     equippedEntryNameBarId ? fetchEntryNameBarUrlById(equippedEntryNameBarId) : Promise.resolve(undefined),
     equippedVehicleId ? fetchVehicleAnimationUrlById(equippedVehicleId) : Promise.resolve(undefined),
+    userId ? fetchActiveNobleDetails(userId) : Promise.resolve({} as { url?: string; rankCode?: string }),
   ]);
 
   result.entranceAnimationUrl = entranceResult.animationUrl;
   result.entranceSoundUrl = entranceResult.soundUrl;
   result.entryNameBarUrl = nameBarUrl;
   result.vehicleAnimationUrl = vehicleUrl;
+  result.rankCode = nobleDetails.rankCode;
 
   // AUTO-ASSIGN: For any missing animations, check level-based assignments in parallel
   if (userLevel && userLevel >= 1) {
     const autoAssignPromises: Promise<void>[] = [];
 
+    // Noble subscription entrance wins over level-based fallback if user has no equipped entrance
+    if (!result.entranceAnimationUrl && nobleDetails.url) {
+      result.entranceAnimationUrl = nobleDetails.url;
+    }
+
     // Auto-assign entry name bar from entry_name_bars + level_privileges (entry_bar)
     if (!result.entryNameBarUrl) {
+
       autoAssignPromises.push(
         fetchLevelBasedEntryNameBar(userLevel).then(url => {
           if (url) {

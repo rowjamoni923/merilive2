@@ -948,7 +948,7 @@ const PartyRoom = () => {
           content: 'joined the room ✨',
           message_type: 'join',
         });
-        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl) && isMountedRef.current) {
+        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl || data.rankCode) && isMountedRef.current) {
           addEntryAnimation({
             userId: data.userId,
             displayName: data.userName,
@@ -958,6 +958,7 @@ const PartyRoom = () => {
             entryNameBarUrl: data.entryNameBarUrl || undefined,
             vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
             soundUrl: data.entranceSoundUrl || undefined,
+            rankCode: data.rankCode || undefined,
           });
         }
         return;
@@ -1388,18 +1389,18 @@ const PartyRoom = () => {
       
       console.log('[PartyRoom] 🔍 FRESH Profile equipped IDs:', { entranceId, nameBarId, vehicleId });
       
-      // Fetch user's equipped entrance animation - uses centralized function that checks ALL tables
-      const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl } = await fetchUserEntryAnimations(
+      const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl, rankCode } = await fetchUserEntryAnimations(
         entranceId,
         nameBarId,
         vehicleId,
-        userLevel
+        userLevel,
+        currentUser.id
       );
       
-      console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl });
+      console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
       
-      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl) {
-        console.log('[PartyRoom] 🚗 Self has equipped animation:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl });
+      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl || rankCode) {
+        console.log('[PartyRoom] 🚗 Self has equipped animation or rank:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
         // TRIGGER entry animation for SELF using UNIFIED system (like gifts)
         addEntryAnimation({
           userId: currentUser.id,
@@ -1410,6 +1411,7 @@ const PartyRoom = () => {
           entryNameBarUrl: selfNameBarUrl || undefined,
           vehicleAnimationUrl: selfVehicleUrl || undefined,
           soundUrl: selfEntranceSound || undefined,
+          rankCode: rankCode || undefined,
         });
       } else {
         console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
@@ -1428,6 +1430,7 @@ const PartyRoom = () => {
         entranceSoundUrl: selfEntranceSound || null,
         entryNameBarUrl: selfNameBarUrl || null,
         vehicleAnimationUrl: selfVehicleUrl || null,
+        rankCode: rankCode || null,
         timestamp: Date.now(),
       }).then((sent) => {
         if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);

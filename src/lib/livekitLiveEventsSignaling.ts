@@ -55,6 +55,7 @@ export interface ViewerJoinedPayload {
   entranceSoundUrl?: string | null;
   entryNameBarUrl?: string | null;
   vehicleAnimationUrl?: string | null;
+  rankCode?: string | null;
   timestamp: number;
 }
 
