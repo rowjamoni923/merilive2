@@ -1655,7 +1655,7 @@ export function UnifiedPartyRoom({
 
       {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pb-[env(safe-area-inset-bottom)]">
-        <div className="px-2 flex items-center gap-1 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-2.5">
+        <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-2.5">
           {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 
             onSubmit={(e) => {
@@ -1721,25 +1721,25 @@ export function UnifiedPartyRoom({
             <Gamepad2 className="w-4 h-4" />
           </motion.button>
 
-          {/* Beauty Button — only for video/game (cameras) */}
+          {/* Beauty Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
           {onBeautyClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onBeautyClick}
               aria-label="Beauty filters"
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white items-center justify-center shadow-lg shrink-0"
             >
               <Sparkles className="w-4 h-4" />
             </motion.button>
           )}
 
-          {/* Sticker Button — only for video/game (cameras) */}
+          {/* Sticker Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
           {onStickerClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onStickerClick}
               aria-label="AR stickers"
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white items-center justify-center shadow-lg shrink-0"
             >
               <Smile className="w-4 h-4" />
             </motion.button>
