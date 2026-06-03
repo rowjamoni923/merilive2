@@ -24,6 +24,25 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
+const formatRelativeTime = (iso: string): string => {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return '';
+  const diff = Math.max(0, Date.now() - then);
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w}w`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo`;
+  return `${Math.floor(d / 365)}y`;
+};
+
 // Module-scoped instant cache — re-entering Reels shows the last list immediately
 // (zero-refresh feel) while realtime + background fetch keep it fresh.
 const reelsCache: { byCategory: Map<string, any[]>; categories: any[] | null } = {
