@@ -19,11 +19,19 @@ interface ServiceAccountCredentials {
   client_x509_cert_url: string;
 }
 
+// Pkg425: FCM HTTP v1 rejects reserved data keys (`from`, `notification`,
+// `message_type`, `google.*`, `gcm.*`) with 400 INVALID_ARGUMENT — drops
+// the entire push silently. Defense-in-depth: rename to `app_*` so a future
+// admin-injected key in notifications.data jsonb cannot break delivery.
+const FCM_RESERVED_KEYS = new Set(["from", "notification", "message_type"]);
+const isFcmReservedKey = (k: string) =>
+  FCM_RESERVED_KEYS.has(k) || k.startsWith("google.") || k.startsWith("gcm.");
 const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, string> => {
   const output: Record<string, string> = {};
   for (const [key, value] of Object.entries(input)) {
     if (value === undefined || value === null) continue;
-    output[key] = typeof value === "string" ? value : JSON.stringify(value);
+    const safeKey = isFcmReservedKey(key) ? `app_${key.replace(/\./g, "_")}` : key;
+    output[safeKey] = typeof value === "string" ? value : JSON.stringify(value);
   }
   return output;
 };
