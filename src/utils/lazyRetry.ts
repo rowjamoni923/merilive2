@@ -138,8 +138,17 @@ export function lazyRetry<T>(
       }
     }
 
-    if (await scheduleChunkLoadRecovery(lastError, String(importFn))) {
-      return new Promise(() => {}) as Promise<{ default: T }>;
+    // Attempt cache-clearing recovery, then retry one final time so we never
+    // leave a Suspense boundary stuck on a forever-pending promise (which
+    // would render a blank screen with no recovery affordance).
+    const recovered = await scheduleChunkLoadRecovery(lastError, String(importFn));
+    if (recovered) {
+      await sleep(400);
+      try {
+        return await importFn();
+      } catch (e) {
+        lastError = e;
+      }
     }
 
     console.error('[LazyRetry] Chunk failed after inline retries:', lastError);
