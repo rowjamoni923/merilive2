@@ -101,7 +101,7 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = blockedUsers.filter(u =>
+  const filteredUsers = (blockedUsers ?? []).filter(u =>
     u.blocked_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
