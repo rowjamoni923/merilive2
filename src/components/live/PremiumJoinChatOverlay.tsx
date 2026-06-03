@@ -269,7 +269,7 @@ export function useJoinNotifications() {
 
     const timer = setInterval(() => {
       const now = Date.now();
-      setNotifications(prev => prev.filter(n => now - n.timestamp < 3500));
+      setNotifications(prev => prev.filter(n => now - n.timestamp < 6000));
     }, 400);
 
     return () => clearInterval(timer);
