@@ -1143,7 +1143,7 @@ export function ActiveCallScreen({
               whileTap={{ scale: 0.88, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => setShowGiftPanel(true)}
-              className="relative w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #f9a8d4 0%, #ec4899 40%, #a855f7 100%)',
                 boxShadow: '0 10px 24px -6px rgba(236,72,153,0.55), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.28)',
