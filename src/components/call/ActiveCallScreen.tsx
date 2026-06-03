@@ -768,7 +768,7 @@ export function ActiveCallScreen({
               style={{ boxShadow: '0 0 8px rgba(239,68,68,0.75)' }}
             />
             <span
-              className="text-white font-mono font-extrabold text-xs tracking-[0.14em] tabular-nums"
+              className="text-white font-mono font-extrabold text-[11px] sm:text-xs tracking-[0.1em] sm:tracking-[0.14em] tabular-nums"
               style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
             >
               {formatDuration(duration)}
