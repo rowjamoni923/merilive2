@@ -3201,23 +3201,14 @@ const LiveStream = () => {
               </div>
             </button>
 
-            {/* Close Button — Premium 3D orb */}
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.04 }}
+            {/* Close Button — Premium shared component w/ double-fire guard */}
+            <PremiumCloseButton
+              variant="dark"
+              size={36}
+              iconSize={16}
               onClick={isHost ? handleEndStream : handleLeaveStream}
               aria-label={isHost ? 'End live stream' : 'Leave live stream'}
-              className="relative w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-              style={{
-                background: 'radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.2) 0%, rgba(40,30,55,0.88) 45%, rgba(10,8,20,0.96) 100%)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -2px 4px rgba(0,0,0,0.3)',
-                backdropFilter: 'blur(14px)',
-              }}
-            >
-              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.35), transparent)' }} />
-              <X className="w-4 h-4 text-white relative z-10" strokeWidth={2.4} />
-            </motion.button>
+            />
           </div>
         </div>
       </motion.div>
