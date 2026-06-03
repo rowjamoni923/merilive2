@@ -27,6 +27,31 @@ interface UploadResult {
 const R2_THRESHOLD = 50 * 1024 * 1024; // 50MB
 const SUPABASE_THRESHOLD = 50 * 1024 * 1024; // 50MB - use Supabase for smaller files
 const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
+const PUBLIC_BINARY_ASSET_BUCKET = 'animations';
+
+const getFileExtension = (file: File) => file.name.split('.').pop()?.toLowerCase() || 'bin';
+
+const getSupabaseUploadTarget = (file: File, requestedBucket: string) => {
+  const ext = getFileExtension(file);
+  const rawType = (file.type || '').toLowerCase().split(';')[0].trim();
+  const isBinaryVisualAsset = ['svga', 'lottie', 'zip'].includes(ext) || !rawType || rawType === 'application/octet-stream';
+  const isAudioAsset = rawType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext);
+
+  // Several public visual buckets intentionally allow binary animation assets, while
+  // shop-items/sounds do not list SVGA/audio MIME types. Store those admin assets in
+  // the shared public animation bucket so normal shop/item uploads never hit R2.
+  if (isBinaryVisualAsset || isAudioAsset) {
+    return {
+      bucket: PUBLIC_BINARY_ASSET_BUCKET,
+      contentType: isAudioAsset || isBinaryVisualAsset ? 'application/octet-stream' : (rawType || 'application/octet-stream'),
+    };
+  }
+
+  return {
+    bucket: requestedBucket,
+    contentType: rawType || 'application/octet-stream',
+  };
+};
 
 const buildR2Headers = async (contentType?: string) => {
   const headers: Record<string, string> = contentType ? { 'Content-Type': contentType } : {};
@@ -188,11 +213,13 @@ export function useR2Upload() {
     folder: string,
     onProgress?: (progress: number) => void
   ): Promise<string> => {
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const fileExt = getFileExtension(file);
     const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const uploadTarget = getSupabaseUploadTarget(file, bucket);
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
+    const adminToken = getAdminSessionToken();
+    if (!session?.access_token && !adminToken) {
       throw new Error('Not authenticated');
     }
 
@@ -200,11 +227,11 @@ export function useR2Upload() {
     onProgress?.(10);
 
     const { data, error } = await supabase.storage
-      .from(bucket)
+      .from(uploadTarget.bucket)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: true,
-        contentType: file.type || 'application/octet-stream',
+        contentType: uploadTarget.contentType,
       });
 
     if (error) {
@@ -216,7 +243,7 @@ export function useR2Upload() {
     onProgress?.(100);
 
     const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
+      .from(uploadTarget.bucket)
       .getPublicUrl(data.path);
 
     return publicUrl;
