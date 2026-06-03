@@ -912,7 +912,7 @@ const Chat = () => {
   //    older messages without being yanked away).
   const lastScrollConvIdRef = useRef<string | null>(null);
   const wasNearBottomRef = useRef(true);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
     if (!container || !end) return;
@@ -925,15 +925,15 @@ const Chat = () => {
     if (isNewConversation) {
       // Instant jump – never animate the whole history on open.
       lastScrollConvIdRef.current = convId;
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-        wasNearBottomRef.current = true;
-      });
+      container.scrollTop = container.scrollHeight;
+      requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
+      setTimeout(() => { container.scrollTop = container.scrollHeight; }, 80);
+      wasNearBottomRef.current = true;
       return;
     }
     if (wasNearBottom) {
       requestAnimationFrame(() => {
-        end.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        container.scrollTop = container.scrollHeight;
       });
     }
   }, [messages, groupMessages, isOtherTyping, selectedConversation?.id]);
