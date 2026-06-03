@@ -3272,8 +3272,8 @@ const LiveStream = () => {
               </div>
               {/* Count */}
               <div className="flex items-center gap-[3px] px-1.5">
-                <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
-                <AnimatedViewerCount value={viewerCount} />
+                <div className="w-[5px] h-[5px] rounded-full" style={{ background: connectionState === 'CONNECTED' ? '#4ade80' : '#facc15', boxShadow: connectionState === 'CONNECTED' ? '0 0 6px #4ade80' : '0 0 6px #facc15' }} />
+                <AnimatedViewerCount value={viewerCount} connected={connectionState === 'CONNECTED'} />
               </div>
             </button>
 
@@ -3427,8 +3427,8 @@ const LiveStream = () => {
               </div>
               {/* Count */}
               <div className="flex items-center gap-[3px] px-1.5">
-                <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
-                <AnimatedViewerCount value={viewerCount} />
+                <div className="w-[5px] h-[5px] rounded-full" style={{ background: connectionState === 'CONNECTED' ? '#4ade80' : '#facc15', boxShadow: connectionState === 'CONNECTED' ? '0 0 6px #4ade80' : '0 0 6px #facc15' }} />
+                <AnimatedViewerCount value={viewerCount} connected={connectionState === 'CONNECTED'} />
               </div>
             </button>
 
