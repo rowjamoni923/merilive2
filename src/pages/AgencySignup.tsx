@@ -357,34 +357,55 @@ const AgencySignup = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white/90">
-      {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-brand-600 to-info-600 text-white safe-area-top">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Premium Header */}
+      <header
+        className="flex-shrink-0 sticky top-0 z-10 text-white safe-area-top"
+        style={{
+          background: 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 45%,#4f46e5 100%)',
+          boxShadow: '0 8px 24px -8px rgba(79,70,229,0.45), inset 0 -1px 0 rgba(255,255,255,0.12)',
+        }}
+      >
         <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/15 active:bg-white/25 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Agency Sign Up</h1>
+          <h1 className="flex-1 text-center text-lg font-bold tracking-tight pr-7" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Agency Sign Up</h1>
         </div>
       </header>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-brand-600 to-info-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6" />
+        {/* Premium Hero */}
+        <div
+          className="mx-4 mt-4 rounded-3xl p-6 text-white relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg,#7c3aed 0%,#6366f1 50%,#3b82f6 100%)',
+            boxShadow: '0 18px 40px -12px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="relative flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.22)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.15)' }}
+            >
+              <Building2 className="w-6 h-6 drop-shadow" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Agency Registration</h2>
+              <h2 className="text-xl font-black tracking-tight" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>Agency Registration</h2>
               <p className="text-white/85 text-sm font-medium">Email Verified Registration</p>
             </div>
           </div>
         </div>
 
-        {/* Form */}
-        <div className="mx-4 mt-4 bg-white/90 rounded-2xl p-5 shadow-sm border border-slate-200 space-y-6">
+        {/* Premium Form Card */}
+        <div
+          className="mx-4 mt-4 bg-white rounded-3xl p-5 border border-slate-200 space-y-6"
+          style={{ boxShadow: '0 10px 30px -12px rgba(15,23,42,0.12), 0 2px 6px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+        >
+
           
           {/* Agency Name */}
           <div className="space-y-3">
