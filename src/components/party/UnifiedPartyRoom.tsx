@@ -1426,8 +1426,13 @@ export function UnifiedPartyRoom({
                 </div>
               </div>
             ))}
-            <div className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full ml-1">
-              <Users className="w-3 h-3 text-white/70" />
+            <div className="flex items-center gap-[3px] bg-black/40 px-2 py-0.5 rounded-full ml-1">
+              <div className="w-[5px] h-[5px] rounded-full" 
+                style={{ 
+                  background: connectionState === ConnectionState.Connected ? '#4ade80' : '#facc15', 
+                  boxShadow: connectionState === ConnectionState.Connected ? '0 0 6px #4ade80' : '0 0 6px #facc15' 
+                }} 
+              />
               {/* CRITICAL: Use realtimeViewerCount for instant updates */}
               <AnimatedViewerCount 
                 value={realtimeViewerCount ?? viewerCount} 
