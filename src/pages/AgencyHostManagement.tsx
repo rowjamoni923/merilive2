@@ -91,7 +91,7 @@ const AgencyHostManagement = () => {
   }, [searchParams]);
 
   const fetchAgencyData = async () => {
-    setLoading(true);
+    if (!agency && !hosts && !pendingHosts) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
