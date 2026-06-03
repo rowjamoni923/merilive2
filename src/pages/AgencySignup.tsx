@@ -473,7 +473,7 @@ const AgencySignup = () => {
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                   <MessageCircle className="w-4 h-4 text-warning-400" />
-                  App Notification OTP <span className="text-slate-500 text-xs">(Optional)</span>
+                  App Notification OTP <span className="text-danger-500">*</span>
                 </Label>
                 <div className="p-4 bg-warning-900/30 rounded-xl space-y-3 border border-warning-700/30">
                   <div className="flex items-center justify-between">
