@@ -552,6 +552,7 @@ export function UnifiedPartyRoom({
   isHost,
   isMuted,
   isVideoOff = false,
+  isConnected,
   onMicToggle,
   onVideoToggle,
   onRequestSeat,
