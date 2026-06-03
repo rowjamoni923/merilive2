@@ -80,14 +80,12 @@ export const getAdminSessionToken = (): string => {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
       return parsed.session_token;
     }
+    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
     // During admin login / device approval, the server issues a temporary token
-    // before the final session blob is saved. Allow that only on auth routes.
-    // On real admin pages, never send a leftover token key: that stale-token drift
-    // is what caused global P0001 RPC failures across every page.
-    if (isAdminAuthRoute()) {
-      const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
-      if (direct && direct.length >= 16) return direct;
-    }
+    // before the final session blob is saved. Also allow legacy saved sessions
+    // whose session blob is valid but predates the `session_token` field; the
+    // admin client now server-preflights this token before protected requests.
+    if (direct && direct.length >= 16 && (isAdminAuthRoute() || !!parsed)) return direct;
     return '';
   } catch {
     return '';
