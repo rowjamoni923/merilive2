@@ -70,16 +70,14 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
 
   useEffect(() => {
     if (!soundUrl || isSvga) return;
-    const audio = new Audio(soundUrl);
-    audio.volume = 0.8;
-    audio.play().catch(() => {});
+    // Pkg422: routed through central player (anti-GC + unlock-aware
+    // + limiter-bus + per-URL concurrency cap so combo gifts don't crackle).
+    const handle = playSoundUrl(soundUrl, { volume: 0.8, maxConcurrent: 2 });
     return () => {
-      try {
-        audio.pause();
-        audio.src = '';
-      } catch {}
+      try { handle.stop(); } catch { /* noop */ }
     };
   }, [soundUrl, isSvga]);
+
   
   useEffect(() => {
     mountedRef.current = true;
