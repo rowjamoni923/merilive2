@@ -43,11 +43,11 @@ export const ProfessionalChatMessage = ({
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 100, opacity: 0 }}
-        className="flex items-center gap-1.5 py-1 px-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm w-fit"
+        className="flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full bg-gradient-to-r from-purple-500/35 via-fuchsia-500/25 to-pink-500/35 backdrop-blur-md border border-white/15 shadow-[0_2px_10px_rgba(168,85,247,0.25)] w-fit"
       >
         <InlineLevelBadge level={userLevel} />
         <motion.span 
-          className="text-white font-semibold text-xs"
+          className="text-white font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
           animate={{ 
             textShadow: userLevel >= 20 
               ? ["0 0 5px rgba(255,255,255,0.3)", "0 0 10px rgba(255,255,255,0.5)", "0 0 5px rgba(255,255,255,0.3)"]
@@ -57,7 +57,7 @@ export const ProfessionalChatMessage = ({
         >
           {userName}
         </motion.span>
-        <span className="text-white/70 text-xs">enter the live room</span>
+        <span className="text-white/75 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">enter the live room</span>
       </motion.div>
     );
   }
@@ -68,16 +68,16 @@ export const ProfessionalChatMessage = ({
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500/30 to-orange-500/30 backdrop-blur-sm w-fit border border-amber-500/30"
+        className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/40 via-orange-500/35 to-rose-500/35 backdrop-blur-md w-fit border border-amber-300/40 shadow-[0_2px_12px_rgba(251,191,36,0.3)]"
       >
         <InlineLevelBadge level={userLevel} />
-        <span className="text-amber-200 font-semibold text-xs">{userName}</span>
-        <span className="text-white/80 text-xs">sent</span>
-        <span className="text-lg">{giftEmoji}</span>
-        <span className="text-amber-300 font-bold text-xs">{giftName}</span>
+        <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
+        <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
+        <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>
+        <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         {giftCount && giftCount > 1 && (
           <motion.span 
-            className="text-amber-400 font-black text-sm"
+            className="text-amber-300 font-black text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 0.5, repeat: 2 }}
           >
@@ -92,7 +92,7 @@ export const ProfessionalChatMessage = ({
   if (type === 'system') {
     return (
       <div className="text-center py-1">
-        <span className="text-white/70 text-xs bg-white/5 px-3 py-1 rounded-full">
+        <span className="text-white/70 text-xs bg-black/30 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           {message}
         </span>
       </div>
