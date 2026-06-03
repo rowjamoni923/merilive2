@@ -1,9 +1,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { imagetools } from "vite-imagetools";
 import { visualizer } from "rollup-plugin-visualizer";
+
+// =====================================================================
+// SINGLE SOURCE OF TRUTH for app version = android/app/build.gradle
+// versionName + versionCode. Bumping the Android app automatically
+// updates what Settings → About and the splash screen display on web
+// fallback. Native still reads the live value via Capacitor App.getInfo().
+// =====================================================================
+const readAndroidVersion = (): { name: string; code: string } => {
+  try {
+    const gradle = fs.readFileSync(
+      path.resolve(__dirname, "android/app/build.gradle"),
+      "utf8",
+    );
+    const name = gradle.match(/versionName\s+"([^"]+)"/)?.[1] ?? "1.0.0";
+    const code = gradle.match(/versionCode\s+(\d+)/)?.[1] ?? "1";
+    return { name, code };
+  } catch {
+    return { name: "1.0.0", code: "1" };
+  }
+};
+const ANDROID_VERSION = readAndroidVersion();
+
 
 // Auto-convert all bundled raster images (PNG/JPG/JPEG) to WebP @ q=78 with
 // a max width of 1600px. Keeps every existing `import x from './foo.png'`
