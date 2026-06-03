@@ -64,10 +64,10 @@ const partyCountries = [
 
 const Discover = () => {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<PartyRoom[]>(() => getSessionCache<PartyRoom[]>('discover-rooms') ?? []);
-  const [loading, setLoading] = useState(() => !getSessionCache('discover-rooms'));
+  const [rooms, setRooms, hadRoomsCache] = usePersistedCache<PartyRoom[]>('discover:rooms', []);
+  const [loading, setLoading] = useState(!hadRoomsCache);
   const [refreshing, setRefreshing] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(() => !!getSessionCache('discover-rooms'));
+  const [initialLoadComplete, setInitialLoadComplete] = useState(hadRoomsCache);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
