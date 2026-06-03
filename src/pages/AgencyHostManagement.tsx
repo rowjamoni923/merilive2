@@ -366,13 +366,13 @@ const AgencyHostManagement = () => {
               value="pending" 
               className="flex-1 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
-              Pending ({pendingHosts.length})
+              Pending ({(pendingHosts ?? []).length})
             </TabsTrigger>
             <TabsTrigger 
               value="hosts" 
               className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow text-slate-600 rounded-lg"
             >
-              Hosts ({hosts.length})
+              Hosts ({(hosts ?? []).length})
             </TabsTrigger>
           </TabsList>
 
