@@ -3,6 +3,7 @@
 // Supports exact output dimensions via server-side resize/crop (ImageScript).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { decode, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,24 +36,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const adminToken = req.headers.get("x-admin-token");
-    if (!adminToken || adminToken.length < 16) {
-      return new Response(JSON.stringify({ error: "Admin session required" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const { data: sessionRow } = await supa
-      .from("admin_sessions")
-      .select("admin_user_id")
-      .eq("session_token", adminToken)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
-    if (!sessionRow?.admin_user_id) {
-      return new Response(JSON.stringify({ error: "Invalid admin session" }), {
-        status: 403,
+    const gate = await requireAdminSession(req, supa, { sectionKey: "banners", requireEdit: true });
+    if (!gate.ok) {
+      return new Response(JSON.stringify({ error: gate.error }), {
+        status: gate.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
