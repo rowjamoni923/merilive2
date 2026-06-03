@@ -105,7 +105,7 @@ export default function NotificationSettings() {
       updated.enabled = true;
     }
 
-    setPrefs(prev => ({ ...prev, [category]: updated }));
+    setPrefs(prev => ({ ...(prev ?? {}), [category]: updated }));
 
     savingRef.current = true;
     try {
