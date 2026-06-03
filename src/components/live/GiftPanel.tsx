@@ -828,4 +828,4 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   );
 });
 
-export default GiftPanel;
+export default memo(GiftPanel);
