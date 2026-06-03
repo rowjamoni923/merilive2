@@ -54,21 +54,10 @@ const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBanner
   const level = ensureValidLevel(notification.userLevel);
 
   useEffect(() => {
-    // Phase 1: Enter (already happening via initial animation)
-    const visibleTimer = setTimeout(() => {
-      setPhase('visible');
-    }, 200);
-
-    // Phase 2: Start exit after 0.8 seconds
-    const exitTimer = setTimeout(() => {
-      setPhase('exiting');
-    }, 800);
-
-    // Phase 3: Complete after exit animation
-    const completeTimer = setTimeout(() => {
-      onComplete();
-    }, 1200);
-
+    // Pkg-polish: Pro Bigo/Chamet cadence — enter ~280ms, hold 2.1s, exit ~420ms (total ~2.8s)
+    const visibleTimer = setTimeout(() => setPhase('visible'), 280);
+    const exitTimer = setTimeout(() => setPhase('exiting'), 2400);
+    const completeTimer = setTimeout(() => onComplete(), 2820);
     return () => {
       clearTimeout(visibleTimer);
       clearTimeout(exitTimer);
@@ -79,16 +68,16 @@ const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBanner
   return (
     <motion.div
       className="pointer-events-none"
-      initial={{ x: '-100%', opacity: 0, scale: 0.85 }}
-      animate={phase === 'exiting' 
-        ? { x: '120%', opacity: 0, scale: 0.9 }
+      initial={{ x: '-110%', opacity: 0, scale: 0.9 }}
+      animate={phase === 'exiting'
+        ? { x: '130%', opacity: 0, scale: 0.92 }
         : { x: 0, opacity: 1, scale: 1 }
       }
       transition={{
         type: "spring",
-        damping: phase === 'exiting' ? 15 : 22,
-        stiffness: phase === 'exiting' ? 200 : 320,
-        mass: 0.7,
+        damping: phase === 'exiting' ? 18 : 26,
+        stiffness: phase === 'exiting' ? 220 : 280,
+        mass: 0.75,
       }}
     >
       <div className={cn(
