@@ -129,7 +129,7 @@ const ShopItemCard = ({
             import('lottie-react' as any).catch(() => {});
             try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
           } else {
-            const img = new Image();
+            const img = new window.Image();
             img.src = src;
           }
         }
