@@ -408,10 +408,27 @@ export default function AdminGifts() {
       const useR2 = file.size > 5 * 1024 * 1024;
       
       if (useR2) {
-        // Upload to Cloudflare R2 using S3 multipart upload (bypasses memory limit)
-        toast.info(`Large file (${fileSizeMB}MB) - Uploading to R2...`, { duration: 60000 });
-        publicUrl = await uploadToR2Multipart(file, 'gifts', (pct) => setUploadProgress(pct));
-        console.log('[Upload] R2 multipart upload completed:', publicUrl);
+        // Try R2 silently; on any failure, fall through to Supabase without alarming the user
+        try {
+          publicUrl = await uploadToR2Multipart(file, 'gifts', (pct) => setUploadProgress(pct));
+          console.log('[Upload] R2 multipart upload completed:', publicUrl);
+        } catch (r2Err) {
+          console.info('[Upload] R2 unavailable, using Supabase Storage');
+          const fileName = `${type}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          setUploadProgress(10);
+          const { error: uploadError } = await supabase.storage.from('gifts').upload(fileName, file, {
+            upsert: true,
+            contentType: file.type || 'application/octet-stream',
+          });
+          setUploadProgress(90);
+          if (uploadError) {
+            recordAdminError({ kind: "rpc", label: "AdminGifts.UploadStorage", message: formatAdminError(uploadError) });
+            throw uploadError;
+          }
+          const { data: { publicUrl: supabaseUrl } } = supabase.storage.from('gifts').getPublicUrl(fileName);
+          publicUrl = supabaseUrl;
+          setUploadProgress(100);
+        }
       } else {
         // Upload to Supabase Storage via adminClient (carries x-admin-token for RLS)
         const fileName = `${type}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -438,6 +455,7 @@ export default function AdminGifts() {
         setUploadProgress(100);
         console.log('[Upload] Supabase upload completed:', publicUrl);
       }
+
 
       if (type === 'icon') {
         // When uploading animation file as icon, auto-clear emoji and set proper icon_url
