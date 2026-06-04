@@ -472,7 +472,7 @@ const AdminVIPMedals = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="aspect-square bg-black rounded-lg overflow-hidden">
-              <FixedAnimationFrame size="fill" center={false}
+              <FixedAnimationFrame size="large" center={true}
                 src={previewUrl}
                 
                 loop
