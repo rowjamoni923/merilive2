@@ -945,8 +945,8 @@ const AdminShop = () => {
                         <FixedAnimationFrame
                           src={previewFile}
                           type={previewFile.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                           muted
                         />
