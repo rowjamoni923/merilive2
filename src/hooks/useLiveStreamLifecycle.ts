@@ -187,32 +187,19 @@ export const useLiveStreamLifecycle = ({
       };
     }
 
-    // ============ WEB HANDLING ============
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!hasEndedRef.current) {
-        forceEndStreamSync();
-        event.preventDefault();
-        event.returnValue = 'Your live stream will end if you leave.';
-      }
-    };
-
-    const handlePageHide = () => {
-      if (!hasEndedRef.current) {
-        forceEndStreamSync();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
-
+    // ============ WEB HANDLING (Pkg426) ============
+    // PROFESSIONAL LIVE STREAMING PATTERN (Bigo/Tango/Chamet):
+    // Host stream NEVER ends from `pagehide` / `beforeunload`. iOS Safari and
+    // Android WebView fire these on tab switch, notification shade, permission
+    // dialog, scroll-to-address-bar — auto-killing the stream caused the
+    // "2–15 second random cut" the user reported.
+    //
+    // Truth source for "stream still alive" = host heartbeat every 15s.
+    // Server cron `cleanup_stale_live_streams` (Pkg426: 3 min stale window)
+    // closes abandoned web tabs. Only the in-room End button (handleEndStream
+    // in LiveStream.tsx) may close the stream from the client side.
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
       cleanupRef.current?.();
-      
-      // Do not end on React effect cleanup. StrictMode/dev remounts and native
-      // WebView lifecycle churn can run cleanup while the stream must continue.
-      // Manual end path still updates live_streams and notifies viewers.
     };
   }, [streamId, isHost, isHostVerified, forceEndStream, forceEndStreamSync]);
 
