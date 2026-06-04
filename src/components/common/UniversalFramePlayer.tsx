@@ -6,10 +6,10 @@ import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
 
-// Lazy load SVGA + VAP players for better performance
-const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
-const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
-const VAPPlayer = lazy(() => import('./VAPPlayer'));
+// Use direct imports for instant rendering in admin and shop sections
+import SVGAPlayer from './SVGAPlayer';
+import SVGAPlayerWithAudio from './SVGAPlayerWithAudio';
+import VAPPlayer from './VAPPlayer';
 
 export type FrameType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
