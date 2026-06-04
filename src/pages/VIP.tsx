@@ -1124,7 +1124,7 @@ const VIP = () => {
           )}
 
           {/* VIP Tiers Grid */}
-          <div className="grid gap-4">
+          <div className="grid gap-4 max-w-2xl mx-auto">
             {tiers.map((tier, index) => {
               const TierIcon = getTierIcon(tier.tier_level);
               const privileges = getPrivilegesList(tier);
@@ -1205,7 +1205,7 @@ const VIP = () => {
                   <div className="p-4 bg-white/95">
                     {tier.description && <p className="text-heading text-sm mb-3 leading-snug">{tier.description}</p>}
 
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="grid grid-cols-2 gap-2 mb-4 justify-items-center">
                       {privileges.slice(0, 6).map((priv, i) => (
                         <div
                           key={i}

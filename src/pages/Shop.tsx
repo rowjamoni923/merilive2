@@ -199,7 +199,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden bg-white/50 backdrop-blur-sm`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
