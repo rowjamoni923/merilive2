@@ -362,58 +362,41 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
 
 
-  // Initialize video and WebGL
+  const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    if (!video.videoWidth || !video.videoHeight) return;
+    initWebGL(video, config);
+    window.setTimeout(() => {
+      if (!webglPaintedRef.current) {
+        console.warn('[VAPPlayer] WebGL did not paint first frame; using cropped video fallback');
+        setUseVideoFallback(true);
+        setLoading(false);
+        onLoadRef.current?.();
+      }
+    }, 450);
+  }, [config, initWebGL]);
+
+  const handleEnded = useCallback(() => {
+    if (loop || completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current?.();
+  }, [loop]);
+
+  const handleVideoError = useCallback(() => {
+    setError('Video load failed');
+    setLoading(false);
+    onErrorRef.current?.(new Error('Video load failed'));
+  }, []);
+
   useEffect(() => {
-    if (!resolvedSrc) return;
-
-    const video = document.createElement('video');
-    video.crossOrigin = 'anonymous';
-    video.playsInline = true;
-    video.muted = muted;
-    video.volume = volume;
-    video.loop = loop;
-    video.preload = 'auto';
-
-    videoRef.current = video;
-    let initialized = false;
-
-    const handleVideoReady = () => {
-      if (initialized) return;
-      initialized = true;
-      initWebGL(video, config);
-    };
-    video.onloadeddata = handleVideoReady;
-    video.oncanplay = handleVideoReady;
-
-    video.onended = () => {
-      if (!loop) {
-        onCompleteRef.current?.();
-      }
-    };
-
-    video.onerror = () => {
-      setError('Video load failed');
-      setLoading(false);
-      onErrorRef.current?.(new Error('Video load failed'));
-    };
-
-    video.src = resolvedSrc;
-
-    if (autoPlay) {
-      video.play().catch(err => {
-        console.warn('[VAPPlayer] Autoplay blocked:', err);
-      });
-    }
-
+    webglPaintedRef.current = false;
+    completedRef.current = false;
+    setUseVideoFallback(false);
+    setLoading(true);
+    setError(null);
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      video.pause();
-      video.src = '';
-      videoRef.current = null;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [resolvedSrc, config, loop, autoPlay, muted, volume, initWebGL]);
+  }, [resolvedSrc]);
 
   if (error) {
     return (
