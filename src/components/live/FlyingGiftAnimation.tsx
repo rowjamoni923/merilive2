@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
 
 export interface FlyingGift {
@@ -38,8 +39,12 @@ interface FlyingGiftAnimationProps {
   onComplete: () => void;
 }
 
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'video' | 'image' | null => {
+const getAnimationType = (url?: string, format?: string | null): 'svga' | 'lottie' | 'pag' | 'vap' | 'video' | 'image' | null => {
   if (!url) return null;
+  const detected = detectProfessionalAnimationFormat(url, format);
+  if (detected === 'svga' || detected === 'lottie' || detected === 'pag' || detected === 'vap') return detected;
+  if (detected === 'mp4' || detected === 'webm') return 'video';
+  if (detected === 'gif' || detected === 'webp' || detected === 'png' || detected === 'static') return 'image';
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
   if (cleanUrl.endsWith('.pag')) return 'pag';
@@ -131,7 +136,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const hostPercent = useHostGiftPercent();
 
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
-  const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
+  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
   const needsFullscreenSlot = completesFromPlayer;
@@ -304,10 +309,10 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               size="fullscreen"
               width="100dvw"
               height="100dvh"
-              type={gift.animationFormat === 'vap' ? 'vap' : isSVGA ? 'svga' : undefined}
+              type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
               configSrc={gift.animationConfigUrl || undefined}
               loop={false}
-              muted={!isSVGA}
+              muted={isSVGA ? false : !!gift.soundUrl}
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}

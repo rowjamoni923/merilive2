@@ -75,6 +75,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { getVapCompositeHint } from "@/utils/vapDetection";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
@@ -150,15 +151,20 @@ interface GroupMessage {
 // Parse gift payload from chat content
 // Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
 // The `snd:` suffix is optional and only present when the gift has a separate sound asset.
-const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null } => {
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null } => {
   const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
   const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
   const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
+  const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
+  const configMatch = content.match(/\|\s*cfg:(https?:\/\/[^\s\|\]]+)/i);
+  const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
 
   return {
-    mediaUrl: normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null,
+    mediaUrl,
     emoji: emojiMatch?.[1] ?? '🎁',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
+    animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
+    animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
   };
 };
 
@@ -767,13 +773,15 @@ const Chat = () => {
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
-    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
+    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
+    const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
+    const configSuffix = gift.animation_config_url ? ` | cfg:${gift.animation_config_url}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
@@ -811,6 +819,7 @@ const Chat = () => {
         content: optimisticGiftMessage,
         animationFormat: giftAnimationFormat,
         animationConfigUrl: gift.animation_config_url || null,
+        soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});
 
@@ -845,8 +854,8 @@ const Chat = () => {
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
@@ -985,6 +994,9 @@ const Chat = () => {
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
           if (payload.payload?.senderId === currentUserId) return;
+          if (payload.payload?.soundUrl && !payload.payload.content.includes('| snd:')) {
+            payload.payload.content = `${payload.payload.content.replace(/\]$/, '')} | snd:${payload.payload.soundUrl}]`;
+          }
           playGiftAnimationFromContent(
             payload.payload.content,
             payload.payload.senderId,
@@ -1432,10 +1444,10 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(signature, now);
     if (playSoundEffect) playSoundDebounced('gift');
 
-    const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
+    const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
-    setAnimatingGiftFormat(animationFormat || null);
-    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || null);
+    setAnimatingGiftFormat(animationFormat || parsedFormat || null);
+    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -2377,7 +2389,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2388,13 +2400,13 @@ const Chat = () => {
                           
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
-                          const isSvga = normalizedGiftUrl.endsWith('.svga');
-                          const isLottie = normalizedGiftUrl.endsWith('.json');
-                          const isImage = !!iconUrl && !isSvga && !isLottie;
+                          const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
+                          const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}

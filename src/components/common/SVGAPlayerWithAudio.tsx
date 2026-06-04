@@ -57,6 +57,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const expectedDurationRef = useRef<number>(0);
   const audioSegmentsRef = useRef<any[]>([]);
   const internalSoundFoundRef = useRef<boolean>(false);
+  const lastTriggerKeyRef = useRef<string | number | undefined>(triggerKey);
 
   // Stable refs for callbacks — prevents parent re-renders from re-running the
   // load effect (which would tear down + rebuild the SVGA player and replay it).
@@ -239,24 +240,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
     loadAndPlay();
 
-    // COMBO AUDIO RE-TRIGGER: If triggerKey changes, re-play the cached audio segments.
-    // This provides "instant" audio feedback for combos without restarting the SVGA animation.
-    if (triggerKey && !loading) {
-      const clampedVolume = Math.min(Math.max(volume, 0), 1);
-      
-      // If we found internal segments, re-play them
-      if (audioSegmentsRef.current.length > 0) {
-        audioSegmentsRef.current.forEach(segment => {
-          playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef);
-        });
-      } else if (!internalSoundFoundRef.current && soundUrl) {
-        // Otherwise re-play the fallback sound
-        const fallbackHowl = new Howl({ src: [soundUrl], volume: clampedVolume, loop, html5: true });
-        activeHowlsRef.current.push(fallbackHowl);
-        fallbackHowl.play();
-      }
-    }
-
     const handleResume = () => resumeLoopingAnimation();
     document.addEventListener('visibilitychange', handleResume);
     window.addEventListener('focus', handleResume);
@@ -282,7 +265,25 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     // (parent re-renders) must NEVER tear down + rebuild the player — that was
     // causing the same SVGA to replay over and over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, loop, autoPlay, volume, soundUrl, triggerKey]);
+  }, [src, loop, autoPlay, volume, soundUrl]);
+
+  // COMBO AUDIO RE-TRIGGER: replay sound on combo bumps WITHOUT rebuilding the
+  // SVGA canvas/player. Recreating the SVGA player here was a direct jank source.
+  useEffect(() => {
+    if (!triggerKey || loading || volume <= 0) return;
+    if (lastTriggerKeyRef.current === triggerKey) return;
+    lastTriggerKeyRef.current = triggerKey;
+    const clampedVolume = Math.min(Math.max(volume, 0), 1);
+    if (audioSegmentsRef.current.length > 0) {
+      audioSegmentsRef.current.forEach(segment => {
+        playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef);
+      });
+    } else if (!internalSoundFoundRef.current && soundUrl) {
+      const fallbackHowl = new Howl({ src: [soundUrl], volume: clampedVolume, loop: false, html5: true });
+      activeHowlsRef.current.push(fallbackHowl);
+      fallbackHowl.play();
+    }
+  }, [triggerKey, loading, volume, loop, soundUrl]);
 
 
   if (error) {

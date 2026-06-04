@@ -7,6 +7,7 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
 import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
+import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -107,7 +108,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   // Synchronously seed Lottie state from cache so cached gifts paint on first
   // render (no loading spinner flash, no double-paint).
-  const initialType = type || detectAnimationType(resolvedSrc);
+  const initialType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
   const initialLottie = initialType === 'lottie' ? lottieCacheGet(resolvedSrc) : null;
   const [lottieData, setLottieData] = useState<any>(initialLottie);
   const [lottieLoading, setLottieLoading] = useState(false);
@@ -121,7 +122,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const [autoDetectedVap, setAutoDetectedVap] = useState(() => getVapCompositeHint(resolvedSrc));
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const detectedType = type || detectAnimationType(resolvedSrc);
+  const detectedType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
   const animationType: AnimationType = autoDetectedVap ? 'vap' : detectedType;
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);

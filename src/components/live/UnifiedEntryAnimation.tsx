@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import CinematicEntranceOverlay from "./CinematicEntranceOverlay";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
 export interface EntryAnimation {
   id: string;
@@ -33,8 +34,12 @@ interface UnifiedEntryAnimationProps {
   onComplete: () => void;
 }
 
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'video' | 'image' | null => {
+const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'vap' | 'video' | 'image' | null => {
   if (!url) return null;
+  const detected = detectProfessionalAnimationFormat(url);
+  if (detected === 'svga' || detected === 'lottie' || detected === 'pag' || detected === 'vap') return detected;
+  if (detected === 'mp4' || detected === 'webm') return 'video';
+  if (detected === 'gif' || detected === 'webp' || detected === 'png' || detected === 'static') return 'image';
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
   if (cleanUrl.endsWith('.pag')) return 'pag';
@@ -269,8 +274,10 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
           <FixedAnimationFrame
             src={displayAnimationUrl}
             size="fill"
+            type={animationType === 'vap' ? 'vap' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
             loop={animationType === 'image'}
-            muted={false}
+            muted={animationType === 'lottie' ? true : !!entry.soundUrl}
+            soundUrl={entry.soundUrl ?? null}
             onComplete={handleAnimationComplete}
             onError={() => handleAnimationComplete()}
             center={false}

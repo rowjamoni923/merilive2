@@ -65,6 +65,7 @@ import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
+import { detectVapSideBySideLayout } from "@/utils/vapDetection";
 
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
@@ -112,6 +113,37 @@ const animationTypes = [
   { value: "fly", label: "Flying" },
   { value: "custom", label: "Custom (GIF/Video)" },
 ];
+
+const detectUploadedAnimationFormat = async (file: File): Promise<AnimationFormat | null> => {
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext === 'svga') return 'svga';
+  if (ext === 'pag') return 'pag';
+  if (ext === 'json') return 'lottie';
+  if (ext === 'gif') return 'gif';
+  if (ext === 'webp') return 'webp';
+  if (ext === 'png') return 'png';
+  if (ext === 'webm') return 'webm';
+  if (ext !== 'mp4' && ext !== 'mov' && ext !== 'm4v') return null;
+
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    const done = (format: AnimationFormat) => {
+      URL.revokeObjectURL(url);
+      resolve(format);
+    };
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.onloadeddata = () => {
+      try { done(detectVapSideBySideLayout(video) ? 'vap' : 'mp4'); }
+      catch { done('mp4'); }
+    };
+    video.onerror = () => done('mp4');
+    video.src = url;
+    video.load();
+  });
+};
 
 export default function AdminGifts() {
   const location = useLocation();
@@ -425,9 +457,12 @@ export default function AdminGifts() {
         }
       } else {
         // Animation file upload - also update icon_url if it's currently an emoji
-        const detectedType = isSVGA ? 'svga' : 
-                            fileExt === 'json' ? 'lottie' : 
-                            (fileExt === 'mp4' || fileExt === 'webm') ? 'custom' : 'custom';
+        const detectedFormat = await detectUploadedAnimationFormat(file);
+        const detectedType = detectedFormat === 'svga' ? 'svga' :
+                            detectedFormat === 'lottie' ? 'lottie' :
+                            detectedFormat === 'vap' ? 'vap' :
+                            detectedFormat === 'mp4' || detectedFormat === 'webm' ? 'custom' :
+                            detectedFormat || 'custom';
         
         setFormData(prev => {
           // If icon_url is currently an emoji (not starting with http), auto-replace it with animation
@@ -437,6 +472,8 @@ export default function AdminGifts() {
             ...prev, 
             animation_url: publicUrl, 
             animation_type: detectedType,
+            animation_format: detectedFormat,
+            animation_config_url: detectedFormat === 'vap' ? prev.animation_config_url : '',
             // Auto-set icon_url to animation_url if icon was emoji
             icon_url: shouldReplaceIcon ? publicUrl : prev.icon_url
           };
