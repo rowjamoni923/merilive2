@@ -67,7 +67,7 @@ const detectAnimationType = (url: string): AnimationType => {
   if (urlWithoutParams.endsWith('.jpg') || urlWithoutParams.endsWith('.jpeg')) return 'static';
   if (urlWithoutParams.endsWith('.mp4')) {
     // Check if it's a VAP video (has _vap or vap_ in name)
-    if (lowercaseUrl.includes('vap') || lowercaseUrl.includes('_bmp')) return 'vap';
+    if (lowercaseUrl.includes('vap') || lowercaseUrl.includes('_bmp') || lowercaseUrl.includes('file_vap_')) return 'vap';
     return 'mp4';
   }
   if (urlWithoutParams.endsWith('.webm')) return 'webm';
