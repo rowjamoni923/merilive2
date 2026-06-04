@@ -19,6 +19,7 @@ import { formatAdminError } from "@/utils/formatAdminError";
 // Lazy load SVGA player
 const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 interface EntryNameBar {
   id: string;
   name: string;
