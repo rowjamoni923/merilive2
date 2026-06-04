@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface RoleFrame {
   id: string;
   role_type: string;
@@ -218,6 +219,10 @@ const AdminRoleFrames = () => {
       is_active: frameForm.is_active ?? true,
       is_default: frameForm.is_default ?? false,
       display_order: frameForm.display_order ?? 0,
+      // Pkg424 — unified pro animation columns
+      animation_url: (frameForm as any).animation_url || null,
+      animation_format: (frameForm as any).animation_format || null,
+      animation_config_url: (frameForm as any).animation_config_url || null,
     };
 
     setSaving(true);
@@ -637,47 +642,32 @@ const AdminRoleFrames = () => {
               />
             </div>
 
-            {/* Frame Upload */}
-            <div>
-              <label className="text-sm text-slate-400 mb-1 block">Frame Animation (SVGA, Lottie, GIF, MP4)</label>
-              <div className="flex gap-2">
-                <Input
-                  value={frameForm.frame_url || ''}
-                  onChange={(e) => setFrameForm(prev => ({ ...prev, frame_url: e.target.value }))}
-                  placeholder="Frame URL..."
-                  className="bg-slate-800 border-slate-600 text-white flex-1"
-                />
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept=".svga,.json,.gif,.mp4,.webm,.png,.webp"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                  />
-                  <Button type="button" variant="outline" disabled={uploading} asChild>
-                    <span>
-                      {uploading ? (
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Upload className="w-4 h-4" />
-                      )}
-                    </span>
-                  </Button>
-                </label>
-              </div>
-              
-              {/* Preview */}
-              {frameForm.frame_url && (
-                <div className="mt-2 w-24 h-24 bg-slate-800 rounded-lg overflow-hidden">
-                  <FixedAnimationFrame size="fill" center={false}
-                    src={frameForm.frame_url}
-                    
-                    loop
-                  />
-                </div>
-              )}
-            </div>
+            {/* Pkg424 — Pro Animation (VAP / SVGA / Lottie / WebP / MP4) */}
+            <AnimationUploader
+              label="Pro Animation (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4)"
+              bucket="animations"
+              folder="role-frames/unified"
+              value={{
+                animation_url: (frameForm as any).animation_url || frameForm.frame_url || '',
+                animation_format: ((frameForm as any).animation_format ?? null) as AnimationFormat | null,
+                animation_config_url: (frameForm as any).animation_config_url || null,
+              }}
+              onChange={(v) => setFrameForm(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+                // Keep legacy frame_url + animation_type in sync so existing players keep working
+                frame_url: v.animation_url || prev.frame_url,
+                animation_type: v.animation_format === 'lottie' ? 'lottie'
+                  : v.animation_format === 'svga' ? 'svga'
+                  : v.animation_format === 'vap' ? 'vap'
+                  : v.animation_format === 'gif' ? 'gif'
+                  : v.animation_format === 'mp4' ? 'video'
+                  : prev.animation_type,
+              } as any))}
+            />
+
 
             {/* Description */}
             <div>
