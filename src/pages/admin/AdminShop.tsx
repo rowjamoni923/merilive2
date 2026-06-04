@@ -53,6 +53,7 @@ import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 const adminCardStyles = "bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10";
 const adminButtonStyles = { primary: "bg-gradient-to-r from-purple-500 to-pink-500 text-white" };
 const adminInputStyles = "bg-white/10 border-white/20 text-white";
