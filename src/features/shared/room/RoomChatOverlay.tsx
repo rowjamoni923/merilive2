@@ -205,17 +205,16 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   const [isVisible, setIsVisible] = React.useState(true);
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
-  // Also handle cases where the message IS the URL itself (sent by some legacy or backend logic)
-  const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const isDirectUrl = message.message.match(/https?:\/\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.webp|\.gif|\.svga)/i);
-  
-  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1] || (isDirectUrl ? isDirectUrl[0] : null));
+  // Also handle cases where the message IS the URL itself
+  const giftUrlMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
+  const giftUrl = giftUrlMatch?.[1] || (isGiftUrl(message.message) ? message.message : null);
   
   // Clean message text - remove the [GIFT:url] prefix or if it's just a URL, show a placeholder
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
-  if (isDirectUrl && cleanMessage === isDirectUrl[0]) {
+  if (giftUrl && (cleanMessage === giftUrl || isGiftUrl(cleanMessage))) {
     cleanMessage = "sent a gift";
   }
+
 
   
   // Parse game win message - supports both old and new formats
