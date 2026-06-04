@@ -32,6 +32,7 @@ import {
 import { Upload, X, Loader2, FileVideo, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getAdminSessionToken } from '@/utils/adminSession';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
 import { cn } from '@/lib/utils';
 import { detectVapSideBySideLayout } from '@/utils/vapDetection';
