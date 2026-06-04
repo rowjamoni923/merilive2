@@ -253,6 +253,8 @@ export default function AdminEntryBanners() {
       name: banner.name,
       description: banner.description || "",
       animation_url: banner.animation_url,
+      animation_format: ((banner as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (banner as any).animation_config_url ?? null,
       preview_url: banner.preview_url || "",
       min_level: banner.min_level,
       min_vip_tier: banner.min_vip_tier,
