@@ -379,7 +379,7 @@ const AdminEntryBars = () => {
                     />
                   ) : item.animation_url ? (
                     <div >
-                      <FixedAnimationFrame size="fill" center={false}
+                      <FixedAnimationFrame size="card" center={true}
                         src={item.animation_url}
                         className="w-full h-full object-cover"
                         loop
