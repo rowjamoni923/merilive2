@@ -457,9 +457,12 @@ export default function AdminGifts() {
         }
       } else {
         // Animation file upload - also update icon_url if it's currently an emoji
-        const detectedType = isSVGA ? 'svga' : 
-                            fileExt === 'json' ? 'lottie' : 
-                            (fileExt === 'mp4' || fileExt === 'webm') ? 'custom' : 'custom';
+        const detectedFormat = await detectUploadedAnimationFormat(file);
+        const detectedType = detectedFormat === 'svga' ? 'svga' :
+                            detectedFormat === 'lottie' ? 'lottie' :
+                            detectedFormat === 'vap' ? 'vap' :
+                            detectedFormat === 'mp4' || detectedFormat === 'webm' ? 'custom' :
+                            detectedFormat || 'custom';
         
         setFormData(prev => {
           // If icon_url is currently an emoji (not starting with http), auto-replace it with animation
@@ -469,6 +472,8 @@ export default function AdminGifts() {
             ...prev, 
             animation_url: publicUrl, 
             animation_type: detectedType,
+            animation_format: detectedFormat,
+            animation_config_url: detectedFormat === 'vap' ? prev.animation_config_url : '',
             // Auto-set icon_url to animation_url if icon was emoji
             icon_url: shouldReplaceIcon ? publicUrl : prev.icon_url
           };
