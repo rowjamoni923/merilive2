@@ -355,6 +355,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   useEffect(() => {
     return () => {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       if (animationRef.current !== null) {
         if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
           (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);
