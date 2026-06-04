@@ -1,8 +1,6 @@
 import React, { useEffect, useState, memo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+...
+import { useSound } from "@/hooks/useSound";
 
 interface CinematicEntranceOverlayProps {
   displayName: string;
