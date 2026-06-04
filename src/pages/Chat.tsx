@@ -73,7 +73,7 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
-import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { normalizeGiftMediaUrl, isGiftUrl } from "@/utils/giftMediaUrl";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
