@@ -971,17 +971,19 @@ export default function AdminGifts() {
         </div>
       )}
 
-      {/* Hidden file inputs - Icon now also accepts SVGA/Lottie */}
+      {/* Hidden file inputs */}
+      {/* Icon: STATIC images only (SVG / PNG / JPG / GIF / WebP) */}
       <input
         ref={iconInputRef}
         type="file"
-        accept="image/*,.svga,.json"
+        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml,.svg,.png,.jpg,.jpeg,.gif,.webp"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleUpload(file, 'icon');
         }}
       />
+      {/* Legacy animation input — kept for back-compat; UI now uses <AnimationUploader/> exclusively */}
       <input
         ref={animationInputRef}
         type="file"
