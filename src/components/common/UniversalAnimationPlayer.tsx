@@ -5,6 +5,7 @@ import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -30,6 +31,14 @@ interface UniversalAnimationPlayerProps {
   onCompleteDebug?: (source: AnimationCompletionSource) => void;
   showControls?: boolean;
   fallbackEmoji?: string;
+  /**
+   * Pkg425 — Opt-in native Android SVGA acceleration.
+   * When true + SVGA + Capacitor Android + APK ≥ Pkg425 build, renders via
+   * native `SVGAImageView` overlay above the WebView (~30% smoother).
+   * Falls back to web `SVGAPlayer` automatically on any other platform.
+   * Use only for full-screen contexts (gift / entry overlays).
+   */
+  preferNative?: boolean;
 }
 
 /**
