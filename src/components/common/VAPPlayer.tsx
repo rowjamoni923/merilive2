@@ -147,6 +147,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
+        // High-precision sampling with slight edge insets to prevent bleed from alpha channel
         float edgeInset = 0.0005; 
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
@@ -162,7 +163,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        gl_FragColor = vec4(rgbColor.rgb, alphaColor.r);
+        // Output premultiplied alpha for cleaner blending on edges
+        gl_FragColor = vec4(rgbColor.rgb * alphaColor.r, alphaColor.r);
       }
     `;
 
@@ -207,10 +209,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const gl = canvas.getContext('webgl', {
       alpha: true,
-      antialias: false,
+      antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: false,
+      premultipliedAlpha: true, // Switched to true for professional blending
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     });

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { loadSVGA, stripAudio, preloadSVGA as preloadSVGAFn } from '@/utils/svgaLoader';
 import { svgaCacheClear } from '@/utils/svgaCache';
 import { getSVGAModule } from '@/utils/svgaPrewarm';
+import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 
 interface SVGAPlayerProps {
   src: string;
