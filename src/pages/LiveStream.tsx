@@ -3960,6 +3960,8 @@ const LiveStream = () => {
             giftIcon: gift.emoji || "🎁",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
+            animationFormat: gift.animation_format || null,
+            animationConfigUrl: gift.animation_config_url || undefined,
             soundUrl: gift.sound_url || undefined,
             giftColor: "bg-pink-500/50",
             count: count,
