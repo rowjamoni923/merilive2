@@ -99,6 +99,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onCompleteDebug,
   showControls = false,
   fallbackEmoji = '🎁',
+  preferNative = false,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   // Synchronously seed Lottie state from cache so cached gifts paint on first
