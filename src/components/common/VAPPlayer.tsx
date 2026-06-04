@@ -64,6 +64,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   onLoad,
   onError,
   onComplete,
+  soundUrl = null,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
