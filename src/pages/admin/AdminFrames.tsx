@@ -396,6 +396,9 @@ const AdminFrames = () => {
       sound_url: "",
       sound_duration_ms: 3000,
       target_type: "both",
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: "",
     });
   };
 
@@ -417,6 +420,9 @@ const AdminFrames = () => {
       sound_url: frame.sound_url || "",
       sound_duration_ms: frame.sound_duration_ms || 3000,
       target_type: frame.target_type || "both",
+      animation_url: (frame as any).animation_url || "",
+      animation_format: ((frame as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (frame as any).animation_config_url || "",
     });
     setShowAddDialog(true);
   };
