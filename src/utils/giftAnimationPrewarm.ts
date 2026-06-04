@@ -104,9 +104,9 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM gift files are large, so only warm browser metadata for the top
-    // few. This primes the HTTP cache + VAP hint without downloading every gift.
-    videoUrls.slice(0, 6).forEach((u) => warmVideoMetadata(u));
+    // MP4/WebM gift files are large, but for a premium lag-free experience we
+    // warm the top few to the browser's HTTP cache.
+    videoUrls.slice(0, 15).forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
   }
