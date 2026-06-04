@@ -167,7 +167,7 @@ export const InCallChat = memo(({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="absolute bottom-44 left-3 right-3 z-30 max-h-[45vh] flex flex-col rounded-[20px] overflow-hidden bg-black/65 backdrop-blur-xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          className="absolute bottom-44 left-3 right-3 z-30 max-h-[45vh] flex flex-col rounded-[20px] overflow-hidden bg-black/78 border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent">
