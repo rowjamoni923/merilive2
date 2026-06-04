@@ -31,6 +31,8 @@ interface VAPPlayerProps {
   onError?: (error: Error) => void;
   onComplete?: () => void;
   soundUrl?: string | null;
+  /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
+  dynamicData?: any;
 }
 
 type VideoFrameCallbackVideo = HTMLVideoElement & {
