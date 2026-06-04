@@ -63,10 +63,11 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
   const normalizedUrl = isUrl ? emoji.toLowerCase().split('?')[0] : '';
   const isSvga = isUrl && normalizedUrl.endsWith('.svga');
   const isLottie = isUrl && normalizedUrl.endsWith('.json');
-  const isVap = isUrl && (normalizedUrl.includes('vap') || normalizedUrl.includes('_bmp'));
-  const isImage = isUrl && !isSvga && !isLottie && !isVap;
+  const isVideo = isUrl && /\.(mp4|webm|mov|m4v)$/.test(normalizedUrl);
+  const isVap = isUrl && !isVideo && (normalizedUrl.includes('vap') || normalizedUrl.includes('_bmp'));
+  const isImage = isUrl && !isSvga && !isLottie && !isVap && !isVideo;
   const isEmoji = !isUrl;
-  const hasAnimation = isSvga || isLottie || isVap;
+  const hasAnimation = isSvga || isLottie || isVap || isVideo;
 
   useEffect(() => {
     if (!soundUrl || isSvga) return;
@@ -161,16 +162,17 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
               />
             )}
 
-            {(isLottie || isVap) && (
+            {(isLottie || isVap || isVideo) && (
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
                 height="100dvh"
-                type={isLottie ? 'lottie' : 'vap'}
+                type={isLottie ? 'lottie' : isVideo ? 'mp4' : 'vap'}
                 loop={false}
                 autoPlay
-                muted
+                muted={isVideo ? false : true}
+                volume={isVideo ? 0.85 : undefined}
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
