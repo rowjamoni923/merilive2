@@ -453,7 +453,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         playsInline
         muted={muted}
         loop={loop}
-        preload="auto"
+        preload="metadata"
         autoPlay={autoPlay}
         controls={false}
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
@@ -475,7 +475,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onCanPlay={(e) => {
           const v = e.currentTarget;
-          if (autoPlay && v.paused) v.play().catch((err) => console.warn('[VAPPlayer] Autoplay blocked:', err));
+          if (autoPlay && v.paused) {
+            v.volume = Math.max(0, Math.min(1, volume));
+            v.play().catch((err) => {
+              if (!v.muted) {
+                v.muted = true;
+                v.play().catch(() => console.warn('[VAPPlayer] Autoplay blocked:', err));
+              } else {
+                console.warn('[VAPPlayer] Autoplay blocked:', err);
+              }
+            });
+          }
         }}
         onEnded={handleEnded}
         onError={handleVideoError}
