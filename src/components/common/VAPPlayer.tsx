@@ -431,12 +431,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     initWebGL(video, config);
     window.setTimeout(() => {
       if (!webglPaintedRef.current) {
-        console.warn('[VAPPlayer] WebGL did not paint first frame; using cropped video fallback');
+        console.warn('[VAPPlayer] WebGL did not paint first frame within 1.2s; using cropped video fallback');
         setUseVideoFallback(true);
         setLoading(false);
         onLoadRef.current?.();
       }
-    }, 450);
+    }, 1200);
   }, [config, initWebGL, resolvedConfigSrc]);
 
   const handleEnded = useCallback(() => {
