@@ -16,6 +16,8 @@ export type AnimationType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' |
 interface UniversalAnimationPlayerProps {
   src: string;
   type?: AnimationType;
+  /** Pkg423 — VAP config (vapc.json) URL. Required when type='vap'. */
+  configSrc?: string;
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
@@ -75,6 +77,7 @@ const detectAnimationType = (url: string): AnimationType => {
 const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   src,
   type,
+  configSrc,
   className,
   loop = true,
   autoPlay = true,
@@ -209,6 +212,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       <Suspense fallback={<LoadingSpinner />}>
         <VAPPlayer
           src={resolvedSrc}
+          configSrc={configSrc}
           className={className}
           loop={loop}
           autoPlay={autoPlay}

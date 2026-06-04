@@ -5,15 +5,18 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
-// Lazy load SVGA players for better performance
+// Lazy load SVGA + VAP players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
+const VAPPlayer = lazy(() => import('./VAPPlayer'));
 
-export type FrameType = 'svga' | 'lottie' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
+export type FrameType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
 interface UniversalFramePlayerProps {
   src: string;
   type?: FrameType;
+  /** Pkg423 — VAP config (vapc.json) URL. Required when type='vap'. */
+  configSrc?: string;
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
@@ -51,6 +54,7 @@ const detectFrameType = (url: string): FrameType => {
 const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   src,
   type,
+  configSrc,
   className,
   loop = true,
   autoPlay = true,
@@ -129,6 +133,29 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
       </Suspense>
     );
   }
+
+  // VAP Animation (Pkg423 — Tencent transparent video)
+  if (frameType === 'vap') {
+    return (
+      <Suspense fallback={
+        <div className={cn("flex items-center justify-center", className)}>
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      }>
+        <VAPPlayer
+          src={resolvedSrc}
+          configSrc={configSrc}
+          className={className}
+          loop={loop}
+          autoPlay={autoPlay}
+          muted={muted}
+          onLoad={onLoad}
+          onError={onError}
+        />
+      </Suspense>
+    );
+  }
+
 
   // Lottie Animation
   if (frameType === 'lottie') {

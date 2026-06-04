@@ -64,6 +64,7 @@ import { defaultGiftAnimations, animationCategories, type DefaultAnimation } fro
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
@@ -147,6 +148,9 @@ export default function AdminGifts() {
     animation_type: "svga",
     animation_url: "",
     animation_data: null as object | null,
+    // Pkg423 — professional animation format support (VAP / SVGA / Lottie / etc.)
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "" as string,
     category: "wall",
     display_order: 0,
     is_active: true,
@@ -528,6 +532,8 @@ export default function AdminGifts() {
       animation_type: gift.animation_type || "svga",
       animation_url: gift.animation_url || "",
       animation_data: null,
+      animation_format: ((gift as any).animation_format as AnimationFormat) || null,
+      animation_config_url: (gift as any).animation_config_url || "",
       category: gift.category || "wall",
       display_order: gift.display_order || 0,
       is_active: gift.is_active ?? true,
@@ -549,6 +555,8 @@ export default function AdminGifts() {
       animation_type: "svga",
       animation_url: "",
       animation_data: null,
+      animation_format: null,
+      animation_config_url: "",
       category: selectedCategory === "all" ? "wall" : selectedCategory,
       display_order: 0,
       is_active: true,
@@ -589,6 +597,9 @@ export default function AdminGifts() {
         icon_url: formData.icon_url || null,
         animation_type: formData.animation_type,
         animation_url: formData.animation_url || null,
+        // Pkg423 — VAP/SVGA/Lottie unified format
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
         category: formData.category,
         display_order: formData.display_order,
         is_active: formData.is_active,
@@ -1275,6 +1286,35 @@ export default function AdminGifts() {
                 )}
               </div>
             </div>
+
+            {/* Pkg423 — Professional unified animation uploader (VAP / SVGA / Lottie / etc.) */}
+            <AnimationUploader
+              label="Pro Animation (VAP / SVGA / Lottie / WebP / MP4)"
+              bucket="gifts"
+              folder="gifts/pro"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  animation_url: v.animation_url,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || "",
+                  // Keep legacy animation_type in sync so existing players keep working
+                  animation_type:
+                    v.animation_format === 'vap'
+                      ? 'vap'
+                      : v.animation_format === 'lottie'
+                      ? 'lottie'
+                      : v.animation_format === 'svga'
+                      ? 'svga'
+                      : prev.animation_type,
+                }))
+              }
+            />
 
             {/* Animation File Upload - Primary Upload Button */}
             <div className="border-2 border-dashed border-purple-500/50 rounded-xl p-3 md:p-4 bg-purple-500/5">
