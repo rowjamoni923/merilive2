@@ -28,6 +28,7 @@ import {
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { robustAdminUpload } from "@/utils/adminUploadHelper";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface Banner {
@@ -151,21 +152,16 @@ export default function AdminBanners() {
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `banner_${Date.now()}.${fileExt}`;
-      const filePath = `banners/${fileName}`;
+      
+      const publicUrl = await robustAdminUpload(file, fileName, {
+        bucket: 'level-assets',
+        folder: 'banners'
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("level-assets")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from("level-assets")
-        .getPublicUrl(filePath);
-
-      setFormData({ ...formData, image_url: data.publicUrl });
+      setFormData({ ...formData, image_url: publicUrl });
       toast.success("Image uploaded");
     } catch (error: any) {
+      console.error('Banner upload failed:', error);
       toast.error("Image upload failed");
     } finally {
       setUploading(false);
