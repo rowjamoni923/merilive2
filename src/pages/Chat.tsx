@@ -377,10 +377,6 @@ const Chat = () => {
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
-  // Host's received gift tracking (live counter)
-  const [hostReceivedGifts, setHostReceivedGifts] = useState(0);
-  const [hostTotalDiamonds, setHostTotalDiamonds] = useState(0);
-  
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
   const [isInlineTranslating, setIsInlineTranslating] = useState(false);
@@ -1163,43 +1159,6 @@ const Chat = () => {
     return unsubscribe;
   }, [selectedGroup?.id]);
 
-  // Fetch host's received gifts count and subscribe to real-time updates
-  useEffect(() => {
-    if (!selectedConversation?.other_user?.id) return;
-    
-    const hostId = selectedConversation.other_user.id;
-    
-    const fetchHostGifts = async () => {
-      const { data, error } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount')
-        .eq('receiver_id', hostId);
-      
-      if (!error && data) {
-        setHostReceivedGifts(data.length);
-        setHostTotalDiamonds(data.reduce((sum, t) => sum + (t.coin_amount || 0), 0));
-      }
-    };
-    
-    fetchHostGifts();
-    
-    // Subscribe to gift transactions via universal system
-    const unsubscribe = subscribeToTables(
-      `host-gifts-${hostId}`,
-      ['gift_transactions'],
-      (table: string, event: string, payload: any) => {
-        if (payload?.receiver_id === hostId) {
-          setHostReceivedGifts(prev => prev + 1);
-          setHostTotalDiamonds(prev => prev + (payload.coin_amount || 0));
-        }
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [selectedConversation?.other_user?.id]);
-
   // Conversation list refresh — three parallel sources for zero-refresh instant feel:
   //   (1) `chat:new-message` window event from useNotifications (notifications-row bridge)
   //   (2) DIRECT realtime subscription on `messages` + `conversations` (Pkg360 — these
@@ -1590,7 +1549,8 @@ const Chat = () => {
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_PAGE_SIZE);
 
     if (error) return;
     const serverMsgs = (data || []).map(castMessage);
@@ -1644,8 +1604,6 @@ const Chat = () => {
 
         emitGlobalUnreadRefresh({ messagesDecrement: unreadIds.length });
 
-        // Refresh conversations list to update unread count
-        fetchConversations();
       }
     }
   };
@@ -1655,7 +1613,8 @@ const Chat = () => {
       .from('group_messages')
       .select('*')
       .eq('group_id', groupId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_PAGE_SIZE);
 
     if (error) return;
 
@@ -1668,7 +1627,7 @@ const Chat = () => {
 
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-    const messagesWithSenders: GroupMessage[] = (data || []).map(m => ({
+    const messagesWithSenders: GroupMessage[] = (data || []).reverse().map(m => ({
       ...m,
       sender: profilesMap.get(m.sender_id) || null
     }));
@@ -1684,13 +1643,12 @@ const Chat = () => {
 
     emitGlobalUnreadRefresh({ messagesDecrement: 1 });
     
-    // Refresh conversations list to update unread count
-    fetchConversations();
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
     setSelectedConversation(conv);
     setSelectedGroup(null);
+    setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     setOtherUserTrader({ isTrader: false, traderLevel: 0 });
     await fetchMessages(conv.id);
     
@@ -1711,6 +1669,7 @@ const Chat = () => {
   const handleSelectGroup = (group: Group) => {
     setSelectedGroup(group);
     setSelectedConversation(null);
+    setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     fetchGroupMessages(group.id);
   };
 

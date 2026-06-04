@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
 
-const MAX_FRAMES = 200;
+const MAX_FRAMES = 48;
 let started = false;
 
 function classify(url: string): 'svga' | 'lottie' | 'image' | 'video' | 'unknown' {
@@ -82,14 +82,14 @@ export async function prewarmActiveFrames(): Promise<void> {
     // Image frames → service-worker warm (cheap, batched)
     pushImageWarm(imageUrls);
 
-    // SVGA binaries → Cache API. Serial to avoid bandwidth burst.
-    for (const url of svgaUrls.slice(0, 80)) {
+    // SVGA binaries → Cache API. Tiny cap only; do not flood low-end phones.
+    for (const url of svgaUrls.slice(0, 8)) {
       try { await fetchWithBinaryCache(url); } catch { /* ignore */ }
     }
 
     // Lottie JSON → in-memory cache.
     await Promise.allSettled(
-      lottieUrls.slice(0, 80).map((u) => fetchLottieCached(u).catch(() => null)),
+      lottieUrls.slice(0, 8).map((u) => fetchLottieCached(u).catch(() => null)),
     );
   } catch {
     // best-effort only

@@ -25,7 +25,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
-import AdminAuth from "./pages/admin/AdminAuth";
+const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
 // =============================================
@@ -56,10 +56,10 @@ const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import EventPopupBanner from "./components/common/EventPopupBanner";
-import DailyLoginPopup from "./components/rewards/DailyLoginPopup";
-import WelcomeOnboarding from "./components/onboarding/WelcomeOnboarding";
-import RatingRewardPopup from "./components/rewards/RatingRewardPopup";
+const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
+const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
+const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
+const RatingRewardPopup = lazy(lazyRetry(() => import("./components/rewards/RatingRewardPopup")));
 const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // LAZY LOADED PAGES - Load on demand
@@ -669,16 +669,11 @@ const App = () => {
     const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
-    const imageIdleId = window.setTimeout(() => import('@/utils/registerImageCacheSW').then(m => {
-      m.registerImageCacheSW().then(() => m.warmAppImageCache());
+    const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
+      m.registerImageCacheSW();
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
-    }).catch(() => {}), 0);
-
-    // Pkg371 — Preload every bundled banner asset (Recharge / Invitation /
-    // Agency Dashboard / PayrollHelperGuide / AgencyPolicy / Shop / VIP …)
-    // so the first paint of any banner section is instant.
-    import('@/utils/preloadAppBanners').then(m => m.preloadAppBanners()).catch(() => {});
+    }).catch(() => {}), 5000);
 
     // Clear stale-chunk auto-reload guard on a successful boot so the next
     // post-deploy chunk failure can also self-heal exactly once.
@@ -698,10 +693,10 @@ const App = () => {
     // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
     // sent in any room/call/chat plays with zero network delay on the receiver side.
     const giftIdleId = idle(() => {
-      import('@/utils/giftAnimationPrewarm')
-        .then(m => m.prewarmGiftAnimations())
+      import('@/hooks/useGiftPrefetch')
+        .then(m => m.prefetchGifts())
         .catch(() => {});
-    }, 1500);
+    }, 3500);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
@@ -709,7 +704,7 @@ const App = () => {
       import('@/utils/frameBulkPrewarm')
         .then(m => m.prewarmActiveFrames())
         .catch(() => {});
-    }, 2500);
+    }, 12000);
 
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
@@ -724,7 +719,7 @@ const App = () => {
 
     return () => {
       cancelIdle(routeIdleId);
-      window.clearTimeout(imageIdleId);
+      cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
       cancelIdle(framesIdleId);

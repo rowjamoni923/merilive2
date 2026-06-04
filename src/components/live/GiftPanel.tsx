@@ -195,13 +195,18 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       // Pkg C pass-2 — prewarm visible gift assets so first tap plays instantly.
       // sessionPrewarmed dedupes inside the util, so repeat opens are cheap.
       const assets: Array<string | null | undefined> = [];
-      transformedGifts.forEach(g => {
+      transformedGifts.slice(0, 12).forEach(g => {
         assets.push(g.animation_url);
         assets.push(g.icon_url);
       });
-      import('@/utils/giftAnimationPrewarm')
+      const runPrewarm = () => import('@/utils/giftAnimationPrewarm')
         .then(m => m.prewarmGiftAssets(assets))
         .catch(() => {});
+      const w = window as Window & {
+        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      };
+      if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(runPrewarm, { timeout: 2500 });
+      else window.setTimeout(runPrewarm, 900);
     };
 
     const unsubscribe = subscribeToGiftCache(() => {
@@ -413,8 +418,6 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           isVisible ? "opacity-100" : "opacity-0"
         )}
         style={{ 
-          WebkitBackdropFilter: 'blur(8px)', 
-          backdropFilter: 'blur(8px)',
           WebkitTapHighlightColor: 'transparent',
           transition: 'opacity 200ms ease-out',
           pointerEvents: isVisible ? 'auto' : 'none'
