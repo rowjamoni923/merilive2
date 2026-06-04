@@ -1326,11 +1326,11 @@ const VIP = () => {
                                 className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
                                 style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
                               />
-                              {priv.preview_url ? (
+                              {priv.preview_url && priv.category !== 'frame' && priv.category !== 'portrait_frame' ? (
                                 <img 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-[85%] h-[85%] object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
+                                  className="w-full h-full object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
                                   loading="eager"
                                 />
                               ) : (

@@ -207,11 +207,11 @@ const ShopItemCard = ({
         />
 
         <div className="w-full h-full flex items-center justify-center">
-          {item.preview_url ? (
+          {item.preview_url && item.category !== 'frame' && item.category !== 'portrait_frame' ? (
             <img 
               src={item.preview_url} 
               alt={item.name}
-              className="w-[85%] h-[85%] object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
+              className="w-full h-full object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
               onError={() => setImageError(true)}
               loading="eager"
             />
