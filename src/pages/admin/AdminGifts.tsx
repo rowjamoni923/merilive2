@@ -1089,112 +1089,70 @@ export default function AdminGifts() {
               </div>
             )}
 
-            {/* Icon Upload - Primary Upload Button (SVGA/Lottie supported) */}
+            {/* ========== SYSTEM 1 — STATIC ICON (SVG / PNG / JPG / GIF / WebP) ========== */}
             <div className="border-2 border-dashed border-pink-500/50 rounded-xl p-3 md:p-4 bg-pink-500/5">
-              <Label className="text-pink-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
+              <Label className="text-pink-400 font-medium text-sm md:text-base flex items-center gap-2 mb-1">
                 <Heart className="w-4 h-4" />
-                Gift Icon (PNG/JPG/GIF/WEBP/SVGA/Lottie)
+                Static Icon (SVG / PNG / JPG / GIF / WebP)
               </Label>
-              
+              <p className="text-[11px] text-pink-300/70 mb-3">
+                Small thumbnail shown in gift panels & history. Use the Pro Animation section below for VAP / SVGA / Lottie / MP4.
+              </p>
+
               {formData.icon_url ? (
                 <div className="p-3 md:p-4 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-pink-500/30">
                   <div className="flex items-center gap-3 md:gap-4">
                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
                       {formData.icon_url.startsWith('http') ? (
-                        // Check if it's an SVGA or Lottie animation
-                        isSVGA(formData.icon_url) ? (
-                          <UniversalFramePlayer
-                            src={formData.icon_url}
-                            type="svga"
-                            className="w-full h-full"
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        ) : isLottie(formData.icon_url) ? (
-                          <UniversalFramePlayer
-                            src={formData.icon_url}
-                            type="lottie"
-                            className="w-full h-full"
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        ) : (
-                          <SmartImage src={formData.icon_url} alt="Icon" cdnWidth={128} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
-                        )
+                        <SmartImage src={formData.icon_url} alt="Icon" cdnWidth={128} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
                         <span className="text-4xl md:text-5xl">{formData.icon_url}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-pink-300 flex items-center gap-2">
+                      <p className="text-sm font-bold text-pink-300 flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-500" />
-                        {formData.icon_url.startsWith('http') 
-                          ? (isSVGA(formData.icon_url) 
-                              ? 'SVGA Animation ✓' 
-                              : isLottie(formData.icon_url) 
-                                ? 'Lottie Animation ✓' 
-                                : 'Image Icon ✓')
-                          : 'Emoji Icon ✓'
-                        }
+                        {formData.icon_url.startsWith('http') ? 'Image Icon ✓' : 'Emoji Icon ✓'}
                       </p>
                       <p className="text-xs text-pink-400 truncate mt-1">
-                        {formData.icon_url.startsWith('http') 
-                          ? formData.icon_url.split('/').pop() 
-                          : 'Text Emoji - Upload file to replace'}
+                        {formData.icon_url.startsWith('http')
+                          ? formData.icon_url.split('/').pop()
+                          : 'Text Emoji'}
                       </p>
-                      {formData.icon_url.startsWith('http') && (
-                        <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          {isSVGA(formData.icon_url) || isLottie(formData.icon_url) 
-                            ? 'Animated icon will show in gift panels'
-                            : 'Static image icon'}
-                        </p>
-                      )}
                     </div>
                     <Button
                       size="icon"
                       variant="destructive"
                       className="w-8 h-8"
-                      onClick={() => setFormData(prev => ({ ...prev, icon_url: "", animation_url: prev.animation_url === prev.icon_url ? "" : prev.animation_url }))}
+                      onClick={() => setFormData(prev => ({ ...prev, icon_url: "" }))}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {/* Upload Button - Now accepts SVGA/Lottie too */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-16 md:h-20 border-2 border-pink-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-pink-400 flex flex-col items-center justify-center gap-2"
-                    onClick={() => iconInputRef.current?.click()}
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-sm">Uploading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-6 h-6" />
-                        <div className="text-center">
-                          <p className="text-sm font-semibold">Upload Icon / Animation</p>
-                          <p className="text-xs text-pink-500">PNG, JPG, GIF, SVGA, Lottie JSON (max 100MB)</p>
-                        </div>
-                      </>
-                    )}
-                  </Button>
-                  
-                  {/* Info about SVGA replacing emoji */}
-                  <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/30">
-                    <p className="text-xs text-green-400 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      <strong>Tip:</strong> Upload SVGA/Lottie file here to replace emoji with animated icon
-                    </p>
-                  </div>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-16 md:h-20 border-2 border-pink-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-pink-400 flex flex-col items-center justify-center gap-2"
+                  onClick={() => iconInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6" />
+                      <div className="text-center">
+                        <p className="text-sm font-semibold">Upload Static Icon</p>
+                        <p className="text-xs text-pink-500">SVG, PNG, JPG, GIF, WebP (max 50MB)</p>
+                      </div>
+                    </>
+                  )}
+                </Button>
               )}
             </div>
 
