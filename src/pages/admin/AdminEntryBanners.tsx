@@ -42,6 +42,7 @@ import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteTog
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 
 const adminCardClass = adminStyles.card;
 const adminInputClass = adminStyles.input;
