@@ -204,7 +204,10 @@ export const AnimationUploader: React.FC<Props> = ({
         // 3. Complete
         const compRes = await fetch(R2_FUNCTION_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-admin-token': getAdminSessionToken() 
+          },
           body: JSON.stringify({ action: 'complete-multipart', uploadId, key, parts: results }),
         });
         const { url, success: compSuccess, error: compError } = await compRes.json();
