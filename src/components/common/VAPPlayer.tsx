@@ -83,7 +83,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
-  const webglPaintedRef = useRef(false);
+  const [webglPainted, setWebglPainted] = useState(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -215,7 +215,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
-      webglPaintedRef.current = true;
+      setWebglPainted(true);
       onLoadRef.current?.();
       return;
     }
@@ -298,14 +298,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 3 && v.currentTime !== lastVideoTimeRef.current) {
+      if (!v.paused && !v.ended && v.readyState >= 2 && v.videoWidth > 0 && v.currentTime !== lastVideoTimeRef.current) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          webglPaintedRef.current = true;
+          if (!webglPainted) setWebglPainted(true);
         } catch (e) {
           setUseVideoFallback(true);
           return;
@@ -431,7 +431,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         <canvas 
           ref={canvasRef} 
           className="w-full h-full object-contain pointer-events-none"
-          style={{ opacity: webglPaintedRef.current ? 1 : 0 }}
+          style={{ opacity: webglPainted ? 1 : 0 }}
         />
       )}
     </div>
