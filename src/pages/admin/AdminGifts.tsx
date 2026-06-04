@@ -1533,13 +1533,13 @@ export default function AdminGifts() {
                 if (!url) return <p className="text-white/50">No animation file</p>;
                 const fmt = ((fullscreenPreviewGift as any).animation_format || '').toLowerCase();
                 const configUrl = (fullscreenPreviewGift as any).animation_config_url || undefined;
-                if (fmt === 'vap') return <FixedAnimationFrame src={url} type="vap" configSrc={configUrl} size="fill" center={false} loop muted />;
-                if (fmt === 'mp4' || fmt === 'webm') return <FixedAnimationFrame src={url} type={fmt} size="fill" center={false} loop muted />;
-                if (isSVGA(url)) return <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />;
-                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
+                if (fmt === 'vap') return <FixedAnimationFrame src={url} type="vap" configSrc={configUrl} size="fill" center={false} loop muted={false} volume={1.0} />;
+                if (fmt === 'mp4' || fmt === 'webm') return <FixedAnimationFrame src={url} type={fmt} size="fill" center={false} loop muted={false} volume={1.0} />;
+                if (isSVGA(url)) return <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} volume={1.0} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} volume={1.0} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
                   ? <SmartImage src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
-                  : <FixedAnimationFrame src={url} type="mp4" size="fill" center={false} loop muted />;
+                  : <FixedAnimationFrame src={url} type="mp4" size="fill" center={false} loop muted={false} volume={1.0} />;
                 return <SmartImage src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>

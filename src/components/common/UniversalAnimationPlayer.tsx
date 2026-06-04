@@ -9,11 +9,11 @@ import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
 import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 
-// Lazy load animation players for better performance
-const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
-const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
-const VAPPlayer = lazy(() => import('./VAPPlayer'));
-const PAGPlayer = lazy(() => import('./PAGPlayer'));
+// Use direct imports for professional "instant" feel in gift-heavy sections
+import SVGAPlayer from './SVGAPlayer';
+import SVGAPlayerWithAudio from './SVGAPlayerWithAudio';
+import VAPPlayer from './VAPPlayer';
+import PAGPlayer from './PAGPlayer';
 
 export type AnimationType = 'svga' | 'lottie' | 'vap' | 'pag' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
@@ -96,7 +96,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.7,
+  volume = 0.8, // Increased default volume for professional feel
   onLoad,
   onError,
   onComplete,

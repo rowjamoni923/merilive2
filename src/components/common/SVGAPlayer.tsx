@@ -22,7 +22,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   style,
   loop = true,
   autoPlay = true,
-  muted = true,
+  muted = false,
   onLoad,
   onError,
   onComplete,

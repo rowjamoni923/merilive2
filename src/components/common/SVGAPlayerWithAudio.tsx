@@ -330,8 +330,9 @@ function playAudioSegment(
           // Fallback to HTML5
           playHTML5Audio(audioData, mimeType, volume, loop, audiosRef);
         },
-        onplayerror: () => {
-          howl.once('unlock', () => howl.play());
+        onplayerror: (id: any) => {
+          const howl = howlsRef.current.find(h => h.hasOwnProperty('_id') && (h as any)._id === id) || howlsRef.current[howlsRef.current.length - 1];
+          if (howl) howl.once('unlock', () => howl.play());
         },
       });
       howlsRef.current.push(howl);
