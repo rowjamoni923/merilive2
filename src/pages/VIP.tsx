@@ -1285,8 +1285,8 @@ const VIP = () => {
             <div className="space-y-6">
               {/* Reusable privilege item renderer */}
               {[
-                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-500" />, bgFrom: 'from-purple-50', bgTo: 'to-pink-50', ringColor: 'hover:ring-purple-300/60', delay: 0.1 },
-                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-500" />, bgFrom: 'from-pink-50', bgTo: 'to-purple-50', ringColor: 'hover:ring-pink-300/60', delay: 0.15 },
+                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-amber-100', ringColor: 'hover:ring-amber-300/60', delay: 0.1 },
+                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-500" />, bgFrom: 'from-purple-50', bgTo: 'to-purple-100', ringColor: 'hover:ring-purple-300/60', delay: 0.15 },
                 { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-orange-50', ringColor: 'hover:ring-amber-300/60', delay: 0.2 },
                 { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-blue-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.25 },
                 { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-600" />, bgFrom: 'from-emerald-50', bgTo: 'to-teal-50', ringColor: 'hover:ring-emerald-300/60', delay: 0.3 },
@@ -1304,18 +1304,18 @@ const VIP = () => {
                       <span className="text-heading">{title}</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3 justify-center">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleEquip(priv)}
-                          className="flex flex-col items-center"
+                          className="flex flex-col items-center w-full"
                         >
-                          <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
+                          <div className={`relative w-full aspect-square rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all ${
                             priv.is_equipped 
                                 ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                                : `ring-1 ring-white/10 ${ringColor}`
+                                : `ring-1 ring-amber-200/50 ${ringColor}`
                           }`}>
                             <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
                               <FixedAnimationFrame
