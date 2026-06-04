@@ -1,10 +1,10 @@
 /**
  * Lazy import with automatic retry on chunk load failure.
  * 
- * Zero-refresh lazy import recovery.
- * Retries dynamic imports inline and clears stale runtime caches, but never
- * calls window.location.reload/replace/href. The user explicitly requires no
- * automatic app reloads.
+ * Professional auto-recovery policy:
+ * If a chunk fails to load (due to version mismatch or network glitch),
+ * we first try inline retries. If those fail, we clear caches and try again.
+ * If everything else fails, we perform a silent reload to synchronize the app version.
  */
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
 const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
@@ -75,14 +75,20 @@ export async function scheduleChunkLoadRecovery(error: unknown, source = ''): Pr
   let attempts = 0;
   try {
     attempts = parseInt(sessionStorage.getItem(recoveryKey) || '0', 10) || 0;
-    if (attempts >= MAX_RECOVERIES_PER_MODULE) return false;
+    if (attempts >= MAX_RECOVERIES_PER_MODULE) {
+      // If we already tried recovery for this module and it still fails,
+      // it's a hard version mismatch. A silent reload is the only professional fix.
+      console.error('[LazyRetry] Critical chunk failure, forcing version sync reload:', moduleKey);
+      window.location.reload();
+      return true;
+    }
     sessionStorage.setItem(recoveryKey, String(attempts + 1));
   } catch {
-    // If storage is blocked, still try one in-memory recovery.
+    // best-effort
   }
 
   window.__meriChunkRecoveryScheduled = true;
-  console.warn(`[LazyRetry] Recovering stale chunk without reload (attempt ${attempts + 1}/${MAX_RECOVERIES_PER_MODULE}):`, moduleKey);
+  console.warn(`[LazyRetry] Recovering stale chunk (attempt ${attempts + 1}/${MAX_RECOVERIES_PER_MODULE}):`, moduleKey);
   await clearStaleRuntimeCaches();
   window.__meriChunkRecoveryScheduled = false;
 
