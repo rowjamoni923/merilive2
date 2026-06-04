@@ -298,7 +298,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 2 && v.videoWidth > 0 && v.currentTime !== lastVideoTimeRef.current) {
+      if (!v.ended && v.readyState >= 2 && v.videoWidth > 0 && (v.currentTime !== lastVideoTimeRef.current || !webglPainted)) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
@@ -366,15 +366,18 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     
     // Pkg-fix: Add safety completion timer for non-looping VAP
     // If the video ended event doesn't fire, we force completion after duration + 1s.
-    if (!loop && video.duration > 0) {
+    if (!loop) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      const fallbackMs = Number.isFinite(video.duration) && video.duration > 0
+        ? Math.min(Math.max(video.duration * 1000 + 1200, 4000), 65000)
+        : 12000;
       completionTimerRef.current = setTimeout(() => {
         if (mountedRef.current && !completedRef.current) {
           console.warn('[VAPPlayer] ⚠️ Safety timer triggered for', src.split('/').pop());
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, (video.duration * 1000) + 1000);
+      }, fallbackMs);
     }
 
     if (!isComposite) {
@@ -406,6 +409,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   if (error) return <div className={cn("bg-transparent", className)} />;
 
+  const fallbackStyle: React.CSSProperties = useVideoFallback ? {
+    position: 'absolute',
+    top: `${-(fallbackCrop[1] / Math.max(fallbackCrop[3], 0.0001)) * 100}%`,
+    left: `${-(fallbackCrop[0] / Math.max(fallbackCrop[2], 0.0001)) * 100}%`,
+    width: `${(1 / Math.max(fallbackCrop[2], 0.0001)) * 100}%`,
+    height: `${(1 / Math.max(fallbackCrop[3], 0.0001)) * 100}%`,
+    maxWidth: 'none',
+    maxHeight: 'none',
+    objectFit: 'fill',
+  } : {};
+
   return (
     <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
       {loading && <div className="absolute inset-0 bg-transparent" />}
@@ -417,12 +431,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         muted={muted}
         playsInline
         crossOrigin="anonymous"
-        className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "relative opacity-100 w-full h-full object-cover")}
-        style={useVideoFallback ? {
-          objectPosition: `${-(fallbackCrop[0] * 100)}% 0`,
-          width: `${(1 / fallbackCrop[2]) * 100}%`,
-          maxWidth: 'none'
-        } : {}}
+        className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "opacity-100")}
+        style={fallbackStyle}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onEnded={() => !loop && onCompleteRef.current?.()}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
