@@ -38,34 +38,29 @@ async function clearStaleRuntimeCaches() {
   try {
     if (typeof caches !== 'undefined') {
       const keys = await caches.keys();
-      await Promise.all(keys
-        .filter((key) => /^(meri-assets-|workbox-|vite-|precache-|runtime-)/i.test(key))
-        .map((key) => caches.delete(key)));
+      await Promise.all(keys.map((key) => caches.delete(key)));
     }
   } catch {
     // best-effort only
   }
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      // Clear specific cache keys but preserve auth
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('cache') || key.includes('query') || key.includes('vite'))) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  } catch {}
 
   try {
     navigator.serviceWorker?.controller?.postMessage({ type: 'MERI_CLEAR_APP_ASSET_CACHE' });
   } catch {
     // best-effort only
   }
-
-  // Pkg360 NO-AUTO-REFRESH: removed aggressive service-worker unregistration.
-  // Unregistering SWs forces the browser to bypass caches on next request,
-  // which can look like a flash or refresh to the user. We now rely on
-  // the SW itself to update in the background without interrupting the UI.
-  /*
-  try {
-    if (typeof navigator !== 'undefined' && navigator.serviceWorker?.getRegistrations) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
-    }
-  } catch {
-    // best-effort only
-  }
-  */
 }
 
 const MAX_RECOVERIES_PER_MODULE = 1;
@@ -91,7 +86,7 @@ export async function scheduleChunkLoadRecovery(error: unknown, source = ''): Pr
   await clearStaleRuntimeCaches();
   window.__meriChunkRecoveryScheduled = false;
 
-  return false;
+  return true;
 }
 
 /** Called from ErrorBoundary "Try Again" — wipe per-module recovery counters
