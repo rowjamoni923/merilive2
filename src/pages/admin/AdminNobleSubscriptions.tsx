@@ -238,7 +238,7 @@ const AdminNobleSubscriptions = () => {
                   )}
                   {card.custom_avatar_frame_url && (
                     <div className="w-14 h-14 bg-slate-800 rounded overflow-hidden">
-                      <FixedAnimationFrame size="fill" center={false} src={card.custom_avatar_frame_url}  loop />
+                      <FixedAnimationFrame size="card" center={true} src={card.custom_avatar_frame_url}  loop />
                     </div>
                   )}
                 </div>
