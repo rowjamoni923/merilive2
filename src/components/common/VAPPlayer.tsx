@@ -310,6 +310,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         try {
           await ensureAudioUnlocked();
           if (!mountedRef.current || !videoRef.current) return;
+          
+          if (!muted && soundUrl) {
+            console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
+            const { playSoundUrl } = await import('@/utils/soundPlayer');
+            playSoundUrl(soundUrl, { volume: volume, loop, maxConcurrent: 2 });
+          }
+
           videoRef.current.muted = muted;
           videoRef.current.volume = volume;
           await videoRef.current.play();
