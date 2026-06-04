@@ -337,6 +337,8 @@ export function ActiveCallScreen({
         giftIcon: "🎁",
         giftImageUrl: detail.giftIconUrl || undefined,
         animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || undefined,
+        animationFormat: detail.giftAnimationFormat || null,
+        animationConfigUrl: detail.giftAnimationConfigUrl || undefined,
         soundUrl: detail.giftSoundUrl || undefined,
         giftColor: "bg-pink-500/50",
         count: detail.count || 1,
