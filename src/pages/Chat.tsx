@@ -183,7 +183,7 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
-    .replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ')
+    .replace(/\[Gift:\s*[^\|\s\]]+\|/i, '[Gift: ')
     // Strip optional trailing |snd:URL field before final ] so preview regex matches
     .replace(/\|\s*snd:[^\|\]]+/i, '');
 
