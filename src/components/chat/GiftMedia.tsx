@@ -80,5 +80,3 @@ export const GiftMedia = ({ url, sizeClass = "w-10 h-10", className }: GiftMedia
 };
 
 export default GiftMedia;
-
-export default GiftMedia;
