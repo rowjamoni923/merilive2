@@ -340,32 +340,45 @@ const Shop = () => {
       if (!user) { navigate("/auth"); return; }
       setCurrentUserId(user.id);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
-        .eq("id", user.id)
-        .single();
+      const [profileResult, shopItemsResult, partyBgResult, purchasesResult, purchasedBgResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("shop_items")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order"),
+        supabase
+          .from("party_room_backgrounds")
+          .select("*")
+          .eq("is_active", true)
+          .eq("is_premium", true)
+          .not("image_url", "is", null)
+          .order("display_order"),
+        supabase
+          .from("user_purchases")
+          .select("id, item_id, is_equipped, expires_at")
+          .eq("user_id", user.id)
+          .eq("is_active", true),
+        supabase
+          .from("user_purchased_backgrounds" as any)
+          .select("id, background_id, is_active")
+          .eq("user_id", user.id)
+          .eq("is_active", true) as any
+      ]);
 
-      if (profile) {
-        setUserDiamonds(profile.coins || 0);
-        setUserLevel(profile.user_level || 0);
-        setUserAvatar(profile.avatar_url);
-        setUserFrameId(profile.frame_id);
+      if (profileResult.data) {
+        setUserDiamonds(profileResult.data.coins || 0);
+        setUserLevel(profileResult.data.user_level || 0);
+        setUserAvatar(profileResult.data.avatar_url);
+        setUserFrameId(profileResult.data.frame_id);
       }
 
-      const { data: shopItems } = await supabase
-        .from("shop_items")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order");
-
-      const { data: partyBackgrounds } = await supabase
-        .from("party_room_backgrounds")
-        .select("*")
-        .eq("is_active", true)
-        .eq("is_premium", true)
-        .not("image_url", "is", null)
-        .order("display_order");
+      const shopItems = shopItemsResult.data;
+      const partyBackgrounds = partyBgResult.data;
 
       const allItems: ShopItem[] = [];
       if (shopItems) {
@@ -400,17 +413,8 @@ const Shop = () => {
       }
       setItems(allItems);
 
-      const { data: userPurchases } = await supabase
-        .from("user_purchases")
-        .select("id, item_id, is_equipped, expires_at")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
-
-      const { data: purchasedBgs } = await (supabase
-        .from("user_purchased_backgrounds" as any)
-        .select("id, background_id, is_active")
-        .eq("user_id", user.id)
-        .eq("is_active", true) as any);
+      const userPurchases = purchasesResult.data;
+      const purchasedBgs = purchasedBgResult.data;
 
       const allPurchases: UserPurchase[] = [];
       if (userPurchases) allPurchases.push(...(userPurchases as UserPurchase[]));
