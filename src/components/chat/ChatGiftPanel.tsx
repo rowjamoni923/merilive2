@@ -7,6 +7,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
