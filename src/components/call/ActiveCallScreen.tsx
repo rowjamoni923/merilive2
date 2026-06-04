@@ -1036,7 +1036,15 @@ export function ActiveCallScreen({
                     >
                       {msg.senderName}
                     </span>
-                    <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
+                    {isGiftUrl(msg.message) ? (
+                      <div className="flex flex-col items-center gap-1 py-1">
+                        <img src={normalizeGiftMediaUrl(msg.message) || ''} alt="Gift" className="w-16 h-16 object-contain" />
+                        <span className="text-[9px] text-pink-300 font-bold italic">sent a gift</span>
+                      </div>
+                    ) : (
+                      <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
+                    )}
+
                   </div>
                 </motion.div>
               );
