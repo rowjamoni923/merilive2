@@ -404,8 +404,8 @@ export default function AdminGifts() {
     try {
       let publicUrl: string;
       
-      // Use R2 for files > 5MB to take advantage of parallel binary upload speed
-      const useR2 = file.size > 5 * 1024 * 1024;
+      // Use R2 only for very large files (> 50MB) to avoid frequent handshake failures
+      const useR2 = file.size > 50 * 1024 * 1024;
       
       if (useR2) {
         // Try R2 silently; on any failure, fall through to Supabase without alarming the user
