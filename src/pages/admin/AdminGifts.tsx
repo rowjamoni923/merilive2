@@ -276,7 +276,7 @@ export default function AdminGifts() {
 
   const uploadToR2Multipart = async (file: File, folder: string, onProgress?: (pct: number) => void): Promise<string> => {
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
-    console.log(`[R2 Multipart] Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB, ${totalParts} parts)`);
+    console.log(`[R2 Fast Upload] Starting: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB, ${totalParts} parts)`);
     
     // Step 1: Initialize multipart upload
     const initResponse = await fetch(R2_FUNCTION_URL, {
@@ -297,54 +297,56 @@ export default function AdminGifts() {
     }
     
     const { uploadId, key } = initResult;
-    console.log(`[R2 Multipart] Initialized: uploadId=${uploadId.substring(0, 20)}..., key=${key}`);
-    
     const uploadedParts: { PartNumber: number; ETag: string }[] = [];
     
-    // Step 2: Upload each part via edge function proxy (avoids CORS)
-    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+    // Step 2: Upload each part using the NEW FAST BINARY endpoint
+    // We'll use a pool of concurrent uploads (3 at a time) for maximum speed
+    const CONCURRENCY = 3;
+    const parts = Array.from({ length: totalParts }, (_, i) => i + 1);
+    const results: { partNumber: number; etag: string }[] = [];
+    let completedCount = 0;
+
+    const uploadPartWithRetry = async (partNumber: number, retryCount = 0): Promise<void> => {
       const start = (partNumber - 1) * CHUNK_SIZE;
       const end = Math.min(start + CHUNK_SIZE, file.size);
       const chunk = file.slice(start, end);
       
-      // Convert chunk to base64 for JSON transport
-      const arrayBuffer = await chunk.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
+      try {
+        // Use binary fetch - NO BASE64 loop!
+        const uploadUrl = `${R2_FUNCTION_URL}?action=upload-part&uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNumber}`;
+        
+        const response = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/octet-stream',
+            'x-admin-token': getAdminSessionToken() 
+          },
+          body: chunk, // Send Blob/File directly as binary body
+        });
+        
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.error || `Part ${partNumber} failed`);
+        
+        results.push({ partNumber, etag: result.etag });
+        completedCount++;
+        onProgress?.(Math.round((completedCount / totalParts) * 95));
+      } catch (err) {
+        if (retryCount < 2) {
+          console.warn(`Retrying part ${partNumber}...`, err);
+          return uploadPartWithRetry(partNumber, retryCount + 1);
+        }
+        throw err;
       }
-      const base64 = btoa(binary);
-      
-      // Upload part via edge function proxy
-      const uploadResponse = await fetch(R2_FUNCTION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
-        body: JSON.stringify({
-          action: 'upload-part',
-          uploadId,
-          key,
-          partNumber,
-          partData: base64,
-        }),
-      });
-      
-      const uploadResult = await uploadResponse.json();
-      if (!uploadResponse.ok || !uploadResult.success) {
-        throw new Error(uploadResult.error || `Failed to upload part ${partNumber}`);
-      }
-      
-      uploadedParts.push({ PartNumber: partNumber, ETag: uploadResult.etag });
-      
-      const progress = Math.round((partNumber / totalParts) * 95);
-      onProgress?.(progress);
-      console.log(`[R2 Multipart] Part ${partNumber}/${totalParts} uploaded (ETag: ${uploadResult.etag})`);
+    };
+
+    // Process parts with concurrency
+    for (let i = 0; i < parts.length; i += CONCURRENCY) {
+      const batch = parts.slice(i, i + CONCURRENCY);
+      await Promise.all(batch.map(p => uploadPartWithRetry(p)));
     }
     
     // Step 3: Complete the multipart upload
-    console.log('[R2 Multipart] All parts uploaded, completing...');
     onProgress?.(98);
-    
     const completeResponse = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
@@ -352,7 +354,7 @@ export default function AdminGifts() {
         action: 'complete-multipart',
         uploadId,
         key,
-        parts: uploadedParts,
+        parts: results.map(r => ({ PartNumber: r.partNumber, ETag: r.etag })),
       }),
     });
     
@@ -362,7 +364,6 @@ export default function AdminGifts() {
     }
     
     onProgress?.(100);
-    console.log(`[R2 Multipart] Upload complete: ${completeResult.url}`);
     return completeResult.url;
   };
 
@@ -392,9 +393,9 @@ export default function AdminGifts() {
     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
     console.log(`[Upload] Starting ${type} upload: ${file.name} (${fileSizeMB}MB)`);
     
-    // Validate file size (max 150MB)
-    if (file.size > 150 * 1024 * 1024) {
-      toast.error("File size must be less than 150MB");
+    // Validate file size (max 500MB for high-res VAP/Vibe animations)
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error("File size must be less than 500MB");
       return;
     }
 
@@ -404,8 +405,8 @@ export default function AdminGifts() {
     try {
       let publicUrl: string;
       
-      // Use R2 for files > 50MB (Supabase limit), Supabase for smaller files
-      const useR2 = file.size > 50 * 1024 * 1024;
+      // Use R2 for files > 5MB to take advantage of parallel binary upload speed
+      const useR2 = file.size > 5 * 1024 * 1024;
       
       if (useR2) {
         // Upload to Cloudflare R2 using S3 multipart upload (bypasses memory limit)
