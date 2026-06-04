@@ -377,7 +377,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   // Video (MP4/WebM)
   if (animationType === 'mp4' || animationType === 'webm') {
     return (
-      <div className={cn("relative", className)}>
+      <div ref={containerRef} className={cn("relative", className)}>
+
         {!mediaLoaded && (
           <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
         )}
