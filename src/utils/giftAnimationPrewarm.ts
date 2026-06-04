@@ -14,6 +14,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA, prewarmPopularAssets } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
+import { markVapCompositeHint } from '@/utils/vapDetection';
 
 const MAX_GIFTS = 60;
 let started = false;
@@ -70,6 +71,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
     const imageUrls: string[] = [];
     const svgaUrls: string[] = [];
     const lottieUrls: string[] = [];
+    const videoUrls: string[] = [];
     for (const row of rows as any[]) {
       const candidates = [row.svga_url, row.lottie_url, row.animation_url, row.icon_url, row.preview_url].filter(Boolean) as string[];
       for (const url of candidates) {
@@ -77,9 +79,15 @@ export async function prewarmGiftAnimations(): Promise<void> {
           case 'svga': svgaUrls.push(url); break;
           case 'lottie': lottieUrls.push(url); break;
           case 'image': imageUrls.push(url); break;
+          case 'video': videoUrls.push(url); break;
           default: break;
         }
       }
+    }
+
+    for (const row of rows as any[]) {
+      const fmt = String(row.animation_format || row.animation_type || '').toLowerCase();
+      if (fmt === 'vap' && row.animation_url) markVapCompositeHint(row.animation_url, true);
     }
 
 
@@ -95,9 +103,29 @@ export async function prewarmGiftAnimations(): Promise<void> {
     await Promise.allSettled(
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
+
+    // MP4/WebM gift files are large, so only warm browser metadata for the top
+    // few. This primes the HTTP cache + VAP hint without downloading every gift.
+    videoUrls.slice(0, 6).forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
   }
+}
+
+function warmVideoMetadata(url: string) {
+  if (typeof document === 'undefined') return;
+  try {
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.playsInline = true;
+    v.crossOrigin = 'anonymous';
+    v.src = url;
+    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
+    v.onloadedmetadata = () => cleanup();
+    v.onerror = () => cleanup();
+    v.load();
+  } catch {}
 }
 
 /**
@@ -113,6 +141,7 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   const svgaUrls: string[] = [];
   const lottieUrls: string[] = [];
   const imageUrls: string[] = [];
+  const videoUrls: string[] = [];
 
   for (const raw of urls) {
     if (!raw || typeof raw !== 'string') continue;
@@ -122,6 +151,7 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
       case 'svga': svgaUrls.push(raw); break;
       case 'lottie': lottieUrls.push(raw); break;
       case 'image': imageUrls.push(raw); break;
+      case 'video': videoUrls.push(raw); break;
       default: break;
     }
   }
@@ -136,4 +166,5 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
+  videoUrls.slice(0, 4).forEach((u) => warmVideoMetadata(u));
 }
