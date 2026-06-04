@@ -443,7 +443,7 @@ const AdminChatBubbles = () => {
 
             {formData.animation_url && (
               <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                <FixedAnimationFrame size="fill" center={false}
+                <FixedAnimationFrame size="card" center={true}
                   src={formData.animation_url}
                   
                   loop
