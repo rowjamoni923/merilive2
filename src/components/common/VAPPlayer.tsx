@@ -151,8 +151,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         );
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Use the luminance of alpha region as alpha value
-        float alpha = alphaColor.r;
+        // Use inverted luminance so both common Tencent exports work:
+        // black matte = transparent, white matte = visible.
+        float alpha = 1.0 - alphaColor.r;
         
         gl_FragColor = vec4(rgbColor.rgb, alpha);
       }
@@ -277,9 +278,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w;
       canvas.height = cfg.h;
     } else {
-      // Auto-detect: assume side-by-side (RGB left, Alpha right)
-      rgbRect = [0, 0, 0.5, 1];
-      alphaRect = [0.5, 0, 0.5, 1];
+      // Auto-detect: Tencent VAP exports are usually side-by-side. Some tools
+      // export RGB-left/alpha-right, others (like the verified horse sample)
+      // export alpha-left/RGB-right. Pick the more colourful half as RGB.
+      rgbRect = [0.5, 0, 0.5, 1];
+      alphaRect = [0, 0, 0.5, 1];
       
       canvas.width = videoWidth / 2;
       canvas.height = videoHeight;
