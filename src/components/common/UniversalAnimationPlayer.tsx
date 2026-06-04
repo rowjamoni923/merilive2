@@ -439,7 +439,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 
   // GIF / WebP / PNG (Image-based animations)
   return (
-    <div className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", className)}>
+
       {!mediaLoaded && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
