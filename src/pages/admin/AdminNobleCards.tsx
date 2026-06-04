@@ -12,6 +12,7 @@ import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, CreditCard } from "lucide-r
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface NobleCardItem {
@@ -37,6 +38,8 @@ const AdminNobleCards = () => {
     level: 1,
     name: '',
     animation_url: '',
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: '' as string,
     preview_url: '',
     is_active: true
   });
@@ -156,7 +159,7 @@ const AdminNobleCards = () => {
 
   const openAddDialog = () => {
     setEditingItem(null);
-    setFormData({ level: 1, name: '', animation_url: '', preview_url: '', is_active: true });
+    setFormData({ level: 1, name: '', animation_url: '', animation_format: null, animation_config_url: '', preview_url: '', is_active: true });
     setDialogOpen(true);
   };
 
@@ -164,7 +167,10 @@ const AdminNobleCards = () => {
     setEditingItem(item);
     setFormData({
       level: item.level, name: item.name,
-      animation_url: item.animation_url || '', preview_url: item.preview_url || '',
+      animation_url: item.animation_url || '',
+      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (item as any).animation_config_url || '',
+      preview_url: item.preview_url || '',
       is_active: item.is_active
     });
     setDialogOpen(true);
@@ -180,7 +186,10 @@ const AdminNobleCards = () => {
       const payload = {
         privilege_type: 'noble_card', unlock_level: formData.level, name: formData.name,
         description: `Noble Card for Level ${formData.level}+`,
-        animation_url: formData.animation_url || null, preview_url: formData.preview_url || null,
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
+        preview_url: formData.preview_url || null,
         icon_name: 'CreditCard', icon_bg_color: '#FEE2E2', icon_color: '#EF4444',
         is_active: formData.is_active, display_order: formData.level,
         updated_at: new Date().toISOString()
@@ -322,18 +331,22 @@ const AdminNobleCards = () => {
                 <Input type="number" min={1} value={formData.level} onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))} />
               </div>
             </div>
-            <div>
-              <Label>Animation (SVGA/MP4/JSON)</Label>
-              <div className="flex gap-2">
-                <Input value={formData.animation_url} onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))} placeholder="URL or upload" />
-                <label className="cursor-pointer">
-                  <input type="file" accept=".svga,.mp4,.webm,.json,.gif" onChange={handleAnimationUpload} className="hidden" />
-                  <Button type="button" variant="outline" disabled={uploadingAnimation}>
-                    <Upload className={`h-4 w-4 ${uploadingAnimation ? 'animate-spin' : ''}`} />
-                  </Button>
-                </label>
-              </div>
-            </div>
+            <AnimationUploader
+              label="Animation (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+              bucket="noble-cards"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
             <div>
               <Label>Preview Image (PNG/JPG)</Label>
               <div className="flex gap-2">

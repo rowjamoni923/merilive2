@@ -53,6 +53,7 @@ import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 const adminCardStyles = "bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10";
 const adminButtonStyles = { primary: "bg-gradient-to-r from-purple-500 to-pink-500 text-white" };
 const adminInputStyles = "bg-white/10 border-white/20 text-white";
@@ -108,6 +109,9 @@ type ShopFormData = {
   display_order: number;
   sound_url: string;
   sound_duration_ms: number;
+  // Pkg424 — unified pro animation columns
+  animation_format: import("@/components/admin/AnimationUploader").AnimationFormat | null;
+  animation_config_url: string;
 };
 
 // Extended categories for live streaming app
@@ -150,6 +154,8 @@ const createDefaultFormData = (): ShopFormData => ({
   display_order: 0,
   sound_url: "",
   sound_duration_ms: 3000,
+  animation_format: null,
+  animation_config_url: "",
 });
 
 const detectFileTypeFromUrl = (url: string | null | undefined): string => {
@@ -241,6 +247,9 @@ const buildShopItemPayload = (formData: ShopFormData, existingItem?: ShopItem | 
     sound_duration_ms: formData.sound_url.trim()
       ? Math.max(0, Number(formData.sound_duration_ms) || 3000)
       : null,
+    // Pkg424 — unified pro animation columns
+    animation_format: formData.animation_format || null,
+    animation_config_url: formData.animation_config_url?.trim() || null,
   };
 
   return Object.fromEntries(
@@ -523,6 +532,8 @@ const AdminShop = () => {
       display_order: normalizedItem.display_order,
       sound_url: normalizedItem.sound_url || "",
       sound_duration_ms: normalizedItem.sound_duration_ms || 3000,
+      animation_format: ((item as any).animation_format ?? null) as any,
+      animation_config_url: (item as any).animation_config_url || "",
     });
     setPreviewFile(
       normalizedItem.animation_file_url ||
@@ -859,6 +870,36 @@ const AdminShop = () => {
 
           <ScrollArea className="flex-1 px-3 md:px-6 overflow-y-auto">
             <div className="space-y-3 md:space-y-4 py-3 md:py-4">
+              {/* Pkg424 — Unified Pro Animation uploader (VAP / SVGA / Lottie / WebP / MP4) */}
+              <AnimationUploader
+                label="Pro Animation (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4)"
+                bucket="shop-items"
+                folder="unified"
+                value={{
+                  animation_url: formData.animation_url || formData.animation_file_url || '',
+                  animation_format: formData.animation_format,
+                  animation_config_url: formData.animation_config_url || null,
+                }}
+                onChange={(v) => {
+                  const newFt = v.animation_format === 'vap' ? 'vap'
+                    : v.animation_format === 'svga' ? 'svga'
+                    : v.animation_format === 'lottie' ? 'lottie'
+                    : v.animation_format === 'gif' ? 'gif'
+                    : v.animation_format === 'mp4' || v.animation_format === 'webm' ? 'video'
+                    : v.animation_format === 'png' || v.animation_format === 'webp' ? 'image'
+                    : formData.file_type;
+                  setFormData(prev => ({
+                    ...prev,
+                    animation_url: v.animation_url,
+                    animation_file_url: v.animation_url,
+                    animation_format: v.animation_format,
+                    animation_config_url: v.animation_config_url || '',
+                    file_type: newFt,
+                  }));
+                  setPreviewFile(v.animation_url || null);
+                }}
+              />
+
               {/* File Upload Section - Mobile optimized */}
               <div className="border-2 border-dashed border-white/20 rounded-lg md:rounded-xl p-3 md:p-4">
                 <Label className="text-white/80 mb-2 block text-sm">Upload Animation/Image</Label>

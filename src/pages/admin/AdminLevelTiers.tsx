@@ -18,6 +18,7 @@ import Lottie from "lottie-react";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 interface LevelTier {
   id: string;
@@ -143,6 +144,9 @@ const AdminLevelTiers = () => {
         is_active: editingTier.is_active,
         animation_url: editingTier.animation_url || null,
         icon_url: editingTier.icon_url || null,
+        // Pkg424 — unified pro animation columns
+        animation_format: (editingTier as any).animation_format || null,
+        animation_config_url: (editingTier as any).animation_config_url || null,
       };
 
       let error;
@@ -546,6 +550,24 @@ const AdminLevelTiers = () => {
                   setShowAnimationPicker(false);
                 }}
                 selectedId={editingTier.animation_url?.startsWith('lottie:') ? editingTier.animation_url.replace('lottie:', '') : null}
+              />
+
+              {/* Pkg424 — Pro Animation (VAP / SVGA / Lottie / WebP / MP4) */}
+              <AnimationUploader
+                label="Pro Animation (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4)"
+                bucket="level-tiers"
+                folder="unified"
+                value={{
+                  animation_url: editingTier.animation_url || '',
+                  animation_format: ((editingTier as any).animation_format ?? null) as AnimationFormat | null,
+                  animation_config_url: (editingTier as any).animation_config_url || null,
+                }}
+                onChange={(v) => setEditingTier({
+                  ...editingTier,
+                  animation_url: v.animation_url || null,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || null,
+                } as any)}
               />
 
               {/* Color & Status */}

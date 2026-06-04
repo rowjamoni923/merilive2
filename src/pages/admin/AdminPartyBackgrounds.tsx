@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface PartyBackground {
   id: string;
   name: string;
@@ -111,7 +112,11 @@ const AdminPartyBackgrounds = () => {
     is_active: true,
     price_diamonds: 0,
     display_order: 1,
-    min_level: 0
+    min_level: 0,
+    // Pkg424 — unified pro animation columns (party_room_backgrounds table)
+    animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "",
   });
 
   const fetchBackgrounds = useCallback(async () => {
@@ -180,7 +185,10 @@ const AdminPartyBackgrounds = () => {
       is_active: true,
       price_diamonds: 0,
       display_order: backgrounds.length + 1,
-      min_level: 0
+      min_level: 0,
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: "",
     });
     setShowAddDialog(true);
   };
@@ -196,7 +204,10 @@ const AdminPartyBackgrounds = () => {
       is_active: bg.is_active,
       price_diamonds: bg.price_diamonds,
       display_order: bg.display_order,
-      min_level: bg.min_level ?? 0
+      min_level: bg.min_level ?? 0,
+      animation_url: (bg as any).animation_url || "",
+      animation_format: ((bg as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (bg as any).animation_config_url || "",
     });
     setShowEditDialog(true);
   };
@@ -228,6 +239,15 @@ const AdminPartyBackgrounds = () => {
       });
       if (error) throw error;
       if (data) {
+        const insertedId = (data as any).id;
+        // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
+        if (insertedId && (formData.animation_url || formData.animation_format || formData.animation_config_url)) {
+          await supabase.from('party_room_backgrounds').update({
+            animation_url: formData.animation_url || null,
+            animation_format: formData.animation_format || null,
+            animation_config_url: formData.animation_config_url || null,
+          }).eq('id', insertedId);
+        }
         setBackgrounds(prev => [...prev, {
           ...(data as any),
           category: (data as any).category || 'nature',
@@ -268,6 +288,13 @@ const AdminPartyBackgrounds = () => {
         _min_level: formData.min_level,
       });
       if (error) throw error;
+
+      // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
+      await supabase.from('party_room_backgrounds').update({
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
+      }).eq('id', selectedBackground.id);
 
       setBackgrounds(prev => prev.map(bg => 
         bg.id === selectedBackground.id 
@@ -902,6 +929,23 @@ const AdminPartyBackgrounds = () => {
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
             </div>
+            {/* Pkg424 — Pro Animation overlay (VAP / SVGA / Lottie / etc.) */}
+            <AnimationUploader
+              label="Pro Animation Overlay (VAP / SVGA / Lottie / WebP / MP4) — optional"
+              bucket="party-backgrounds"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
@@ -1049,6 +1093,23 @@ const AdminPartyBackgrounds = () => {
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
             </div>
+            {/* Pkg424 — Pro Animation overlay (VAP / SVGA / Lottie / etc.) */}
+            <AnimationUploader
+              label="Pro Animation Overlay (VAP / SVGA / Lottie / WebP / MP4) — optional"
+              bucket="party-backgrounds"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>

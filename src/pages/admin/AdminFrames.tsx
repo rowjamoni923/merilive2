@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -106,6 +107,10 @@ const AdminFrames = () => {
     sound_url: "",
     sound_duration_ms: 3000,
     target_type: "both" as 'user' | 'host' | 'both',
+    // Pkg424 — unified pro animation (VAP/SVGA/Lottie/WebP/PNG/GIF/MP4)
+    animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "",
   });
 
   const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
@@ -277,6 +282,10 @@ const AdminFrames = () => {
         price_diamonds: formData.price_diamonds,
         preview_url: formData.preview_url || null,
         target_type: formData.target_type,
+        // Pkg424 — unified pro animation columns
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -387,6 +396,9 @@ const AdminFrames = () => {
       sound_url: "",
       sound_duration_ms: 3000,
       target_type: "both",
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: "",
     });
   };
 
@@ -408,6 +420,9 @@ const AdminFrames = () => {
       sound_url: frame.sound_url || "",
       sound_duration_ms: frame.sound_duration_ms || 3000,
       target_type: frame.target_type || "both",
+      animation_url: (frame as any).animation_url || "",
+      animation_format: ((frame as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (frame as any).animation_config_url || "",
     });
     setShowAddDialog(true);
   };
@@ -820,7 +835,28 @@ const AdminFrames = () => {
               </div>
             )}
 
+            {/* Pkg424 — Pro Animation (VAP w/ alpha config, SVGA, Lottie, etc.) */}
+            <AnimationUploader
+              label="Pro Animation Layer (VAP / SVGA / Lottie / WebP / MP4) — overrides legacy frame_url at runtime when present"
+              bucket="frames"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
+
             <div className="grid grid-cols-2 gap-4">
+
+
+
               <div className="col-span-2">
                 <Label>Frame Name</Label>
                 <Input

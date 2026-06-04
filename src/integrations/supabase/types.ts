@@ -1983,6 +1983,9 @@ export type Database = {
       app_event_themes: {
         Row: {
           accent_color: string | null
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           auto_schedule: boolean | null
           card_border_color: string | null
           color_scheme: Json | null
@@ -2020,6 +2023,9 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           auto_schedule?: boolean | null
           card_border_color?: string | null
           color_scheme?: Json | null
@@ -2057,6 +2063,9 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           auto_schedule?: boolean | null
           card_border_color?: string | null
           color_scheme?: Json | null
@@ -2252,6 +2261,9 @@ export type Database = {
       }
       ar_stickers: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           asset_url: string | null
           category: string | null
           coin_price: number | null
@@ -2268,6 +2280,9 @@ export type Database = {
           slug: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           asset_url?: string | null
           category?: string | null
           coin_price?: number | null
@@ -2284,6 +2299,9 @@ export type Database = {
           slug?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           asset_url?: string | null
           category?: string | null
           coin_price?: number | null
@@ -2559,6 +2577,9 @@ export type Database = {
       banners: {
         Row: {
           accent_color: string | null
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           background_color: string | null
           banner_type: string | null
           click_action: string | null
@@ -2580,6 +2601,9 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           background_color?: string | null
           banner_type?: string | null
           click_action?: string | null
@@ -2601,6 +2625,9 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           background_color?: string | null
           banner_type?: string | null
           click_action?: string | null
@@ -2624,6 +2651,9 @@ export type Database = {
       }
       beauty_filters: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           category: string | null
           coin_price: number | null
           created_at: string | null
@@ -2643,6 +2673,9 @@ export type Database = {
           slug: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
@@ -2662,6 +2695,9 @@ export type Database = {
           slug?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
@@ -3682,6 +3718,9 @@ export type Database = {
       }
       daily_tasks: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -3706,6 +3745,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -3730,6 +3772,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -4312,6 +4357,9 @@ export type Database = {
       }
       first_recharge_bonus: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           banner_image_url: string | null
           banner_subtitle: string | null
           banner_title: string | null
@@ -4327,6 +4375,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           banner_image_url?: string | null
           banner_subtitle?: string | null
           banner_title?: string | null
@@ -4342,6 +4393,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           banner_image_url?: string | null
           banner_subtitle?: string | null
           banner_title?: string | null
@@ -6622,6 +6676,9 @@ export type Database = {
       }
       invitation_reward_tiers: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           badge_color: string | null
           badge_icon: string | null
           bonus_percentage: number | null
@@ -6637,6 +6694,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           badge_color?: string | null
           badge_icon?: string | null
           bonus_percentage?: number | null
@@ -6652,6 +6712,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           badge_color?: string | null
           badge_icon?: string | null
           bonus_percentage?: number | null
@@ -6811,6 +6874,8 @@ export type Database = {
       }
       leaderboard_podium_frames: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           badge_url: string | null
           category: string | null
@@ -6823,6 +6888,8 @@ export type Database = {
           rank_position: number
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           badge_url?: string | null
           category?: string | null
@@ -6835,6 +6902,8 @@ export type Database = {
           rank_position: number
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           badge_url?: string | null
           category?: string | null
@@ -7120,6 +7189,9 @@ export type Database = {
       }
       limited_time_offers: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           coins_amount: number
           created_at: string | null
           description: string | null
@@ -7136,6 +7208,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           coins_amount: number
           created_at?: string | null
           description?: string | null
@@ -7152,6 +7227,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           coins_amount?: number
           created_at?: string | null
           description?: string | null
@@ -8597,6 +8675,9 @@ export type Database = {
       }
       noble_cards: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           anti_kick_protection: boolean
           badge_color: string | null
           badge_url: string | null
@@ -8632,6 +8713,9 @@ export type Database = {
           vip_only_lounge_access: boolean
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           anti_kick_protection?: boolean
           badge_color?: string | null
           badge_url?: string | null
@@ -8667,6 +8751,9 @@ export type Database = {
           vip_only_lounge_access?: boolean
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           anti_kick_protection?: boolean
           badge_color?: string | null
           badge_url?: string | null
@@ -8840,6 +8927,9 @@ export type Database = {
       }
       onboarding_slides: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -8851,6 +8941,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -8862,6 +8955,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -8939,6 +9035,9 @@ export type Database = {
       }
       parcel_templates: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           coin_cost: number | null
           created_at: string | null
           description: string | null
@@ -8964,6 +9063,9 @@ export type Database = {
           unlock_wait_hours: number
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
@@ -8989,6 +9091,9 @@ export type Database = {
           unlock_wait_hours?: number
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
@@ -9077,6 +9182,9 @@ export type Database = {
       }
       party_room_banners: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           created_at: string | null
           display_order: number | null
           id: string
@@ -9087,6 +9195,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           display_order?: number | null
           id?: string
@@ -9097,6 +9208,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string | null
           display_order?: number | null
           id?: string
@@ -9831,6 +9945,9 @@ export type Database = {
       }
       pk_reward_banners: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           banner_image_url: string | null
           created_at: string
           description: string | null
@@ -9844,6 +9961,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           banner_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -9857,6 +9977,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           banner_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -9963,6 +10086,9 @@ export type Database = {
       }
       popup_event_banners: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           auto_dismiss_seconds: number
           created_at: string
           description: string | null
@@ -9980,6 +10106,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           auto_dismiss_seconds?: number
           created_at?: string
           description?: string | null
@@ -9997,6 +10126,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           auto_dismiss_seconds?: number
           created_at?: string
           description?: string | null
@@ -10743,6 +10875,9 @@ export type Database = {
       }
       rating_banners: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           created_at: string
           display_order: number
           id: string
@@ -10752,6 +10887,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -10761,6 +10899,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -10860,6 +11001,9 @@ export type Database = {
       }
       recharge_campaigns: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           badge_text: string | null
           banner_image_url: string | null
           bonus_diamonds: number
@@ -10884,6 +11028,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           badge_text?: string | null
           banner_image_url?: string | null
           bonus_diamonds?: number
@@ -10908,6 +11055,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           badge_text?: string | null
           banner_image_url?: string | null
           bonus_diamonds?: number
@@ -14240,6 +14390,8 @@ export type Database = {
       }
       user_level_tiers: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           badge_color: string | null
           badge_url: string | null
@@ -14263,6 +14415,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
@@ -14286,6 +14440,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
@@ -15116,6 +15272,8 @@ export type Database = {
       }
       vip_medals: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string
           criteria_type: string | null
@@ -15131,6 +15289,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string
           criteria_type?: string | null
@@ -15146,6 +15306,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string
           criteria_type?: string | null
@@ -15249,6 +15411,9 @@ export type Database = {
       vip_tiers: {
         Row: {
           ad_free: boolean | null
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           anti_kick_protection: boolean
           badge_animation_url: string | null
           badge_color: string | null
@@ -15298,6 +15463,9 @@ export type Database = {
         }
         Insert: {
           ad_free?: boolean | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           anti_kick_protection?: boolean
           badge_animation_url?: string | null
           badge_color?: string | null
@@ -15347,6 +15515,9 @@ export type Database = {
         }
         Update: {
           ad_free?: boolean | null
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           anti_kick_protection?: boolean
           badge_animation_url?: string | null
           badge_color?: string | null
@@ -15461,6 +15632,9 @@ export type Database = {
       }
       welcome_bonuses: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
+          animation_url: string | null
           bonus_amount: number
           bonus_type: string
           claimed: boolean | null
@@ -15471,6 +15645,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           bonus_amount: number
           bonus_type: string
           claimed?: boolean | null
@@ -15481,6 +15658,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
+          animation_url?: string | null
           bonus_amount?: number
           bonus_type?: string
           claimed?: boolean | null
