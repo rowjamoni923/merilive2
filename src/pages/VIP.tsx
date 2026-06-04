@@ -410,13 +410,6 @@ const VIP = () => {
         }
       }
 
-      // Fetch unlocked level privileges only
-      const { data: levelPrivileges } = await supabase
-        .from("level_privileges")
-        .select("*")
-        .eq("is_active", true)
-        .order("unlock_level", { ascending: true });
-
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
           const requiredLevel = priv.unlock_level ?? priv.level;
