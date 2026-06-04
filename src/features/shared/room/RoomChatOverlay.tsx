@@ -307,7 +307,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
           "rounded-[20px] max-w-[94%] md:max-w-[70%]",
-          "bg-gradient-to-r backdrop-blur-md",
+          "bg-gradient-to-r bg-opacity-80",
           getBgStyle(),
           "border",
           getBorderStyle(),
