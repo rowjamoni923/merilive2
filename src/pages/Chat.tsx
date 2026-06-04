@@ -150,13 +150,13 @@ interface GroupMessage {
 
 // Parse gift payload from chat content
 // Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
-// The `snd:` suffix is optional and only present when the gift has a separate sound asset.
+// URLs may be absolute, Supabase storage paths, or project-local Lovable asset paths.
 const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null } => {
-  const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
-  const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
-  const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
+  const mediaMatch = content.match(/\[Gift:\s*([^|\s\]]+)\|/i);
+  const emojiMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?([^\s\]]+)/i);
+  const soundMatch = content.match(/\|\s*snd:([^\s|\]]+)/i);
   const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
-  const configMatch = content.match(/\|\s*cfg:(https?:\/\/[^\s\|\]]+)/i);
+  const configMatch = content.match(/\|\s*cfg:([^\s|\]]+)/i);
   const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
 
   return {
@@ -170,7 +170,7 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
 const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
   const { mediaUrl, emoji } = parseGiftContent(content || '');
-  const detailMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
   const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
   const count = detailMatch?.[2] || '1';
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
@@ -183,9 +183,9 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
-    .replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ')
+    .replace(/\[Gift:\s*[^|\s\]]+\|/i, '[Gift: ')
     // Strip optional trailing |snd:URL field before final ] so preview regex matches
-    .replace(/\|\s*snd:[^\|\]]+/i, '');
+    .replace(/\|\s*snd:[^|\]]+/i, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
   const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
@@ -280,7 +280,7 @@ const Chat = () => {
       // Exclude chat payload wrappers like "[Gift: ...]" and anything with
       // whitespace, pipes, brackets, or other characters Storage rejects.
       if (/^\[/.test(value)) return false;
-      if (/[\s|\[\]\\<>"'`]/.test(value)) return false;
+      if (/[[\]\s|\\<>"'`]/.test(value)) return false;
       if (!value.includes('/')) return false;
       return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
     };
@@ -769,15 +769,16 @@ const Chat = () => {
     
     // Show gift animation IMMEDIATELY
     const giftEmoji = gift.emoji || '🎁';
-    const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
-    const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
+    const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
+    const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
-    const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
+    const giftSoundUrl = normalizeGiftMediaUrl((gift as any).sound_url) || '';
     const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
     const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
-    const configSuffix = gift.animation_config_url ? ` | cfg:${gift.animation_config_url}` : '';
+    const giftConfigUrl = normalizeGiftMediaUrl(gift.animation_config_url) || '';
+    const configSuffix = giftConfigUrl ? ` | cfg:${giftConfigUrl}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
       ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
@@ -788,7 +789,7 @@ const Chat = () => {
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
     setAnimatingGiftFormat(giftAnimationFormat);
-    setAnimatingGiftConfigUrl(gift.animation_config_url || null);
+    setAnimatingGiftConfigUrl(giftConfigUrl || null);
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -818,7 +819,7 @@ const Chat = () => {
         senderId: currentUserId,
         content: optimisticGiftMessage,
         animationFormat: giftAnimationFormat,
-        animationConfigUrl: gift.animation_config_url || null,
+        animationConfigUrl: giftConfigUrl || null,
         soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});

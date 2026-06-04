@@ -255,7 +255,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
 
 
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
-  const giftIconSrc = gift.giftImageUrl || (gift.giftIcon?.startsWith('http') ? gift.giftIcon : null);
+  const giftIconSrc = gift.giftImageUrl || (/^(https?:\/\/|\/)/i.test(gift.giftIcon || '') ? gift.giftIcon : null);
 
   // Render gift icon in banner
   const renderBannerGiftIcon = () => {
