@@ -3972,7 +3972,7 @@ const LiveStream = () => {
             receiverName: hostInfo?.name || undefined,
             receiverAvatar: hostInfo?.avatar || undefined,
             giftName: gift.name,
-            giftIcon: gift.emoji || "🎁",
+            giftIcon: gift.icon_url || "",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,

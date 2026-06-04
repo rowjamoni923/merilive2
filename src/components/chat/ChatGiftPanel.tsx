@@ -241,7 +241,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
-        icon: selectedGift.emoji || '🎁',
+        icon: selectedGift.icon_url || selectedGift.animation_url || "",
         coins: selectedGift.coins,
       });
       setSelectedGift(null);
