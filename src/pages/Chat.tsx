@@ -372,6 +372,8 @@ const Chat = () => {
   // Gift Animation State
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
   const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
+  const [animatingGiftFormat, setAnimatingGiftFormat] = useState<string | null>(null);
+  const [animatingGiftConfigUrl, setAnimatingGiftConfigUrl] = useState<string | null>(null);
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
@@ -779,6 +781,8 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setAnimatingGiftFormat(gift.animation_format || null);
+    setAnimatingGiftConfigUrl(gift.animation_config_url || null);
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -807,6 +811,8 @@ const Chat = () => {
         conversationId: selectedConversation.id,
         senderId: currentUserId,
         content: optimisticGiftMessage,
+        animationFormat: gift.animation_format || null,
+        animationConfigUrl: gift.animation_config_url || null,
       },
     }).catch(() => {});
 
