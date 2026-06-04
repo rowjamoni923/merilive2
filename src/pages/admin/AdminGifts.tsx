@@ -532,6 +532,8 @@ export default function AdminGifts() {
       animation_type: gift.animation_type || "svga",
       animation_url: gift.animation_url || "",
       animation_data: null,
+      animation_format: ((gift as any).animation_format as AnimationFormat) || null,
+      animation_config_url: (gift as any).animation_config_url || "",
       category: gift.category || "wall",
       display_order: gift.display_order || 0,
       is_active: gift.is_active ?? true,
