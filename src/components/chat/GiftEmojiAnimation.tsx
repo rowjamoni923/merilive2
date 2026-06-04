@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, memo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
@@ -139,58 +139,55 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
   if (!portalTarget) return null;
 
   // Render FULL SCREEN animation for SVGA/Lottie/VAP — NO overlay, NO sparkles, direct play
+  // CRITICAL: render a PLAIN fixed div (no framer-motion / AnimatePresence wrapper)
+  // because motion.div applies CSS transforms which create a transform-containing
+  // block and clip `position: fixed` descendants to the motion.div bounds instead
+  // of the viewport. That made VAP/MP4 gifts render clipped to the chat area
+  // while SVGA (centered transparent) appeared correct.
   if (hasAnimation) {
     return createPortal(
-      <AnimatePresence>
-        <motion.div
-          style={FULLSCREEN_LAYER_STYLE}
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          <div style={FULLSCREEN_STAGE_STYLE}>
-            {isSvga && (
-              <FixedAnimationFrame
-                src={emoji}
-                size="fullscreen"
-                width="100vw"
-                height="100vh"
-                type="svga"
-                loop={false}
-                autoPlay
-                muted={false}
-                volume={0.8}
-                soundUrl={soundUrl}
-                onComplete={handleAnimationEnd}
-                center
-                className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
-              />
-            )}
+      <div style={FULLSCREEN_LAYER_STYLE}>
+        <div style={FULLSCREEN_STAGE_STYLE}>
+          {isSvga && (
+            <FixedAnimationFrame
+              src={emoji}
+              size="fullscreen"
+              width="100vw"
+              height="100vh"
+              type="svga"
+              loop={false}
+              autoPlay
+              muted={false}
+              volume={0.8}
+              soundUrl={soundUrl}
+              onComplete={handleAnimationEnd}
+              center
+              className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
+            />
+          )}
 
-            {(isLottie || isVap || isVideo) && (
-              <FixedAnimationFrame
-                src={emoji}
-                size="fullscreen"
-                width="100vw"
-                height="100vh"
-                type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
-                configSrc={animationConfigUrl || undefined}
-                loop={false}
-                autoPlay
-                // MP4/VAP gifts must stay muted for reliable mobile/WebView autoplay;
-                // any separate audio is played by soundUrl above.
-                muted={true}
-                volume={0.8}
-                soundUrl={soundUrl}
-                onComplete={handleAnimationEnd}
-                center
-                className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
-              />
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>,
+          {(isLottie || isVap || isVideo) && (
+            <FixedAnimationFrame
+              src={emoji}
+              size="fullscreen"
+              width="100vw"
+              height="100vh"
+              type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
+              configSrc={animationConfigUrl || undefined}
+              loop={false}
+              autoPlay
+              // MP4/VAP gifts must stay muted for reliable mobile/WebView autoplay;
+              // any separate audio is played by soundUrl above.
+              muted={true}
+              volume={0.8}
+              soundUrl={soundUrl}
+              onComplete={handleAnimationEnd}
+              center
+              className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
+            />
+          )}
+        </div>
+      </div>,
       portalTarget
     );
   }

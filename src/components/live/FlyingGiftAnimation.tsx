@@ -292,15 +292,14 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
 
 
     if (displayAnimationUrl) {
+      // CRITICAL: plain <div> (NOT motion.div). framer-motion sets CSS
+      // transform on the wrapper which creates a transform containing block,
+      // scoping `position: fixed` descendants to the wrapper bounds instead of
+      // the viewport. VAP/MP4 gifts then render clipped to the room container
+      // (visible as a sky/background rectangle smaller than the screen) while
+      // SVGA's centered transparent canvas hides the issue.
       return (
-        <motion.div
-          key={`fullscreen-${displayAnimationUrl}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          style={FULLSCREEN_GIFT_LAYER_STYLE}
-        >
+        <div key={`fullscreen-${displayAnimationUrl}`} style={FULLSCREEN_GIFT_LAYER_STYLE}>
           <div style={FULLSCREEN_GIFT_STAGE_STYLE}>
             <FixedAnimationFrame
               src={displayAnimationUrl}
@@ -324,7 +323,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
             />
           </div>
-        </motion.div>
+        </div>
       );
     }
 
