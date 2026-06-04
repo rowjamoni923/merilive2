@@ -1394,21 +1394,23 @@ const VIP = () => {
                             background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
                             boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
                           }}>
-                            <div className={cn("w-full h-full flex items-center justify-center relative", (priv.category !== 'frame' && priv.category !== 'portrait_frame') && "p-1.5")}>
+                            <div className={cn("w-full h-full flex items-center justify-center relative", (priv.category !== 'frame' && priv.category !== 'portrait_frame' && !isWideCategory(priv.category)) && "p-1.5")}>
                               <div
                                 className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
                                 style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
                               />
                               {priv.category === 'frame' || priv.category === 'portrait_frame' ? (
-                                <FixedAnimationFrame
-                                  src={priv.animation_url || ''}
-                                  className="w-full h-full"
-                                  size="fill"
-                                  loop
-                                  autoPlay
-                                  muted
-                                  fallbackEmoji="👑"
-                                />
+                                <div className="w-full h-full scale-110">
+                                  <FixedAnimationFrame
+                                    src={priv.animation_url || ''}
+                                    className="w-full h-full"
+                                    size="fill"
+                                    loop
+                                    autoPlay
+                                    muted
+                                    fallbackEmoji="👑"
+                                  />
+                                </div>
                               ) : priv.preview_url ? (
                                 <img 
                                   src={priv.preview_url} 

@@ -212,16 +212,18 @@ const ShopItemCard = ({
 
         <div className="w-full h-full flex items-center justify-center">
           {item.category === 'frame' || item.category === 'portrait_frame' ? (
-            <FixedAnimationFrame
-              src={item.animation_file_url || item.animation_url || ''}
-              type={pickAnimType(item) as any}
-              className="w-full h-full"
-              size="fill"
-              loop
-              autoPlay
-              muted
-              fallbackEmoji="👑"
-            />
+            <div className="w-full h-full scale-110">
+              <FixedAnimationFrame
+                src={item.animation_file_url || item.animation_url || ''}
+                type={pickAnimType(item) as any}
+                className="w-full h-full"
+                size="fill"
+                loop
+                autoPlay
+                muted
+                fallbackEmoji="👑"
+              />
+            </div>
           ) : item.preview_url ? (
             <img 
               src={item.preview_url} 
@@ -688,7 +690,7 @@ const Shop = () => {
                     isEntryAnimationCategory(selectedItem.category)
                       ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
                       : isWideCategory(selectedItem.category)
-                        ? 'aspect-video w-full'
+                        ? 'aspect-auto w-full min-h-[200px]'
                         : 'aspect-square'
                   } rounded-2xl flex items-center justify-center p-4 relative overflow-hidden`}
                   style={{
