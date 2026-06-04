@@ -365,7 +365,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   return createPortal(
     <div
       className="pointer-events-none"
-      style={{ position: 'fixed', inset: 0, width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh', zIndex: 2147483000, pointerEvents: 'none', overflow: 'hidden', isolation: 'isolate' }}
+      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', minWidth: '100vw', minHeight: '100vh', zIndex: 2147483000, pointerEvents: 'none', overflow: 'hidden', isolation: 'isolate' }}
     >
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
