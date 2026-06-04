@@ -478,6 +478,24 @@ const VIP = () => {
           }
         }
       }
+      
+      if (purchasedBgs) {
+        for (const bgWrap of purchasedBgs) {
+          const bg = bgWrap.party_room_backgrounds;
+          if (!bg) continue;
+          
+          allPrivileges.push({
+            id: `bg_${bg.id}`,
+            item_id: bg.id,
+            name: bg.name,
+            category: 'party_background',
+            preview_url: bg.image_url,
+            animation_url: bg.image_url,
+            is_equipped: bgWrap.is_active,
+            expires_at: null,
+            source: 'shop',
+          });
+        }
 
       // Fetch unlocked entry banners only
       const { data: entryBanners } = await supabase
