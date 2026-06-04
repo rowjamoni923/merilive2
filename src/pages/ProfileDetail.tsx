@@ -1715,7 +1715,9 @@ const ProfileDetail = () => {
           addFlyingGift({
             senderId: currentUser.id,
             senderName: 'You',
+            senderAvatar: currentUser?.avatar_url || undefined,
             receiverName: profile?.display_name || 'User',
+            receiverAvatar: profile?.avatar_url || undefined,
             giftName: gift.name,
             giftIcon: '🎁',
             giftImageUrl: gift.icon_url || undefined,
