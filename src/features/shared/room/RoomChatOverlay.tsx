@@ -36,7 +36,9 @@ import {
 import { JoinNotification, RoomChatMessage } from './types';
 import { getGameLogoUrl, getGameEmoji } from '@/hooks/useGameLogos';
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
-import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { isGiftUrl } from "@/utils/giftMediaUrl";
+import GiftMedia from "@/components/chat/GiftMedia";
+
 
 // ============= WELCOME MESSAGE COMPONENT (Ultra Premium Luxury Style) =============
 interface WelcomeMessageProps {
