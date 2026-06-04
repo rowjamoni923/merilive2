@@ -376,7 +376,7 @@ const AdminVIPPrivileges = () => {
                   {tier.bubble_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <FixedAnimationFrame size="fill" center={false}
+                        <FixedAnimationFrame size="card" center={true}
                           src={tier.bubble_animation_url}
                           
                           loop
