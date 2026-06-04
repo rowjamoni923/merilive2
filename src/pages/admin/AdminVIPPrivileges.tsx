@@ -16,6 +16,7 @@ import {
   RefreshCw, Shield, EyeOff, Ghost, Coins, Calendar, Zap, Lock, TrendingUp
 } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface VIPTier {
   id: string;
   tier_code: string;
