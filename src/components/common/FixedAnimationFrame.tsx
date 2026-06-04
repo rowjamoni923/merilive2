@@ -214,47 +214,75 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 
   return (
     <div className={wrapperClass} style={frameStyle}>
-      {useAudioPlayer ? (
-        <Suspense
-          fallback={
-            <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
-          }
-        >
-          <SVGAPlayerWithAudio
+      {/* Placeholder / Icon shown immediately */}
+      {placeholderUrl && !imageError && (
+        <img 
+          src={placeholderUrl} 
+          className={cn(
+            "absolute inset-0 w-full h-full object-contain transition-opacity duration-300",
+            animLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+          )}
+          onError={() => setImageError(true)}
+          loading="eager"
+          {...({ fetchpriority: 'high' } as any)}
+        />
+      )}
+
+      <div className={cn("w-full h-full transition-opacity duration-300", animLoaded ? "opacity-100" : "opacity-0")}>
+        {useAudioPlayer ? (
+          <Suspense
+            fallback={
+              <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
+            }
+          >
+            <SVGAPlayerWithAudio
+              src={src}
+              className="w-full h-full"
+              loop={loop}
+              autoPlay={autoPlay}
+              volume={volume}
+              onLoad={() => {
+                setAnimLoaded(true);
+                onLoad?.();
+              }}
+              onComplete={onComplete}
+              onCompleteDebug={handleDebugComplete}
+              onError={(err) => {
+                setImageError(true);
+                onError?.(err);
+              }}
+              onAudioExtracted={onAudioExtracted}
+              soundUrl={soundUrl}
+              triggerKey={triggerKey}
+              dynamicData={dynamicData}
+            />
+          </Suspense>
+        ) : (
+          <UniversalAnimationPlayer
             src={src}
+            type={safeType}
+            configSrc={configSrc || undefined}
             className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
+            muted={safeMuted}
             volume={volume}
-            onLoad={onLoad}
+            soundUrl={soundUrl}
+            onLoad={() => {
+              setAnimLoaded(true);
+              onLoad?.();
+            }}
+            onError={(err) => {
+              setImageError(true);
+              onError?.(err);
+            }}
             onComplete={onComplete}
             onCompleteDebug={handleDebugComplete}
-            onError={onError}
-            onAudioExtracted={onAudioExtracted}
-            soundUrl={soundUrl}
-            triggerKey={triggerKey}
+            fallbackEmoji={fallbackEmoji}
             dynamicData={dynamicData}
           />
-        </Suspense>
-      ) : (
-        <UniversalAnimationPlayer
-          src={src}
-          type={safeType}
-          configSrc={configSrc || undefined}
-          className="w-full h-full"
-          loop={loop}
-          autoPlay={autoPlay}
-          muted={safeMuted}
-          volume={volume}
-          soundUrl={soundUrl}
-          onLoad={onLoad}
-          onError={onError}
-          onComplete={onComplete}
-          onCompleteDebug={handleDebugComplete}
-          fallbackEmoji={fallbackEmoji}
-          dynamicData={dynamicData}
-        />
-      )}
+        )}
+      </div>
     </div>
   );
 };
