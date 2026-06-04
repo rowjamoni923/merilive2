@@ -213,9 +213,17 @@ export const RoomChatBubble = memo(function RoomChatBubble({
             >
               {userName}:
             </span>
-            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              {message}
-            </span>
+            {isGiftUrl(message) ? (
+              <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
+                <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+                <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
+              </div>
+            ) : (
+              <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                {message}
+              </span>
+            )}
+
           </div>
         </MessageBubbleWrapper>
       </motion.div>
