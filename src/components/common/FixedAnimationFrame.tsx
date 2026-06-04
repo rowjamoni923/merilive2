@@ -226,6 +226,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           autoPlay={autoPlay}
           muted={safeMuted}
           volume={volume}
+          soundUrl={soundUrl}
           onLoad={onLoad}
           onError={onError}
           onComplete={onComplete}

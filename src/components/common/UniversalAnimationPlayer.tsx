@@ -32,6 +32,8 @@ interface UniversalAnimationPlayerProps {
   onComplete?: () => void;
   /** Provenance-aware onComplete callback ('native' for true end-of-animation, 'safety-timer' for SVGA fallback). */
   onCompleteDebug?: (source: AnimationCompletionSource) => void;
+  /** Optional separate audio source URL (used for VAP/PAG if requested). */
+  soundUrl?: string | null;
   showControls?: boolean;
   fallbackEmoji?: string;
   /**
@@ -101,6 +103,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onError,
   onComplete,
   onCompleteDebug,
+  soundUrl = null,
   showControls = false,
   fallbackEmoji = '🎁',
   preferNative = false,
@@ -274,6 +277,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           muted={muted}
           volume={volume}
+          soundUrl={soundUrl}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
@@ -294,6 +298,9 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           className={className}
           loop={loop}
           autoPlay={autoPlay}
+          muted={muted}
+          volume={volume}
+          soundUrl={soundUrl}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {

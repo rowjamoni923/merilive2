@@ -30,6 +30,7 @@ interface VAPPlayerProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  soundUrl?: string | null;
 }
 
 type VideoFrameCallbackVideo = HTMLVideoElement & {
@@ -63,6 +64,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   onLoad,
   onError,
   onComplete,
+  soundUrl = null,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
@@ -82,6 +84,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onLoadRef = useRef(onLoad);
   const onErrorRef = useRef(onError);
@@ -307,6 +310,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         try {
           await ensureAudioUnlocked();
           if (!mountedRef.current || !videoRef.current) return;
+          
+          if (!muted && soundUrl) {
+            console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
+            const { playSoundUrl } = await import('@/utils/soundPlayer');
+            playSoundUrl(soundUrl, { volume: volume, loop, maxConcurrent: 2 });
+          }
+
           videoRef.current.muted = muted;
           videoRef.current.volume = volume;
           await videoRef.current.play();
@@ -328,6 +338,20 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
+    
+    // Pkg-fix: Add safety completion timer for non-looping VAP
+    // If the video ended event doesn't fire, we force completion after duration + 1s.
+    if (!loop && video.duration > 0) {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = setTimeout(() => {
+        if (mountedRef.current && !completedRef.current) {
+          console.warn('[VAPPlayer] ⚠️ Safety timer triggered for', src.split('/').pop());
+          completedRef.current = true;
+          onCompleteRef.current?.();
+        }
+      }, (video.duration * 1000) + 1000);
+    }
+
     if (!isComposite) {
       setFallbackCrop([0, 0, 1, 1]);
       setUseVideoFallback(true);
@@ -336,10 +360,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       return;
     }
     initWebGL(video, config);
-  }, [config, initWebGL]);
+  }, [config, initWebGL, loop, src]);
 
   useEffect(() => {
     return () => {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       if (animationRef.current !== null) {
         if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
           (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);

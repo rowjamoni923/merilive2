@@ -16,6 +16,9 @@ interface PAGPlayerProps {
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
+  muted?: boolean;
+  volume?: number;
+  soundUrl?: string | null;
   onLoad?: () => void;
   onComplete?: () => void;
   onError?: (err: Error) => void;
@@ -42,6 +45,9 @@ const PAGPlayer: React.FC<PAGPlayerProps> = ({
   className,
   loop = true,
   autoPlay = true,
+  muted = true,
+  volume = 0.8,
+  soundUrl = null,
   onLoad,
   onComplete,
   onError,
@@ -84,6 +90,12 @@ const PAGPlayer: React.FC<PAGPlayerProps> = ({
         onLoad?.();
 
         if (autoPlay) {
+          if (!muted && soundUrl) {
+            console.log('[PAGPlayer] 🔊 Playing sound:', soundUrl.split('/').pop());
+            const { playSoundUrl } = await import('@/utils/soundPlayer');
+            playSoundUrl(soundUrl, { volume, loop, maxConcurrent: 2 });
+          }
+
           const duration = pagFile.duration(); // microseconds
           const startTs = performance.now();
           const tick = () => {

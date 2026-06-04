@@ -1607,18 +1607,24 @@ const Chat = () => {
     }
 
     if (data && currentUserId) {
-      const unreadIds = data
-        .filter(m => !m.is_read && m.sender_id !== currentUserId)
-        .map(m => m.id);
+      const unreadMsgs = data.filter(m => !m.is_read && m.sender_id !== currentUserId);
+      const unreadIds = unreadMsgs.map(m => m.id);
 
       if (unreadIds.length > 0) {
+        // Pkg-fix: If there's an unread gift, trigger the most recent one's animation
+        // so the receiver sees it when entering the chat (as requested by user).
+        const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift');
+        if (latestUnreadGift) {
+          console.log('[Chat] 🎁 Replaying unread gift animation for receiver');
+          playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
+        }
+
         await supabase
           .from('messages')
           .update({ is_read: true })
           .in('id', unreadIds);
 
         emitGlobalUnreadRefresh({ messagesDecrement: unreadIds.length });
-
       }
     }
   };
