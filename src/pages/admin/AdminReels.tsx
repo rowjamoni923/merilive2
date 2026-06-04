@@ -665,8 +665,12 @@ const AdminReels = () => {
           {selectedReel && (
             <video 
               src={selectedReel.video_url}
-              className="w-full max-h-[70vh] object-contain"
+              className="w-full max-h-[70vh] object-contain bg-black"
               controls
+              controlsList="nodownload noremoteplayback noplaybackrate"
+              disablePictureInPicture
+              disableRemotePlayback
+              playsInline
               autoPlay
               loop/>
           )}
