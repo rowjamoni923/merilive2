@@ -61,6 +61,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
+  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const webglPaintedRef = useRef(false);
+  const completedRef = useRef(false);
 
   // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
   const onLoadRef = useRef(onLoad);
@@ -203,8 +207,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     });
 
     if (!gl) {
-      setError('WebGL not supported');
-      onErrorRef.current?.(new Error('WebGL not supported'));
+      console.warn('[VAPPlayer] WebGL not supported; using cropped video fallback');
+      setUseVideoFallback(true);
+      setLoading(false);
+      onLoadRef.current?.();
       return;
     }
 
@@ -212,8 +218,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const program = createShaders(gl);
     if (!program) {
-      setError('Shader compilation failed');
-      onError?.(new Error('Shader compilation failed'));
+      console.warn('[VAPPlayer] Shader compilation failed; using cropped video fallback');
+      setUseVideoFallback(true);
+      setLoading(false);
+      onLoadRef.current?.();
       return;
     }
 
@@ -317,6 +325,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.height = videoHeight;
     }
 
+    setFallbackCrop(rgbRect as [number, number, number, number]);
+
     const rgbRectLocation = gl.getUniformLocation(program, 'u_rgbRect');
     const alphaRectLocation = gl.getUniformLocation(program, 'u_alphaRect');
 
@@ -329,11 +339,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     // Render loop
     const render = () => {
       if (!video.paused && !video.ended) {
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        try {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+          webglPaintedRef.current = true;
+        } catch (err) {
+          console.warn('[VAPPlayer] WebGL video texture failed; using cropped video fallback:', err);
+          setUseVideoFallback(true);
+        }
       }
       animationRef.current = requestAnimationFrame(render);
     };
