@@ -152,6 +152,22 @@ const ShopItemCard = ({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.05 }}
       onClick={onPreview}
+      onPointerDown={() => {
+        // Pre-warm asset + animation chunk so detail modal opens with zero delay
+        const src = item.animation_file_url || item.animation_url;
+        if (src) {
+          if (src.endsWith('.svga')) {
+            import('@/components/common/SVGAPlayerWithAudio').catch(() => {});
+            try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
+          } else if (src.endsWith('.json')) {
+            import('lottie-react' as any).catch(() => {});
+            try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
+          } else {
+            const img = new window.Image();
+            img.src = src;
+          }
+        }
+      }}
       className="relative w-full rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-xl active:scale-95"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
