@@ -402,7 +402,7 @@ export function ActiveCallScreen({
         senderId: userId,
         senderName: "You",
         giftName: gift.name,
-        giftIcon: "🎁",
+        giftIcon: gift.icon_url || "",
         giftImageUrl: gift.icon_url || undefined,
         animationUrl: gift.animation_url || gift.icon_url || undefined,
         animationFormat: gift.animation_format || null,
