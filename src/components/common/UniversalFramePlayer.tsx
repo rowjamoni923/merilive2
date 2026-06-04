@@ -54,6 +54,7 @@ const detectFrameType = (url: string): FrameType => {
 const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   src,
   type,
+  configSrc,
   className,
   loop = true,
   autoPlay = true,
