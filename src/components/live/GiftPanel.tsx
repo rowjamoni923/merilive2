@@ -673,7 +673,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   ) : selectedGift.icon_url ? (
                     <img loading="lazy" decoding="async" src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" />
                   ) : (
-                    <Gift className="w-6 h-6 text-white/70" />
+                    <GiftBox3DIcon size={24} />
                   )}
                 </div>
                 <div>
