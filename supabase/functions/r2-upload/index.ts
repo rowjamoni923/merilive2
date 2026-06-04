@@ -121,7 +121,46 @@ serve(async (req) => {
 
     const contentType = req.headers.get('content-type') || '';
     
-    // Handle JSON actions for multipart upload
+    // ACTION FROM QUERY PARAMS (for fast binary part uploads)
+    const urlObj = new URL(req.url);
+    const queryAction = urlObj.searchParams.get('action');
+
+    if (queryAction === 'upload-part') {
+      const uploadId = urlObj.searchParams.get('uploadId');
+      const key = urlObj.searchParams.get('key');
+      const partNumber = parseInt(urlObj.searchParams.get('partNumber') || '0');
+
+      if (!uploadId || !key || !partNumber) {
+        return new Response(JSON.stringify({ error: 'Missing uploadId, key, or partNumber in query' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      if (!keyBelongsToPrincipal(key, principal)) {
+        return new Response(JSON.stringify({ error: 'Invalid upload key' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Read binary body directly (NO BASE64)
+      const bytes = new Uint8Array(await req.arrayBuffer());
+      if (bytes.length === 0) {
+        return new Response(JSON.stringify({ error: 'Empty body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      console.log(`[Multipart-Binary] Received part ${partNumber} (${(bytes.length / 1024 / 1024).toFixed(2)}MB)`);
+      
+      const etag = await uploadPart(
+        key, uploadId, partNumber, bytes,
+        R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME
+      );
+      
+      return new Response(
+        JSON.stringify({ success: true, etag, partNumber }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle JSON actions for multipart upload (backward compatibility and init/complete)
     if (contentType.includes('application/json')) {
       const body = await req.json();
       const { action, folder, fileName, fileType, fileSize, partNumber, uploadId, key, parts, partData, totalParts, isLastPart } = body;
