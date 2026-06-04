@@ -162,7 +162,9 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                       className="w-24 h-24 rounded-2xl flex items-center justify-center relative"
                       style={{ background: `linear-gradient(135deg, ${glowColor}30, ${glowColor}10)`, boxShadow: `0 0 40px ${glowColor}30` }}
                     >
-                      {template.parcel_type === 'mega' ? (
+                      {template.icon_url ? (
+                        <img src={template.icon_url} alt={template.name} className="w-full h-full object-contain p-2" />
+                      ) : template.parcel_type === 'mega' ? (
                         <Sparkles className="w-12 h-12" style={{ color: glowColor }} />
                       ) : (
                         <Gift className="w-12 h-12" style={{ color: glowColor }} />
