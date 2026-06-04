@@ -90,6 +90,12 @@ const PAGPlayer: React.FC<PAGPlayerProps> = ({
         onLoad?.();
 
         if (autoPlay) {
+          if (!muted && soundUrl) {
+            console.log('[PAGPlayer] 🔊 Playing sound:', soundUrl.split('/').pop());
+            const { playSoundUrl } = await import('@/utils/soundPlayer');
+            playSoundUrl(soundUrl, { volume, loop, maxConcurrent: 2 });
+          }
+
           const duration = pagFile.duration(); // microseconds
           const startTs = performance.now();
           const tick = () => {
