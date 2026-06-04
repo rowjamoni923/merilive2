@@ -19,6 +19,8 @@ interface GiftCacheItem {
   category: string;
   icon_url: string | null;
   animation_url: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
   sound_url: string | null;
   display_order: number;
 }
@@ -66,7 +68,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
     try {
       const { data, error } = await supabase
         .from('gifts')
-        .select('id, name, coin_value, category, icon_url, animation_url, sound_url, display_order')
+        .select('id, name, coin_value, category, icon_url, animation_url, animation_format, animation_config_url, sound_url, display_order')
         .eq('is_active', true)
         .order('display_order', { ascending: true })
         .order('coin_value', { ascending: true });
@@ -82,6 +84,8 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           ...gift,
           icon_url: normalizeGiftMediaUrl(gift.icon_url),
           animation_url: normalizeGiftMediaUrl(gift.animation_url),
+          animation_format: (gift as any).animation_format || null,
+          animation_config_url: normalizeGiftMediaUrl((gift as any).animation_config_url),
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
         }));
         giftCache.timestamp = Date.now();
