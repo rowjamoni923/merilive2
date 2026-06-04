@@ -396,7 +396,7 @@ const AdminNobleSubscriptions = () => {
                       />
                       {(form as any)[key] && (key === 'entrance_animation_url' || key === 'custom_avatar_frame_url' || key === 'custom_chat_bubble_url') && (
                         <div className="mt-2 w-20 h-20 bg-slate-900 rounded overflow-hidden">
-                          <FixedAnimationFrame size="fill" center={false} src={(form as any)[key]}  loop />
+                          <FixedAnimationFrame size="card" center={true} src={(form as any)[key]}  loop />
                         </div>
                       )}
                     </div>
