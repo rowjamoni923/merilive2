@@ -19,6 +19,7 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface LevelPrivilege {
   id: string;
   privilege_type: string;
@@ -576,63 +577,24 @@ const AdminLevelPrivileges = () => {
                 </div>
               </div>
 
-              {/* Animation Upload */}
-              <div className="space-y-2">
-                <Label className="text-white/60">Animation File (Lottie JSON / GIF / WebP / SVGA / MP4)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={editingPrivilege.animation_url || ''}
-                    onChange={(e) => setEditingPrivilege({
-                      ...editingPrivilege,
-                      animation_url: e.target.value
-                    })}
-                    placeholder="URL or upload file"
-                    className="bg-white/5 border-white/10 text-white"
-                  />
-                  <label className="cursor-pointer">
-                    <Button variant="outline" asChild disabled={uploadingFile}>
-                      <span className="flex items-center">
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploadingFile ? 'Uploading...' : 'Upload'}
-                      </span>
-                    </Button>
-                    <input
-                      type="file"
-                      accept=".json,.gif,.webp,.svga,.mp4,.webm,.png"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = await handleFileUpload(file, 'animation');
-                          if (url) {
-                            setEditingPrivilege({
-                              ...editingPrivilege,
-                              animation_url: url
-                            });
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-                {editingPrivilege.animation_url && (
-                  <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <p className="text-green-400 text-sm flex items-center gap-2">
-                      <Play className="w-4 h-4" />
-                      Animation uploaded
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-1 text-green-400"
-                      onClick={() => setPreviewAnimation(editingPrivilege.animation_url)}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Preview
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {/* Pkg424 — Unified animation uploader (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4) */}
+              <AnimationUploader
+                label="Animation (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+                bucket="level-privileges"
+                folder="unified"
+                value={{
+                  animation_url: editingPrivilege.animation_url || '',
+                  animation_format: ((editingPrivilege as any).animation_format ?? null) as AnimationFormat | null,
+                  animation_config_url: (editingPrivilege as any).animation_config_url || null,
+                }}
+                onChange={(v) => setEditingPrivilege({
+                  ...editingPrivilege,
+                  animation_url: v.animation_url || null,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || null,
+                } as any)}
+              />
+
 
               {/* Preview Image Upload */}
               <div className="space-y-2">
