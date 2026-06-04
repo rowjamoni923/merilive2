@@ -125,6 +125,7 @@ const GiftItem = memo(({
               className="w-10 h-10"
               loop={true}
               autoPlay={true}
+              muted={true}
             />
           </Suspense>
         ) : url && isVideo ? (
