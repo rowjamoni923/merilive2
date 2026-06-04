@@ -336,10 +336,23 @@ export function usePartyRoomWebRTC(
           return ms;
         };
 
+        const collectIdentityKeys = (raw: string | null | undefined): string[] => {
+          if (!raw) return [];
+          const trimmed = String(raw).trim();
+          if (!trimmed) return [];
+          const stripped = trimmed
+            .replace(/^user[-_]/i, '')
+            .replace(/^party[-_]/i, '')
+            .replace(/^livekit[-_]/i, '');
+          const out = new Set<string>([trimmed, stripped, `user-${stripped}`, `user_${stripped}`]);
+          return Array.from(out);
+        };
+
         const setPeerStreamForParticipant = (participant: RemoteParticipant, stream: MediaStream) => {
-          const keys = new Set([participant.identity]);
-          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
-          if (userId) keys.add(userId);
+          const keys = new Set<string>();
+          collectIdentityKeys(participant.identity).forEach((k) => keys.add(k));
+          const meta = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          collectIdentityKeys(meta).forEach((k) => keys.add(k));
           stream.getTracks().forEach((track) => {
             if (track.readyState !== 'live') return;
             try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
@@ -348,9 +361,9 @@ export function usePartyRoomWebRTC(
         };
 
         const deletePeerStreamForParticipant = (participant: RemoteParticipant) => {
-          peerStreamsRef.current.delete(participant.identity);
-          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
-          if (userId) peerStreamsRef.current.delete(userId);
+          collectIdentityKeys(participant.identity).forEach((k) => peerStreamsRef.current.delete(k));
+          const meta = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          collectIdentityKeys(meta).forEach((k) => peerStreamsRef.current.delete(k));
         };
 
         const resetLocalPublications = async () => {
