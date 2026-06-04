@@ -18,13 +18,12 @@ interface GiftEmojiAnimationProps {
 
 const FULLSCREEN_LAYER_STYLE: CSSProperties = {
   position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  width: '100vw',
-  height: '100vh',
-  zIndex: 999999,
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
+  zIndex: 2147483000,
   pointerEvents: 'none',
   overflow: 'hidden',
   display: 'flex',
@@ -36,10 +35,11 @@ const FULLSCREEN_LAYER_STYLE: CSSProperties = {
 
 const FULLSCREEN_STAGE_STYLE: CSSProperties = {
   position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -172,13 +172,15 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
-                width="100vw"
-                height="100vh"
+                width="100dvw"
+                height="100dvh"
                 type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
                 configSrc={animationConfigUrl || undefined}
                 loop={false}
                 autoPlay
-                muted={isLottie ? true : !!soundUrl}
+                // MP4/VAP gifts must stay muted for reliable mobile/WebView autoplay;
+                // any separate audio is played by soundUrl above.
+                muted={true}
                 volume={0.8}
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
