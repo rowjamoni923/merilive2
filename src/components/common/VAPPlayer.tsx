@@ -360,9 +360,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     videoRef.current = video;
 
-    video.onloadedmetadata = () => {
+    const handleVideoReady = () => {
       initWebGL(video, config);
     };
+    video.onloadeddata = handleVideoReady;
+    video.oncanplay = handleVideoReady;
 
     video.onended = () => {
       if (!loop) {
