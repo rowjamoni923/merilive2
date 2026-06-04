@@ -359,8 +359,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             const w = v.videoWidth;
             const h = v.videoHeight;
             if (
-              !type &&
-              detectedType !== 'vap' &&
+              type !== 'vap' &&
+              (detectedType === 'mp4' || detectedType === 'webm') &&
               isLikelyVapCompositeSize(w, h)
             ) {
               setAutoDetectedVap(true);
