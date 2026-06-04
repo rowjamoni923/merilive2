@@ -24,29 +24,24 @@ export interface GiftServiceResponse {
   error?: string;
 }
 
-export async function callGiftService(payload: GiftServicePayload): Promise<GiftServiceResponse> {
-  // Force a fresh user check — this triggers an auto refresh if the cached
-  // access token has been revoked server-side (single-device displacement,
-  // password change, etc.), avoiding a stale-token 401 from the edge fn.
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    throw new Error("No active session. Please sign in again.");
+async function getAccessToken(forceRefresh: boolean): Promise<string | null> {
+  if (forceRefresh) {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (!error && data?.session?.access_token) return data.session.access_token;
+    } catch {}
+    return null;
   }
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token ?? null;
+}
 
-  const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
-  const accessToken = sessionData?.session?.access_token;
-  if (sessionErr || !accessToken) {
-    throw new Error("No active session. Please sign in again.");
-  }
-
-  // Pkg306 audit: header was hardcoded "android-webview" — wrong for web.
+async function doRequest(accessToken: string, payload: GiftServicePayload): Promise<Response> {
   const isNative = typeof (globalThis as any)?.Capacitor?.isNativePlatform === 'function'
     && (globalThis as any).Capacitor.isNativePlatform();
   const platform = isNative ? 'android-webview' : 'web';
 
-  // Explicit fetch guarantees the Edge Function receives the current user JWT.
-  // functions.invoke can fall back to anon when auth storage is still settling on native/webview.
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/gift-service`, {
+  return fetch(`${SUPABASE_URL}/functions/v1/gift-service`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -56,15 +51,31 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     },
     body: JSON.stringify(payload),
   });
+}
 
-  let data: GiftServiceResponse | null = null;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
+export async function callGiftService(payload: GiftServicePayload): Promise<GiftServiceResponse> {
+  let accessToken = await getAccessToken(false);
+  if (!accessToken) accessToken = await getAccessToken(true);
+  if (!accessToken) throw new Error("No active session. Please sign in again.");
+
+  let response = await doRequest(accessToken, payload);
+
+  // Token may have been revoked server-side (single-device displacement,
+  // password change). Try ONE silent refresh + retry before surfacing 401.
+  if (response.status === 401) {
+    const refreshed = await getAccessToken(true);
+    if (refreshed && refreshed !== accessToken) {
+      response = await doRequest(refreshed, payload);
+    }
   }
 
+  let data: GiftServiceResponse | null = null;
+  try { data = await response.json(); } catch { data = null; }
+
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Your session expired. Please sign in again to send gifts.");
+    }
     throw new Error(data?.error || `Gift request failed (${response.status})`);
   }
 
