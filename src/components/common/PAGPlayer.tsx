@@ -16,6 +16,9 @@ interface PAGPlayerProps {
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
+  muted?: boolean;
+  volume?: number;
+  soundUrl?: string | null;
   onLoad?: () => void;
   onComplete?: () => void;
   onError?: (err: Error) => void;
