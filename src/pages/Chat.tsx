@@ -780,8 +780,8 @@ const Chat = () => {
     const configSuffix = gift.animation_config_url ? ` | cfg:${gift.animation_config_url}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
@@ -819,7 +819,7 @@ const Chat = () => {
         content: optimisticGiftMessage,
         animationFormat: giftAnimationFormat,
         animationConfigUrl: gift.animation_config_url || null,
-          soundUrl: giftSoundUrl || null,
+        soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});
 
@@ -854,8 +854,8 @@ const Chat = () => {
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
