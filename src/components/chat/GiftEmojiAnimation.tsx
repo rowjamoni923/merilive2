@@ -175,7 +175,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 configSrc={animationConfigUrl || undefined}
                 loop={false}
                 autoPlay
-                muted={isLottie ? true : false}
+                muted={isLottie ? true : !!soundUrl}
                 volume={0.8}
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
