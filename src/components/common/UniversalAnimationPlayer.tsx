@@ -377,9 +377,6 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             setHasError(true);
             onError?.(new Error('Video load failed'));
           }}
-            setHasError(true);
-            onError?.(new Error('Video load failed'));
-          }}
         />
       </div>
     );
