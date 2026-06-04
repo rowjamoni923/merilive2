@@ -250,7 +250,6 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}
-          volume={volume}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
@@ -273,6 +272,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}
+          volume={volume}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
@@ -337,7 +337,6 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           loop={loop}
           muted={muted}
-          volume={volume}
           playsInline
           // HARD-DISABLED: this player drives gift / entry / lottery / live
           // overlay animations — a native play button or thumbnail poster on
