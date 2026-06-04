@@ -151,6 +151,21 @@ const FullScreenGiftAnimation = ({
   const [currentCount, setCurrentCount] = useState(0);
   const soundPlayedRef = useRef(false);
   const [svgaHasAudio, setSvgaHasAudio] = useState(false);
+
+  // Professional dynamic data for SVGA/VAP (RPG replacement)
+  const dynamicData = {
+    images: {
+      user_avatar: senderAvatar || '',
+      receiver_avatar: receiverAvatar || '',
+      sender_avatar: senderAvatar || '', // Alias
+    },
+    text: {
+      user_name: senderName || '',
+      receiver_name: receiverName || '',
+      sender_name: senderName || '', // Alias
+      gift_count: String(quantity),
+    }
+  };
   
   // CRITICAL: Prevent re-initialization on re-renders
   const mountedRef = useRef(true);
