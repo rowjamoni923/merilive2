@@ -258,20 +258,26 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                     {card.daily_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-cyan-400 text-cyan-700"><Gem className="w-3 h-3 mr-1" />{card.daily_free_diamonds}/day</Badge>}
                     {card.monthly_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-pink-400 text-pink-700"><Sparkles className="w-3 h-3 mr-1" />{card.monthly_free_diamonds}/mo</Badge>}
                   </div>
-                  {card.entrance_animation_url && (
+                  {(card.entrance_animation_url || card.crown_url) && (
                     <div className="w-20 h-20 bg-amber-50 border border-amber-200/60 rounded-xl overflow-hidden flex items-center justify-center p-1 relative">
                       {card.crown_url ? (
-                        <img src={card.crown_url} className="w-full h-full object-contain p-1 z-10" alt="" />
-                      ) : null}
-                      <div className="absolute inset-0">
-                        <UniversalAnimationPlayer
-                          src={card.entrance_animation_url}
-                          className="w-full h-full"
-                          loop
-                          autoPlay
-                          muted
+                        <img 
+                          src={card.crown_url} 
+                          className="w-full h-full object-contain p-1 z-10" 
+                          alt="" 
+                          loading="eager"
                         />
-                      </div>
+                      ) : (
+                        <div className="absolute inset-0">
+                          <UniversalAnimationPlayer
+                            src={card.entrance_animation_url!}
+                            className="w-full h-full"
+                            loop
+                            autoPlay
+                            muted
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

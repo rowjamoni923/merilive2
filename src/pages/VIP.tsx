@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
   Crown, 
@@ -1321,16 +1322,16 @@ const VIP = () => {
                             background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
                             boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
                           }}>
-                            <div className="w-full h-full flex items-center justify-center p-2 relative">
+                            <div className={cn("w-full h-full flex items-center justify-center relative", (priv.category !== 'frame' && priv.category !== 'portrait_frame') && "p-2")}>
                               <div
                                 className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
                                 style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
                               />
-                              {priv.preview_url ? (
+                              {priv.preview_url && priv.category !== 'frame' && priv.category !== 'portrait_frame' ? (
                                 <img 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-[85%] h-[85%] object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
+                                  className="w-full h-full object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
                                   loading="eager"
                                 />
                               ) : (
