@@ -193,6 +193,38 @@ const playCallEndSound = (ctx: AudioContext, gainNode: GainNode) => {
   });
 };
 
+const playEntranceSound = (ctx: AudioContext, gainNode: GainNode) => {
+  const t0 = ctx.currentTime;
+  // Cinematic "Whoosh" + orchestral chime
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(110, t0);
+  osc.frequency.exponentialRampToValueAtTime(440, t0 + 0.8);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(0.4, t0 + 0.4);
+  g.gain.exponentialRampToValueAtTime(0.01, t0 + 1.5);
+  osc.connect(g);
+  g.connect(gainNode);
+  osc.start(t0);
+  osc.stop(t0 + 1.6);
+
+  // High-frequency sparkle
+  for (let i = 0; i < 8; i++) {
+    const sOsc = ctx.createOscillator();
+    const sG = ctx.createGain();
+    sOsc.type = 'sine';
+    sOsc.frequency.setValueAtTime(2000 + Math.random() * 2000, t0 + 0.5 + i * 0.1);
+    sG.gain.setValueAtTime(0, t0 + 0.5 + i * 0.1);
+    sG.gain.linearRampToValueAtTime(0.1, t0 + 0.5 + i * 0.1 + 0.05);
+    sG.gain.exponentialRampToValueAtTime(0.001, t0 + 0.5 + i * 0.1 + 0.3);
+    sOsc.connect(sG);
+    sG.connect(gainNode);
+    sOsc.start(t0 + 0.5 + i * 0.1);
+    sOsc.stop(t0 + 0.5 + i * 0.1 + 0.4);
+  }
+};
+
 // Module-level shared ringtone loop — multiple hook instances share one loop
 // so even if a component unmounts mid-ring, sound keeps playing for the
 // caller surface that is still up. Stops only on explicit stopRingtone().
