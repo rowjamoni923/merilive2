@@ -189,7 +189,10 @@ export const AnimationUploader: React.FC<Props> = ({
             const uploadUrl = `${R2_FUNCTION_URL}?action=upload-part&uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNum}`;
             const res = await fetch(uploadUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/octet-stream', 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
+              headers: { 
+                'Content-Type': 'application/octet-stream', 
+                'x-admin-token': getAdminSessionToken() 
+              },
               body: chunk,
             });
             const { etag, success, error } = await res.json();
