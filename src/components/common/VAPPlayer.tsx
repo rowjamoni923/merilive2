@@ -253,6 +253,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     if (!gl) {
       console.warn('[VAPPlayer] WebGL not supported; using video fallback');
+      const { rgbRect } = getAutoVapRects(video);
+      setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
@@ -264,6 +266,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const program = createShaders(gl);
     if (!program) {
       console.warn('[VAPPlayer] Shader compilation failed; using video fallback');
+      const { rgbRect } = getAutoVapRects(video);
+      setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
