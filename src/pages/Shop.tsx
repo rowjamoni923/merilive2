@@ -249,8 +249,6 @@ const ShopItemCard = ({
     </motion.div>
   );
 };
-  );
-};
 
 const Shop = () => {
   const navigate = useNavigate();
