@@ -276,7 +276,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             size="fill"
               type={animationType === 'vap' ? 'vap' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
             loop={animationType === 'image'}
-            muted={false}
+              muted={animationType === 'lottie' ? true : !!entry.soundUrl}
               soundUrl={entry.soundUrl ?? null}
             onComplete={handleAnimationComplete}
             onError={() => handleAnimationComplete()}
