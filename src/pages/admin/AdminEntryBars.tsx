@@ -14,6 +14,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface EntryBarItem {
@@ -43,6 +44,8 @@ const AdminEntryBars = () => {
     level: 1,
     name: '',
     animation_url: '',
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: null as string | null,
     preview_url: '',
     sound_url: '',
     duration_ms: 3500,
@@ -155,6 +158,8 @@ const AdminEntryBars = () => {
       level: 1,
       name: '',
       animation_url: '',
+      animation_format: null,
+      animation_config_url: null,
       preview_url: '',
       sound_url: '',
       duration_ms: 3500,
@@ -169,6 +174,8 @@ const AdminEntryBars = () => {
       level: item.level,
       name: item.name,
       animation_url: item.animation_url || '',
+      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (item as any).animation_config_url ?? null,
       preview_url: item.preview_url || '',
       sound_url: item.sound_url || '',
       duration_ms: item.duration_ms,
@@ -186,13 +193,15 @@ const AdminEntryBars = () => {
     setSaving(true);
     try {
       // Note: level_privileges table only has these columns
-      const payload = {
+      const payload: any = {
         privilege_type: 'entry_bar',
         unlock_level: formData.level,
         name: formData.name,
         privilege_name: formData.name,
         description: `Entry Bar for Level ${formData.level}+`,
         animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format,
+        animation_config_url: formData.animation_config_url,
         preview_url: formData.preview_url || null,
         sound_url: formData.sound_url || null,
         duration_ms: formData.duration_ms,
@@ -486,53 +495,21 @@ const AdminEntryBars = () => {
 
               {/* Duration auto-detected from SVGA file */}
 
-              {/* Animation Upload */}
-              <div className="space-y-2">
-                <Label>Animation (SVGA, Lottie JSON, GIF)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.animation_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-                    placeholder="URL or Upload File"
-                    className="flex-1"
-                  />
-                  <input
-                    type="file"
-                    id="entry-bar-animation-upload"
-                    accept="*/*"
-                    className="hidden"
-                    onChange={handleAnimationUpload}
-                    disabled={uploadingAnimation}
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    disabled={uploadingAnimation}
-                    onClick={() => document.getElementById('entry-bar-animation-upload')?.click()}
-                  >
-                    {uploadingAnimation ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  </Button>
-                  {formData.animation_url && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => setFormData(prev => ({ ...prev, animation_url: '' }))}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                {formData.animation_url && (
-                  <div className="h-20 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                    <FixedAnimationFrame size="fill" center={false}
-                      src={formData.animation_url}
-                      className="h-full object-contain"
-                      loop
-                    />
-                  </div>
-                )}
-              </div>
+              <AnimationUploader
+                label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+                folder="entry-bars"
+                value={{
+                  animation_url: formData.animation_url,
+                  animation_format: formData.animation_format,
+                  animation_config_url: formData.animation_config_url,
+                }}
+                onChange={(v) => setFormData(prev => ({
+                  ...prev,
+                  animation_url: v.animation_url,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url,
+                }))}
+              />
 
               {/* Thumbnail Upload - Compact Style like Animation */}
               <div className="space-y-2">

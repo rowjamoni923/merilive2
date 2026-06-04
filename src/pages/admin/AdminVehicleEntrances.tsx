@@ -13,6 +13,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface VehicleEntranceItem {
@@ -39,6 +40,8 @@ const AdminVehicleEntrances = () => {
     level: 1,
     name: '',
     animation_url: '',
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: null as string | null,
     preview_url: '',
     is_active: true
   });
@@ -130,6 +133,8 @@ const AdminVehicleEntrances = () => {
       level: 20,
       name: '',
       animation_url: '',
+      animation_format: null,
+      animation_config_url: null,
       preview_url: '',
       is_active: true
     });
@@ -142,6 +147,8 @@ const AdminVehicleEntrances = () => {
       level: item.level,
       name: item.name,
       animation_url: item.animation_url || '',
+      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (item as any).animation_config_url ?? null,
       preview_url: item.preview_url || '',
       is_active: item.is_active
     });
@@ -161,6 +168,8 @@ const AdminVehicleEntrances = () => {
         level_required: formData.level,
         image_url: formData.preview_url || formData.animation_url || '',
         animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format,
+        animation_config_url: formData.animation_config_url,
         preview_url: formData.preview_url || null,
         is_active: formData.is_active,
         display_order: formData.level,
@@ -346,30 +355,21 @@ const AdminVehicleEntrances = () => {
               </div>
             </div>
 
-            <div>
-              <Label>Animation (SVGA/MP4) - Full Screen Effect</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={formData.animation_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-                  placeholder="URL or upload"
-                  className="flex-1"
-                />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = '.svga,.json,.webp,.gif,.mp4,.webm';
-                      input.click();
-                    }}
-                  >
-                    <Upload className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+            <AnimationUploader
+              label="Full-Screen Animation * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+              folder="vehicle-entrances"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url,
+              }))}
+            />
 
               <div className="space-y-2">
                 <Label>Preview Image</Label>

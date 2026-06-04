@@ -42,6 +42,7 @@ import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteTog
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 
 const adminCardClass = adminStyles.card;
 const adminInputClass = adminStyles.input;
@@ -78,6 +79,8 @@ export default function AdminEntryBanners() {
     name: "",
     description: "",
     animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: null as string | null,
     preview_url: "",
     min_level: 0,
     min_vip_tier: 0,
@@ -230,6 +233,8 @@ export default function AdminEntryBanners() {
       name: "",
       description: "",
       animation_url: "",
+      animation_format: null,
+      animation_config_url: null,
       preview_url: "",
       min_level: 0,
       min_vip_tier: 0,
@@ -248,6 +253,8 @@ export default function AdminEntryBanners() {
       name: banner.name,
       description: banner.description || "",
       animation_url: banner.animation_url,
+      animation_format: ((banner as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (banner as any).animation_config_url ?? null,
       preview_url: banner.preview_url || "",
       min_level: banner.min_level,
       min_vip_tier: banner.min_vip_tier,
@@ -423,51 +430,21 @@ export default function AdminEntryBanners() {
               />
             </div>
 
-            <div>
-              <Label className={adminLabelClass}>Animation File (SVGA) *</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={formData.animation_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-                  className={`${adminInputClass} flex-1`}
-                  placeholder="https://..."
-                />
-                <input
-                  type="file"
-                  id="entry-banner-animation-upload"
-                  accept="*/*"
-                  className="hidden"
-                  onChange={(e) => handleFileUpload(e, 'animation_url')}
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  disabled={uploading}
-                  onClick={() => document.getElementById('entry-banner-animation-upload')?.click()}
-                >
-                  <Upload className="w-4 h-4" />
-                </Button>
-                {formData.animation_url && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    onClick={() => setFormData(prev => ({ ...prev, animation_url: '' }))}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-              {formData.animation_url && (
-                <div className="mt-2 h-16 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                  <SVGAPreviewWithMuteToggle
-                    src={formData.animation_url}
-                    className="h-full object-contain"
-                    containerClassName="h-full"
-                  />
-                </div>
-              )}
-            </div>
+            <AnimationUploader
+              label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+              folder="entry-banners"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url,
+              }))}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div>
