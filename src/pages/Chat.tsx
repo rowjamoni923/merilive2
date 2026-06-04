@@ -280,7 +280,7 @@ const Chat = () => {
       // Exclude chat payload wrappers like "[Gift: ...]" and anything with
       // whitespace, pipes, brackets, or other characters Storage rejects.
       if (/^\[/.test(value)) return false;
-      if (/[\s|\[\]\\<>"'`]/.test(value)) return false;
+      if (/[[\]\s|\\<>"'`]/.test(value)) return false;
       if (!value.includes('/')) return false;
       return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
     };
