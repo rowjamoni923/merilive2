@@ -171,11 +171,11 @@ export const AnimationUploader: React.FC<Props> = ({
 
   const format: AnimationFormat = (value.animation_format as AnimationFormat) || 'svga';
 
-  const uploadFile = async (file: File, kind: 'file' | 'config'): Promise<string> => {
+  const uploadFile = async (file: File, kind: 'file' | 'config', uploadFormat: AnimationFormat = format): Promise<string> => {
     setUploading(kind);
     try {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      const fileName = `${folder}/${kind}_${Date.now()}_${Math.random()
+      const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random()
         .toString(36)
         .slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
@@ -197,9 +197,12 @@ export const AnimationUploader: React.FC<Props> = ({
     if (!file) return;
     e.target.value = '';
 
-    const limit = FORMAT_LIMITS_MB[format];
+    const detectedByExt = detectFormatByExtension(file.name);
+    const detectedFormat = detectedByExt === 'mp4' && await looksLikeSideBySideVap(file) ? 'vap' : detectedByExt;
+    const uploadFormat = detectedFormat || format;
+    const limit = FORMAT_LIMITS_MB[uploadFormat];
     if (file.size > limit * 1024 * 1024) {
-      toast.error(`${format.toUpperCase()} files must be ≤ ${limit}MB (got ${(
+      toast.error(`${uploadFormat.toUpperCase()} files must be ≤ ${limit}MB (got ${(
         file.size /
         1024 /
         1024
@@ -208,9 +211,14 @@ export const AnimationUploader: React.FC<Props> = ({
     }
 
     try {
-      const url = await uploadFile(file, 'file');
-      onChange({ ...value, animation_url: url, animation_format: format });
-      toast.success(`${format.toUpperCase()} uploaded.`);
+      const url = await uploadFile(file, 'file', uploadFormat);
+      onChange({
+        ...value,
+        animation_url: url,
+        animation_format: uploadFormat,
+        animation_config_url: uploadFormat === 'vap' ? value.animation_config_url : null,
+      });
+      toast.success(`${uploadFormat.toUpperCase()} uploaded.`);
     } catch (err: any) {
       toast.error(`Upload failed: ${err?.message || err}`);
     }
@@ -231,7 +239,7 @@ export const AnimationUploader: React.FC<Props> = ({
     }
 
     try {
-      const url = await uploadFile(file, 'config');
+      const url = await uploadFile(file, 'config', 'vap');
       onChange({ ...value, animation_config_url: url });
       toast.success('VAP config uploaded.');
     } catch (err: any) {
@@ -242,7 +250,7 @@ export const AnimationUploader: React.FC<Props> = ({
   const clear = () =>
     onChange({ animation_url: '', animation_format: null, animation_config_url: null });
 
-  const canPreview = value.animation_url && (format !== 'vap' || value.animation_config_url);
+  const canPreview = !!value.animation_url;
 
   return (
     <div className={cn('space-y-3 rounded-lg border border-border bg-card p-3', className)}>
@@ -281,7 +289,7 @@ export const AnimationUploader: React.FC<Props> = ({
           </SelectContent>
         </Select>
         <p className="text-[11px] text-muted-foreground">
-          Max size: {FORMAT_LIMITS_MB[format]}MB
+          Max size: {FORMAT_LIMITS_MB[format]}MB. File type is auto-detected on upload.
         </p>
       </div>
 
@@ -290,7 +298,7 @@ export const AnimationUploader: React.FC<Props> = ({
         <input
           ref={mainRef}
           type="file"
-          accept={FORMAT_ACCEPT[format]}
+          accept={ALL_ANIMATION_ACCEPT}
           onChange={handleMainFile}
           className="hidden"
         />
@@ -317,8 +325,7 @@ export const AnimationUploader: React.FC<Props> = ({
         <div className="space-y-2 rounded-md border border-dashed border-border p-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <FileVideo className="h-3.5 w-3.5" />
-            VAP requires <code className="px-1 bg-muted rounded">vapc.json</code> config
-            from your designer.
+            Optional <code className="px-1 bg-muted rounded">vapc.json</code> for custom VAP layout.
           </div>
           <input
             ref={configRef}
@@ -366,8 +373,8 @@ export const AnimationUploader: React.FC<Props> = ({
       )}
 
       {value.animation_url && format === 'vap' && !value.animation_config_url && (
-        <p className="text-xs text-destructive">
-          Upload the matching vapc.json — VAP can't render without it.
+        <p className="text-xs text-muted-foreground">
+          Standard side-by-side VAP MP4 works without config; upload vapc.json only for custom layouts.
         </p>
       )}
     </div>
