@@ -555,6 +555,8 @@ export default function AdminGifts() {
       animation_type: "svga",
       animation_url: "",
       animation_data: null,
+      animation_format: null,
+      animation_config_url: "",
       category: selectedCategory === "all" ? "wall" : selectedCategory,
       display_order: 0,
       is_active: true,
