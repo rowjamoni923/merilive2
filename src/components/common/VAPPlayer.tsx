@@ -31,6 +31,21 @@ interface VAPPlayerProps {
   onComplete?: () => void;
 }
 
+const getAutoVapRects = (video: HTMLVideoElement) => {
+  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+  return layout === 'alpha-left'
+    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
+    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+};
+
+const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
+  if (cfg) return false;
+  const pixels = video.videoWidth * video.videoHeight;
+  const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+  const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
+  return pixels >= 1_800_000 || (coarsePointer && pixels >= 1_000_000) || (cores <= 4 && pixels >= 1_000_000);
+};
+
 /**
  * VAP (Video Animation Player) Component
  * Plays transparent video animations using alpha channel blending
@@ -68,6 +83,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
+  const useVideoFallbackRef = useRef(false);
 
   // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
   const onLoadRef = useRef(onLoad);
@@ -78,6 +94,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     onErrorRef.current = onError;
     onCompleteRef.current = onComplete;
   }, [onLoad, onError, onComplete]);
+  useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = Math.max(0, Math.min(1, volume));
+  }, [volume, resolvedSrc]);
 
   // Default config for standard VAP format
   const defaultConfig: VAPConfig = {
@@ -289,14 +311,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w;
       canvas.height = cfg.h;
     } else {
-      const layout = detectVapSideBySideLayout(video) || 'alpha-right';
-      if (layout === 'alpha-left') {
-        rgbRect = [0.5, 0, 0.5, 1];
-        alphaRect = [0, 0, 0.5, 1];
-      } else {
-        rgbRect = [0, 0, 0.5, 1];
-        alphaRect = [0.5, 0, 0.5, 1];
-      }
+      ({ rgbRect, alphaRect } = getAutoVapRects(video));
       
       canvas.width = videoWidth / 2;
       canvas.height = videoHeight;
