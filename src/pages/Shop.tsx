@@ -668,32 +668,20 @@ const Shop = () => {
                   {(() => {
                     const animType = pickAnimType(selectedItem);
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
-                    if (animSrc && isAnimatedType(animType)) {
-                      return (
-                        <FixedAnimationFrame
-                          src={animSrc}
-                          type={animType as any}
-                          configSrc={selectedItem.animation_config_url || undefined}
-                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                          loop
-                          autoPlay
-                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
-                          background="none"
-                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                        />
-                      );
-                    }
-                    if (selectedItem.preview_url || animSrc) {
-                      return (
-                        <img loading="lazy" decoding="async"
-                          src={selectedItem.preview_url || animSrc}
-                          alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      );
-                    }
-                    return <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />;
+                    return (
+                      <FixedAnimationFrame
+                        src={animSrc}
+                        type={animType as any}
+                        placeholderUrl={selectedItem.preview_url || undefined}
+                        configSrc={selectedItem.animation_config_url || undefined}
+                        size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                        loop
+                        autoPlay
+                        muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                        background="none"
+                        className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                      />
+                    );
                   })()}
                 </div>
 
