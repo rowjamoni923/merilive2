@@ -355,30 +355,21 @@ const AdminVehicleEntrances = () => {
               </div>
             </div>
 
-            <div>
-              <Label>Animation (SVGA/MP4) - Full Screen Effect</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={formData.animation_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-                  placeholder="URL or upload"
-                  className="flex-1"
-                />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = '.svga,.json,.webp,.gif,.mp4,.webm';
-                      input.click();
-                    }}
-                  >
-                    <Upload className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+            <AnimationUploader
+              label="Full-Screen Animation * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+              folder="vehicle-entrances"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url,
+              }))}
+            />
 
               <div className="space-y-2">
                 <Label>Preview Image</Label>
