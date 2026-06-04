@@ -33,9 +33,9 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
-import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-import { detectProfessionalAnimationFormat, isAnimatedProfessionalFormat } from "@/utils/animationFormat";
+import { isGiftUrl } from "@/utils/giftMediaUrl";
+import GiftMedia from "@/components/chat/GiftMedia";
+
 
 
 // ============================================================
