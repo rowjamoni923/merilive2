@@ -1163,7 +1163,6 @@ export function UnifiedPartyRoom({
       userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
       isHost: isHost,
       type: 'message',
-      initial: senderName.charAt(0).toUpperCase(),
       bubbleUrl: ownBubble,
     };
 
