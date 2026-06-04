@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 import { useNavigate } from "react-router-dom";
 import { X, RotateCcw, Grid3X3, Camera, AlertCircle, Wand2, Smile, Sparkles, Share2, Eye, Users, Zap, Star, Gift, Heart, Gamepad2, MapPin, Mic, ArrowLeft, CheckCircle, ShieldAlert, ScanFace, UserPlus, Check, LayoutGrid, Settings, Lock, Ban } from "lucide-react";
