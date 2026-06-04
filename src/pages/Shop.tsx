@@ -557,15 +557,15 @@ const Shop = () => {
 
       {/* Items Grid */}
       <div 
-        className="flex-1 overflow-y-auto overscroll-contain px-3 py-2"
+        className="flex-1 overflow-y-auto overscroll-contain px-2 py-2"
         style={{ 
           WebkitOverflowScrolling: 'touch',
           paddingBottom: 'var(--content-bottom-padding)',
         }}
       >
         {filteredItems.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="relative w-24 h-24 mx-auto mb-5">
+          <div className="text-center py-16 px-4">
+            <div className="relative w-20 h-20 mx-auto mb-5">
               <div
                 className="absolute inset-0 rounded-full blur-2xl opacity-50"
                 style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.45), transparent 70%)' }}
