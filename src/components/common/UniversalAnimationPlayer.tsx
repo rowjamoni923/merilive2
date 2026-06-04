@@ -10,8 +10,9 @@ import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 const VAPPlayer = lazy(() => import('./VAPPlayer'));
+const PAGPlayer = lazy(() => import('./PAGPlayer'));
 
-export type AnimationType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
+export type AnimationType = 'svga' | 'lottie' | 'vap' | 'pag' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
 interface UniversalAnimationPlayerProps {
   src: string;
@@ -45,6 +46,7 @@ const detectAnimationType = (url: string): AnimationType => {
   
   // Check file extensions
   if (urlWithoutParams.endsWith('.svga')) return 'svga';
+  if (urlWithoutParams.endsWith('.pag')) return 'pag';
   if (urlWithoutParams.endsWith('.json')) {
     // Check if it's a VAP config or Lottie
     if (lowercaseUrl.includes('vap') || lowercaseUrl.includes('_bmp')) return 'vap';
@@ -217,6 +219,26 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}
+          onLoad={onLoad}
+          onComplete={() => fireComplete('native')}
+          onError={(err) => {
+            setHasError(true);
+            onError?.(err);
+          }}
+        />
+      </Suspense>
+    );
+  }
+
+  // Pkg425 — PAG Animation (Tencent professional format, Chamet 2025+ standard)
+  if (animationType === 'pag') {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <PAGPlayer
+          src={resolvedSrc}
+          className={className}
+          loop={loop}
+          autoPlay={autoPlay}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
