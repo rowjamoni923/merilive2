@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface PartyBackground {
   id: string;
   name: string;
