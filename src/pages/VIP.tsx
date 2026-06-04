@@ -1197,7 +1197,7 @@ const VIP = () => {
           )}
 
           {/* VIP Tiers Grid */}
-          <div className="grid gap-4 max-w-2xl mx-auto w-full">
+          <div className="grid gap-3 max-w-2xl mx-auto w-full">
             {tiers.map((tier, index) => {
               const TierIcon = getTierIcon(tier.tier_level);
               const privileges = getPrivilegesList(tier);
@@ -1232,11 +1232,11 @@ const VIP = () => {
                   )}
 
                   {/* Tier Header */}
-                  <div className={`p-4 bg-gradient-to-r ${getTierGradient(tier.tier_level)} relative`}>
+                  <div className={`p-3 bg-gradient-to-r ${getTierGradient(tier.tier_level)} relative`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
+                          className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
                           style={{
                             background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,251,242,0.7))',
                             boxShadow: '0 6px 14px -4px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.85)',
@@ -1255,7 +1255,7 @@ const VIP = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-heading font-bold text-lg" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
+                          <h3 className="text-heading font-bold text-base" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
                           <p className="text-body text-xs font-medium">{tier.duration_days} Days Membership</p>
                         </div>
                       </div>
@@ -1275,11 +1275,11 @@ const VIP = () => {
                   </div>
 
                   {/* Privileges */}
-                  <div className="p-4 bg-white/95">
+                  <div className="p-3 bg-white/95">
                     {tier.description && <p className="text-heading text-sm mb-3 leading-snug">{tier.description}</p>}
 
                     <div className="grid grid-cols-2 gap-2 mb-4 justify-items-center">
-                      {privileges.slice(0, 6).map((priv, i) => (
+                      {privileges.slice(0, 4).map((priv, i) => (
                         <div
                           key={i}
                           className="flex items-center gap-2 text-body text-xs font-medium px-2 py-1.5 rounded-lg"
@@ -1295,7 +1295,7 @@ const VIP = () => {
                     </div>
 
                     {/* Price & Action */}
-                    <div className="flex items-center justify-between pt-3 border-t border-amber-200/60">
+                    <div className="flex items-center justify-between pt-2 border-t border-amber-200/60">
                       <div
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
                         style={{
@@ -1313,7 +1313,7 @@ const VIP = () => {
                       <button
                         onClick={() => setSelectedTier(tier)}
                         disabled={isOwned || purchasing}
-                        className="px-5 py-2 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
+                        className="px-4 py-1.5 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
                         style={isOwned ? {
                           background: 'linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.12))',
                           color: '#065f46',
