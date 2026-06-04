@@ -923,8 +923,25 @@ const AdminShop = () => {
                           center={false}
                           loop
                         />
+                      ) : formData.file_type === 'vap' ? (
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          type="vap"
+                          configSrc={formData.animation_config_url || undefined}
+                          size="fill"
+                          center={false}
+                          loop
+                          muted
+                        />
                       ) : formData.file_type === 'video' ? (
-                        <video src={previewFile} className="w-full h-full object-contain bg-black" controls controlsList="nodownload noremoteplayback noplaybackrate" disablePictureInPicture disableRemotePlayback playsInline autoPlay muted loop/>
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          type={previewFile.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}
+                          size="fill"
+                          center={false}
+                          loop
+                          muted
+                        />
                       ) : formData.file_type === 'gif' ? (
                         <SmartImage src={previewFile} alt="Preview" cdnWidth={200} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
