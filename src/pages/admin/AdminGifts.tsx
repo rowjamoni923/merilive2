@@ -64,6 +64,7 @@ import { defaultGiftAnimations, animationCategories, type DefaultAnimation } fro
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
