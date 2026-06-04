@@ -59,8 +59,8 @@ const getAnimationType = (url?: string, format?: string | null): 'svga' | 'lotti
 const FULLSCREEN_GIFT_LAYER_STYLE: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  width: '100dvw',
-  height: '100dvh',
+  width: '100vw',
+  height: '100vh',
   minWidth: '100vw',
   minHeight: '100vh',
   zIndex: 2147483000,
@@ -75,8 +75,8 @@ const FULLSCREEN_GIFT_LAYER_STYLE: CSSProperties = {
 const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
   position: 'absolute',
   inset: 0,
-  width: '100dvw',
-  height: '100dvh',
+  width: '100vw',
+  height: '100vh',
   minWidth: '100vw',
   minHeight: '100vh',
   display: 'flex',
