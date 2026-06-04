@@ -12704,6 +12704,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           joined_at: string | null
+          last_seen_at: string
           left_at: string | null
           stream_id: string
           viewer_id: string
@@ -12712,6 +12713,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           joined_at?: string | null
+          last_seen_at?: string
           left_at?: string | null
           stream_id: string
           viewer_id: string
@@ -12720,6 +12722,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           joined_at?: string | null
+          last_seen_at?: string
           left_at?: string | null
           stream_id?: string
           viewer_id?: string
@@ -18535,6 +18538,7 @@ export type Database = {
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
       cleanup_stale_party_rooms: { Args: never; Returns: number }
+      cleanup_stale_stream_viewers: { Args: never; Returns: Json }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
       coin_trader_self_recharge: { Args: { amount: number }; Returns: Json }
       coin_trader_transfer_to_agency: {
@@ -19998,6 +20002,7 @@ export type Database = {
         Args: { p_password: string; p_stream_id: string }
         Returns: boolean
       }
+      viewer_heartbeat: { Args: { p_stream_id: string }; Returns: number }
     }
     Enums: {
       admin_device_status:
