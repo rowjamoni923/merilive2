@@ -211,48 +211,21 @@ const ShopItemCard = ({
         {(() => {
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
-          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
-
-          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
-          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
-          if (animSrc && isAnimatedType(animType) && !imageError) {
-            return (
-              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
-                <FixedAnimationFrame
-                  src={animSrc}
-                  type={animType as any}
-                  configSrc={item.animation_config_url || undefined}
-                  size="fill"
-                  loop
-                  autoPlay
-                  muted
-                  center={false}
-                  onError={() => setImageError(true)}
-                />
-              </div>
-            );
-          }
-
-          if (previewIsStatic && !imageError) {
-            return (
-              <img
-                src={item.preview_url!}
-                alt={item.name}
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: 'high' } as any)}
-                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+          
+          return (
+            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+              <FixedAnimationFrame
+                src={animSrc}
+                type={animType as any}
+                placeholderUrl={item.preview_url || undefined}
+                configSrc={item.animation_config_url || undefined}
+                size="fill"
+                loop
+                autoPlay
+                muted
+                center={false}
                 onError={() => setImageError(true)}
               />
-            );
-          }
-
-          return (
-            <div
-              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
-              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-            >
-              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
             </div>
           );
         })()}
