@@ -314,8 +314,18 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
 
 GiftEmojiAnimationInner.displayName = 'GiftEmojiAnimationInner';
 
-// Wrapper to ensure stable key and prevent re-mounts
-export const GiftEmojiAnimation = ({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
+// Wrapper to ensure stable key and prevent re-mounts.
+// Pkg-fix: forward animationFormat + animationConfigUrl so VAP gifts ("hi", etc.)
+// render through the VAP pipeline instead of falling back to plain <video>
+// (which showed the side-by-side raw frame = "broken image" full-screen).
+export const GiftEmojiAnimation = ({
+  emoji,
+  count = 1,
+  animationFormat,
+  animationConfigUrl,
+  soundUrl,
+  onComplete,
+}: GiftEmojiAnimationProps) => {
   // CRITICAL: Use stable key based on emoji URL to prevent re-mounting
   const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-20)}`);
 
@@ -324,6 +334,8 @@ export const GiftEmojiAnimation = ({ emoji, count = 1, soundUrl, onComplete }: G
       key={stableKey.current}
       emoji={emoji}
       count={count}
+      animationFormat={animationFormat}
+      animationConfigUrl={animationConfigUrl}
       soundUrl={soundUrl}
       onComplete={onComplete}
     />
