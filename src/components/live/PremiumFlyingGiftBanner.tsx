@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 interface FlyingGiftBannerProps {
   senderName: string;
