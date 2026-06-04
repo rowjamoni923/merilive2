@@ -430,13 +430,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     initWebGL(video, config);
     window.setTimeout(() => {
-      if (!webglPaintedRef.current) {
-        console.warn('[VAPPlayer] WebGL did not paint first frame within 1.2s; using cropped video fallback');
-        setUseVideoFallback(true);
-        setLoading(false);
-        onLoadRef.current?.();
+      if (!webglPaintedRef.current && !useVideoFallbackRef.current) {
+        // Do NOT drop a real VAP composite to cropped-video fallback just because
+        // the first decoded frame is slow. The fallback can only show the RGB half
+        // (or the alpha mask half), which is exactly the broken-looking state users
+        // reported for professional 15s/30MB gifts. Keep the RAF WebGL loop alive;
+        // it will paint as soon as Android/Chrome decodes the first usable frame.
+        console.warn('[VAPPlayer] WebGL first frame is still pending; keeping alpha-composite renderer active');
       }
-    }, 1200);
+    }, 5000);
   }, [config, initWebGL, resolvedConfigSrc]);
 
   const handleEnded = useCallback(() => {

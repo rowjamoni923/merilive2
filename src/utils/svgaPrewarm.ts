@@ -62,6 +62,13 @@ export async function prewarmPopularAssets(urls: string[]): Promise<void> {
 const CACHE_NAME = 'svga-binary-v1';
 let cacheInstance: Cache | null = null;
 
+const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onerror = () => reject(reader.error || new Error('SVGA FileReader failed'));
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.readAsDataURL(blob);
+});
+
 async function getCache(): Promise<Cache | null> {
   if (cacheInstance) return cacheInstance;
   try {
@@ -79,7 +86,10 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
       const cached = await cache.match(url);
       if (cached) {
         const blob = await cached.blob();
-        return URL.createObjectURL(blob);
+        if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+          return URL.createObjectURL(blob);
+        }
+        return await blobToDataUrl(blob);
       }
     } catch {}
   }
@@ -89,7 +99,17 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
     if (response.ok && cache) {
       cache.put(url, response.clone()).catch(() => {});
       const blob = await response.blob();
-      return URL.createObjectURL(blob);
+      if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+        return URL.createObjectURL(blob);
+      }
+      return await blobToDataUrl(blob);
+    }
+    if (response.ok) {
+      const blob = await response.blob();
+      if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+        return URL.createObjectURL(blob);
+      }
+      return await blobToDataUrl(blob);
     }
   } catch {}
 
