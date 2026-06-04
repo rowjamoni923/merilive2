@@ -403,17 +403,20 @@ const FullScreenGiftAnimation = ({
       );
     }
 
+    if (!gift.icon_url) return null;
+
     return (
-      <motion.div 
-        className="text-8xl md:text-9xl"
+      <motion.img 
+        src={gift.icon_url} 
+        alt={gift.name}
+        className="w-48 h-48 md:w-64 md:h-64 object-contain"
         animate={{ 
           y: [-10, 10, -10],
-          scale: [1, 1.1, 1]
+          scale: [1, 1.08, 1],
+          rotate: [-2, 2, -2]
         }}
         transition={{ duration: 2, repeat: Infinity }}
-      >
-        🎁
-      </motion.div>
+      />
     );
   };
 
