@@ -31,6 +31,21 @@ interface VAPPlayerProps {
   onComplete?: () => void;
 }
 
+const getAutoVapRects = (video: HTMLVideoElement) => {
+  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+  return layout === 'alpha-left'
+    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
+    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+};
+
+const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
+  if (cfg) return false;
+  const pixels = video.videoWidth * video.videoHeight;
+  const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+  const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
+  return pixels >= 1_800_000 || (coarsePointer && pixels >= 1_000_000) || (cores <= 4 && pixels >= 1_000_000);
+};
+
 /**
  * VAP (Video Animation Player) Component
  * Plays transparent video animations using alpha channel blending
@@ -68,6 +83,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
+  const useVideoFallbackRef = useRef(false);
 
   // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
   const onLoadRef = useRef(onLoad);
@@ -78,6 +94,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     onErrorRef.current = onError;
     onCompleteRef.current = onComplete;
   }, [onLoad, onError, onComplete]);
+  useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = Math.max(0, Math.min(1, volume));
+  }, [volume, resolvedSrc]);
 
   // Default config for standard VAP format
   const defaultConfig: VAPConfig = {
@@ -203,6 +225,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    if (shouldUsePerformanceVideoFallback(video, cfg)) {
+      const { rgbRect } = getAutoVapRects(video);
+      setFallbackCrop(rgbRect as [number, number, number, number]);
+      setUseVideoFallback(true);
+      setLoading(false);
+      webglPaintedRef.current = true;
+      onLoadRef.current?.();
+      return;
+    }
+
     const gl = canvas.getContext('webgl', {
       alpha: true,
       premultipliedAlpha: false,
@@ -289,14 +321,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w;
       canvas.height = cfg.h;
     } else {
-      const layout = detectVapSideBySideLayout(video) || 'alpha-right';
-      if (layout === 'alpha-left') {
-        rgbRect = [0.5, 0, 0.5, 1];
-        alphaRect = [0, 0, 0.5, 1];
-      } else {
-        rgbRect = [0, 0, 0.5, 1];
-        alphaRect = [0.5, 0, 0.5, 1];
-      }
+      ({ rgbRect, alphaRect } = getAutoVapRects(video));
       
       canvas.width = videoWidth / 2;
       canvas.height = videoHeight;
@@ -315,6 +340,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     // Render loop
     const render = () => {
+      if (useVideoFallbackRef.current) return;
       if (!video.paused && !video.ended) {
         try {
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
@@ -326,6 +352,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         } catch (err) {
           console.warn('[VAPPlayer] WebGL video texture failed; using cropped video fallback:', err);
           setUseVideoFallback(true);
+          return;
         }
       }
       if (typeof (video as any).requestVideoFrameCallback === 'function') {
@@ -426,7 +453,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         playsInline
         muted={muted}
         loop={loop}
-        preload="auto"
+        preload="metadata"
         autoPlay={autoPlay}
         controls={false}
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
@@ -448,7 +475,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onCanPlay={(e) => {
           const v = e.currentTarget;
-          if (autoPlay && v.paused) v.play().catch((err) => console.warn('[VAPPlayer] Autoplay blocked:', err));
+          if (autoPlay && v.paused) {
+            v.volume = Math.max(0, Math.min(1, volume));
+            v.play().catch((err) => {
+              if (!v.muted) {
+                v.muted = true;
+                v.play().catch(() => console.warn('[VAPPlayer] Autoplay blocked:', err));
+              } else {
+                console.warn('[VAPPlayer] Autoplay blocked:', err);
+              }
+            });
+          }
         }}
         onEnded={handleEnded}
         onError={handleVideoError}

@@ -71,7 +71,7 @@ export const ViewerProfileCard = ({
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -86,7 +86,7 @@ export const ViewerProfileCard = ({
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
-            <div className="bg-gradient-to-b from-background/95 to-background backdrop-blur-xl rounded-t-3xl border-t border-white/10 overflow-hidden">
+            <div className="bg-gradient-to-b from-background/98 to-background rounded-t-3xl border-t border-white/10 overflow-hidden shadow-2xl">
               {/* Handle Bar */}
               <div className="flex justify-center py-3">
                 <div className="w-12 h-1.5 bg-white/20 rounded-full" />

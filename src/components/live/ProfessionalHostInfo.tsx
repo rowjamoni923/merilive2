@@ -41,7 +41,7 @@ export const ProfessionalHostInfo = ({
     <motion.div
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10"
+      className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/55 border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
     >
       {/* Host Avatar with Frame */}
       <AvatarWithFrame 
@@ -117,7 +117,7 @@ export const ProfessionalViewerCount = ({
   return (
     <motion.button
       onClick={onViewerClick}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/55 border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
       whileTap={{ scale: 0.95 }}
     >
       {/* Stacked Avatars */}
@@ -175,7 +175,7 @@ export const LiveDuration = ({ startTime }: LiveDurationProps) => {
   }, [startTime]);
 
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/90 backdrop-blur-sm">
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/95 shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
       <motion.div 
         className="w-2 h-2 rounded-full bg-white"
         animate={{ opacity: [1, 0.5, 1] }}
