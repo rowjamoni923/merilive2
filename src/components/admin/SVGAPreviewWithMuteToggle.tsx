@@ -119,6 +119,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
             loop={loop}
             autoPlay={autoPlay}
             muted={true}
+            dynamicData={dynamicData}
           />
         ) : (
           <SVGAPlayerWithAudio
@@ -129,6 +130,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
             autoPlay={autoPlay}
             volume={0.7}
             onAudioExtracted={handleAudioExtracted}
+            dynamicData={dynamicData}
           />
         )}
       </Suspense>
