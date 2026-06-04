@@ -455,6 +455,26 @@ const Shop = () => {
         const newBalance = Number(bgResult.new_balance ?? (userDiamonds - (bgResult.price_paid ?? item.price_diamonds)));
         setUserDiamonds(Number.isFinite(newBalance) ? newBalance : userDiamonds - item.price_diamonds);
         setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
+        
+        // Pkg: Automatically apply background to user's room for "instant" use
+        try {
+          const { data: rooms } = await supabase
+            .from("party_rooms")
+            .select("id")
+            .eq("host_id", user.id);
+          
+          if (rooms && rooms.length > 0) {
+            await supabase
+              .from("party_rooms")
+              .update({ 
+                background_id: actualItemId,
+                background_url: item.preview_url 
+              })
+              .eq("host_id", user.id);
+          }
+        } catch (err) {
+          console.error("Failed to auto-apply room background:", err);
+        }
       } else {
 
         const { data: purchaseData, error: purchaseError } = await (supabase as any).rpc("purchase_shop_item", {
