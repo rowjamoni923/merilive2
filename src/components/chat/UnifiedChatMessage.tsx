@@ -348,11 +348,7 @@ export const DirectChatBubble = memo(function DirectChatBubble({
       >
         {children ?? (isGiftUrl(message) ? (
           <div className="flex flex-col items-center gap-1 min-w-[120px]">
-            <img 
-              src={normalizeGiftMediaUrl(message) || ''} 
-              alt="Gift" 
-              className="w-24 h-24 object-contain drop-shadow-md" 
-            />
+            <GiftMedia url={message} sizeClass="w-24 h-24" />
             <span className={cn("text-[10px] font-bold italic", isMine ? "text-slate-800" : "text-pink-600")}>
               Sent a gift
             </span>
