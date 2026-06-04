@@ -328,10 +328,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           setUseVideoFallback(true);
         }
       }
-      const requestVideoFrame = (video as any).requestVideoFrameCallback as undefined | ((cb: () => void) => number);
-      if (requestVideoFrame) {
+      if (typeof (video as any).requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = requestVideoFrame(() => render());
+        animationRef.current = (video as any).requestVideoFrameCallback(() => render());
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
