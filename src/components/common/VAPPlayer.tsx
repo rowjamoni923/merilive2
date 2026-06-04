@@ -84,6 +84,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
   const frameCallbackModeRef = useRef<'raf' | 'rvfc'>('raf');
+  const lastVideoTimeRef = useRef<number>(-1);
   const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
