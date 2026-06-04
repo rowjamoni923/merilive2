@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
 import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
+import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
 import { Search, Eye, Trophy } from "lucide-react";

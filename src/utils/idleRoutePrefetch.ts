@@ -23,7 +23,7 @@ export function startIdleRoutePrefetch() {
   if (started || typeof window === 'undefined') return;
   started = true;
 
-  const warmSequentially = (imports: Array<() => Promise<unknown>>, gap = 900) => {
+  const warmSequentially = (imports: Array<() => Promise<unknown>>, gap = 300) => {
     imports.forEach((load, index) => {
       window.setTimeout(() => load().catch(() => {}), index * gap);
     });
