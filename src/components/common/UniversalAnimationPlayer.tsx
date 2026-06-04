@@ -6,6 +6,7 @@ import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
+import { isLikelyVapCompositeSize } from '@/utils/vapDetection';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -351,19 +352,16 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             !mediaLoaded && "opacity-0"
           )}
           onLoadedMetadata={(e) => {
-            // Pkg-fix: side-by-side VAP auto-detect. Tencent VAP exports a
-            // single video whose width is exactly 2× its height (RGB left,
-            // alpha right). If the caller didn't pass type="vap" and the
-            // file's aspect ratio matches, switch to VAPPlayer so legacy
-            // gifts with NULL animation_format still render correctly.
+            // Auto-detect composite VAP MP4s even when legacy admin rows have
+            // NULL animation_format. Supports square 2:1 exports and portrait
+            // professional gift exports (~1.125:1, alpha half + RGB half).
             const v = e.currentTarget;
             const w = v.videoWidth;
             const h = v.videoHeight;
             if (
               !type &&
               detectedType !== 'vap' &&
-              w > 100 && h > 100 &&
-              Math.abs(w / h - 2) < 0.05
+              isLikelyVapCompositeSize(w, h)
             ) {
               setAutoDetectedVap(true);
             }
