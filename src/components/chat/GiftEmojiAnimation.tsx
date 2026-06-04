@@ -18,30 +18,32 @@ interface GiftEmojiAnimationProps {
 
 const FULLSCREEN_LAYER_STYLE: CSSProperties = {
   position: 'fixed',
-  inset: 0,
-  width: '100dvw',
-  height: '100dvh',
-  minWidth: '100vw',
-  minHeight: '100vh',
-  zIndex: 2147483000,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  width: '100vw',
+  height: '100vh',
+  zIndex: 999999,
   pointerEvents: 'none',
   overflow: 'hidden',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   isolation: 'isolate',
+  background: 'transparent',
 };
 
 const FULLSCREEN_STAGE_STYLE: CSSProperties = {
   position: 'absolute',
-  inset: 0,
-  width: '100dvw',
-  height: '100dvh',
-  minWidth: '100vw',
-  minHeight: '100vh',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  pointerEvents: 'none',
 };
 
 // CRITICAL: Memoized to prevent re-renders causing multiple SVGA loads
@@ -152,8 +154,8 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
-                width="100dvw"
-                height="100dvh"
+                width="100vw"
+                height="100vh"
                 type="svga"
                 loop={false}
                 autoPlay
@@ -162,6 +164,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
+                className="fixed inset-0 w-screen h-screen"
               />
             )}
 
@@ -169,8 +172,8 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
-                width="100dvw"
-                height="100dvh"
+                width="100vw"
+                height="100vh"
                 type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
                 configSrc={animationConfigUrl || undefined}
                 loop={false}
@@ -180,6 +183,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
+                className="fixed inset-0 w-screen h-screen"
               />
             )}
           </div>
