@@ -168,6 +168,8 @@ const AdminVehicleEntrances = () => {
         level_required: formData.level,
         image_url: formData.preview_url || formData.animation_url || '',
         animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format,
+        animation_config_url: formData.animation_config_url,
         preview_url: formData.preview_url || null,
         is_active: formData.is_active,
         display_order: formData.level,
