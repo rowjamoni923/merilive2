@@ -719,7 +719,7 @@ const App = () => {
 
     return () => {
       cancelIdle(routeIdleId);
-      window.clearTimeout(imageIdleId);
+      cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
       cancelIdle(framesIdleId);
