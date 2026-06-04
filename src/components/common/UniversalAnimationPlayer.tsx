@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy, useRef, useEffect } from 'react';
+import React, { useState, Suspense, lazy, useRef, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/animationDebug';
@@ -101,7 +101,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.8, // Increased default volume for professional feel
+  volume = 0.8,
   onLoad,
   onError,
   onComplete,
@@ -112,7 +112,27 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   preferNative = false,
   dynamicData,
 }) => {
-  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+  // Use IntersectionObserver to disable heavy animations when not visible
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const resolvedSrc = useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+
   // Synchronously seed Lottie state from cache so cached gifts paint on first
   // render (no loading spinner flash, no double-paint).
   const initialType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
@@ -189,11 +209,17 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   // Error fallback
   if (hasError) {
     return (
-      <div className={cn("flex items-center justify-center text-4xl", className)}>
+      <div ref={containerRef} className={cn("flex items-center justify-center text-4xl", className)}>
         {fallbackEmoji}
       </div>
     );
   }
+
+  // If not visible, render a placeholder to save GPU/CPU
+  if (!isVisible && !loop) {
+     return <div ref={containerRef} className={className} />;
+  }
+
 
   // Loading spinner component
   const LoadingSpinner = () => (
@@ -202,154 +228,164 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 
   // SVGA Animation — use SVGAPlayerWithAudio when sound is needed
   if (animationType === 'svga') {
-    // Pkg425 — Native Android SVGA overlay when opted-in and available.
-    // Web SVGAPlayer remains the visual fallback so layout never collapses.
     if (preferNative && muted) {
       return (
-        <NativeSVGAOverlay
-          src={resolvedSrc}
-          loop={loop}
-          onComplete={() => fireComplete('native')}
-          onError={(err) => onError?.(err)}
-          fallback={
-            <Suspense fallback={<LoadingSpinner />}>
-              <SVGAPlayer
-                src={resolvedSrc}
-                className={className}
-                loop={loop}
-                autoPlay={autoPlay}
-                muted={muted}
-                onLoad={onLoad}
-                onComplete={() => fireComplete('native')}
-                dynamicData={dynamicData}
-                onError={(err) => {
-                  setHasError(true);
-                  onError?.(err);
-                }}
-              />
-            </Suspense>
-          }
-        />
+        <div ref={containerRef} className={className}>
+          <NativeSVGAOverlay
+            src={resolvedSrc}
+            loop={loop}
+            onComplete={() => fireComplete('native')}
+            onError={(err) => onError?.(err)}
+            fallback={
+              <Suspense fallback={<LoadingSpinner />}>
+                <SVGAPlayer
+                  src={resolvedSrc}
+                  className="w-full h-full"
+                  loop={loop}
+                  autoPlay={autoPlay && isVisible}
+                  muted={muted}
+                  onLoad={onLoad}
+                  onComplete={() => fireComplete('native')}
+                  dynamicData={dynamicData}
+                  onError={(err) => {
+                    setHasError(true);
+                    onError?.(err);
+                  }}
+                />
+              </Suspense>
+            }
+          />
+        </div>
       );
     }
     if (!muted) {
       return (
+        <div ref={containerRef} className={className}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <SVGAPlayerWithAudio
+              src={resolvedSrc}
+              className="w-full h-full"
+              loop={loop}
+              autoPlay={autoPlay && isVisible}
+              onLoad={onLoad}
+              onComplete={() => fireComplete('native')}
+              onCompleteDebug={onCompleteDebug}
+              dynamicData={dynamicData}
+              onError={(err) => {
+                setHasError(true);
+                onError?.(err);
+              }}
+            />
+          </Suspense>
+        </div>
+      );
+    }
+    return (
+      <div ref={containerRef} className={className}>
         <Suspense fallback={<LoadingSpinner />}>
-          <SVGAPlayerWithAudio
+          <SVGAPlayer
             src={resolvedSrc}
-            className={className}
+            className="w-full h-full"
             loop={loop}
-            autoPlay={autoPlay}
+            autoPlay={autoPlay && isVisible}
+            muted={muted}
             onLoad={onLoad}
-            onComplete={() => fireComplete('native')}
-            onCompleteDebug={onCompleteDebug}
             dynamicData={dynamicData}
+            onComplete={() => fireComplete('native')}
             onError={(err) => {
               setHasError(true);
               onError?.(err);
             }}
           />
         </Suspense>
-      );
-    }
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <SVGAPlayer
-          src={resolvedSrc}
-          className={className}
-          loop={loop}
-          autoPlay={autoPlay}
-          muted={muted}
-          onLoad={onLoad}
-          dynamicData={dynamicData}
-          onComplete={() => fireComplete('native')}
-          onError={(err) => {
-            setHasError(true);
-            onError?.(err);
-          }}
-        />
-      </Suspense>
+      </div>
     );
   }
 
   // VAP Animation (Transparent Video)
   if (animationType === 'vap') {
     return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <VAPPlayer
-          src={resolvedSrc}
-          configSrc={configSrc}
-          className={className}
-          loop={loop}
-          autoPlay={autoPlay}
-          muted={muted}
-          volume={volume}
-          soundUrl={soundUrl}
-          onLoad={onLoad}
-          onComplete={() => fireComplete('native')}
-          onError={(err) => {
-            setHasError(true);
-            onError?.(err);
-          }}
-        />
-      </Suspense>
+      <div ref={containerRef} className={className}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <VAPPlayer
+            src={resolvedSrc}
+            configSrc={configSrc}
+            className="w-full h-full"
+            loop={loop}
+            autoPlay={autoPlay && isVisible}
+            muted={muted}
+            volume={volume}
+            soundUrl={soundUrl}
+            onLoad={onLoad}
+            onComplete={() => fireComplete('native')}
+            onError={(err) => {
+              setHasError(true);
+              onError?.(err);
+            }}
+          />
+        </Suspense>
+      </div>
     );
   }
 
-  // Pkg425 — PAG Animation (Tencent professional format, Chamet 2025+ standard)
+  // PAG Animation (Tencent professional format)
   if (animationType === 'pag') {
     return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <PAGPlayer
-          src={resolvedSrc}
-          className={className}
-          loop={loop}
-          autoPlay={autoPlay}
-          muted={muted}
-          volume={volume}
-          soundUrl={soundUrl}
-          onLoad={onLoad}
-          onComplete={() => fireComplete('native')}
-          onError={(err) => {
-            setHasError(true);
-            onError?.(err);
-          }}
-        />
-      </Suspense>
+      <div ref={containerRef} className={className}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <PAGPlayer
+            src={resolvedSrc}
+            className="w-full h-full"
+            loop={loop}
+            autoPlay={autoPlay && isVisible}
+            muted={muted}
+            volume={volume}
+            soundUrl={soundUrl}
+            onLoad={onLoad}
+            onComplete={() => fireComplete('native')}
+            onError={(err) => {
+              setHasError(true);
+              onError?.(err);
+            }}
+          />
+        </Suspense>
+      </div>
     );
   }
 
   // Lottie Animation
   if (animationType === 'lottie') {
-    if (lottieLoading) return <LoadingSpinner />;
-
+    if (lottieLoading) return <div ref={containerRef} className={className}><LoadingSpinner /></div>;
     if (lottieData) {
       return (
-        <Lottie
-          animationData={lottieData}
-          loop={loop}
-          autoplay={autoPlay}
-          className={className}
-          onComplete={() => !loop && fireComplete('native')}
-          onDOMLoaded={onLoad}
-        />
+        <div ref={containerRef} className={className}>
+          <Lottie
+            animationData={lottieData}
+            loop={loop}
+            autoplay={autoPlay && isVisible}
+            className="w-full h-full"
+            onComplete={() => !loop && fireComplete('native')}
+            onDOMLoaded={onLoad}
+          />
+        </div>
       );
     }
-
-    return <LoadingSpinner />;
+    return <div ref={containerRef} className={className}><LoadingSpinner /></div>;
   }
+
 
   // Video (MP4/WebM)
   if (animationType === 'mp4' || animationType === 'webm') {
     return (
-      <div className={cn("relative", className)}>
+      <div ref={containerRef} className={cn("relative", className)}>
+
         {!mediaLoaded && (
           <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
         )}
         <video
           ref={videoRef}
           src={resolvedSrc}
-          autoPlay={autoPlay}
+          autoPlay={autoPlay && isVisible}
           loop={loop}
           muted={muted}
           playsInline
@@ -403,7 +439,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 
   // GIF / WebP / PNG (Image-based animations)
   return (
-    <div className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", className)}>
+
       {!mediaLoaded && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}

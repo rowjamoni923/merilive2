@@ -58,19 +58,18 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-
 import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 import { detectVapSideBySideLayout } from "@/utils/vapDetection";
-
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
-
 import { formatAdminError } from "@/utils/formatAdminError";
+
 interface GiftItem {
   id: string;
   name: string;
@@ -890,13 +889,15 @@ export default function AdminGifts() {
                       {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
                           isSVGA(gift.icon_url) || isLottie(gift.icon_url) ? (
-                            <UniversalFramePlayer
+                            <UniversalAnimationPlayer
                               src={gift.icon_url}
                               type={isSVGA(gift.icon_url) ? 'svga' : 'lottie'}
                               className="w-full h-full"
                               loop={true}
                               autoPlay={true}
+                              muted={true}
                             />
+
                           ) : (
                             <SmartImage src={gift.icon_url} alt={gift.name} cdnWidth={64} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                           )
