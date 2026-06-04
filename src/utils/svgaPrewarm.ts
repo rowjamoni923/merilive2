@@ -95,7 +95,7 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
   }
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
     if (response.ok && cache) {
       cache.put(url, response.clone()).catch(() => {});
       const blob = await response.blob();

@@ -168,7 +168,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     `;
 
     const fragmentShaderSource = `
-      precision mediump float;
+      precision highp float;
       varying vec2 v_texCoord;
       uniform sampler2D u_texture;
       uniform vec4 u_rgbRect;   // x, y, width, height (normalized)
@@ -248,7 +248,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       alpha: true,
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
-      powerPreference: 'low-power',
+      powerPreference: 'high-performance',
     });
 
     if (!gl) {
@@ -302,13 +302,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Create texture
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    // Pre-allocate texture for performance optimization
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, videoWidth, videoHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
     // Calculate normalized coordinates
     const videoWidth = video.videoWidth;
@@ -361,7 +363,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const playing = !video.paused && !video.ended && video.readyState >= 2;
       if (playing) {
         try {
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clearColor(0, 0, 0, 0);
           gl.clear(gl.COLOR_BUFFER_BIT);
