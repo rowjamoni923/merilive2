@@ -1248,9 +1248,10 @@ export default function AdminGifts() {
               </div>
             </div>
 
-            {/* Pkg423 — Professional unified animation uploader (VAP / SVGA / Lottie / etc.) */}
+            {/* ========== SYSTEM 2 — PRO ANIMATION (VAP / SVGA / Lottie / PAG / MP4 / WebM / WebP) ========== */}
+            {/* Pkg423 — Single professional uploader: auto-detects VAP side-by-side, handles vapc.json, live preview */}
             <AnimationUploader
-              label="Pro Animation (VAP / SVGA / Lottie / WebP / MP4)"
+              label="Pro Animation File (VAP / SVGA / Lottie / PAG / MP4 / WebM)"
               bucket="gifts"
               folder="gifts/pro"
               value={{
@@ -1272,138 +1273,13 @@ export default function AdminGifts() {
                       ? 'lottie'
                       : v.animation_format === 'svga'
                       ? 'svga'
+                      : v.animation_format === 'mp4' || v.animation_format === 'webm'
+                      ? 'custom'
                       : prev.animation_type,
                 }))
               }
             />
 
-            {/* Animation File Upload - Primary Upload Button */}
-            <div className="border-2 border-dashed border-purple-500/50 rounded-xl p-3 md:p-4 bg-purple-500/5">
-              <Label className="text-purple-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4" />
-                Animation File (SVGA/GIF/MP4/WebM/PNG)
-              </Label>
-              
-              {formData.animation_url ? (
-                <div className="p-3 md:p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/30">
-                  <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
-                      {isSVGA(formData.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={formData.animation_url}
-                          type="svga"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : isLottie(formData.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={formData.animation_url}
-                          type="lottie"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : formData.animation_url.endsWith('.gif') || formData.animation_url.endsWith('.png') || formData.animation_url.endsWith('.webp') ? (
-                        <SmartImage src={formData.animation_url} alt="Animation" cdnWidth={256} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
-                      ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
-                        (() => {
-                          const lower = formData.animation_url.toLowerCase();
-                          const isVap = formData.animation_format === 'vap'
-                            || lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_');
-                          return (
-                            <FixedAnimationFrame
-                              src={formData.animation_url}
-                              type={isVap ? 'vap' : (lower.endsWith('.webm') ? 'webm' : 'mp4')}
-                              configSrc={formData.animation_config_url || undefined}
-                              size="fill"
-                              center={false}
-                              loop
-                              muted
-                            />
-                          );
-                        })()
-                      ) : (
-                        <Play className="w-8 h-8 text-purple-500" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-purple-300 flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Animation Uploaded ✓
-                      </p>
-                      <p className="text-xs text-purple-400 truncate mt-1">{formData.animation_url.split('/').pop()}</p>
-                      <Badge className="mt-2 text-xs bg-purple-600">
-                        {isSVGA(formData.animation_url) ? 'SVGA' : 
-                         isLottie(formData.animation_url) ? 'Lottie' :
-                         formData.animation_url.endsWith('.gif') ? 'GIF' :
-                         formData.animation_url.endsWith('.mp4') ? 'MP4' :
-                         formData.animation_url.endsWith('.webm') ? 'WebM' : 'Image'}
-                      </Badge>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="w-8 h-8"
-                      onClick={() => setFormData(prev => ({ ...prev, animation_url: "" }))}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  {/* SVGA Audio Notice */}
-                  {isSVGA(formData.animation_url) && (
-                    <div className="mt-3 p-2 bg-green-500/10 rounded-lg border border-green-500/30 text-xs text-green-400 flex items-center gap-2">
-                      <Music className="w-4 h-4" />
-                      <span>If the SVGA file has embedded audio, it will play automatically!</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-20 md:h-24 border-2 border-purple-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-purple-400 flex flex-col items-center justify-center gap-2"
-                  onClick={() => animationInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <>
-                      <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm">Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8" />
-                      <div className="text-center">
-                        <p className="text-sm font-semibold">Click to Upload Animation</p>
-                        <p className="text-xs text-purple-500 mt-1">SVGA, GIF, MP4, WebM, PNG, Lottie JSON</p>
-                      </div>
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-
-            {/* Animation Type */}
-            <div>
-              <Label className="text-slate-300 font-medium text-sm md:text-base">Animation Type</Label>
-              <Select
-                value={formData.animation_type}
-                onValueChange={(val) => setFormData({ ...formData, animation_type: val })}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {animationTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value} className="text-sm">
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* Sound Upload Section - Optional for SVGA */}
             <div className={`border-2 border-dashed rounded-xl p-3 md:p-4 ${
