@@ -111,7 +111,11 @@ const AdminPartyBackgrounds = () => {
     is_active: true,
     price_diamonds: 0,
     display_order: 1,
-    min_level: 0
+    min_level: 0,
+    // Pkg424 — unified pro animation columns (party_room_backgrounds table)
+    animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "",
   });
 
   const fetchBackgrounds = useCallback(async () => {
