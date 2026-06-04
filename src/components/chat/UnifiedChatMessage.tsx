@@ -106,7 +106,7 @@ const formatTime = (v?: string | number | Date) => {
 // ============================================================
 // Helper — Gift Media Renderer (Image / SVGA / VAP)
 // ============================================================
-const GiftMedia = ({ url, size = 32 }: { url: string; size?: number }) => {
+const GiftMedia = ({ url, sizeClass = "w-10 h-10" }: { url: string; sizeClass?: string }) => {
   const normalizedUrl = normalizeGiftMediaUrl(url) || '';
   const format = detectProfessionalAnimationFormat(normalizedUrl);
   const isAnimated = isAnimatedProfessionalFormat(format);
@@ -115,8 +115,7 @@ const GiftMedia = ({ url, size = 32 }: { url: string; size?: number }) => {
     return (
       <UniversalAnimationPlayer
         src={normalizedUrl}
-        className={cn("object-contain")}
-        style={{ width: size, height: size }}
+        className={cn("object-contain", sizeClass)}
         loop
         autoPlay
         muted
@@ -128,8 +127,7 @@ const GiftMedia = ({ url, size = 32 }: { url: string; size?: number }) => {
     <img 
       src={normalizedUrl} 
       alt="Gift" 
-      className="object-contain" 
-      style={{ width: size, height: size }}
+      className={cn("object-contain", sizeClass)}
     />
   );
 };
