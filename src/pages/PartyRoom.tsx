@@ -2346,7 +2346,7 @@ const PartyRoom = () => {
                 receiverName: (sendingRoom?.host as any)?.display_name || undefined,
                 receiverAvatar: (sendingRoom?.host as any)?.avatar_url || undefined,
                 giftName: gift.name,
-                giftIcon: gift.emoji,
+                giftIcon: gift.icon_url || "",
                 giftImageUrl: gift.icon_url || undefined,
                 animationUrl: gift.animation_url || gift.icon_url || undefined,
                 animationFormat: gift.animation_format || null,

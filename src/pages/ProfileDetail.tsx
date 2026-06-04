@@ -1719,7 +1719,7 @@ const ProfileDetail = () => {
             receiverName: profile?.display_name || 'User',
             receiverAvatar: profile?.avatar_url || undefined,
             giftName: gift.name,
-            giftIcon: '🎁',
+            giftIcon: gift.icon_url || "",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,

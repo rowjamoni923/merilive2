@@ -768,7 +768,7 @@ const Chat = () => {
     playSoundDebounced('gift');
     
     // Show gift animation IMMEDIATELY
-    const giftEmoji = gift.emoji || '🎁';
+    const giftEmoji = gift.icon_url || gift.animation_url || '';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
