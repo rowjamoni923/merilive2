@@ -204,13 +204,43 @@ export function useLiveFaceDetection({
     let bestVideo: HTMLVideoElement | null = null;
     let bestScore = 0;
 
+    // Tokens that mark a video as an animation / gift / entry / reel / preview
+    // surface — NEVER use those for face detection (they're decorative media,
+    // not the host's camera feed). This prevents `findDOMVideo` from latching
+    // onto a flying MP4 gift animation and reporting "camera blocked".
+    const DECORATIVE_TOKENS = /(animation|gift|entry|svga|vap|pag|sticker|emoji|reel|preview|banner|promo|popup|background|frame-anim)/i;
+
+    const isDecorative = (el: Element | null): boolean => {
+      let node: Element | null = el;
+      for (let i = 0; i < 8 && node; i++) {
+        const id = (node as HTMLElement).id || '';
+        const cls = typeof (node as HTMLElement).className === 'string'
+          ? (node as HTMLElement).className
+          : '';
+        const data = (node as HTMLElement).dataset || {};
+        if (DECORATIVE_TOKENS.test(id) || DECORATIVE_TOKENS.test(cls)) return true;
+        for (const k of Object.keys(data)) {
+          if (DECORATIVE_TOKENS.test(k) || DECORATIVE_TOKENS.test(String(data[k] ?? ''))) return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    };
+
     for (const v of allVideos) {
       if (v.videoWidth === 0 && v.videoHeight === 0) continue;
+
+      // Skip decorative animation videos outright.
+      if (isDecorative(v)) continue;
+
+      // Only camera-bound tracks (srcObject) are valid candidates — file-based
+      // mp4/webm <video src="..."> are decorative by definition for live face.
+      if (!v.srcObject) continue;
 
       let score = 1;
       score += (v.videoWidth * v.videoHeight) / 100000;
       if (!v.paused && v.readyState >= 2) score += 50;
-      if (v.srcObject) score += 200;
+      score += 200; // srcObject bonus (guaranteed above)
 
       const id = v.id || '';
       const cls = v.className || '';
@@ -542,13 +572,12 @@ export function useLiveFaceDetection({
 
     const imageBase64 = captureFrameAsBase64();
     if (!imageBase64) {
-      console.log('[FaceDetection] 🔍 Server: Could not capture frame');
-      // Treat as fail (camera blocked?)
-      serverFailCountRef.current += 1;
-      if (serverFailCountRef.current >= SERVER_FAILS_TO_START_COUNTDOWN && !isCountingDownRef.current) {
-        console.log('[FaceDetection] 🔴 Camera blocked - starting countdown');
-        startCountdown();
-      }
+      // Video element not ready yet (warming up, switching tracks, brief stall).
+      // DO NOT count as "camera blocked" — that caused phantom 15-20s auto-end
+      // on healthy streams while LiveKit was still publishing first frames.
+      // Only a real, verifiably-playing-but-blank video should escalate; here
+      // we just skip this tick and try again at the next interval.
+      console.log('[FaceDetection] 🔍 Server: video not ready yet — skipping tick (no fail counted)');
       return;
     }
 

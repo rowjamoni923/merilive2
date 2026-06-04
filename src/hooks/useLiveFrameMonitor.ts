@@ -130,8 +130,11 @@ export function useLiveFrameMonitor({
     // Start playback (some browsers need explicit play()).
     void video.play().catch(() => undefined);
 
-    // First capture after ~5s grace so the video is warmed up, then on interval.
-    const firstTimer = window.setTimeout(captureOnce, 5_000);
+    // First capture after 60s grace — matches face-detection warm-up window.
+    // Identity-match / NSFW / face_lost checks done earlier than this give
+    // false-positives while LiveKit is still publishing the first keyframes,
+    // which historically caused 15-20s phantom auto-end on a healthy stream.
+    const firstTimer = window.setTimeout(captureOnce, 60_000);
     const interval = window.setInterval(captureOnce, intervalMs);
 
     return () => {
