@@ -121,7 +121,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const [showFullScreen, setShowFullScreen] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [svgaError, setSvgaError] = useState(false);
-  const soundPlayedRef = useRef(false);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
@@ -142,6 +141,10 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return Math.floor(totalDiamonds * hostPercent / 100);
   }, [gift.beansEarned, totalDiamonds, hostPercent]);
 
+
+  const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
+  const soundPlayedRef = useRef(false);
+
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
@@ -156,11 +159,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
     playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
   }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
-
-
-  const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
-
-  const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
     setShowFullScreen(false);
