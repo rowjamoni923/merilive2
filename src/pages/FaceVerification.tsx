@@ -446,7 +446,9 @@ const FaceVerification = () => {
     setUsingNativeFaceCamera(active);
   }, []);
 
-  useEffect(() => {
+  // Pkg428 — useLayoutEffect so the class is removed synchronously before
+  // the next route paints (prevents kalo flash on exit).
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
     document.body.classList.toggle('native-face-camera-active', usingNativeFaceCamera);
     return () => {
@@ -454,6 +456,7 @@ const FaceVerification = () => {
       document.body.classList.remove('native-face-camera-active');
     };
   }, [usingNativeFaceCamera]);
+
 
   const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
     if (usingNativeFaceCameraRef.current) {

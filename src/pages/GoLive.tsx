@@ -98,11 +98,25 @@ const GoLive = () => {
 
   const applyNativePreviewTransparency = useCallback((active: boolean) => {
     if (typeof document === 'undefined') return;
+    // Pkg428 — keep face-camera-active class (preview-specific) alongside
+    // the shared native-media-active class. Both must be cleared on exit.
     document.documentElement.classList.toggle('native-face-camera-active', active);
     document.body.classList.toggle('native-face-camera-active', active);
     document.documentElement.classList.toggle('native-media-active', active);
     document.body.classList.toggle('native-media-active', active);
   }, []);
+
+  // Pkg428 — synchronous cleanup before next route paints. Prevents the
+  // "kalo flash" on home when exiting GoLive while native preview was on.
+  useLayoutEffect(() => {
+    return () => {
+      try {
+        document.documentElement.classList.remove('native-face-camera-active', 'native-media-active');
+        document.body.classList.remove('native-face-camera-active', 'native-media-active');
+      } catch { /* noop */ }
+    };
+  }, []);
+
 
   // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
