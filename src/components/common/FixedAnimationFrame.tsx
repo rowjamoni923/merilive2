@@ -206,8 +206,9 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   }
 
   const wrapperClass = cn(
-    'relative shrink-0 overflow-hidden',
-    center && 'mx-auto',
+    size === 'fullscreen' ? 'fixed inset-0' : 'relative shrink-0',
+    'overflow-hidden',
+    center && size !== 'fullscreen' && 'mx-auto',
     BG_CLASSES[background],
     className,
   );
