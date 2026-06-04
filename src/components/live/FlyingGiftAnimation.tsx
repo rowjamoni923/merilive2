@@ -327,6 +327,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
+    if (!giftIconSrc) return null;
+
     return (
       <motion.div
         key="emoji-fullscreen"
@@ -336,7 +338,12 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         transition={{ duration: 0.55, ease: "easeOut" }}
         style={FULLSCREEN_GIFT_LAYER_STYLE}
       >
-        <GiftBox3DIcon size={200} />
+        <motion.img 
+          src={giftIconSrc} 
+          className="w-48 h-48 object-contain drop-shadow-2xl" 
+          animate={{ y: [-10, 10, -10] }} 
+          transition={{ duration: 2, repeat: Infinity }}
+        />
       </motion.div>
     );
   };
