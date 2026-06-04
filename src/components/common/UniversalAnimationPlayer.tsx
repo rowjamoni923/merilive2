@@ -323,8 +323,9 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
-         
           controls={showControls}
+          data-animation="true"
+          data-decorative="true"
           className={cn(
             "w-full h-full object-contain",
             !mediaLoaded && "opacity-0"
