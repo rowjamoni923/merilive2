@@ -1,52 +1,33 @@
-/**
- * =====================================================
- * UNIFIED ROOM SYSTEM - SHARED TYPES
- * =====================================================
- * 
- * ONE LINK = ONE CHANGE = BOTH PARTY ROOM & LIVE STREAM UPDATED
- * 
- * This file contains all shared types for:
- * - Join Notifications
- * - Chat Messages
- * - Gift Animations
- * - Viewer Panel
- * 
- * =====================================================
- */
-
-// ============= JOIN NOTIFICATION TYPES =============
 export interface JoinNotification {
   id: string;
-  oderId?: string; // Optional order reference
-  userId: string;
   userName: string;
+  userId?: string;
   userAvatar?: string;
   userLevel: number;
   timestamp: number;
 }
 
-// ============= CHAT MESSAGE TYPES =============
 export interface RoomChatMessage {
   id: string;
-  userId?: string;
   user: string;
-  initial: string;
-  message: string;
-  color?: string;
-  userLevel?: number;
+  userId?: string;
   userAvatar?: string;
+  userLevel: number;
+  message: string;
+  initial: string;
   isHost?: boolean;
   isNewUser?: boolean;
-  countryFlag?: string;
+  isVIP?: boolean;
+  vipTier?: number;
   isTrader?: boolean;
   traderLevel?: number;
-  type?: 'text' | 'system' | 'gift' | 'join' | 'leave';
-  timestamp?: Date;
-  /** Designer chat bubble (SVGA / Lottie / animated image) — wraps the message text */
-  bubbleUrl?: string | null;
+  bubbleUrl?: string;
+  countryFlag?: string;
+  type?: 'message' | 'gift' | 'join' | 'system' | 'leave';
+  giftImageUrl?: string;
+  color?: string;
 }
 
-// ============= GIFT ANIMATION TYPES =============
 export interface FlyingGiftData {
   id: string;
   senderName: string;
@@ -55,28 +36,25 @@ export interface FlyingGiftData {
   giftImageUrl?: string;
   animationUrl?: string;
   animationFormat?: string | null;
-  animationConfigUrl?: string;
+  animationConfigUrl?: string | null;
   soundUrl?: string;
   giftColor: string;
   count: number;
   coins: number;
 }
 
-// ============= ROOM CONTEXT TYPES =============
-export type RoomType = 'live' | 'party_audio' | 'party_video' | 'party_game';
+export type RoomType = 'live' | 'party' | 'audio' | 'video' | 'game';
 
 export interface RoomParticipant {
-  id: string;
-  oderId: string;
-  displayName: string;
-  avatarUrl?: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
   userLevel: number;
   isHost?: boolean;
-  isOnSeat?: boolean;
-  seatPosition?: number;
+  isMuted?: boolean;
+  isSpeaking?: boolean;
 }
 
-// ============= HOOK RETURN TYPES =============
 export interface UseJoinNotificationsReturn {
   notifications: JoinNotification[];
   addNotification: (notification: Omit<JoinNotification, 'id' | 'timestamp'>) => void;

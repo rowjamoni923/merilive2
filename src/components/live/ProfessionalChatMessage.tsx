@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 interface ChatMessageProps {
   id: string;
@@ -15,7 +16,7 @@ interface ChatMessageProps {
   type?: 'message' | 'gift' | 'join' | 'leave' | 'system' | 'entrance';
   giftName?: string;
   giftCount?: number;
-  giftEmoji?: string;
+  giftImageUrl?: string;
   bubbleUrl?: string;
   isTrader?: boolean;
   traderLevel?: number;
@@ -31,7 +32,7 @@ export const ProfessionalChatMessage = ({
   type = 'message',
   giftName,
   giftCount,
-  giftEmoji,
+  giftImageUrl,
   bubbleUrl,
   isTrader = false,
   traderLevel = 0
@@ -73,10 +74,10 @@ export const ProfessionalChatMessage = ({
         <InlineLevelBadge level={userLevel} />
         <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
         <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
-        {giftEmoji && (giftEmoji.startsWith('http') || giftEmoji.startsWith('/')) ? (
-          <img src={giftEmoji} alt="" className="w-8 h-8 object-contain" />
+        {giftImageUrl ? (
+          <img src={giftImageUrl} alt="" className="w-8 h-8 object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
         ) : (
-          <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>
+          <GiftBox3DIcon size={24} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
         )}
         <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         {giftCount && giftCount > 1 && (
@@ -233,7 +234,7 @@ interface ProfessionalChatProps {
     type?: 'message' | 'gift' | 'join' | 'leave' | 'system' | 'entrance';
     giftName?: string;
     giftCount?: number;
-    giftEmoji?: string;
+    giftImageUrl?: string;
     bubbleUrl?: string;
   }>;
   className?: string;
@@ -255,7 +256,7 @@ export const ProfessionalChat = ({ messages, className }: ProfessionalChatProps)
           type={msg.type}
           giftName={msg.giftName}
           giftCount={msg.giftCount}
-          giftEmoji={msg.giftEmoji}
+          giftImageUrl={msg.giftImageUrl}
           bubbleUrl={msg.bubbleUrl}
         />
       ))}

@@ -1162,8 +1162,7 @@ export function UnifiedPartyRoom({
       userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
       userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
       isHost: isHost,
-      type: 'text',
-      timestamp: new Date(),
+      type: 'message',
       bubbleUrl: ownBubble,
     };
 
