@@ -82,6 +82,7 @@ const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
 const warmSelectedVideoGift = (url?: string | null) => {
   if (!url || typeof document === 'undefined' || !VIDEO_OR_GIF_PATTERN.test(url) || GIF_PATTERN.test(url)) return;
   try {
+    void import('@/components/common/VAPPlayer');
     const video = document.createElement('video');
     video.preload = 'auto';
     video.muted = true;
@@ -643,17 +644,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     GIF_PATTERN.test(selectedGift.animation_url) ? (
                       <img loading="lazy" decoding="async" src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover" />
                     ) : (
-                      <video 
-                        src={selectedGift.animation_url} 
-                        className="w-full h-full object-cover pointer-events-none"
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        controls={false}
-                        disablePictureInPicture
-                        disableRemotePlayback
-                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"/>
+                      <div className="w-full h-full grid place-items-center bg-white/10">
+                        <Play className="w-4 h-4 text-white/80" fill="currentColor" />
+                      </div>
 
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
