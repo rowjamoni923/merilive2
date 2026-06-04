@@ -321,7 +321,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
-              className="fixed inset-0 w-screen h-screen z-[2147483647]"
+              className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
             />
           </div>
         </motion.div>
