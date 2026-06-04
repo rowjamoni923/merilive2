@@ -65,15 +65,15 @@ interface Props {
 }
 
 const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
-  svga: 50,
-  vap: 50,
-  pag: 50,
-  lottie: 10,
-  webp: 50,
+  svga: 500, // Expanded for professional high-res animations
+  vap: 500,  // Vibe files can be large
+  pag: 500,
+  lottie: 50,
+  webp: 100,
   png: 50,
-  gif: 50,
-  mp4: 50,
-  webm: 50,
+  gif: 100,
+  mp4: 500,
+  webm: 500,
 };
 
 const FORMAT_LABEL: Record<AnimationFormat, string> = {
