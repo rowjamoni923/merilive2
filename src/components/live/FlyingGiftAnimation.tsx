@@ -147,6 +147,21 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 
+  // Professional dynamic data for SVGA/VAP (RPG replacement)
+  const dynamicData = useMemo(() => ({
+    images: {
+      user_avatar: gift.senderAvatar || '',
+      receiver_avatar: gift.receiverAvatar || '',
+      sender_avatar: gift.senderAvatar || '', // Alias
+    },
+    text: {
+      user_name: gift.senderName || '',
+      receiver_name: gift.receiverName || '',
+      sender_name: gift.senderName || '', // Alias
+      gift_count: String(gift.count),
+    }
+  }), [gift.senderAvatar, gift.receiverAvatar, gift.senderName, gift.receiverName, gift.count]);
+
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
