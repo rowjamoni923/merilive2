@@ -999,13 +999,23 @@ export function usePartyRoomWebRTC(
     toggleVideo,
     cleanup,
     getPeerStream: (peerId: string) => {
+      if (!peerId) return null;
       const direct = state.peerStreams.get(peerId);
       if (direct) return direct;
-      const hyphen = peerId.startsWith('user-') ? peerId.slice(5) : `user-${peerId}`;
-      const underscore = peerId.startsWith('user_') ? peerId.slice(5) : `user_${peerId}`;
-      return state.peerStreams.get(hyphen)
-        ?? state.peerStreams.get(underscore)
-        ?? Array.from(state.peerStreams.entries()).find(([key]) => key.includes(peerId))?.[1];
+      const stripped = peerId
+        .replace(/^user[-_]/i, '')
+        .replace(/^party[-_]/i, '')
+        .replace(/^livekit[-_]/i, '');
+      const candidates = [stripped, `user-${stripped}`, `user_${stripped}`];
+      for (const c of candidates) {
+        const hit = state.peerStreams.get(c);
+        if (hit) return hit;
+      }
+      // Last-resort substring scan (both directions) for non-standard token formats.
+      for (const [key, val] of state.peerStreams.entries()) {
+        if (key === peerId || key.includes(stripped) || stripped.includes(key)) return val;
+      }
+      return null;
     },
   };
 }
