@@ -835,7 +835,25 @@ const AdminFrames = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Pkg424 — Pro Animation (VAP w/ alpha config, SVGA, Lottie, etc.) */}
+            <AnimationUploader
+              label="Pro Animation Layer (VAP / SVGA / Lottie / WebP / MP4) — overrides legacy frame_url at runtime when present"
+              bucket="frames"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
+
+
               <div className="col-span-2">
                 <Label>Frame Name</Label>
                 <Input
