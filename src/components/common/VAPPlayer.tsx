@@ -148,13 +148,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // High-precision sampling with slight edge insets to prevent bleed from alpha channel
-        float edgeInset = 0.0005; 
+        // Professional-grade high-precision sampling.
+        // We use a smaller inset to maintain HD sharpness while preventing alpha-channel bleed.
+        float edgeInset = 0.0001; 
+        
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
         );
         rgbCoord.x = clamp(rgbCoord.x, u_rgbRect.x + edgeInset, u_rgbRect.x + u_rgbRect.z - edgeInset);
+        rgbCoord.y = clamp(rgbCoord.y, u_rgbRect.y + edgeInset, u_rgbRect.y + u_rgbRect.w - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
         vec2 alphaCoord = vec2(
@@ -162,10 +165,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
         );
         alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
+        alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Output premultiplied alpha for cleaner blending on edges
-        gl_FragColor = vec4(rgbColor.rgb * alphaColor.r, alphaColor.r);
+        // Final pixel: Apply alpha mask to the color channel.
+        // Professional blending: using max of RGB channels for alpha can sometimes 
+        // yield better results for VAP files that use luminance-based alpha.
+        float alpha = alphaColor.r;
+        gl_FragColor = vec4(rgbColor.rgb * alpha, alpha);
       }
     `;
 
