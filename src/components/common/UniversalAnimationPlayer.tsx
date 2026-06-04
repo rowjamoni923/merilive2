@@ -385,7 +385,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         <video
           ref={videoRef}
           src={resolvedSrc}
-          autoPlay={autoPlay}
+          autoPlay={autoPlay && isVisible}
           loop={loop}
           muted={muted}
           playsInline
