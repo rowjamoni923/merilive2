@@ -375,21 +375,62 @@ const AgencyPolicy = () => {
           </TabsContent>
 
           <TabsContent value="more" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-             {dynamicSections.map((section) => (
-                <Card key={section.section_key} className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
-                   <div className={`bg-gradient-to-r ${sectionVisuals[section.section_key]?.gradient || 'from-slate-500 to-slate-700'} p-4 text-white flex items-center gap-3`}>
-                      <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg">{sectionVisuals[section.section_key]?.icon || <FileText className="w-5 h-5" />}</div>
-                      <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">{section.section_title}</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Section Policy</p></div>
-                   </div>
-                   <CardContent className="p-5">
-                      <ul className="space-y-3">
-                        {(Array.isArray(section.content?.items) ? section.content.items : Array.isArray(section.content) ? section.content : []).map((it: any, idx: number) => (
-                           <li key={idx} className="flex gap-3 text-xs font-medium text-slate-600 leading-relaxed"><div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx+1}</div>{typeof it === 'string' ? it : it?.title || JSON.stringify(it)}</li>
-                        ))}
-                      </ul>
-                   </CardContent>
-                </Card>
-             ))}
+            {benefitsPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden mb-4">
+                <div className="bg-gradient-to-r from-brand-500 to-brand-600 p-4 text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg"><Award className="w-5 h-5" /></div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">Agency Benefits</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Rewards Section</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {benefitsPolicy.map((item: string, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {privacyPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden mb-4">
+                <div className="bg-gradient-to-r from-slate-600 to-slate-800 p-4 text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg"><Shield className="w-5 h-5" /></div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">Privacy Policy</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Data Protection</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {privacyPolicy.map((item: string, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {dynamicSections.map((section) => (
+              <Card key={section.section_key} className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
+                <div className={`bg-gradient-to-r ${sectionVisuals[section.section_key]?.gradient || 'from-slate-500 to-slate-700'} p-4 text-white flex items-center gap-3`}>
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg">{sectionVisuals[section.section_key]?.icon || <FileText className="w-5 h-5" />}</div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">{section.section_title}</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Section Policy</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {(Array.isArray(section.content?.items) ? section.content.items : Array.isArray(section.content) ? section.content : []).map((it: any, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {typeof it === 'string' ? it : it?.title || JSON.stringify(it)}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
         </Tabs>
 
