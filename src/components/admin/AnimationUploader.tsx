@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
 import { cn } from '@/lib/utils';
+import { detectVapSideBySideLayout } from '@/utils/vapDetection';
 
 export type AnimationFormat =
   | 'svga'
@@ -126,27 +127,7 @@ const looksLikeSideBySideVap = async (file: File): Promise<boolean> => {
     video.preload = 'metadata';
     video.onloadeddata = () => {
       try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 96;
-        canvas.height = 48;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx || !video.videoWidth || !video.videoHeight) return finish(false);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        const half = canvas.width / 2;
-        let leftSat = 0, rightSat = 0, leftCount = 0, rightCount = 0;
-        for (let y = 0; y < canvas.height; y += 2) {
-          for (let x = 0; x < canvas.width; x += 2) {
-            const i = (y * canvas.width + x) * 4;
-            const r = data[i], g = data[i + 1], b = data[i + 2];
-            const sat = Math.max(r, g, b) - Math.min(r, g, b);
-            if (x < half) { leftSat += sat; leftCount++; }
-            else { rightSat += sat; rightCount++; }
-          }
-        }
-        const l = leftSat / Math.max(1, leftCount);
-        const r = rightSat / Math.max(1, rightCount);
-        finish(Math.abs(l - r) > 12 && Math.max(l, r) > Math.min(l, r) * 1.8);
+        finish(Boolean(detectVapSideBySideLayout(video)));
       } catch {
         finish(false);
       }

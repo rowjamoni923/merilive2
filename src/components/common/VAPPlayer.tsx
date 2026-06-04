@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { detectVapSideBySideLayout } from '@/utils/vapDetection';
 
 interface VAPConfig {
   v: number;           // version
@@ -58,6 +59,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
+  const frameCallbackModeRef = useRef<'raf' | 'rvfc'>('raf');
   const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,6 +207,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       alpha: true,
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
+      powerPreference: 'low-power',
     });
 
     if (!gl) {
@@ -286,35 +289,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w;
       canvas.height = cfg.h;
     } else {
-      // Auto-detect: Tencent VAP exports are usually side-by-side. Some tools
-      // export RGB-left/alpha-right, others export alpha-left/RGB-right.
-      // Pick the more colourful half as RGB and the flatter grayscale half as alpha.
-      let leftSat = 0;
-      let rightSat = 0;
-      try {
-        const sampleCanvas = document.createElement('canvas');
-        sampleCanvas.width = 96;
-        sampleCanvas.height = 48;
-        const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
-        if (sampleCtx) {
-          sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
-          const pixels = sampleCtx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
-          let lc = 0;
-          let rc = 0;
-          for (let y = 0; y < sampleCanvas.height; y += 2) {
-            for (let x = 0; x < sampleCanvas.width; x += 2) {
-              const i = (y * sampleCanvas.width + x) * 4;
-              const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
-              const sat = Math.max(r, g, b) - Math.min(r, g, b);
-              if (x < sampleCanvas.width / 2) { leftSat += sat; lc++; }
-              else { rightSat += sat; rc++; }
-            }
-          }
-          leftSat /= Math.max(1, lc);
-          rightSat /= Math.max(1, rc);
-        }
-      } catch {}
-      if (rightSat > leftSat) {
+      const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+      if (layout === 'alpha-left') {
         rgbRect = [0.5, 0, 0.5, 1];
         alphaRect = [0, 0, 0.5, 1];
       } else {
@@ -352,7 +328,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           setUseVideoFallback(true);
         }
       }
-      animationRef.current = requestAnimationFrame(render);
+      if (typeof (video as any).requestVideoFrameCallback === 'function') {
+        frameCallbackModeRef.current = 'rvfc';
+        animationRef.current = (video as any).requestVideoFrameCallback(() => render());
+      } else {
+        frameCallbackModeRef.current = 'raf';
+        animationRef.current = requestAnimationFrame(render);
+      }
     };
 
     render();
@@ -399,7 +381,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setLoading(true);
     setError(null);
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      const id = animationRef.current;
+      if (id !== null) {
+        if (frameCallbackModeRef.current === 'rvfc') {
+          try { (videoRef.current as any)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
+        } else {
+          cancelAnimationFrame(id);
+        }
+      }
+      animationRef.current = null;
+      try { glRef.current?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* noop */ }
+      glRef.current = null;
     };
   }, [resolvedSrc]);
 

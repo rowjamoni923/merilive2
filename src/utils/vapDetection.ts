@@ -1,0 +1,62 @@
+export type VapSideBySideLayout = 'alpha-left' | 'alpha-right';
+
+/**
+ * VAP MP4s are composite videos: RGB and alpha-mask frames packed together.
+ * Square exports are usually 2:1. Portrait live-stream gift exports are often
+ * ~1.125:1 because two portrait halves (9:16 + 9:16) are placed side-by-side.
+ */
+export const isLikelyVapCompositeSize = (width: number, height: number): boolean => {
+  if (!width || !height || width < 100 || height < 100) return false;
+  const ratio = width / height;
+  return Math.abs(ratio - 2) < 0.08 || (ratio >= 1.05 && ratio <= 1.25);
+};
+
+export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySideLayout | null => {
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  if (!isLikelyVapCompositeSize(width, height)) return null;
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 120;
+    canvas.height = 72;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const half = canvas.width / 2;
+      let leftChroma = 0;
+      let rightChroma = 0;
+      let leftCount = 0;
+      let rightCount = 0;
+
+      for (let y = 0; y < canvas.height; y += 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const i = (y * canvas.width + x) * 4;
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+          if (x < half) {
+            leftChroma += chroma;
+            leftCount += 1;
+          } else {
+            rightChroma += chroma;
+            rightCount += 1;
+          }
+        }
+      }
+
+      const left = leftChroma / Math.max(1, leftCount);
+      const right = rightChroma / Math.max(1, rightCount);
+      if (Math.abs(left - right) > 8) return right > left ? 'alpha-left' : 'alpha-right';
+    }
+  } catch {
+    // Cross-origin or first-frame read can fail; size fallback below still keeps
+    // known professional VAP layouts working instead of falling back to raw MP4.
+  }
+
+  const ratio = width / height;
+  if (ratio >= 1.05 && ratio <= 1.25) return 'alpha-left';
+  return 'alpha-right';
+};
