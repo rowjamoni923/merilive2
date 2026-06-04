@@ -20,6 +20,8 @@ export interface FlyingGift {
   count: number;
   coins: number;
   animationUrl?: string;
+  animationFormat?: string | null;
+  animationConfigUrl?: string | null;
   soundUrl?: string;
   /** True if the current viewer SENT this gift — shows diamonds spent badge */
   isOwnGift?: boolean;
@@ -301,7 +303,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               size="fullscreen"
               width="100dvw"
               height="100dvh"
-              type={isSVGA ? 'svga' : undefined}
+              type={gift.animationFormat === 'vap' ? 'vap' : isSVGA ? 'svga' : undefined}
+              configSrc={gift.animationConfigUrl || undefined}
               loop={false}
               muted={!isSVGA}
               volume={0.8}

@@ -40,6 +40,8 @@ export interface FixedAnimationFrameProps {
   height?: number | string;
   /** Force a specific animation type — otherwise auto-detected from src extension. */
   type?: AnimationType;
+  /** VAP-only config URL (vapc.json) for custom RGB/alpha layouts. */
+  configSrc?: string | null;
   loop?: boolean;
   autoPlay?: boolean;
   /** muted = false plays embedded SVGA audio. Default true. */
@@ -97,6 +99,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   width,
   height,
   type,
+  configSrc,
   loop = true,
   autoPlay = true,
   muted = true,
@@ -131,8 +134,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   const KNOWN_TYPES = new Set<AnimationType>([
     'svga', 'lottie', 'vap', 'pag', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
   ]);
+  // VAP is still an MP4/WebM container, so an explicit admin-selected
+  // type="vap" on a .mp4 is valid and must not be downgraded to plain video.
+  const isValidContainerOverride = type === 'vap' && (detected === 'mp4' || detected === 'webm');
   const explicitMismatch =
-    !!type && detected !== 'static' && type !== detected;
+    !!type && detected !== 'static' && type !== detected && !isValidContainerOverride;
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -206,6 +212,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
         <UniversalAnimationPlayer
           src={src}
           type={safeType}
+          configSrc={configSrc || undefined}
           className="w-full h-full"
           loop={loop}
           autoPlay={autoPlay}

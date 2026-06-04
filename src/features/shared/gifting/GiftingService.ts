@@ -23,6 +23,8 @@ export interface GiftItem {
   category: string;
   icon_url?: string;
   animation_url?: string;
+  animation_format?: string | null;
+  animation_config_url?: string;
   sound_url?: string;
   animation_type?: string;
 }
@@ -68,6 +70,16 @@ const normalizeGiftAssetUrl = (url?: string | null): string | undefined => {
   return url;
 };
 
+const isVideoAsset = (url?: string | null): boolean => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || '');
+
+const normalizeGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null): string | undefined => {
+  const icon = normalizeGiftAssetUrl(iconUrl);
+  if (icon && !isVideoAsset(icon)) return icon;
+  const anim = normalizeGiftAssetUrl(animationUrl);
+  if (anim && !isVideoAsset(anim)) return anim;
+  return undefined;
+};
+
 /**
  * Fetch all active gifts from database
  */
@@ -93,8 +105,10 @@ export async function fetchGifts(): Promise<GiftItem[]> {
     name: g.name,
     coins: g.coin_value, // Use coin_value from DB
     category: g.category || 'popular',
-    icon_url: normalizeGiftAssetUrl(g.icon_url || g.animation_url),
+    icon_url: normalizeGiftIconUrl(g.icon_url, g.animation_url),
     animation_url: normalizeGiftAssetUrl(g.animation_url),
+    animation_format: g.animation_format || null,
+    animation_config_url: normalizeGiftAssetUrl(g.animation_config_url),
     sound_url: normalizeGiftAssetUrl(g.sound_url),
     animation_type: g.animation_type,
   }));
@@ -171,6 +185,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         giftName: cachedGift?.name || 'Gift',
         giftIconUrl: cachedGift?.icon_url,
         giftAnimationUrl: cachedGift?.animation_url,
+        giftAnimationFormat: cachedGift?.animation_format || null,
+        giftAnimationConfigUrl: cachedGift?.animation_config_url,
         giftSoundUrl: cachedGift?.sound_url,
         count: quantity,
         giftCoins: unitCoins,
@@ -255,6 +271,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftName: gift?.name || 'Gift',
             giftIconUrl: gift?.icon_url,
             giftAnimationUrl: gift?.animation_url,
+            giftAnimationFormat: gift?.animation_format || null,
+            giftAnimationConfigUrl: gift?.animation_config_url,
             giftSoundUrl: gift?.sound_url,
             count: quantity,
             giftCoins: gift?.coins || 0,

@@ -8,6 +8,8 @@ import { playSoundUrl } from "@/utils/soundPlayer";
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
   count?: number;
+  animationFormat?: string | null;
+  animationConfigUrl?: string | null;
   /** Optional separate sound asset URL (used when SVGA has no embedded audio) */
   soundUrl?: string;
   onComplete: () => void;
@@ -42,7 +44,7 @@ const FULLSCREEN_STAGE_STYLE: CSSProperties = {
 };
 
 // CRITICAL: Memoized to prevent re-renders causing multiple SVGA loads
-const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
+const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, animationConfigUrl, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -64,7 +66,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
   const isSvga = isUrl && normalizedUrl.endsWith('.svga');
   const isLottie = isUrl && normalizedUrl.endsWith('.json');
   const isVideo = isUrl && /\.(mp4|webm|mov|m4v)$/.test(normalizedUrl);
-  const isVap = isUrl && !isVideo && (normalizedUrl.includes('vap') || normalizedUrl.includes('_bmp'));
+  const isVap = isUrl && (animationFormat === 'vap' || normalizedUrl.includes('vap') || normalizedUrl.includes('_bmp'));
   const isImage = isUrl && !isSvga && !isLottie && !isVap && !isVideo;
   const isEmoji = !isUrl;
   const hasAnimation = isSvga || isLottie || isVap || isVideo;
@@ -168,11 +170,12 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
                 size="fullscreen"
                 width="100dvw"
                 height="100dvh"
-                type={isLottie ? 'lottie' : isVideo ? 'mp4' : 'vap'}
+                type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
+                configSrc={animationConfigUrl || undefined}
                 loop={false}
                 autoPlay
-                muted={isVideo ? false : true}
-                volume={isVideo ? 0.85 : undefined}
+                muted={true}
+                volume={undefined}
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center

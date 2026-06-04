@@ -4,10 +4,12 @@ import { cn } from "@/lib/utils";
 
 import { GiftData, formatCoinValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
+const VIDEO_ANIMATION_ASSET_PATTERN = /\.(mp4|webm|mov|m4v)(\?|$)/i;
 
 interface GiftSwipeableGridProps {
   gifts: GiftData[];
@@ -19,25 +21,27 @@ interface GiftSwipeableGridProps {
 
 const ITEMS_PER_PAGE = 8; // 4 columns x 2 rows
 
-/** Determine the best display URL and whether it's SVGA */
-const getDisplayInfo = (gift: GiftData): { url: string | null; isSvga: boolean } => {
+/** Determine the best thumbnail URL. Video-only gifts must never render as <img>. */
+const getDisplayInfo = (gift: GiftData): { url: string | null; isSvga: boolean; isVideo: boolean } => {
   const iconUrl = gift.icon_url || null;
   const animUrl = gift.animation_url || null;
 
   // Prefer icon_url if it's a static image
-  if (iconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(iconUrl)) {
-    return { url: iconUrl, isSvga: false };
+  if (iconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(iconUrl) && !VIDEO_ANIMATION_ASSET_PATTERN.test(iconUrl)) {
+    return { url: iconUrl, isSvga: false, isVideo: false };
   }
   // If animation_url is a static image, use it
-  if (animUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(animUrl)) {
-    return { url: animUrl, isSvga: false };
+  if (animUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(animUrl) && !VIDEO_ANIMATION_ASSET_PATTERN.test(animUrl)) {
+    return { url: animUrl, isSvga: false, isVideo: false };
   }
   // Use SVGA from icon_url or animation_url
   const svgaUrl = [iconUrl, animUrl].find(u => u && /\.svga(\?|$)/i.test(u));
   if (svgaUrl) {
-    return { url: svgaUrl, isSvga: true };
+    return { url: svgaUrl, isSvga: true, isVideo: false };
   }
-  return { url: iconUrl || animUrl, isSvga: false };
+  const videoUrl = [iconUrl, animUrl].find(u => u && VIDEO_ANIMATION_ASSET_PATTERN.test(u));
+  if (videoUrl) return { url: videoUrl, isSvga: false, isVideo: true };
+  return { url: iconUrl || animUrl, isSvga: false, isVideo: false };
 };
 
 // Memoized gift item for performance
@@ -54,7 +58,7 @@ const GiftItem = memo(({
   getAnimationTypeColor: (type: GiftData['animationType']) => string;
   getAnimationTypeBadge: (type: GiftData['animationType']) => ReactNode;
 }) => {
-  const { url, isSvga } = useMemo(() => getDisplayInfo(gift), [gift]);
+  const { url, isSvga, isVideo } = useMemo(() => getDisplayInfo(gift), [gift]);
 
   const isLegendary = gift.animationType === 'legendary';
   const isLuxury = gift.animationType === 'luxury';
@@ -123,6 +127,18 @@ const GiftItem = memo(({
               autoPlay={true}
             />
           </Suspense>
+        ) : url && isVideo ? (
+          <FixedAnimationFrame
+            src={url}
+            type={gift.animation_format === 'vap' ? 'vap' : undefined}
+            configSrc={gift.animation_config_url || undefined}
+            width={40}
+            height={40}
+            loop
+            autoPlay
+            muted
+            center={false}
+          />
         ) : url ? (
           <img loading="lazy" decoding="async" 
             src={url} 

@@ -372,6 +372,8 @@ const Chat = () => {
   // Gift Animation State
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
   const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
+  const [animatingGiftFormat, setAnimatingGiftFormat] = useState<string | null>(null);
+  const [animatingGiftConfigUrl, setAnimatingGiftConfigUrl] = useState<string | null>(null);
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
@@ -779,6 +781,8 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setAnimatingGiftFormat(gift.animation_format || null);
+    setAnimatingGiftConfigUrl(gift.animation_config_url || null);
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -807,6 +811,8 @@ const Chat = () => {
         conversationId: selectedConversation.id,
         senderId: currentUserId,
         content: optimisticGiftMessage,
+        animationFormat: gift.animation_format || null,
+        animationConfigUrl: gift.animation_config_url || null,
       },
     }).catch(() => {});
 
@@ -981,7 +987,13 @@ const Chat = () => {
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
           if (payload.payload?.senderId === currentUserId) return;
-          playGiftAnimationFromContent(payload.payload.content, payload.payload.senderId, true);
+          playGiftAnimationFromContent(
+            payload.payload.content,
+            payload.payload.senderId,
+            true,
+            payload.payload.animationFormat || null,
+            payload.payload.animationConfigUrl || null,
+          );
         }
       )
       // Pkg92: removed dead postgres_changes on `messages` (NOT in supabase_realtime
@@ -1450,7 +1462,7 @@ const Chat = () => {
     }
   }
 
-  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false) {
+  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false, animationFormat?: string | null, animationConfigUrl?: string | null) {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
     const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
@@ -1461,6 +1473,8 @@ const Chat = () => {
 
     const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
+    setAnimatingGiftFormat(animationFormat || null);
+    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || null);
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -3384,10 +3398,14 @@ const Chat = () => {
               <GiftEmojiAnimation
                 key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
                 emoji={animatingGiftEmoji}
+                animationFormat={animatingGiftFormat}
+                animationConfigUrl={animatingGiftConfigUrl}
                 soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
+                  setAnimatingGiftFormat(null);
+                  setAnimatingGiftConfigUrl(null);
                   setAnimatingGiftSound(null);
                 }}
               />

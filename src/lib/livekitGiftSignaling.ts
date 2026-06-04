@@ -56,6 +56,8 @@ export interface GiftSentPayload {
   giftIcon?: string;
   giftIconUrl?: string;
   giftAnimationUrl?: string;
+  giftAnimationFormat?: string | null;
+  giftAnimationConfigUrl?: string | null;
   giftSoundUrl?: string;
   giftCoins?: number;        // unit coins
   count?: number;

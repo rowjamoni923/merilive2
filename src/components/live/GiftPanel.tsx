@@ -26,6 +26,8 @@ export interface GiftData {
   animationType: 'basic' | 'premium' | 'luxury' | 'legendary';
   icon_url?: string | null;
   animation_url?: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
   sound_url?: string | null;
 }
 
@@ -78,16 +80,16 @@ const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
 
 const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
   const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);
-  if (normalizedIconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl))) {
+  if (normalizedIconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl)) && !VIDEO_OR_GIF_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl))) {
     return normalizedIconUrl;
   }
 
   const normalizedAnimationUrl = normalizeGiftAssetUrl(animationUrl);
-  if (normalizedAnimationUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedAnimationUrl))) {
+  if (normalizedAnimationUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedAnimationUrl)) && !VIDEO_OR_GIF_PATTERN.test(getAssetPathWithoutQuery(normalizedAnimationUrl))) {
     return normalizedAnimationUrl;
   }
 
-  return normalizedIconUrl || normalizedAnimationUrl;
+  return normalizedIconUrl && !VIDEO_OR_GIF_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl)) ? normalizedIconUrl : null;
 };
 
 export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userCoins: propUserCoins }, _ref) {
@@ -185,6 +187,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animationType: getAnimationType(gift.coin_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
         animation_url: normalizeGiftAssetUrl(gift.animation_url),
+        animation_format: (gift as any).animation_format || null,
+        animation_config_url: normalizeGiftAssetUrl((gift as any).animation_config_url),
         sound_url: normalizeGiftAssetUrl(gift.sound_url),
       }));
       setGifts(transformedGifts);

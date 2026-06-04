@@ -431,7 +431,8 @@ export default function AdminGifts() {
         
         setFormData(prev => {
           // If icon_url is currently an emoji (not starting with http), auto-replace it with animation
-          const shouldReplaceIcon = !prev.icon_url || !prev.icon_url.startsWith('http');
+          const isVideoAnimation = fileExt === 'mp4' || fileExt === 'webm';
+          const shouldReplaceIcon = !isVideoAnimation && (!prev.icon_url || !prev.icon_url.startsWith('http'));
           return { 
             ...prev, 
             animation_url: publicUrl, 
