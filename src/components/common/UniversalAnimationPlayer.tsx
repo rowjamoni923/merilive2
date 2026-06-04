@@ -101,7 +101,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.8, // Increased default volume for professional feel
+  volume = 0.8,
   onLoad,
   onError,
   onComplete,
@@ -112,7 +112,27 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   preferNative = false,
   dynamicData,
 }) => {
-  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+  // Use IntersectionObserver to disable heavy animations when not visible
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const resolvedSrc = useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+
   // Synchronously seed Lottie state from cache so cached gifts paint on first
   // render (no loading spinner flash, no double-paint).
   const initialType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
