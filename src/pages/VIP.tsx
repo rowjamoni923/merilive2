@@ -159,8 +159,8 @@ const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolea
 
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
-  if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
-  if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect') return 'entry_name_bar';
+  if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner' || category === 'party_background') return 'entrance';
+  if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect' || category === 'entry_banner') return 'entry_name_bar';
   if (category === 'bubble' || category === 'chat_bubble') return 'bubble';
   if (category === 'vehicle' || category === 'vehicle_entrance') return 'vehicle';
   if (category === 'badge' || category === 'medal' || category === 'vip_medal') return 'medal';
