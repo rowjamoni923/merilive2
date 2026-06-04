@@ -13,6 +13,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AnimationUploader, { AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface VehicleEntranceItem {
