@@ -443,13 +443,6 @@ const VIP = () => {
         }
       }
 
-      // Fetch unlocked entry name bars only
-      const { data: entryNameBars } = await supabase
-        .from("entry_name_bars")
-        .select("*")
-        .eq("is_active", true)
-        .order("level_required", { ascending: true });
-
       if (entryNameBars) {
         for (const bar of entryNameBars) {
           if (
