@@ -31,6 +31,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { VIPBadge } from "@/components/common/VIPBadge";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
