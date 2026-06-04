@@ -17,12 +17,12 @@ export const getVapCompositeHint = (url: string): boolean => {
 /**
  * VAP MP4s are composite videos: RGB and alpha-mask frames packed together.
  * Square exports are usually 2:1. Portrait live-stream gift exports are often
- * ~1.125:1 because two portrait halves (9:16 + 9:16) are placed side-by-side.
+ * ~0.85–1.35:1 because two portrait halves are placed side-by-side.
  */
 export const isLikelyVapCompositeSize = (width: number, height: number): boolean => {
   if (!width || !height || width < 100 || height < 100) return false;
   const ratio = width / height;
-  return Math.abs(ratio - 2) < 0.08 || (ratio >= 1.05 && ratio <= 1.25);
+  return Math.abs(ratio - 2) < 0.08 || (ratio >= 0.85 && ratio <= 1.35);
 };
 
 export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySideLayout | null => {
@@ -41,6 +41,8 @@ export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySid
       const half = canvas.width / 2;
       let leftChroma = 0;
       let rightChroma = 0;
+      let leftExtremes = 0;
+      let rightExtremes = 0;
       let leftCount = 0;
       let rightCount = 0;
 
@@ -51,11 +53,15 @@ export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySid
           const g = data[i + 1];
           const b = data[i + 2];
           const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+          const luma = (r + g + b) / 3;
+          const extreme = luma < 24 || luma > 224 ? 1 : 0;
           if (x < half) {
             leftChroma += chroma;
+            leftExtremes += extreme;
             leftCount += 1;
           } else {
             rightChroma += chroma;
+            rightExtremes += extreme;
             rightCount += 1;
           }
         }
@@ -63,6 +69,13 @@ export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySid
 
       const left = leftChroma / Math.max(1, leftCount);
       const right = rightChroma / Math.max(1, rightCount);
+      const leftExtremeRatio = leftExtremes / Math.max(1, leftCount);
+      const rightExtremeRatio = rightExtremes / Math.max(1, rightCount);
+      const leftLooksMask = left < 12 || (left < right * 0.55 && leftExtremeRatio >= rightExtremeRatio * 0.8);
+      const rightLooksMask = right < 12 || (right < left * 0.55 && rightExtremeRatio >= leftExtremeRatio * 0.8);
+
+      if (leftLooksMask && !rightLooksMask) return 'alpha-left';
+      if (rightLooksMask && !leftLooksMask) return 'alpha-right';
       if (Math.abs(left - right) > 8) return right > left ? 'alpha-left' : 'alpha-right';
     }
   } catch {
@@ -71,6 +84,7 @@ export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySid
   }
 
   const ratio = width / height;
-  if (ratio >= 1.05 && ratio <= 1.25) return 'alpha-left';
+  if (ratio >= 0.85 && ratio <= 1.35) return 'alpha-left';
+  if (Math.abs(ratio - 2) < 0.08) return 'alpha-right';
   return 'alpha-right';
 };
