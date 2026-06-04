@@ -157,31 +157,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
-    const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
-    const body = req.method === "HEAD" ? null : data;
+    const ext = (foundKey.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+    const contentType = usefulMimeType(foundData.type) || MIME[ext] || "application/octet-stream";
+    const body = req.method === "HEAD" ? null : foundData;
 
-    // Lazy-copy old chat-media/gifts assets into the real public gifts bucket,
-    // then redirect this same request to the public CDN. If another request won
-    // the race and uploaded first, duplicate errors are harmless; redirect still works.
-    if (data.size > 0) {
-      const uploadResult = await supabase.storage.from("gifts").upload(publicGiftPath, data, {
-        upsert: false,
-        contentType,
-        cacheControl: "31536000",
-      });
-      if (!uploadResult.error || /already exists|duplicate/i.test(uploadResult.error.message || "")) {
-        return new Response(null, {
-          status: 302,
-          headers: {
-            ...corsHeaders,
-            "Location": publicGiftUrl,
-            "Cache-Control": "public, max-age=604800, immutable",
-            "X-Gift-Public-Url": publicGiftUrl,
-          },
-        });
-      }
-    }
+    return new Response(body, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": contentType,
+        "Content-Length": String(foundData.size),
+        "Cache-Control": "public, max-age=604800, immutable",
+        "Accept-Ranges": "bytes",
+      },
+    });
+
 
     return new Response(body, {
       status: 200,
