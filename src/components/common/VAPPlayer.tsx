@@ -378,6 +378,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      if (soundHandleRef.current) {
+        soundHandleRef.current.stop();
+        soundHandleRef.current = null;
+      }
       if (animationRef.current !== null) {
         if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
           (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);
