@@ -562,13 +562,11 @@ const Reels = () => {
     updateCachedBalance(getCachedBalance() - totalCost);
     setShowGiftPanel(false);
 
-    const currentReel = reels[activeReelIndex];
     addFlyingGift({
       senderId: sendingUserId,
       senderName: 'You',
-      senderAvatar: currentUser?.avatar_url || undefined,
-      receiverName: currentReel?.profiles?.display_name || undefined,
-      receiverAvatar: currentReel?.profiles?.avatar_url || undefined,
+      receiverName: currentReel?.user?.display_name || undefined,
+      receiverAvatar: currentReel?.user?.avatar_url || undefined,
       giftName: gift.name,
       giftIcon: gift.emoji,
       giftImageUrl: gift.icon_url || undefined,
