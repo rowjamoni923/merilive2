@@ -10,9 +10,10 @@
  * - User-initiated mute state is preserved: we capture the mic+cam
  *   intent at pause-time and only restore what was on.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
+import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 export interface NativeLiveKitLifecycleOptions {
   /** Whether to pause/resume the camera (host + video call). Default true. */
@@ -29,15 +30,17 @@ export function useNativeLiveKitLifecycle(
   const optsRef = useRef({ manageCamera, manageMicrophone });
   optsRef.current = { manageCamera, manageMicrophone };
 
-  useEffect(() => {
-    if (active) {
-      document.documentElement.classList.add('native-media-active');
-      document.body.classList.add('native-media-active');
-    } else {
-      document.documentElement.classList.remove('native-media-active');
-      document.body.classList.remove('native-media-active');
-    }
+  // Pkg428 — body transparency MUST be toggled synchronously around paint,
+  // not in useEffect (which runs after commit). useLayoutEffect's cleanup
+  // runs before the next route paints, eliminating the black flash window.
+  useLayoutEffect(() => {
+    setNativeMediaSurface(active);
+    return () => {
+      clearNativeMediaSurface();
+    };
+  }, [active]);
 
+  useEffect(() => {
     if (!active || !isNativeLiveKitAvailable()) return;
 
     let cancelled = false;
