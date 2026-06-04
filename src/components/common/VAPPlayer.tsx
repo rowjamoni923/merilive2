@@ -151,9 +151,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         );
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Use inverted luminance so both common Tencent exports work:
-        // black matte = transparent, white matte = visible.
-        float alpha = 1.0 - alphaColor.r;
+        // White matte = visible, black matte = transparent.
+        float alpha = alphaColor.r;
         
         gl_FragColor = vec4(rgbColor.rgb, alpha);
       }
@@ -279,10 +278,40 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.height = cfg.h;
     } else {
       // Auto-detect: Tencent VAP exports are usually side-by-side. Some tools
-      // export RGB-left/alpha-right, others (like the verified horse sample)
-      // export alpha-left/RGB-right. Pick the more colourful half as RGB.
-      rgbRect = [0.5, 0, 0.5, 1];
-      alphaRect = [0, 0, 0.5, 1];
+      // export RGB-left/alpha-right, others export alpha-left/RGB-right.
+      // Pick the more colourful half as RGB and the flatter grayscale half as alpha.
+      let leftSat = 0;
+      let rightSat = 0;
+      try {
+        const sampleCanvas = document.createElement('canvas');
+        sampleCanvas.width = 96;
+        sampleCanvas.height = 48;
+        const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+        if (sampleCtx) {
+          sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+          const pixels = sampleCtx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
+          let lc = 0;
+          let rc = 0;
+          for (let y = 0; y < sampleCanvas.height; y += 2) {
+            for (let x = 0; x < sampleCanvas.width; x += 2) {
+              const i = (y * sampleCanvas.width + x) * 4;
+              const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+              const sat = Math.max(r, g, b) - Math.min(r, g, b);
+              if (x < sampleCanvas.width / 2) { leftSat += sat; lc++; }
+              else { rightSat += sat; rc++; }
+            }
+          }
+          leftSat /= Math.max(1, lc);
+          rightSat /= Math.max(1, rc);
+        }
+      } catch {}
+      if (rightSat > leftSat) {
+        rgbRect = [0.5, 0, 0.5, 1];
+        alphaRect = [0, 0, 0.5, 1];
+      } else {
+        rgbRect = [0, 0, 0.5, 1];
+        alphaRect = [0.5, 0, 0.5, 1];
+      }
       
       canvas.width = videoWidth / 2;
       canvas.height = videoHeight;
