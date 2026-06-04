@@ -159,6 +159,19 @@ const AdminFrames = () => {
     return result.url;
   };
 
+  // MIME types mapping
+  const extensionToMimeType: Record<string, string> = {
+    'svga': 'application/octet-stream',
+    'json': 'application/json',
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
