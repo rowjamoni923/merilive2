@@ -43,7 +43,11 @@ const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConf
   const pixels = video.videoWidth * video.videoHeight;
   const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
-  return pixels >= 1_800_000 || (coarsePointer && pixels >= 1_000_000) || (cores <= 4 && pixels >= 1_000_000);
+  // Professional VAP gifts (like the uploaded HHI file: 1500×1334) need the
+  // WebGL alpha pass. Falling back just because the source is ~2MP crops the
+  // RGB half and loses transparency, which makes full-screen gifts look broken.
+  // Only bypass WebGL for truly extreme assets on very weak devices.
+  return pixels >= 6_000_000 || (coarsePointer && cores <= 2 && pixels >= 3_000_000);
 };
 
 /**
@@ -243,7 +247,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     });
 
     if (!gl) {
-      console.warn('[VAPPlayer] WebGL not supported; using cropped video fallback');
+      console.warn('[VAPPlayer] WebGL not supported; using video fallback');
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
@@ -254,7 +258,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const program = createShaders(gl);
     if (!program) {
-      console.warn('[VAPPlayer] Shader compilation failed; using cropped video fallback');
+      console.warn('[VAPPlayer] Shader compilation failed; using video fallback');
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();

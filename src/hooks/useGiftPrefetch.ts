@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { markVapCompositeHint } from '@/utils/vapDetection';
 
 // Global cache - shared across all components
 interface GiftCacheItem {
@@ -43,6 +44,16 @@ const giftCache: GiftCache = {
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 const listeners: Set<() => void> = new Set();
 let loadingPromise: Promise<GiftCacheItem[]> | null = null;
+
+function seedAnimationHints(gifts: GiftCacheItem[]): void {
+  for (const gift of gifts) {
+    const url = gift.animation_url;
+    if (!url || !/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)) continue;
+    if ((gift.animation_format || '').toLowerCase() === 'vap') {
+      markVapCompositeHint(url, true);
+    }
+  }
+}
 
 /**
  * Fetch gifts and cache them globally
@@ -88,6 +99,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           animation_config_url: normalizeGiftMediaUrl((gift as any).animation_config_url),
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
         }));
+        seedAnimationHints(giftCache.gifts);
         giftCache.timestamp = Date.now();
         listeners.forEach(cb => cb());
       }
