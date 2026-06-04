@@ -33,10 +33,11 @@ interface UnifiedEntryAnimationProps {
   onComplete: () => void;
 }
 
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' | null => {
+const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'video' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
+  if (cleanUrl.endsWith('.pag')) return 'pag';
   if (cleanUrl.endsWith('.json')) return 'lottie';
   if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) return 'video';
   if (cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.jpg')) return 'image';
@@ -60,6 +61,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
   const displayAnimationUrl = useMemo(() => entry.animationUrl, [entry.animationUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
+  const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
 
   // Play sound_url from DB when entry animation renders
   useEffect(() => {
@@ -112,9 +114,9 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
     if (animationStartedRef.current) return;
     animationStartedRef.current = true;
     
-    if (isSVGA && !svgaError) {
-      // SVGA plays for its NATIVE duration ONLY - onFinished handles completion
-      // No extra timers added
+    if (completesFromPlayer) {
+      // Animated media plays for its NATIVE duration ONLY — player onComplete
+      // handles SVGA/VAP/PAG/Lottie/MP4/WebM. No fixed timer is allowed here.
       return () => { mountedRef.current = false; };
     }
     
