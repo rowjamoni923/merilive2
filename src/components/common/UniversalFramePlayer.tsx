@@ -4,6 +4,7 @@ import Lottie from 'lottie-react';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { isLikelyVapCompositeSize } from '@/utils/vapDetection';
 
 // Lazy load SVGA + VAP players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -39,7 +40,10 @@ const detectFrameType = (url: string): FrameType => {
   if (urlWithoutParams.endsWith('.gif')) return 'gif';
   if (urlWithoutParams.endsWith('.webp')) return 'webp';
   if (urlWithoutParams.endsWith('.png')) return 'png';
-  if (urlWithoutParams.endsWith('.mp4')) return 'mp4';
+  if (urlWithoutParams.endsWith('.mp4')) {
+    if (lowercaseUrl.includes('vap') || lowercaseUrl.includes('_bmp') || lowercaseUrl.includes('file_vap_')) return 'vap';
+    return 'mp4';
+  }
   if (urlWithoutParams.endsWith('.webm')) return 'webm';
   if (lowercaseUrl.includes('lottie') || lowercaseUrl.includes('bodymovin')) return 'lottie';
   
@@ -67,8 +71,15 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   const [lottieData, setLottieData] = useState<any>(initialFrameType === 'lottie' ? lottieCacheGet(resolvedSrc) : null);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [autoDetectedVap, setAutoDetectedVap] = useState(false);
   
-  const frameType = type || detectFrameType(resolvedSrc);
+  const detectedFrameType = type || detectFrameType(resolvedSrc);
+  const frameType = autoDetectedVap ? 'vap' : detectedFrameType;
+
+  React.useEffect(() => {
+    setAutoDetectedVap(false);
+    setImageLoaded(false);
+  }, [resolvedSrc, type]);
 
   // Load Lottie JSON data
   React.useEffect(() => {
@@ -202,6 +213,12 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
             "w-full h-full object-contain pointer-events-none",
             !imageLoaded && "opacity-0"
           )}
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            if (!type && detectedFrameType !== 'vap' && isLikelyVapCompositeSize(v.videoWidth, v.videoHeight)) {
+              setAutoDetectedVap(true);
+            }
+          }}
           onLoadedData={() => {
             setImageLoaded(true);
             onLoad?.();
