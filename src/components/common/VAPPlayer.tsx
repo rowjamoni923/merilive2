@@ -225,6 +225,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    if (shouldUsePerformanceVideoFallback(video, cfg)) {
+      const { rgbRect } = getAutoVapRects(video);
+      setFallbackCrop(rgbRect as [number, number, number, number]);
+      setUseVideoFallback(true);
+      setLoading(false);
+      webglPaintedRef.current = true;
+      onLoadRef.current?.();
+      return;
+    }
+
     const gl = canvas.getContext('webgl', {
       alpha: true,
       premultipliedAlpha: false,
@@ -330,6 +340,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     // Render loop
     const render = () => {
+      if (useVideoFallbackRef.current) return;
       if (!video.paused && !video.ended) {
         try {
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
@@ -341,6 +352,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         } catch (err) {
           console.warn('[VAPPlayer] WebGL video texture failed; using cropped video fallback:', err);
           setUseVideoFallback(true);
+          return;
         }
       }
       if (typeof (video as any).requestVideoFrameCallback === 'function') {
