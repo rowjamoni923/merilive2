@@ -98,7 +98,7 @@ const AppUpdateModal = ({
 
             {/* Title */}
             <h2 className="text-xl font-bold text-center text-foreground mb-2">
-              {forceUpdate ? '⚠️ Important Update!' : 'New Update Available! 🎉'}
+              {forceUpdate ? '⚠️ Critical Update Required' : 'New Version Available! 🚀'}
             </h2>
             <p className="text-sm text-muted-foreground text-center mb-4">
               {updateMessage || 'A new version is available on Play Store'}
@@ -120,15 +120,15 @@ const AppUpdateModal = ({
             <div className="mb-6 space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>New Features & Improvements</span>
+                <span>Major stability & performance boost</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Bug Fixes & Performance Improvements</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span>New 3D professional gifting icons</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Security Updates</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span>Zero-delay UI & network optimizations</span>
               </div>
             </div>
 
