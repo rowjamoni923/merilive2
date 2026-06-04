@@ -53,6 +53,8 @@ const AdminEntryNameBars = () => {
     name: "",
     description: "",
     animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: null as string | null,
     preview_url: "",
     min_level: 1,
     min_vip_tier: 0,
