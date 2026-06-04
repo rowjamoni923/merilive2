@@ -307,9 +307,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           gl.drawArrays(gl.TRIANGLES, 0, 6);
           if (!webglPainted) setWebglPainted(true);
         } catch (e) {
+          console.warn('[VAPPlayer] WebGL render error, falling back:', e);
           setUseVideoFallback(true);
           return;
         }
+      }
+
+      // Safety: If video is playing but canvas isn't painted yet, force paint check
+      if (v.currentTime > 0 && !webglPainted && !v.paused) {
+        setWebglPainted(true);
       }
 
       if (v.ended && !loop) return;
@@ -326,7 +332,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (autoPlay) {
       void (async () => {
         try {
-          await ensureAudioUnlocked();
+          // Pkg: Don't wait forever for audio unlock; gifts must show even if silent.
+          await Promise.race([
+            ensureAudioUnlocked(),
+            new Promise(resolve => setTimeout(resolve, 1000))
+          ]);
           if (!mountedRef.current || !videoRef.current) return;
           
           if (!muted && soundUrl) {
