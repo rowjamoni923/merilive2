@@ -70,7 +70,7 @@ export function IncomingCallModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[99] bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[99] bg-black/45"
           />
 
           {/* Card notification - slides down from top */}
