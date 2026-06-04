@@ -175,7 +175,7 @@ export const LiveDuration = ({ startTime }: LiveDurationProps) => {
   }, [startTime]);
 
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/90 backdrop-blur-sm">
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/95 shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
       <motion.div 
         className="w-2 h-2 rounded-full bg-white"
         animate={{ opacity: [1, 0.5, 1] }}
