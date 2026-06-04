@@ -246,6 +246,9 @@ const buildShopItemPayload = (formData: ShopFormData, existingItem?: ShopItem | 
     sound_duration_ms: formData.sound_url.trim()
       ? Math.max(0, Number(formData.sound_duration_ms) || 3000)
       : null,
+    // Pkg424 — unified pro animation columns
+    animation_format: formData.animation_format || null,
+    animation_config_url: formData.animation_config_url?.trim() || null,
   };
 
   return Object.fromEntries(
