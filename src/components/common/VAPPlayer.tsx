@@ -60,7 +60,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.7,
+  volume = 0.95,
   onLoad,
   onError,
   onComplete,
