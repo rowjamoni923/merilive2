@@ -202,7 +202,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       const runPrewarm = () => import('@/utils/giftAnimationPrewarm')
         .then(m => m.prewarmGiftAssets(assets))
         .catch(() => {});
-      const w = window as any;
+      const w = window as Window & {
+        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      };
       if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(runPrewarm, { timeout: 2500 });
       else window.setTimeout(runPrewarm, 900);
     };
