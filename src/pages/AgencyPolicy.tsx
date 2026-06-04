@@ -286,25 +286,61 @@ const AgencyPolicy = () => {
           </TabsContent>
 
           <TabsContent value="rules" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
-              <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
-                <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
-                Strict Rules
-              </h3>
-              <div className="space-y-3">
-                {violations.map((v, i) => (
-                  <div key={i} className={`rounded-2xl p-4 border shadow-sm ${v.severity === 'high' ? 'bg-danger-50 border-danger-100' : 'bg-warning-50 border-warning-100'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Ban className={`w-4 h-4 ${v.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
-                      <p className={`font-black text-xs uppercase tracking-tight ${v.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>{v.title}</p>
+            {rulesPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4 border-l-4 border-brand-500">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-brand-100 rounded-lg flex items-center justify-center"><Shield className="w-4 h-4 text-brand-600" /></div>
+                  Platform Rules
+                </h3>
+                <ul className="space-y-3">
+                  {rulesPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                      <div className="w-1.5 h-1.5 bg-brand-500 rounded-full shrink-0 mt-2" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {penaltiesPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4 border-l-4 border-danger-500">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
+                  Penalties
+                </h3>
+                <ul className="space-y-3">
+                  {penaltiesPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-danger-700 leading-relaxed bg-danger-50/50 p-2 rounded-xl">
+                      <div className="w-5 h-5 bg-danger-100 text-danger-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {violations.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><Ban className="w-4 h-4 text-danger-600" /></div>
+                  Strict Rules
+                </h3>
+                <div className="space-y-3">
+                  {violations.map((v, i) => (
+                    <div key={i} className={`rounded-2xl p-4 border shadow-sm ${v.severity === 'high' ? 'bg-danger-50 border-danger-100' : 'bg-warning-50 border-warning-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ban className={`w-4 h-4 ${v.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
+                        <p className={`font-black text-xs uppercase tracking-tight ${v.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>{v.title}</p>
+                      </div>
+                      <ul className={`text-[10px] space-y-1 font-medium ${v.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
+                        {v.penalties.map((p, idx) => <li key={idx} className="flex gap-1.5"><div className="w-1 h-1 rounded-full bg-current mt-1.5 shrink-0" /> {p}</li>)}
+                      </ul>
                     </div>
-                    <ul className={`text-[10px] space-y-1 font-medium ${v.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
-                      {v.penalties.map((p, idx) => <li key={idx} className="flex gap-1.5"><div className="w-1 h-1 rounded-full bg-current mt-1.5 shrink-0" /> {p}</li>)}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="withdraw" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
