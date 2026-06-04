@@ -1,5 +1,8 @@
 import React, { useEffect, useState, memo, useRef } from "react";
-...
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { useSound } from "@/hooks/useSound";
 
 interface CinematicEntranceOverlayProps {
@@ -17,9 +20,13 @@ const CinematicEntranceOverlay = memo(({
 }: CinematicEntranceOverlayProps) => {
   const [phase, setPhase] = useState<'entering' | 'displaying' | 'exiting'>('entering');
   const mountedRef = useRef(true);
+  const { playSound } = useSound();
 
   useEffect(() => {
     mountedRef.current = true;
+    
+    // Play cinematic entrance sound
+    playSound('entrance');
     
     // Bigo Duke Entrance Cadence: 
     // 0.0s - 0.8s: Cinematic sweep / darken
@@ -43,7 +50,7 @@ const CinematicEntranceOverlay = memo(({
       clearTimeout(exitTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, [onComplete, playSound]);
 
   const isKing = rankCode?.toLowerCase() === 'king';
   const isDuke = rankCode?.toLowerCase() === 'duke';
