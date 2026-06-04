@@ -57,7 +57,7 @@ export interface UnifiedChatMessageData {
   type?: ChatMessageKind;
   giftName?: string;
   giftCount?: number;
-  giftEmoji?: string;
+  giftImageUrl?: string;
   bubbleUrl?: string; // designer SVGA / image bubble URL
   createdAt?: string | number | Date;
 }
@@ -113,7 +113,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
   type = "message",
   giftName,
   giftCount,
-  giftEmoji,
+  giftImageUrl,
   bubbleUrl,
 }: UnifiedChatMessageData) {
   // -- Join / entrance pill --

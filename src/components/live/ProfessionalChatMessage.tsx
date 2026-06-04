@@ -15,7 +15,7 @@ interface ChatMessageProps {
   type?: 'message' | 'gift' | 'join' | 'leave' | 'system' | 'entrance';
   giftName?: string;
   giftCount?: number;
-  giftEmoji?: string;
+  giftImageUrl?: string;
   bubbleUrl?: string;
   isTrader?: boolean;
   traderLevel?: number;
@@ -31,7 +31,7 @@ export const ProfessionalChatMessage = ({
   type = 'message',
   giftName,
   giftCount,
-  giftEmoji,
+  giftImageUrl,
   bubbleUrl,
   isTrader = false,
   traderLevel = 0
