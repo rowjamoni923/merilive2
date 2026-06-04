@@ -2415,6 +2415,7 @@ const Chat = () => {
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isVap = animationFormat === 'vap' || normalizedGiftUrl.endsWith('.vap') || normalizedGiftUrl.endsWith('.webm') || normalizedGiftUrl.endsWith('.mp4');
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           
                           return (
