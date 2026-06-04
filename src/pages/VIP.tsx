@@ -90,6 +90,7 @@ type PrivilegeSlot =
   | 'vehicle'
   | 'medal'
   | 'noble_card'
+  | 'room_background'
   | 'other';
 
 // Helper: check if a URL is a valid asset (not just placeholder text)
@@ -159,8 +160,9 @@ const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolea
 
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
-  if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner' || category === 'party_background') return 'entrance';
-  if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect' || category === 'entry_banner') return 'entry_name_bar';
+  if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
+  if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect') return 'entry_name_bar';
+  if (category === 'party_background') return 'room_background';
   if (category === 'bubble' || category === 'chat_bubble') return 'bubble';
   if (category === 'vehicle' || category === 'vehicle_entrance') return 'vehicle';
   if (category === 'badge' || category === 'medal' || category === 'vip_medal') return 'medal';
@@ -843,8 +845,49 @@ const VIP = () => {
         throw new Error('No user found');
       }
 
+      // For party backgrounds
+      if (privilege.category === 'party_background') {
+        // Deactivate others
+        await supabase
+          .from("user_purchased_backgrounds" as any)
+          .update({ is_active: false })
+          .eq("user_id", user.id);
+
+        // Activate this one
+        const { error: equipError } = await supabase
+          .from("user_purchased_backgrounds" as any)
+          .update({ is_active: true })
+          .eq("id", privilege.id);
+        
+        if (equipError) throw equipError;
+
+        // Also update their active room if they have one
+        const { data: rooms } = await supabase
+          .from("party_rooms")
+          .select("id")
+          .eq("host_id", user.id);
+        
+        if (rooms && rooms.length > 0) {
+          const { data: bgData } = await supabase
+            .from("party_room_backgrounds")
+            .select("image_url")
+            .eq("id", privilege.item_id)
+            .maybeSingle();
+          
+          if (bgData?.image_url) {
+            await supabase
+              .from("party_rooms")
+              .update({ 
+                background_id: privilege.item_id,
+                background_url: bgData.image_url 
+              })
+              .eq("host_id", user.id);
+          }
+        }
+      }
+
       // For shop purchases, update user_purchases table
-      if (privilege.source === 'shop') {
+      if (privilege.source === 'shop' && privilege.category !== 'party_background') {
         const { data: allPurchases } = await supabase
           .from("user_purchases")
           .select("id, shop_items(category)")
