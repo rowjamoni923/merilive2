@@ -351,10 +351,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    // Render loop
+    // Render loop — keep RAF-ticking until the video actually produces frames.
+    // requestVideoFrameCallback ONLY fires when a new frame is decoded, so if
+    // we hook it before play() resolves the loop stalls and our 450ms safety
+    // timer wrongly drops us to the cropped-video fallback (= broken-looking
+    // VAP because alpha never composites).
     const render = () => {
       if (useVideoFallbackRef.current) return;
-      if (!video.paused && !video.ended) {
+      const playing = !video.paused && !video.ended && video.readyState >= 2;
+      if (playing) {
         try {
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
           gl.viewport(0, 0, canvas.width, canvas.height);
@@ -369,7 +374,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         }
       }
       const frameVideo = video as VideoFrameCallbackVideo;
-      if (typeof frameVideo.requestVideoFrameCallback === 'function') {
+      // Only switch to rVFC after we have painted at least one real frame.
+      if (webglPaintedRef.current && typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
         animationRef.current = frameVideo.requestVideoFrameCallback(() => render());
       } else {
@@ -378,11 +384,27 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       }
     };
 
+    // Kick autoplay (with muted retry) so the first RAF tick has a non-paused
+    // video to texture. Without this the loop only paints once the <video>
+    // element's own autoplay attribute fires, which on some Android WebViews
+    // happens AFTER our safety timeout.
+    if (autoPlay && video.paused) {
+      const p = video.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (!video.muted) {
+            video.muted = true;
+            video.play().catch(() => {});
+          }
+        });
+      }
+    }
+
     render();
     setLoading(false);
     onLoadRef.current?.();
 
-  }, [createShaders]);
+  }, [autoPlay, createShaders]);
 
 
 
@@ -409,12 +431,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     initWebGL(video, config);
     window.setTimeout(() => {
       if (!webglPaintedRef.current) {
-        console.warn('[VAPPlayer] WebGL did not paint first frame; using cropped video fallback');
+        console.warn('[VAPPlayer] WebGL did not paint first frame within 1.2s; using cropped video fallback');
         setUseVideoFallback(true);
         setLoading(false);
         onLoadRef.current?.();
       }
-    }, 450);
+    }, 1200);
   }, [config, initWebGL, resolvedConfigSrc]);
 
   const handleEnded = useCallback(() => {
