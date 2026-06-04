@@ -110,10 +110,13 @@ Deno.serve(async (req) => {
     // We'll try these keys in the `gifts` bucket in order:
     // 1. The full path (e.g. "gifts/pro/file.mp4")
     // 2. The path without "gifts/" (e.g. "pro/file.mp4")
-    // 3. The path with "gifts/legacy-chat-media/" (for backward compatibility)
+    // 3. If it's a .json request but only a .mp4 exists, try the .mp4 (VAP fix)
+    // 4. The path with "gifts/legacy-chat-media/" (for backward compatibility)
     const searchKeys = [
       path, 
       pathWithoutGiftsPrefix,
+      path.replace(/\.json$/i, ".mp4"),
+      pathWithoutGiftsPrefix.replace(/\.json$/i, ".mp4"),
       `legacy-chat-media/${pathWithoutGiftsPrefix}`
     ];
 
