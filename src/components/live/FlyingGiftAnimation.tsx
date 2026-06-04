@@ -280,16 +280,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         />
       );
     }
-    return (
-      <motion.span
-        className="text-4xl drop-shadow-lg"
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.3, 1] }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-      >
-        <GiftBox3DIcon size={40} />
-      </motion.span>
-    );
+    // Professional fix: no non-professional generic box icons as per user request
+    return null;
   };
 
   // Full-screen gift animation — every gift occupies the complete app viewport.
