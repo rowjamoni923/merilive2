@@ -381,7 +381,7 @@ const AdminNobleCards = () => {
           <DialogHeader><DialogTitle>Animation Preview</DialogTitle></DialogHeader>
           {previewUrl && (
             <div className="aspect-[3/1] bg-black rounded-lg overflow-hidden">
-              <FixedAnimationFrame size="fill" center={false} src={previewUrl}  loop />
+              <FixedAnimationFrame size="large" center={true} src={previewUrl}  loop />
             </div>
           )}
         </DialogContent>
