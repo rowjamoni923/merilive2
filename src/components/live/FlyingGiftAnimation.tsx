@@ -83,39 +83,31 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 };
 
 // ============================================================
-// FULLSCREEN HEAVY-ANIMATION SERIALIZER (module-level singleton)
-// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment across the
-// entire app. Prevents "duplicate" / overlapping plays when multiple
-// gifts arrive close together (combo, multi-sender bursts). Each SVGA
-// plays for its EXACT native duration (driven by the player's own
-// onComplete), then the slot is released and the next queued gift
-// promotes. NEVER trims an SVGA early — never extends it either.
+// FULLSCREEN HEAVY-ANIMATION ARBITER (module-level singleton)
+// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment,
+// but NEVER queues a later gift behind a 10–15s animation. New gifts preempt
+// the current full-screen owner so delivery remains zero-second and the WebView
+// never renders stacked heavy players.
 // ============================================================
 let activeFullscreenOwner: string | null = null;
-const fullscreenWaiters = new Set<() => void>();
+const FULLSCREEN_PREEMPT_EVENT = 'meri-fullscreen-gift-preempt';
 
 const tryAcquireFullscreen = (id: string): boolean => {
   if (activeFullscreenOwner === null || activeFullscreenOwner === id) {
     activeFullscreenOwner = id;
     return true;
   }
-  return false;
+  const previousId = activeFullscreenOwner;
+  activeFullscreenOwner = id;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FULLSCREEN_PREEMPT_EVENT, { detail: { previousId, nextId: id } }));
+  }
+  return true;
 };
 
 const releaseFullscreen = (id: string) => {
   if (activeFullscreenOwner !== id) return;
   activeFullscreenOwner = null;
-  const iter = fullscreenWaiters.values().next();
-  if (!iter.done) {
-    const next = iter.value;
-    fullscreenWaiters.delete(next);
-    try { next(); } catch {}
-  }
-};
-
-const subscribeFullscreen = (cb: () => void): (() => void) => {
-  fullscreenWaiters.add(cb);
-  return () => { fullscreenWaiters.delete(cb); };
 };
 
 
@@ -184,6 +176,16 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }, 3500);
   }, [gift.giftName, handleAnimationComplete]);
 
+  useEffect(() => {
+    if (!needsFullscreenSlot || typeof window === 'undefined') return;
+    const onPreempt = (event: Event) => {
+      const detail = (event as CustomEvent<{ previousId?: string; nextId?: string }>).detail;
+      if (detail?.previousId === gift.id && detail.nextId !== gift.id) handleAnimationComplete();
+    };
+    window.addEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
+    return () => window.removeEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
+  }, [gift.id, needsFullscreenSlot, handleAnimationComplete]);
+
   // Count-up animation — re-runs on combo merge (comboKey changes)
   useEffect(() => {
     const target = gift.count;
@@ -232,23 +234,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       setHasFullscreenSlot(true);
       return;
     }
-    let cancelled = false;
-    const claim = () => {
-      if (cancelled || !mountedRef.current) return;
-      if (tryAcquireFullscreen(gift.id)) {
-        setHasFullscreenSlot(true);
-        unsub?.();
-      }
-    };
-    let unsub: (() => void) | null = null;
-    if (tryAcquireFullscreen(gift.id)) {
-      setHasFullscreenSlot(true);
-    } else {
-      unsub = subscribeFullscreen(claim);
-    }
+    tryAcquireFullscreen(gift.id);
+    setHasFullscreenSlot(true);
     return () => {
-      cancelled = true;
-      unsub?.();
       releaseFullscreen(gift.id);
     };
   }, [needsFullscreenSlot, svgaError, gift.id]);
