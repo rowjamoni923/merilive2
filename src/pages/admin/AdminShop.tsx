@@ -927,8 +927,8 @@ const AdminShop = () => {
                       ) : formData.file_type === 'lottie' ? (
                         <FixedAnimationFrame
                           src={previewFile}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                         />
                       ) : formData.file_type === 'vap' ? (
