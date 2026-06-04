@@ -585,7 +585,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-4 justify-center justify-items-center max-w-5xl mx-auto`}>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-center justify-items-center max-w-5xl mx-auto px-1">
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}
@@ -593,7 +593,6 @@ const Shop = () => {
                 index={index}
                 owned={isOwned(item.id)}
                 onPreview={() => setSelectedItem(item)}
-                isFullWidth={isEntryAnimationCategory(item.category)}
               />
             ))}
           </div>
