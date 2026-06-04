@@ -6,6 +6,7 @@ import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 
 export interface FlyingGift {
@@ -270,7 +271,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         animate={{ scale: [0, 1.3, 1] }}
         transition={{ duration: 0.4, delay: 0.15 }}
       >
-        {gift.giftIcon || '🎁'}
+        <GiftBox3DIcon size={40} />
       </motion.span>
     );
   };
@@ -326,9 +327,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         transition={{ duration: 0.55, ease: "easeOut" }}
         style={FULLSCREEN_GIFT_LAYER_STYLE}
       >
-        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
-          {gift.giftIcon || '🎁'}
-        </span>
+        <GiftBox3DIcon size={200} />
       </motion.div>
     );
   };

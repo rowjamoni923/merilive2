@@ -6,7 +6,7 @@
  * Zero-refresh policy: service-worker updates must never reload the running app.
  * New workers are left waiting until the user naturally opens the app again.
  */
-import { toast } from 'sonner';
+// Sonner import removed for zero-toast policy
 
 let installed = false;
 
