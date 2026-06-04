@@ -277,7 +277,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 2 && v.currentTime !== lastVideoTimeRef.current) {
+      if (!v.paused && !v.ended && v.readyState >= 3 && v.currentTime !== lastVideoTimeRef.current) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
