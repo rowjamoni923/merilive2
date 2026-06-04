@@ -277,6 +277,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           muted={muted}
           volume={volume}
+          soundUrl={soundUrl}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
