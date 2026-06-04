@@ -58,9 +58,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
+  const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
+  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const webglPaintedRef = useRef(false);
+  const completedRef = useRef(false);
 
   // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
   const onLoadRef = useRef(onLoad);
@@ -203,8 +208,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     });
 
     if (!gl) {
-      setError('WebGL not supported');
-      onErrorRef.current?.(new Error('WebGL not supported'));
+      console.warn('[VAPPlayer] WebGL not supported; using cropped video fallback');
+      setUseVideoFallback(true);
+      setLoading(false);
+      onLoadRef.current?.();
       return;
     }
 
@@ -212,8 +219,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const program = createShaders(gl);
     if (!program) {
-      setError('Shader compilation failed');
-      onError?.(new Error('Shader compilation failed'));
+      console.warn('[VAPPlayer] Shader compilation failed; using cropped video fallback');
+      setUseVideoFallback(true);
+      setLoading(false);
+      onLoadRef.current?.();
       return;
     }
 
@@ -317,6 +326,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.height = videoHeight;
     }
 
+    setFallbackCrop(rgbRect as [number, number, number, number]);
+
     const rgbRectLocation = gl.getUniformLocation(program, 'u_rgbRect');
     const alphaRectLocation = gl.getUniformLocation(program, 'u_alphaRect');
 
@@ -329,11 +340,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     // Render loop
     const render = () => {
       if (!video.paused && !video.ended) {
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        try {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+          webglPaintedRef.current = true;
+        } catch (err) {
+          console.warn('[VAPPlayer] WebGL video texture failed; using cropped video fallback:', err);
+          setUseVideoFallback(true);
+        }
       }
       animationRef.current = requestAnimationFrame(render);
     };
@@ -346,58 +363,53 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
 
 
-  // Initialize video and WebGL
+  const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    if (initializedRef.current) return;
+    if (resolvedConfigSrc && !config) return;
+    if (!video.videoWidth || !video.videoHeight) return;
+    initializedRef.current = true;
+    initWebGL(video, config);
+    window.setTimeout(() => {
+      if (!webglPaintedRef.current) {
+        console.warn('[VAPPlayer] WebGL did not paint first frame; using cropped video fallback');
+        setUseVideoFallback(true);
+        setLoading(false);
+        onLoadRef.current?.();
+      }
+    }, 450);
+  }, [config, initWebGL, resolvedConfigSrc]);
+
+  const handleEnded = useCallback(() => {
+    if (loop || completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current?.();
+  }, [loop]);
+
+  const handleVideoError = useCallback(() => {
+    setError('Video load failed');
+    setLoading(false);
+    onErrorRef.current?.(new Error('Video load failed'));
+  }, []);
+
   useEffect(() => {
-    if (!resolvedSrc) return;
-
-    const video = document.createElement('video');
-    video.crossOrigin = 'anonymous';
-    video.playsInline = true;
-    video.muted = muted;
-    video.volume = volume;
-    video.loop = loop;
-    video.preload = 'auto';
-
-    videoRef.current = video;
-    let initialized = false;
-
-    const handleVideoReady = () => {
-      if (initialized) return;
-      initialized = true;
-      initWebGL(video, config);
-    };
-    video.onloadeddata = handleVideoReady;
-    video.oncanplay = handleVideoReady;
-
-    video.onended = () => {
-      if (!loop) {
-        onCompleteRef.current?.();
-      }
-    };
-
-    video.onerror = () => {
-      setError('Video load failed');
-      setLoading(false);
-      onErrorRef.current?.(new Error('Video load failed'));
-    };
-
-    video.src = resolvedSrc;
-
-    if (autoPlay) {
-      video.play().catch(err => {
-        console.warn('[VAPPlayer] Autoplay blocked:', err);
-      });
-    }
-
+    webglPaintedRef.current = false;
+    initializedRef.current = false;
+    completedRef.current = false;
+    setUseVideoFallback(false);
+    setLoading(true);
+    setError(null);
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      video.pause();
-      video.src = '';
-      videoRef.current = null;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [resolvedSrc, config, loop, autoPlay, muted, volume, initWebGL]);
+  }, [resolvedSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return;
+    initializedRef.current = false;
+    webglPaintedRef.current = false;
+    handleVideoReady(video);
+  }, [config, handleVideoReady]);
 
   if (error) {
     return (
@@ -405,14 +417,53 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     );
   }
 
+  const cropXPercent = -(fallbackCrop[0] / fallbackCrop[2]) * 100;
+  const cropYPercent = -(fallbackCrop[1] / fallbackCrop[3]) * 100;
+  const cropWidthPercent = (1 / fallbackCrop[2]) * 100;
+  const cropHeightPercent = (1 / fallbackCrop[3]) * 100;
+
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative overflow-hidden", className)}>
       {loading && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
+      <video
+        ref={videoRef}
+        src={resolvedSrc}
+        crossOrigin="anonymous"
+        playsInline
+        muted={muted}
+        loop={loop}
+        preload="auto"
+        autoPlay={autoPlay}
+        controls={false}
+        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+        disablePictureInPicture
+        disableRemotePlayback
+        data-animation="true"
+        data-decorative="true"
+        className={cn(
+          "absolute pointer-events-none",
+          useVideoFallback ? "opacity-100" : "opacity-0"
+        )}
+        style={{
+          left: `${cropXPercent}%`,
+          top: `${cropYPercent}%`,
+          width: `${cropWidthPercent}%`,
+          height: `${cropHeightPercent}%`,
+          objectFit: 'fill',
+        }}
+        onLoadedData={(e) => handleVideoReady(e.currentTarget)}
+        onCanPlay={(e) => {
+          const v = e.currentTarget;
+          if (autoPlay && v.paused) v.play().catch((err) => console.warn('[VAPPlayer] Autoplay blocked:', err));
+        }}
+        onEnded={handleEnded}
+        onError={handleVideoError}
+      />
       <canvas
         ref={canvasRef}
-        className={cn("w-full h-full object-contain", loading && "opacity-0")}
+        className={cn("w-full h-full object-contain", (loading || useVideoFallback) && "opacity-0")}
         style={{ 
           display: 'block',
           background: 'transparent',
