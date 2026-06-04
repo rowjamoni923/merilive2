@@ -994,6 +994,9 @@ const Chat = () => {
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
           if (payload.payload?.senderId === currentUserId) return;
+          if (payload.payload?.soundUrl && !payload.payload.content.includes('| snd:')) {
+            payload.payload.content = `${payload.payload.content.replace(/\]$/, '')} | snd:${payload.payload.soundUrl}]`;
+          }
           playGiftAnimationFromContent(
             payload.payload.content,
             payload.payload.senderId,
