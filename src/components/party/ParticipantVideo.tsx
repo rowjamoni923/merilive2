@@ -41,10 +41,10 @@ export function ParticipantVideo({
         // Hide until first frame to prevent "black flash"
         el.style.opacity = '0';
         el.style.transition = 'opacity 160ms linear';
-        
+
         hardenVideoElementForNative(el, { muted: isSelf });
         el.srcObject = stream;
-        
+
         const reveal = () => {
           if (el && el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0) {
             el.style.opacity = '1';
@@ -53,7 +53,7 @@ export function ParticipantVideo({
 
         el.onplaying = reveal;
         el.onloadeddata = reveal;
-        
+
         el.play().then(() => {
           // If no events fired, reveal after a short delay if the stream is live
           setTimeout(() => {
@@ -61,13 +61,42 @@ export function ParticipantVideo({
           }, 450);
         }).catch(e => console.log("Video play error:", e));
       }
+
+      // Stall watchdog: if after 4s the element still has no decoded frames
+      // (videoWidth==0 / readyState<2) while the upstream MediaStream is live,
+      // force a clean re-attach. This recovers from rare Chromium/WebKit cases
+      // where srcObject is set but the decoder never wires up after a renegotiation.
+      const stallTimers: ReturnType<typeof setTimeout>[] = [];
+      [4000, 9000].forEach((delay) => {
+        stallTimers.push(setTimeout(() => {
+          if (!el || el.srcObject !== stream) return;
+          const stalled =
+            stream.active &&
+            stream.getVideoTracks().some((t) => t.readyState === 'live') &&
+            (el.readyState < 2 || el.videoWidth === 0);
+          if (!stalled) return;
+          console.warn('[ParticipantVideo] stall detected — re-attaching MediaStream');
+          try { el.pause(); } catch { /* ignore */ }
+          try { el.srcObject = null; } catch { /* ignore */ }
+          try { el.srcObject = stream; } catch { /* ignore */ }
+          el.play().catch(() => {});
+        }, delay));
+      });
+
+      return () => {
+        if (el) {
+          el.onplaying = null;
+          el.onloadeddata = null;
+        }
+        stallTimers.forEach(clearTimeout);
+      };
     } else if (el.srcObject) {
       // Clear stale frame when stream goes away
       try { el.pause(); } catch {}
       el.srcObject = null;
       el.style.opacity = '0';
     }
-    
+
     return () => {
       if (el) {
         el.onplaying = null;
