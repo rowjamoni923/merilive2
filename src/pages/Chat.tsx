@@ -2394,7 +2394,7 @@ const Chat = () => {
                           (content.includes('supabase.co/storage') && /\.(mp4|mov|avi|mkv)($|\?)/i.test(content));
                         const isAudio = msg.message_type === 'audio' || 
                           (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
-                        const isGift = msg.message_type === 'gift';
+                        const isGift = msg.message_type === 'gift' || isGiftUrl(content);
                         const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
