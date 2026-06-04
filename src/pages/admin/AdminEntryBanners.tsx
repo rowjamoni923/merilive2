@@ -323,6 +323,18 @@ export default function AdminEntryBanners() {
                   src={banner.animation_url}
                   className="w-full h-full object-contain"
                   containerClassName="w-full h-full"
+                  dynamicData={{
+                    text: {
+                      "#name#": "Sample User",
+                      "name": "Sample User",
+                      "#level#": "Lv.50",
+                      "level": "Lv.50"
+                    },
+                    images: {
+                      "#avatar#": "https://api.dicebear.com/7.x/avataaars/svg?seed=Banners",
+                      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Banners"
+                    }
+                  }}
                 />
               ) : banner.animation_url ? (
                 <FixedAnimationFrame size="fill" center={false}

@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, Volume2, Sparkles, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, Volume2, Sparkles, Image, Loader2 } from "lucide-react";
+import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -361,6 +362,21 @@ const AdminEntryBars = () => {
                       src={item.preview_url} 
                       alt={item.name} 
                       className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
+                  ) : item.animation_url?.toLowerCase().endsWith('.svga') ? (
+                    <SVGAPreviewWithMuteToggle
+                      src={item.animation_url}
+                      className="w-full h-full"
+                      containerClassName="w-full h-full"
+                      showMuteButton={false}
+                      dynamicData={{
+                        text: {
+                          "#name#": "Preview",
+                          "name": "Preview",
+                          "#level#": `Lv.${item.level}`,
+                          "level": `Lv.${item.level}`
+                        }
+                      }}
+                    />
                   ) : item.animation_url ? (
                     <div >
                       <FixedAnimationFrame size="fill" center={false}
