@@ -142,18 +142,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return Math.floor(totalDiamonds * hostPercent / 100);
   }, [gift.beansEarned, totalDiamonds, hostPercent]);
 
-  // Note: gift.soundUrl is now passed to SVGAPlayerWithAudio as a fallback,
-  // and is also played here for non-SVGA gifts (e.g. image/video).
+  // Sound logic: Plays only when the animation actually starts (owns the slot)
+  // to ensure 100% synchronization between audio and video.
   useEffect(() => {
-    if (soundPlayedRef.current) return;
+    if (soundPlayedRef.current || !hasFullscreenSlot) return;
     if (!gift.soundUrl) return;
-    // Skip — SVGAPlayerWithAudio will handle sound for SVGA gifts (embedded + fallback)
+    
+    // SVGAPlayerWithAudio handles its own internal/fallback sound for SVGA.
+    // For VAP/Video/Images, we play the sound here only once the player is mounted.
     if (isSVGA) return;
+    
     soundPlayedRef.current = true;
-    // Pkg422: central player — anti-GC, unlock-aware, limiter-bus,
-    // per-URL concurrency cap so 50-combo gifts don't crackle.
-    playSoundUrl(gift.soundUrl, { volume: 0.6, maxConcurrent: 2 });
-  }, [isSVGA, gift.soundUrl]);
+    console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
+    playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
+  }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
 
 
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
