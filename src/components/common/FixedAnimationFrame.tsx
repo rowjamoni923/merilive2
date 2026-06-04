@@ -7,6 +7,7 @@ import {
   type AnimationCompletionSource,
 } from '@/utils/animationDebug';
 import { getVapCompositeHint } from '@/utils/vapDetection';
+import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
@@ -134,13 +135,13 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   // disagrees (e.g. type="svga" on a .png), trust the extension and fall back
   // to UniversalAnimationPlayer so we never spin up SVGA + audio decode on
   // a non-SVGA file. Unknown extensions also bypass audio handling.
-  const detected = detectAnimationType(src);
+  const detected = detectProfessionalAnimationFormat(src, type) || detectAnimationType(src);
   const KNOWN_TYPES = new Set<AnimationType>([
     'svga', 'lottie', 'vap', 'pag', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
   ]);
   // VAP is still an MP4/WebM container, so an explicit admin-selected
   // type="vap" on a .mp4 is valid and must not be downgraded to plain video.
-  const isValidContainerOverride = type === 'vap' && (detected === 'mp4' || detected === 'webm');
+  const isValidContainerOverride = type === 'vap' && (detected === 'mp4' || detected === 'webm' || detected === 'vap');
   const explicitMismatch =
     !!type && detected !== 'static' && type !== detected && !isValidContainerOverride;
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
@@ -149,7 +150,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
       `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
     );
   }
-  const hintedVap = getVapCompositeHint(src) && (detected === 'mp4' || detected === 'webm' || type === 'mp4' || type === 'webm');
+  const hintedVap = getVapCompositeHint(src) && (detected === 'mp4' || detected === 'webm' || detected === 'vap' || type === 'mp4' || type === 'webm' || type === 'vap');
   const safeType: AnimationType | undefined = hintedVap
     ? 'vap'
     : type && KNOWN_TYPES.has(type) && !explicitMismatch
