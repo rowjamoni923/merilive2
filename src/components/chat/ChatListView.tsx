@@ -14,7 +14,9 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { pickDisplayLevel } from "@/utils/displayLevel";
+import { isGiftUrl } from "@/utils/giftMediaUrl";
 import type { Conversation, Group } from "./chatTypes";
+
 
 interface ChatListViewProps {
   chatTab: string;
