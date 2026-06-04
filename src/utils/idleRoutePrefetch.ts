@@ -58,21 +58,23 @@ export function startIdleRoutePrefetch() {
 
     // Tier 3 — agency / helper / withdrawal / leaderboard
     ric(() => {
-      import('@/pages/AgencyDashboard').catch(() => {});
-      import('@/pages/AgencyHostManagement').catch(() => {});
-      import('@/pages/AgencyWithdrawal').catch(() => {});
-      import('@/pages/AgencyCoinExchange').catch(() => {});
-      import('@/pages/AgencyCoinTrader').catch(() => {});
-      import('@/pages/AgencyTransferHistory').catch(() => {});
-      import('@/pages/HelperDashboard').catch(() => {});
-      import('@/pages/Level5HelperDashboard').catch(() => {});
-      import('@/pages/HostDashboard').catch(() => {});
-      import('@/pages/HostTransferHistory').catch(() => {});
-      import('@/pages/Leaderboard').catch(() => {});
-      import('@/pages/PKLeaderboard').catch(() => {});
-      import('@/pages/Rewards').catch(() => {});
-      import('@/pages/PartyRooms').catch(() => {});
-      import('@/pages/Live').catch(() => {});
+      warmSequentially([
+        () => import('@/pages/Leaderboard'),
+        () => import('@/pages/PKLeaderboard'),
+        () => import('@/pages/PartyRooms'),
+        () => import('@/pages/Live'),
+        () => import('@/pages/AgencyDashboard'),
+        () => import('@/pages/AgencyHostManagement'),
+        () => import('@/pages/AgencyWithdrawal'),
+        () => import('@/pages/AgencyCoinExchange'),
+        () => import('@/pages/AgencyCoinTrader'),
+        () => import('@/pages/AgencyTransferHistory'),
+        () => import('@/pages/HelperDashboard'),
+        () => import('@/pages/Level5HelperDashboard'),
+        () => import('@/pages/HostDashboard'),
+        () => import('@/pages/HostTransferHistory'),
+        () => import('@/pages/Rewards'),
+      ], 1400);
     }, 10000);
   }, 2000);
 }
