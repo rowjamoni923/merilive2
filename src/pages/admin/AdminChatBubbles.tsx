@@ -469,7 +469,7 @@ const AdminChatBubbles = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
-              <FixedAnimationFrame size="fill" center={false}
+              <FixedAnimationFrame size="large" center={true}
                 src={previewUrl}
                 
                 loop
