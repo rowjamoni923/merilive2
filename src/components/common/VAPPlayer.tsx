@@ -441,7 +441,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         muted={muted}
         playsInline
         crossOrigin="anonymous"
-        className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "opacity-100")}
+        className={cn(
+          "absolute opacity-0 pointer-events-none", 
+          useVideoFallback && "opacity-100",
+          className?.includes('fixed') || className?.includes('w-screen') ? "w-full h-full object-fill" : ""
+        )}
         style={fallbackStyle}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onEnded={() => !loop && onCompleteRef.current?.()}
@@ -450,7 +454,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       {!useVideoFallback && (
         <canvas 
           ref={canvasRef} 
-          className="w-full h-full object-contain pointer-events-none"
+          className={cn(
+            "w-full h-full pointer-events-none",
+            className?.includes('fixed') || className?.includes('w-screen') ? "object-fill" : "object-contain"
+          )}
           style={{ opacity: webglPainted ? 1 : 0 }}
         />
       )}
