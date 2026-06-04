@@ -134,6 +134,29 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
     );
   }
 
+  // VAP Animation (Pkg423 — Tencent transparent video)
+  if (frameType === 'vap') {
+    return (
+      <Suspense fallback={
+        <div className={cn("flex items-center justify-center", className)}>
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      }>
+        <VAPPlayer
+          src={resolvedSrc}
+          configSrc={configSrc}
+          className={className}
+          loop={loop}
+          autoPlay={autoPlay}
+          muted={muted}
+          onLoad={onLoad}
+          onError={onError}
+        />
+      </Suspense>
+    );
+  }
+
+
   // Lottie Animation
   if (frameType === 'lottie') {
     if (lottieLoading) {
