@@ -300,7 +300,10 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
               configSrc={gift.animationConfigUrl || undefined}
               loop={false}
-              muted={isSVGA ? false : !!gift.soundUrl}
+              // VAP/MP4/WebM must ALWAYS be muted for reliable autoplay on
+              // mobile/WebView; their sound is played separately by soundUrl.
+              // Leaving VAP unmuted when soundUrl is empty blocks playback.
+              muted={isSVGA ? false : true}
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
