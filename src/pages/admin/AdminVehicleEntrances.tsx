@@ -418,7 +418,7 @@ const AdminVehicleEntrances = () => {
 
             {formData.animation_url && (
               <div className="aspect-video bg-black rounded-lg overflow-hidden max-h-40">
-                <FixedAnimationFrame size="fill" center={false}
+                <FixedAnimationFrame size="card" center={true}
                   src={formData.animation_url}
                   
                   loop
