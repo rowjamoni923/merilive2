@@ -124,7 +124,7 @@ const categories = [
   { id: "lucky_gift", name: "Lucky Gift", icon: Star },
 ];
 
-// Entry animation categories that need full-width display
+// Entry animation categories
 const isEntryAnimationCategory = (category: string) => 
   ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
 
