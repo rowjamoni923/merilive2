@@ -77,6 +77,7 @@ const detectAnimationType = (url: string): AnimationType => {
 const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   src,
   type,
+  configSrc,
   className,
   loop = true,
   autoPlay = true,
