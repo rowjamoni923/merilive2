@@ -3398,10 +3398,14 @@ const Chat = () => {
               <GiftEmojiAnimation
                 key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
                 emoji={animatingGiftEmoji}
+                animationFormat={animatingGiftFormat}
+                animationConfigUrl={animatingGiftConfigUrl}
                 soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
+                  setAnimatingGiftFormat(null);
+                  setAnimatingGiftConfigUrl(null);
                   setAnimatingGiftSound(null);
                 }}
               />
