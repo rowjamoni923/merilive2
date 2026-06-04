@@ -132,6 +132,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
     const vertexShaderSource = `
+      precision highp float;
       attribute vec2 a_position;
       attribute vec2 a_texCoord;
       varying vec2 v_texCoord;
@@ -148,9 +149,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // Professional-grade high-precision sampling.
-        // We use a smaller inset to maintain HD sharpness while preventing alpha-channel bleed.
-        float edgeInset = 0.0001; 
+        // High-precision HD sampling.
+        // We use a negligible inset (0.00005) to maintain maximum sharpness
+        // while preventing sub-pixel sampling bleed between channels.
+        float edgeInset = 0.00005; 
         
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
@@ -168,9 +170,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Final pixel: Apply alpha mask to the color channel.
-        // Professional blending: using max of RGB channels for alpha can sometimes 
-        // yield better results for VAP files that use luminance-based alpha.
+        // Output premultiplied alpha for professional-grade blending.
+        // Alpha is derived from the R channel (standard for VAP).
         float alpha = alphaColor.r;
         gl_FragColor = vec4(rgbColor.rgb * alpha, alpha);
       }
