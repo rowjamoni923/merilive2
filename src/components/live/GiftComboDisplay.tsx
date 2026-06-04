@@ -158,8 +158,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
           style={{
             background: tier.bg,
             border: tier.border,
-            backdropFilter: "blur(16px) saturate(150%)",
-            WebkitBackdropFilter: "blur(16px) saturate(150%)",
             boxShadow: tier.glow,
           }}
           animate={isPremium && tier.pulseGlow.length ? { boxShadow: tier.pulseGlow } : {}}
