@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { ensureAudioUnlocked, isAudioUnlocked } from '@/utils/audioUnlock';
 
 // Sound types
-type SoundType = 'ringtone' | 'notification' | 'message' | 'coin' | 'gift' | 'call-end' | 'call-connect';
+type SoundType = 'ringtone' | 'notification' | 'message' | 'coin' | 'gift' | 'call-end' | 'call-connect' | 'entrance';
 
 // ─────────────────────────────────────────────────────────────
 // GLOBAL SINGLETON AudioContext
