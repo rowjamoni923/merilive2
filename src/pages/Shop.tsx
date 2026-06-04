@@ -200,7 +200,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area - Instant Photo First */}
-      <div className="aspect-square flex items-center justify-center p-2 relative overflow-hidden bg-white/40">
+      <div className={cn("aspect-square flex items-center justify-center relative overflow-hidden bg-white/40", (item.category !== 'frame' && item.category !== 'portrait_frame') && "p-2")}>
         <div
           className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
           style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
