@@ -248,6 +248,7 @@ const playSoundInternal = (type: SoundType) => {
       case 'gift': playGiftSound(ctx, sharedGain); break;
       case 'call-connect': playCallConnectSound(ctx, sharedGain); break;
       case 'call-end': playCallEndSound(ctx, sharedGain); break;
+      case 'entrance': playEntranceSound(ctx, sharedGain); break;
     }
   } catch (error) {
     console.warn('[useSound] play failed:', error);
