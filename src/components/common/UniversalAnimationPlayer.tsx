@@ -216,8 +216,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   }
 
   // If not visible, render a placeholder to save GPU/CPU
-  // Pkg-fix: Bypass visibility check for full-screen overlays (fixed/inset-0)
-  const isOverlay = className?.includes('fixed') || className?.includes('inset-0');
+  // Pkg-fix: Bypass visibility check for full-screen overlays (fixed/inset-0/w-screen)
+  const isOverlay = className?.includes('fixed') || className?.includes('inset-0') || className?.includes('w-screen');
   if (!isVisible && !loop && !isOverlay) {
      return <div ref={containerRef} className={className} />;
   }
@@ -405,7 +405,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           data-animation="true"
           data-decorative="true"
           className={cn(
-            "w-full h-full object-contain pointer-events-none",
+            "w-full h-full pointer-events-none",
+            isOverlay ? "object-fill" : "object-contain",
             !mediaLoaded && "opacity-0"
           )}
           onLoadedMetadata={(e) => {
@@ -451,7 +452,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         alt="Animation"
         crossOrigin="anonymous"
         className={cn(
-          "w-full h-full object-contain pointer-events-none",
+          "w-full h-full pointer-events-none",
+          isOverlay ? "object-fill" : "object-contain",
           !mediaLoaded && "opacity-0"
         )}
         onLoad={() => {
