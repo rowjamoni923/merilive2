@@ -32,6 +32,8 @@ interface UniversalAnimationPlayerProps {
   onComplete?: () => void;
   /** Provenance-aware onComplete callback ('native' for true end-of-animation, 'safety-timer' for SVGA fallback). */
   onCompleteDebug?: (source: AnimationCompletionSource) => void;
+  /** Optional separate audio source URL (used for VAP/PAG if requested). */
+  soundUrl?: string | null;
   showControls?: boolean;
   fallbackEmoji?: string;
   /**
