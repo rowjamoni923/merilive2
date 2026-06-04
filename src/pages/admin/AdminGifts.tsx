@@ -1347,17 +1347,22 @@ export default function AdminGifts() {
                       ) : formData.animation_url.endsWith('.gif') || formData.animation_url.endsWith('.png') || formData.animation_url.endsWith('.webp') ? (
                         <SmartImage src={formData.animation_url} alt="Animation" cdnWidth={256} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                       ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
-                        <video 
-                          src={formData.animation_url} 
-                          className="w-full h-full object-cover bg-black"
-                          autoPlay 
-                          loop 
-                          muted 
-                          playsInline
-                          controls
-                          controlsList="nodownload noremoteplayback noplaybackrate"
-                          disablePictureInPicture
-                          disableRemotePlayback/>
+                        (() => {
+                          const lower = formData.animation_url.toLowerCase();
+                          const isVap = formData.animation_format === 'vap'
+                            || lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_');
+                          return (
+                            <FixedAnimationFrame
+                              src={formData.animation_url}
+                              type={isVap ? 'vap' : (lower.endsWith('.webm') ? 'webm' : 'mp4')}
+                              configSrc={formData.animation_config_url || undefined}
+                              size="fill"
+                              center={false}
+                              loop
+                              muted
+                            />
+                          );
+                        })()
                       ) : (
                         <Play className="w-8 h-8 text-purple-500" />
                       )}

@@ -18,13 +18,16 @@ interface EntranceAnimationProps {
   showDuration?: number;
 }
 
-// Detect animation type from URL - memoized outside component (same as FlyingGiftAnimation)
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' | null => {
+// Detect animation type from URL — Pkg430 VAP-aware (matches UniversalAnimationPlayer).
+const getAnimationType = (url?: string): 'svga' | 'lottie' | 'vap' | 'video' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
   if (cleanUrl.endsWith('.json')) return 'lottie';
-  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) return 'video';
+  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) {
+    if (cleanUrl.includes('vap') || cleanUrl.includes('_bmp') || cleanUrl.includes('file_vap_')) return 'vap';
+    return 'video';
+  }
   if (cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.jpg')) return 'image';
   return null;
 };
@@ -212,45 +215,41 @@ const EntranceAnimationInner = memo(({
       );
     }
 
-    // For images/gifs - center with scale animation
-    if (animationType === 'image') {
+    // Pkg430 — VAP / video / image all go through FixedAnimationFrame so the
+    // alpha-aware unified renderer (which handles VAP side-by-side RGB/alpha)
+    // is used everywhere.
+    if (animationType === 'vap' || animationType === 'video' || animationType === 'image') {
+      const cleanUrl = (displayAnimationUrl || '').split('?')[0].toLowerCase();
+      const ext =
+        animationType === 'vap' ? 'vap' :
+        cleanUrl.endsWith('.webm') ? 'webm' :
+        cleanUrl.endsWith('.mp4') ? 'mp4' :
+        cleanUrl.endsWith('.gif') ? 'gif' :
+        cleanUrl.endsWith('.webp') ? 'webp' :
+        cleanUrl.endsWith('.png') ? 'png' :
+        undefined;
       return (
         <motion.div
-          key="image-entrance"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
-        >
-          <motion.img 
-            src={displayAnimationUrl} 
-            alt="Entrance"
-            className="w-full h-full object-contain"
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 1.5, repeat: 2 }}
-          />
-        </motion.div>
-      );
-    }
-
-    // For video
-    if (animationType === 'video') {
-      return (
-        <motion.div
-          key="video-entrance"
+          key={`${animationType}-entrance`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
         >
-          <video 
-            src={displayAnimationUrl}
+          <FixedAnimationFrame
+            src={displayAnimationUrl || ''}
+            type={ext as any}
+            size="fullscreen"
+            loop={false}
             autoPlay
             muted
-            playsInline
-            className="w-full h-full object-cover"
-            onEnded={handleAnimationComplete}/>
+            center={false}
+            onComplete={handleAnimationComplete}
+            onError={(err) => {
+              console.error('[EntranceAnimation] ❌ Animation ERROR:', err?.message || err);
+              handleAnimationComplete();
+            }}
+          />
         </motion.div>
       );
     }

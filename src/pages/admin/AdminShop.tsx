@@ -595,6 +595,14 @@ const AdminShop = () => {
     return lower.endsWith('.mp4') || lower.endsWith('.webm');
   };
 
+  // Pkg430 — VAP detection (matches UniversalAnimationPlayer).
+  const isVAP = (url: string | null | undefined) => {
+    if (!url) return false;
+    const lower = url.toLowerCase().split('?')[0];
+    if (!(lower.endsWith('.mp4') || lower.endsWith('.webm'))) return false;
+    return lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_');
+  };
+
   const totalItems = items.length;
   const activeItems = items.filter(i => i.is_active).length;
   const hiddenItems = items.filter(i => !i.is_active).length;
@@ -923,8 +931,25 @@ const AdminShop = () => {
                           center={false}
                           loop
                         />
+                      ) : formData.file_type === 'vap' ? (
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          type="vap"
+                          configSrc={formData.animation_config_url || undefined}
+                          size="fill"
+                          center={false}
+                          loop
+                          muted
+                        />
                       ) : formData.file_type === 'video' ? (
-                        <video src={previewFile} className="w-full h-full object-contain bg-black" controls controlsList="nodownload noremoteplayback noplaybackrate" disablePictureInPicture disableRemotePlayback playsInline autoPlay muted loop/>
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          type={previewFile.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}
+                          size="fill"
+                          center={false}
+                          loop
+                          muted
+                        />
                       ) : formData.file_type === 'gif' ? (
                         <SmartImage src={previewFile} alt="Preview" cdnWidth={200} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
@@ -1281,7 +1306,8 @@ const AdminShop = () => {
                   <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
                 if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
-                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline controls controlsList="nodownload noremoteplayback noplaybackrate" disablePictureInPicture disableRemotePlayback/>;
+                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="fill" center={false} loop muted />;
+                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="fill" center={false} loop muted />;
                 return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>

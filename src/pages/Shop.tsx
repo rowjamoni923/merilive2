@@ -61,7 +61,39 @@ interface ShopItem {
   is_premium: boolean;
   animation_type: string | null;
   file_type: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
 }
+
+// Pkg430 — unified animation detection across Shop/Admin/App (mirrors UniversalAnimationPlayer).
+// Treats any .mp4 with "vap" / "_bmp" / "file_vap_" in the filename, or explicit
+// animation_format='vap', as VAP so the alpha-channel renderer is used.
+const pickAnimType = (item: Pick<ShopItem, 'animation_format' | 'animation_file_url' | 'animation_url' | 'preview_url' | 'file_type'>):
+  'svga' | 'lottie' | 'vap' | 'mp4' | 'webm' | 'gif' | 'webp' | 'png' | 'static' | undefined => {
+  const fmt = (item.animation_format || '').toLowerCase();
+  if (fmt === 'vap') return 'vap';
+  if (fmt === 'svga') return 'svga';
+  if (fmt === 'lottie') return 'lottie';
+  if (fmt === 'mp4') return 'mp4';
+  if (fmt === 'webm') return 'webm';
+  if (fmt === 'gif') return 'gif';
+  if (fmt === 'webp') return 'webp';
+  if (fmt === 'png') return 'png';
+  const url = (item.animation_file_url || item.animation_url || item.preview_url || '').toLowerCase().split('?')[0];
+  if (url.endsWith('.svga')) return 'svga';
+  if (url.endsWith('.json')) return 'lottie';
+  if (url.endsWith('.mp4')) {
+    if (url.includes('vap') || url.includes('_bmp') || url.includes('file_vap_')) return 'vap';
+    return 'mp4';
+  }
+  if (url.endsWith('.webm')) return 'webm';
+  if (url.endsWith('.gif')) return 'gif';
+  if (url.endsWith('.webp')) return 'webp';
+  if (url.endsWith('.png')) return 'png';
+  return undefined;
+};
+
+const isAnimatedType = (t?: string) => !!t && t !== 'static' && t !== 'png';
 
 interface UserPurchase {
   id: string;
@@ -176,46 +208,54 @@ const ShopItemCard = ({
           }}
         />
 
-        {(item.animation_file_url || item.preview_url) && !imageError ? (
-          item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
-            <img
-              src={item.preview_url}
-              alt={item.name}
-              loading="eager"
-              decoding="async"
-              {...({ fetchpriority: 'high' } as any)}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-              onError={() => setImageError(true)}
-            />
-          ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
-            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
-              <FixedAnimationFrame
-                src={item.animation_file_url || ''}
-                size="fill"
-                loop
-                autoPlay
-                center={false}
+        {(() => {
+          const animType = pickAnimType(item);
+          const animSrc = item.animation_file_url || item.animation_url || '';
+          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
+
+          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
+          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
+          if (animSrc && isAnimatedType(animType) && !imageError) {
+            return (
+              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+                <FixedAnimationFrame
+                  src={animSrc}
+                  type={animType as any}
+                  configSrc={item.animation_config_url || undefined}
+                  size="fill"
+                  loop
+                  autoPlay
+                  muted
+                  center={false}
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            );
+          }
+
+          if (previewIsStatic && !imageError) {
+            return (
+              <img
+                src={item.preview_url!}
+                alt={item.name}
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: 'high' } as any)}
+                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+                onError={() => setImageError(true)}
               />
+            );
+          }
+
+          return (
+            <div
+              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
+              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+            >
+              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
             </div>
-          ) : (
-            <img
-              src={item.animation_file_url || item.preview_url || ''}
-              alt={item.name}
-              loading="eager"
-              decoding="async"
-              {...({ fetchpriority: 'high' } as any)}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-              onError={() => setImageError(true)}
-            />
-          )
-        ) : (
-          <div
-            className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
-            style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-          >
-            <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Item Info */}
@@ -652,26 +692,36 @@ const Shop = () => {
                     border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
-                  {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
-                    <FixedAnimationFrame
-                      src={selectedItem.animation_file_url || ''}
-                      size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                      loop
-                      autoPlay
-                      muted={!isEntryAnimationCategory(selectedItem.category)}
-                      background="none"
-                      className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                    />
-                  ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
-                    <img loading="lazy" decoding="async" 
-                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
-                      alt={selectedItem.name}
-                      className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />
-                  )}
+                  {(() => {
+                    const animType = pickAnimType(selectedItem);
+                    const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
+                    if (animSrc && isAnimatedType(animType)) {
+                      return (
+                        <FixedAnimationFrame
+                          src={animSrc}
+                          type={animType as any}
+                          configSrc={selectedItem.animation_config_url || undefined}
+                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                          loop
+                          autoPlay
+                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                          background="none"
+                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                        />
+                      );
+                    }
+                    if (selectedItem.preview_url || animSrc) {
+                      return (
+                        <img loading="lazy" decoding="async"
+                          src={selectedItem.preview_url || animSrc}
+                          alt={selectedItem.name}
+                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      );
+                    }
+                    return <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />;
+                  })()}
                 </div>
 
                 {selectedItem.description && (
