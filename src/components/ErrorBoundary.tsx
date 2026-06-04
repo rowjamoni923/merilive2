@@ -40,11 +40,19 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     if (isChunkLoadError(error)) {
       this.setState({ recovering: true });
-      // Zero-refresh policy: never call window.location.reload/replace.
-      // Instead, we just mark that we are in recovery mode and log it.
-      // The user can manually click "Try Again" if they wish.
+      // Zero-refresh policy: cleared stale runtime caches best-effort.
+      // After a short delay to show the "Updating" UI, we trigger a reload 
+      // if it's a persistent chunk failure, as that's the only way to fetch 
+      // the new manifest/assets from the server.
       void (async () => {
-        try { await scheduleChunkLoadRecovery(error, error.message); } catch { /* best-effort */ }
+        try { 
+          await scheduleChunkLoadRecovery(error, error.message); 
+          // Wait 1.5s so the user sees the professional "Updating" state
+          await new Promise(r => setTimeout(r, 1500));
+          if (typeof window !== 'undefined') window.location.reload();
+        } catch { 
+          if (typeof window !== 'undefined') window.location.reload();
+        }
       })();
     }
 
