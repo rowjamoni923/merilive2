@@ -413,8 +413,6 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           isVisible ? "opacity-100" : "opacity-0"
         )}
         style={{ 
-          WebkitBackdropFilter: 'blur(8px)', 
-          backdropFilter: 'blur(8px)',
           WebkitTapHighlightColor: 'transparent',
           transition: 'opacity 200ms ease-out',
           pointerEvents: isVisible ? 'auto' : 'none'
