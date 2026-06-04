@@ -9260,6 +9260,7 @@ export type Database = {
           id: string
           is_muted: boolean | null
           joined_at: string | null
+          last_seen_at: string
           left_at: string | null
           role: string | null
           room_id: string
@@ -9270,6 +9271,7 @@ export type Database = {
           id?: string
           is_muted?: boolean | null
           joined_at?: string | null
+          last_seen_at?: string
           left_at?: string | null
           role?: string | null
           room_id: string
@@ -9280,6 +9282,7 @@ export type Database = {
           id?: string
           is_muted?: boolean | null
           joined_at?: string | null
+          last_seen_at?: string
           left_at?: string | null
           role?: string | null
           room_id?: string
@@ -18537,6 +18540,7 @@ export type Database = {
       cleanup_stale_live_streams: { Args: never; Returns: number }
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
+      cleanup_stale_party_participants_v2: { Args: never; Returns: undefined }
       cleanup_stale_party_rooms: { Args: never; Returns: number }
       cleanup_stale_stream_viewers: { Args: never; Returns: Json }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
@@ -19492,6 +19496,10 @@ export type Database = {
       normalize_public_profile_media_url: {
         Args: { _url: string }
         Returns: string
+      }
+      party_participant_heartbeat: {
+        Args: { p_room_id: string }
+        Returns: undefined
       }
       place_game_bet:
         | {

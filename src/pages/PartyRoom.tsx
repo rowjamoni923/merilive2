@@ -301,6 +301,30 @@ const PartyRoom = () => {
   useEffect(() => {
     userCoinsRef.current = userCoins;
   }, [userCoins]);
+
+  // Pkg424: Party participant heartbeat (30s) — keeps server-side "active" status fresh so
+  // crashed/network-dropped participants are swept by cleanup_stale_party_participants_v2 cron
+  // within ~90s, instead of inflating participant counts / seat lookups for up to 2 hours.
+  useEffect(() => {
+    const uid = currentUser?.id;
+    if (!roomId || !uid) return;
+    let cancelled = false;
+    const beat = async () => {
+      if (cancelled) return;
+      try {
+        await supabase.rpc('party_participant_heartbeat', { p_room_id: roomId });
+      } catch {
+        /* ignore — next tick will retry */
+      }
+    };
+    // Fire immediately so a freshly-joined user has a fresh last_seen_at before any sweep.
+    beat();
+    const hbTimer = setInterval(beat, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(hbTimer);
+    };
+  }, [roomId, currentUser?.id]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
@@ -764,6 +788,17 @@ const PartyRoom = () => {
         const leftAt = new Date().toISOString();
         sendPatchBeacon(`party_rooms?id=eq.${encodeURIComponent(roomId)}`, { is_active: false, ended_at: leftAt });
         sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, seat_number: null });
+      } else if (roomId && currentUserRef.current?.id) {
+        // Pkg425: non-host guest fast-leave. Without this the guest's row sits
+        // active until the Pkg424 90s cron sweep — inflates participant count for
+        // up to a minute on tab-close. Scoped strictly to own user_id so a guest
+        // can never accidentally mark other participants left.
+        const leftAt = new Date().toISOString();
+        const uidParam = encodeURIComponent(currentUserRef.current.id);
+        sendPatchBeacon(
+          `party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&user_id=eq.${uidParam}&left_at=is.null`,
+          { left_at: leftAt, seat_number: null },
+        );
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);

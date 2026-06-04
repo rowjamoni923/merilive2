@@ -351,7 +351,10 @@ export function usePrivateCall(userId: string | null) {
         const currentCallId = currentCallIdRef.current;
         
         // 1. Check if it's an incoming call for us (Host side)
-        if (event === 'INSERT' && row.host_id === userId && row.status === 'pending') {
+        // Pkg425: start_private_call RPC writes status='ringing' (not 'pending').
+        // Accept both for backward compat in case the schema changes again — and so
+        // the host's Realtime path is not silently broken when FCM push is missed.
+        if (event === 'INSERT' && row.host_id === userId && (row.status === 'pending' || row.status === 'ringing')) {
           console.log('[Call Realtime] Incoming call detected:', row.id);
           showVerifiedIncomingCall(row.id);
           return;
@@ -999,6 +1002,19 @@ export function usePrivateCall(userId: string | null) {
     } catch (error: any) {
       preparedIncomingStream?.getTracks().forEach((track) => track.stop());
       console.error('Error accepting call:', error);
+      // Pkg425: accept_private_call may have already set the row to 'connected'.
+      // If LiveKit connect then throws (network blip, native plugin race) the row
+      // stays 'connected' forever — caller keeps billing against a dead call and
+      // host is locked in_call. Settle the row server-side BEFORE resetting local
+      // state so both sides get the realtime 'ended' event.
+      try {
+        if (incomingCall?.callId) {
+          await supabase.rpc('end_private_call', {
+            _call_id: incomingCall.callId,
+            _end_reason: 'connect_failed',
+          });
+        }
+      } catch { /* server-side cleanup_stale_in_call_flags cron is the final safety net */ }
       resetCallState();
       toast({
         title: "Call Failed",
