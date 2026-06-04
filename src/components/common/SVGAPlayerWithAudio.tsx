@@ -57,6 +57,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const expectedDurationRef = useRef<number>(0);
   const audioSegmentsRef = useRef<any[]>([]);
   const internalSoundFoundRef = useRef<boolean>(false);
+  const lastTriggerKeyRef = useRef<string | number | undefined>(triggerKey);
 
   // Stable refs for callbacks — prevents parent re-renders from re-running the
   // load effect (which would tear down + rebuild the SVGA player and replay it).
@@ -270,6 +271,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   // SVGA canvas/player. Recreating the SVGA player here was a direct jank source.
   useEffect(() => {
     if (!triggerKey || loading || volume <= 0) return;
+    if (lastTriggerKeyRef.current === triggerKey) return;
+    lastTriggerKeyRef.current = triggerKey;
     const clampedVolume = Math.min(Math.max(volume, 0), 1);
     if (audioSegmentsRef.current.length > 0) {
       audioSegmentsRef.current.forEach(segment => {
