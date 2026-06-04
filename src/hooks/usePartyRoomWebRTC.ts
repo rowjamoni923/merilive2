@@ -964,7 +964,8 @@ export function usePartyRoomWebRTC(
         }
         return;
       }
-      applySelectiveSubscriptions(roomRef.current, cfg, { recentSpeakers: recentRef.slice() });
+      const pinned = hostUserIdRef.current ? [hostUserIdRef.current] : [];
+      applySelectiveSubscriptions(roomRef.current, cfg, { recentSpeakers: recentRef.slice(), pinned });
     };
 
     const onSpeakers = (e: Event) => {
