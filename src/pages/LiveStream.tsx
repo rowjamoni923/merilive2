@@ -466,11 +466,30 @@ const LiveStream = () => {
     };
     window.addEventListener('pagehide', sendViewerLeave);
     window.addEventListener('beforeunload', sendViewerLeave);
+    // Pkg423: 30s viewer heartbeat. Server cron sweeps viewers with last_seen_at
+    // older than 90s and recomputes live_streams.viewer_count, so abandoned tabs
+    // (network drop, app kill, OS suspend) no longer inflate the counter.
+    let hbTimer: ReturnType<typeof setInterval> | null = null;
+    const sendHeartbeat = () => {
+      try {
+        supabase
+          .rpc('viewer_heartbeat', { p_stream_id: id })
+          .then(({ data }) => {
+            if (typeof data === 'number' && mountedRef.current) {
+              setViewerCount(data);
+            }
+          });
+      } catch { /* ignore */ }
+    };
+    // First ping after 30s; join RPC already establishes presence at t=0.
+    hbTimer = setInterval(sendHeartbeat, 30000);
     return () => {
       window.removeEventListener('pagehide', sendViewerLeave);
       window.removeEventListener('beforeunload', sendViewerLeave);
+      if (hbTimer) clearInterval(hbTimer);
     };
   }, [id, currentUserId, isHost]);
+
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
