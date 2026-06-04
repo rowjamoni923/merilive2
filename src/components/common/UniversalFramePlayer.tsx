@@ -5,15 +5,18 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
-// Lazy load SVGA players for better performance
+// Lazy load SVGA + VAP players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
+const VAPPlayer = lazy(() => import('./VAPPlayer'));
 
-export type FrameType = 'svga' | 'lottie' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
+export type FrameType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
 interface UniversalFramePlayerProps {
   src: string;
   type?: FrameType;
+  /** Pkg423 — VAP config (vapc.json) URL. Required when type='vap'. */
+  configSrc?: string;
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
