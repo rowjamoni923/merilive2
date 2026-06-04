@@ -4,6 +4,8 @@ import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
+import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
 
 interface ChatMessageProps {
   id: string;
