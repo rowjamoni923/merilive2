@@ -238,7 +238,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           >
             <SVGAPlayerWithAudio
               src={src}
-              className="w-full h-full"
+              className={wrapperClass}
               loop={loop}
               autoPlay={autoPlay}
               volume={volume}
@@ -263,7 +263,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             src={src}
             type={safeType}
             configSrc={configSrc || undefined}
-            className={className}
+            className={wrapperClass}
             loop={loop}
             autoPlay={autoPlay}
             muted={safeMuted}
