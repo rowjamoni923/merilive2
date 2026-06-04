@@ -60,7 +60,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.7,
+  volume = 0.95,
   onLoad,
   onError,
   onComplete,
@@ -132,6 +132,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
     const vertexShaderSource = `
+      precision highp float;
       attribute vec2 a_position;
       attribute vec2 a_texCoord;
       varying vec2 v_texCoord;
@@ -148,13 +149,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // High-precision sampling with slight edge insets to prevent bleed from alpha channel
-        float edgeInset = 0.0005; 
+        // High-precision HD sampling.
+        // We use a negligible inset (0.00005) to maintain maximum sharpness
+        // while preventing sub-pixel sampling bleed between channels.
+        float edgeInset = 0.00005; 
+        
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
         );
         rgbCoord.x = clamp(rgbCoord.x, u_rgbRect.x + edgeInset, u_rgbRect.x + u_rgbRect.z - edgeInset);
+        rgbCoord.y = clamp(rgbCoord.y, u_rgbRect.y + edgeInset, u_rgbRect.y + u_rgbRect.w - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
         vec2 alphaCoord = vec2(
@@ -162,10 +167,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
         );
         alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
+        alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Output premultiplied alpha for cleaner blending on edges
-        gl_FragColor = vec4(rgbColor.rgb * alphaColor.r, alphaColor.r);
+        // Output premultiplied alpha for professional-grade blending.
+        // Alpha is derived from the R channel (standard for VAP).
+        float alpha = alphaColor.r;
+        gl_FragColor = vec4(rgbColor.rgb * alpha, alpha);
       }
     `;
 

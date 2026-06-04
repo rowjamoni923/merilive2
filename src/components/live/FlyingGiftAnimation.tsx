@@ -121,7 +121,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const [showFullScreen, setShowFullScreen] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [svgaError, setSvgaError] = useState(false);
-  const soundPlayedRef = useRef(false);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
@@ -142,22 +141,24 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return Math.floor(totalDiamonds * hostPercent / 100);
   }, [gift.beansEarned, totalDiamonds, hostPercent]);
 
-  // Note: gift.soundUrl is now passed to SVGAPlayerWithAudio as a fallback,
-  // and is also played here for non-SVGA gifts (e.g. image/video).
-  useEffect(() => {
-    if (soundPlayedRef.current) return;
-    if (!gift.soundUrl) return;
-    // Skip — SVGAPlayerWithAudio will handle sound for SVGA gifts (embedded + fallback)
-    if (isSVGA) return;
-    soundPlayedRef.current = true;
-    // Pkg422: central player — anti-GC, unlock-aware, limiter-bus,
-    // per-URL concurrency cap so 50-combo gifts don't crackle.
-    playSoundUrl(gift.soundUrl, { volume: 0.6, maxConcurrent: 2 });
-  }, [isSVGA, gift.soundUrl]);
-
 
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
+  const soundPlayedRef = useRef(false);
 
+  // Sound logic: Plays only when the animation actually starts (owns the slot)
+  // to ensure 100% synchronization between audio and video.
+  useEffect(() => {
+    if (soundPlayedRef.current || !hasFullscreenSlot) return;
+    if (!gift.soundUrl) return;
+    
+    // SVGAPlayerWithAudio handles its own internal/fallback sound for SVGA.
+    // For VAP/Video/Images, we play the sound here only once the player is mounted.
+    if (isSVGA) return;
+    
+    soundPlayedRef.current = true;
+    console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
+    playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
+  }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
