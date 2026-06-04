@@ -168,6 +168,9 @@ const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   return 'other';
 };
 
+const isWideCategory = (category: string) =>
+  ['entry_bar', 'party_background', 'entry_banner', 'entry_name_bar'].includes(category);
+
 // VIP Page Component - Updated 2026-01-27
 const VIP = () => {
   const navigate = useNavigate();
@@ -1339,7 +1342,7 @@ const VIP = () => {
                           onClick={() => handleEquip(priv)}
                           className="flex flex-col items-center w-full"
                         >
-                          <div className={`relative w-full aspect-square rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
+                          <div className={`relative w-full ${isWideCategory(priv.category) ? 'aspect-video' : 'aspect-square'} rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
                             priv.is_equipped 
                                 ? 'ring-2 ring-green-500 shadow-lg shadow-green-500/20' 
                                 : `ring-1 ring-amber-200/50 ${ringColor} shadow-md`
