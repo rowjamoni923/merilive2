@@ -773,9 +773,11 @@ const Chat = () => {
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
-    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
+    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
+    const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
+    const configSuffix = gift.animation_config_url ? ` | cfg:${gift.animation_config_url}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
       ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`
@@ -817,6 +819,7 @@ const Chat = () => {
         content: optimisticGiftMessage,
         animationFormat: giftAnimationFormat,
         animationConfigUrl: gift.animation_config_url || null,
+          soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});
 
@@ -1438,10 +1441,10 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(signature, now);
     if (playSoundEffect) playSoundDebounced('gift');
 
-    const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
+    const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
-    setAnimatingGiftFormat(animationFormat || null);
-    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || null);
+    setAnimatingGiftFormat(animationFormat || parsedFormat || null);
+    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
