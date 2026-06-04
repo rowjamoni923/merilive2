@@ -466,6 +466,26 @@ const LiveStream = () => {
     };
     window.addEventListener('pagehide', sendViewerLeave);
     window.addEventListener('beforeunload', sendViewerLeave);
+    // Pkg425: also fire on tab-hidden + Capacitor app background. iOS Safari and
+    // Android WebView kill tabs without firing pagehide/beforeunload reliably; the
+    // 90s cron cleans those up but the count stays inflated until then. Visibility
+    // and appStateChange give us a sub-second leave on app switch / lock screen.
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') sendViewerLeave();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    let appStateDetach: (() => void) | null = null;
+    try {
+      // Lazy-load Capacitor App so web builds don't pull native plugin code.
+      void import('@capacitor/app').then(({ App }) => {
+        try {
+          const handle = App.addListener('appStateChange', ({ isActive }) => {
+            if (!isActive) sendViewerLeave();
+          });
+          appStateDetach = () => { try { (handle as any)?.remove?.(); } catch { /* noop */ } };
+        } catch { /* ignore — non-Capacitor runtime */ }
+      }).catch(() => { /* ignore */ });
+    } catch { /* ignore */ }
     // Pkg423: 30s viewer heartbeat. Server cron sweeps viewers with last_seen_at
     // older than 90s and recomputes live_streams.viewer_count, so abandoned tabs
     // (network drop, app kill, OS suspend) no longer inflate the counter.
@@ -486,6 +506,8 @@ const LiveStream = () => {
     return () => {
       window.removeEventListener('pagehide', sendViewerLeave);
       window.removeEventListener('beforeunload', sendViewerLeave);
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (appStateDetach) appStateDetach();
       if (hbTimer) clearInterval(hbTimer);
     };
   }, [id, currentUserId, isHost]);

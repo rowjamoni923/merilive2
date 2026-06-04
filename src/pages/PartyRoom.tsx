@@ -788,6 +788,17 @@ const PartyRoom = () => {
         const leftAt = new Date().toISOString();
         sendPatchBeacon(`party_rooms?id=eq.${encodeURIComponent(roomId)}`, { is_active: false, ended_at: leftAt });
         sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, seat_number: null });
+      } else if (roomId && currentUserRef.current?.id) {
+        // Pkg425: non-host guest fast-leave. Without this the guest's row sits
+        // active until the Pkg424 90s cron sweep — inflates participant count for
+        // up to a minute on tab-close. Scoped strictly to own user_id so a guest
+        // can never accidentally mark other participants left.
+        const leftAt = new Date().toISOString();
+        const uidParam = encodeURIComponent(currentUserRef.current.id);
+        sendPatchBeacon(
+          `party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&user_id=eq.${uidParam}&left_at=is.null`,
+          { left_at: leftAt, seat_number: null },
+        );
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
