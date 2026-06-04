@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
+import { getSharedObserver } from '@/utils/nativePerformance';
+
 
 interface MessageBubbleWrapperProps {
   /** SVGA / Lottie / GIF / WebP / PNG URL of the designer chat bubble. If null/empty falls back to children only. */
@@ -34,6 +36,29 @@ export const MessageBubbleWrapper: React.FC<MessageBubbleWrapperProps> = ({
   safeAreaClassName = 'px-4 py-2',
   maxWidthClassName = 'max-w-[260px]',
 }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!bubbleUrl || !containerRef.current) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = getSharedObserver('bubble-visibility', (entries) => {
+      entries.forEach(entry => {
+        if (entry.target === containerRef.current) {
+          setIsVisible(entry.isIntersecting);
+        }
+      });
+    }, { rootMargin: '100px' });
+
+    observer.observe(containerRef.current);
+    return () => {
+      if (containerRef.current) observer.unobserve(containerRef.current);
+    };
+  }, [bubbleUrl]);
+
   // No bubble — render plain children (caller supplies its own default bubble styling)
   if (!bubbleUrl) {
     return <>{children}</>;
@@ -41,22 +66,25 @@ export const MessageBubbleWrapper: React.FC<MessageBubbleWrapperProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         'relative inline-block w-fit',
         maxWidthClassName,
         className,
       )}
     >
-      {/* Animated bubble background — fills the entire wrapper, behind text */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-        <UniversalAnimationPlayer
-          src={bubbleUrl}
-          className="w-full h-full"
-          loop
-          autoPlay
-          muted
-        />
-      </div>
+      {/* Animated bubble background — only plays when visible to save CPU/GPU */}
+      {isVisible && (
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+          <UniversalAnimationPlayer
+            src={bubbleUrl}
+            className="w-full h-full"
+            loop
+            autoPlay
+            muted
+          />
+        </div>
+      )}
 
       {/* Foreground content sits inside the SVGA's "safe area" */}
       <div className={cn('relative z-10', safeAreaClassName)}>
