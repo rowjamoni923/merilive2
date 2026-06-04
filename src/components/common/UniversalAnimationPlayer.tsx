@@ -25,6 +25,7 @@ interface UniversalAnimationPlayerProps {
   loop?: boolean;
   autoPlay?: boolean;
   muted?: boolean;
+  volume?: number;
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
@@ -94,6 +95,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = true,
+  volume = 0.7,
   onLoad,
   onError,
   onComplete,
@@ -248,6 +250,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}
+          volume={volume}
           onLoad={onLoad}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
@@ -334,6 +337,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           loop={loop}
           muted={muted}
+          volume={volume}
           playsInline
           // HARD-DISABLED: this player drives gift / entry / lottery / live
           // overlay animations — a native play button or thumbnail poster on
@@ -367,6 +371,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             }
           }}
           onLoadedData={() => {
+            if (videoRef.current) videoRef.current.volume = Math.max(0, Math.min(1, volume));
             setMediaLoaded(true);
             onLoad?.();
           }}
