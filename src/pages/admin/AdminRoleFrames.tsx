@@ -471,7 +471,7 @@ const AdminRoleFrames = () => {
                     {/* Frame Preview */}
                     <div className="aspect-square bg-slate-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {frame.frame_url ? (
-                        <FixedAnimationFrame size="fill" center={false}
+                        <FixedAnimationFrame size="card" center={true}
                           src={frame.frame_url}
                           
                           loop
