@@ -158,77 +158,97 @@ export const AnimationUploader: React.FC<Props> = ({
     try {
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       
-      // For files > 5MB, use the professional fast R2 path (Parallel binary chunks)
+      // For files > 5MB, try the professional fast R2 path first
       if (file.size > 5 * 1024 * 1024) {
-        toast.info(`Uploading large file (${fileSizeMB}MB)...`, { duration: 5000 });
-        const CHUNK_SIZE = 5 * 1024 * 1024;
-        const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
-        
-        // 1. Init
-        const initRes = await fetch(R2_FUNCTION_URL, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-admin-token': getAdminSessionToken() 
-          },
-          body: JSON.stringify({ action: 'init-multipart', folder, fileName: file.name, fileType: file.type || 'application/octet-stream' }),
-        });
-        const { uploadId, key, success: initSuccess, error: initError } = await initRes.json();
-        if (!initSuccess) throw new Error(initError || 'Init failed');
+        try {
+          toast.info(`Attempting R2 upload for large file (${fileSizeMB}MB)...`, { duration: 3000 });
+          const CHUNK_SIZE = 5 * 1024 * 1024;
+          const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
+          
+          // 1. Init
+          const initRes = await fetch(R2_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json', 
+              'x-admin-token': getAdminSessionToken() 
+            },
+            body: JSON.stringify({ action: 'init-multipart', folder, fileName: file.name, fileType: file.type || 'application/octet-stream' }),
+          });
+          
+          const initResult = await initRes.json();
+          
+          // Check for specialized Handshake error from our updated edge function
+          if (initResult.isHandshakeError) {
+            console.warn('R2 Handshake failure detected, falling back to Supabase Storage...');
+            throw new Error('R2_HANDSHAKE_FAILURE');
+          }
+          
+          if (!initResult.success) throw new Error(initResult.error || 'R2 Init failed');
 
-        // 2. Parallel Binary Uploads
-        const totalParts = Math.ceil(file.size / CHUNK_SIZE);
-        const results: { PartNumber: number; ETag: string }[] = [];
-        const CONCURRENCY = 3;
+          const { uploadId, key } = initResult;
 
-        for (let i = 1; i <= totalParts; i += CONCURRENCY) {
-          const batch = Array.from({ length: Math.min(CONCURRENCY, totalParts - i + 1) }, (_, idx) => i + idx);
-          await Promise.all(batch.map(async (partNum) => {
-            const start = (partNum - 1) * CHUNK_SIZE;
-            const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
-            const uploadUrl = `${R2_FUNCTION_URL}?action=upload-part&uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNum}`;
-            const res = await fetch(uploadUrl, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/octet-stream', 
-                'x-admin-token': getAdminSessionToken() 
-              },
-              body: chunk,
-            });
-            const { etag, success, error } = await res.json();
-            if (!success) throw new Error(error || `Part ${partNum} failed`);
-            results.push({ PartNumber: partNum, ETag: etag });
-          }));
+          // 2. Parallel Binary Uploads
+          const totalParts = Math.ceil(file.size / CHUNK_SIZE);
+          const results: { PartNumber: number; ETag: string }[] = [];
+          const CONCURRENCY = 3;
+
+          for (let i = 1; i <= totalParts; i += CONCURRENCY) {
+            const batch = Array.from({ length: Math.min(CONCURRENCY, totalParts - i + 1) }, (_, idx) => i + idx);
+            await Promise.all(batch.map(async (partNum) => {
+              const start = (partNum - 1) * CHUNK_SIZE;
+              const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
+              const uploadUrl = `${R2_FUNCTION_URL}?action=upload-part&uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNum}`;
+              const res = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/octet-stream', 
+                  'x-admin-token': getAdminSessionToken() 
+                },
+                body: chunk,
+              });
+              const { etag, success, error } = await res.json();
+              if (!success) throw new Error(error || `Part ${partNum} failed`);
+              results.push({ PartNumber: partNum, ETag: etag });
+            }));
+          }
+
+          // 3. Complete
+          const compRes = await fetch(R2_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json', 
+              'x-admin-token': getAdminSessionToken() 
+            },
+            body: JSON.stringify({ action: 'complete-multipart', uploadId, key, parts: results }),
+          });
+          const { url, success: compSuccess, error: compError } = await compRes.json();
+          if (!compSuccess) throw new Error(compError || 'R2 Complete failed');
+          return url;
+        } catch (r2Err: any) {
+          console.error('R2 upload path failed, falling back to Supabase Storage...', r2Err);
+          toast.info('R2 upload failed, falling back to standard storage...', { duration: 3000 });
+          // Continue to Supabase fallback below
         }
-
-        // 3. Complete
-        const compRes = await fetch(R2_FUNCTION_URL, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-admin-token': getAdminSessionToken() 
-          },
-          body: JSON.stringify({ action: 'complete-multipart', uploadId, key, parts: results }),
-        });
-        const { url, success: compSuccess, error: compError } = await compRes.json();
-        if (!compSuccess) throw new Error(compError || 'Complete failed');
-        return url;
       }
 
-      // Fallback for smaller files: standard Supabase storage
+      // Fallback/Standard path: standard Supabase storage
       const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
       const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      
       const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
         upsert: true,
         contentType: file.type || 'application/octet-stream',
       });
+      
       if (error) throw error;
+      
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
       return publicUrl;
     } finally {
       setUploading(null);
     }
   };
+
 
   const handleMainFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
