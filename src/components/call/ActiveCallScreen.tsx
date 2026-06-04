@@ -6,6 +6,8 @@ import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGa
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 import { useProCamera } from "@/camera/useProCamera";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
