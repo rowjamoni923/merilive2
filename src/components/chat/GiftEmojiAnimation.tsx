@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
 
 interface GiftEmojiAnimationProps {
@@ -61,12 +62,12 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
   };
 
   // Check if emoji is actually a URL
-  const isUrl = emoji.startsWith('http');
-  const normalizedUrl = isUrl ? emoji.toLowerCase().split('?')[0] : '';
-  const isSvga = isUrl && normalizedUrl.endsWith('.svga');
-  const isLottie = isUrl && normalizedUrl.endsWith('.json');
-  const isVideo = isUrl && /\.(mp4|webm|mov|m4v)$/.test(normalizedUrl);
-  const isVap = isUrl && (animationFormat === 'vap' || normalizedUrl.includes('vap') || normalizedUrl.includes('_bmp'));
+  const isUrl = emoji.startsWith('http') || emoji.startsWith('/');
+  const detectedFormat = isUrl ? detectProfessionalAnimationFormat(emoji, animationFormat) : null;
+  const isSvga = detectedFormat === 'svga';
+  const isLottie = detectedFormat === 'lottie';
+  const isVideo = detectedFormat === 'mp4' || detectedFormat === 'webm';
+  const isVap = detectedFormat === 'vap';
   const isImage = isUrl && !isSvga && !isLottie && !isVap && !isVideo;
   const isEmoji = !isUrl;
   const hasAnimation = isSvga || isLottie || isVap || isVideo;
