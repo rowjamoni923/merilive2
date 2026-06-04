@@ -75,6 +75,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { getVapCompositeHint } from "@/utils/vapDetection";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
@@ -150,15 +151,20 @@ interface GroupMessage {
 // Parse gift payload from chat content
 // Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
 // The `snd:` suffix is optional and only present when the gift has a separate sound asset.
-const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null } => {
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null } => {
   const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
   const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
   const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
+  const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
+  const configMatch = content.match(/\|\s*cfg:(https?:\/\/[^\s\|\]]+)/i);
+  const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
 
   return {
-    mediaUrl: normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null,
+    mediaUrl,
     emoji: emojiMatch?.[1] ?? '🎁',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
+    animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
+    animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
   };
 };
 
