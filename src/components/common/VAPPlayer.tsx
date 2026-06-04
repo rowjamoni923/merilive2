@@ -326,7 +326,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (autoPlay) {
       void (async () => {
         try {
-          await ensureAudioUnlocked();
+          // Pkg: Don't wait forever for audio unlock; gifts must show even if silent.
+          await Promise.race([
+            ensureAudioUnlocked(),
+            new Promise(resolve => setTimeout(resolve, 1000))
+          ]);
           if (!mountedRef.current || !videoRef.current) return;
           
           if (!muted && soundUrl) {
