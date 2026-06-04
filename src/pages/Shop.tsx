@@ -207,18 +207,25 @@ const ShopItemCard = ({
         />
 
         <div className="w-full h-full flex items-center justify-center">
-          {photoUrl && !imageError ? (
+          {item.preview_url ? (
             <img 
-              src={photoUrl} 
+              src={item.preview_url} 
               alt={item.name}
               className="w-[85%] h-[85%] object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
               onError={() => setImageError(true)}
               loading="eager"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-              <ImageOff className="w-6 h-6 text-amber-600/50" />
-            </div>
+            <FixedAnimationFrame
+              src={item.animation_file_url || item.animation_url || ''}
+              type={pickAnimType(item) as any}
+              className="w-full h-full"
+              size="fill"
+              loop
+              autoPlay
+              muted
+              fallbackEmoji="🎁"
+            />
           )}
         </div>
       </div>
