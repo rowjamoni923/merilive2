@@ -176,5 +176,5 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  videoUrls.slice(0, 4).forEach((u) => warmVideoMetadata(u));
+  videoUrls.slice(0, 10).forEach((u) => warmVideoMetadata(u));
 }
