@@ -870,6 +870,36 @@ const AdminShop = () => {
 
           <ScrollArea className="flex-1 px-3 md:px-6 overflow-y-auto">
             <div className="space-y-3 md:space-y-4 py-3 md:py-4">
+              {/* Pkg424 — Unified Pro Animation uploader (VAP / SVGA / Lottie / WebP / MP4) */}
+              <AnimationUploader
+                label="Pro Animation (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4)"
+                bucket="shop-items"
+                folder="unified"
+                value={{
+                  animation_url: formData.animation_url || formData.animation_file_url || '',
+                  animation_format: formData.animation_format,
+                  animation_config_url: formData.animation_config_url || null,
+                }}
+                onChange={(v) => {
+                  const newFt = v.animation_format === 'vap' ? 'vap'
+                    : v.animation_format === 'svga' ? 'svga'
+                    : v.animation_format === 'lottie' ? 'lottie'
+                    : v.animation_format === 'gif' ? 'gif'
+                    : v.animation_format === 'mp4' || v.animation_format === 'webm' ? 'video'
+                    : v.animation_format === 'png' || v.animation_format === 'webp' ? 'image'
+                    : formData.file_type;
+                  setFormData(prev => ({
+                    ...prev,
+                    animation_url: v.animation_url,
+                    animation_file_url: v.animation_url,
+                    animation_format: v.animation_format,
+                    animation_config_url: v.animation_config_url || '',
+                    file_type: newFt,
+                  }));
+                  setPreviewFile(v.animation_url || null);
+                }}
+              />
+
               {/* File Upload Section - Mobile optimized */}
               <div className="border-2 border-dashed border-white/20 rounded-lg md:rounded-xl p-3 md:p-4">
                 <Label className="text-white/80 mb-2 block text-sm">Upload Animation/Image</Label>
