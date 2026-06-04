@@ -597,6 +597,9 @@ export default function AdminGifts() {
         icon_url: formData.icon_url || null,
         animation_type: formData.animation_type,
         animation_url: formData.animation_url || null,
+        // Pkg423 — VAP/SVGA/Lottie unified format
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
         category: formData.category,
         display_order: formData.display_order,
         is_active: formData.is_active,
