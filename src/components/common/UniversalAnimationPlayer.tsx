@@ -350,12 +350,33 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             "w-full h-full object-contain pointer-events-none",
             !mediaLoaded && "opacity-0"
           )}
+          onLoadedMetadata={(e) => {
+            // Pkg-fix: side-by-side VAP auto-detect. Tencent VAP exports a
+            // single video whose width is exactly 2× its height (RGB left,
+            // alpha right). If the caller didn't pass type="vap" and the
+            // file's aspect ratio matches, switch to VAPPlayer so legacy
+            // gifts with NULL animation_format still render correctly.
+            const v = e.currentTarget;
+            const w = v.videoWidth;
+            const h = v.videoHeight;
+            if (
+              !type &&
+              detectedType !== 'vap' &&
+              w > 100 && h > 100 &&
+              Math.abs(w / h - 2) < 0.05
+            ) {
+              setAutoDetectedVap(true);
+            }
+          }}
           onLoadedData={() => {
             setMediaLoaded(true);
             onLoad?.();
           }}
           onEnded={() => !loop && fireComplete('native')}
           onError={() => {
+            setHasError(true);
+            onError?.(new Error('Video load failed'));
+          }}
             setHasError(true);
             onError?.(new Error('Video load failed'));
           }}
