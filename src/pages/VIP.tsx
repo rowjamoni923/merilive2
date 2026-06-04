@@ -1464,8 +1464,8 @@ const VIP = () => {
                               handleEquip(priv);
                             }}
                             className={priv.is_equipped
-                              ? 'mt-2 h-7 rounded-full bg-green-100 text-green-700 hover:bg-green-100 font-semibold'
-                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-purple-500/30'}
+                              ? 'mt-2 h-6 px-2 rounded-full bg-green-100 text-green-700 hover:bg-green-100 font-semibold text-[10px]'
+                              : 'mt-2 h-6 px-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-purple-500/30 text-[10px]'}
                           >
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>
