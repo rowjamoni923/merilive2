@@ -559,7 +559,7 @@ const AdminRoleFrames = () => {
                           <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded bg-slate-800 overflow-hidden">
                               {assignment.frame?.frame_url && (
-                                <FixedAnimationFrame size="fill" center={false}
+                                <FixedAnimationFrame size="card" center={true}
                                   src={assignment.frame.frame_url}
                                   
                                   loop
