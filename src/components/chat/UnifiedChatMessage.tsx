@@ -34,6 +34,8 @@ import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { detectProfessionalAnimationFormat, isAnimatedProfessionalFormat } from "@/utils/animationFormat";
 
 
 // ============================================================
