@@ -170,7 +170,7 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
 const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
   const { mediaUrl, emoji } = parseGiftContent(content || '');
-  const detailMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+  const detailMatch = content.match(/\[Gift:\s*(?:[^\|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
   const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
   const count = detailMatch?.[2] || '1';
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
@@ -769,15 +769,16 @@ const Chat = () => {
     
     // Show gift animation IMMEDIATELY
     const giftEmoji = gift.emoji || '🎁';
-    const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
-    const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
+    const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
+    const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
-    const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
+    const giftSoundUrl = normalizeGiftMediaUrl((gift as any).sound_url) || '';
     const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
     const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
-    const configSuffix = gift.animation_config_url ? ` | cfg:${gift.animation_config_url}` : '';
+    const giftConfigUrl = normalizeGiftMediaUrl(gift.animation_config_url) || '';
+    const configSuffix = giftConfigUrl ? ` | cfg:${giftConfigUrl}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
       ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
@@ -788,7 +789,7 @@ const Chat = () => {
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
     setAnimatingGiftFormat(giftAnimationFormat);
-    setAnimatingGiftConfigUrl(gift.animation_config_url || null);
+    setAnimatingGiftConfigUrl(giftConfigUrl || null);
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -818,7 +819,7 @@ const Chat = () => {
         senderId: currentUserId,
         content: optimisticGiftMessage,
         animationFormat: giftAnimationFormat,
-        animationConfigUrl: gift.animation_config_url || null,
+        animationConfigUrl: giftConfigUrl || null,
         soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});
