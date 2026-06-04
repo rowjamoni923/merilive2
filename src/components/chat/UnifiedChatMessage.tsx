@@ -123,7 +123,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
         initial={{ x: -60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 60, opacity: 0 }}
-        className="flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full bg-gradient-to-r from-purple-500/35 via-fuchsia-500/25 to-pink-500/35 backdrop-blur-md border border-white/15 shadow-[0_2px_10px_rgba(168,85,247,0.25)] w-fit"
+        className="flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full bg-gradient-to-r from-purple-500/55 via-fuchsia-500/45 to-pink-500/55 border border-white/15 shadow-[0_2px_10px_rgba(168,85,247,0.25)] w-fit"
       >
         <InlineLevelBadge level={userLevel} />
         <span className="text-white font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
@@ -140,7 +140,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       <motion.div
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/40 via-orange-500/35 to-rose-500/35 backdrop-blur-md w-fit border border-amber-300/40 shadow-[0_2px_12px_rgba(251,191,36,0.3)]"
+        className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/58 via-orange-500/52 to-rose-500/58 w-fit border border-amber-300/40 shadow-[0_2px_12px_rgba(251,191,36,0.3)]"
       >
         <InlineLevelBadge level={userLevel} />
         <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
@@ -166,7 +166,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
   if (type === "system" || type === "leave") {
     return (
       <div className="text-center py-1">
-        <span className="text-white/70 text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+        <span className="text-white/70 text-[11px] bg-black/55 px-3 py-1 rounded-full border border-white/10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           {message}
         </span>
       </div>
@@ -222,7 +222,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-center gap-1 py-0.5 px-2.5 rounded-2xl bg-black/35 backdrop-blur-md border border-white/10 shadow-[0_1px_6px_rgba(0,0,0,0.35)] w-fit max-w-full"
+      className="flex flex-wrap items-center gap-1 py-0.5 px-2.5 rounded-2xl bg-black/58 border border-white/10 shadow-[0_1px_6px_rgba(0,0,0,0.35)] w-fit max-w-full"
     >
       <InlineLevelBadge level={userLevel} />
       {isHost && (
