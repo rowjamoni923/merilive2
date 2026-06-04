@@ -1287,6 +1287,35 @@ export default function AdminGifts() {
               </div>
             </div>
 
+            {/* Pkg423 — Professional unified animation uploader (VAP / SVGA / Lottie / etc.) */}
+            <AnimationUploader
+              label="Pro Animation (VAP / SVGA / Lottie / WebP / MP4)"
+              bucket="gifts"
+              folder="gifts/pro"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  animation_url: v.animation_url,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || "",
+                  // Keep legacy animation_type in sync so existing players keep working
+                  animation_type:
+                    v.animation_format === 'vap'
+                      ? 'vap'
+                      : v.animation_format === 'lottie'
+                      ? 'lottie'
+                      : v.animation_format === 'svga'
+                      ? 'svga'
+                      : prev.animation_type,
+                }))
+              }
+            />
+
             {/* Animation File Upload - Primary Upload Button */}
             <div className="border-2 border-dashed border-purple-500/50 rounded-xl p-3 md:p-4 bg-purple-500/5">
               <Label className="text-purple-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
