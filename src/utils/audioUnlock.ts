@@ -38,6 +38,13 @@ const tryUnlock = async (): Promise<void> => {
       source.buffer = buffer;
       source.connect(ctx.destination);
       source.start(0);
+
+      // Explicitly unlock Howler if it exists
+      if ((window as any).Howler && (window as any).Howler.ctx) {
+        const hCtx = (window as any).Howler.ctx;
+        if (hCtx.state === 'suspended') await hCtx.resume().catch(() => {});
+      }
+
       // Close after a short delay to free the context
       setTimeout(() => ctx.close().catch(() => {}), 500);
     }
