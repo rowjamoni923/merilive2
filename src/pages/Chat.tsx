@@ -1511,8 +1511,9 @@ const Chat = () => {
       });
     }
 
-    if (newMessage.message_type === 'gift') {
+    if (newMessage.message_type === 'gift' || isGiftUrl(newMessage.content)) {
       playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+
     } else {
       playSoundDebounced('message');
     }
@@ -1619,7 +1620,7 @@ const Chat = () => {
       if (unreadIds.length > 0) {
         // Pkg-fix: If there's an unread gift, trigger the most recent one's animation
         // so the receiver sees it when entering the chat (as requested by user).
-        const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift');
+        const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift' || isGiftUrl(m.content));
         if (latestUnreadGift) {
           console.log('[Chat] 🎁 Replaying unread gift animation for receiver');
           playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
