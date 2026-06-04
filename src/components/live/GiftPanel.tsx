@@ -11,6 +11,7 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
