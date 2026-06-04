@@ -187,10 +187,20 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   if (!src) {
     return (
       <div
-        className={cn('flex items-center justify-center text-4xl', BG_CLASSES[background], className)}
+        className={cn('flex items-center justify-center relative overflow-hidden', BG_CLASSES[background], className)}
         style={frameStyle}
       >
-        {fallbackEmoji}
+        {placeholderUrl && !imageError ? (
+          <img 
+            src={placeholderUrl} 
+            className="w-full h-full object-contain" 
+            onError={() => setImageError(true)}
+            loading="eager"
+            {...({ fetchpriority: 'high' } as any)}
+          />
+        ) : (
+          <span className="text-4xl">{fallbackEmoji}</span>
+        )}
       </div>
     );
   }
