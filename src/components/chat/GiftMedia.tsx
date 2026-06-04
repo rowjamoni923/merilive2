@@ -1,7 +1,10 @@
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { detectProfessionalAnimationFormat, isAnimatedProfessionalFormat } from "@/utils/animationFormat";
+import { getSharedObserver } from "@/utils/nativePerformance";
+
 
 interface GiftMediaProps {
   url: string;
