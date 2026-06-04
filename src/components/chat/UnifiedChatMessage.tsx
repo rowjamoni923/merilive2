@@ -104,6 +104,37 @@ const formatTime = (v?: string | number | Date) => {
 };
 
 // ============================================================
+// Helper — Gift Media Renderer (Image / SVGA / VAP)
+// ============================================================
+const GiftMedia = ({ url, size = 32 }: { url: string; size?: number }) => {
+  const normalizedUrl = normalizeGiftMediaUrl(url) || '';
+  const format = detectProfessionalAnimationFormat(normalizedUrl);
+  const isAnimated = isAnimatedProfessionalFormat(format);
+
+  if (isAnimated) {
+    return (
+      <UniversalAnimationPlayer
+        src={normalizedUrl}
+        className={cn("object-contain")}
+        style={{ width: size, height: size }}
+        loop
+        autoPlay
+        muted
+      />
+    );
+  }
+
+  return (
+    <img 
+      src={normalizedUrl} 
+      alt="Gift" 
+      className="object-contain" 
+      style={{ width: size, height: size }}
+    />
+  );
+};
+
+// ============================================================
 // 1. ROOM CHAT BUBBLE — Live / Private call / Parties
 // ============================================================
 export const RoomChatBubble = memo(function RoomChatBubble({
