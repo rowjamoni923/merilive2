@@ -58,14 +58,19 @@ export const isHeavyGiftMedia = (url?: string | null): boolean => {
 export const isGiftUrl = (text?: string | null): boolean => {
   if (!text) return false;
   
-  // More robust detection:
-  // - Direct storage links to /gifts/
-  // - Proxy links to /public-gift-media/
-  // - Legacy chat-media/gifts/ links
-  return (
-    /https?:\/\/[^\s]+\/storage\/v1\/object\/public\/gifts\//i.test(text) ||
-    /https?:\/\/[^\s]+\/functions\/v1\/public-gift-media\//i.test(text) ||
-    /https?:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-media\/gifts\//i.test(text) ||
-    /^gifts\/[^\s]+/.test(text)
-  );
+  // 1. Check for explicit [GIFT:url] wrapper
+  if (text.includes('[GIFT:')) return true;
+
+  // 2. Check for storage paths (more specific to avoid greedy matches)
+  const hasStoragePath = 
+    text.includes('/storage/v1/object/public/gifts/') ||
+    text.includes('/storage/v1/object/public/chat-media/gifts/') ||
+    text.includes('/functions/v1/public-gift-media/');
+    
+  if (hasStoragePath) return true;
+
+  // 3. Check for raw gifts/ prefix (used in some internal messages)
+  if (/^gifts\/[^\s]+/.test(text.trim())) return true;
+
+  return false;
 };
