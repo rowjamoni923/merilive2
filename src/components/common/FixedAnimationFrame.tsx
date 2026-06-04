@@ -218,6 +218,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
             triggerKey={triggerKey}
+            dynamicData={dynamicData}
           />
         </Suspense>
       ) : (
