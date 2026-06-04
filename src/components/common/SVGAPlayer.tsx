@@ -120,9 +120,8 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
             }
           });
         } else {
-          player.onFinished(() => {
-            requestAnimationFrame(resumeLoopingAnimation);
-          });
+          // Native looping is enabled via player.loops = 0.
+          // No need to manually resume via onFinished, which can cause flicker.
         }
 
         if (autoPlay) {

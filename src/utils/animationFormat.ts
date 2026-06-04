@@ -44,7 +44,9 @@ export const detectProfessionalAnimationFormat = (
   if (path.endsWith('.jpg') || path.endsWith('.jpeg')) return 'static';
   if (path.endsWith('.webm')) return declared === 'vap' || getVapCompositeHint(normalizedUrl) ? 'vap' : 'webm';
   if (path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.m4v')) {
-    if (declared === 'vap' || getVapCompositeHint(normalizedUrl) || /(?:^|[\W_])(vap|vapx|alpha|rgb_alpha|file_vap|_bmp)(?:[\W_]|$)/i.test(normalizedUrl)) {
+    // VAP files often have high resolutions like 1500x1334 or 2000x2000 that aren't
+    // common for standard gifts.
+    if (declared === 'vap' || getVapCompositeHint(normalizedUrl) || /(?:^|[\W_])(vap|vapx|alpha|rgb_alpha|file_vap|_bmp|composite|matte)(?:[\W_]|$)/i.test(normalizedUrl)) {
       return 'vap';
     }
     return 'mp4';
