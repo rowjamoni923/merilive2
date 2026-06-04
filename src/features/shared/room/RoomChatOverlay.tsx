@@ -108,7 +108,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
         "flex items-center gap-2 py-2 pl-2 pr-4 rounded-r-full rounded-l-2xl w-fit",
         "bg-gradient-to-r",
         getJoinBannerBg(level),
-        "backdrop-blur-xl",
+        "bg-opacity-90",
         "border-l-4 border-l-white/50"
       )}
     >
