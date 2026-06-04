@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { detectVapSideBySideLayout } from '@/utils/vapDetection';
+import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
 
 interface VAPConfig {
   v: number;           // version
@@ -377,6 +377,21 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (resolvedConfigSrc && !config) return;
     if (!video.videoWidth || !video.videoHeight) return;
     initializedRef.current = true;
+
+    // Pkg424 — When the file is NOT a side-by-side composite (e.g. professional
+    // portrait VAP MP4s like 1500×1624 with alpha in an embedded `data` track),
+    // WebGL splitting would crop half the video. Play it as a plain full-frame
+    // MP4 instead so the animation renders correctly full-screen.
+    const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
+    if (!isComposite) {
+      setFallbackCrop([0, 0, 1, 1]);
+      setUseVideoFallback(true);
+      setLoading(false);
+      webglPaintedRef.current = true;
+      onLoadRef.current?.();
+      return;
+    }
+
     initWebGL(video, config);
     window.setTimeout(() => {
       if (!webglPaintedRef.current) {
