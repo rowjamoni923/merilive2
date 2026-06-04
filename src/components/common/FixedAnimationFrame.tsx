@@ -127,7 +127,10 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   debugTag,
   triggerKey,
   dynamicData,
+  placeholderUrl,
 }) => {
+  const [animLoaded, setAnimLoaded] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
