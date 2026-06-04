@@ -377,10 +377,6 @@ const Chat = () => {
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
-  // Host's received gift tracking (live counter)
-  const [hostReceivedGifts, setHostReceivedGifts] = useState(0);
-  const [hostTotalDiamonds, setHostTotalDiamonds] = useState(0);
-  
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
   const [isInlineTranslating, setIsInlineTranslating] = useState(false);
@@ -1162,43 +1158,6 @@ const Chat = () => {
 
     return unsubscribe;
   }, [selectedGroup?.id]);
-
-  // Fetch host's received gifts count and subscribe to real-time updates
-  useEffect(() => {
-    if (!selectedConversation?.other_user?.id) return;
-    
-    const hostId = selectedConversation.other_user.id;
-    
-    const fetchHostGifts = async () => {
-      const { data, error } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount')
-        .eq('receiver_id', hostId);
-      
-      if (!error && data) {
-        setHostReceivedGifts(data.length);
-        setHostTotalDiamonds(data.reduce((sum, t) => sum + (t.coin_amount || 0), 0));
-      }
-    };
-    
-    fetchHostGifts();
-    
-    // Subscribe to gift transactions via universal system
-    const unsubscribe = subscribeToTables(
-      `host-gifts-${hostId}`,
-      ['gift_transactions'],
-      (table: string, event: string, payload: any) => {
-        if (payload?.receiver_id === hostId) {
-          setHostReceivedGifts(prev => prev + 1);
-          setHostTotalDiamonds(prev => prev + (payload.coin_amount || 0));
-        }
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [selectedConversation?.other_user?.id]);
 
   // Conversation list refresh — three parallel sources for zero-refresh instant feel:
   //   (1) `chat:new-message` window event from useNotifications (notifications-row bridge)
