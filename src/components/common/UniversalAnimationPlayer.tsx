@@ -180,6 +180,35 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 
   // SVGA Animation — use SVGAPlayerWithAudio when sound is needed
   if (animationType === 'svga') {
+    // Pkg425 — Native Android SVGA overlay when opted-in and available.
+    // Web SVGAPlayer remains the visual fallback so layout never collapses.
+    if (preferNative && muted) {
+      return (
+        <NativeSVGAOverlay
+          src={resolvedSrc}
+          loop={loop}
+          onComplete={() => fireComplete('native')}
+          onError={(err) => onError?.(err)}
+          fallback={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SVGAPlayer
+                src={resolvedSrc}
+                className={className}
+                loop={loop}
+                autoPlay={autoPlay}
+                muted={muted}
+                onLoad={onLoad}
+                onComplete={() => fireComplete('native')}
+                onError={(err) => {
+                  setHasError(true);
+                  onError?.(err);
+                }}
+              />
+            </Suspense>
+          }
+        />
+      );
+    }
     if (!muted) {
       return (
         <Suspense fallback={<LoadingSpinner />}>
