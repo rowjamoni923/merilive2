@@ -6,11 +6,12 @@
  * AdminShop, AdminPartyBackgrounds, AdminLevelAnimations.
  *
  * Supports every professional live-streaming animation format:
- *   - SVGA       (Bigo, YY, Inke standard, ≤3MB)
- *   - VAP        (Tencent / Chamet / MICO premium HD with alpha, ≤8MB, requires vapc.json)
- *   - Lottie     (After Effects export, ≤500KB)
- *   - WebP/PNG/GIF (≤2MB)
- *   - MP4/WebM   (plain video, ≤5MB)
+ *   - SVGA       (Bigo, YY, Inke standard)
+ *   - VAP        (Tencent / Chamet / MICO premium HD with alpha, optional vapc.json)
+ *   - PAG        (Tencent PAG)
+ *   - Lottie     (After Effects export)
+ *   - WebP/PNG/GIF
+ *   - MP4/WebM   (plain video)
  *
  * Returns the three DB fields the consumer should save:
  *   { animation_url, animation_format, animation_config_url }
@@ -63,15 +64,15 @@ interface Props {
 }
 
 const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
-  svga: 3,
-  vap: 8,
-  pag: 5,
-  lottie: 0.5,
-  webp: 2,
-  png: 2,
-  gif: 2,
-  mp4: 5,
-  webm: 5,
+  svga: 50,
+  vap: 50,
+  pag: 50,
+  lottie: 10,
+  webp: 50,
+  png: 50,
+  gif: 50,
+  mp4: 50,
+  webm: 50,
 };
 
 const FORMAT_LABEL: Record<AnimationFormat, string> = {
@@ -98,6 +99,64 @@ const FORMAT_ACCEPT: Record<AnimationFormat, string> = {
   webm: '.webm,video/webm',
 };
 
+const ALL_ANIMATION_ACCEPT = Object.values(FORMAT_ACCEPT).join(',');
+
+const detectFormatByExtension = (fileName: string): AnimationFormat | null => {
+  const clean = fileName.toLowerCase().split('?')[0];
+  if (clean.endsWith('.svga')) return 'svga';
+  if (clean.endsWith('.pag')) return 'pag';
+  if (clean.endsWith('.json')) return 'lottie';
+  if (clean.endsWith('.webp')) return 'webp';
+  if (clean.endsWith('.png')) return 'png';
+  if (clean.endsWith('.gif')) return 'gif';
+  if (clean.endsWith('.webm')) return 'webm';
+  if (clean.endsWith('.mp4')) return 'mp4';
+  return null;
+};
+
+const looksLikeSideBySideVap = async (file: File): Promise<boolean> => {
+  if (!file.type.includes('video') && !file.name.toLowerCase().endsWith('.mp4')) return false;
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    const cleanup = () => URL.revokeObjectURL(url);
+    const finish = (value: boolean) => { cleanup(); resolve(value); };
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.onloadeddata = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 96;
+        canvas.height = 48;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx || !video.videoWidth || !video.videoHeight) return finish(false);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        const half = canvas.width / 2;
+        let leftSat = 0, rightSat = 0, leftCount = 0, rightCount = 0;
+        for (let y = 0; y < canvas.height; y += 2) {
+          for (let x = 0; x < canvas.width; x += 2) {
+            const i = (y * canvas.width + x) * 4;
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const sat = Math.max(r, g, b) - Math.min(r, g, b);
+            if (x < half) { leftSat += sat; leftCount++; }
+            else { rightSat += sat; rightCount++; }
+          }
+        }
+        const l = leftSat / Math.max(1, leftCount);
+        const r = rightSat / Math.max(1, rightCount);
+        finish(Math.abs(l - r) > 12 && Math.max(l, r) > Math.min(l, r) * 1.8);
+      } catch {
+        finish(false);
+      }
+    };
+    video.onerror = () => finish(false);
+    video.src = url;
+    video.load();
+  });
+};
+
 export const AnimationUploader: React.FC<Props> = ({
   value,
   onChange,
@@ -112,11 +171,11 @@ export const AnimationUploader: React.FC<Props> = ({
 
   const format: AnimationFormat = (value.animation_format as AnimationFormat) || 'svga';
 
-  const uploadFile = async (file: File, kind: 'file' | 'config'): Promise<string> => {
+  const uploadFile = async (file: File, kind: 'file' | 'config', uploadFormat: AnimationFormat = format): Promise<string> => {
     setUploading(kind);
     try {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      const fileName = `${folder}/${kind}_${Date.now()}_${Math.random()
+      const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random()
         .toString(36)
         .slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
@@ -138,9 +197,12 @@ export const AnimationUploader: React.FC<Props> = ({
     if (!file) return;
     e.target.value = '';
 
-    const limit = FORMAT_LIMITS_MB[format];
+    const detectedByExt = detectFormatByExtension(file.name);
+    const detectedFormat = detectedByExt === 'mp4' && (format === 'vap' || await looksLikeSideBySideVap(file)) ? 'vap' : detectedByExt;
+    const uploadFormat = detectedFormat || format;
+    const limit = FORMAT_LIMITS_MB[uploadFormat];
     if (file.size > limit * 1024 * 1024) {
-      toast.error(`${format.toUpperCase()} files must be ≤ ${limit}MB (got ${(
+      toast.error(`${uploadFormat.toUpperCase()} files must be ≤ ${limit}MB (got ${(
         file.size /
         1024 /
         1024
@@ -149,9 +211,14 @@ export const AnimationUploader: React.FC<Props> = ({
     }
 
     try {
-      const url = await uploadFile(file, 'file');
-      onChange({ ...value, animation_url: url, animation_format: format });
-      toast.success(`${format.toUpperCase()} uploaded.`);
+      const url = await uploadFile(file, 'file', uploadFormat);
+      onChange({
+        ...value,
+        animation_url: url,
+        animation_format: uploadFormat,
+        animation_config_url: uploadFormat === 'vap' ? value.animation_config_url : null,
+      });
+      toast.success(`${uploadFormat.toUpperCase()} uploaded.`);
     } catch (err: any) {
       toast.error(`Upload failed: ${err?.message || err}`);
     }
@@ -172,7 +239,7 @@ export const AnimationUploader: React.FC<Props> = ({
     }
 
     try {
-      const url = await uploadFile(file, 'config');
+      const url = await uploadFile(file, 'config', 'vap');
       onChange({ ...value, animation_config_url: url });
       toast.success('VAP config uploaded.');
     } catch (err: any) {
@@ -183,7 +250,7 @@ export const AnimationUploader: React.FC<Props> = ({
   const clear = () =>
     onChange({ animation_url: '', animation_format: null, animation_config_url: null });
 
-  const canPreview = value.animation_url && (format !== 'vap' || value.animation_config_url);
+  const canPreview = !!value.animation_url;
 
   return (
     <div className={cn('space-y-3 rounded-lg border border-border bg-card p-3', className)}>
@@ -222,7 +289,7 @@ export const AnimationUploader: React.FC<Props> = ({
           </SelectContent>
         </Select>
         <p className="text-[11px] text-muted-foreground">
-          Max size: {FORMAT_LIMITS_MB[format]}MB
+          Max size: {FORMAT_LIMITS_MB[format]}MB. File type is auto-detected on upload.
         </p>
       </div>
 
@@ -231,7 +298,7 @@ export const AnimationUploader: React.FC<Props> = ({
         <input
           ref={mainRef}
           type="file"
-          accept={FORMAT_ACCEPT[format]}
+          accept={ALL_ANIMATION_ACCEPT}
           onChange={handleMainFile}
           className="hidden"
         />
@@ -258,8 +325,7 @@ export const AnimationUploader: React.FC<Props> = ({
         <div className="space-y-2 rounded-md border border-dashed border-border p-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <FileVideo className="h-3.5 w-3.5" />
-            VAP requires <code className="px-1 bg-muted rounded">vapc.json</code> config
-            from your designer.
+            Optional <code className="px-1 bg-muted rounded">vapc.json</code> for custom VAP layout.
           </div>
           <input
             ref={configRef}
@@ -307,8 +373,8 @@ export const AnimationUploader: React.FC<Props> = ({
       )}
 
       {value.animation_url && format === 'vap' && !value.animation_config_url && (
-        <p className="text-xs text-destructive">
-          Upload the matching vapc.json — VAP can't render without it.
+        <p className="text-xs text-muted-foreground">
+          Standard side-by-side VAP MP4 works without config; upload vapc.json only for custom layouts.
         </p>
       )}
     </div>

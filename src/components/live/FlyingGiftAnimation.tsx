@@ -36,10 +36,11 @@ interface FlyingGiftAnimationProps {
   onComplete: () => void;
 }
 
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' | null => {
+const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'video' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
+  if (cleanUrl.endsWith('.pag')) return 'pag';
   if (cleanUrl.endsWith('.json')) return 'lottie';
   if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) return 'video';
   if (cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.jpg')) return 'image';
@@ -130,6 +131,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
+  const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
 
@@ -194,9 +196,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   useEffect(() => {
     mountedRef.current = true;
 
-    if (isSVGA && !svgaError) {
-      // SVGA path: NO fixed timer. SVGAPlayerWithAudio fires onComplete at
-      // the exact frames/FPS duration — that drives handleAnimationComplete.
+    if (completesFromPlayer) {
+      // Animated media path: NO fixed timer. SVGA/VAP/PAG/Lottie/MP4/WebM
+      // complete from their own native end callbacks only.
       animationStartedRef.current = true;
       return () => { mountedRef.current = false; };
     }
@@ -207,7 +209,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
     }, 3500);
     return () => { mountedRef.current = false; clearTimeout(timer); };
-  }, [gift.comboKey, isSVGA, svgaError, handleAnimationComplete]);
+  }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
   // FULLSCREEN SVGA SLOT ACQUISITION
@@ -305,7 +307,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
-              onComplete={isSVGA ? handleAnimationComplete : undefined}
+              onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
             />

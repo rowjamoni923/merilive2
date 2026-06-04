@@ -129,7 +129,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   // a non-SVGA file. Unknown extensions also bypass audio handling.
   const detected = detectAnimationType(src);
   const KNOWN_TYPES = new Set<AnimationType>([
-    'svga', 'lottie', 'vap', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
+    'svga', 'lottie', 'vap', 'pag', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
   ]);
   const explicitMismatch =
     !!type && detected !== 'static' && type !== detected;
