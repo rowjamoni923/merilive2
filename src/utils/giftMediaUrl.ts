@@ -18,6 +18,13 @@ export const normalizeGiftMediaUrl = (url?: string | null): string | null => {
   const trimmed = extractFirstUrl(url.trim());
   if (!trimmed) return null;
 
+  // New: If it's a full URL pointing to the gifts bucket, redirect through the public proxy
+  // to ensure it works even if the bucket permissions are restrictive.
+  const giftsPublicMatch = trimmed.match(/\/storage\/v1\/object\/public\/gifts\/([^\s|?#\]]+)/i);
+  if (giftsPublicMatch?.[1]) {
+    return `${SUPABASE_URL}/functions/v1/public-gift-media/gifts/${giftsPublicMatch[1]}`;
+  }
+
   const legacyMatch = trimmed.match(LEGACY_CHAT_MEDIA_GIFT_PUBLIC_PATTERN);
   if (legacyMatch?.[1]) {
     return `${SUPABASE_URL}/functions/v1/public-gift-media/${legacyMatch[1]}`;

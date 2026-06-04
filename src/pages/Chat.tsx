@@ -73,7 +73,7 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
-import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { normalizeGiftMediaUrl, isGiftUrl } from "@/utils/giftMediaUrl";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
@@ -157,7 +157,13 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
   const soundMatch = content.match(/\|\s*snd:([^\s|\]]+)/i);
   const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
   const configMatch = content.match(/\|\s*cfg:([^\s|\]]+)/i);
-  const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
+  
+  let mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
+  
+  // If no gift pattern but content itself is a gift URL, use it directly
+  if (!mediaUrl && isGiftUrl(content)) {
+    mediaUrl = normalizeGiftMediaUrl(content);
+  }
 
   return {
     mediaUrl,
@@ -2388,7 +2394,7 @@ const Chat = () => {
                           (content.includes('supabase.co/storage') && /\.(mp4|mov|avi|mkv)($|\?)/i.test(content));
                         const isAudio = msg.message_type === 'audio' || 
                           (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
-                        const isGift = msg.message_type === 'gift';
+                        const isGift = msg.message_type === 'gift' || isGiftUrl(content);
                         const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
@@ -2409,6 +2415,7 @@ const Chat = () => {
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isVap = animationFormat === 'vap' || normalizedGiftUrl.endsWith('.vap') || normalizedGiftUrl.endsWith('.webm') || normalizedGiftUrl.endsWith('.mp4');
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           
                           return (
@@ -2430,7 +2437,7 @@ const Chat = () => {
                                       muted={true}
                                     />
                                   </Suspense>
-                                ) : isLottie && iconUrl ? (
+                                ) : (isLottie || isVap) && iconUrl ? (
                                   <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}

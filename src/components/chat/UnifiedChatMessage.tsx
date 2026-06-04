@@ -34,6 +34,8 @@ import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { detectProfessionalAnimationFormat, isAnimatedProfessionalFormat } from "@/utils/animationFormat";
 
 
 // ============================================================
@@ -99,6 +101,35 @@ const formatTime = (v?: string | number | Date) => {
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+// ============================================================
+// Helper — Gift Media Renderer (Image / SVGA / VAP)
+// ============================================================
+const GiftMedia = ({ url, sizeClass = "w-10 h-10" }: { url: string; sizeClass?: string }) => {
+  const normalizedUrl = normalizeGiftMediaUrl(url) || '';
+  const format = detectProfessionalAnimationFormat(normalizedUrl);
+  const isAnimated = isAnimatedProfessionalFormat(format);
+
+  if (isAnimated) {
+    return (
+      <UniversalAnimationPlayer
+        src={normalizedUrl}
+        className={cn("object-contain", sizeClass)}
+        loop
+        autoPlay
+        muted
+      />
+    );
+  }
+
+  return (
+    <img 
+      src={normalizedUrl} 
+      alt="Gift" 
+      className={cn("object-contain", sizeClass)}
+    />
+  );
 };
 
 // ============================================================
@@ -215,7 +246,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
             </span>
             {isGiftUrl(message) ? (
               <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-                <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+                <GiftMedia url={message} sizeClass="w-8 h-8" />
                 <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
               </div>
             ) : (
@@ -257,7 +288,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       </span>
       {isGiftUrl(message) ? (
         <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-          <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+          <GiftMedia url={message} />
           <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
         </div>
       ) : (
@@ -317,11 +348,7 @@ export const DirectChatBubble = memo(function DirectChatBubble({
       >
         {children ?? (isGiftUrl(message) ? (
           <div className="flex flex-col items-center gap-1 min-w-[120px]">
-            <img 
-              src={normalizeGiftMediaUrl(message) || ''} 
-              alt="Gift" 
-              className="w-24 h-24 object-contain drop-shadow-md" 
-            />
+            <GiftMedia url={message} sizeClass="w-24 h-24" />
             <span className={cn("text-[10px] font-bold italic", isMine ? "text-slate-800" : "text-pink-600")}>
               Sent a gift
             </span>
