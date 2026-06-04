@@ -317,6 +317,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
+              dynamicData={dynamicData}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
