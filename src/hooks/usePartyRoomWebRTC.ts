@@ -336,10 +336,23 @@ export function usePartyRoomWebRTC(
           return ms;
         };
 
+        const collectIdentityKeys = (raw: string | null | undefined): string[] => {
+          if (!raw) return [];
+          const trimmed = String(raw).trim();
+          if (!trimmed) return [];
+          const stripped = trimmed
+            .replace(/^user[-_]/i, '')
+            .replace(/^party[-_]/i, '')
+            .replace(/^livekit[-_]/i, '');
+          const out = new Set<string>([trimmed, stripped, `user-${stripped}`, `user_${stripped}`]);
+          return Array.from(out);
+        };
+
         const setPeerStreamForParticipant = (participant: RemoteParticipant, stream: MediaStream) => {
-          const keys = new Set([participant.identity]);
-          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
-          if (userId) keys.add(userId);
+          const keys = new Set<string>();
+          collectIdentityKeys(participant.identity).forEach((k) => keys.add(k));
+          const meta = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          collectIdentityKeys(meta).forEach((k) => keys.add(k));
           stream.getTracks().forEach((track) => {
             if (track.readyState !== 'live') return;
             try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
@@ -348,9 +361,9 @@ export function usePartyRoomWebRTC(
         };
 
         const deletePeerStreamForParticipant = (participant: RemoteParticipant) => {
-          peerStreamsRef.current.delete(participant.identity);
-          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
-          if (userId) peerStreamsRef.current.delete(userId);
+          collectIdentityKeys(participant.identity).forEach((k) => peerStreamsRef.current.delete(k));
+          const meta = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          collectIdentityKeys(meta).forEach((k) => peerStreamsRef.current.delete(k));
         };
 
         const resetLocalPublications = async () => {
@@ -986,13 +999,23 @@ export function usePartyRoomWebRTC(
     toggleVideo,
     cleanup,
     getPeerStream: (peerId: string) => {
+      if (!peerId) return null;
       const direct = state.peerStreams.get(peerId);
       if (direct) return direct;
-      const hyphen = peerId.startsWith('user-') ? peerId.slice(5) : `user-${peerId}`;
-      const underscore = peerId.startsWith('user_') ? peerId.slice(5) : `user_${peerId}`;
-      return state.peerStreams.get(hyphen)
-        ?? state.peerStreams.get(underscore)
-        ?? Array.from(state.peerStreams.entries()).find(([key]) => key.includes(peerId))?.[1];
+      const stripped = peerId
+        .replace(/^user[-_]/i, '')
+        .replace(/^party[-_]/i, '')
+        .replace(/^livekit[-_]/i, '');
+      const candidates = [stripped, `user-${stripped}`, `user_${stripped}`];
+      for (const c of candidates) {
+        const hit = state.peerStreams.get(c);
+        if (hit) return hit;
+      }
+      // Last-resort substring scan (both directions) for non-standard token formats.
+      for (const [key, val] of state.peerStreams.entries()) {
+        if (key === peerId || key.includes(stripped) || stripped.includes(key)) return val;
+      }
+      return null;
     },
   };
 }

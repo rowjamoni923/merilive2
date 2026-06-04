@@ -81,6 +81,20 @@ export function startAudioUnlockWatcher(scope: AudioUnlockScope, id: string): bo
 
   // Fire an initial event so UI mounts in the correct state.
   emit(scope, id, room.canPlaybackAudio);
+
+  // Safety net: re-emit blocked status a few times after connect because some
+  // browsers fire `AudioPlaybackStatusChanged` BEFORE listeners are attached
+  // when the room was pre-connected (race during fast page transitions).
+  // If the room is genuinely unblocked the re-emit is harmless (OK event).
+  [300, 1200, 3000].forEach((ms) => {
+    setTimeout(() => {
+      const live = runs.get(k(scope, id));
+      if (!live || live.room !== room) return;
+      const can = room.canPlaybackAudio;
+      live.blocked = !can;
+      emit(scope, id, can);
+    }, ms);
+  });
   return true;
 }
 
