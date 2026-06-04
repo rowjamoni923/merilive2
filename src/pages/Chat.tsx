@@ -1549,7 +1549,8 @@ const Chat = () => {
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_PAGE_SIZE);
 
     if (error) return;
     const serverMsgs = (data || []).map(castMessage);
@@ -1603,8 +1604,6 @@ const Chat = () => {
 
         emitGlobalUnreadRefresh({ messagesDecrement: unreadIds.length });
 
-        // Refresh conversations list to update unread count
-        fetchConversations();
       }
     }
   };
@@ -1614,7 +1613,8 @@ const Chat = () => {
       .from('group_messages')
       .select('*')
       .eq('group_id', groupId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_PAGE_SIZE);
 
     if (error) return;
 
@@ -1627,7 +1627,7 @@ const Chat = () => {
 
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-    const messagesWithSenders: GroupMessage[] = (data || []).map(m => ({
+    const messagesWithSenders: GroupMessage[] = (data || []).reverse().map(m => ({
       ...m,
       sender: profilesMap.get(m.sender_id) || null
     }));
@@ -1643,13 +1643,12 @@ const Chat = () => {
 
     emitGlobalUnreadRefresh({ messagesDecrement: 1 });
     
-    // Refresh conversations list to update unread count
-    fetchConversations();
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
     setSelectedConversation(conv);
     setSelectedGroup(null);
+    setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     setOtherUserTrader({ isTrader: false, traderLevel: 0 });
     await fetchMessages(conv.id);
     
@@ -1670,6 +1669,7 @@ const Chat = () => {
   const handleSelectGroup = (group: Group) => {
     setSelectedGroup(group);
     setSelectedConversation(null);
+    setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     fetchGroupMessages(group.id);
   };
 
