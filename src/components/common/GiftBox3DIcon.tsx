@@ -1,11 +1,12 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface GiftBox3DIconProps {
   size?: number;
   className?: string;
 }
 
-const GiftBox3DIcon: React.FC<GiftBox3DIconProps> = ({ size = 24, className = '' }) => {
+const GiftBox3DIcon: React.FC<GiftBox3DIconProps> = ({ size = 64, className = '' }) => {
   const uniqueId = React.useId().replace(/:/g, '');
   
   return (
@@ -13,28 +14,60 @@ const GiftBox3DIcon: React.FC<GiftBox3DIconProps> = ({ size = 24, className = ''
       className={`relative inline-flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
-      <svg 
-        viewBox="0 0 64 64" 
+      <motion.svg 
+        viewBox="0 0 128 128" 
         width={size} 
         height={size}
-        className="drop-shadow-lg"
+        className="drop-shadow-2xl"
+        initial={{ rotateY: 0 }}
+        animate={{ rotateY: [0, 10, -10, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       >
         <defs>
-          <linearGradient id={`boxRed${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FF5252" />
-            <stop offset="100%" stopColor="#D32F2F" />
+          <linearGradient id={`boxMain${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FF416C" />
+            <stop offset="100%" stopColor="#FF4B2B" />
           </linearGradient>
-          <linearGradient id={`ribbonGold${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFD54F" />
-            <stop offset="100%" stopColor="#FFB300" />
+          <linearGradient id={`boxSide${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#D4145A" />
+            <stop offset="100%" stopColor="#FBB03B" />
           </linearGradient>
+          <linearGradient id={`ribbon${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FDBE2D" />
+            <stop offset="50%" stopColor="#F6D365" />
+            <stop offset="100%" stopColor="#FDA085" />
+          </linearGradient>
+          <filter id={`shadow${uniqueId}`}>
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.3" />
+          </filter>
         </defs>
-        <rect x="12" y="24" width="40" height="32" rx="2" fill={`url(#boxRed${uniqueId})`} />
-        <rect x="10" y="20" width="44" height="8" rx="2" fill="#FF5252" />
-        <rect x="28" y="20" width="8" height="36" fill={`url(#ribbonGold${uniqueId})`} />
-        <path d="M 32 20 C 24 10, 16 10, 16 20 C 24 20, 32 20, 32 20 Z" fill={`url(#ribbonGold${uniqueId})`} stroke="#E65100" strokeWidth="0.5" />
-        <path d="M 32 20 C 40 10, 48 10, 48 20 C 40 20, 32 20, 32 20 Z" fill={`url(#ribbonGold${uniqueId})`} stroke="#E65100" strokeWidth="0.5" />
-      </svg>
+
+        {/* 3D Box Body */}
+        {/* Right side */}
+        <path d="M64 40 L104 55 L104 95 L64 80 Z" fill={`url(#boxSide${uniqueId})`} opacity="0.9" />
+        {/* Left side */}
+        <path d="M64 40 L24 55 L24 95 L64 80 Z" fill={`url(#boxMain${uniqueId})`} />
+        {/* Top */}
+        <path d="M64 15 L104 30 L64 45 L24 30 Z" fill="#FF5F6D" />
+
+        {/* Ribbons */}
+        {/* Vertical Left */}
+        <path d="M44 37 L44 91 L50 89 L50 35 Z" fill={`url(#ribbon${uniqueId})`} />
+        {/* Vertical Right */}
+        <path d="M78 35 L78 89 L84 91 L84 37 Z" fill={`url(#ribbon${uniqueId})`} />
+        
+        {/* Horizontal Top */}
+        <path d="M44 22 L84 37 L78 40 L38 25 Z" fill="#FFD700" opacity="0.8" />
+        <path d="M84 22 L44 37 L50 40 L90 25 Z" fill="#FFD700" opacity="0.8" />
+
+        {/* Bow (The 3D knot) */}
+        <circle cx="64" cy="22" r="8" fill={`url(#ribbon${uniqueId})`} filter={`url(#shadow${uniqueId})`} />
+        <path d="M64 22 C 40 5, 20 15, 64 22" fill="none" stroke={`url(#ribbon${uniqueId})`} strokeWidth="6" strokeLinecap="round" />
+        <path d="M64 22 C 88 5, 108 15, 64 22" fill="none" stroke={`url(#ribbon${uniqueId})`} strokeWidth="6" strokeLinecap="round" />
+        
+        {/* Shine highlight */}
+        <path d="M30 60 Q40 55 50 65" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.4" />
+      </motion.svg>
     </div>
   );
 };

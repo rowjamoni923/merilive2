@@ -73,7 +73,11 @@ export const ProfessionalChatMessage = ({
         <InlineLevelBadge level={userLevel} />
         <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
         <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
-        <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>
+        {giftEmoji && (giftEmoji.startsWith('http') || giftEmoji.startsWith('/')) ? (
+          <img src={giftEmoji} alt="" className="w-8 h-8 object-contain" />
+        ) : (
+          <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>
+        )}
         <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         {giftCount && giftCount > 1 && (
           <motion.span 

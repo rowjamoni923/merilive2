@@ -11,6 +11,7 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -673,7 +674,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   ) : selectedGift.icon_url ? (
                     <img loading="lazy" decoding="async" src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" />
                   ) : (
-                    <Gift className="w-6 h-6 text-white/70" />
+                    <GiftBox3DIcon size={24} />
                   )}
                 </div>
                 <div>

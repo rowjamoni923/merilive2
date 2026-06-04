@@ -23,6 +23,7 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 import { 
   getLevelGradient, 
@@ -412,20 +413,24 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       )}
 
       {/* Gift Image - smaller for quick notification */}
-      {isGiftMessage && giftIconUrl && (
+      {isGiftMessage && (
         <motion.div 
-          className="w-4 h-4 shrink-0 rounded overflow-hidden bg-white/10 shadow-md"
+          className="w-4 h-4 shrink-0 rounded overflow-hidden bg-white/10 shadow-md flex items-center justify-center"
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 0.4, repeat: 1 }}
         >
-          <img loading="lazy" decoding="async" 
-            src={giftIconUrl} 
-            alt="Gift" 
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
+          {giftIconUrl ? (
+            <img loading="lazy" decoding="async" 
+              src={giftIconUrl} 
+              alt="Gift" 
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <GiftBox3DIcon size={12} />
+          )}
         </motion.div>
       )}
       
