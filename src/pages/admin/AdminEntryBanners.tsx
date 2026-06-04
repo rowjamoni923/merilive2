@@ -233,6 +233,8 @@ export default function AdminEntryBanners() {
       name: "",
       description: "",
       animation_url: "",
+      animation_format: null,
+      animation_config_url: null,
       preview_url: "",
       min_level: 0,
       min_vip_tier: 0,
