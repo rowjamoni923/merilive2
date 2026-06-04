@@ -381,7 +381,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       >
         <div className={cn(
           "flex items-center gap-0 rounded-r-full overflow-hidden relative",
-          "backdrop-blur-xl shadow-2xl",
+          "bg-slate-900/80 shadow-2xl",
           "border border-white/25"
         )}
           style={{ boxShadow: isPremium

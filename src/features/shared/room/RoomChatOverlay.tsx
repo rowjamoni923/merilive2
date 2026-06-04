@@ -62,8 +62,7 @@ export const WelcomeMessage = memo(({
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "flex items-start gap-2 py-2 px-3.5 rounded-2xl w-full",
-        "bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-orange-400/20",
-        "backdrop-blur-md border border-amber-300/30",
+        "bg-slate-900/60 border border-amber-300/30",
         "shadow-[0_2px_15px_rgba(251,191,36,0.2),0_0_30px_rgba(251,191,36,0.08)]",
         "ring-1 ring-amber-400/15"
       )}
@@ -109,7 +108,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
         "flex items-center gap-2 py-2 pl-2 pr-4 rounded-r-full rounded-l-2xl w-fit",
         "bg-gradient-to-r",
         getJoinBannerBg(level),
-        "backdrop-blur-xl",
+        "bg-opacity-90",
         "border-l-4 border-l-white/50"
       )}
     >
@@ -308,7 +307,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
           "rounded-[20px] max-w-[94%] md:max-w-[70%]",
-          "bg-gradient-to-r backdrop-blur-md",
+          "bg-gradient-to-r bg-opacity-80",
           getBgStyle(),
           "border",
           getBorderStyle(),

@@ -124,7 +124,7 @@ const categories = [
   { id: "lucky_gift", name: "Lucky Gift", icon: Star },
 ];
 
-// Entry animation categories that need full-width display
+// Entry animation categories
 const isEntryAnimationCategory = (category: string) => 
   ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
 
@@ -136,26 +136,28 @@ const ShopItemCard = ({
   item, 
   index, 
   owned, 
-  onPreview,
-  isFullWidth = false
+  onPreview 
 }: { 
   item: ShopItem; 
   index: number; 
   owned: boolean; 
   onPreview: () => void;
-  isFullWidth?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
-  
+  const photoUrl = item.preview_url || item.animation_file_url || item.animation_url;
+
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05 }}
       onClick={onPreview}
       onPointerDown={() => {
         // Pre-warm asset + animation chunk so detail modal opens with zero delay
-        const src = item.animation_file_url || item.preview_url;
+        const src = item.animation_file_url || item.animation_url;
         if (src) {
           if (src.endsWith('.svga')) {
-            import('@/components/common/SVGAPlayerWithAudio');
+            import('@/components/common/SVGAPlayerWithAudio').catch(() => {});
             try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
           } else if (src.endsWith('.json')) {
             import('lottie-react' as any).catch(() => {});
@@ -166,22 +168,21 @@ const ShopItemCard = ({
           }
         }
       }}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl active:scale-[0.96]"
+      className="relative w-full rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-xl active:scale-95"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
         border: '1px solid rgba(217,182,107,0.40)',
-        boxShadow: '0 10px 28px -10px rgba(180,140,40,0.22), 0 2px 6px -2px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -2px 4px rgba(180,140,40,0.05)',
-        contain: 'content',
+        boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
       }}
     >
       {/* Featured indicator */}
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div
-            className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center"
-            style={{ boxShadow: '0 6px 14px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+            className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center"
+            style={{ boxShadow: '0 4px 10px -2px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.6)' }}
           >
-            <Zap className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
+            <Zap className="w-3 h-3 text-white" />
           </div>
         </div>
       )}
@@ -190,97 +191,78 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div
-            className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-300 via-emerald-500 to-green-600 flex items-center justify-center"
-            style={{ boxShadow: '0 6px 14px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.55)' }}
+            className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-300 via-emerald-500 to-green-600 flex items-center justify-center"
+            style={{ boxShadow: '0 4px 10px -2px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.55)' }}
           >
-            <Check className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
+            <Check className="w-3 h-3 text-white" />
           </div>
         </div>
       )}
 
-      {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden bg-white/50 backdrop-blur-sm`}>
-        {/* Subtle radial glow */}
+      {/* Preview Area - Instant Photo First */}
+      <div className="aspect-square flex items-center justify-center p-2 relative overflow-hidden bg-white/40">
         <div
-          className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle at center, rgba(251,191,36,0.22) 0%, rgba(255,251,242,0.0) 70%)',
-          }}
+          className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
+          style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
         />
 
-        {(() => {
-          const animType = pickAnimType(item);
-          const animSrc = item.animation_file_url || item.animation_url || '';
-          
-          return (
-            <div className={`relative ${isFullWidth ? 'w-[92%] h-[92%] scale-110' : 'w-[92%] h-[92%]'}`}>
-              <FixedAnimationFrame
-                src={animSrc}
-                type={animType as any}
-                placeholderUrl={item.preview_url || undefined}
-                configSrc={item.animation_config_url || undefined}
-                size="fill"
-                loop
-                autoPlay
-                muted
-                center={true}
-                onError={() => setImageError(true)}
-              />
+        <div className="w-full h-full flex items-center justify-center">
+          {photoUrl && !imageError ? (
+            <img 
+              src={photoUrl} 
+              alt={item.name}
+              className="w-[85%] h-[85%] object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
+              onError={() => setImageError(true)}
+              loading="eager"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+              <ImageOff className="w-6 h-6 text-amber-600/50" />
             </div>
-          );
-        })()}
+          )}
+        </div>
       </div>
 
       {/* Item Info */}
-      <div className="px-3 pb-3 space-y-2">
-        {/* Name */}
-        <p className="text-heading text-sm font-semibold truncate text-center">{item.name}</p>
+      <div className="p-2 space-y-2 pb-3">
+        <p className="text-heading text-[13px] font-bold truncate text-center px-1">{item.name}</p>
 
-        {/* Price with diamond icon */}
+        {/* Price */}
         <div
-          className="flex items-center justify-center gap-1.5 mx-auto w-fit px-2.5 py-1 rounded-full"
+          className="flex items-center justify-center gap-1 mx-auto w-fit px-2 py-0.5 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,182,107,0.12) 100%)',
-            border: '1px solid rgba(217,182,107,0.35)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(217,182,107,0.1) 100%)',
+            border: '1px solid rgba(217,182,107,0.3)',
           }}
         >
-          <Diamond3DIcon size={14} />
-          <span className="text-heading text-xs font-bold">
+          <Diamond3DIcon size={12} />
+          <span className="text-heading text-[11px] font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-body font-normal">/{item.duration_days}d</span>
+              <span className="text-body font-normal ml-0.5">/{item.duration_days}d</span>
             )}
           </span>
         </div>
 
-        {/* Purchase / Owned Button */}
+        {/* Action Button */}
         {owned ? (
-          <div
-            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
-              border: '1px solid rgba(16,185,129,0.40)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
-            }}
-          >
+          <div className="w-full py-1.5 rounded-full text-center text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100">
             ✓ Owned
           </div>
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+            className="w-full py-1.5 rounded-full text-[10px] font-bold text-white shadow-lg transition-all active:scale-95"
             style={{
-              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
-              boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.15)',
-              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
+              boxShadow: '0 4px 12px -4px rgba(147,51,234,0.5)',
             }}
           >
             Purchase
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -591,15 +573,15 @@ const Shop = () => {
 
       {/* Items Grid */}
       <div 
-        className="flex-1 overflow-y-auto overscroll-contain px-3 py-2"
+        className="flex-1 overflow-y-auto overscroll-contain px-2 py-2"
         style={{ 
           WebkitOverflowScrolling: 'touch',
           paddingBottom: 'var(--content-bottom-padding)',
         }}
       >
         {filteredItems.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="relative w-24 h-24 mx-auto mb-5">
+          <div className="text-center py-16 px-4">
+            <div className="relative w-20 h-20 mx-auto mb-5">
               <div
                 className="absolute inset-0 rounded-full blur-2xl opacity-50"
                 style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.45), transparent 70%)' }}
@@ -619,7 +601,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-4 justify-center justify-items-center max-w-5xl mx-auto`}>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-center justify-items-center max-w-5xl mx-auto px-1">
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}
@@ -627,7 +609,6 @@ const Shop = () => {
                 index={index}
                 owned={isOwned(item.id)}
                 onPreview={() => setSelectedItem(item)}
-                isFullWidth={isEntryAnimationCategory(item.category)}
               />
             ))}
           </div>

@@ -158,8 +158,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
           style={{
             background: tier.bg,
             border: tier.border,
-            backdropFilter: "blur(16px) saturate(150%)",
-            WebkitBackdropFilter: "blur(16px) saturate(150%)",
             boxShadow: tier.glow,
           }}
           animate={isPremium && tier.pulseGlow.length ? { boxShadow: tier.pulseGlow } : {}}
@@ -329,9 +327,7 @@ export const MiniGiftNotification = ({
     transition={{ type: "spring", damping: 22, stiffness: 360 }}
     className="relative flex items-center gap-2 px-3 py-2 rounded-xl overflow-hidden"
     style={{
-      background: "linear-gradient(135deg, rgba(15,23,42,0.7) 0%, rgba(30,27,75,0.7) 100%)",
-      backdropFilter: "blur(12px) saturate(140%)",
-      WebkitBackdropFilter: "blur(12px) saturate(140%)",
+      background: "linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,27,75,0.92) 100%)",
       border: "1px solid rgba(255,255,255,0.12)",
       boxShadow: "0 6px 18px -6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
     }}
