@@ -259,14 +259,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     let rgbRect: number[], alphaRect: number[];
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
+    const dpr = window.devicePixelRatio || 1;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w; canvas.height = cfg.h;
+      canvas.width = cfg.w * dpr; 
+      canvas.height = cfg.h * dpr;
     } else {
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
-      canvas.width = videoWidth / 2; canvas.height = videoHeight;
+      canvas.width = (videoWidth / 2) * dpr; 
+      canvas.height = videoHeight * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);

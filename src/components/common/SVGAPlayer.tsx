@@ -86,6 +86,9 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         const SVGA = await getSVGAModule();
         if (!mountedRef.current || !containerRef.current) return;
 
+        // Ensure global audio is unlocked before creating the player
+        await ensureAudioUnlocked();
+
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
         
@@ -96,6 +99,15 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
           player.isMuted = true;
           player.onAudioStart = () => {};
           player.onAudioEnd = () => {};
+        } else {
+          // Explicitly unmute and set high quality
+          player.isMuted = false;
+          // Some SVGA files have embedded audio that needs context resumption
+          const { getSharedAudio } = await import('@/utils/soundPlayer');
+          const shared = getSharedAudio();
+          if (shared?.ctx.state === 'suspended') {
+            await shared.ctx.resume().catch(() => {});
+          }
         }
 
         // Use shared robust loader (3 retries + cache + dedup)
