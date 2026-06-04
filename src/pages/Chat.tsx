@@ -74,6 +74,7 @@ import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { getVapCompositeHint } from "@/utils/vapDetection";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
@@ -766,6 +767,7 @@ const Chat = () => {
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
+    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
@@ -777,7 +779,7 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
-    setAnimatingGiftFormat(gift.animation_format || null);
+    setAnimatingGiftFormat(giftAnimationFormat);
     setAnimatingGiftConfigUrl(gift.animation_config_url || null);
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
@@ -807,7 +809,7 @@ const Chat = () => {
         conversationId: selectedConversation.id,
         senderId: currentUserId,
         content: optimisticGiftMessage,
-        animationFormat: gift.animation_format || null,
+        animationFormat: giftAnimationFormat,
         animationConfigUrl: gift.animation_config_url || null,
       },
     }).catch(() => {});
