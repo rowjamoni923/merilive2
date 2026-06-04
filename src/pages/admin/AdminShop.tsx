@@ -595,6 +595,14 @@ const AdminShop = () => {
     return lower.endsWith('.mp4') || lower.endsWith('.webm');
   };
 
+  // Pkg430 — VAP detection (matches UniversalAnimationPlayer).
+  const isVAP = (url: string | null | undefined) => {
+    if (!url) return false;
+    const lower = url.toLowerCase().split('?')[0];
+    if (!(lower.endsWith('.mp4') || lower.endsWith('.webm'))) return false;
+    return lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_');
+  };
+
   const totalItems = items.length;
   const activeItems = items.filter(i => i.is_active).length;
   const hiddenItems = items.filter(i => !i.is_active).length;
