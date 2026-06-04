@@ -359,8 +359,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     video.preload = 'auto';
 
     videoRef.current = video;
+    let initialized = false;
 
     const handleVideoReady = () => {
+      if (initialized) return;
+      initialized = true;
       initWebGL(video, config);
     };
     video.onloadeddata = handleVideoReady;
