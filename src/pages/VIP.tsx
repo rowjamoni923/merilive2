@@ -1322,22 +1322,16 @@ const VIP = () => {
                                 : `ring-1 ring-white/10 ${ringColor}`
                           }`}>
                             <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
-                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
-                                <UniversalFramePlayer
-                                  src={priv.animation_url}
-                                  className="w-full h-full"
-                                  loop={true}
-                                  autoPlay={true}
-                                  muted={true}
-                                />
-                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
-                                <img loading="lazy" decoding="async" 
-                                  src={priv.preview_url} 
-                                  alt={priv.name}
-                                  className="w-full h-full object-cover" />
-                              ) : (
-                                fallbackIcon
-                              )}
+                              <FixedAnimationFrame
+                                src={priv.animation_url || ''}
+                                placeholderUrl={priv.preview_url || undefined}
+                                className="w-full h-full"
+                                size="fill"
+                                loop
+                                autoPlay
+                                muted
+                                fallbackEmoji="🎁"
+                              />
                             </div>
                             
                             {/* Equipped indicator */}
