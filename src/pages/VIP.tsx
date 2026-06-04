@@ -1299,12 +1299,12 @@ const VIP = () => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay }}
                   >
-                    <div className="flex items-center justify-center gap-2 text-lg font-bold mb-3">
+                    <div className="flex items-center justify-center gap-2 text-base font-bold mb-4">
                       <span>{icon}</span>
-                      <span className="text-heading">{title}</span>
+                      <span className="text-heading tracking-wide uppercase text-sm">{title}</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 justify-items-center max-w-lg mx-auto">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-items-center max-w-5xl mx-auto px-1">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
@@ -1312,17 +1312,25 @@ const VIP = () => {
                           onClick={() => handleEquip(priv)}
                           className="flex flex-col items-center w-full"
                         >
-                          <div className={`relative w-full aspect-square rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all ${
+                          <div className={`relative w-full aspect-square rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
                             priv.is_equipped 
-                                ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                                : `ring-1 ring-amber-200/50 ${ringColor}`
-                          }`}>
-                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center p-2`}>
+                                ? 'ring-2 ring-green-500 shadow-lg shadow-green-500/20' 
+                                : `ring-1 ring-amber-200/50 ${ringColor} shadow-md`
+                          }`}
+                          style={{
+                            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+                            boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+                          }}>
+                            <div className="w-full h-full flex items-center justify-center p-2 relative">
+                              <div
+                                className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
+                                style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
+                              />
                               {priv.preview_url ? (
                                 <img 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-[85%] h-[85%] object-contain drop-shadow-md"
+                                  className="w-[85%] h-[85%] object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
                                   loading="eager"
                                 />
                               ) : (

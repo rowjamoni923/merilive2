@@ -207,29 +207,36 @@ const ShopItemCard = ({
         />
 
         <div className="w-full h-full flex items-center justify-center">
-          {photoUrl && !imageError ? (
+          {item.preview_url ? (
             <img 
-              src={photoUrl} 
+              src={item.preview_url} 
               alt={item.name}
               className="w-[85%] h-[85%] object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
               onError={() => setImageError(true)}
               loading="eager"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-              <ImageOff className="w-6 h-6 text-amber-600/50" />
-            </div>
+            <FixedAnimationFrame
+              src={item.animation_file_url || item.animation_url || ''}
+              type={pickAnimType(item) as any}
+              className="w-full h-full"
+              size="fill"
+              loop
+              autoPlay
+              muted
+              fallbackEmoji="🎁"
+            />
           )}
         </div>
       </div>
 
       {/* Item Info */}
-      <div className="p-2 space-y-2 pb-3">
-        <p className="text-heading text-[13px] font-bold truncate text-center px-1">{item.name}</p>
+      <div className="p-2 flex flex-col items-center justify-between flex-1 min-h-[90px] pb-3">
+        <p className="text-heading text-[13px] font-bold line-clamp-1 text-center px-1 w-full mb-1">{item.name}</p>
 
         {/* Price */}
         <div
-          className="flex items-center justify-center gap-1 mx-auto w-fit px-2 py-0.5 rounded-full"
+          className="flex items-center justify-center gap-1 px-2 py-0.5 rounded-full mb-2"
           style={{
             background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(217,182,107,0.1) 100%)',
             border: '1px solid rgba(217,182,107,0.3)',
@@ -245,22 +252,24 @@ const ShopItemCard = ({
         </div>
 
         {/* Action Button */}
-        {owned ? (
-          <div className="w-full py-1.5 rounded-full text-center text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100">
-            ✓ Owned
-          </div>
-        ) : (
-          <button
-            onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-1.5 rounded-full text-[10px] font-bold text-white shadow-lg transition-all active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
-              boxShadow: '0 4px 12px -4px rgba(147,51,234,0.5)',
-            }}
-          >
-            Purchase
-          </button>
-        )}
+        <div className="w-full mt-auto">
+          {owned ? (
+            <div className="w-full py-1.5 rounded-full text-center text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100">
+              ✓ Owned
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPreview(); }}
+              className="w-full py-1.5 rounded-full text-[10px] font-bold text-white shadow-lg transition-all active:scale-95"
+              style={{
+                background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
+                boxShadow: '0 4px 12px -4px rgba(147,51,234,0.5)',
+              }}
+            >
+              Purchase
+            </button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
