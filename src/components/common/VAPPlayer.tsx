@@ -31,6 +31,11 @@ interface VAPPlayerProps {
   onComplete?: () => void;
 }
 
+type VideoFrameCallbackVideo = HTMLVideoElement & {
+  requestVideoFrameCallback?: (callback: () => void) => number;
+  cancelVideoFrameCallback?: (handle: number) => void;
+};
+
 const getAutoVapRects = (video: HTMLVideoElement) => {
   const layout = detectVapSideBySideLayout(video) || 'alpha-right';
   return layout === 'alpha-left'
@@ -359,9 +364,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           return;
         }
       }
-      if (typeof (video as any).requestVideoFrameCallback === 'function') {
+      const frameVideo = video as VideoFrameCallbackVideo;
+      if (typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = (video as any).requestVideoFrameCallback(() => render());
+        animationRef.current = frameVideo.requestVideoFrameCallback(() => render());
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
@@ -430,7 +436,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const id = animationRef.current;
       if (id !== null) {
         if (frameCallbackModeRef.current === 'rvfc') {
-          try { (videoRef.current as any)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
+          try { (videoRef.current as VideoFrameCallbackVideo | null)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
         } else {
           cancelAnimationFrame(id);
         }
