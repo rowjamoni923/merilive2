@@ -2389,7 +2389,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2400,13 +2400,13 @@ const Chat = () => {
                           
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
-                          const isSvga = normalizedGiftUrl.endsWith('.svga');
-                          const isLottie = normalizedGiftUrl.endsWith('.json');
-                          const isImage = !!iconUrl && !isSvga && !isLottie;
+                          const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
+                          const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
