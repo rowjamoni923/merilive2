@@ -31,6 +31,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { VIPBadge } from "@/components/common/VIPBadge";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
@@ -228,12 +229,64 @@ const VIP = () => {
       // Set user id for expired items restorer
       setCurrentUserId(user.id);
 
-      // Fetch user profile - include ALL equipped fields for unified selection logic
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
-        .eq("id", user.id)
-        .maybeSingle();
+      // Parallel fetch for speed
+      const [
+        profileResult,
+        vipResult,
+        tiersResult,
+        purchasesResult,
+        framesResult,
+        levelPrivsResult,
+        entryBarsResult
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_vip_subscriptions")
+          .select("vip_tier_id, vip_tiers(tier_level), expires_at")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .gte("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("vip_tiers")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order"),
+        supabase
+          .from("user_purchases")
+          .select("id, item_id, is_equipped, expires_at, item_type")
+          .eq("user_id", user.id)
+          .eq("is_active", true),
+        supabase
+          .from("avatar_frames")
+          .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
+          .eq("is_active", true)
+          .order("min_level", { ascending: true }),
+        supabase
+          .from("level_privileges")
+          .select("*")
+          .eq("is_active", true)
+          .order("unlock_level", { ascending: true }),
+        supabase
+          .from("entry_name_bars")
+          .select("*")
+          .eq("is_active", true)
+          .order("level_required", { ascending: true })
+      ]);
+
+      const profileData = profileResult.data;
+      const vipData = vipResult.data;
+      const tiersData = tiersResult.data;
+      const purchases = purchasesResult.data;
+      const availableFramesRaw = framesResult.data;
+      const levelPrivileges = levelPrivsResult.data;
+      const entryNameBars = entryBarsResult.data;
 
       const resolvedLevel = profileData
         ? await resolveLevelFromTiers({
@@ -260,45 +313,15 @@ const VIP = () => {
       const equippedMedalId = profileData?.equipped_medal_id;
       const equippedNobleCardId = profileData?.equipped_noble_card_id;
       
-      console.log('[VIP] Profile equipped IDs:', {
-        frame: equippedFrameId || 'none',
-        entrance: equippedEntranceId || 'none',
-        entryBar: equippedEntryNameBarId || 'none',
-        bubble: equippedBubbleId || 'none',
-        vehicle: equippedVehicleId || 'none',
-        medal: equippedMedalId || 'none',
-        nobleCard: equippedNobleCardId || 'none',
-        effectiveLevel,
-        targetType
-      });
-
       if (profileData) {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
       }
 
-      // Fetch current VIP subscription
-      const { data: vipData } = await supabase
-        .from("user_vip_subscriptions")
-        .select("vip_tier_id, vip_tiers(tier_level), expires_at")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .gte("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
       if (vipData?.vip_tiers) {
         setCurrentVIPTier((vipData.vip_tiers as any).tier_level || 0);
         setVIPExpiresAt(vipData.expires_at);
       }
-
-      // Fetch VIP tiers
-      const { data: tiersData } = await supabase
-        .from("vip_tiers")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order");
 
       if (tiersData) {
         setTiers(tiersData);
@@ -306,13 +329,7 @@ const VIP = () => {
 
       const allPrivileges: UserPrivilege[] = [];
 
-      // Fetch ONLY user's purchased items (from shop)
-      const { data: purchases } = await supabase
-        .from("user_purchases")
-        .select("id, item_id, is_equipped, expires_at, item_type")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
-
+      // Fetch shop items info for purchases
       const purchaseItemIds = (purchases || []).map((purchase) => purchase.item_id).filter(Boolean);
       const { data: purchasedShopItems } = purchaseItemIds.length > 0
         ? await supabase
@@ -359,13 +376,8 @@ const VIP = () => {
         }
       }
 
-      // Fetch unlocked avatar frames only for the current role/level
-      const { data: availableFrames } = await supabase
-        .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
-        .eq("is_active", true)
-        .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
-        .order("min_level", { ascending: true });
+      // Use already fetched availableFramesRaw
+      const availableFrames = availableFramesRaw;
 
       if (availableFrames) {
         const hasEquippedFrameInDB = !!equippedFrameId;
@@ -397,13 +409,6 @@ const VIP = () => {
           }
         }
       }
-
-      // Fetch unlocked level privileges only
-      const { data: levelPrivileges } = await supabase
-        .from("level_privileges")
-        .select("*")
-        .eq("is_active", true)
-        .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
@@ -437,13 +442,6 @@ const VIP = () => {
           });
         }
       }
-
-      // Fetch unlocked entry name bars only
-      const { data: entryNameBars } = await supabase
-        .from("entry_name_bars")
-        .select("*")
-        .eq("is_active", true)
-        .order("level_required", { ascending: true });
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
@@ -1171,15 +1169,16 @@ const VIP = () => {
                             boxShadow: '0 6px 14px -4px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.85)',
                           }}
                         >
-                          {tier.badge_animation_url ? (
-                            <UniversalAnimationPlayer
-                              src={tier.badge_animation_url}
-                              className="w-full h-full"
-                              loop
-                              autoPlay
-                            />
-                          ) : (
-                            <TierIcon className="w-7 h-7 text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
+                          <FixedAnimationFrame
+                            src={tier.badge_animation_url || ''}
+                            className="w-full h-full"
+                            size="fill"
+                            loop
+                            autoPlay
+                            fallbackEmoji=""
+                          />
+                          {!tier.badge_animation_url && (
+                            <TierIcon className="w-7 h-7 absolute text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
                           )}
                         </div>
                         <div>
@@ -1306,7 +1305,7 @@ const VIP = () => {
                         <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3 justify-center">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
@@ -1320,22 +1319,16 @@ const VIP = () => {
                                 : `ring-1 ring-white/10 ${ringColor}`
                           }`}>
                             <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
-                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
-                                <UniversalFramePlayer
-                                  src={priv.animation_url}
-                                  className="w-full h-full"
-                                  loop={true}
-                                  autoPlay={true}
-                                  muted={true}
-                                />
-                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
-                                <img loading="lazy" decoding="async" 
-                                  src={priv.preview_url} 
-                                  alt={priv.name}
-                                  className="w-full h-full object-cover" />
-                              ) : (
-                                fallbackIcon
-                              )}
+                              <FixedAnimationFrame
+                                src={priv.animation_url || ''}
+                                placeholderUrl={priv.preview_url || undefined}
+                                className="w-full h-full"
+                                size="fill"
+                                loop
+                                autoPlay
+                                muted
+                                fallbackEmoji="🎁"
+                              />
                             </div>
                             
                             {/* Equipped indicator */}

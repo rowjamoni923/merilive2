@@ -211,48 +211,21 @@ const ShopItemCard = ({
         {(() => {
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
-          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
-
-          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
-          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
-          if (animSrc && isAnimatedType(animType) && !imageError) {
-            return (
-              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
-                <FixedAnimationFrame
-                  src={animSrc}
-                  type={animType as any}
-                  configSrc={item.animation_config_url || undefined}
-                  size="fill"
-                  loop
-                  autoPlay
-                  muted
-                  center={false}
-                  onError={() => setImageError(true)}
-                />
-              </div>
-            );
-          }
-
-          if (previewIsStatic && !imageError) {
-            return (
-              <img
-                src={item.preview_url!}
-                alt={item.name}
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: 'high' } as any)}
-                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+          
+          return (
+            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+              <FixedAnimationFrame
+                src={animSrc}
+                type={animType as any}
+                placeholderUrl={item.preview_url || undefined}
+                configSrc={item.animation_config_url || undefined}
+                size="fill"
+                loop
+                autoPlay
+                muted
+                center={false}
                 onError={() => setImageError(true)}
               />
-            );
-          }
-
-          return (
-            <div
-              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
-              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-            >
-              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
             </div>
           );
         })()}
@@ -367,32 +340,45 @@ const Shop = () => {
       if (!user) { navigate("/auth"); return; }
       setCurrentUserId(user.id);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
-        .eq("id", user.id)
-        .single();
+      const [profileResult, shopItemsResult, partyBgResult, purchasesResult, purchasedBgResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("shop_items")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order"),
+        supabase
+          .from("party_room_backgrounds")
+          .select("*")
+          .eq("is_active", true)
+          .eq("is_premium", true)
+          .not("image_url", "is", null)
+          .order("display_order"),
+        supabase
+          .from("user_purchases")
+          .select("id, item_id, is_equipped, expires_at")
+          .eq("user_id", user.id)
+          .eq("is_active", true),
+        supabase
+          .from("user_purchased_backgrounds" as any)
+          .select("id, background_id, is_active")
+          .eq("user_id", user.id)
+          .eq("is_active", true) as any
+      ]);
 
-      if (profile) {
-        setUserDiamonds(profile.coins || 0);
-        setUserLevel(profile.user_level || 0);
-        setUserAvatar(profile.avatar_url);
-        setUserFrameId(profile.frame_id);
+      if (profileResult.data) {
+        setUserDiamonds(profileResult.data.coins || 0);
+        setUserLevel(profileResult.data.user_level || 0);
+        setUserAvatar(profileResult.data.avatar_url);
+        setUserFrameId(profileResult.data.frame_id);
       }
 
-      const { data: shopItems } = await supabase
-        .from("shop_items")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order");
-
-      const { data: partyBackgrounds } = await supabase
-        .from("party_room_backgrounds")
-        .select("*")
-        .eq("is_active", true)
-        .eq("is_premium", true)
-        .not("image_url", "is", null)
-        .order("display_order");
+      const shopItems = shopItemsResult.data;
+      const partyBackgrounds = partyBgResult.data;
 
       const allItems: ShopItem[] = [];
       if (shopItems) {
@@ -427,17 +413,8 @@ const Shop = () => {
       }
       setItems(allItems);
 
-      const { data: userPurchases } = await supabase
-        .from("user_purchases")
-        .select("id, item_id, is_equipped, expires_at")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
-
-      const { data: purchasedBgs } = await (supabase
-        .from("user_purchased_backgrounds" as any)
-        .select("id, background_id, is_active")
-        .eq("user_id", user.id)
-        .eq("is_active", true) as any);
+      const userPurchases = purchasesResult.data;
+      const purchasedBgs = purchasedBgResult.data;
 
       const allPurchases: UserPurchase[] = [];
       if (userPurchases) allPurchases.push(...(userPurchases as UserPurchase[]));
@@ -582,7 +559,7 @@ const Shop = () => {
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-1">
+          <div className="flex gap-2 pb-1 justify-center md:justify-start">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
@@ -642,7 +619,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
+          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3 justify-items-center`}>
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}
@@ -695,32 +672,20 @@ const Shop = () => {
                   {(() => {
                     const animType = pickAnimType(selectedItem);
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
-                    if (animSrc && isAnimatedType(animType)) {
-                      return (
-                        <FixedAnimationFrame
-                          src={animSrc}
-                          type={animType as any}
-                          configSrc={selectedItem.animation_config_url || undefined}
-                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                          loop
-                          autoPlay
-                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
-                          background="none"
-                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                        />
-                      );
-                    }
-                    if (selectedItem.preview_url || animSrc) {
-                      return (
-                        <img loading="lazy" decoding="async"
-                          src={selectedItem.preview_url || animSrc}
-                          alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      );
-                    }
-                    return <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />;
+                    return (
+                      <FixedAnimationFrame
+                        src={animSrc}
+                        type={animType as any}
+                        placeholderUrl={selectedItem.preview_url || undefined}
+                        configSrc={selectedItem.animation_config_url || undefined}
+                        size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                        loop
+                        autoPlay
+                        muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                        background="none"
+                        className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                      />
+                    );
                   })()}
                 </div>
 
