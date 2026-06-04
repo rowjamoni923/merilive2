@@ -5,6 +5,11 @@ import { svgaCacheClear } from '@/utils/svgaCache';
 import { getSVGAModule } from '@/utils/svgaPrewarm';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 
+export interface SVGADynamicData {
+  text?: Record<string, string | { text: string; size?: string; color?: string; family?: string; offset?: { x: number; y: number } }>;
+  images?: Record<string, string>;
+}
+
 interface SVGAPlayerProps {
   src: string;
   className?: string;
@@ -15,6 +20,7 @@ interface SVGAPlayerProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  dynamicData?: SVGADynamicData;
 }
 
 const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
@@ -27,6 +33,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   onLoad,
   onError,
   onComplete,
+  dynamicData,
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -123,6 +130,31 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         const videoItemToUse = muted ? stripAudio(videoItem) : videoItem;
 
         player.setVideoItem(videoItemToUse);
+
+        // Pkg: Apply professional dynamic data (text/images) replacement
+        if (dynamicData) {
+          if (dynamicData.images) {
+            Object.entries(dynamicData.images).forEach(([key, url]) => {
+              if (url) player.setImage(url, key);
+            });
+          }
+          if (dynamicData.text) {
+            Object.entries(dynamicData.text).forEach(([key, value]) => {
+              if (typeof value === 'string') {
+                player.setText(value, key);
+              } else if (value && value.text) {
+                player.setText({
+                  text: value.text,
+                  size: value.size || '24px',
+                  color: value.color || '#FFFFFF',
+                  family: value.family || 'Arial',
+                  offset: value.offset || { x: 0, y: 0 }
+                }, key);
+              }
+            });
+          }
+        }
+
         setReady(true);
         onLoadRef.current?.();
 
@@ -183,7 +215,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
     // (parent re-renders) must NEVER tear down + rebuild the player — that was
     // causing the same SVGA to replay over and over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, loop, autoPlay, muted]);
+  }, [src, loop, autoPlay, muted, JSON.stringify(dynamicData)]);
 
 
   if (hasError) {

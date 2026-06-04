@@ -13,6 +13,11 @@ import {
 } from '@/utils/animationDebug';
 
 
+export interface SVGADynamicData {
+  text?: Record<string, string | { text: string; size?: string; color?: string; family?: string; offset?: { x: number; y: number } }>;
+  images?: Record<string, string>;
+}
+
 interface SVGAPlayerWithAudioProps {
   src: string;
   className?: string;
@@ -29,6 +34,8 @@ interface SVGAPlayerWithAudioProps {
   soundUrl?: string | null;
   /** Changing this key re-triggers the audio segments without restarting the animation */
   triggerKey?: string | number;
+  /** Pkg: Professional dynamic data replacement */
+  dynamicData?: SVGADynamicData;
 }
 
 const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
@@ -44,6 +51,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   volume = 0.95,
   soundUrl = null,
   triggerKey,
+  dynamicData,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -155,6 +163,31 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         );
 
         player.setVideoItem(videoItemToUse);
+
+        // Pkg: Apply professional dynamic data (text/images) replacement
+        if (dynamicData) {
+          if (dynamicData.images) {
+            Object.entries(dynamicData.images).forEach(([key, url]) => {
+              if (url) player.setImage(url, key);
+            });
+          }
+          if (dynamicData.text) {
+            Object.entries(dynamicData.text).forEach(([key, value]) => {
+              if (typeof value === 'string') {
+                player.setText(value, key);
+              } else if (value && value.text) {
+                player.setText({
+                  text: value.text,
+                  size: value.size || '24px',
+                  color: value.color || '#FFFFFF',
+                  family: value.family || 'Arial',
+                  offset: value.offset || { x: 0, y: 0 }
+                }, key);
+              }
+            });
+          }
+        }
+
         setLoading(false);
         onLoadRef.current?.();
 
@@ -264,7 +297,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     // (parent re-renders) must NEVER tear down + rebuild the player — that was
     // causing the same SVGA to replay over and over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, loop, autoPlay, volume, soundUrl]);
+  }, [src, loop, autoPlay, volume, soundUrl, JSON.stringify(dynamicData)]);
 
   // COMBO AUDIO RE-TRIGGER: replay sound on combo bumps WITHOUT rebuilding the
   // SVGA canvas/player. Recreating the SVGA player here was a direct jank source.

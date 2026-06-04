@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useRef } from 'react';
+import type { SVGADynamicData } from './SVGAPlayer';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
 import {
@@ -74,6 +75,8 @@ export interface FixedAnimationFrameProps {
   debugTag?: string;
   /** Changing this key re-triggers the audio segments without restarting the animation */
   triggerKey?: string | number;
+  /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
+  dynamicData?: SVGADynamicData;
 }
 
 // ⚠️ NEVER use `backdrop-blur` here — this frame sits over animated content
@@ -121,6 +124,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   debug,
   debugTag,
   triggerKey,
+  dynamicData,
 }) => {
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
@@ -232,6 +236,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           onComplete={onComplete}
           onCompleteDebug={handleDebugComplete}
           fallbackEmoji={fallbackEmoji}
+          dynamicData={dynamicData}
         />
       )}
     </div>

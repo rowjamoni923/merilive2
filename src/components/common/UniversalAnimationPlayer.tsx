@@ -14,6 +14,7 @@ import SVGAPlayer from './SVGAPlayer';
 import SVGAPlayerWithAudio from './SVGAPlayerWithAudio';
 import VAPPlayer from './VAPPlayer';
 import PAGPlayer from './PAGPlayer';
+import type { SVGADynamicData } from './SVGAPlayer';
 
 export type AnimationType = 'svga' | 'lottie' | 'vap' | 'pag' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
@@ -44,6 +45,8 @@ interface UniversalAnimationPlayerProps {
    * Use only for full-screen contexts (gift / entry overlays).
    */
   preferNative?: boolean;
+  /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
+  dynamicData?: SVGADynamicData;
 }
 
 /**
@@ -107,6 +110,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   showControls = false,
   fallbackEmoji = '🎁',
   preferNative = false,
+  dynamicData,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   // Synchronously seed Lottie state from cache so cached gifts paint on first
@@ -217,6 +221,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
                 muted={muted}
                 onLoad={onLoad}
                 onComplete={() => fireComplete('native')}
+                dynamicData={dynamicData}
                 onError={(err) => {
                   setHasError(true);
                   onError?.(err);
@@ -238,6 +243,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             onLoad={onLoad}
             onComplete={() => fireComplete('native')}
             onCompleteDebug={onCompleteDebug}
+            dynamicData={dynamicData}
             onError={(err) => {
               setHasError(true);
               onError?.(err);
@@ -255,6 +261,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           muted={muted}
           onLoad={onLoad}
+          dynamicData={dynamicData}
           onComplete={() => fireComplete('native')}
           onError={(err) => {
             setHasError(true);
