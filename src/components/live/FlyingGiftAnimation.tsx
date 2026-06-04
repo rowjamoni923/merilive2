@@ -159,6 +159,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
     playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
   }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
+  const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
     setShowFullScreen(false);
