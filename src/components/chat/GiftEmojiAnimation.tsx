@@ -19,8 +19,8 @@ interface GiftEmojiAnimationProps {
 const FULLSCREEN_LAYER_STYLE: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  width: '100dvw',
-  height: '100dvh',
+  width: '100vw',
+  height: '100vh',
   minWidth: '100vw',
   minHeight: '100vh',
   zIndex: 2147483000,
@@ -36,8 +36,8 @@ const FULLSCREEN_LAYER_STYLE: CSSProperties = {
 const FULLSCREEN_STAGE_STYLE: CSSProperties = {
   position: 'absolute',
   inset: 0,
-  width: '100dvw',
-  height: '100dvh',
+  width: '100vw',
+  height: '100vh',
   minWidth: '100vw',
   minHeight: '100vh',
   display: 'flex',
@@ -172,8 +172,8 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
-                width="100dvw"
-                height="100dvh"
+                width="100vw"
+                height="100vh"
                 type={isLottie ? 'lottie' : isVap ? 'vap' : 'mp4'}
                 configSrc={animationConfigUrl || undefined}
                 loop={false}
@@ -208,7 +208,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
             }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{ width: '100dvw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <img loading="lazy" decoding="async" 
               src={emoji}

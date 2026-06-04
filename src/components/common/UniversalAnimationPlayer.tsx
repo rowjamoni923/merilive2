@@ -244,7 +244,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
                   src={resolvedSrc}
                   className="w-full h-full"
                   loop={loop}
-                  autoPlay={autoPlay && isVisible}
+                  autoPlay={autoPlay && (isVisible || isOverlay)}
                   muted={muted}
                   onLoad={onLoad}
                   onComplete={() => fireComplete('native')}
@@ -268,7 +268,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
               src={resolvedSrc}
               className="w-full h-full"
               loop={loop}
-              autoPlay={autoPlay && isVisible}
+              autoPlay={autoPlay && (isVisible || isOverlay)}
               onLoad={onLoad}
               onComplete={() => fireComplete('native')}
               onCompleteDebug={onCompleteDebug}
@@ -289,7 +289,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             src={resolvedSrc}
             className="w-full h-full"
             loop={loop}
-            autoPlay={autoPlay && isVisible}
+            autoPlay={autoPlay && (isVisible || isOverlay)}
             muted={muted}
             onLoad={onLoad}
             dynamicData={dynamicData}
@@ -314,7 +314,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             configSrc={configSrc}
             className="w-full h-full"
             loop={loop}
-            autoPlay={autoPlay && isVisible}
+            autoPlay={autoPlay && (isVisible || isOverlay)}
             muted={muted}
             volume={volume}
             soundUrl={soundUrl}
@@ -339,7 +339,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             src={resolvedSrc}
             className="w-full h-full"
             loop={loop}
-            autoPlay={autoPlay && isVisible}
+            autoPlay={autoPlay && (isVisible || isOverlay)}
             muted={muted}
             volume={volume}
             soundUrl={soundUrl}
@@ -364,7 +364,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           <Lottie
             animationData={lottieData}
             loop={loop}
-            autoplay={autoPlay && isVisible}
+            autoplay={autoPlay && (isVisible || isOverlay)}
             className="w-full h-full"
             onComplete={() => !loop && fireComplete('native')}
             onDOMLoaded={onLoad}
@@ -387,7 +387,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         <video
           ref={videoRef}
           src={resolvedSrc}
-          autoPlay={autoPlay && isVisible}
+          autoPlay={autoPlay && (isVisible || isOverlay)}
           loop={loop}
           muted={muted}
           playsInline
