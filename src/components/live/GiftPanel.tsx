@@ -10,6 +10,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -77,6 +78,28 @@ const getAssetPathWithoutQuery = (url?: string | null) =>
   url?.split('?')[0] ?? '';
 
 const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
+
+const warmSelectedVideoGift = (url?: string | null) => {
+  if (!url || typeof document === 'undefined' || !VIDEO_OR_GIF_PATTERN.test(url) || GIF_PATTERN.test(url)) return;
+  try {
+    const video = document.createElement('video');
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = 'anonymous';
+    video.src = url;
+    video.onloadedmetadata = () => {
+      markVapCompositeHint(url, isLikelyVapCompositeSize(video.videoWidth, video.videoHeight));
+      video.removeAttribute('src');
+      video.load();
+    };
+    video.onerror = () => {
+      video.removeAttribute('src');
+      video.load();
+    };
+    video.load();
+  } catch { /* best-effort only */ }
+};
 
 const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
   const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);
@@ -328,6 +351,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       setSelectedGift(gift);
       setCount(1);
       resetCombo();
+      warmSelectedVideoGift(gift.animation_url || gift.icon_url);
     }
   }, [selectedGift, resetCombo]);
 
@@ -340,6 +364,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // Guard via ref so back-to-back taps within one render still see deducted balance.
   const handleSend = useCallback(() => {
     if (!selectedGift) return;
+    warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
     const cost = selectedGift.coins * count;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
@@ -351,6 +376,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
 
   const handleQuickSend = useCallback((quickCount: number) => {
     if (!selectedGift) return;
+    warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
     const cost = selectedGift.coins * quickCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);

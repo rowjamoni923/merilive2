@@ -1731,6 +1731,7 @@ const ProfileDetail = () => {
 
           const result = await sendGift({
             giftId: gift.id,
+            gift,
             senderId: currentUser.id,
             receiverId: userId,
             quantity: count,

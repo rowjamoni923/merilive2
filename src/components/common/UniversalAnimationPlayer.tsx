@@ -6,7 +6,7 @@ import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
-import { isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -118,7 +118,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   // the AnimationUploader (e.g. the "hi" carriage) have NULL format in DB —
   // without this probe they render as a plain video showing both RGB and
   // Alpha halves.
-  const [autoDetectedVap, setAutoDetectedVap] = useState(false);
+  const [autoDetectedVap, setAutoDetectedVap] = useState(() => getVapCompositeHint(resolvedSrc));
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const detectedType = type || detectAnimationType(resolvedSrc);
@@ -128,7 +128,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   useEffect(() => {
     startTimeRef.current = Date.now();
     completedRef.current = false;
-    setAutoDetectedVap(false);
+    setAutoDetectedVap(getVapCompositeHint(resolvedSrc));
   }, [resolvedSrc, loop]);
 
   const fireComplete = (source: AnimationCompletionSource) => {
@@ -366,6 +366,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
               (detectedType === 'mp4' || detectedType === 'webm') &&
               isLikelyVapCompositeSize(w, h)
             ) {
+              markVapCompositeHint(resolvedSrc, true);
               setAutoDetectedVap(true);
             }
           }}

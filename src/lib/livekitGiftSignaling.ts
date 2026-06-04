@@ -31,7 +31,7 @@ import {
   decodeEnvelope,
   encodeEnvelope,
   isDuplicateEnvelope,
-  isLiveKitEnabled,
+  isLiveKitEnabledSync,
 } from './livekitSignaling';
 import { nativeLiveKitController } from './nativeLiveKitController';
 
@@ -202,12 +202,7 @@ export async function publishGiftSent(
   const room = entry?.room;
   if ((!room || room.state !== 'connected') && !nativeRegistry.has(keyFor(scope, id))) return false;
 
-  let allowed = false;
-  try {
-    allowed = await isLiveKitEnabled('gift');
-  } catch {
-    allowed = false;
-  }
+  const allowed = isLiveKitEnabledSync('gift');
   if (!allowed) return false;
 
   try {

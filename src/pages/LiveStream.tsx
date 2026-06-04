@@ -2672,6 +2672,17 @@ const LiveStream = () => {
     
     const result = await sendGift({
       giftId: gift.id,
+      gift: {
+        id: gift.id,
+        name: gift.name,
+        coins: gift.coins,
+        category: 'popular',
+        icon_url: (gift as any).icon_url || (gift as any).icon,
+        animation_url: (gift as any).animation_url,
+        animation_format: (gift as any).animation_format || null,
+        animation_config_url: (gift as any).animation_config_url,
+        sound_url: (gift as any).sound_url,
+      },
       senderId: currentUserId,
       receiverId: hostInfo.id,
       quantity: 1,
@@ -4017,6 +4028,7 @@ const LiveStream = () => {
             try {
               const result = await sendGift({
                 giftId: gift.id,
+                gift,
                 senderId: currentUserId,
                 receiverId: hostInfo!.id,
                 quantity: count,

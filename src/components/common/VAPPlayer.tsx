@@ -453,7 +453,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         playsInline
         muted={muted}
         loop={loop}
-        preload="metadata"
+        preload={autoPlay ? "auto" : "metadata"}
         autoPlay={autoPlay}
         controls={false}
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"

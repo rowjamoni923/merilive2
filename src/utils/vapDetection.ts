@@ -1,5 +1,19 @@
 export type VapSideBySideLayout = 'alpha-left' | 'alpha-right';
 
+const vapCompositeHint = new Map<string, boolean>();
+
+const hintKey = (url: string) => (url || '').split('#')[0];
+
+export const markVapCompositeHint = (url: string, isComposite: boolean): void => {
+  if (!url) return;
+  vapCompositeHint.set(hintKey(url), isComposite);
+};
+
+export const getVapCompositeHint = (url: string): boolean => {
+  if (!url) return false;
+  return vapCompositeHint.get(hintKey(url)) === true;
+};
+
 /**
  * VAP MP4s are composite videos: RGB and alpha-mask frames packed together.
  * Square exports are usually 2:1. Portrait live-stream gift exports are often

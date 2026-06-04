@@ -398,6 +398,7 @@ export function ActiveCallScreen({
 
       const result = await sendGift({
         giftId: gift.id,
+        gift,
         senderId: userId,
         receiverId: remoteUserId,
         quantity: count,

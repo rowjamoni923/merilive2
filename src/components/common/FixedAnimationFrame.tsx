@@ -6,6 +6,7 @@ import {
   logAnimationCompletion,
   type AnimationCompletionSource,
 } from '@/utils/animationDebug';
+import { getVapCompositeHint } from '@/utils/vapDetection';
 
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
@@ -148,7 +149,10 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
       `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
     );
   }
-  const safeType: AnimationType | undefined = type && KNOWN_TYPES.has(type) && !explicitMismatch
+  const hintedVap = getVapCompositeHint(src) && (detected === 'mp4' || detected === 'webm' || type === 'mp4' || type === 'webm');
+  const safeType: AnimationType | undefined = hintedVap
+    ? 'vap'
+    : type && KNOWN_TYPES.has(type) && !explicitMismatch
     ? type
     : detected;
   const resolvedType = safeType;
