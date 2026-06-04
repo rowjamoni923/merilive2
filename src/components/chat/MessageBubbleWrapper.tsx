@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
+import { getSharedObserver } from '@/utils/nativePerformance';
+
 
 interface MessageBubbleWrapperProps {
   /** SVGA / Lottie / GIF / WebP / PNG URL of the designer chat bubble. If null/empty falls back to children only. */
