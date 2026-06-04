@@ -582,7 +582,7 @@ const Shop = () => {
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-1">
+          <div className="flex gap-2 pb-1 justify-center md:justify-start">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
