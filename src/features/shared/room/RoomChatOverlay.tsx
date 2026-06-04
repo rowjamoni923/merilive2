@@ -429,15 +429,8 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 0.4, repeat: 1 }}
         >
-          {giftIconUrl ? (
-            <img loading="lazy" decoding="async" 
-              src={giftIconUrl} 
-              alt="Gift" 
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+          {giftUrl ? (
+            <GiftMedia url={giftUrl} sizeClass="w-4 h-4" />
           ) : (
             <GiftBox3DIcon size={12} />
           )}
