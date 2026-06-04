@@ -307,9 +307,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           gl.drawArrays(gl.TRIANGLES, 0, 6);
           if (!webglPainted) setWebglPainted(true);
         } catch (e) {
+          console.warn('[VAPPlayer] WebGL render error, falling back:', e);
           setUseVideoFallback(true);
           return;
         }
+      }
+
+      // Safety: If video is playing but canvas isn't painted yet, force paint check
+      if (v.currentTime > 0 && !webglPainted && !v.paused) {
+        setWebglPainted(true);
       }
 
       if (v.ended && !loop) return;
