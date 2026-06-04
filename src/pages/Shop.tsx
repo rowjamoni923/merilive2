@@ -692,26 +692,36 @@ const Shop = () => {
                     border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
-                  {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
-                    <FixedAnimationFrame
-                      src={selectedItem.animation_file_url || ''}
-                      size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                      loop
-                      autoPlay
-                      muted={!isEntryAnimationCategory(selectedItem.category)}
-                      background="none"
-                      className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                    />
-                  ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
-                    <img loading="lazy" decoding="async" 
-                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
-                      alt={selectedItem.name}
-                      className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />
-                  )}
+                  {(() => {
+                    const animType = pickAnimType(selectedItem);
+                    const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
+                    if (animSrc && isAnimatedType(animType)) {
+                      return (
+                        <FixedAnimationFrame
+                          src={animSrc}
+                          type={animType as any}
+                          configSrc={selectedItem.animation_config_url || undefined}
+                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                          loop
+                          autoPlay
+                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                          background="none"
+                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                        />
+                      );
+                    }
+                    if (selectedItem.preview_url || animSrc) {
+                      return (
+                        <img loading="lazy" decoding="async"
+                          src={selectedItem.preview_url || animSrc}
+                          alt={selectedItem.name}
+                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      );
+                    }
+                    return <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />;
+                  })()}
                 </div>
 
                 {selectedItem.description && (
