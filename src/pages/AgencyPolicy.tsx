@@ -202,6 +202,24 @@ const AgencyPolicy = () => {
           </TabsList>
 
           <TabsContent value="commission" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {commissionPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-gradient-to-br from-brand-600 to-info-700 rounded-3xl p-5 text-white overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 uppercase tracking-tight relative z-10">
+                  <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center"><Wallet className="w-4 h-4 text-white" /></div>
+                  Commission Policy
+                </h3>
+                <ul className="space-y-3 relative z-10">
+                  {commissionPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-[11px] font-bold text-white/90 leading-relaxed">
+                      <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-4">
               <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
                 <div className="w-7 h-7 bg-brand-100 rounded-lg flex items-center justify-center"><Award className="w-4 h-4 text-brand-600" /></div>
