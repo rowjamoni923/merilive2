@@ -79,12 +79,19 @@ export function usePartyRoomWebRTC(
    * to false (no LiveKit camera publish) so the streaming family never
    * races face-verify for /dev/video0.
    */
-  cameraReady: boolean = true
+  cameraReady: boolean = true,
+  /**
+   * Optional host user_id — when present, the selective-subscription engine
+   * pins the host so they always stay at HIGH video quality even when silent.
+   */
+  hostUserId: string | null = null
 ) {
   const partyCanPublishRef = useRef(partyCanPublish);
   partyCanPublishRef.current = partyCanPublish;
   const cameraReadyRef = useRef(cameraReady);
   cameraReadyRef.current = cameraReady;
+  const hostUserIdRef = useRef(hostUserId);
+  hostUserIdRef.current = hostUserId;
   const [state, setState] = useState<PartyWebRTCState>({
     localStream: null,
     peerStreams: new Map(),
@@ -957,7 +964,8 @@ export function usePartyRoomWebRTC(
         }
         return;
       }
-      applySelectiveSubscriptions(roomRef.current, cfg, { recentSpeakers: recentRef.slice() });
+      const pinned = hostUserIdRef.current ? [hostUserIdRef.current] : [];
+      applySelectiveSubscriptions(roomRef.current, cfg, { recentSpeakers: recentRef.slice(), pinned });
     };
 
     const onSpeakers = (e: Event) => {

@@ -2660,6 +2660,8 @@ const LiveStream = () => {
   }, [remoteUsers.size, !!remoteVideoTrack, isJoined, connectionState, isHost]);
 
   // Auto-retry subscription for viewers - ultra-fast early retries for first-frame speed
+  // Plus a long-term watchdog that keeps retrying every 4s for up to 60s so a
+  // viewer never gets stranded on the blurred-avatar fallback after the 1.2s burst.
   useEffect(() => {
     if (isHost || !isJoined || remoteVideoTrack) return;
 
@@ -2673,8 +2675,20 @@ const LiveStream = () => {
       }, delay)
     );
 
+    // Long-term recovery: keep nudging the SFU every 4s for the first minute.
+    // Stops as soon as remoteVideoTrack arrives (effect re-runs and skips early).
+    let longAttempts = 0;
+    const longTimer = setInterval(() => {
+      if (remoteVideoTrack) { clearInterval(longTimer); return; }
+      longAttempts++;
+      if (longAttempts > 15) { clearInterval(longTimer); return; }
+      console.log(`⏰ Long-watchdog: no remote video, retry ${longAttempts}/15`);
+      try { retrySubscription(); } catch { /* ignore */ }
+    }, 4000);
+
     return () => {
       retryTimers.forEach(clearTimeout);
+      clearInterval(longTimer);
     };
   }, [isHost, isJoined, remoteVideoTrack, retrySubscription]);
 

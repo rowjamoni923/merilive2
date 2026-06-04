@@ -334,6 +334,12 @@ export function useLiveKitCall(
             let nAttempt = 0;
             let lastNErr: unknown = null;
             while (nAttempt < 2) {
+              if (deadRef.current) {
+                // Component unmounted mid-retry; bail before any further
+                // native camera/mic acquisition.
+                try { await nativeLiveKitController.disconnect(); } catch { /* ignore */ }
+                return;
+              }
               nAttempt++;
               try {
                 await nativeLiveKitController.connectAndPublish({
@@ -350,12 +356,16 @@ export function useLiveKitCall(
                 break;
               } catch (e) {
                 lastNErr = e;
-                if (nAttempt < 2) {
+                if (nAttempt < 2 && !deadRef.current) {
                   console.warn('[LiveKitCall/Native] connect failed, retrying in 500ms:', e);
                   try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
                   await new Promise((r) => setTimeout(r, 500));
                 }
               }
+            }
+            if (deadRef.current) {
+              try { await nativeLiveKitController.disconnect(); } catch { /* ignore */ }
+              return;
             }
             if (lastNErr) throw lastNErr;
 
