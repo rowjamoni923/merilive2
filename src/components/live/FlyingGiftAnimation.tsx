@@ -312,7 +312,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
               configSrc={gift.animationConfigUrl || undefined}
               loop={false}
-              muted={!isSVGA}
+              muted={isSVGA ? false : !!gift.soundUrl}
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
