@@ -25,7 +25,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
-import AdminAuth from "./pages/admin/AdminAuth";
+const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
 // =============================================
@@ -56,10 +56,10 @@ const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import EventPopupBanner from "./components/common/EventPopupBanner";
-import DailyLoginPopup from "./components/rewards/DailyLoginPopup";
-import WelcomeOnboarding from "./components/onboarding/WelcomeOnboarding";
-import RatingRewardPopup from "./components/rewards/RatingRewardPopup";
+const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
+const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
+const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
+const RatingRewardPopup = lazy(lazyRetry(() => import("./components/rewards/RatingRewardPopup")));
 const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // LAZY LOADED PAGES - Load on demand
