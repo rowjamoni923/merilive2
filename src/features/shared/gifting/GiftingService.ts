@@ -10,27 +10,30 @@
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { getCachedGifts } from '@/hooks/useGiftPrefetch';
 // Pkg88: broadcastGiftSent import removed — Supabase channel was opening per gift
 // with zero live consumers (LiveKit-Purist policy + $1400-rule).
 
 import { publishGiftSent } from '@/lib/livekitGiftSignaling';
 import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
+import { getVapCompositeHint } from '@/utils/vapDetection';
 
 export interface GiftItem {
   id: string;
   name: string;
   coins: number;
   category: string;
-  icon_url?: string;
-  animation_url?: string;
+  icon_url?: string | null;
+  animation_url?: string | null;
   animation_format?: string | null;
-  animation_config_url?: string;
-  sound_url?: string;
+  animation_config_url?: string | null;
+  sound_url?: string | null;
   animation_type?: string;
 }
 
 export interface GiftSendRequest {
   giftId: string;
+  gift?: GiftItem;
   senderId: string;
   receiverId: string;
   quantity: number;
@@ -121,6 +124,20 @@ export async function fetchGifts(): Promise<GiftItem[]> {
  * Get a single gift by ID
  */
 export async function getGiftById(giftId: string): Promise<GiftItem | null> {
+  const prefetched = getCachedGifts().find(g => g.id === giftId);
+  if (prefetched) {
+    return {
+      id: prefetched.id,
+      name: prefetched.name,
+      coins: prefetched.coin_value,
+      category: prefetched.category || 'popular',
+      icon_url: normalizeGiftIconUrl(prefetched.icon_url, prefetched.animation_url),
+      animation_url: normalizeGiftAssetUrl(prefetched.animation_url),
+      animation_format: prefetched.animation_format || null,
+      animation_config_url: normalizeGiftAssetUrl(prefetched.animation_config_url),
+      sound_url: normalizeGiftAssetUrl(prefetched.sound_url),
+    };
+  }
   const gifts = await fetchGifts();
   return gifts.find(g => g.id === giftId) || null;
 }
@@ -139,7 +156,7 @@ export async function getGiftsByCategory(category: string): Promise<GiftItem[]> 
  * Uses atomic database function for secure transaction
  */
 export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult> {
-  const { giftId, senderId, receiverId, quantity, context, streamId, roomId, callId, reelId } = request;
+  const { giftId, gift: requestGift, senderId, receiverId, quantity, context, streamId, roomId, callId, reelId } = request;
 
   // ⚡ ZERO-SECOND FANOUT: fire LiveKit envelope IMMEDIATELY (before RPC roundtrip).
   // Receivers see the flying gift + sound + chat row in <50ms instead of 300-650ms.
@@ -153,48 +170,36 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     : null;
   const liveKitId = streamId || roomId || callId;
   let optimisticPublished = false;
+  let optimisticPublishPromise: Promise<boolean> | null = null;
   if (liveKitScope && liveKitId) {
     try {
-      const cachedGift = await getGiftById(giftId); // local cache hit — synchronous-fast
-      // Resolve sender display info from local profile cache without blocking.
-      // profiles_public is tiny and usually cached by other surfaces; we fire-and-forget.
-      let senderName = 'Someone';
-      let senderAvatar: string | undefined;
-      let senderLevel: number | undefined;
-      try {
-        const { data: sp } = await supabase
-          .from('profiles_public')
-          .select('display_name, avatar_url, user_level')
-          .eq('id', senderId)
-          .maybeSingle();
-        if (sp) {
-          senderName = sp.display_name || senderName;
-          senderAvatar = sp.avatar_url || undefined;
-          senderLevel = (sp as any).user_level;
-        }
-      } catch { /* non-fatal */ }
-
+      const cachedGift = requestGift || await getGiftById(giftId); // caller metadata = zero network wait
       const unitCoins = cachedGift?.coins || 0;
-      publishGiftSent(liveKitScope, liveKitId, {
+      const hintedFormat = cachedGift?.animation_format || (cachedGift?.animation_url && getVapCompositeHint(cachedGift.animation_url) ? 'vap' : null);
+      optimisticPublishPromise = publishGiftSent(liveKitScope, liveKitId, {
         senderId,
-        senderName,
-        senderAvatar,
-        senderLevel,
+        senderName: 'Someone',
         receiverId,
         giftId,
         giftName: cachedGift?.name || 'Gift',
-        giftIconUrl: cachedGift?.icon_url,
-        giftAnimationUrl: cachedGift?.animation_url,
-        giftAnimationFormat: cachedGift?.animation_format || null,
-        giftAnimationConfigUrl: cachedGift?.animation_config_url,
-        giftSoundUrl: cachedGift?.sound_url,
+        giftIconUrl: cachedGift?.icon_url || undefined,
+        giftAnimationUrl: cachedGift?.animation_url || undefined,
+        giftAnimationFormat: hintedFormat,
+        giftAnimationConfigUrl: cachedGift?.animation_config_url || undefined,
+        giftSoundUrl: cachedGift?.sound_url || undefined,
         count: quantity,
         giftCoins: unitCoins,
         totalCoins: unitCoins * quantity,
         receiverBeans: 0, // unknown until RPC settles — receiver beans counter reconciles via own-beans-updated
         timestamp: Date.now(),
-      }).then((ok) => { optimisticPublished = !!ok; })
-        .catch((err) => console.warn('[Pkg-Instant] optimistic publishGiftSent failed:', err));
+      }).then((ok) => {
+        optimisticPublished = !!ok;
+        return optimisticPublished;
+      })
+        .catch((err) => {
+          console.warn('[Pkg-Instant] optimistic publishGiftSent failed:', err);
+          return false;
+        });
     } catch (err) {
       console.warn('[GiftingService] optimistic publish prep failed:', err);
     }
@@ -246,7 +251,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     // Safety net: if optimistic publish did NOT actually fire (LiveKit disabled,
     // room not connected yet, kill-switch off), re-publish now with the verified
     // beans amount so receivers still see the gift via the legacy post-RPC path.
-    if (liveKitScope && liveKitId && !optimisticPublished) {
+    const didOptimisticPublish = optimisticPublished || await (optimisticPublishPromise?.catch(() => false) ?? Promise.resolve(false));
+    if (liveKitScope && liveKitId && !didOptimisticPublish) {
       (async () => {
         try {
           const [gift, senderRes] = await Promise.all([
@@ -260,6 +266,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
           const senderName = senderRes.data?.display_name || 'Someone';
           const senderAvatar = senderRes.data?.avatar_url || undefined;
           const senderLevel = (senderRes.data as any)?.user_level;
+          const hintedFormat = gift?.animation_format || (gift?.animation_url && getVapCompositeHint(gift.animation_url) ? 'vap' : null);
 
           publishGiftSent(liveKitScope, liveKitId, {
             senderId,
@@ -269,11 +276,11 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             receiverId,
             giftId,
             giftName: gift?.name || 'Gift',
-            giftIconUrl: gift?.icon_url,
-            giftAnimationUrl: gift?.animation_url,
-            giftAnimationFormat: gift?.animation_format || null,
-            giftAnimationConfigUrl: gift?.animation_config_url,
-            giftSoundUrl: gift?.sound_url,
+            giftIconUrl: gift?.icon_url || undefined,
+            giftAnimationUrl: gift?.animation_url || undefined,
+            giftAnimationFormat: hintedFormat,
+            giftAnimationConfigUrl: gift?.animation_config_url || undefined,
+            giftSoundUrl: gift?.sound_url || undefined,
             count: quantity,
             giftCoins: gift?.coins || 0,
             totalCoins: result.coinsSpent || 0,

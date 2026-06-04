@@ -2391,6 +2391,7 @@ const PartyRoom = () => {
                 try {
                   const result = await sendGift({
                     giftId: gift.id,
+                    gift,
                     senderId: sendingUserId,
                     receiverId,
                     quantity: count,

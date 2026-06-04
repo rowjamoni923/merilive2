@@ -78,8 +78,8 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 };
 
 // ============================================================
-// FULLSCREEN SVGA SERIALIZER (module-level singleton)
-// Guarantees only ONE fullscreen SVGA plays at any moment across the
+// FULLSCREEN HEAVY-ANIMATION SERIALIZER (module-level singleton)
+// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment across the
 // entire app. Prevents "duplicate" / overlapping plays when multiple
 // gifts arrive close together (combo, multi-sender bursts). Each SVGA
 // plays for its EXACT native duration (driven by the player's own
@@ -134,6 +134,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
+  const needsFullscreenSlot = completesFromPlayer;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
 
@@ -214,15 +215,15 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
-  // FULLSCREEN SVGA SLOT ACQUISITION
-  // Only ONE SVGA fullscreen can render at a time. If another SVGA is
+  // FULLSCREEN HEAVY ANIMATION SLOT ACQUISITION
+  // Only ONE heavy fullscreen can render at a time. If another one is
   // already playing, this gift waits in FIFO queue. The SVGA player is
   // NOT mounted until the slot is owned — so the native duration only
   // starts counting at its actual play time (no silent pre-consumption).
   // ============================================================
   useEffect(() => {
-    if (!isSVGA || svgaError) {
-      // Non-SVGA gifts don't compete for the singleton slot.
+    if (!needsFullscreenSlot || svgaError) {
+      // Lightweight/static gifts don't compete for the singleton slot.
       setHasFullscreenSlot(true);
       return;
     }
@@ -245,7 +246,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       unsub?.();
       releaseFullscreen(gift.id);
     };
-  }, [isSVGA, svgaError, gift.id]);
+  }, [needsFullscreenSlot, svgaError, gift.id]);
 
 
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
@@ -283,8 +284,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Full-screen gift animation — every gift occupies the complete app viewport.
   const renderFullScreen = () => {
     if (!showFullScreen || animationEnded) return null;
-    // SVGA gifts wait their turn — only render when this instance owns the slot.
-    if (isSVGA && !hasFullscreenSlot) return null;
+    // Heavy gifts wait their turn — only render when this instance owns the slot.
+    if (needsFullscreenSlot && !hasFullscreenSlot) return null;
 
 
     if (displayAnimationUrl) {

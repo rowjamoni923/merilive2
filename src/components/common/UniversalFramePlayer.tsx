@@ -4,7 +4,7 @@ import Lottie from 'lottie-react';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
 
 // Lazy load SVGA + VAP players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -71,13 +71,13 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   const [lottieData, setLottieData] = useState<any>(initialFrameType === 'lottie' ? lottieCacheGet(resolvedSrc) : null);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [autoDetectedVap, setAutoDetectedVap] = useState(false);
+  const [autoDetectedVap, setAutoDetectedVap] = useState(() => getVapCompositeHint(resolvedSrc));
   
   const detectedFrameType = type || detectFrameType(resolvedSrc);
   const frameType = autoDetectedVap ? 'vap' : detectedFrameType;
 
   React.useEffect(() => {
-    setAutoDetectedVap(false);
+    setAutoDetectedVap(getVapCompositeHint(resolvedSrc));
     setImageLoaded(false);
   }, [resolvedSrc, type]);
 
@@ -216,6 +216,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           onLoadedMetadata={(e) => {
             const v = e.currentTarget;
             if (type !== 'vap' && (detectedFrameType === 'mp4' || detectedFrameType === 'webm') && isLikelyVapCompositeSize(v.videoWidth, v.videoHeight)) {
+              markVapCompositeHint(resolvedSrc, true);
               setAutoDetectedVap(true);
             }
           }}

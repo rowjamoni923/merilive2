@@ -581,6 +581,7 @@ const Reels = () => {
     try {
       const result = await sendGift({
         giftId: gift.id,
+        gift,
         senderId: sendingUserId,
         receiverId: currentReel.user_id,
         quantity: count,
