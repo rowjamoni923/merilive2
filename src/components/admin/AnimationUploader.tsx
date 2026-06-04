@@ -6,11 +6,12 @@
  * AdminShop, AdminPartyBackgrounds, AdminLevelAnimations.
  *
  * Supports every professional live-streaming animation format:
- *   - SVGA       (Bigo, YY, Inke standard, ≤3MB)
- *   - VAP        (Tencent / Chamet / MICO premium HD with alpha, ≤8MB, requires vapc.json)
- *   - Lottie     (After Effects export, ≤500KB)
- *   - WebP/PNG/GIF (≤2MB)
- *   - MP4/WebM   (plain video, ≤5MB)
+ *   - SVGA       (Bigo, YY, Inke standard)
+ *   - VAP        (Tencent / Chamet / MICO premium HD with alpha, optional vapc.json)
+ *   - PAG        (Tencent PAG)
+ *   - Lottie     (After Effects export)
+ *   - WebP/PNG/GIF
+ *   - MP4/WebM   (plain video)
  *
  * Returns the three DB fields the consumer should save:
  *   { animation_url, animation_format, animation_config_url }
@@ -63,15 +64,15 @@ interface Props {
 }
 
 const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
-  svga: 3,
-  vap: 8,
-  pag: 5,
-  lottie: 0.5,
-  webp: 2,
-  png: 2,
-  gif: 2,
-  mp4: 5,
-  webm: 5,
+  svga: 50,
+  vap: 50,
+  pag: 50,
+  lottie: 10,
+  webp: 50,
+  png: 50,
+  gif: 50,
+  mp4: 50,
+  webm: 50,
 };
 
 const FORMAT_LABEL: Record<AnimationFormat, string> = {
@@ -96,6 +97,64 @@ const FORMAT_ACCEPT: Record<AnimationFormat, string> = {
   gif: '.gif,image/gif',
   mp4: '.mp4,video/mp4',
   webm: '.webm,video/webm',
+};
+
+const ALL_ANIMATION_ACCEPT = Object.values(FORMAT_ACCEPT).join(',');
+
+const detectFormatByExtension = (fileName: string): AnimationFormat | null => {
+  const clean = fileName.toLowerCase().split('?')[0];
+  if (clean.endsWith('.svga')) return 'svga';
+  if (clean.endsWith('.pag')) return 'pag';
+  if (clean.endsWith('.json')) return 'lottie';
+  if (clean.endsWith('.webp')) return 'webp';
+  if (clean.endsWith('.png')) return 'png';
+  if (clean.endsWith('.gif')) return 'gif';
+  if (clean.endsWith('.webm')) return 'webm';
+  if (clean.endsWith('.mp4')) return 'mp4';
+  return null;
+};
+
+const looksLikeSideBySideVap = async (file: File): Promise<boolean> => {
+  if (!file.type.includes('video') && !file.name.toLowerCase().endsWith('.mp4')) return false;
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    const cleanup = () => URL.revokeObjectURL(url);
+    const finish = (value: boolean) => { cleanup(); resolve(value); };
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.onloadeddata = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 96;
+        canvas.height = 48;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx || !video.videoWidth || !video.videoHeight) return finish(false);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        const half = canvas.width / 2;
+        let leftSat = 0, rightSat = 0, leftCount = 0, rightCount = 0;
+        for (let y = 0; y < canvas.height; y += 2) {
+          for (let x = 0; x < canvas.width; x += 2) {
+            const i = (y * canvas.width + x) * 4;
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const sat = Math.max(r, g, b) - Math.min(r, g, b);
+            if (x < half) { leftSat += sat; leftCount++; }
+            else { rightSat += sat; rightCount++; }
+          }
+        }
+        const l = leftSat / Math.max(1, leftCount);
+        const r = rightSat / Math.max(1, rightCount);
+        finish(Math.abs(l - r) > 12 && Math.max(l, r) > Math.min(l, r) * 1.8);
+      } catch {
+        finish(false);
+      }
+    };
+    video.onerror = () => finish(false);
+    video.src = url;
+    video.load();
+  });
 };
 
 export const AnimationUploader: React.FC<Props> = ({
