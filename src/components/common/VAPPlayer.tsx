@@ -329,6 +329,20 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
+    
+    // Pkg-fix: Add safety completion timer for non-looping VAP
+    // If the video ended event doesn't fire, we force completion after duration + 1s.
+    if (!loop && video.duration > 0) {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = setTimeout(() => {
+        if (mountedRef.current && !completedRef.current) {
+          console.warn('[VAPPlayer] ⚠️ Safety timer triggered for', src.split('/').pop());
+          completedRef.current = true;
+          onCompleteRef.current?.();
+        }
+      }, (video.duration * 1000) + 1000);
+    }
+
     if (!isComposite) {
       setFallbackCrop([0, 0, 1, 1]);
       setUseVideoFallback(true);
@@ -337,7 +351,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       return;
     }
     initWebGL(video, config);
-  }, [config, initWebGL]);
+  }, [config, initWebGL, loop, src]);
 
   useEffect(() => {
     return () => {
