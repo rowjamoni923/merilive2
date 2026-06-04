@@ -213,7 +213,7 @@ const ShopItemCard = ({
           const animSrc = item.animation_file_url || item.animation_url || '';
           
           return (
-            <div className={`relative ${isFullWidth ? 'w-[90%] h-[90%] scale-110' : 'w-[90%] h-[90%]'}`}>
+            <div className={`relative ${isFullWidth ? 'w-[92%] h-[92%] scale-110' : 'w-[92%] h-[92%]'}`}>
               <FixedAnimationFrame
                 src={animSrc}
                 type={animType as any}
@@ -619,7 +619,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3 justify-center justify-items-center max-w-4xl mx-auto`}>
+          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-4 justify-center justify-items-center max-w-5xl mx-auto`}>
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}

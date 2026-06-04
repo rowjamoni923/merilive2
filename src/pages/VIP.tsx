@@ -1030,7 +1030,7 @@ const VIP = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList
-          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
+          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1 justify-center"
           style={{
             background: 'rgba(15,23,42,0.08)',
             boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
@@ -1124,7 +1124,7 @@ const VIP = () => {
           )}
 
           {/* VIP Tiers Grid */}
-          <div className="grid gap-4 max-w-2xl mx-auto">
+          <div className="grid gap-4 max-w-2xl mx-auto w-full">
             {tiers.map((tier, index) => {
               const TierIcon = getTierIcon(tier.tier_level);
               const privileges = getPrivilegesList(tier);
