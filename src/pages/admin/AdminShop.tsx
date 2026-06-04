@@ -936,8 +936,8 @@ const AdminShop = () => {
                           src={previewFile}
                           type="vap"
                           configSrc={formData.animation_config_url || undefined}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                           muted
                         />
