@@ -215,7 +215,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           )}
           onLoadedMetadata={(e) => {
             const v = e.currentTarget;
-            if (!type && detectedFrameType !== 'vap' && isLikelyVapCompositeSize(v.videoWidth, v.videoHeight)) {
+            if (type !== 'vap' && (detectedFrameType === 'mp4' || detectedFrameType === 'webm') && isLikelyVapCompositeSize(v.videoWidth, v.videoHeight)) {
               setAutoDetectedVap(true);
             }
           }}
