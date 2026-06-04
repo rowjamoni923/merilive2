@@ -57,10 +57,12 @@ const ParcelCard = memo(({ parcel, index, onClick }: ParcelCardProps) => {
           className="flex justify-center mb-3"
         >
           <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center"
+            className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden"
             style={{ background: `linear-gradient(135deg, ${glowColor}40, ${glowColor}20)` }}
           >
-            {template.parcel_type === 'mega' ? (
+            {template.icon_url ? (
+              <img src={template.icon_url} alt={template.name} className="w-full h-full object-contain p-1" />
+            ) : template.parcel_type === 'mega' ? (
               <Sparkles className="w-8 h-8" style={{ color: glowColor }} />
             ) : (
               <Gift className="w-8 h-8" style={{ color: glowColor }} />
