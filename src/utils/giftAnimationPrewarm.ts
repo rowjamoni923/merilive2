@@ -104,9 +104,9 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM gift files are large, so only warm browser metadata for the top
-    // few. This primes the HTTP cache + VAP hint without downloading every gift.
-    videoUrls.slice(0, 6).forEach((u) => warmVideoMetadata(u));
+    // MP4/WebM gift files are large, but for a premium lag-free experience we
+    // warm the top few to the browser's HTTP cache.
+    videoUrls.slice(0, 15).forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
   }
@@ -115,13 +115,23 @@ export async function prewarmGiftAnimations(): Promise<void> {
 function warmVideoMetadata(url: string) {
   if (typeof document === 'undefined') return;
   try {
+    // For VAP/MP4 gifts, we use 'auto' preload to ensure chunks are in the HTTP cache
+    // so they play instantly without network delay.
     const v = document.createElement('video');
-    v.preload = 'metadata';
+    v.preload = 'auto'; 
     v.muted = true;
     v.playsInline = true;
     v.crossOrigin = 'anonymous';
     v.src = url;
-    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
+    
+    // We only need to start the download; once metadata is loaded, 
+    // the browser has established the connection and cached headers.
+    const cleanup = () => { 
+      v.onloadedmetadata = null;
+      v.onerror = null;
+      // Don't fully remove src if we want it to stay in disk cache
+    };
+    
     v.onloadedmetadata = () => cleanup();
     v.onerror = () => cleanup();
     v.load();
@@ -166,5 +176,5 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  videoUrls.slice(0, 4).forEach((u) => warmVideoMetadata(u));
+  videoUrls.slice(0, 10).forEach((u) => warmVideoMetadata(u));
 }

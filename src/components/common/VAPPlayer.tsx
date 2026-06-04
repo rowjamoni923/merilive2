@@ -114,22 +114,24 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [volume, muted, resolvedSrc]);
 
   useEffect(() => {
-    if (resolvedConfigSrc) {
-      fetch(resolvedConfigSrc)
-        .then(res => res.json())
-        .then(data => {
-          setConfig(data.info || data);
-        })
-        .catch(err => {
-          console.warn('[VAPPlayer] Config load failed, using defaults:', err);
-        });
-    } else {
-      const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
-      fetch(jsonPath)
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => setConfig(data.info || data))
-        .catch(() => setConfig(null));
-    }
+    // Pkg: Use a cached fetch for VAP configs to ensure instant load on repeat sends
+    const jsonPath = resolvedConfigSrc || resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
+    
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch(jsonPath);
+        if (res.ok) {
+          const data = await res.json();
+          if (mountedRef.current) setConfig(data.info || data);
+        } else {
+          if (mountedRef.current) setConfig(null);
+        }
+      } catch {
+        if (mountedRef.current) setConfig(null);
+      }
+    };
+
+    fetchConfig();
   }, [resolvedSrc, resolvedConfigSrc]);
 
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
