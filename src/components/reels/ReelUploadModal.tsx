@@ -361,8 +361,13 @@ export const ReelUploadModal = ({
                 <div className="relative w-full">
                   <video 
                     src={videoPreview}
-                    className="w-full max-h-[300px] object-contain rounded-lg"
+                    className="w-full max-h-[300px] object-contain rounded-lg bg-black"
                     controls
+                    controlsList="nodownload noremoteplayback noplaybackrate"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    playsInline
+                    preload="metadata"
                     muted/>
                   {!uploading && (
                     <button
