@@ -16,7 +16,8 @@ import { getCachedGifts } from '@/hooks/useGiftPrefetch';
 
 import { publishGiftSent } from '@/lib/livekitGiftSignaling';
 import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
-import { getVapCompositeHint } from '@/utils/vapDetection';
+import { getVapCompositeHint, markVapCompositeHint } from '@/utils/vapDetection';
+import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 
 export interface GiftItem {
   id: string;
@@ -74,6 +75,14 @@ const normalizeGiftAssetUrl = (url?: string | null): string | undefined => {
 };
 
 const isVideoAsset = (url?: string | null): boolean => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || '');
+
+const getProfessionalGiftFormat = (gift?: Pick<GiftItem, 'animation_url' | 'animation_format'> | null): string | null => {
+  if (!gift?.animation_url) return gift?.animation_format || null;
+  if ((gift.animation_format || '').toLowerCase() === 'vap') {
+    markVapCompositeHint(gift.animation_url, true);
+  }
+  return gift.animation_format || (getVapCompositeHint(gift.animation_url) ? 'vap' : detectProfessionalAnimationFormat(gift.animation_url));
+};
 
 const normalizeGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null): string | undefined => {
   const icon = normalizeGiftAssetUrl(iconUrl);
@@ -175,7 +184,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     try {
       const cachedGift = requestGift || await getGiftById(giftId); // caller metadata = zero network wait
       const unitCoins = cachedGift?.coins || 0;
-      const hintedFormat = cachedGift?.animation_format || (cachedGift?.animation_url && getVapCompositeHint(cachedGift.animation_url) ? 'vap' : null);
+      const hintedFormat = getProfessionalGiftFormat(cachedGift);
       optimisticPublishPromise = publishGiftSent(liveKitScope, liveKitId, {
         senderId,
         senderName: 'Someone',
@@ -266,7 +275,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
           const senderName = senderRes.data?.display_name || 'Someone';
           const senderAvatar = senderRes.data?.avatar_url || undefined;
           const senderLevel = (senderRes.data as any)?.user_level;
-          const hintedFormat = gift?.animation_format || (gift?.animation_url && getVapCompositeHint(gift.animation_url) ? 'vap' : null);
+          const hintedFormat = getProfessionalGiftFormat(gift);
 
           publishGiftSent(liveKitScope, liveKitId, {
             senderId,

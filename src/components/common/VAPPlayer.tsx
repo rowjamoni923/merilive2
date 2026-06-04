@@ -31,6 +31,11 @@ interface VAPPlayerProps {
   onComplete?: () => void;
 }
 
+type VideoFrameCallbackVideo = HTMLVideoElement & {
+  requestVideoFrameCallback?: (callback: () => void) => number;
+  cancelVideoFrameCallback?: (handle: number) => void;
+};
+
 const getAutoVapRects = (video: HTMLVideoElement) => {
   const layout = detectVapSideBySideLayout(video) || 'alpha-right';
   return layout === 'alpha-left'
@@ -43,7 +48,11 @@ const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConf
   const pixels = video.videoWidth * video.videoHeight;
   const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
-  return pixels >= 1_800_000 || (coarsePointer && pixels >= 1_000_000) || (cores <= 4 && pixels >= 1_000_000);
+  // Professional VAP gifts (like the uploaded HHI file: 1500×1334) need the
+  // WebGL alpha pass. Falling back just because the source is ~2MP crops the
+  // RGB half and loses transparency, which makes full-screen gifts look broken.
+  // Only bypass WebGL for truly extreme assets on very weak devices.
+  return pixels >= 6_000_000 || (coarsePointer && cores <= 2 && pixels >= 3_000_000);
 };
 
 /**
@@ -243,7 +252,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     });
 
     if (!gl) {
-      console.warn('[VAPPlayer] WebGL not supported; using cropped video fallback');
+      console.warn('[VAPPlayer] WebGL not supported; using video fallback');
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
@@ -254,7 +263,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const program = createShaders(gl);
     if (!program) {
-      console.warn('[VAPPlayer] Shader compilation failed; using cropped video fallback');
+      console.warn('[VAPPlayer] Shader compilation failed; using video fallback');
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
@@ -355,9 +364,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           return;
         }
       }
-      if (typeof (video as any).requestVideoFrameCallback === 'function') {
+      const frameVideo = video as VideoFrameCallbackVideo;
+      if (typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = (video as any).requestVideoFrameCallback(() => render());
+        animationRef.current = frameVideo.requestVideoFrameCallback(() => render());
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
@@ -426,7 +436,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const id = animationRef.current;
       if (id !== null) {
         if (frameCallbackModeRef.current === 'rvfc') {
-          try { (videoRef.current as any)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
+          try { (videoRef.current as VideoFrameCallbackVideo | null)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
         } else {
           cancelAnimationFrame(id);
         }
