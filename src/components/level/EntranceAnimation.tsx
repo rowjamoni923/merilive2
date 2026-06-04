@@ -18,13 +18,16 @@ interface EntranceAnimationProps {
   showDuration?: number;
 }
 
-// Detect animation type from URL - memoized outside component (same as FlyingGiftAnimation)
-const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' | null => {
+// Detect animation type from URL — Pkg430 VAP-aware (matches UniversalAnimationPlayer).
+const getAnimationType = (url?: string): 'svga' | 'lottie' | 'vap' | 'video' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
   if (cleanUrl.endsWith('.json')) return 'lottie';
-  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) return 'video';
+  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) {
+    if (cleanUrl.includes('vap') || cleanUrl.includes('_bmp') || cleanUrl.includes('file_vap_')) return 'vap';
+    return 'video';
+  }
   if (cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.jpg')) return 'image';
   return null;
 };
