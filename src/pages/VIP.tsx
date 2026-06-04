@@ -1377,7 +1377,7 @@ const VIP = () => {
                       <span className="text-heading tracking-wide uppercase text-sm">{title}</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-items-center max-w-5xl mx-auto px-1">
+                    <div className="grid grid-cols-3 gap-2 justify-items-center max-w-5xl mx-auto px-1">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
@@ -1434,7 +1434,7 @@ const VIP = () => {
                             )}
                           </div>
                           
-                          <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-heading">
+                          <div className="mt-1 max-w-[64px] truncate text-center text-[10px] font-medium text-heading">
                             {priv.name}
                           </div>
 

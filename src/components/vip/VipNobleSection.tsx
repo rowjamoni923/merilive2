@@ -114,7 +114,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
     <div className="space-y-4 px-4 mt-4">
       {/* ───── Daily Reward Card ───── */}
       {dailyStatus && dailyStatus.total_amount > 0 && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-300/60 shadow-sm">
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-300/60 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber-200/70 flex items-center justify-center">
@@ -154,7 +154,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Active Noble banner ───── */}
       {noble && (
         <div
-          className="p-4 rounded-2xl border bg-white shadow-sm"
+          className="p-3 rounded-2xl border bg-white shadow-sm"
           style={{
             background: `linear-gradient(135deg, ${noble.badge_color || '#FFD700'}26, #ffffff 70%)`,
             borderColor: `${noble.badge_color || '#FFD700'}66`,
@@ -188,7 +188,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Noble Subscriptions ───── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-slate-800 font-bold text-lg flex items-center gap-2">
+          <h3 className="text-slate-800 font-bold text-base flex items-center gap-2">
             <Crown className="w-5 h-5 text-amber-500" />
             Noble Subscriptions
           </h3>
