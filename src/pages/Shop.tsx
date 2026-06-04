@@ -211,7 +211,18 @@ const ShopItemCard = ({
         />
 
         <div className="w-full h-full flex items-center justify-center">
-          {item.preview_url && item.category !== 'frame' && item.category !== 'portrait_frame' ? (
+          {item.category === 'frame' || item.category === 'portrait_frame' ? (
+            <FixedAnimationFrame
+              src={item.animation_file_url || item.animation_url || ''}
+              type={pickAnimType(item) as any}
+              className="w-full h-full"
+              size="fill"
+              loop
+              autoPlay
+              muted
+              fallbackEmoji="👑"
+            />
+          ) : item.preview_url ? (
             <img 
               src={item.preview_url} 
               alt={item.name}
