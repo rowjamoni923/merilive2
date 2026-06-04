@@ -215,7 +215,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
-      webglPaintedRef.current = true;
+      setWebglPainted(true);
       onLoadRef.current?.();
       return;
     }
