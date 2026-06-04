@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -106,6 +107,10 @@ const AdminFrames = () => {
     sound_url: "",
     sound_duration_ms: 3000,
     target_type: "both" as 'user' | 'host' | 'both',
+    // Pkg424 — unified pro animation (VAP/SVGA/Lottie/WebP/PNG/GIF/MP4)
+    animation_url: "",
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "",
   });
 
   const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
@@ -277,6 +282,10 @@ const AdminFrames = () => {
         price_diamonds: formData.price_diamonds,
         preview_url: formData.preview_url || null,
         target_type: formData.target_type,
+        // Pkg424 — unified pro animation columns
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
         updated_at: new Date().toISOString(),
       };
 
