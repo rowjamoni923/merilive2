@@ -16,6 +16,8 @@ export type AnimationType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' |
 interface UniversalAnimationPlayerProps {
   src: string;
   type?: AnimationType;
+  /** Pkg423 — VAP config (vapc.json) URL. Required when type='vap'. */
+  configSrc?: string;
   className?: string;
   loop?: boolean;
   autoPlay?: boolean;
