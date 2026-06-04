@@ -148,6 +148,9 @@ export default function AdminGifts() {
     animation_type: "svga",
     animation_url: "",
     animation_data: null as object | null,
+    // Pkg423 — professional animation format support (VAP / SVGA / Lottie / etc.)
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: "" as string,
     category: "wall",
     display_order: 0,
     is_active: true,
