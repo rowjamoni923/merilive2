@@ -98,7 +98,7 @@ const active: Set<ActiveSound> = new Set();
 const perUrlCount = new Map<string, number>();
 
 const DEFAULT_MAX_PER_URL = 3;
-const HARD_VOLUME_CEILING = 0.85;
+const HARD_VOLUME_CEILING = 0.98; // Increased for professional punchy feel
 
 const release = (slot: ActiveSound) => {
   if (!active.has(slot)) return;
