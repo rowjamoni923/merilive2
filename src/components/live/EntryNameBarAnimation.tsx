@@ -60,6 +60,27 @@ const EntryNameBarAnimationInner = memo(({
   const hasSvga = animType === 'svga';
   const hasGifOrImage = animType === 'gif' || animType === 'image';
   const hasAnimation = hasSvga || hasGifOrImage;
+  
+  // Professional Dynamic Data for SVGA
+  const dynamicData = useMemo(() => {
+    if (!hasSvga) return undefined;
+    return {
+      text: {
+        // Standard keys for professional entry name bars
+        "name": userName,
+        "#name#": userName,
+        "username": userName,
+        "level": `Lv.${level}`,
+        "#level#": `Lv.${level}`,
+        "welcome": "Welcome!",
+        "#welcome#": "Welcome!"
+      },
+      images: {
+        "avatar": avatarUrl || getDisplayAvatar(userName),
+        "#avatar#": avatarUrl || getDisplayAvatar(userName)
+      }
+    };
+  }, [hasSvga, userName, level, avatarUrl]);
 
   const triggerExit = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
@@ -164,6 +185,7 @@ const EntryNameBarAnimationInner = memo(({
                     volume={0}
                     onComplete={handleSvgaComplete}
                     onError={handleSvgaError}
+                    dynamicData={dynamicData}
                     center={false}
                   />
                 </div>

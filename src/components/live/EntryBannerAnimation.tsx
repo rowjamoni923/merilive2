@@ -33,6 +33,24 @@ const EntryBannerAnimationInner = memo(({
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
 
+  // Professional Dynamic Data for SVGA
+  const dynamicData = useMemo(() => {
+    if (!animationUrl?.toLowerCase().endsWith('.svga')) return undefined;
+    return {
+      text: {
+        "name": userName,
+        "#name#": userName,
+        "username": userName,
+        "level": `Lv.${userLevel}`,
+        "#level#": `Lv.${userLevel}`,
+      },
+      images: {
+        "avatar": avatarUrl,
+        "#avatar#": avatarUrl
+      }
+    };
+  }, [animationUrl, userName, userLevel, avatarUrl]);
+
   // Handle animation complete - stop audio and dismiss - ONLY ONCE
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) {
@@ -146,6 +164,7 @@ const EntryBannerAnimationInner = memo(({
                 muted={false}
                 volume={0.8}
                 onComplete={handleAnimationComplete}
+                dynamicData={dynamicData}
                 center={false}
               />
               
