@@ -323,11 +323,20 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
-          controls={showControls}
+          // HARD-DISABLED: this player drives gift / entry / lottery / live
+          // overlay animations — a native play button or thumbnail poster on
+          // top of a host stream or a flying gift is never acceptable. The
+          // `showControls` prop is intentionally IGNORED here. controlsList
+          // + disable* attrs also strip any platform-injected media UI.
+          controls={false}
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+          disablePictureInPicture
+          disableRemotePlayback
+          poster=""
           data-animation="true"
           data-decorative="true"
           className={cn(
-            "w-full h-full object-contain",
+            "w-full h-full object-contain pointer-events-none",
             !mediaLoaded && "opacity-0"
           )}
           onLoadedData={() => {
