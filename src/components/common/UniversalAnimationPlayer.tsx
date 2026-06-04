@@ -96,7 +96,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   loop = true,
   autoPlay = true,
   muted = false,
-  volume = 0.7,
+  volume = 0.8, // Increased default volume for professional feel
   onLoad,
   onError,
   onComplete,
