@@ -1448,14 +1448,12 @@ const ProfileDetail = () => {
                                  
                                   className="w-12 h-12 object-contain"
                                   onError={(e) => {
-                                    // Replace broken img with emoji fallback so viewers never see a broken icon.
-                                    const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                                    if (parent) parent.innerHTML = '<span class="text-4xl">🎁</span>';
+                                    (e.currentTarget as HTMLImageElement).style.display = 'none';
                                   }}
                                 />
                               );
                             }
-                            return <span className="text-4xl">{gift.icon || '🎁'}</span>;
+                            return null;
                           })()}
                         </div>
                         <span className="text-xs font-bold text-fuchsia-600">×{gift.count}</span>
@@ -1498,13 +1496,12 @@ const ProfileDetail = () => {
                      
                       className="w-8 h-8 object-contain"
                       onError={(e) => {
-                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                        if (parent) parent.innerHTML = '<span class="text-2xl">🎁</span>';
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   );
                 }
-                return <span className="text-2xl">{selectedGift?.icon || '🎁'}</span>;
+                return null;
               })()}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
