@@ -58,6 +58,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
+  const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
@@ -363,7 +364,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    if (initializedRef.current) return;
+    if (resolvedConfigSrc && !config) return;
     if (!video.videoWidth || !video.videoHeight) return;
+    initializedRef.current = true;
     initWebGL(video, config);
     window.setTimeout(() => {
       if (!webglPaintedRef.current) {
@@ -373,7 +377,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         onLoadRef.current?.();
       }
     }, 450);
-  }, [config, initWebGL]);
+  }, [config, initWebGL, resolvedConfigSrc]);
 
   const handleEnded = useCallback(() => {
     if (loop || completedRef.current) return;
@@ -389,6 +393,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   useEffect(() => {
     webglPaintedRef.current = false;
+    initializedRef.current = false;
     completedRef.current = false;
     setUseVideoFallback(false);
     setLoading(true);
@@ -397,6 +402,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [resolvedSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return;
+    initializedRef.current = false;
+    webglPaintedRef.current = false;
+    handleVideoReady(video);
+  }, [config, handleVideoReady]);
 
   if (error) {
     return (
