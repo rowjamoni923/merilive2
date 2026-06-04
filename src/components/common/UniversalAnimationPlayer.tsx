@@ -212,6 +212,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       <Suspense fallback={<LoadingSpinner />}>
         <VAPPlayer
           src={resolvedSrc}
+          configSrc={configSrc}
           className={className}
           loop={loop}
           autoPlay={autoPlay}
