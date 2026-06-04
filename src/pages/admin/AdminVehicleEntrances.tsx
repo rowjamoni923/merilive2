@@ -444,7 +444,7 @@ const AdminVehicleEntrances = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="flex-1 bg-black rounded-lg overflow-hidden h-full">
-              <FixedAnimationFrame size="fill" center={false}
+              <FixedAnimationFrame size="fullscreen" center={true}
                 src={previewUrl}
                 
                 loop
