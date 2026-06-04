@@ -22,7 +22,7 @@ const TIMEOUT_MS = 120_000;
 const MAX_RETRIES = 3;
 
 async function fetchAsSvgaDataUrl(url: string): Promise<string> {
-  const response = await fetch(url);
+  const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
   if (!response.ok) throw new Error(`SVGA fetch failed: ${response.status}`);
   const bytes = new Uint8Array(await (await response.blob()).arrayBuffer());
   let binary = '';

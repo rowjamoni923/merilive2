@@ -168,7 +168,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     `;
 
     const fragmentShaderSource = `
-      precision mediump float;
+      precision highp float;
       varying vec2 v_texCoord;
       uniform sampler2D u_texture;
       uniform vec4 u_rgbRect;   // x, y, width, height (normalized)
@@ -180,6 +180,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
         );
+        // Professional VAP 1500x1334 assets often have compression bleed at the
+        // center seam. Inset sampling slightly to stay away from the border.
+        float edgeInset = 0.0005; 
+        rgbCoord.x = clamp(rgbCoord.x, u_rgbRect.x + edgeInset, u_rgbRect.x + u_rgbRect.z - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
         // Sample Alpha from right portion (grayscale)
@@ -187,6 +191,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           u_alphaRect.x + v_texCoord.x * u_alphaRect.z,
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
         );
+        alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
         // White matte = visible, black matte = transparent.
@@ -248,7 +253,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       alpha: true,
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
-      powerPreference: 'low-power',
+      powerPreference: 'high-performance',
     });
 
     if (!gl) {
@@ -302,7 +307,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Create texture
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -310,9 +317,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    // Calculate normalized coordinates
-    const videoWidth = video.videoWidth;
-    const videoHeight = video.videoHeight;
+    // Pre-allocate texture for performance optimization
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, videoWidth, videoHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
     let rgbRect: number[], alphaRect: number[];
 
@@ -361,7 +367,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const playing = !video.paused && !video.ended && video.readyState >= 2;
       if (playing) {
         try {
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clearColor(0, 0, 0, 0);
           gl.clear(gl.COLOR_BUFFER_BIT);

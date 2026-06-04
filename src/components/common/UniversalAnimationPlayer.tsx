@@ -339,6 +339,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
+          crossOrigin="anonymous"
           // HARD-DISABLED: this player drives gift / entry / lottery / live
           // overlay animations — a native play button or thumbnail poster on
           // top of a host stream or a flying gift is never acceptable. The
@@ -395,6 +396,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       <img loading="lazy" decoding="async" 
         src={resolvedSrc}
         alt="Animation"
+        crossOrigin="anonymous"
         className={cn(
           "w-full h-full object-contain pointer-events-none",
           !mediaLoaded && "opacity-0"
