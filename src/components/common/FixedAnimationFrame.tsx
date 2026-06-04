@@ -32,7 +32,7 @@ const SIZE_STYLES: Record<AnimationSizePreset, React.CSSProperties> = {
   large:        { width: 360, height: 360 },
   fill:         { width: '100%', height: '100%' },
   'full-square':{ width: '90vmin', height: '90vmin', maxWidth: '90vw', maxHeight: '90vh' },
-  fullscreen:   { width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 9999 },
+  fullscreen:   { width: '100dvw', height: '100dvh', position: 'fixed', top: 0, left: 0, zIndex: 2147483647 },
 };
 
 export interface FixedAnimationFrameProps {
