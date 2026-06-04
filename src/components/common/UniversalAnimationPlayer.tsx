@@ -216,7 +216,9 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   }
 
   // If not visible, render a placeholder to save GPU/CPU
-  if (!isVisible && !loop) {
+  // Pkg-fix: Bypass visibility check for full-screen overlays (fixed/inset-0)
+  const isOverlay = className?.includes('fixed') || className?.includes('inset-0');
+  if (!isVisible && !loop && !isOverlay) {
      return <div ref={containerRef} className={className} />;
   }
 
