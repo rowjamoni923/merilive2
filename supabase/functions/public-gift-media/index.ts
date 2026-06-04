@@ -103,12 +103,29 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    const publicGiftPath = `legacy-chat-media/${path.replace(/^gifts\//, "")}`;
-    const publicGiftUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${publicGiftPath.split("/").map(encodeURIComponent).join("/")}`;
+    const giftsBucketKey = path.replace(/^gifts\//, "");
+    const publicGiftPath = `legacy-chat-media/${giftsBucketKey}`;
+    const encodedGiftsKey = giftsBucketKey.split("/").map(encodeURIComponent).join("/");
+    const publicGiftUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${encodedGiftsKey}`;
+    const directGiftUrl = publicGiftUrl;
 
-    // Prefer the real public gifts bucket first. If the asset has already been
-    // copied there, redirect viewers to Supabase Storage CDN instead of proxying
-    // the bytes through this Edge Function on every request.
+    // 1) Try the real `gifts` bucket at the requested key directly.
+    // Source URLs look like /storage/v1/object/public/gifts/<key>, so the proxy
+    // path `gifts/<key>` maps to bucket=gifts, key=<key>.
+    const direct = await supabase.storage.from("gifts").download(giftsBucketKey);
+    if (direct.data && !direct.error) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": directGiftUrl,
+          "Cache-Control": "public, max-age=604800, immutable",
+          "X-Gift-Public-Url": directGiftUrl,
+        },
+      });
+    }
+
+    // 2) Legacy: asset copied under gifts/legacy-chat-media/<key>
     const existingPublic = await supabase.storage.from("gifts").download(publicGiftPath);
     if (existingPublic.data && !existingPublic.error) {
       return new Response(null, {
@@ -122,6 +139,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 3) Legacy fallback: chat-media bucket
     const { data, error } = await supabase.storage.from("chat-media").download(path);
     if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
