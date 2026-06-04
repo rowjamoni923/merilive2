@@ -251,6 +251,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const gl = canvas.getContext('webgl', {
       alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
@@ -364,7 +367,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     // VAP because alpha never composites).
     const render = () => {
       if (useVideoFallbackRef.current) return;
+      
       const playing = !video.paused && !video.ended && video.readyState >= 2;
+      
       if (playing) {
         try {
           gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
@@ -379,11 +384,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           return;
         }
       }
+
+      // If video has ended and no loop, stop the loop.
+      if (video.ended && !loop) {
+        animationRef.current = null;
+        return;
+      }
+
       const frameVideo = video as VideoFrameCallbackVideo;
-      // Only switch to rVFC after we have painted at least one real frame.
       if (webglPaintedRef.current && typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = frameVideo.requestVideoFrameCallback(() => render());
+        animationRef.current = frameVideo.requestVideoFrameCallback(render);
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
@@ -395,15 +406,22 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     // element's own autoplay attribute fires, which on some Android WebViews
     // happens AFTER our safety timeout.
     if (autoPlay && video.paused) {
-      const p = video.play();
-      if (p && typeof p.catch === 'function') {
-        p.catch(() => {
+      const playAttempt = async () => {
+        try {
+          await video.play();
+        } catch (err) {
+          console.warn('[VAPPlayer] Play with audio failed, retrying muted...', err);
           if (!video.muted) {
             video.muted = true;
-            video.play().catch(() => {});
+            try {
+              await video.play();
+            } catch (retryErr) {
+              console.error('[VAPPlayer] Muted playback also failed:', retryErr);
+            }
           }
-        });
-      }
+        }
+      };
+      playAttempt();
     }
 
     render();
@@ -436,12 +454,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     initWebGL(video, config);
     window.setTimeout(() => {
-      if (!webglPaintedRef.current && !useVideoFallbackRef.current) {
-        // Do NOT drop a real VAP composite to cropped-video fallback just because
-        // the first decoded frame is slow. The fallback can only show the RGB half
-        // (or the alpha mask half), which is exactly the broken-looking state users
-        // reported for professional 15s/30MB gifts. Keep the RAF WebGL loop alive;
-        // it will paint as soon as Android/Chrome decodes the first usable frame.
+      if (!webglPaintedRef.current && !useVideoFallbackRef.current && video.readyState >= 2 && !video.paused) {
+        // Only log if we are actually attempting to play but nothing has painted.
         console.warn('[VAPPlayer] WebGL first frame is still pending; keeping alpha-composite renderer active');
       }
     }, 5000);

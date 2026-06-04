@@ -107,7 +107,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   configSrc,
   loop = true,
   autoPlay = true,
-  muted = true,
+  muted = false,
   volume = 0.8,
   onLoad,
   onError,

@@ -34,7 +34,7 @@ interface SVGAPlayerWithAudioProps {
 const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   src,
   className,
-  loop = false,
+  loop = true,
   autoPlay = true,
   onLoad,
   onError,
@@ -206,9 +206,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             }
           });
         } else {
-          player.onFinished(() => {
-            requestAnimationFrame(resumeLoopingAnimation);
-          });
+          // Native looping is enabled via player.loops = 0.
+          // No need to manually resume via onFinished, which can cause flicker.
         }
 
         if (autoPlay) {

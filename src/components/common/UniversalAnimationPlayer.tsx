@@ -95,7 +95,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   className,
   loop = true,
   autoPlay = true,
-  muted = true,
+  muted = false,
   volume = 0.7,
   onLoad,
   onError,
