@@ -239,6 +239,15 @@ const AdminPartyBackgrounds = () => {
       });
       if (error) throw error;
       if (data) {
+        const insertedId = (data as any).id;
+        // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
+        if (insertedId && (formData.animation_url || formData.animation_format || formData.animation_config_url)) {
+          await supabase.from('party_room_backgrounds').update({
+            animation_url: formData.animation_url || null,
+            animation_format: formData.animation_format || null,
+            animation_config_url: formData.animation_config_url || null,
+          }).eq('id', insertedId);
+        }
         setBackgrounds(prev => [...prev, {
           ...(data as any),
           category: (data as any).category || 'nature',
