@@ -2522,7 +2522,12 @@ const Chat = () => {
                               <video 
                                 src={displayUrl} 
                                 controls
-                                className="max-w-[200px] max-h-[200px] rounded-xl"/>
+                                controlsList="nodownload noremoteplayback noplaybackrate"
+                                disablePictureInPicture
+                                disableRemotePlayback
+                                playsInline
+                                preload="metadata"
+                                className="max-w-[200px] max-h-[200px] rounded-xl bg-black"/>
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
