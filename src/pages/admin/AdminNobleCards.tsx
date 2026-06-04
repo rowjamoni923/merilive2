@@ -365,7 +365,7 @@ const AdminNobleCards = () => {
             </div>
             {formData.animation_url && (
               <div className="aspect-[3/1] bg-muted rounded-lg overflow-hidden">
-                <FixedAnimationFrame size="fill" center={false} src={formData.animation_url}  loop />
+                <FixedAnimationFrame size="card" center={true} src={formData.animation_url}  loop />
               </div>
             )}
           </div>
