@@ -647,7 +647,7 @@ const AdminEntryBars = () => {
           </DialogHeader>
           <div className="flex items-center justify-center min-h-[400px]">
             {previewUrl && (
-              <FixedAnimationFrame size="fill" center={false}
+              <FixedAnimationFrame size="card" center={true}
                 src={previewUrl}
                 className="max-w-full max-h-[60vh] object-contain"
                 loop
