@@ -1317,17 +1317,25 @@ const VIP = () => {
                                 ? 'ring-2 ring-green-500 shadow-green-500/30' 
                                 : `ring-1 ring-amber-200/50 ${ringColor}`
                           }`}>
-                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
-                              <FixedAnimationFrame
-                                src={priv.animation_url || ''}
-                                placeholderUrl={priv.preview_url || undefined}
-                                className="w-full h-full"
-                                size="fill"
-                                loop
-                                autoPlay
-                                muted
-                                fallbackEmoji="🎁"
-                              />
+                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center p-2`}>
+                              {priv.preview_url ? (
+                                <img 
+                                  src={priv.preview_url} 
+                                  alt={priv.name}
+                                  className="w-[85%] h-[85%] object-contain drop-shadow-md"
+                                  loading="eager"
+                                />
+                              ) : (
+                                <FixedAnimationFrame
+                                  src={priv.animation_url || ''}
+                                  className="w-full h-full"
+                                  size="fill"
+                                  loop
+                                  autoPlay
+                                  muted
+                                  fallbackEmoji="🎁"
+                                />
+                              )}
                             </div>
                             
                             {/* Equipped indicator */}
