@@ -162,16 +162,17 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
               />
             )}
 
-            {(isLottie || isVap) && (
+            {(isLottie || isVap || isVideo) && (
               <FixedAnimationFrame
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
                 height="100dvh"
-                type={isLottie ? 'lottie' : 'vap'}
+                type={isLottie ? 'lottie' : isVideo ? 'mp4' : 'vap'}
                 loop={false}
                 autoPlay
-                muted
+                muted={isVideo ? false : true}
+                volume={isVideo ? 0.85 : undefined}
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
