@@ -85,6 +85,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const soundHandleRef = useRef<{ stop: () => void } | null>(null);
 
   const onLoadRef = useRef(onLoad);
   const onErrorRef = useRef(onError);
@@ -147,6 +148,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
+        // High-precision sampling with slight edge insets to prevent bleed from alpha channel
         float edgeInset = 0.0005; 
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
@@ -162,7 +164,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        gl_FragColor = vec4(rgbColor.rgb, alphaColor.r);
+        // Output premultiplied alpha for cleaner blending on edges
+        gl_FragColor = vec4(rgbColor.rgb * alphaColor.r, alphaColor.r);
       }
     `;
 
@@ -207,10 +210,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const gl = canvas.getContext('webgl', {
       alpha: true,
-      antialias: false,
+      antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: false,
+      premultipliedAlpha: true, // Switched to true for professional blending
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     });
@@ -259,14 +262,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     let rgbRect: number[], alphaRect: number[];
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
+    const dpr = window.devicePixelRatio || 1;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w; canvas.height = cfg.h;
+      canvas.width = cfg.w * dpr; 
+      canvas.height = cfg.h * dpr;
     } else {
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
-      canvas.width = videoWidth / 2; canvas.height = videoHeight;
+      canvas.width = (videoWidth / 2) * dpr; 
+      canvas.height = videoHeight * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
@@ -314,10 +320,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           if (!muted && soundUrl) {
             console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
             const { playSoundUrl } = await import('@/utils/soundPlayer');
-            playSoundUrl(soundUrl, { volume: volume, loop, maxConcurrent: 2 });
+            // If we have a soundUrl, we mute the video to prevent doubling
+            videoRef.current.muted = true;
+            soundHandleRef.current = playSoundUrl(soundUrl, { 
+              volume: volume, 
+              loop, 
+              maxConcurrent: 2 
+            });
+          } else {
+            videoRef.current.muted = muted;
           }
 
-          videoRef.current.muted = muted;
           videoRef.current.volume = volume;
           await videoRef.current.play();
         } catch {
@@ -365,6 +378,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      if (soundHandleRef.current) {
+        soundHandleRef.current.stop();
+        soundHandleRef.current = null;
+      }
       if (animationRef.current !== null) {
         if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
           (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);

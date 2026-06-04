@@ -77,8 +77,9 @@ const PAGPlayer: React.FC<PAGPlayerProps> = ({
 
         const canvas = canvasRef.current;
         if (!canvas) return;
-        canvas.width = pagFile.width();
-        canvas.height = pagFile.height();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = pagFile.width() * dpr;
+        canvas.height = pagFile.height() * dpr;
 
         pagSurface = PAG.PAGSurface.fromCanvas(canvas);
         pagPlayer = new PAG.PAGPlayer();
