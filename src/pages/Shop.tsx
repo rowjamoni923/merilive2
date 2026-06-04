@@ -129,6 +129,9 @@ const categories = [
 const isEntryAnimationCategory = (category: string) => 
   ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
 
+const isWideCategory = (category: string) =>
+  ['entry_bar', 'party_background', 'entry_banner', 'entry_name_bar'].includes(category);
+
 const shouldClearEntryAnimationCache = (category: string) =>
   ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
 
@@ -452,6 +455,26 @@ const Shop = () => {
         const newBalance = Number(bgResult.new_balance ?? (userDiamonds - (bgResult.price_paid ?? item.price_diamonds)));
         setUserDiamonds(Number.isFinite(newBalance) ? newBalance : userDiamonds - item.price_diamonds);
         setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
+        
+        // Pkg: Automatically apply background to user's room for "instant" use
+        try {
+          const { data: rooms } = await supabase
+            .from("party_rooms")
+            .select("id")
+            .eq("host_id", user.id);
+          
+          if (rooms && rooms.length > 0) {
+            await supabase
+              .from("party_rooms")
+              .update({ 
+                background_id: actualItemId,
+                background_url: item.preview_url 
+              })
+              .eq("host_id", user.id);
+          }
+        } catch (err) {
+          console.error("Failed to auto-apply room background:", err);
+        }
       } else {
 
         const { data: purchaseData, error: purchaseError } = await (supabase as any).rpc("purchase_shop_item", {
@@ -629,7 +652,7 @@ const Shop = () => {
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent
           className={`border-0 shadow-2xl ${
-            selectedItem && isEntryAnimationCategory(selectedItem.category)
+            selectedItem && (isEntryAnimationCategory(selectedItem.category) || isWideCategory(selectedItem.category))
               ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
               : 'max-w-sm'
           }`}
@@ -653,8 +676,10 @@ const Shop = () => {
                   className={`${
                     isEntryAnimationCategory(selectedItem.category)
                       ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
-                      : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
+                      : isWideCategory(selectedItem.category)
+                        ? 'aspect-video w-full'
+                        : 'aspect-square'
+                  } rounded-2xl flex items-center justify-center p-4 relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
@@ -669,7 +694,7 @@ const Shop = () => {
                         type={animType as any}
                         placeholderUrl={selectedItem.preview_url || undefined}
                         configSrc={selectedItem.animation_config_url || undefined}
-                        size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                        size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : (isWideCategory(selectedItem.category) ? 'fill' : 'large')}
                         loop
                         autoPlay
                         muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
