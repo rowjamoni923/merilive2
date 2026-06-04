@@ -82,6 +82,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mountedRef = useRef(true);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
   const frameCallbackModeRef = useRef<'raf' | 'rvfc'>('raf');
