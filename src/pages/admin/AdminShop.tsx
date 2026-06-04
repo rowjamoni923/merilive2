@@ -1306,7 +1306,8 @@ const AdminShop = () => {
                   <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
                 if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
-                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline controls controlsList="nodownload noremoteplayback noplaybackrate" disablePictureInPicture disableRemotePlayback/>;
+                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="fill" center={false} loop muted />;
+                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="fill" center={false} loop muted />;
                 return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>
