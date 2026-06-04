@@ -1008,9 +1008,9 @@ export function usePrivateCall(userId: string | null) {
       // host is locked in_call. Settle the row server-side BEFORE resetting local
       // state so both sides get the realtime 'ended' event.
       try {
-        if (incomingCall?.id) {
+        if (incomingCall?.callId) {
           await supabase.rpc('end_private_call', {
-            _call_id: incomingCall.id,
+            _call_id: incomingCall.callId,
             _end_reason: 'connect_failed',
           });
         }
