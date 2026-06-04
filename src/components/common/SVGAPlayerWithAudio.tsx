@@ -4,6 +4,7 @@ import { loadSVGA, stripAudio } from '@/utils/svgaLoader';
 import { getSVGAModule } from '@/utils/svgaPrewarm';
 import { extractAudioFromSVGA } from '@/utils/svgaAudioExtractor';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
+import { playSoundUrl, type SoundHandle } from '@/utils/soundPlayer';
 import { Howl } from 'howler';
 import {
   isAnimationDebugEnabled,
@@ -52,6 +53,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const mountedRef = useRef(true);
   const activeHowlsRef = useRef<Howl[]>([]);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
+  const activeSoundHandlesRef = useRef<SoundHandle[]>([]);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
@@ -84,6 +86,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     activeHowlsRef.current = [];
     activeAudiosRef.current.forEach(a => { try { a.pause(); a.src = ''; } catch {} });
     activeAudiosRef.current = [];
+    activeSoundHandlesRef.current.forEach(h => { try { h.stop(); } catch {} });
+    activeSoundHandlesRef.current = [];
   }, []);
 
   const handleAnimationComplete = useCallback((source: AnimationCompletionSource = 'unknown') => {
@@ -179,17 +183,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
               // CRITICAL: Only play fallback sound if NO internal sound was found in the SVGA
               if (!audioFound && soundUrl) {
                 console.log('[SVGAPlayerWithAudio] 🔊 No internal sound found, playing fallback:', soundUrl.split('/').pop());
-                const fallbackHowl = new Howl({ 
-                  src: [soundUrl], 
-                  volume: clampedVolume, 
-                  loop, 
-                  html5: true,
-                  onplayerror: () => {
-                    fallbackHowl.once('unlock', () => fallbackHowl.play());
-                  }
-                });
-                activeHowlsRef.current.push(fallbackHowl);
-                fallbackHowl.play();
+                const handle = playSoundUrl(soundUrl, { volume: clampedVolume, loop, maxConcurrent: 2 });
+                activeSoundHandlesRef.current.push(handle);
                 audioFound = true;
               }
             } catch (e) {
@@ -279,9 +274,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef);
       });
     } else if (!internalSoundFoundRef.current && soundUrl) {
-      const fallbackHowl = new Howl({ src: [soundUrl], volume: clampedVolume, loop: false, html5: true });
-      activeHowlsRef.current.push(fallbackHowl);
-      fallbackHowl.play();
+      const handle = playSoundUrl(soundUrl, { volume: clampedVolume, loop: false, maxConcurrent: 2 });
+      activeSoundHandlesRef.current.push(handle);
     }
   }, [triggerKey, loading, volume, loop, soundUrl]);
 
