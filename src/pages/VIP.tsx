@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
   Crown, 
