@@ -198,7 +198,7 @@ export const AnimationUploader: React.FC<Props> = ({
     e.target.value = '';
 
     const detectedByExt = detectFormatByExtension(file.name);
-    const detectedFormat = detectedByExt === 'mp4' && await looksLikeSideBySideVap(file) ? 'vap' : detectedByExt;
+    const detectedFormat = detectedByExt === 'mp4' && (format === 'vap' || await looksLikeSideBySideVap(file)) ? 'vap' : detectedByExt;
     const uploadFormat = detectedFormat || format;
     const limit = FORMAT_LIMITS_MB[uploadFormat];
     if (file.size > limit * 1024 * 1024) {
