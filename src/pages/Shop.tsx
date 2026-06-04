@@ -166,7 +166,7 @@ const ShopItemCard = ({
           }
         }
       }}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl active:scale-[0.96]"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
         border: '1px solid rgba(217,182,107,0.40)',
@@ -199,7 +199,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden bg-white/50 backdrop-blur-sm`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -213,7 +213,7 @@ const ShopItemCard = ({
           const animSrc = item.animation_file_url || item.animation_url || '';
           
           return (
-            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+            <div className={`relative ${isFullWidth ? 'w-[92%] h-[92%] scale-110' : 'w-[92%] h-[92%]'}`}>
               <FixedAnimationFrame
                 src={animSrc}
                 type={animType as any}
@@ -223,7 +223,7 @@ const ShopItemCard = ({
                 loop
                 autoPlay
                 muted
-                center={false}
+                center={true}
                 onError={() => setImageError(true)}
               />
             </div>
@@ -559,7 +559,7 @@ const Shop = () => {
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-1 justify-center md:justify-start">
+          <div className="flex gap-2 pb-1 justify-center">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
@@ -619,7 +619,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3 justify-items-center`}>
+          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-4 justify-center justify-items-center max-w-5xl mx-auto`}>
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}

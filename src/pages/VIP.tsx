@@ -1030,7 +1030,7 @@ const VIP = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList
-          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
+          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1 justify-center"
           style={{
             background: 'rgba(15,23,42,0.08)',
             boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
@@ -1124,7 +1124,7 @@ const VIP = () => {
           )}
 
           {/* VIP Tiers Grid */}
-          <div className="grid gap-4">
+          <div className="grid gap-4 max-w-2xl mx-auto w-full">
             {tiers.map((tier, index) => {
               const TierIcon = getTierIcon(tier.tier_level);
               const privileges = getPrivilegesList(tier);
@@ -1205,7 +1205,7 @@ const VIP = () => {
                   <div className="p-4 bg-white/95">
                     {tier.description && <p className="text-heading text-sm mb-3 leading-snug">{tier.description}</p>}
 
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="grid grid-cols-2 gap-2 mb-4 justify-items-center">
                       {privileges.slice(0, 6).map((priv, i) => (
                         <div
                           key={i}
@@ -1299,10 +1299,9 @@ const VIP = () => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay }}
                   >
-                    <div className="flex items-center gap-2 text-lg font-bold mb-3">
+                    <div className="flex items-center justify-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
                       <span className="text-heading">{title}</span>
-                        <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-3 justify-center">
