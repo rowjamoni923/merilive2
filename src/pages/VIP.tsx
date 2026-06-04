@@ -1308,7 +1308,7 @@ const VIP = () => {
                         <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3 justify-center">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
