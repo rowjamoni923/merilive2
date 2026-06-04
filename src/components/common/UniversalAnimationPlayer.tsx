@@ -209,11 +209,17 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   // Error fallback
   if (hasError) {
     return (
-      <div className={cn("flex items-center justify-center text-4xl", className)}>
+      <div ref={containerRef} className={cn("flex items-center justify-center text-4xl", className)}>
         {fallbackEmoji}
       </div>
     );
   }
+
+  // If not visible, render a placeholder to save GPU/CPU
+  if (!isVisible && !loop) {
+     return <div ref={containerRef} className={className} />;
+  }
+
 
   // Loading spinner component
   const LoadingSpinner = () => (
