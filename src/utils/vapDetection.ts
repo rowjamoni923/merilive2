@@ -28,7 +28,7 @@ export const isLikelyVapCompositeSize = (width: number, height: number): boolean
 export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySideLayout | null => {
   const width = video.videoWidth;
   const height = video.videoHeight;
-  if (!width || !height || width < 100 || height < 100) return null;
+  if (!isLikelyVapCompositeSize(width, height)) return null;
 
   try {
     const canvas = document.createElement('canvas');
