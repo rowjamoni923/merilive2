@@ -1299,9 +1299,9 @@ const VIP = () => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay }}
                   >
-                    <div className="flex items-center justify-center gap-2 text-lg font-bold mb-3">
+                    <div className="flex items-center justify-center gap-2 text-base font-bold mb-4">
                       <span>{icon}</span>
-                      <span className="text-heading">{title}</span>
+                      <span className="text-heading tracking-wide uppercase text-sm">{title}</span>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 justify-items-center max-w-lg mx-auto">
