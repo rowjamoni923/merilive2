@@ -54,6 +54,8 @@ export interface FlyingGiftData {
   giftIcon: string;
   giftImageUrl?: string;
   animationUrl?: string;
+  animationFormat?: string | null;
+  animationConfigUrl?: string;
   soundUrl?: string;
   giftColor: string;
   count: number;
