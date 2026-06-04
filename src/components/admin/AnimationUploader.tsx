@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils';
 export type AnimationFormat =
   | 'svga'
   | 'vap'
+  | 'pag'
   | 'lottie'
   | 'webp'
   | 'png'
@@ -64,6 +65,7 @@ interface Props {
 const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
   svga: 3,
   vap: 8,
+  pag: 5,
   lottie: 0.5,
   webp: 2,
   png: 2,
@@ -75,6 +77,7 @@ const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
 const FORMAT_LABEL: Record<AnimationFormat, string> = {
   svga: 'SVGA (Bigo / YY standard)',
   vap: 'VAP — HD MP4 + alpha (Chamet / MICO premium)',
+  pag: 'PAG (Tencent — Chamet 2025+ / TikTok standard)',
   lottie: 'Lottie (After Effects JSON)',
   webp: 'Animated WebP',
   png: 'PNG (static)',
@@ -86,6 +89,7 @@ const FORMAT_LABEL: Record<AnimationFormat, string> = {
 const FORMAT_ACCEPT: Record<AnimationFormat, string> = {
   svga: '.svga',
   vap: '.mp4',
+  pag: '.pag',
   lottie: '.json,application/json',
   webp: '.webp,image/webp',
   png: '.png,image/png',

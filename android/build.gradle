@@ -16,6 +16,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Pkg425 — JitPack hosts SVGAPlayer-Android (Tencent / YY professional SVGA player)
+        maven { url 'https://jitpack.io' }
     }
 }
 
