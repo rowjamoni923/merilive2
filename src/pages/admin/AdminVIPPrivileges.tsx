@@ -660,6 +660,31 @@ const AdminVIPPrivileges = () => {
                     Upload SVGA, Lottie, GIF, or MP4 animations for each privilege type (max 100MB)
                   </p>
 
+                  {/* Pkg424 — Signature Pro Animation (VAP w/ alpha config) — single shared slot on the tier */}
+                  <div className="bg-slate-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Crown className="w-5 h-5 text-amber-400" />
+                      <span className="text-white font-medium">Pro Animation (VAP / SVGA / Lottie / WebP / MP4)</span>
+                    </div>
+                    <AnimationUploader
+                      label=""
+                      bucket="vip-assets"
+                      folder="unified"
+                      value={{
+                        animation_url: (tierForm as any).animation_url || '',
+                        animation_format: ((tierForm as any).animation_format ?? null) as AnimationFormat | null,
+                        animation_config_url: (tierForm as any).animation_config_url || null,
+                      }}
+                      onChange={(v) => setTierForm(prev => ({
+                        ...prev,
+                        animation_url: v.animation_url || null,
+                        animation_format: v.animation_format,
+                        animation_config_url: v.animation_config_url || null,
+                      } as any))}
+                    />
+                  </div>
+
+
                   {/* Frame Animation */}
                   <div className="bg-slate-800 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
