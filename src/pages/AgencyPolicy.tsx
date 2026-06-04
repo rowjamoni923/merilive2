@@ -129,6 +129,15 @@ const AgencyPolicy = () => {
 
   const exchangeRate = policyData?.exchange_rate || { rate: 9000, currency: 'Beans', display: '9,000 Beans = $1 USD' };
   const commissionTiers = (levelTiers ?? []).length > 0 ? (levelTiers ?? []).map(tier => ({ level: tier.level_code, name: tier.level_name, income_min: tier.min_weekly_income, income_max: tier.max_weekly_income === 9999999999 ? null : tier.max_weekly_income, rate: tier.commission_rate })) : policyData?.commission_tiers?.tiers || [];
+  
+  // New: Get list-based data for various sections
+  const commissionPolicy = (policyData as any)?.commission?.items || [];
+  const hostManagementPolicy = (policyData as any)?.host_management?.items || [];
+  const rulesPolicy = (policyData as any)?.rules?.items || [];
+  const penaltiesPolicy = (policyData as any)?.penalties?.items || [];
+  const benefitsPolicy = (policyData as any)?.benefits?.items || [];
+  const privacyPolicy = (policyData as any)?.privacy?.items || [];
+
   const hostRequirements = policyData?.host_requirements?.requirements || [];
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
