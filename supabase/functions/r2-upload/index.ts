@@ -1,15 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-admin-token, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 };
-
-// In-memory buffer for accumulating parts (simple solution for serverless)
-// Note: In production, consider using external storage for very large files
-const partBuffers = new Map<string, { data: Uint8Array[], totalSize: number }>();
 
 // Allowed MIME types for upload
 const ALLOWED_MIME_TYPES = new Set([
@@ -21,8 +17,8 @@ const ALLOWED_MIME_TYPES = new Set([
   'model/gltf-binary', 'model/gltf+json',
 ]);
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB max per user request (Pkg500: expanded for high-res VAP/Vibe animations)
-const SUPABASE_FALLBACK_BUCKET = 'animations';
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB max per user request
+const SUPABASE_FALLBACK_BUCKET = 'gifts'; // Use the main gifts bucket as fallback
 
 type UploadPrincipal = {
   id: string;
@@ -68,12 +64,14 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check: app users via JWT, admin panel via x-admin-token.
+    // Authentication check
     const authHeader = req.headers.get('Authorization');
     const adminToken = req.headers.get('x-admin-token');
     let principal: UploadPrincipal | null = null;
 
-    const serviceClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     if (adminToken && adminToken.length >= 16) {
       const { data: sessionRow } = await serviceClient
@@ -94,7 +92,7 @@ serve(async (req) => {
     }
 
     if (!principal && authHeader) {
-      const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!,
+      const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!,
         { global: { headers: { Authorization: authHeader } } });
       const { data: { user }, error: authError } = await authClient.auth.getUser();
       if (!authError && user) principal = { id: user.id, kind: 'user' };
@@ -105,26 +103,26 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const R2_ACCESS_KEY_ID = Deno.env.get('R2_ACCESS_KEY_ID');
-    const R2_SECRET_ACCESS_KEY = Deno.env.get('R2_SECRET_ACCESS_KEY');
-    const R2_ACCOUNT_ID = Deno.env.get('R2_ACCOUNT_ID');
-    const R2_BUCKET_NAME = Deno.env.get('R2_BUCKET_NAME');
-    const R2_PUBLIC_URL = Deno.env.get('R2_PUBLIC_URL') || 'https://pub-cf8f2b50360c40fd88f5f6a6842f86f3.r2.dev';
+    // R2 Configuration with trimming for reliability
+    const R2_ACCESS_KEY_ID = Deno.env.get('R2_ACCESS_KEY_ID')?.trim();
+    const R2_SECRET_ACCESS_KEY = Deno.env.get('R2_SECRET_ACCESS_KEY')?.trim();
+    const R2_ACCOUNT_ID = Deno.env.get('R2_ACCOUNT_ID')?.trim();
+    const R2_BUCKET_NAME = Deno.env.get('R2_BUCKET_NAME')?.trim();
+    const R2_PUBLIC_URL = Deno.env.get('R2_PUBLIC_URL')?.trim() || 'https://pub-cf8f2b50360c40fd88f5f6a6842f86f3.r2.dev';
 
     if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ACCOUNT_ID || !R2_BUCKET_NAME) {
       console.error('Missing R2 configuration');
       return new Response(
-        JSON.stringify({ error: 'R2 configuration missing' }),
+        JSON.stringify({ error: 'R2 configuration missing. Please set R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, and R2_BUCKET_NAME.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const contentType = req.headers.get('content-type') || '';
-    
-    // ACTION FROM QUERY PARAMS (for fast binary part uploads)
     const urlObj = new URL(req.url);
     const queryAction = urlObj.searchParams.get('action');
 
+    // === ACTION: Upload part (Binary) ===
     if (queryAction === 'upload-part') {
       const uploadId = urlObj.searchParams.get('uploadId');
       const key = urlObj.searchParams.get('key');
@@ -140,15 +138,12 @@ serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Read binary body directly (NO BASE64)
       const bytes = new Uint8Array(await req.arrayBuffer());
       if (bytes.length === 0) {
         return new Response(JSON.stringify({ error: 'Empty body' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      console.log(`[Multipart-Binary] Received part ${partNumber} (${(bytes.length / 1024 / 1024).toFixed(2)}MB)`);
-      
       const etag = await uploadPart(
         key, uploadId, partNumber, bytes,
         R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME
@@ -160,101 +155,46 @@ serve(async (req) => {
       );
     }
 
-    // Handle JSON actions for multipart upload (backward compatibility and init/complete)
+    // === JSON Actions ===
     if (contentType.includes('application/json')) {
       const body = await req.json();
-      const { action, folder, fileName, fileType, fileSize, partNumber, uploadId, key, parts, partData, totalParts, isLastPart } = body;
+      const { action, folder, fileName, fileType, fileSize, partNumber, uploadId, key, parts } = body;
       
-      // === ACTION: Initialize multipart upload ===
       if (action === 'init-multipart') {
-        // Validate file type
         if (fileType && !isAllowedFileType(fileType)) {
-          return new Response(
-            JSON.stringify({ error: `File type not allowed: ${fileType}` }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        // Validate file size
-        if (fileSize && !isAllowedFileSize(fileSize)) {
-          return new Response(
-            JSON.stringify({ error: `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024*1024)}MB)` }),
-            { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return new Response(JSON.stringify({ error: `File type not allowed: ${fileType}` }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
         
         const generatedKey = scopedKey(principal, folder, fileName || 'file');
         
-        const newUploadId = await initiateMultipartUpload(
-          generatedKey,
-          fileType || 'application/octet-stream',
-          R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME
-        );
-        
-        console.log(`[Multipart] Initiated: ${generatedKey} (uploadId: ${newUploadId.substring(0, 20)}..., fileSize: ${fileSize})`);
-        
-        return new Response(
-          JSON.stringify({ success: true, uploadId: newUploadId, key: generatedKey }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        try {
+          const newUploadId = await initiateMultipartUpload(
+            generatedKey,
+            fileType || 'application/octet-stream',
+            R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME
+          );
+          return new Response(
+            JSON.stringify({ success: true, uploadId: newUploadId, key: generatedKey }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } catch (err: any) {
+          console.error('R2 init failed, checking if it is HandshakeFailure:', err);
+          if (err.message?.includes('HandshakeFailure') || err.message?.includes('Connect')) {
+             return new Response(
+               JSON.stringify({ error: 'Cloudflare R2 SSL Handshake Failure. Your R2 account might be suspended or misconfigured. Falling back to Supabase...', isHandshakeError: true }),
+               { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+             );
+          }
+          throw err;
+        }
       }
       
-      // === ACTION: Upload a single part (PROXY - edge function uploads to R2) ===
-      if (action === 'upload-part') {
-        if (!uploadId || !key || !partNumber || !partData) {
-          return new Response(
-            JSON.stringify({ error: 'Missing uploadId, key, partNumber, or partData' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        if (!keyBelongsToPrincipal(key, principal)) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid upload key' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        // Decode base64 data
-        const binaryString = atob(partData);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        const partSizeMB = (bytes.length / (1024 * 1024)).toFixed(2);
-        console.log(`[Multipart] Received part ${partNumber}/${totalParts || '?'} (${partSizeMB}MB, isLast: ${isLastPart})`);
-        
-        // Upload the part directly to R2
-        const etag = await uploadPart(
-          key, uploadId, partNumber, bytes,
-          R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME
-        );
-        
-        console.log(`[Multipart] Part ${partNumber} uploaded for: ${key} (ETag: ${etag})`);
-        
-        return new Response(
-          JSON.stringify({ success: true, etag, partNumber }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      // === ACTION: Complete multipart upload ===
       if (action === 'complete-multipart') {
         if (!uploadId || !key || !parts || !Array.isArray(parts)) {
-          return new Response(
-            JSON.stringify({ error: 'Missing uploadId, key, or parts array' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return new Response(JSON.stringify({ error: 'Missing uploadId, key, or parts array' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-
-        if (!keyBelongsToPrincipal(key, principal)) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid upload key' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        console.log(`[Multipart] Completing upload with ${parts.length} parts for: ${key}`);
         
         await completeMultipartUpload(
           key, uploadId, parts,
@@ -262,63 +202,25 @@ serve(async (req) => {
         );
         
         const publicUrl = `${R2_PUBLIC_URL}/${key}`;
-        console.log(`[Multipart] Complete: ${publicUrl}`);
-        
         return new Response(
           JSON.stringify({ success: true, url: publicUrl }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
-      return new Response(
-        JSON.stringify({ error: 'Unknown action' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
-    
-    // Handle direct multipart upload (for smaller files < 50MB)
+
+    // Direct upload
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
       const file = formData.get('file') as File;
       const folder = formData.get('folder') as string || 'uploads';
 
       if (!file) {
-        return new Response(
-          JSON.stringify({ error: 'No file provided' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'No file provided' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-
-      // Validate file type
-      if (!isAllowedFileType(file.type)) {
-        return new Response(
-          JSON.stringify({ error: `File type not allowed: ${file.type}` }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Validate file size
-      if (!isAllowedFileSize(file.size)) {
-        return new Response(
-          JSON.stringify({ error: `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024*1024)}MB)` }),
-          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      if (file.size > 50 * 1024 * 1024) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'File too large for direct upload. Use multipart upload method.',
-            useMultipart: true
-          }),
-          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log(`[Direct] Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
 
       const key = scopedKey(principal, folder, file.name);
-
       const fileBuffer = await file.arrayBuffer();
       const fileBytes = new Uint8Array(fileBuffer);
       
@@ -329,8 +231,8 @@ serve(async (req) => {
           file.type || 'application/octet-stream',
           R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL
         );
-      } catch (r2Error) {
-        console.error('[Direct] R2 upload failed, falling back to Supabase Storage:', r2Error);
+      } catch (r2Error: any) {
+        console.warn('R2 direct upload failed, falling back to Supabase Storage:', r2Error);
         publicUrlResult = await uploadToSupabaseFallback(
           serviceClient,
           fileBytes,
@@ -339,305 +241,109 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[Direct] Success: ${publicUrlResult}`);
-
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          url: publicUrlResult,
-          key: key,
-          size: file.size,
-          type: file.type
-        }),
+        JSON.stringify({ success: true, url: publicUrlResult, key }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Invalid request format. Use multipart/form-data or application/json.' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: 'Unsupported request' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-  } catch (error) {
-    console.error('Error in r2-upload:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  } catch (error: any) {
+    console.error('Critical error in r2-upload:', error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: error.message || 'Internal Server Error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-// ============= S3 Multipart Upload Functions =============
+// === S3 API Implementation ===
 
-async function initiateMultipartUpload(
-  key: string,
-  contentType: string,
-  accessKeyId: string,
-  secretAccessKey: string,
-  accountId: string,
-  bucketName: string
-): Promise<string> {
+async function initiateMultipartUpload(key: string, contentType: string, accessKeyId: string, secretAccessKey: string, accountId: string, bucketName: string): Promise<string> {
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const url = `${endpoint}/${bucketName}/${key}?uploads`;
-  
-  const headers = await signRequest('POST', `/${bucketName}/${key}`, 'uploads=', {
-    'content-type': contentType,
-  }, accessKeyId, secretAccessKey, accountId);
-  
+  const headers = await signRequest('POST', `/${bucketName}/${key}`, 'uploads=', { 'content-type': contentType }, accessKeyId, secretAccessKey, accountId);
   const response = await fetch(url, { method: 'POST', headers });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('InitiateMultipartUpload failed:', errorText);
-    throw new Error(`Failed to initiate multipart upload: ${response.status}`);
-  }
-  
-  const xmlText = await response.text();
-  const uploadIdMatch = xmlText.match(/<UploadId>([^<]+)<\/UploadId>/);
-  if (!uploadIdMatch) {
-    throw new Error('Could not parse UploadId from response');
-  }
-  
-  return uploadIdMatch[1];
+  if (!response.ok) throw new Error(`R2 Initiate failed: ${response.status} ${await response.text()}`);
+  const xml = await response.text();
+  return xml.match(/<UploadId>([^<]+)<\/UploadId>/)?.[1] || '';
 }
 
-// Upload a single part (server-side proxy to avoid CORS issues)
-async function uploadPart(
-  key: string,
-  uploadId: string,
-  partNumber: number,
-  data: Uint8Array,
-  accessKeyId: string,
-  secretAccessKey: string,
-  accountId: string,
-  bucketName: string
-): Promise<string> {
+async function uploadPart(key: string, uploadId: string, partNumber: number, data: Uint8Array, accessKeyId: string, secretAccessKey: string, accountId: string, bucketName: string): Promise<string> {
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-  const queryString = `partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
-  const url = `${endpoint}/${bucketName}/${key}?${queryString}`;
-  
+  const qs = `partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
+  const url = `${endpoint}/${bucketName}/${key}?${qs}`;
   const contentHash = await sha256Bytes(data);
-  
-  const headers = await signRequest('PUT', `/${bucketName}/${key}`, queryString, {
-    'content-length': data.length.toString(),
-  }, accessKeyId, secretAccessKey, accountId, contentHash);
-  
-  const response = await fetch(url, { 
-    method: 'PUT', 
-    headers, 
-    body: data.buffer as ArrayBuffer 
-  });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`UploadPart ${partNumber} failed:`, errorText);
-    throw new Error(`Failed to upload part ${partNumber}: ${response.status}`);
-  }
-  
-  const etag = response.headers.get('ETag') || `"part-${partNumber}"`;
-  return etag;
+  const headers = await signRequest('PUT', `/${bucketName}/${key}`, qs, { 'content-length': data.length.toString() }, accessKeyId, secretAccessKey, accountId, contentHash);
+  const response = await fetch(url, { method: 'PUT', headers, body: data.buffer as ArrayBuffer });
+  if (!response.ok) throw new Error(`R2 UploadPart ${partNumber} failed: ${response.status}`);
+  return response.headers.get('ETag') || '';
 }
 
-async function completeMultipartUpload(
-  key: string,
-  uploadId: string,
-  parts: { PartNumber: number; ETag: string }[],
-  accessKeyId: string,
-  secretAccessKey: string,
-  accountId: string,
-  bucketName: string
-): Promise<void> {
+async function completeMultipartUpload(key: string, uploadId: string, parts: { PartNumber: number; ETag: string }[], accessKeyId: string, secretAccessKey: string, accountId: string, bucketName: string): Promise<void> {
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const url = `${endpoint}/${bucketName}/${key}?uploadId=${encodeURIComponent(uploadId)}`;
-  
-  // Sort parts by PartNumber
   const sortedParts = parts.sort((a, b) => a.PartNumber - b.PartNumber);
-  
-  const partsXml = sortedParts.map(p => 
-    `<Part><PartNumber>${p.PartNumber}</PartNumber><ETag>${p.ETag}</ETag></Part>`
-  ).join('');
-  const body = `<CompleteMultipartUpload>${partsXml}</CompleteMultipartUpload>`;
-  
+  const body = `<CompleteMultipartUpload>${sortedParts.map(p => `<Part><PartNumber>${p.PartNumber}</PartNumber><ETag>${p.ETag}</ETag></Part>`).join('')}</CompleteMultipartUpload>`;
   const bodyBytes = new TextEncoder().encode(body);
   const contentHash = await sha256Bytes(bodyBytes);
-  
-  const headers = await signRequest('POST', `/${bucketName}/${key}`, `uploadId=${encodeURIComponent(uploadId)}`, {
-    'content-type': 'application/xml',
-    'content-length': bodyBytes.length.toString(),
-  }, accessKeyId, secretAccessKey, accountId, contentHash);
-  
+  const headers = await signRequest('POST', `/${bucketName}/${key}`, `uploadId=${encodeURIComponent(uploadId)}`, { 'content-type': 'application/xml', 'content-length': bodyBytes.length.toString() }, accessKeyId, secretAccessKey, accountId, contentHash);
   const response = await fetch(url, { method: 'POST', headers, body });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('CompleteMultipartUpload failed:', errorText);
-    throw new Error(`Failed to complete multipart upload: ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`R2 Complete failed: ${response.status}`);
 }
 
-// Direct upload for small files
-async function uploadToR2Direct(
-  fileBytes: Uint8Array,
-  key: string,
-  contentType: string,
-  accessKeyId: string,
-  secretAccessKey: string,
-  accountId: string,
-  bucketName: string,
-  publicBaseUrl: string
-): Promise<string> {
+async function uploadToR2Direct(fileBytes: Uint8Array, key: string, contentType: string, accessKeyId: string, secretAccessKey: string, accountId: string, bucketName: string, publicBaseUrl: string): Promise<string> {
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const url = `${endpoint}/${bucketName}/${key}`;
-  
   const contentHash = await sha256Bytes(fileBytes);
-  
-  const headers = await signRequest('PUT', `/${bucketName}/${key}`, '', {
-    'content-type': contentType,
-    'content-length': fileBytes.length.toString(),
-  }, accessKeyId, secretAccessKey, accountId, contentHash);
-  
+  const headers = await signRequest('PUT', `/${bucketName}/${key}`, '', { 'content-type': contentType, 'content-length': fileBytes.length.toString() }, accessKeyId, secretAccessKey, accountId, contentHash);
   const response = await fetch(url, { method: 'PUT', headers, body: fileBytes.buffer as ArrayBuffer });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Direct upload failed:', errorText);
-    throw new Error(`Upload failed: ${response.status}`);
-  }
-  
+  if (!response.ok) throw new Error(`R2 Direct failed: ${response.status}`);
   return `${publicBaseUrl}/${key}`;
 }
 
-async function uploadToSupabaseFallback(
-  serviceClient: any,
-  fileBytes: Uint8Array,
-  key: string,
-  contentType: string
-): Promise<string> {
-  const normalizedType = contentType.startsWith('audio/') || contentType === 'application/octet-stream'
-    ? 'application/octet-stream'
-    : contentType;
-
-  const { data, error } = await serviceClient.storage
-    .from(SUPABASE_FALLBACK_BUCKET)
-    .upload(key, new Blob([fileBytes], { type: normalizedType }), {
-      cacheControl: '3600',
-      contentType: normalizedType,
-      upsert: true,
-    });
-
-  if (error) {
-    console.error('[Direct] Supabase fallback upload failed:', error);
-    throw new Error(error.message || 'Storage fallback upload failed');
-  }
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!.replace(/\/+$/, '');
-  return `${supabaseUrl}/storage/v1/object/public/${SUPABASE_FALLBACK_BUCKET}/${data.path}`;
+async function uploadToSupabaseFallback(serviceClient: any, fileBytes: Uint8Array, key: string, contentType: string): Promise<string> {
+  const { data, error } = await serviceClient.storage.from(SUPABASE_FALLBACK_BUCKET).upload(key, fileBytes, { contentType, upsert: true });
+  if (error) throw error;
+  const { data: { publicUrl } } = serviceClient.storage.from(SUPABASE_FALLBACK_BUCKET).getPublicUrl(data.path);
+  return publicUrl;
 }
 
-// ============= AWS Signature V4 Helpers =============
+// === Auth Helpers ===
 
-async function signRequest(
-  method: string,
-  canonicalUri: string,
-  queryString: string,
-  extraHeaders: Record<string, string>,
-  accessKeyId: string,
-  secretAccessKey: string,
-  accountId: string,
-  contentHash?: string
-): Promise<Record<string, string>> {
+async function signRequest(method: string, uri: string, qs: string, extra: Record<string, string>, ak: string, sk: string, account: string, hash?: string): Promise<Record<string, string>> {
   const date = new Date();
-  const dateString = date.toISOString().replace(/[:-]|\.\d{3}/g, '').slice(0, 8);
-  const dateTimeString = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const region = 'auto';
-  const service = 's3';
-  
-  const payloadHash = contentHash || 'UNSIGNED-PAYLOAD';
-  
-  const headers: Record<string, string> = {
-    'host': `${accountId}.r2.cloudflarestorage.com`,
-    'x-amz-date': dateTimeString,
-    'x-amz-content-sha256': payloadHash,
-    ...extraHeaders,
-  };
-  
-  const signedHeaders = Object.keys(headers).sort().join(';');
-  const canonicalHeaders = Object.keys(headers)
-    .sort()
-    .map(k => `${k}:${headers[k]}`)
-    .join('\n') + '\n';
-  
-  const canonicalRequest = [
-    method,
-    canonicalUri,
-    queryString,
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
-  ].join('\n');
-  
-  const canonicalRequestHash = await sha256(canonicalRequest);
-  const credentialScope = `${dateString}/${region}/${service}/aws4_request`;
-  
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    dateTimeString,
-    credentialScope,
-    canonicalRequestHash,
-  ].join('\n');
-  
-  const signingKey = await getSignatureKey(secretAccessKey, dateString, region, service);
+  const dateStr = date.toISOString().replace(/[:-]|\.\d{3}/g, '').slice(0, 8);
+  const dateTimeStr = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const region = 'auto', service = 's3', payloadHash = hash || 'UNSIGNED-PAYLOAD';
+  const headers: Record<string, string> = { 'host': `${account}.r2.cloudflarestorage.com`, 'x-amz-date': dateTimeStr, 'x-amz-content-sha256': payloadHash, ...extra };
+  const sortedKeys = Object.keys(headers).sort();
+  const signedHeaders = sortedKeys.join(';');
+  const canonicalHeaders = sortedKeys.map(k => `${k}:${headers[k]}`).join('\n') + '\n';
+  const canonicalRequest = [method, uri, qs, canonicalHeaders, signedHeaders, payloadHash].join('\n');
+  const credentialScope = `${dateStr}/${region}/${service}/aws4_request`;
+  const stringToSign = ['AWS4-HMAC-SHA256', dateTimeStr, credentialScope, await sha256(canonicalRequest)].join('\n');
+  const signingKey = await getSignatureKey(sk, dateStr, region, service);
   const signature = await hmacHex(signingKey, stringToSign);
-  
-  return {
-    ...headers,
-    'Authorization': `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+  return { ...headers, 'Authorization': `AWS4-HMAC-SHA256 Credential=${ak}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}` };
+}
+
+async function sha256(m: string): Promise<string> {
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(m)))).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function sha256Bytes(b: Uint8Array): Promise<string> {
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', b))).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function getSignatureKey(k: string, d: string, r: string, s: string): Promise<ArrayBuffer> {
+  const h = async (key: any, data: string) => {
+    const ck = await crypto.subtle.importKey('raw', typeof key === 'string' ? new TextEncoder().encode(key) : key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    return await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(data));
   };
+  return await h(await h(await h(await h(`AWS4${k}`, d), r), s), 'aws4_request');
 }
-
-async function sha256(message: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function sha256Bytes(bytes: Uint8Array): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest('SHA-256', bytes.buffer as ArrayBuffer);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function hmac(key: ArrayBuffer | string, data: string): Promise<ArrayBuffer> {
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    typeof key === 'string' ? new TextEncoder().encode(key) : key,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  return await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(data));
-}
-
-async function hmacHex(key: ArrayBuffer, data: string): Promise<string> {
-  const result = await hmac(key, data);
-  return Array.from(new Uint8Array(result))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function getSignatureKey(
-  key: string,
-  dateStamp: string,
-  regionName: string,
-  serviceName: string
-): Promise<ArrayBuffer> {
-  const kDate = await hmac(`AWS4${key}`, dateStamp);
-  const kRegion = await hmac(kDate, regionName);
-  const kService = await hmac(kRegion, serviceName);
-  const kSigning = await hmac(kService, 'aws4_request');
-  return kSigning;
+async function hmacHex(k: ArrayBuffer, d: string): Promise<string> {
+  const ck = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(d)))).map(b => b.toString(16).padStart(2, '0')).join('');
 }
