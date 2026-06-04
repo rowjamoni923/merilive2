@@ -193,13 +193,15 @@ const AdminEntryBars = () => {
     setSaving(true);
     try {
       // Note: level_privileges table only has these columns
-      const payload = {
+      const payload: any = {
         privilege_type: 'entry_bar',
         unlock_level: formData.level,
         name: formData.name,
         privilege_name: formData.name,
         description: `Entry Bar for Level ${formData.level}+`,
         animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format,
+        animation_config_url: formData.animation_config_url,
         preview_url: formData.preview_url || null,
         sound_url: formData.sound_url || null,
         duration_ms: formData.duration_ms,
