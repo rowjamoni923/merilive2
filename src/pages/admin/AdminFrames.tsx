@@ -34,6 +34,7 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
+import { robustAdminUpload } from "@/utils/adminUploadHelper";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
