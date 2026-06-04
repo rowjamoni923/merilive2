@@ -7018,6 +7018,8 @@ export type Database = {
       }
       level_privileges: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           description: string | null
@@ -7040,6 +7042,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -7062,6 +7066,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -16701,6 +16707,8 @@ export type Database = {
       admin_list_chat_bubbles_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           description: string | null
