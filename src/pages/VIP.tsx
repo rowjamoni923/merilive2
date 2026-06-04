@@ -496,6 +496,7 @@ const VIP = () => {
             source: 'shop',
           });
         }
+      }
 
       // Fetch unlocked entry banners only
       const { data: entryBanners } = await supabase
