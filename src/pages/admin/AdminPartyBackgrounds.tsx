@@ -185,7 +185,10 @@ const AdminPartyBackgrounds = () => {
       is_active: true,
       price_diamonds: 0,
       display_order: backgrounds.length + 1,
-      min_level: 0
+      min_level: 0,
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: "",
     });
     setShowAddDialog(true);
   };
@@ -201,7 +204,10 @@ const AdminPartyBackgrounds = () => {
       is_active: bg.is_active,
       price_diamonds: bg.price_diamonds,
       display_order: bg.display_order,
-      min_level: bg.min_level ?? 0
+      min_level: bg.min_level ?? 0,
+      animation_url: (bg as any).animation_url || "",
+      animation_format: ((bg as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (bg as any).animation_config_url || "",
     });
     setShowEditDialog(true);
   };
