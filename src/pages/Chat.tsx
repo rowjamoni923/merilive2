@@ -2437,7 +2437,7 @@ const Chat = () => {
                                       muted={true}
                                     />
                                   </Suspense>
-                                ) : isLottie && iconUrl ? (
+                                ) : (isLottie || isVap) && iconUrl ? (
                                   <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
