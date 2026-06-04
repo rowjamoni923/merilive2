@@ -21,7 +21,7 @@ const ALLOWED_MIME_TYPES = new Set([
   'model/gltf-binary', 'model/gltf+json',
 ]);
 
-const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB max
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB max per user request (Pkg500: expanded for high-res VAP/Vibe animations)
 const SUPABASE_FALLBACK_BUCKET = 'animations';
 
 type UploadPrincipal = {
