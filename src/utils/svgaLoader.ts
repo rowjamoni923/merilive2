@@ -21,6 +21,18 @@ const inflight = new Map<string, Promise<any>>();
 const TIMEOUT_MS = 120_000;
 const MAX_RETRIES = 3;
 
+async function fetchAsSvgaDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`SVGA fetch failed: ${response.status}`);
+  const bytes = new Uint8Array(await (await response.blob()).arrayBuffer());
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return `data:svga/2.0;base64,${btoa(binary)}`;
+}
+
 async function parseSingle(SVGA: any, url: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('SVGA parse timeout')), TIMEOUT_MS);
@@ -72,7 +84,16 @@ export async function loadSVGA(originalUrl: string): Promise<any> {
       try {
         // Try Browser Cache first, then network
         const binaryUrl = await fetchWithBinaryCache(loadUrl);
-        const item = await parseSingle(SVGA, binaryUrl);
+        let item: any;
+        try {
+          item = await parseSingle(SVGA, binaryUrl);
+        } catch (parseErr) {
+          // SVGAPlayer-Web officially supports data:svga/2.0;base64 for File/Base64
+          // loads. Some Android WebViews and CDN redirect paths parse remote/blob
+          // URLs unreliably, so retry with a self-contained data URL before giving up.
+          console.warn('[SVGA] Parser URL load failed; retrying as base64 data URL:', parseErr);
+          item = await parseSingle(SVGA, await fetchAsSvgaDataUrl(loadUrl));
+        }
         
         // Clean up blob URL if created
         if (binaryUrl !== loadUrl && binaryUrl.startsWith('blob:')) {
