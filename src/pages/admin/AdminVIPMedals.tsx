@@ -446,7 +446,7 @@ const AdminVIPMedals = () => {
 
             {formData.animation_url && (
               <div className="aspect-square bg-muted rounded-lg overflow-hidden max-w-[200px] mx-auto">
-                <FixedAnimationFrame size="fill" center={false}
+                <FixedAnimationFrame size="card" center={true}
                   src={formData.animation_url}
                   
                   loop
