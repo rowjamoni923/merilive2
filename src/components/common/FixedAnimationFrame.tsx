@@ -74,9 +74,12 @@ export interface FixedAnimationFrameProps {
   triggerKey?: string | number;
 }
 
+// ⚠️ NEVER use `backdrop-blur` here — this frame sits over animated content
+// (VAP/SVGA/MP4 gifts), and backdrop-blur re-samples every pixel underneath
+// per frame, hanging the WebView. Use a flat dark wash instead.
 const BG_CLASSES: Record<NonNullable<FixedAnimationFrameProps['background']>, string> = {
   none: '',
-  dark: 'bg-black/60 backdrop-blur-sm',
+  dark: 'bg-black/70',
   transparent: 'bg-transparent',
 };
 

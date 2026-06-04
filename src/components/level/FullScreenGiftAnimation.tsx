@@ -423,7 +423,7 @@ const FullScreenGiftAnimation = ({
           {/* Background overlay with gradient */}
           <motion.div 
             className={cn(
-              "absolute inset-0 bg-gradient-to-br backdrop-blur-sm",
+              "absolute inset-0 bg-gradient-to-br",
               getBackgroundGradient()
             )}
             style={{ width: '100vw', height: '100vh' }}
