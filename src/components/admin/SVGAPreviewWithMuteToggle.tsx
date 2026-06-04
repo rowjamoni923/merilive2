@@ -10,6 +10,8 @@ import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 const SVGAPlayer = lazy(() => import('@/components/common/SVGAPlayer'));
 const SVGAPlayerWithAudio = lazy(() => import('@/components/common/SVGAPlayerWithAudio'));
 
+import type { SVGADynamicData } from '@/components/common/SVGAPlayer';
+
 interface SVGAPreviewWithMuteToggleProps {
   src: string;
   className?: string;
@@ -17,6 +19,7 @@ interface SVGAPreviewWithMuteToggleProps {
   loop?: boolean;
   autoPlay?: boolean;
   showMuteButton?: boolean;
+  dynamicData?: SVGADynamicData;
 }
 
 /**
@@ -39,6 +42,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
   loop = true,
   autoPlay = true,
   showMuteButton = true,
+  dynamicData,
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [hasAudio, setHasAudio] = useState(false);

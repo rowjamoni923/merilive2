@@ -236,6 +236,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           onComplete={onComplete}
           onCompleteDebug={handleDebugComplete}
           fallbackEmoji={fallbackEmoji}
+          dynamicData={dynamicData}
         />
       )}
     </div>
