@@ -371,3 +371,56 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 
 export default UniversalAnimationPlayer;
 export { detectAnimationType };
+
+/**
+ * Pkg425 — Native SVGA overlay wrapper.
+ * Tries native Android SVGAImageView; on any failure renders `fallback` (web SVGA).
+ * Renders an invisible placeholder div sized to className so layout doesn't jump
+ * while the native overlay paints above the WebView.
+ */
+const NativeSVGAOverlay: React.FC<{
+  src: string;
+  loop: boolean;
+  onComplete: () => void;
+  onError: (e: Error) => void;
+  fallback: React.ReactNode;
+}> = ({ src, loop, onComplete, onError, fallback }) => {
+  const [useNative, setUseNative] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let listener: any = null;
+
+    (async () => {
+      const avail = await isNativeSVGAAvailable();
+      if (cancelled) return;
+      if (!avail) { setUseNative(false); return; }
+      try {
+        listener = await NativeSVGA.addListener('svga:complete', (data) => {
+          if (data?.url === src) onComplete();
+        });
+        await NativeSVGA.play({ url: src, loop, fillScreen: true });
+        if (!cancelled) setUseNative(true);
+      } catch (err) {
+        if (!cancelled) {
+          onError(err as Error);
+          setUseNative(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      try { listener?.remove?.(); } catch {}
+      try { NativeSVGA.stop(); } catch {}
+    };
+  }, [src, loop]);
+
+  if (useNative === true) {
+    // Native overlay is rendered ABOVE WebView; we render nothing here.
+    return <div aria-hidden="true" style={{ width: '100%', height: '100%' }} />;
+  }
+  if (useNative === false) return <>{fallback}</>;
+  // Still resolving availability — render the web fallback so animation starts immediately
+  return <>{fallback}</>;
+};
