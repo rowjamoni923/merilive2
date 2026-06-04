@@ -564,6 +564,9 @@ const Reels = () => {
 
     addFlyingGift({
       senderId: sendingUserId,
+      senderName: 'You',
+      receiverName: currentReel?.user?.display_name || undefined,
+      receiverAvatar: currentReel?.user?.avatar_url || undefined,
       giftName: gift.name,
       giftIcon: gift.emoji,
       giftImageUrl: gift.icon_url || undefined,
@@ -571,7 +574,6 @@ const Reels = () => {
       animationFormat: gift.animation_format || null,
       animationConfigUrl: gift.animation_config_url || undefined,
       soundUrl: gift.sound_url || undefined,
-      senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
       coins: gift.coins,

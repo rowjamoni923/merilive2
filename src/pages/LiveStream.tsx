@@ -3969,6 +3969,8 @@ const LiveStream = () => {
             senderId: currentUserId,
             senderName: senderName,
             senderAvatar: senderAvatar,
+            receiverName: hostInfo?.name || undefined,
+            receiverAvatar: hostInfo?.avatar || undefined,
             giftName: gift.name,
             giftIcon: gift.emoji || "🎁",
             giftImageUrl: gift.icon_url || undefined,

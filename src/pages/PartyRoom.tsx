@@ -2342,6 +2342,9 @@ const PartyRoom = () => {
               const giftAnimationData = {
                 senderId: sendingUserId,
                 senderName,
+                senderAvatar,
+                receiverName: (sendingRoom?.host as any)?.display_name || undefined,
+                receiverAvatar: (sendingRoom?.host as any)?.avatar_url || undefined,
                 giftName: gift.name,
                 giftIcon: gift.emoji,
                 giftImageUrl: gift.icon_url || undefined,

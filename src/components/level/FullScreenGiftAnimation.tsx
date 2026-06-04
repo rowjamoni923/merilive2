@@ -151,6 +151,21 @@ const FullScreenGiftAnimation = ({
   const [currentCount, setCurrentCount] = useState(0);
   const soundPlayedRef = useRef(false);
   const [svgaHasAudio, setSvgaHasAudio] = useState(false);
+
+  // Professional dynamic data for SVGA/VAP (RPG replacement)
+  const dynamicData = {
+    images: {
+      user_avatar: senderAvatar || '',
+      receiver_avatar: receiverAvatar || '',
+      sender_avatar: senderAvatar || '', // Alias
+    },
+    text: {
+      user_name: senderName || '',
+      receiver_name: receiverName || '',
+      sender_name: senderName || '', // Alias
+      gift_count: String(quantity),
+    }
+  };
   
   // CRITICAL: Prevent re-initialization on re-renders
   const mountedRef = useRef(true);
@@ -318,6 +333,7 @@ const FullScreenGiftAnimation = ({
             volume={0.8}
             soundUrl={gift.sound_url}
             triggerKey={quantity > 1 ? quantity : undefined}
+            dynamicData={dynamicData}
             onAudioExtracted={handleSvgaAudioExtracted}
             onComplete={handleAnimationEnd}
             center={false}
@@ -387,17 +403,20 @@ const FullScreenGiftAnimation = ({
       );
     }
 
+    if (!gift.icon_url) return null;
+
     return (
-      <motion.div 
-        className="text-8xl md:text-9xl"
+      <motion.img 
+        src={gift.icon_url} 
+        alt={gift.name}
+        className="w-48 h-48 md:w-64 md:h-64 object-contain"
         animate={{ 
           y: [-10, 10, -10],
-          scale: [1, 1.1, 1]
+          scale: [1, 1.08, 1],
+          rotate: [-2, 2, -2]
         }}
         transition={{ duration: 2, repeat: Infinity }}
-      >
-        🎁
-      </motion.div>
+      />
     );
   };
 

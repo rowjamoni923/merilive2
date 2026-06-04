@@ -15,6 +15,7 @@ export interface FlyingGift {
   senderName: string;
   senderAvatar?: string;
   receiverName?: string;
+  receiverAvatar?: string;
   giftName: string;
   giftIcon: string;
   giftImageUrl?: string;
@@ -146,6 +147,21 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 
+  // Professional dynamic data for SVGA/VAP (RPG replacement)
+  const dynamicData = useMemo(() => ({
+    images: {
+      user_avatar: gift.senderAvatar || '',
+      receiver_avatar: gift.receiverAvatar || '',
+      sender_avatar: gift.senderAvatar || '', // Alias
+    },
+    text: {
+      user_name: gift.senderName || '',
+      receiver_name: gift.receiverName || '',
+      sender_name: gift.senderName || '', // Alias
+      gift_count: String(gift.count),
+    }
+  }), [gift.senderAvatar, gift.receiverAvatar, gift.senderName, gift.receiverName, gift.count]);
+
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
@@ -264,16 +280,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         />
       );
     }
-    return (
-      <motion.span
-        className="text-4xl drop-shadow-lg"
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.3, 1] }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-      >
-        <GiftBox3DIcon size={40} />
-      </motion.span>
-    );
+    // Professional fix: no non-professional generic box icons as per user request
+    return null;
   };
 
   // Full-screen gift animation — every gift occupies the complete app viewport.
@@ -309,6 +317,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               volume={0.8}
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
+              dynamicData={dynamicData}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
@@ -317,6 +326,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         </motion.div>
       );
     }
+
+    if (!giftIconSrc) return null;
 
     return (
       <motion.div
@@ -327,7 +338,12 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         transition={{ duration: 0.55, ease: "easeOut" }}
         style={FULLSCREEN_GIFT_LAYER_STYLE}
       >
-        <GiftBox3DIcon size={200} />
+        <motion.img 
+          src={giftIconSrc} 
+          className="w-48 h-48 object-contain drop-shadow-2xl" 
+          animate={{ y: [-10, 10, -10] }} 
+          transition={{ duration: 2, repeat: Infinity }}
+        />
       </motion.div>
     );
   };
