@@ -2303,6 +2303,8 @@ export type Database = {
       }
       avatar_frames: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string | null
@@ -2331,6 +2333,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category?: string | null
@@ -2359,6 +2363,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category?: string | null
@@ -2972,6 +2978,8 @@ export type Database = {
       }
       chat_bubbles: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           created_at: string
           display_order: number
           duration_days: number | null
@@ -2986,6 +2994,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           created_at?: string
           display_order?: number
           duration_days?: number | null
@@ -3000,6 +3010,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           created_at?: string
           display_order?: number
           duration_days?: number | null
@@ -3880,6 +3892,8 @@ export type Database = {
       }
       entry_banners: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           display_order: number | null
@@ -3896,6 +3910,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           display_order?: number | null
@@ -3912,6 +3928,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           display_order?: number | null
@@ -3931,6 +3949,8 @@ export type Database = {
       }
       entry_effects: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           created_at: string
           display_order: number
           duration_days: number | null
@@ -3945,6 +3965,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           created_at?: string
           display_order?: number
           duration_days?: number | null
@@ -3959,6 +3981,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           created_at?: string
           display_order?: number
           duration_days?: number | null
@@ -3976,6 +4000,8 @@ export type Database = {
       }
       entry_name_bars: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           description: string | null
@@ -3995,6 +4021,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -4014,6 +4042,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -5075,6 +5105,8 @@ export type Database = {
       }
       gifts: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string | null
@@ -5101,6 +5133,8 @@ export type Database = {
           tier: number
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category?: string | null
@@ -5127,6 +5161,8 @@ export type Database = {
           tier?: number
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category?: string | null
@@ -6943,6 +6979,8 @@ export type Database = {
       }
       level_animations: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           description: string | null
@@ -6953,6 +6991,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -6963,6 +7003,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -8969,6 +9011,8 @@ export type Database = {
       }
       party_room_backgrounds: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           category: string | null
           created_at: string | null
           display_order: number | null
@@ -8986,6 +9030,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           category?: string | null
           created_at?: string | null
           display_order?: number | null
@@ -9003,6 +9049,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           category?: string | null
           created_at?: string | null
           display_order?: number | null
@@ -11486,6 +11534,8 @@ export type Database = {
       }
       role_frames: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           created_at: string | null
           description: string | null
@@ -11505,6 +11555,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           created_at?: string | null
           description?: string | null
@@ -11524,6 +11576,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           created_at?: string | null
           description?: string | null
@@ -11883,7 +11937,9 @@ export type Database = {
       }
       shop_items: {
         Row: {
+          animation_config_url: string | null
           animation_file_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string
@@ -11916,7 +11972,9 @@ export type Database = {
           vip_discount_percent: number | null
         }
         Insert: {
+          animation_config_url?: string | null
           animation_file_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category: string
@@ -11949,7 +12007,9 @@ export type Database = {
           vip_discount_percent?: number | null
         }
         Update: {
+          animation_config_url?: string | null
           animation_file_url?: string | null
+          animation_format?: string | null
           animation_type?: string | null
           animation_url?: string | null
           category?: string
@@ -14855,6 +14915,8 @@ export type Database = {
       }
       vehicle_entrances: {
         Row: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           category: string | null
           created_at: string | null
@@ -14873,6 +14935,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           category?: string | null
           created_at?: string | null
@@ -14891,6 +14955,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          animation_config_url?: string | null
+          animation_format?: string | null
           animation_url?: string | null
           category?: string | null
           created_at?: string | null
@@ -16571,6 +16637,8 @@ export type Database = {
       admin_list_avatar_frames_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string | null
@@ -16668,6 +16736,8 @@ export type Database = {
       admin_list_entry_banners_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_url: string | null
           created_at: string | null
           display_order: number | null
@@ -16726,6 +16796,8 @@ export type Database = {
       admin_list_gifts_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string | null
@@ -16997,6 +17069,8 @@ export type Database = {
       admin_list_party_backgrounds: {
         Args: { _admin_id: string }
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           category: string | null
           created_at: string | null
           display_order: number | null
@@ -17153,6 +17227,8 @@ export type Database = {
       admin_list_role_frames_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
+          animation_format: string | null
           animation_type: string | null
           created_at: string | null
           description: string | null
@@ -17197,7 +17273,9 @@ export type Database = {
       admin_list_shop_items_all: {
         Args: never
         Returns: {
+          animation_config_url: string | null
           animation_file_url: string | null
+          animation_format: string | null
           animation_type: string | null
           animation_url: string | null
           category: string
@@ -17913,6 +17991,8 @@ export type Database = {
               _price_diamonds: number
             }
             Returns: {
+              animation_config_url: string | null
+              animation_format: string | null
               category: string | null
               created_at: string | null
               display_order: number | null
@@ -17951,6 +18031,8 @@ export type Database = {
               _price_diamonds: number
             }
             Returns: {
+              animation_config_url: string | null
+              animation_format: string | null
               category: string | null
               created_at: string | null
               display_order: number | null
