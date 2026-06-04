@@ -1299,10 +1299,9 @@ const VIP = () => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay }}
                   >
-                    <div className="flex items-center gap-2 text-lg font-bold mb-3">
+                    <div className="flex items-center justify-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
                       <span className="text-heading">{title}</span>
-                        <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-3 justify-center">
