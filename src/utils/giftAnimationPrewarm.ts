@@ -115,13 +115,23 @@ export async function prewarmGiftAnimations(): Promise<void> {
 function warmVideoMetadata(url: string) {
   if (typeof document === 'undefined') return;
   try {
+    // For VAP/MP4 gifts, we use 'auto' preload to ensure chunks are in the HTTP cache
+    // so they play instantly without network delay.
     const v = document.createElement('video');
-    v.preload = 'metadata';
+    v.preload = 'auto'; 
     v.muted = true;
     v.playsInline = true;
     v.crossOrigin = 'anonymous';
     v.src = url;
-    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
+    
+    // We only need to start the download; once metadata is loaded, 
+    // the browser has established the connection and cached headers.
+    const cleanup = () => { 
+      v.onloadedmetadata = null;
+      v.onerror = null;
+      // Don't fully remove src if we want it to stay in disk cache
+    };
+    
     v.onloadedmetadata = () => cleanup();
     v.onerror = () => cleanup();
     v.load();
