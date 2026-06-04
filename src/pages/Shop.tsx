@@ -61,7 +61,39 @@ interface ShopItem {
   is_premium: boolean;
   animation_type: string | null;
   file_type: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
 }
+
+// Pkg430 — unified animation detection across Shop/Admin/App (mirrors UniversalAnimationPlayer).
+// Treats any .mp4 with "vap" / "_bmp" / "file_vap_" in the filename, or explicit
+// animation_format='vap', as VAP so the alpha-channel renderer is used.
+const pickAnimType = (item: Pick<ShopItem, 'animation_format' | 'animation_file_url' | 'animation_url' | 'preview_url' | 'file_type'>):
+  'svga' | 'lottie' | 'vap' | 'mp4' | 'webm' | 'gif' | 'webp' | 'png' | 'static' | undefined => {
+  const fmt = (item.animation_format || '').toLowerCase();
+  if (fmt === 'vap') return 'vap';
+  if (fmt === 'svga') return 'svga';
+  if (fmt === 'lottie') return 'lottie';
+  if (fmt === 'mp4') return 'mp4';
+  if (fmt === 'webm') return 'webm';
+  if (fmt === 'gif') return 'gif';
+  if (fmt === 'webp') return 'webp';
+  if (fmt === 'png') return 'png';
+  const url = (item.animation_file_url || item.animation_url || item.preview_url || '').toLowerCase().split('?')[0];
+  if (url.endsWith('.svga')) return 'svga';
+  if (url.endsWith('.json')) return 'lottie';
+  if (url.endsWith('.mp4')) {
+    if (url.includes('vap') || url.includes('_bmp') || url.includes('file_vap_')) return 'vap';
+    return 'mp4';
+  }
+  if (url.endsWith('.webm')) return 'webm';
+  if (url.endsWith('.gif')) return 'gif';
+  if (url.endsWith('.webp')) return 'webp';
+  if (url.endsWith('.png')) return 'png';
+  return undefined;
+};
+
+const isAnimatedType = (t?: string) => !!t && t !== 'static' && t !== 'png';
 
 interface UserPurchase {
   id: string;
