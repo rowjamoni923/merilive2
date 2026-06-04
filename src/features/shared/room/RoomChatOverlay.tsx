@@ -62,8 +62,7 @@ export const WelcomeMessage = memo(({
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "flex items-start gap-2 py-2 px-3.5 rounded-2xl w-full",
-        "bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-orange-400/20",
-        "backdrop-blur-md border border-amber-300/30",
+        "bg-slate-900/60 border border-amber-300/30",
         "shadow-[0_2px_15px_rgba(251,191,36,0.2),0_0_30px_rgba(251,191,36,0.08)]",
         "ring-1 ring-amber-400/15"
       )}
