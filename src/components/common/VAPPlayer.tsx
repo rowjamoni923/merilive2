@@ -59,6 +59,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationRef = useRef<number | null>(null);
+  const frameCallbackModeRef = useRef<'raf' | 'rvfc'>('raf');
   const initializedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,6 +207,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       alpha: true,
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
+      powerPreference: 'low-power',
     });
 
     if (!gl) {
@@ -326,7 +328,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           setUseVideoFallback(true);
         }
       }
-      animationRef.current = requestAnimationFrame(render);
+      const requestVideoFrame = (video as any).requestVideoFrameCallback as undefined | ((cb: () => void) => number);
+      if (requestVideoFrame) {
+        frameCallbackModeRef.current = 'rvfc';
+        animationRef.current = requestVideoFrame(() => render());
+      } else {
+        frameCallbackModeRef.current = 'raf';
+        animationRef.current = requestAnimationFrame(render);
+      }
     };
 
     render();
@@ -373,7 +382,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setLoading(true);
     setError(null);
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      const id = animationRef.current;
+      if (id !== null) {
+        if (frameCallbackModeRef.current === 'rvfc') {
+          try { (videoRef.current as any)?.cancelVideoFrameCallback?.(id); } catch { /* noop */ }
+        } else {
+          cancelAnimationFrame(id);
+        }
+      }
     };
   }, [resolvedSrc]);
 
