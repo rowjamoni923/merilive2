@@ -65,7 +65,7 @@ const getTierStyle = (tier: { level?: string; name?: string }) => {
   return tierStyles[k] || tierStyles[n] || "from-slate-600 via-slate-700 to-slate-800";
 };
 
-const STRUCTURED_KEYS = new Set(["exchange_rate", "commission_tiers", "host_requirements", "violations", "prohibited_content", "call_rules", "withdrawal"]);
+const STRUCTURED_KEYS = new Set(["exchange_rate", "commission_tiers", "host_requirements", "violations", "prohibited_content", "call_rules", "withdrawal", "rules", "host_management", "commission", "penalties", "benefits", "privacy"]);
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
@@ -129,6 +129,15 @@ const AgencyPolicy = () => {
 
   const exchangeRate = policyData?.exchange_rate || { rate: 9000, currency: 'Beans', display: '9,000 Beans = $1 USD' };
   const commissionTiers = (levelTiers ?? []).length > 0 ? (levelTiers ?? []).map(tier => ({ level: tier.level_code, name: tier.level_name, income_min: tier.min_weekly_income, income_max: tier.max_weekly_income === 9999999999 ? null : tier.max_weekly_income, rate: tier.commission_rate })) : policyData?.commission_tiers?.tiers || [];
+  
+  // New: Get list-based data for various sections
+  const commissionPolicy = (policyData as any)?.commission?.items || [];
+  const hostManagementPolicy = (policyData as any)?.host_management?.items || [];
+  const rulesPolicy = (policyData as any)?.rules?.items || [];
+  const penaltiesPolicy = (policyData as any)?.penalties?.items || [];
+  const benefitsPolicy = (policyData as any)?.benefits?.items || [];
+  const privacyPolicy = (policyData as any)?.privacy?.items || [];
+
   const hostRequirements = policyData?.host_requirements?.requirements || [];
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
@@ -193,6 +202,24 @@ const AgencyPolicy = () => {
           </TabsList>
 
           <TabsContent value="commission" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {commissionPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-gradient-to-br from-brand-600 to-info-700 rounded-3xl p-5 text-white overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 uppercase tracking-tight relative z-10">
+                  <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center"><Wallet className="w-4 h-4 text-white" /></div>
+                  Commission Policy
+                </h3>
+                <ul className="space-y-3 relative z-10">
+                  {commissionPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-[11px] font-bold text-white/90 leading-relaxed">
+                      <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-4">
               <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
                 <div className="w-7 h-7 bg-brand-100 rounded-lg flex items-center justify-center"><Award className="w-4 h-4 text-brand-600" /></div>
@@ -222,43 +249,135 @@ const AgencyPolicy = () => {
           </TabsContent>
 
           <TabsContent value="host" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
-              <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
-                <div className="w-7 h-7 bg-success-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-success-600" /></div>
-                Requirements
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {hostRequirements.map((req, idx) => (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center hover:bg-white hover:shadow-lg transition-all">
-                    <div className="w-12 h-12 bg-success-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-success-600 shadow-sm">{iconMap[req.key] || <Star className="w-5 h-5" />}</div>
-                    <p className="font-bold text-xs text-slate-800">{req.title}</p>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-tight">{req.description}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            {hostManagementPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-info-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-info-600" /></div>
+                  Host Management
+                </h3>
+                <ul className="space-y-4">
+                  {hostManagementPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 items-start">
+                      <div className="w-6 h-6 bg-info-50 text-info-600 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-black shadow-sm">{idx + 1}</div>
+                      <p className="text-xs font-bold text-slate-600 leading-relaxed mt-0.5">{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {hostRequirements.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-success-100 rounded-lg flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-success-600" /></div>
+                  Requirements
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {hostRequirements.map((req, idx) => (
+                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center hover:bg-white hover:shadow-lg transition-all">
+                      <div className="w-12 h-12 bg-success-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-success-600 shadow-sm">{iconMap[req.key] || <Star className="w-5 h-5" />}</div>
+                      <p className="font-bold text-xs text-slate-800">{req.title}</p>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-tight">{req.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="rules" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
-              <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
-                <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
-                Strict Rules
-              </h3>
-              <div className="space-y-3">
-                {violations.map((v, i) => (
-                  <div key={i} className={`rounded-2xl p-4 border shadow-sm ${v.severity === 'high' ? 'bg-danger-50 border-danger-100' : 'bg-warning-50 border-warning-100'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Ban className={`w-4 h-4 ${v.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
-                      <p className={`font-black text-xs uppercase tracking-tight ${v.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>{v.title}</p>
+            {rulesPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4 border-l-4 border-brand-500">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-brand-100 rounded-lg flex items-center justify-center"><Shield className="w-4 h-4 text-brand-600" /></div>
+                  Platform Rules
+                </h3>
+                <ul className="space-y-3">
+                  {rulesPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                      <div className="w-1.5 h-1.5 bg-brand-500 rounded-full shrink-0 mt-2" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {penaltiesPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4 border-l-4 border-danger-500">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
+                  Penalties
+                </h3>
+                <ul className="space-y-3">
+                  {penaltiesPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-danger-700 leading-relaxed bg-danger-50/50 p-2 rounded-xl">
+                      <div className="w-5 h-5 bg-danger-100 text-danger-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {prohibitedContent.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-danger-700 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-50 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
+                  Prohibited Content
+                </h3>
+                <div className="space-y-4">
+                  {prohibitedContent.map((item: any, idx: number) => (
+                    <div key={idx} className="flex gap-3 items-start p-3 bg-danger-50/30 rounded-2xl border border-danger-100/50">
+                      <div className="w-6 h-6 bg-danger-100 text-danger-600 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      <div>
+                        <p className="text-xs font-black text-danger-800">{item.title}</p>
+                        <p className="text-[10px] text-danger-600 font-bold mt-1 leading-relaxed">{item.description}</p>
+                      </div>
                     </div>
-                    <ul className={`text-[10px] space-y-1 font-medium ${v.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
-                      {v.penalties.map((p, idx) => <li key={idx} className="flex gap-1.5"><div className="w-1 h-1 rounded-full bg-current mt-1.5 shrink-0" /> {p}</li>)}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {callRules.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-info-100 rounded-lg flex items-center justify-center"><Phone className="w-4 h-4 text-info-600" /></div>
+                  Call Rules
+                </h3>
+                <ul className="space-y-3">
+                  {callRules.map((rule: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                      <div className="w-1.5 h-1.5 bg-info-500 rounded-full shrink-0 mt-2" />
+                      {rule}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {violations.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-100 rounded-lg flex items-center justify-center"><Ban className="w-4 h-4 text-danger-600" /></div>
+                  Strict Rules
+                </h3>
+                <div className="space-y-3">
+                  {violations.map((v, i) => (
+                    <div key={i} className={`rounded-2xl p-4 border shadow-sm ${v.severity === 'high' ? 'bg-danger-50 border-danger-100' : 'bg-warning-50 border-warning-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ban className={`w-4 h-4 ${v.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
+                        <p className={`font-black text-xs uppercase tracking-tight ${v.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>{v.title}</p>
+                      </div>
+                      <ul className={`text-[10px] space-y-1 font-medium ${v.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
+                        {v.penalties.map((p, idx) => <li key={idx} className="flex gap-1.5"><div className="w-1 h-1 rounded-full bg-current mt-1.5 shrink-0" /> {p}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="withdraw" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -293,21 +412,62 @@ const AgencyPolicy = () => {
           </TabsContent>
 
           <TabsContent value="more" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-             {dynamicSections.map((section) => (
-                <Card key={section.section_key} className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
-                   <div className={`bg-gradient-to-r ${sectionVisuals[section.section_key]?.gradient || 'from-slate-500 to-slate-700'} p-4 text-white flex items-center gap-3`}>
-                      <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg">{sectionVisuals[section.section_key]?.icon || <FileText className="w-5 h-5" />}</div>
-                      <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">{section.section_title}</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Section Policy</p></div>
-                   </div>
-                   <CardContent className="p-5">
-                      <ul className="space-y-3">
-                        {(Array.isArray(section.content?.items) ? section.content.items : Array.isArray(section.content) ? section.content : []).map((it: any, idx: number) => (
-                           <li key={idx} className="flex gap-3 text-xs font-medium text-slate-600 leading-relaxed"><div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx+1}</div>{typeof it === 'string' ? it : it?.title || JSON.stringify(it)}</li>
-                        ))}
-                      </ul>
-                   </CardContent>
-                </Card>
-             ))}
+            {benefitsPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden mb-4">
+                <div className="bg-gradient-to-r from-brand-500 to-brand-600 p-4 text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg"><Award className="w-5 h-5" /></div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">Agency Benefits</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Rewards Section</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {benefitsPolicy.map((item: string, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {privacyPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden mb-4">
+                <div className="bg-gradient-to-r from-slate-600 to-slate-800 p-4 text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg"><Shield className="w-5 h-5" /></div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">Privacy Policy</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Data Protection</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {privacyPolicy.map((item: string, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {dynamicSections.map((section) => (
+              <Card key={section.section_key} className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
+                <div className={`bg-gradient-to-r ${sectionVisuals[section.section_key]?.gradient || 'from-slate-500 to-slate-700'} p-4 text-white flex items-center gap-3`}>
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg">{sectionVisuals[section.section_key]?.icon || <FileText className="w-5 h-5" />}</div>
+                  <div><h3 className="font-black text-sm uppercase tracking-tight leading-none">{section.section_title}</h3><p className="text-[8px] text-white/70 font-bold uppercase mt-1 tracking-widest">Section Policy</p></div>
+                </div>
+                <CardContent className="p-5">
+                  <ul className="space-y-3">
+                    {(Array.isArray(section.content?.items) ? section.content.items : Array.isArray(section.content) ? section.content : []).map((it: any, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                        <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                        {typeof it === 'string' ? it : it?.title || JSON.stringify(it)}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
         </Tabs>
 
