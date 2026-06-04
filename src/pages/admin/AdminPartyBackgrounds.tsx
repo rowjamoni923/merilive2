@@ -289,6 +289,13 @@ const AdminPartyBackgrounds = () => {
       });
       if (error) throw error;
 
+      // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
+      await supabase.from('party_room_backgrounds').update({
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
+      }).eq('id', selectedBackground.id);
+
       setBackgrounds(prev => prev.map(bg => 
         bg.id === selectedBackground.id 
           ? { ...bg, ...formData, image_url: formData.image_url || null, gradient_css: formData.gradient_css || null }
