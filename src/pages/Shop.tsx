@@ -166,7 +166,7 @@ const ShopItemCard = ({
           }
         }
       }}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-[0.95]"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl active:scale-[0.96]"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
         border: '1px solid rgba(217,182,107,0.40)',
@@ -213,7 +213,7 @@ const ShopItemCard = ({
           const animSrc = item.animation_file_url || item.animation_url || '';
           
           return (
-            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+            <div className={`relative ${isFullWidth ? 'w-[90%] h-[90%] scale-110' : 'w-[90%] h-[90%]'}`}>
               <FixedAnimationFrame
                 src={animSrc}
                 type={animType as any}
@@ -223,7 +223,7 @@ const ShopItemCard = ({
                 loop
                 autoPlay
                 muted
-                center={false}
+                center={true}
                 onError={() => setImageError(true)}
               />
             </div>
