@@ -987,7 +987,13 @@ const Chat = () => {
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
           if (payload.payload?.senderId === currentUserId) return;
-          playGiftAnimationFromContent(payload.payload.content, payload.payload.senderId, true);
+          playGiftAnimationFromContent(
+            payload.payload.content,
+            payload.payload.senderId,
+            true,
+            payload.payload.animationFormat || null,
+            payload.payload.animationConfigUrl || null,
+          );
         }
       )
       // Pkg92: removed dead postgres_changes on `messages` (NOT in supabase_realtime
@@ -1456,7 +1462,7 @@ const Chat = () => {
     }
   }
 
-  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false) {
+  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false, animationFormat?: string | null, animationConfigUrl?: string | null) {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
     const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
@@ -1467,6 +1473,8 @@ const Chat = () => {
 
     const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
+    setAnimatingGiftFormat(animationFormat || null);
+    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || null);
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
