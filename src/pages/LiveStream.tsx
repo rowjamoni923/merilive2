@@ -1388,7 +1388,7 @@ const LiveStream = () => {
         senderName: data.senderName || 'User',
         senderAvatar: data.senderAvatar || undefined,
         giftName: data.giftName,
-        giftIcon: data.giftIcon || '🎁',
+        giftIcon: data.giftIcon || '',
         giftImageUrl: data.giftIconUrl || undefined,
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
         animationFormat: data.giftAnimationFormat || null,

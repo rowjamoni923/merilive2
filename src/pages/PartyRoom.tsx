@@ -905,7 +905,7 @@ const PartyRoom = () => {
         senderId: giftData.senderId,
         senderName: giftData.senderName || 'Someone',
         giftName: giftData.giftName,
-        giftIcon: giftData.giftIcon || '🎁',
+        giftIcon: giftData.giftIcon || '',
         giftImageUrl: giftData.giftIconUrl,
         animationUrl: giftData.giftAnimationUrl,
         animationFormat: giftData.giftAnimationFormat || null,
