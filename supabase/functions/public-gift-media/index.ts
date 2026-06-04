@@ -103,38 +103,44 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    const giftsBucketKey = path.replace(/^gifts\//, "");
-    const publicGiftPath = `legacy-chat-media/${giftsBucketKey}`;
-    const encodedGiftsKey = giftsBucketKey.split("/").map(encodeURIComponent).join("/");
-    const publicGiftUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${encodedGiftsKey}`;
-    const directGiftUrl = publicGiftUrl;
+    // The incoming `path` from the proxy URL already has the form "gifts/some/file.ext"
+    // or just "some/file.ext". We want to be smart about finding it in the `gifts` bucket.
+    const pathWithoutGiftsPrefix = path.replace(/^gifts\//, "");
+    
+    // We'll try these keys in the `gifts` bucket in order:
+    // 1. The full path (e.g. "gifts/pro/file.mp4")
+    // 2. The path without "gifts/" (e.g. "pro/file.mp4")
+    // 3. The path with "gifts/legacy-chat-media/" (for backward compatibility)
+    const searchKeys = [
+      path, 
+      pathWithoutGiftsPrefix,
+      `legacy-chat-media/${pathWithoutGiftsPrefix}`
+    ];
 
-    // 1) Try the real `gifts` bucket at the requested key directly.
-    // Source URLs look like /storage/v1/object/public/gifts/<key>, so the proxy
-    // path `gifts/<key>` maps to bucket=gifts, key=<key>.
-    const direct = await supabase.storage.from("gifts").download(giftsBucketKey);
-    if (direct.data && !direct.error) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          "Location": directGiftUrl,
-          "Cache-Control": "public, max-age=604800, immutable",
-          "X-Gift-Public-Url": directGiftUrl,
-        },
-      });
+    let foundData = null;
+    let foundKey = "";
+
+    for (const key of searchKeys) {
+      if (!key) continue;
+      const { data, error } = await supabase.storage.from("gifts").download(key);
+      if (data && !error) {
+        foundData = data;
+        foundKey = key;
+        break;
+      }
     }
 
-    // 2) Legacy: asset copied under gifts/legacy-chat-media/<key>
-    const existingPublic = await supabase.storage.from("gifts").download(publicGiftPath);
-    if (existingPublic.data && !existingPublic.error) {
+    if (foundData) {
+      const encodedKey = foundKey.split("/").map(encodeURIComponent).join("/");
+      const redirectUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${encodedKey}`;
+      
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          "Location": publicGiftUrl,
+          "Location": redirectUrl,
           "Cache-Control": "public, max-age=604800, immutable",
-          "X-Gift-Public-Url": publicGiftUrl,
+          "X-Gift-Public-Url": redirectUrl,
         },
       });
     }
