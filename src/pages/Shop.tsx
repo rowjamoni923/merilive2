@@ -642,7 +642,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
+          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3 justify-items-center`}>
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}
