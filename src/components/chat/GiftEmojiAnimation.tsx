@@ -185,7 +185,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
-                className="fixed inset-0 w-screen h-screen"
+                className="fixed inset-0 w-screen h-screen z-[2147483647]"
               />
             )}
           </div>
