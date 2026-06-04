@@ -1391,6 +1391,8 @@ const LiveStream = () => {
         giftIcon: data.giftIcon || '🎁',
         giftImageUrl: data.giftIconUrl || undefined,
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
+        animationFormat: data.giftAnimationFormat || null,
+        animationConfigUrl: data.giftAnimationConfigUrl || undefined,
         soundUrl: data.giftSoundUrl || undefined,
         giftColor: 'bg-pink-500/50',
         count: data.count || 1,
