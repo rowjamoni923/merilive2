@@ -669,16 +669,11 @@ const App = () => {
     const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
-    const imageIdleId = window.setTimeout(() => import('@/utils/registerImageCacheSW').then(m => {
-      m.registerImageCacheSW().then(() => m.warmAppImageCache());
+    const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
+      m.registerImageCacheSW();
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
-    }).catch(() => {}), 0);
-
-    // Pkg371 — Preload every bundled banner asset (Recharge / Invitation /
-    // Agency Dashboard / PayrollHelperGuide / AgencyPolicy / Shop / VIP …)
-    // so the first paint of any banner section is instant.
-    import('@/utils/preloadAppBanners').then(m => m.preloadAppBanners()).catch(() => {});
+    }).catch(() => {}), 5000);
 
     // Clear stale-chunk auto-reload guard on a successful boot so the next
     // post-deploy chunk failure can also self-heal exactly once.
@@ -698,10 +693,10 @@ const App = () => {
     // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
     // sent in any room/call/chat plays with zero network delay on the receiver side.
     const giftIdleId = idle(() => {
-      import('@/utils/giftAnimationPrewarm')
-        .then(m => m.prewarmGiftAnimations())
+      import('@/hooks/useGiftPrefetch')
+        .then(m => m.prefetchGifts())
         .catch(() => {});
-    }, 1500);
+    }, 3500);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
@@ -709,7 +704,7 @@ const App = () => {
       import('@/utils/frameBulkPrewarm')
         .then(m => m.prewarmActiveFrames())
         .catch(() => {});
-    }, 2500);
+    }, 12000);
 
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
