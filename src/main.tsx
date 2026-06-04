@@ -19,20 +19,26 @@ import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 applyLowEndMotionClass();
 
 // =============================================
-// 🛡️ CRITICAL: Install realtime guard BEFORE anything else
-// This prevents non-publication tables from creating DB connections
+// 🛡️ CRITICAL: Non-blocking initializations
 // =============================================
+const schedule = (cb: () => void) => {
+  if (typeof (window as any).requestIdleCallback === 'function') {
+    (window as any).requestIdleCallback(cb, { timeout: 2000 });
+  } else {
+    setTimeout(cb, 100);
+  }
+};
+
 installRealtimeGuard();
-// 🖼️ Global media src auto-normalizer — rewrites raw Supabase storage
-// paths to fully-qualified public URLs on EVERY <img loading="lazy" decoding="async">/<video>/<source>,
-// even in legacy or third-party code we don't own. Single source of truth.
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
-if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
-  startNetworkResilienceEngine();
-}
-// 🔊 Install global audio unlock — first user tap unlocks SVGA gift sounds
-installAudioUnlock();
+
+schedule(() => {
+  if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
+    startNetworkResilienceEngine();
+  }
+  installAudioUnlock();
+});
 
 // 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.
 // React render errors are still caught by the in-tree <ErrorBoundary>.
