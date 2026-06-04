@@ -248,7 +248,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
     cleanMessage = `🏆 ${gameWinData.userName} (Lv.${gameWinData.userLevel}) won ${gameWinData.amount} in ${gameWinData.gameName}!`;
   }
   
-  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ');
+  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ') || !!isDirectUrl;
   const isJoinMessage = message.type === 'join' || cleanMessage.includes('entered') || cleanMessage.includes('joined');
   const isSystemMessage = message.user === 'System' || message.type === 'system';
   const isHost = message.isHost || false;
