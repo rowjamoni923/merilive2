@@ -1348,11 +1348,15 @@ export default function AdminGifts() {
                       ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
                         <video 
                           src={formData.animation_url} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover bg-black"
                           autoPlay 
                           loop 
                           muted 
-                          playsInline controls/>
+                          playsInline
+                          controls
+                          controlsList="nodownload noremoteplayback noplaybackrate"
+                          disablePictureInPicture
+                          disableRemotePlayback/>
                       ) : (
                         <Play className="w-8 h-8 text-purple-500" />
                       )}
