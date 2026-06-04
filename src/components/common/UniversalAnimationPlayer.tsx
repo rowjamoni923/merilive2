@@ -110,12 +110,23 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const [lottieLoading, setLottieLoading] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Pkg-fix: auto-detect side-by-side VAP from raw .mp4 metadata when the
+  // admin forgot to set animation_format='vap'. Legacy gifts uploaded before
+  // the AnimationUploader (e.g. the "hi" carriage) have NULL format in DB —
+  // without this probe they render as a plain video showing both RGB and
+  // Alpha halves.
+  const [autoDetectedVap, setAutoDetectedVap] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const animationType = type || detectAnimationType(resolvedSrc);
+  const detectedType = type || detectAnimationType(resolvedSrc);
+  const animationType: AnimationType = autoDetectedVap ? 'vap' : detectedType;
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
-  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [resolvedSrc, loop]);
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+    completedRef.current = false;
+    setAutoDetectedVap(false);
+  }, [resolvedSrc, loop]);
 
   const fireComplete = (source: AnimationCompletionSource) => {
     if (completedRef.current) return;
@@ -339,6 +350,24 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             "w-full h-full object-contain pointer-events-none",
             !mediaLoaded && "opacity-0"
           )}
+          onLoadedMetadata={(e) => {
+            // Pkg-fix: side-by-side VAP auto-detect. Tencent VAP exports a
+            // single video whose width is exactly 2× its height (RGB left,
+            // alpha right). If the caller didn't pass type="vap" and the
+            // file's aspect ratio matches, switch to VAPPlayer so legacy
+            // gifts with NULL animation_format still render correctly.
+            const v = e.currentTarget;
+            const w = v.videoWidth;
+            const h = v.videoHeight;
+            if (
+              !type &&
+              detectedType !== 'vap' &&
+              w > 100 && h > 100 &&
+              Math.abs(w / h - 2) < 0.05
+            ) {
+              setAutoDetectedVap(true);
+            }
+          }}
           onLoadedData={() => {
             setMediaLoaded(true);
             onLoad?.();
