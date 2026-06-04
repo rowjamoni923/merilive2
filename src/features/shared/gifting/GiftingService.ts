@@ -23,6 +23,8 @@ export interface GiftItem {
   category: string;
   icon_url?: string;
   animation_url?: string;
+  animation_format?: string | null;
+  animation_config_url?: string;
   sound_url?: string;
   animation_type?: string;
 }
@@ -95,6 +97,8 @@ export async function fetchGifts(): Promise<GiftItem[]> {
     category: g.category || 'popular',
     icon_url: normalizeGiftAssetUrl(g.icon_url || g.animation_url),
     animation_url: normalizeGiftAssetUrl(g.animation_url),
+    animation_format: g.animation_format || null,
+    animation_config_url: normalizeGiftAssetUrl(g.animation_config_url),
     sound_url: normalizeGiftAssetUrl(g.sound_url),
     animation_type: g.animation_type,
   }));
@@ -171,6 +175,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         giftName: cachedGift?.name || 'Gift',
         giftIconUrl: cachedGift?.icon_url,
         giftAnimationUrl: cachedGift?.animation_url,
+        giftAnimationFormat: cachedGift?.animation_format || null,
+        giftAnimationConfigUrl: cachedGift?.animation_config_url,
         giftSoundUrl: cachedGift?.sound_url,
         count: quantity,
         giftCoins: unitCoins,
@@ -255,6 +261,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftName: gift?.name || 'Gift',
             giftIconUrl: gift?.icon_url,
             giftAnimationUrl: gift?.animation_url,
+            giftAnimationFormat: gift?.animation_format || null,
+            giftAnimationConfigUrl: gift?.animation_config_url,
             giftSoundUrl: gift?.sound_url,
             count: quantity,
             giftCoins: gift?.coins || 0,
