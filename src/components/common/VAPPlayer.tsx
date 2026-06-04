@@ -390,6 +390,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           cancelAnimationFrame(id);
         }
       }
+      animationRef.current = null;
+      try { glRef.current?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* noop */ }
+      glRef.current = null;
     };
   }, [resolvedSrc]);
 
