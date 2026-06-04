@@ -288,7 +288,7 @@ const AdminVehicleEntrances = () => {
                   {item.preview_url ? (
                     <SmartImage src={item.preview_url} alt={item.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                   ) : item.animation_url ? (
-                    <FixedAnimationFrame size="fill" center={false}
+                    <FixedAnimationFrame size="card" center={true}
                       src={item.animation_url}
                       
                       loop
