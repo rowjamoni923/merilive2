@@ -1304,7 +1304,7 @@ const VIP = () => {
                       <span className="text-heading">{title}</span>
                     </div>
                     
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+                    <div className="grid grid-cols-2 gap-4 justify-items-center max-w-lg mx-auto">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
