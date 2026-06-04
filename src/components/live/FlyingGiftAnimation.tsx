@@ -15,6 +15,7 @@ export interface FlyingGift {
   senderName: string;
   senderAvatar?: string;
   receiverName?: string;
+  receiverAvatar?: string;
   giftName: string;
   giftIcon: string;
   giftImageUrl?: string;
