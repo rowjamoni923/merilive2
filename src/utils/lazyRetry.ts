@@ -86,7 +86,7 @@ export async function scheduleChunkLoadRecovery(error: unknown, source = ''): Pr
   await clearStaleRuntimeCaches();
   window.__meriChunkRecoveryScheduled = false;
 
-  return false;
+  return true;
 }
 
 /** Called from ErrorBoundary "Try Again" — wipe per-module recovery counters
