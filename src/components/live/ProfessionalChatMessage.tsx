@@ -4,6 +4,8 @@ import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
+import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
 
 interface ChatMessageProps {
   id: string;
@@ -157,9 +159,17 @@ export const ProfessionalChatMessage = ({
             </span>
 
             {/* Message — sits inside the designer bubble */}
-            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              {message}
-            </span>
+            {isGiftUrl(message) ? (
+              <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
+                <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+                <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
+              </div>
+            ) : (
+              <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                {message}
+              </span>
+            )}
+
           </div>
         </MessageBubbleWrapper>
       </motion.div>
@@ -216,7 +226,15 @@ export const ProfessionalChatMessage = ({
       </span>
       
       {/* Message */}
-      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">{message}</span>
+      {isGiftUrl(message) ? (
+        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
+          <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+          <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
+        </div>
+      ) : (
+        <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">{message}</span>
+      )}
+
     </motion.div>
   );
 };

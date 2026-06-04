@@ -33,6 +33,8 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
+import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
 
 // ============================================================
 // Shared types
@@ -211,9 +213,17 @@ export const RoomChatBubble = memo(function RoomChatBubble({
             >
               {userName}:
             </span>
-            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              {message}
-            </span>
+            {isGiftUrl(message) ? (
+              <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
+                <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+                <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
+              </div>
+            ) : (
+              <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                {message}
+              </span>
+            )}
+
           </div>
         </MessageBubbleWrapper>
       </motion.div>
@@ -245,9 +255,17 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       >
         {userName}:
       </span>
-      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">
-        {message}
-      </span>
+      {isGiftUrl(message) ? (
+        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
+          <img src={normalizeGiftMediaUrl(message) || ''} alt="Gift" className="w-8 h-8 object-contain" />
+          <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
+        </div>
+      ) : (
+        <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">
+          {message}
+        </span>
+      )}
+
     </motion.div>
   );
 });
@@ -297,7 +315,21 @@ export const DirectChatBubble = memo(function DirectChatBubble({
             : undefined
         }
       >
-        {children ?? <span className="break-words">{message}</span>}
+        {children ?? (isGiftUrl(message) ? (
+          <div className="flex flex-col items-center gap-1 min-w-[120px]">
+            <img 
+              src={normalizeGiftMediaUrl(message) || ''} 
+              alt="Gift" 
+              className="w-24 h-24 object-contain drop-shadow-md" 
+            />
+            <span className={cn("text-[10px] font-bold italic", isMine ? "text-slate-800" : "text-pink-600")}>
+              Sent a gift
+            </span>
+          </div>
+        ) : (
+          <span className="break-words">{message}</span>
+        ))}
+
         <span
           className={cn(
             "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",

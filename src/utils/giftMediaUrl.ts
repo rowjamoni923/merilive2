@@ -39,3 +39,9 @@ export const isHeavyGiftMedia = (url?: string | null): boolean => {
   const clean = (url || "").split("?")[0].toLowerCase();
   return /\.(svga|json)$/.test(clean);
 };
+
+export const isGiftUrl = (text?: string | null): boolean => {
+  if (!text) return false;
+  // Match Supabase storage URLs for gifts bucket
+  return /https?:\/\/[^\s]+(?:\/storage\/v1\/object\/public\/gifts\/)[^\s]+/i.test(text);
+};

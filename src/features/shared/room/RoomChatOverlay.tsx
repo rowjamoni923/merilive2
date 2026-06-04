@@ -203,10 +203,18 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   const [isVisible, setIsVisible] = React.useState(true);
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
+  // Also handle cases where the message IS the URL itself (sent by some legacy or backend logic)
   const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1]);
-  // Clean message text - remove the [GIFT:url] prefix
+  const isDirectUrl = message.message.match(/https?:\/\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.webp|\.gif|\.svga)/i);
+  
+  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1] || (isDirectUrl ? isDirectUrl[0] : null));
+  
+  // Clean message text - remove the [GIFT:url] prefix or if it's just a URL, show a placeholder
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
+  if (isDirectUrl && cleanMessage === isDirectUrl[0]) {
+    cleanMessage = "sent a gift";
+  }
+
   
   // Parse game win message - supports both old and new formats
   // Old: [GAME_WIN:emoji:gameName:amount]
@@ -240,7 +248,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
     cleanMessage = `🏆 ${gameWinData.userName} (Lv.${gameWinData.userLevel}) won ${gameWinData.amount} in ${gameWinData.gameName}!`;
   }
   
-  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ');
+  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ') || !!isDirectUrl;
   const isJoinMessage = message.type === 'join' || cleanMessage.includes('entered') || cleanMessage.includes('joined');
   const isSystemMessage = message.user === 'System' || message.type === 'system';
   const isHost = message.isHost || false;
