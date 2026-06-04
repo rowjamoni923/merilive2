@@ -30,6 +30,7 @@ interface VAPPlayerProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  soundUrl?: string | null;
 }
 
 type VideoFrameCallbackVideo = HTMLVideoElement & {
