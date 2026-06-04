@@ -229,12 +229,64 @@ const VIP = () => {
       // Set user id for expired items restorer
       setCurrentUserId(user.id);
 
-      // Fetch user profile - include ALL equipped fields for unified selection logic
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
-        .eq("id", user.id)
-        .maybeSingle();
+      // Parallel fetch for speed
+      const [
+        profileResult,
+        vipResult,
+        tiersResult,
+        purchasesResult,
+        framesResult,
+        levelPrivsResult,
+        entryBarsResult
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_vip_subscriptions")
+          .select("vip_tier_id, vip_tiers(tier_level), expires_at")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .gte("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("vip_tiers")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order"),
+        supabase
+          .from("user_purchases")
+          .select("id, item_id, is_equipped, expires_at, item_type")
+          .eq("user_id", user.id)
+          .eq("is_active", true),
+        supabase
+          .from("avatar_frames")
+          .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
+          .eq("is_active", true)
+          .order("min_level", { ascending: true }),
+        supabase
+          .from("level_privileges")
+          .select("*")
+          .eq("is_active", true)
+          .order("unlock_level", { ascending: true }),
+        supabase
+          .from("entry_name_bars")
+          .select("*")
+          .eq("is_active", true)
+          .order("level_required", { ascending: true })
+      ]);
+
+      const profileData = profileResult.data;
+      const vipData = vipResult.data;
+      const tiersData = tiersResult.data;
+      const purchases = purchasesResult.data;
+      const availableFramesRaw = framesResult.data;
+      const levelPrivileges = levelPrivsResult.data;
+      const entryNameBars = entryBarsResult.data;
 
       const resolvedLevel = profileData
         ? await resolveLevelFromTiers({
@@ -261,45 +313,15 @@ const VIP = () => {
       const equippedMedalId = profileData?.equipped_medal_id;
       const equippedNobleCardId = profileData?.equipped_noble_card_id;
       
-      console.log('[VIP] Profile equipped IDs:', {
-        frame: equippedFrameId || 'none',
-        entrance: equippedEntranceId || 'none',
-        entryBar: equippedEntryNameBarId || 'none',
-        bubble: equippedBubbleId || 'none',
-        vehicle: equippedVehicleId || 'none',
-        medal: equippedMedalId || 'none',
-        nobleCard: equippedNobleCardId || 'none',
-        effectiveLevel,
-        targetType
-      });
-
       if (profileData) {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
       }
 
-      // Fetch current VIP subscription
-      const { data: vipData } = await supabase
-        .from("user_vip_subscriptions")
-        .select("vip_tier_id, vip_tiers(tier_level), expires_at")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .gte("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
       if (vipData?.vip_tiers) {
         setCurrentVIPTier((vipData.vip_tiers as any).tier_level || 0);
         setVIPExpiresAt(vipData.expires_at);
       }
-
-      // Fetch VIP tiers
-      const { data: tiersData } = await supabase
-        .from("vip_tiers")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order");
 
       if (tiersData) {
         setTiers(tiersData);
@@ -307,13 +329,7 @@ const VIP = () => {
 
       const allPrivileges: UserPrivilege[] = [];
 
-      // Fetch ONLY user's purchased items (from shop)
-      const { data: purchases } = await supabase
-        .from("user_purchases")
-        .select("id, item_id, is_equipped, expires_at, item_type")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
-
+      // Fetch shop items info for purchases
       const purchaseItemIds = (purchases || []).map((purchase) => purchase.item_id).filter(Boolean);
       const { data: purchasedShopItems } = purchaseItemIds.length > 0
         ? await supabase
