@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import PKCompetitionManager from "@/components/admin/PKCompetitionManager";
 import { loadAppSettingsByPrefix, saveAppSetting } from "@/utils/adminSettingsStorage";
+import { AnimationUploader, type AnimationFormat } from "@/components/admin/AnimationUploader";
 
 interface PodiumFrame {
   id: string;
@@ -415,12 +416,13 @@ const AdminLeaderboardManagement = () => {
         {/* ===== PODIUM FRAMES TAB ===== */}
         <TabsContent value="podium-frames" className="space-y-4">
           <p className="text-white/60 text-sm">
-            Upload special frames for Top 3 positions. Supports SVGA, GIF, WebP, PNG.
+            Pkg425 — Professional uploader: SVGA / VAP / PAG / Lottie / WebP / GIF / PNG / MP4. Plays at the designer's exact authored duration.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map(rank => {
               const frame = frames.find(f => f.rank_position === rank);
+              const currentFormat = (frame?.frame_type as AnimationFormat) || null;
               return (
                 <Card key={rank} className="bg-white/5 border-white/10">
                   <CardHeader className="pb-2">
@@ -430,66 +432,32 @@ const AdminLeaderboardManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="w-24 h-24 mx-auto bg-black/30 rounded-full border-2 border-white/10 flex items-center justify-center overflow-hidden">
-                      {frame?.frame_url ? (
-                        <SmartImage src={frame.frame_url} alt={`Rank ${rank}`} className="w-full h-full object-contain"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                      ) : (
-                        <span className="text-white/30 text-xs">No frame</span>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-white/60 text-xs">Frame URL</Label>
-                      <div className="flex gap-1">
-                        <Input
-                          placeholder="https://..."
-                          defaultValue={frame?.frame_url || ""}
-                          className="text-xs bg-white/5 border-white/10 text-white"
-                          id={`frame-url-${rank}-${selectedCategory}`}
-                        />
-                        <Button size="sm" variant="outline" onClick={() => {
-                          const input = document.getElementById(`frame-url-${rank}-${selectedCategory}`) as HTMLInputElement;
-                          if (input?.value) {
-                            const url = input.value;
-                            const ext = url.split("?")[0].split(".").pop()?.toLowerCase() || "";
-                            let type = "static";
-                            if (ext === "svga") type = "svga";
-                            else if (ext === "gif") type = "gif";
-                            else if (ext === "json") type = "lottie";
-                            handleFrameUrlSave(rank, url, type);
-                          }
-                        }}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <label className="flex-1">
-                        <input type="file" accept=".svga,.gif,.webp,.png,.jpg,.json" className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleFrameUpload(rank, file);
-                          }} />
-                        <Button variant="outline" size="sm" className="w-full text-xs" asChild disabled={uploading === rank}>
-                          <span>
-                            <Upload className="w-3 h-3 mr-1" />
-                            {uploading === rank ? "Uploading..." : "Upload"}
-                          </span>
-                        </Button>
-                      </label>
-                      {frame && (
-                        <Button variant="destructive" size="sm" onClick={() => deleteFrame(frame.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </div>
+                    <AnimationUploader
+                      label={`Rank #${rank} podium frame`}
+                      bucket="assets"
+                      folder={`leaderboard/${selectedCategory}/rank${rank}`}
+                      value={{
+                        animation_url: frame?.frame_url || "",
+                        animation_format: currentFormat,
+                        animation_config_url: null,
+                      }}
+                      onChange={(v) => {
+                        if (v.animation_url) {
+                          handleFrameUrlSave(rank, v.animation_url, v.animation_format || "static");
+                        }
+                      }}
+                    />
 
                     {frame && (
-                      <p className="text-[10px] text-white/30 text-center">
-                        Type: {frame.frame_type} | Active: {frame.is_active ? "✅" : "❌"}
-                      </p>
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <p className="text-[10px] text-white/40">
+                          {frame.frame_type.toUpperCase()} · {frame.is_active ? "Active" : "Inactive"}
+                        </p>
+                        <Button variant="destructive" size="sm" onClick={() => deleteFrame(frame.id)}>
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -497,6 +465,7 @@ const AdminLeaderboardManagement = () => {
             })}
           </div>
         </TabsContent>
+
 
         {/* ===== REWARDS TAB ===== */}
         <TabsContent value="rewards" className="space-y-4">
