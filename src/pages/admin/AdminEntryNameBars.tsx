@@ -256,41 +256,21 @@ const AdminEntryNameBars = () => {
         />
       </div>
 
-      <div>
-        <Label className="text-white">Animation URL (SVGA / GIF / WebP / PNG) *</Label>
-        <div className="flex gap-2">
-          <Input
-            value={formData.animation_url}
-            onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-            placeholder="https://..."
-            className={adminStyles.input}
-          />
-          <input
-            type="file"
-            id="entry-name-bar-animation-upload"
-            accept=".svga,.gif,.webp,.png,.jpg,.jpeg"
-            onChange={(e) => handleFileUpload(e, 'animation_url')}
-            className="hidden"
-          />
-          <Button 
-            variant="outline" 
-            disabled={uploading}
-            onClick={() => document.getElementById('entry-name-bar-animation-upload')?.click()}
-          >
-            <Upload className="w-4 h-4" />
-          </Button>
-          {formData.animation_url && (
-            <Button
-              type="button"
-              size="icon"
-              variant="destructive"
-              onClick={() => setFormData(prev => ({ ...prev, animation_url: '' }))}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+      <AnimationUploader
+        label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+        folder="entry-name-bars"
+        value={{
+          animation_url: formData.animation_url,
+          animation_format: formData.animation_format,
+          animation_config_url: formData.animation_config_url,
+        }}
+        onChange={(v) => setFormData(prev => ({
+          ...prev,
+          animation_url: v.animation_url,
+          animation_format: v.animation_format,
+          animation_config_url: v.animation_config_url,
+        }))}
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <div>
