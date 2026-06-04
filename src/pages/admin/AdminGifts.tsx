@@ -890,13 +890,15 @@ export default function AdminGifts() {
                       {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
                           isSVGA(gift.icon_url) || isLottie(gift.icon_url) ? (
-                            <UniversalFramePlayer
+                            <UniversalAnimationPlayer
                               src={gift.icon_url}
                               type={isSVGA(gift.icon_url) ? 'svga' : 'lottie'}
                               className="w-full h-full"
                               loop={true}
                               autoPlay={true}
+                              muted={true}
                             />
+
                           ) : (
                             <SmartImage src={gift.icon_url} alt={gift.name} cdnWidth={64} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                           )
