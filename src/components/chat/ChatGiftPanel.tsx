@@ -392,14 +392,14 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
               <div className="flex items-center gap-3">
                 {/* Selected Gift Preview */}
                 <div className="flex items-center gap-2 flex-1 bg-muted/30 rounded-xl p-2 border border-border/30">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {selectedGift.icon_url ? (
                       <img loading="lazy" decoding="async" 
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
                         className="w-8 h-8 object-contain" />
                     ) : (
-                      <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
+                      <GiftBox3DIcon size={24} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
