@@ -133,6 +133,8 @@ const AdminVehicleEntrances = () => {
       level: 20,
       name: '',
       animation_url: '',
+      animation_format: null,
+      animation_config_url: null,
       preview_url: '',
       is_active: true
     });
@@ -145,6 +147,8 @@ const AdminVehicleEntrances = () => {
       level: item.level,
       name: item.name,
       animation_url: item.animation_url || '',
+      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (item as any).animation_config_url ?? null,
       preview_url: item.preview_url || '',
       is_active: item.is_active
     });
