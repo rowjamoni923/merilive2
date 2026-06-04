@@ -33,6 +33,8 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
+import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
 
 // ============================================================
 // Shared types
