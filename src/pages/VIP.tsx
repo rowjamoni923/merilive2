@@ -236,8 +236,9 @@ const VIP = () => {
         vipResult,
         tiersResult,
         purchasesResult,
+        purchasedBgResult,
         framesResult,
-        levelPrivsResult,
+        levelPrivilegesResult,
         entryBarsResult
       ] = await Promise.all([
         supabase
@@ -265,6 +266,11 @@ const VIP = () => {
           .eq("user_id", user.id)
           .eq("is_active", true),
         supabase
+          .from("user_purchased_backgrounds" as any)
+          .select("id, background_id, is_active, party_room_backgrounds(*)")
+          .eq("user_id", user.id)
+          .eq("is_active", true) as any,
+        supabase
           .from("avatar_frames")
           .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
           .eq("is_active", true)
@@ -285,8 +291,9 @@ const VIP = () => {
       const vipData = vipResult.data;
       const tiersData = tiersResult.data;
       const purchases = purchasesResult.data;
+      const purchasedBgs = (purchasedBgResult.data || []) as any[];
       const availableFramesRaw = framesResult.data;
-      const levelPrivileges = levelPrivsResult.data;
+      const levelPrivileges = levelPrivilegesResult.data;
       const entryNameBars = entryBarsResult.data;
 
       const resolvedLevel = profileData
