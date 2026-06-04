@@ -77,6 +77,8 @@ export interface FixedAnimationFrameProps {
   triggerKey?: string | number;
   /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
   dynamicData?: SVGADynamicData;
+  /** Optional placeholder/icon URL shown immediately while animation loads */
+  placeholderUrl?: string;
 }
 
 // ⚠️ NEVER use `backdrop-blur` here — this frame sits over animated content
