@@ -320,6 +320,43 @@ const AgencyPolicy = () => {
               </Card>
             )}
 
+            {prohibitedContent.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-danger-700 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-danger-50 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-danger-600" /></div>
+                  Prohibited Content
+                </h3>
+                <div className="space-y-4">
+                  {prohibitedContent.map((item: any, idx: number) => (
+                    <div key={idx} className="flex gap-3 items-start p-3 bg-danger-50/30 rounded-2xl border border-danger-100/50">
+                      <div className="w-6 h-6 bg-danger-100 text-danger-600 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-black">{idx + 1}</div>
+                      <div>
+                        <p className="text-xs font-black text-danger-800">{item.title}</p>
+                        <p className="text-[10px] text-danger-600 font-bold mt-1 leading-relaxed">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {callRules.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-info-100 rounded-lg flex items-center justify-center"><Phone className="w-4 h-4 text-info-600" /></div>
+                  Call Rules
+                </h3>
+                <ul className="space-y-3">
+                  {callRules.map((rule: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs font-bold text-slate-600 leading-relaxed">
+                      <div className="w-1.5 h-1.5 bg-info-500 rounded-full shrink-0 mt-2" />
+                      {rule}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             {violations.length > 0 && (
               <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
                 <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
