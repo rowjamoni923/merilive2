@@ -717,7 +717,7 @@ const AdminVIPPrivileges = () => {
                     {tierForm.frame_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <FixedAnimationFrame size="fill" center={false}
+                          <FixedAnimationFrame size="card" center={true}
                             src={tierForm.frame_animation_url}
                             
                             loop
