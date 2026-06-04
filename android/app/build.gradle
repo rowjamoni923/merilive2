@@ -94,6 +94,12 @@ dependencies {
     // Pkg257 — MediaSession (lock-screen / Bluetooth / Wear / Auto / Assistant)
     implementation 'androidx.media:media:1.7.0'
 
+    // Pkg425 — SVGAPlayer-Android (Tencent / YY / Bigo / Chamet professional
+    // SVGA player). Native bitmap decoding + Skia frame composition on a
+    // dedicated GL thread, ~30% smoother than the web fallback. Wraps
+    // YYUED/SVGAPlayer-Android via JitPack.
+    implementation 'com.github.yyued:SVGAPlayer-Android:2.6.1'
+
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.3')
     implementation 'com.google.firebase:firebase-messaging'
