@@ -369,10 +369,11 @@ const Index = () => {
 
     const queueHomeInvalidate = () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
+      // Pkg427: 300ms -> 150ms to match Bigo/Tango/Chamet perception threshold (<200ms).
       invalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
         queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
-      }, 300);
+      }, 150);
     };
 
     // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms.
