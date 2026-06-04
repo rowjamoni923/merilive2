@@ -82,6 +82,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onLoadRef = useRef(onLoad);
   const onErrorRef = useRef(onError);
