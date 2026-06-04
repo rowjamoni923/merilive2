@@ -157,7 +157,13 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
   const soundMatch = content.match(/\|\s*snd:([^\s|\]]+)/i);
   const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
   const configMatch = content.match(/\|\s*cfg:([^\s|\]]+)/i);
-  const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
+  
+  let mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
+  
+  // If no gift pattern but content itself is a gift URL, use it directly
+  if (!mediaUrl && isGiftUrl(content)) {
+    mediaUrl = normalizeGiftMediaUrl(content);
+  }
 
   return {
     mediaUrl,
