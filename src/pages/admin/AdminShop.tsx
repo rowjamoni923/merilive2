@@ -528,6 +528,8 @@ const AdminShop = () => {
       display_order: normalizedItem.display_order,
       sound_url: normalizedItem.sound_url || "",
       sound_duration_ms: normalizedItem.sound_duration_ms || 3000,
+      animation_format: ((item as any).animation_format ?? null) as any,
+      animation_config_url: (item as any).animation_config_url || "",
     });
     setPreviewFile(
       normalizedItem.animation_file_url ||
