@@ -108,6 +108,9 @@ type ShopFormData = {
   display_order: number;
   sound_url: string;
   sound_duration_ms: number;
+  // Pkg424 — unified pro animation columns
+  animation_format: import("@/components/admin/AnimationUploader").AnimationFormat | null;
+  animation_config_url: string;
 };
 
 // Extended categories for live streaming app
@@ -150,6 +153,8 @@ const createDefaultFormData = (): ShopFormData => ({
   display_order: 0,
   sound_url: "",
   sound_duration_ms: 3000,
+  animation_format: null,
+  animation_config_url: "",
 });
 
 const detectFileTypeFromUrl = (url: string | null | undefined): string => {
