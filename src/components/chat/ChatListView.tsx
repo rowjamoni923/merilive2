@@ -283,8 +283,9 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                           "text-sm truncate",
                           conv.unread_count > 0 ? "text-foreground/85 font-medium" : "text-muted-foreground"
                         )}>
-                          {conv.last_message || "No messages yet"}
+                          {isGiftUrl(conv.last_message) ? "🎁 Sent a gift" : (conv.last_message || "No messages yet")}
                         </p>
+
                         {conv.unread_count > 0 && (
                           <Badge
                             className="bg-gradient-to-br from-rose-500 to-red-600 text-white border-0 rounded-full ml-2 shrink-0 text-[10px] px-2"
