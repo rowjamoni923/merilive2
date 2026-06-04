@@ -98,22 +98,20 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  const batchSize = 2;
-  CORE_PAGE_IMPORTERS.forEach((fn, i) => {
-    setTimeout(() => fn().catch(() => {}), 700 + Math.floor(i / batchSize) * 180);
+  
+  // Pkg: ULTRA-AGGRESSIVE preloading for "Zero-Second" navigation.
+  // Instead of waiting for timeouts, we start importing immediately.
+  // The browser handles the priority.
+  CORE_PAGE_IMPORTERS.forEach((fn) => {
+    // Fire-and-forget, browser handles concurrency
+    fn().catch(() => {});
   });
 }
 
-// Pkg51: Fire preload at module-evaluation time too (before <App /> mounts).
-// The useEffect inside App still calls it as a safety net — preloadCoreRoutes
-// is idempotent. Guarded by `window` so SSR/test environments stay safe.
+// Pkg: Fire preload at module-evaluation time (ASAP).
 if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
-  const schedule = (cb: () => void) => {
-    const w = window as any;
-    if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 1800 });
-    else setTimeout(cb, 900);
-  };
-  schedule(preloadCoreRoutes);
+  // Use a microtask to avoid blocking the main bundle execution
+  Promise.resolve().then(preloadCoreRoutes);
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));

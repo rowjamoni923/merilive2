@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
 import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
+import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
 import { Search, Eye, Trophy } from "lucide-react";
@@ -209,9 +210,9 @@ const Index = () => {
   // Fetch hosts based on subTab - Optimized for speed
   const { data: hosts, isLoading } = useQuery({
     queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
-    staleTime: 1000 * 10,
-    gcTime: 1000 * 120,
-    refetchOnMount: true,
+    staleTime: 1000 * 30, // Increased staleTime for better cache hits
+    gcTime: 1000 * 300,  // Keep in memory longer
+    refetchOnMount: false, // Don't refetch on every mount if we have data
     refetchOnWindowFocus: false,
     queryFn: async () => {
       // ⚡ PARALLEL FETCH: All independent queries at once
@@ -784,16 +785,7 @@ const Index = () => {
             )}
           </>
         ) : isLoading ? (
-          <div className="grid grid-cols-2 gap-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-muted via-muted/60 to-muted animate-pulse border border-border"
-                style={{ boxShadow: '0 4px 12px -4px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.5)' }}
-              />
-            ))}
-          </div>
-
+          <HomeFeedSkeleton />
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
