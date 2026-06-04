@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { detectVapSideBySideLayout } from '@/utils/vapDetection';
+import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
 
 interface VAPConfig {
   v: number;           // version
