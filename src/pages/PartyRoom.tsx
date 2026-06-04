@@ -301,6 +301,30 @@ const PartyRoom = () => {
   useEffect(() => {
     userCoinsRef.current = userCoins;
   }, [userCoins]);
+
+  // Pkg424: Party participant heartbeat (30s) — keeps server-side "active" status fresh so
+  // crashed/network-dropped participants are swept by cleanup_stale_party_participants_v2 cron
+  // within ~90s, instead of inflating participant counts / seat lookups for up to 2 hours.
+  useEffect(() => {
+    const uid = currentUser?.id;
+    if (!roomId || !uid) return;
+    let cancelled = false;
+    const beat = async () => {
+      if (cancelled) return;
+      try {
+        await supabase.rpc('party_participant_heartbeat', { p_room_id: roomId });
+      } catch {
+        /* ignore — next tick will retry */
+      }
+    };
+    // Fire immediately so a freshly-joined user has a fresh last_seen_at before any sweep.
+    beat();
+    const hbTimer = setInterval(beat, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(hbTimer);
+    };
+  }, [roomId, currentUser?.id]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
