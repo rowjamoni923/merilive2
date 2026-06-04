@@ -167,7 +167,10 @@ export const AnimationUploader: React.FC<Props> = ({
         // 1. Init
         const initRes = await fetch(R2_FUNCTION_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-admin-token': getAdminSessionToken() 
+          },
           body: JSON.stringify({ action: 'init-multipart', folder, fileName: file.name, fileType: file.type || 'application/octet-stream' }),
         });
         const { uploadId, key, success: initSuccess, error: initError } = await initRes.json();
