@@ -245,12 +245,11 @@ self.addEventListener('fetch', function(event) {
   var url;
   try { url = new URL(req.url); } catch (e) { return; }
 
-  // Don't cache cross-origin (except for same-origin assets we own)
+  // Don't cache cross-origin in this block (handled in IMG block below)
   if (url.origin !== self.location.origin) return;
 
-  // Don't cache HTML — always fresh
-  if (req.mode === 'navigate') return;
-  if (req.destination === 'document') return;
+  // Don't cache HTML — handled in Navigation block
+  if (req.mode === 'navigate' || req.destination === 'document') return;
 
   // Don't cache API/auth/realtime
   if (url.pathname.indexOf('/rest/') !== -1) return;
@@ -264,17 +263,18 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.open(ASSET_CACHE).then(function(cache) {
       return cache.match(req).then(function(cached) {
-        var isScriptOrStyle = req.destination === 'script' || req.destination === 'style' || /\.(js|css)(\?|$)/i.test(url.pathname);
+        var isCritical = req.destination === 'script' || req.destination === 'style' || req.destination === 'font';
+        
+        // Cache-First for Fonts and Images (extremely fast)
+        if (cached && !isCritical) return cached;
+
+        // Stale-While-Revalidate for Scripts/Styles (fast + safe)
         var networkPromise = fetch(req).then(function(resp) {
-          if (resp && resp.status === 200 && resp.type === 'basic') {
+          if (resp && resp.status === 200) {
             cache.put(req, resp.clone()).catch(function() {});
           }
           return resp;
         }).catch(function() { return cached; });
-
-        // JS/CSS chunks must be network-first; cache-first can keep a stale
-        // runtime pointing at deleted chunk URLs after deploys.
-        if (isScriptOrStyle) return networkPromise || cached;
 
         return cached || networkPromise;
       });
