@@ -118,12 +118,7 @@ export const PremiumFlyingGiftBanner = ({
     }
 
     return (
-      <span
-        className="text-3xl leading-none"
-        style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
-      >
-        {giftIcon}
-      </span>
+      <GiftBox3DIcon size={32} className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]" />
     );
   };
 
