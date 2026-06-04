@@ -36,7 +36,9 @@ import {
 import { JoinNotification, RoomChatMessage } from './types';
 import { getGameLogoUrl, getGameEmoji } from '@/hooks/useGameLogos';
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
-import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { isGiftUrl } from "@/utils/giftMediaUrl";
+import GiftMedia from "@/components/chat/GiftMedia";
+
 
 // ============= WELCOME MESSAGE COMPONENT (Ultra Premium Luxury Style) =============
 interface WelcomeMessageProps {
@@ -203,17 +205,16 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   const [isVisible, setIsVisible] = React.useState(true);
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
-  // Also handle cases where the message IS the URL itself (sent by some legacy or backend logic)
-  const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const isDirectUrl = message.message.match(/https?:\/\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.webp|\.gif|\.svga)/i);
-  
-  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1] || (isDirectUrl ? isDirectUrl[0] : null));
+  // Also handle cases where the message IS the URL itself
+  const giftUrlMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
+  const giftUrl = giftUrlMatch?.[1] || (isGiftUrl(message.message) ? message.message : null);
   
   // Clean message text - remove the [GIFT:url] prefix or if it's just a URL, show a placeholder
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
-  if (isDirectUrl && cleanMessage === isDirectUrl[0]) {
+  if (giftUrl && (cleanMessage === giftUrl || isGiftUrl(cleanMessage))) {
     cleanMessage = "sent a gift";
   }
+
 
   
   // Parse game win message - supports both old and new formats
@@ -248,9 +249,10 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
     cleanMessage = `🏆 ${gameWinData.userName} (Lv.${gameWinData.userLevel}) won ${gameWinData.amount} in ${gameWinData.gameName}!`;
   }
   
-  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ') || !!isDirectUrl;
+  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ') || !!giftUrl;
   const isJoinMessage = message.type === 'join' || cleanMessage.includes('entered') || cleanMessage.includes('joined');
   const isSystemMessage = message.user === 'System' || message.type === 'system';
+
   const isHost = message.isHost || false;
   const isNewUser = message.isNewUser || false;
 
@@ -427,15 +429,8 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 0.4, repeat: 1 }}
         >
-          {giftIconUrl ? (
-            <img loading="lazy" decoding="async" 
-              src={giftIconUrl} 
-              alt="Gift" 
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+          {giftUrl ? (
+            <GiftMedia url={giftUrl} sizeClass="w-4 h-4" />
           ) : (
             <GiftBox3DIcon size={12} />
           )}

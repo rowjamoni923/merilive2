@@ -33,9 +33,9 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
-import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-import { detectProfessionalAnimationFormat, isAnimatedProfessionalFormat } from "@/utils/animationFormat";
+import { isGiftUrl } from "@/utils/giftMediaUrl";
+import GiftMedia from "@/components/chat/GiftMedia";
+
 
 
 // ============================================================
@@ -103,34 +103,6 @@ const formatTime = (v?: string | number | Date) => {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-// ============================================================
-// Helper — Gift Media Renderer (Image / SVGA / VAP)
-// ============================================================
-const GiftMedia = ({ url, sizeClass = "w-10 h-10" }: { url: string; sizeClass?: string }) => {
-  const normalizedUrl = normalizeGiftMediaUrl(url) || '';
-  const format = detectProfessionalAnimationFormat(normalizedUrl);
-  const isAnimated = isAnimatedProfessionalFormat(format);
-
-  if (isAnimated) {
-    return (
-      <UniversalAnimationPlayer
-        src={normalizedUrl}
-        className={cn("object-contain", sizeClass)}
-        loop
-        autoPlay
-        muted
-      />
-    );
-  }
-
-  return (
-    <img 
-      src={normalizedUrl} 
-      alt="Gift" 
-      className={cn("object-contain", sizeClass)}
-    />
-  );
-};
 
 // ============================================================
 // 1. ROOM CHAT BUBBLE — Live / Private call / Parties
