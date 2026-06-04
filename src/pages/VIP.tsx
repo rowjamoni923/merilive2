@@ -1174,16 +1174,15 @@ const VIP = () => {
                         >
                           <FixedAnimationFrame
                             src={tier.badge_animation_url || ''}
-                            placeholderUrl={''} // We'll use the Icon as fallback below if no animation
                             className="w-full h-full"
                             size="fill"
                             loop
                             autoPlay
-                          >
-                            {!tier.badge_animation_url && (
-                              <TierIcon className="w-7 h-7 text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
-                            )}
-                          </FixedAnimationFrame>
+                            fallbackEmoji=""
+                          />
+                          {!tier.badge_animation_url && (
+                            <TierIcon className="w-7 h-7 absolute text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
+                          )}
                         </div>
                         <div>
                           <h3 className="text-heading font-bold text-lg" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
