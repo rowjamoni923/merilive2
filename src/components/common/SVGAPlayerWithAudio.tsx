@@ -162,11 +162,23 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
           void (async () => {
             let audioFound = false;
             try {
-              const audioSegments = await extractAudioFromSVGA(src);
-              audioSegmentsRef.current = audioSegments;
               const clampedVolume = Math.min(Math.max(volume, 0), 1);
-              
-              if (audioSegments.length > 0) {
+
+              // Professional path: if admin attached a project/CDN sound asset,
+              // use it as the primary sound. Some exported SVGA files contain
+              // raw AAC blobs that Chrome/Android WebView reports as Howler
+              // error=4; trusting the project sound avoids silent gifts.
+              if (soundUrl) {
+                console.log('[SVGAPlayerWithAudio] 🔊 Playing project sound:', soundUrl.split('/').pop());
+                const handle = playSoundUrl(soundUrl, { volume: clampedVolume, loop, maxConcurrent: 2 });
+                activeSoundHandlesRef.current.push(handle);
+                audioFound = true;
+              }
+
+              const audioSegments = audioFound ? [] : await extractAudioFromSVGA(src);
+              audioSegmentsRef.current = audioSegments;
+
+              if (!audioFound && audioSegments.length > 0) {
                 for (const segment of audioSegments) {
                   if (playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef)) {
                     audioFound = true;
@@ -180,13 +192,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
               
               internalSoundFoundRef.current = audioFound;
               
-              // CRITICAL: Only play fallback sound if NO internal sound was found in the SVGA
-              if (!audioFound && soundUrl) {
-                console.log('[SVGAPlayerWithAudio] 🔊 No internal sound found, playing fallback:', soundUrl.split('/').pop());
-                const handle = playSoundUrl(soundUrl, { volume: clampedVolume, loop, maxConcurrent: 2 });
-                activeSoundHandlesRef.current.push(handle);
-                audioFound = true;
-              }
             } catch (e) {
               console.warn('[SVGAPlayerWithAudio] Audio logic failed:', e);
             }
