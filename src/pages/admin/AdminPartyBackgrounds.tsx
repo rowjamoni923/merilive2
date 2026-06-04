@@ -929,6 +929,23 @@ const AdminPartyBackgrounds = () => {
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
             </div>
+            {/* Pkg424 — Pro Animation overlay (VAP / SVGA / Lottie / etc.) */}
+            <AnimationUploader
+              label="Pro Animation Overlay (VAP / SVGA / Lottie / WebP / MP4) — optional"
+              bucket="party-backgrounds"
+              folder="unified"
+              value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
+              }}
+              onChange={(v) => setFormData(prev => ({
+                ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
+              }))}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
