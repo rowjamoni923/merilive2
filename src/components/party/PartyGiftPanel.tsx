@@ -437,7 +437,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                     )}
                   </Suspense>
                 ) : (
-                  <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
+                  <GiftBox3DIcon size={24} />
                 )}
                 <div>
                   <p className="text-white font-medium text-sm">{selectedGift.name}</p>
