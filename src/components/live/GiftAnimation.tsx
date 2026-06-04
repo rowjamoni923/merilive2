@@ -35,7 +35,7 @@ export const gifts: LegacyGiftItem[] = [
   { id: "flame", name: "Fire", icon: Flame3DIcon as any, coins: 2000, color: "text-orange-500", animation: "explode", size: "lg" },
   { id: "zap", name: "Lightning", icon: Zap, coins: 5000, color: "text-yellow-400", animation: "shake", size: "xl" },
   { id: "diamond", name: "Diamond", icon: Diamond3DIcon as any, coins: 10000, color: "text-cyan-400", animation: "rain", size: "xl" },
-  { id: "gift", name: "Gift Box", icon: GiftBox3DIcon as any, coins: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
+  { id: "gift", name: "Gift Box", icon: Sparkles as any, coins: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
 ];
 
 interface GiftAnimationProps {
