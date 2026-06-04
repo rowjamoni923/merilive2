@@ -288,7 +288,7 @@ const AdminVehicleEntrances = () => {
                   {item.preview_url ? (
                     <SmartImage src={item.preview_url} alt={item.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                   ) : item.animation_url ? (
-                    <FixedAnimationFrame size="fill" center={false}
+                    <FixedAnimationFrame size="card" center={true}
                       src={item.animation_url}
                       
                       loop
@@ -418,7 +418,7 @@ const AdminVehicleEntrances = () => {
 
             {formData.animation_url && (
               <div className="aspect-video bg-black rounded-lg overflow-hidden max-h-40">
-                <FixedAnimationFrame size="fill" center={false}
+                <FixedAnimationFrame size="card" center={true}
                   src={formData.animation_url}
                   
                   loop
@@ -444,7 +444,7 @@ const AdminVehicleEntrances = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="flex-1 bg-black rounded-lg overflow-hidden h-full">
-              <FixedAnimationFrame size="fill" center={false}
+              <FixedAnimationFrame size="fullscreen" center={true}
                 src={previewUrl}
                 
                 loop

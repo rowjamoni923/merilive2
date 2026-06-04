@@ -337,7 +337,7 @@ export default function AdminEntryBanners() {
                   }}
                 />
               ) : banner.animation_url ? (
-                <FixedAnimationFrame size="fill" center={false}
+                <FixedAnimationFrame size="card" center={true}
                   src={banner.animation_url}
                   className="w-full h-full object-contain"
                   loop

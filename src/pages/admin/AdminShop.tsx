@@ -927,8 +927,8 @@ const AdminShop = () => {
                       ) : formData.file_type === 'lottie' ? (
                         <FixedAnimationFrame
                           src={previewFile}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                         />
                       ) : formData.file_type === 'vap' ? (
@@ -936,8 +936,8 @@ const AdminShop = () => {
                           src={previewFile}
                           type="vap"
                           configSrc={formData.animation_config_url || undefined}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                           muted
                         />
@@ -945,8 +945,8 @@ const AdminShop = () => {
                         <FixedAnimationFrame
                           src={previewFile}
                           type={previewFile.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}
-                          size="fill"
-                          center={false}
+                          size="card"
+                          center={true}
                           loop
                           muted
                         />
@@ -1303,11 +1303,11 @@ const AdminShop = () => {
                 const url = getAnimationUrl(fullscreenPreviewItem);
                 if (!url) return <p className="text-white/50">No animation file</p>;
                 if (isSVGA(url)) return (
-                  <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
+                  <FixedAnimationFrame src={url} type="svga" size="large" center={true} loop muted={false} />
                 );
-                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
-                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="fill" center={false} loop muted={false} />;
-                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="fill" center={false} loop muted={false} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="large" center={true} loop muted={false} />;
+                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="large" center={true} loop muted={false} />;
+                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="large" center={true} loop muted={false} />;
                 return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>
