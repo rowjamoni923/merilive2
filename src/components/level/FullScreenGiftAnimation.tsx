@@ -333,6 +333,7 @@ const FullScreenGiftAnimation = ({
             volume={0.8}
             soundUrl={gift.sound_url}
             triggerKey={quantity > 1 ? quantity : undefined}
+            dynamicData={dynamicData}
             onAudioExtracted={handleSvgaAudioExtracted}
             onComplete={handleAnimationEnd}
             center={false}
