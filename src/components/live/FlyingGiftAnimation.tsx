@@ -327,9 +327,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         transition={{ duration: 0.55, ease: "easeOut" }}
         style={FULLSCREEN_GIFT_LAYER_STYLE}
       >
-        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
-          {gift.giftIcon || '🎁'}
-        </span>
+        <GiftBox3DIcon size={200} />
       </motion.div>
     );
   };
