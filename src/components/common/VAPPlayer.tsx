@@ -85,6 +85,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const soundHandleRef = useRef<{ stop: () => void } | null>(null);
 
   const onLoadRef = useRef(onLoad);
   const onErrorRef = useRef(onError);
@@ -319,10 +320,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           if (!muted && soundUrl) {
             console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
             const { playSoundUrl } = await import('@/utils/soundPlayer');
-            playSoundUrl(soundUrl, { volume: volume, loop, maxConcurrent: 2 });
+            // If we have a soundUrl, we mute the video to prevent doubling
+            videoRef.current.muted = true;
+            soundHandleRef.current = playSoundUrl(soundUrl, { 
+              volume: volume, 
+              loop, 
+              maxConcurrent: 2 
+            });
+          } else {
+            videoRef.current.muted = muted;
           }
 
-          videoRef.current.muted = muted;
           videoRef.current.volume = volume;
           await videoRef.current.play();
         } catch {
