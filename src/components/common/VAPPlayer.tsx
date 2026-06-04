@@ -362,17 +362,19 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     // Render loop — keep RAF-ticking until the video actually produces frames.
-    // requestVideoFrameCallback ONLY fires when a new frame is decoded, so if
-    // we hook it before play() resolves the loop stalls and our 450ms safety
-    // timer wrongly drops us to the cropped-video fallback (= broken-looking
-    // VAP because alpha never composites).
     const render = () => {
-      if (useVideoFallbackRef.current) return;
+      if (useVideoFallbackRef.current || !mountedRef.current) return;
       
+      const video = videoRef.current;
+      if (!video) return;
+
       const playing = !video.paused && !video.ended && video.readyState >= 2;
       
-      if (playing) {
+      // Optimization: only upload texture if the video frame actually changed.
+      // This saves significant CPU/GPU on mobile when RAF runs at 120Hz but video is 30fps.
+      if (playing && video.currentTime !== lastVideoTimeRef.current) {
         try {
+          lastVideoTimeRef.current = video.currentTime;
           gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clearColor(0, 0, 0, 0);
@@ -393,7 +395,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       }
 
       const frameVideo = video as VideoFrameCallbackVideo;
-      if (webglPaintedRef.current && typeof frameVideo.requestVideoFrameCallback === 'function') {
+      if (typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
         animationRef.current = frameVideo.requestVideoFrameCallback(render);
       } else {
@@ -402,20 +404,27 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       }
     };
 
-    // Kick autoplay (with muted retry) so the first RAF tick has a non-paused
-    // video to texture. Without this the loop only paints once the <video>
-    // element's own autoplay attribute fires, which on some Android WebViews
-    // happens AFTER our safety timeout.
-    if (autoPlay && video.paused) {
+    // Kick autoplay (with muted retry)
+    if (autoPlay) {
       const playAttempt = async () => {
         try {
-          await video.play();
+          // Pre-unlock audio context for professional playback
+          await ensureAudioUnlocked();
+          
+          if (!mountedRef.current || !videoRef.current) return;
+          const v = videoRef.current;
+          
+          v.muted = muted;
+          v.volume = Math.max(0, Math.min(1, volume));
+          
+          await v.play();
+          console.log('[VAPPlayer] 🔊 Playing with audio');
         } catch (err) {
           console.warn('[VAPPlayer] Play with audio failed, retrying muted...', err);
-          if (!video.muted) {
-            video.muted = true;
+          if (videoRef.current && !videoRef.current.muted) {
+            videoRef.current.muted = true;
             try {
-              await video.play();
+              await videoRef.current.play();
             } catch (retryErr) {
               console.error('[VAPPlayer] Muted playback also failed:', retryErr);
             }
@@ -428,8 +437,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-
-  }, [autoPlay, createShaders]);
+  }, [autoPlay, createShaders, muted, volume, loop]);
 
 
 
