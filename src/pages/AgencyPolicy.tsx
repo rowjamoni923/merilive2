@@ -249,21 +249,40 @@ const AgencyPolicy = () => {
           </TabsContent>
 
           <TabsContent value="host" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
-              <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
-                <div className="w-7 h-7 bg-success-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-success-600" /></div>
-                Requirements
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {hostRequirements.map((req, idx) => (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center hover:bg-white hover:shadow-lg transition-all">
-                    <div className="w-12 h-12 bg-success-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-success-600 shadow-sm">{iconMap[req.key] || <Star className="w-5 h-5" />}</div>
-                    <p className="font-bold text-xs text-slate-800">{req.title}</p>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-tight">{req.description}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            {hostManagementPolicy.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5 mb-4">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-info-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-info-600" /></div>
+                  Host Management
+                </h3>
+                <ul className="space-y-4">
+                  {hostManagementPolicy.map((item: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 items-start">
+                      <div className="w-6 h-6 bg-info-50 text-info-600 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-black shadow-sm">{idx + 1}</div>
+                      <p className="text-xs font-bold text-slate-600 leading-relaxed mt-0.5">{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {hostRequirements.length > 0 && (
+              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-md rounded-3xl p-5">
+                <h3 className="font-black text-sm mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-tight">
+                  <div className="w-7 h-7 bg-success-100 rounded-lg flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-success-600" /></div>
+                  Requirements
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {hostRequirements.map((req, idx) => (
+                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center hover:bg-white hover:shadow-lg transition-all">
+                      <div className="w-12 h-12 bg-success-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-success-600 shadow-sm">{iconMap[req.key] || <Star className="w-5 h-5" />}</div>
+                      <p className="font-bold text-xs text-slate-800">{req.title}</p>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-tight">{req.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="rules" className="mt-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
