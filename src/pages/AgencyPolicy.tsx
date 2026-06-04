@@ -65,7 +65,7 @@ const getTierStyle = (tier: { level?: string; name?: string }) => {
   return tierStyles[k] || tierStyles[n] || "from-slate-600 via-slate-700 to-slate-800";
 };
 
-const STRUCTURED_KEYS = new Set(["exchange_rate", "commission_tiers", "host_requirements", "violations", "prohibited_content", "call_rules", "withdrawal"]);
+const STRUCTURED_KEYS = new Set(["exchange_rate", "commission_tiers", "host_requirements", "violations", "prohibited_content", "call_rules", "withdrawal", "rules", "host_management", "commission", "penalties", "benefits", "privacy"]);
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
