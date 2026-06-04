@@ -40,6 +40,8 @@ const AdminVehicleEntrances = () => {
     level: 1,
     name: '',
     animation_url: '',
+    animation_format: null as AnimationFormat | null,
+    animation_config_url: null as string | null,
     preview_url: '',
     is_active: true
   });
