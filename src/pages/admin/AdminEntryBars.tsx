@@ -495,53 +495,21 @@ const AdminEntryBars = () => {
 
               {/* Duration auto-detected from SVGA file */}
 
-              {/* Animation Upload */}
-              <div className="space-y-2">
-                <Label>Animation (SVGA, Lottie JSON, GIF)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.animation_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, animation_url: e.target.value }))}
-                    placeholder="URL or Upload File"
-                    className="flex-1"
-                  />
-                  <input
-                    type="file"
-                    id="entry-bar-animation-upload"
-                    accept="*/*"
-                    className="hidden"
-                    onChange={handleAnimationUpload}
-                    disabled={uploadingAnimation}
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    disabled={uploadingAnimation}
-                    onClick={() => document.getElementById('entry-bar-animation-upload')?.click()}
-                  >
-                    {uploadingAnimation ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  </Button>
-                  {formData.animation_url && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => setFormData(prev => ({ ...prev, animation_url: '' }))}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                {formData.animation_url && (
-                  <div className="h-20 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                    <FixedAnimationFrame size="fill" center={false}
-                      src={formData.animation_url}
-                      className="h-full object-contain"
-                      loop
-                    />
-                  </div>
-                )}
-              </div>
+              <AnimationUploader
+                label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
+                folder="entry-bars"
+                value={{
+                  animation_url: formData.animation_url,
+                  animation_format: formData.animation_format,
+                  animation_config_url: formData.animation_config_url,
+                }}
+                onChange={(v) => setFormData(prev => ({
+                  ...prev,
+                  animation_url: v.animation_url,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url,
+                }))}
+              />
 
               {/* Thumbnail Upload - Compact Style like Animation */}
               <div className="space-y-2">
