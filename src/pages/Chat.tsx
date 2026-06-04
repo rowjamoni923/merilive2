@@ -150,13 +150,13 @@ interface GroupMessage {
 
 // Parse gift payload from chat content
 // Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
-// The `snd:` suffix is optional and only present when the gift has a separate sound asset.
+// URLs may be absolute, Supabase storage paths, or project-local Lovable asset paths.
 const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null } => {
-  const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
-  const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
-  const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
+  const mediaMatch = content.match(/\[Gift:\s*([^\|\s\]]+)\|/i);
+  const emojiMatch = content.match(/\[Gift:\s*(?:[^\|\s\]]+\|)?([^\s\]]+)/i);
+  const soundMatch = content.match(/\|\s*snd:([^\s\|\]]+)/i);
   const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
-  const configMatch = content.match(/\|\s*cfg:(https?:\/\/[^\s\|\]]+)/i);
+  const configMatch = content.match(/\|\s*cfg:([^\s\|\]]+)/i);
   const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
 
   return {
