@@ -396,21 +396,8 @@ export function ActiveCallScreen({
       userCoinsRef.current = Math.max(0, availableCoins - totalCost);
       setUserCoins(userCoinsRef.current);
 
-      const result = await sendGift({
-        giftId: gift.id,
-        gift,
-        senderId: userId,
-        receiverId: remoteUserId,
-        quantity: count,
-        context: 'call',
-        callId: callId || undefined,
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to send gift');
-      }
-
-      // Show local animation for sender immediately
+      // Show local animation immediately; the receiver gets the LiveKit packet
+      // from sendGift's optimistic path without waiting for the DB round-trip.
       addFlyingGift({
         senderId: userId,
         senderName: "You",
@@ -426,9 +413,23 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
+      playSound('gift');
+
+      const result = await sendGift({
+        giftId: gift.id,
+        gift,
+        senderId: userId,
+        receiverId: remoteUserId,
+        quantity: count,
+        context: 'call',
+        callId: callId || undefined,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send gift');
+      }
 
       setShowGiftPanel(false);
-      playSound('gift');
     } catch (error) {
       console.error("Gift send error:", error);
       // Rollback optimistic update
