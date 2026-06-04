@@ -404,14 +404,53 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     );
   }
 
+  const cropXPercent = -(fallbackCrop[0] / fallbackCrop[2]) * 100;
+  const cropYPercent = -(fallbackCrop[1] / fallbackCrop[3]) * 100;
+  const cropWidthPercent = (1 / fallbackCrop[2]) * 100;
+  const cropHeightPercent = (1 / fallbackCrop[3]) * 100;
+
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative overflow-hidden", className)}>
       {loading && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
+      <video
+        ref={videoRef}
+        src={resolvedSrc}
+        crossOrigin="anonymous"
+        playsInline
+        muted={muted}
+        loop={loop}
+        preload="auto"
+        autoPlay={autoPlay}
+        controls={false}
+        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+        disablePictureInPicture
+        disableRemotePlayback
+        data-animation="true"
+        data-decorative="true"
+        className={cn(
+          "absolute pointer-events-none",
+          useVideoFallback ? "opacity-100" : "opacity-0"
+        )}
+        style={{
+          left: `${cropXPercent}%`,
+          top: `${cropYPercent}%`,
+          width: `${cropWidthPercent}%`,
+          height: `${cropHeightPercent}%`,
+          objectFit: 'fill',
+        }}
+        onLoadedData={(e) => handleVideoReady(e.currentTarget)}
+        onCanPlay={(e) => {
+          const v = e.currentTarget;
+          if (autoPlay && v.paused) v.play().catch((err) => console.warn('[VAPPlayer] Autoplay blocked:', err));
+        }}
+        onEnded={handleEnded}
+        onError={handleVideoError}
+      />
       <canvas
         ref={canvasRef}
-        className={cn("w-full h-full object-contain", loading && "opacity-0")}
+        className={cn("w-full h-full object-contain", (loading || useVideoFallback) && "opacity-0")}
         style={{ 
           display: 'block',
           background: 'transparent',
