@@ -393,9 +393,9 @@ export default function AdminGifts() {
     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
     console.log(`[Upload] Starting ${type} upload: ${file.name} (${fileSizeMB}MB)`);
     
-    // Validate file size (max 150MB)
-    if (file.size > 150 * 1024 * 1024) {
-      toast.error("File size must be less than 150MB");
+    // Validate file size (max 500MB for high-res VAP/Vibe animations)
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error("File size must be less than 500MB");
       return;
     }
 
@@ -405,8 +405,8 @@ export default function AdminGifts() {
     try {
       let publicUrl: string;
       
-      // Use R2 for files > 50MB (Supabase limit), Supabase for smaller files
-      const useR2 = file.size > 50 * 1024 * 1024;
+      // Use R2 for files > 5MB to take advantage of parallel binary upload speed
+      const useR2 = file.size > 5 * 1024 * 1024;
       
       if (useR2) {
         // Upload to Cloudflare R2 using S3 multipart upload (bypasses memory limit)
