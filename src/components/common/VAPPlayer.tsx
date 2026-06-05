@@ -81,6 +81,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const [webglPainted, setWebglPainted] = useState(false);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
@@ -212,6 +213,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setUseVideoFallback(true);
       setLoading(false);
       webglPaintedRef.current = true;
+      setWebglPainted(true);
       onLoadRef.current?.();
       return;
     }
@@ -301,7 +303,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          webglPaintedRef.current = true;
+          if (!webglPaintedRef.current) {
+            webglPaintedRef.current = true;
+            setWebglPainted(true);
+          }
         } catch (e) {
           setUseVideoFallback(true);
           return;
@@ -428,7 +433,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         <canvas 
           ref={canvasRef} 
           className="w-full h-full object-contain pointer-events-none"
-          style={{ opacity: webglPaintedRef.current ? 1 : 0 }}
+          style={{ opacity: webglPainted ? 1 : 0 }}
         />
       )}
     </div>
