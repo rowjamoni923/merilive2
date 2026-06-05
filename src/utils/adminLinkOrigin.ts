@@ -1,4 +1,4 @@
-const FALLBACK_ADMIN_ORIGIN = 'https://merilive.top';
+const FALLBACK_ADMIN_ORIGIN = 'https://merilive.com';
 
 const BLOCKED_HOST_PATTERNS = [
   'localhost',
