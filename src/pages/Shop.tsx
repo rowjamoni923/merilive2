@@ -242,6 +242,8 @@ const ShopItemCard = ({
                   autoPlay
                   muted
                   center={true}
+                  playOnClick
+                  posterUrl={item.preview_url || null}
                   onError={() => setImageError(true)}
                 />
               </div>
