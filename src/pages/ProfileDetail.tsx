@@ -375,6 +375,7 @@ const ProfileDetail = () => {
     }
 
     setProfile(profileData as ProfileData);
+    if (profileData) setProfileCache(profileData as ProfileData);
 
     // Set poster images
     setPosterImages((postersResult?.data || []).map((poster: any) => ({
