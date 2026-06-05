@@ -369,11 +369,19 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     onLoadRef.current?.();
   }, [autoPlay, createShaders, muted, volume, loop]);
 
+  const configRef = useRef<VAPConfig | null>(null);
+  useEffect(() => { configRef.current = config; }, [config]);
+
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
-    const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
-    
+    // Pkg423: read config from ref so we always pick up the JSON if it has
+    // already arrived by the time `onLoadedData` fires. (Reading from the
+    // closure-captured state caused the second VAP gift to init in the
+    // wrong rendering mode when the JSON resolved a tick later.)
+    const cfg = configRef.current ?? config;
+    const isComposite = !!cfg || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
+
     // Pkg-fix: Add safety completion timer for non-looping VAP
     // If the video ended event doesn't fire, we force completion after duration + 1s.
     if (!loop) {
@@ -397,8 +405,23 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       onLoadRef.current?.();
       return;
     }
-    initWebGL(video, config);
+    initWebGL(video, cfg);
   }, [config, initWebGL, loop, src]);
+
+  // Pkg423: If the JSON config arrives AFTER the video already initialised
+  // (race between fetch() and <video> onLoadedData), re-run init with the
+  // proper VAPX rectangles so the gift renders correctly.
+  useEffect(() => {
+    if (!config) return;
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    if (!initializedRef.current) return;
+    initializedRef.current = false;
+    setWebglPainted(false);
+    setUseVideoFallback(false);
+    handleVideoReady(video);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   useEffect(() => {
     return () => {
