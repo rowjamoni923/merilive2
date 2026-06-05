@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { EntryAnimation } from '@/components/live/UnifiedEntryAnimation';
+import { warmupEntryAnimationPayload } from '@/utils/vapWarmup';
 
 // Validate URL is proper
 const isValidUrl = (url?: string): boolean => {
