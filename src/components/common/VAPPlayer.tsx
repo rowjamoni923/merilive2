@@ -386,22 +386,26 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.disable(gl.BLEND);
 
     const render = () => {
-      if (useVideoFallbackRef.current || !mountedRef.current || !isVisibleRef.current) return;
+      if (!mountedRef.current || !isVisibleRef.current) return;
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 2 && v.currentTime !== lastVideoTimeRef.current) {
+      // Professional optimization: even if paused, we want to paint the current frame
+      // if it's different from the last one or if we haven't painted yet.
+      if (v.readyState >= 2) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
+          
           if (!webglPaintedRef.current) {
             webglPaintedRef.current = true;
             setWebglPainted(true);
           }
         } catch (e) {
+          console.error('[VAPPlayer] Render error:', e);
           setUseVideoFallback(true);
           return;
         }
