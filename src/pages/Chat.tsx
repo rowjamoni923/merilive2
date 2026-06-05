@@ -80,6 +80,7 @@ import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
+import { getCachedGifts } from "@/hooks/useGiftPrefetch";
 
 interface Conversation {
   id: string;
@@ -2400,17 +2401,30 @@ const Chat = () => {
                           const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
-                          
-                          const iconUrl = mediaUrl;
+                          const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+                          const giftName = nameMatch?.[1]?.trim() || '';
+
+                          // Fallback: if message has no embedded media (old gift rows),
+                          // resolve the gift's own icon_url from the prefetched catalog by name.
+                          let iconUrl = mediaUrl;
+                          let resolvedFormat = animationFormat;
+                          if (!iconUrl && giftName) {
+                            const cached = getCachedGifts().find(g => g.name === giftName);
+                            if (cached) {
+                              iconUrl = cached.animation_url || cached.icon_url || null;
+                              resolvedFormat = cached.animation_format || resolvedFormat;
+                            }
+                          }
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
                           const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
-                          
+
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
-                          const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
-                          const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isSvga = resolvedFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
+                          const isLottie = resolvedFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
+
                           
                           return (
                             <motion.div 
