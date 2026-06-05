@@ -86,30 +86,37 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 
 // ============================================================
 // FULLSCREEN HEAVY-ANIMATION ARBITER (module-level singleton)
-// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment,
-// but NEVER queues a later gift behind a 10–15s animation. New gifts preempt
-// the current full-screen owner so delivery remains zero-second and the WebView
-// never renders stacked heavy players.
+// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment.
+// IMPORTANT: never preempt/shorten a playing asset. Later gifts wait FIFO so
+// every fullscreen animation completes at its own native SVGA/VAP/MP4 duration.
 // ============================================================
 let activeFullscreenOwner: string | null = null;
-const FULLSCREEN_PREEMPT_EVENT = 'meri-fullscreen-gift-preempt';
+const fullscreenWaitQueue: string[] = [];
+const FULLSCREEN_GRANTED_EVENT = 'meri-fullscreen-gift-granted';
 
 const tryAcquireFullscreen = (id: string): boolean => {
   if (activeFullscreenOwner === null || activeFullscreenOwner === id) {
     activeFullscreenOwner = id;
     return true;
   }
-  const previousId = activeFullscreenOwner;
-  activeFullscreenOwner = id;
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(FULLSCREEN_PREEMPT_EVENT, { detail: { previousId, nextId: id } }));
-  }
-  return true;
+  if (!fullscreenWaitQueue.includes(id)) fullscreenWaitQueue.push(id);
+  return false;
 };
 
 const releaseFullscreen = (id: string) => {
   if (activeFullscreenOwner !== id) return;
   activeFullscreenOwner = null;
+  const nextId = fullscreenWaitQueue.shift();
+  if (!nextId) return;
+  activeFullscreenOwner = nextId;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FULLSCREEN_GRANTED_EVENT, { detail: { id: nextId } }));
+  }
+};
+
+const removeFromFullscreenQueue = (id: string) => {
+  const index = fullscreenWaitQueue.indexOf(id);
+  if (index >= 0) fullscreenWaitQueue.splice(index, 1);
 };
 
 
@@ -195,16 +202,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }, 3500);
   }, [gift.giftName, handleAnimationComplete]);
 
-  useEffect(() => {
-    if (!needsFullscreenSlot || typeof window === 'undefined') return;
-    const onPreempt = (event: Event) => {
-      const detail = (event as CustomEvent<{ previousId?: string; nextId?: string }>).detail;
-      if (detail?.previousId === gift.id && detail.nextId !== gift.id) handleAnimationComplete();
-    };
-    window.addEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
-    return () => window.removeEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
-  }, [gift.id, needsFullscreenSlot, handleAnimationComplete]);
-
   // Count-up animation — re-runs on combo merge (comboKey changes)
   useEffect(() => {
     const target = gift.count;
@@ -227,9 +224,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     setShowBanner(true);
     const timer = window.setTimeout(() => {
       if (mountedRef.current) setShowBanner(false);
-    }, needsFullscreenSlot ? 1850 : 2200);
+    }, 1800);
     return () => window.clearTimeout(timer);
-  }, [gift.id, gift.comboKey, needsFullscreenSlot]);
+  }, [gift.id, gift.comboKey]);
 
   // Dismiss timer — SVGA uses its OWN native duration via onComplete (no fixed timer).
   // Non-SVGA banner stays 3.5s — RESETS on every combo bump.
@@ -264,9 +261,15 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       setHasFullscreenSlot(true);
       return;
     }
-    tryAcquireFullscreen(gift.id);
-    setHasFullscreenSlot(true);
+    setHasFullscreenSlot(tryAcquireFullscreen(gift.id));
+    const onGranted = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string }>).detail;
+      if (detail?.id === gift.id && mountedRef.current) setHasFullscreenSlot(true);
+    };
+    window.addEventListener(FULLSCREEN_GRANTED_EVENT, onGranted as EventListener);
     return () => {
+      window.removeEventListener(FULLSCREEN_GRANTED_EVENT, onGranted as EventListener);
+      removeFromFullscreenQueue(gift.id);
       releaseFullscreen(gift.id);
     };
   }, [needsFullscreenSlot, svgaError, gift.id]);
