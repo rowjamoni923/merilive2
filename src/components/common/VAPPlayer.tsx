@@ -4,6 +4,7 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
+import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
 
 interface VAPConfig {
   v: number;           // version
@@ -326,9 +327,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w * dpr; 
       canvas.height = cfg.h * dpr;
     } else {
+      const layout = detectVapLayout(video) || 'alpha-right';
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
-      canvas.width = (videoWidth / 2) * dpr; 
-      canvas.height = videoHeight * dpr;
+      const isVertical = layout === 'alpha-top' || layout === 'alpha-bottom';
+      canvas.width = (isVertical ? videoWidth : videoWidth / 2) * dpr; 
+      canvas.height = (isVertical ? videoHeight / 2 : videoHeight) * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
@@ -344,7 +347,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 3 && v.currentTime !== lastVideoTimeRef.current) {
+      if (!v.paused && !v.ended && v.readyState >= 2 && v.currentTime !== lastVideoTimeRef.current) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
@@ -422,11 +425,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (resolvedConfigSrc && !configReady) return;
     if (initializedRef.current || !video.videoWidth) return;
+    
+    // Harden video for mobile autoplay / inline play
+    hardenVideoElementForNative(video, { muted: video.muted });
+    
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
-    // Pkg-fix: Add safety completion timer for non-looping VAP
-    // If the video ended event doesn't fire, we force completion after duration + 1s.
+    // Safety completion timer for non-looping VAP
     if (!loop && video.duration > 0) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       completionTimerRef.current = setTimeout(() => {
@@ -435,10 +441,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, (video.duration * 1000) + 1000);
+      }, (video.duration * 1000) + 1500); // 1.5s padding
     }
 
     if (!isComposite) {
+      console.log('[VAPPlayer] Not a composite VAP, using native video fallback');
       setFallbackCrop([0, 0, 1, 1]);
       setUseVideoFallback(true);
       setLoading(false);
