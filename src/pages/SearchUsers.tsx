@@ -7,7 +7,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { recordClientError } from "@/utils/clientErrorLog";

@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import AvatarWithFrame, { preloadFrames } from "@/components/common/AvatarWithFrame";
 import { getCountryByCode } from "@/data/countryCodes";
