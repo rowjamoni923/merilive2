@@ -1,5 +1,6 @@
 import { prewarmGiftAssets } from '@/utils/giftAnimationPrewarm';
-import { warmupVapUrls } from '@/utils/vapWarmup';
+import { warmupSelectedVapUrls, warmupVapUrls } from '@/utils/vapWarmup';
+import { markVapCompositeHint } from '@/utils/vapDetection';
 
 type GiftWarmupPayload = {
   icon_url?: string | null;
@@ -30,9 +31,17 @@ function warmImageNow(url?: string | null) {
 export function warmGiftForInstantPlay(gift?: GiftWarmupPayload | null): void {
   if (!gift || typeof window === 'undefined') return;
   const urls = [gift.animation_url, gift.animation_config_url, gift.icon_url, gift.sound_url];
+  if (gift.animation_url && String(gift.animation_format || '').toLowerCase() === 'vap') {
+    markVapCompositeHint(gift.animation_url, true);
+  }
   warmImageNow(gift.icon_url || gift.animation_url || null);
-  warmupVapUrls(urls, { warmJsonSibling: String(gift.animation_format || '').toLowerCase() === 'vap' });
+  warmupSelectedVapUrls([gift.animation_url, gift.animation_config_url]);
+  warmupVapUrls([gift.sound_url, gift.icon_url], { warmJsonSibling: false, priority: 'high' });
   void prewarmGiftAssets(urls).catch(() => {});
+}
+
+export function warmIncomingGiftForInstantPlay(gift?: GiftWarmupPayload | null): void {
+  warmGiftForInstantPlay(gift);
 }
 
 export function warmGiftUrlsForInstantPlay(urls: Array<string | null | undefined>): void {

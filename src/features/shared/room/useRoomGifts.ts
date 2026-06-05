@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { FlyingGiftData } from './types';
 import type { GiftSentDetail } from '@/lib/livekitGiftSignaling';
+import { warmIncomingGiftForInstantPlay } from '@/utils/instantGiftWarmup';
 
 interface UseRoomGiftsOptions {
   roomId: string;
@@ -44,6 +45,14 @@ export function useRoomGifts({
     const onGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail || detail.id !== roomId || detail.senderId === currentUserId || !isMountedRef.current) return;
+
+      warmIncomingGiftForInstantPlay({
+        icon_url: detail.giftIconUrl || null,
+        animation_url: detail.giftAnimationUrl || null,
+        animation_format: detail.giftAnimationFormat || null,
+        animation_config_url: detail.giftAnimationConfigUrl || null,
+        sound_url: detail.giftSoundUrl || null,
+      });
 
       onGiftReceivedRef.current({
         id: `gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
