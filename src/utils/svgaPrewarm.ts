@@ -103,7 +103,9 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
         }
         return await blobToDataUrl(blob);
       }
-    } catch {}
+    } catch {
+      // cache miss/failure falls back to network
+    }
   }
 
   try {
@@ -123,7 +125,9 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
       }
       return await blobToDataUrl(blob);
     }
-  } catch {}
+  } catch {
+    // best-effort prefetch only
+  }
 
   return url;
 }
