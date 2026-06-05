@@ -419,7 +419,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = React.
       />
     </div>
   );
-};
+});
 
 export default UniversalAnimationPlayer;
 export { detectAnimationType };
