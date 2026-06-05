@@ -211,10 +211,25 @@ const ShopItemCard = ({
         {(() => {
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
-          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
+          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm|mov)(\?|$)/i);
 
-          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
-          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
+          // Prefer static preview icon (logo) in grid cards — full animation
+          // only plays in the detail/full-screen modal. Keeps grid lag-free.
+          if (previewIsStatic && !imageError) {
+            return (
+              <img
+                src={item.preview_url!}
+                alt={item.name}
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: 'high' } as any)}
+                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+                onError={() => setImageError(true)}
+              />
+            );
+          }
+
+          // No static preview icon — fall back to playing the full animation.
           if (animSrc && isAnimatedType(animType) && !imageError) {
             return (
               <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
@@ -230,20 +245,6 @@ const ShopItemCard = ({
                   onError={() => setImageError(true)}
                 />
               </div>
-            );
-          }
-
-          if (previewIsStatic && !imageError) {
-            return (
-              <img
-                src={item.preview_url!}
-                alt={item.name}
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: 'high' } as any)}
-                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-                onError={() => setImageError(true)}
-              />
             );
           }
 
