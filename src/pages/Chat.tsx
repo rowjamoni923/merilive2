@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
@@ -784,7 +784,7 @@ const Chat = () => {
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
-    setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setAnimatingGiftEmoji(giftMediaUrl);
     setAnimatingGiftFormat(giftAnimationFormat);
     setAnimatingGiftConfigUrl(giftConfigUrl || null);
     setAnimatingGiftSound(giftSoundUrl || null);
@@ -2416,7 +2416,7 @@ const Chat = () => {
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
                               <div className="w-10 h-10 flex items-center justify-center relative">
                                 {isSvga && iconUrl ? (
-                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                  <Suspense fallback={null}>
                                     <SVGAPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2426,7 +2426,7 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isLottie && iconUrl ? (
-                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                  <Suspense fallback={null}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2444,9 +2444,7 @@ const Chat = () => {
                                       (e.target as HTMLImageElement).style.display = 'none';
                                     }}
                                   />
-                                ) : (
-                                  <span className="text-xl">{giftEmoji}</span>
-                                )}
+                                ) : null}
                               </div>
                               
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
@@ -3199,7 +3197,7 @@ const Chat = () => {
                     }}
                   >
                     <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                    <Gift className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <span className="relative text-[9px] font-black uppercase tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">Gift</span>
                   </div>
                   <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Gift</span>
                 </motion.button>
