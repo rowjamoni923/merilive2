@@ -804,12 +804,25 @@ const Chat = () => {
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
-    setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
-    setAnimatingGiftFormat(giftAnimationFormat);
-    setAnimatingGiftConfigUrl(giftConfigUrl || null);
-    setAnimatingGiftSound(giftSoundUrl || null);
-    setGiftAnimationInstance(prev => prev + 1);
-    setShowGiftAnimation(true);
+    addFlyingGift({
+      senderId: currentUserId,
+      senderName: myProfile?.display_name || 'You',
+      senderAvatar: myProfile?.avatar_url || undefined,
+      receiverName: selectedConversation.other_user?.display_name || 'User',
+      receiverAvatar: selectedConversation.other_user?.avatar_url || undefined,
+      giftName: gift.name,
+      giftIcon: gift.icon_url || giftMediaUrl || giftEmoji,
+      giftImageUrl: iconUrl || undefined,
+      animationUrl: giftMediaUrl || undefined,
+      animationFormat: giftAnimationFormat,
+      animationConfigUrl: giftConfigUrl || undefined,
+      soundUrl: giftSoundUrl || undefined,
+      giftColor: 'from-pink-500 to-purple-500',
+      count,
+      coins: gift.coins,
+      isOwnGift: true,
+      beansEarned: estimatedBeansEarned,
+    });
     
     // Gift animation is already playing - no toast needed
     
