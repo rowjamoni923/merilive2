@@ -21,6 +21,7 @@ import {
   Star
 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
