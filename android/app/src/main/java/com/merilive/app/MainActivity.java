@@ -96,6 +96,11 @@ public class MainActivity extends BridgeActivity {
         // it when reelsNativeFlag is ON (default OFF). Existing WebView
         // <video> path is unchanged for everyone else.
         registerPlugin(com.merilive.app.plugin.NativeReelsPlayerPlugin.class);
+        // Pkg428 — Native Image Loader (Glide). Additive prefetch +
+        // optional WebView image interceptor. Default OFF; gated by
+        // imageNativeFlag. Existing <img> path unchanged for everyone
+        // else (web, iOS, older APKs, gated-off cohort).
+        registerPlugin(com.merilive.app.plugin.NativeImageLoaderPlugin.class);
 
         super.onCreate(savedInstanceState);
 
