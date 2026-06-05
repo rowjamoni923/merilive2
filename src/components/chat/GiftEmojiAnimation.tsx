@@ -150,6 +150,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
           <div style={FULLSCREEN_STAGE_STYLE}>
             {isSvga && (
               <FixedAnimationFrame
+                key={`anim-${emoji}`}
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
