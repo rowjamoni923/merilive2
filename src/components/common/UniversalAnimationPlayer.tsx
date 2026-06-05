@@ -90,7 +90,7 @@ const detectAnimationType = (url: string): AnimationType => {
  * Supports SVGA, VAP, Lottie JSON, GIF, WebP, PNG, MP4, WebM formats
  * Used for gifts, entrance animations, avatar frames, and special effects
  */
-const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
+const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = React.memo(({
   src,
   type,
   configSrc,
