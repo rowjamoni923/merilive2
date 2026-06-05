@@ -77,6 +77,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import icon3dTranslate from "@/assets/icon-3d-translate.png";
 import icon3dGift from "@/assets/icon-3d-gift.png";
+import icon3dVoice from "@/assets/icon-3d-voice.png";
 import icon3dGames from "@/assets/icon-3d-games.png";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
@@ -3158,7 +3159,7 @@ const Chat = () => {
                   {message.trim() ? (
                     <Send className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   ) : (
-                    <Mic className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <img src={icon3dVoice} alt="Voice" width={512} height={512} loading="lazy" className="w-6 h-6 object-contain relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   )}
                 </motion.button>
               </>
