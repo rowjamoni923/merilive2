@@ -2449,7 +2449,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat, animationConfigUrl } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat, animationConfigUrl, iconUrl: parsedIconUrl } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2464,6 +2464,10 @@ const Chat = () => {
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
                           const isVap = animationFormat === 'vap' || normalizedGiftUrl.endsWith('.vap') || normalizedGiftUrl.endsWith('.webm') || normalizedGiftUrl.endsWith('.mp4');
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
+                          // For VAP/MP4/WebM, the tiny 40x40 video preview is unreliable —
+                          // prefer the gift's static photo (uploaded alongside the animation in admin panel).
+                          const staticImage = parsedIconUrl
+                            || (iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl) ? iconUrl : null);
                           
                           return (
                             <motion.div 
@@ -2474,7 +2478,17 @@ const Chat = () => {
                             >
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
                               <div className="w-10 h-10 flex items-center justify-center relative">
-                                {isSvga && iconUrl ? (
+                                {isVap && staticImage ? (
+                                  <img loading="lazy" decoding="async"
+                                    src={staticImage}
+                                    alt="Gift"
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
+                                    }}
+                                  />
+                                ) : isSvga && iconUrl ? (
                                   <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <SVGAPlayer
                                       src={iconUrl}
@@ -2506,6 +2520,7 @@ const Chat = () => {
                                       (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
                                     }}
                                   />
+
                                 ) : (
                                   <span className="text-xl">{giftEmoji}</span>
                                 )}
