@@ -526,20 +526,35 @@ const AgencyPolicy = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-3">
-                    {hostRequirements.map((req, index) => (
-                      <div 
-                        key={index}
-                        className="bg-muted/50 rounded-xl p-4 text-center"
-                      >
- <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600">
-                          {iconMap[req.key] || <Star className="w-5 h-5" />}
+                  {hostRequirements.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      {hostRequirements.map((req, index) => (
+                        <div
+                          key={index}
+                          className="bg-muted/50 rounded-xl p-4 text-center"
+                        >
+                          <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600">
+                            {iconMap[req.key] || <Star className="w-5 h-5" />}
+                          </div>
+                          <p className="font-semibold text-sm">{req.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{req.description}</p>
                         </div>
-                        <p className="font-semibold text-sm">{req.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{req.description}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : hostManagementItems.length > 0 ? (
+                    <ul className="space-y-2.5">
+                      {hostManagementItems.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-success-100 text-success-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
+                            {idx + 1}
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No host requirements published yet.</p>
+                  )}
                 </CardContent>
               </Card>
 
