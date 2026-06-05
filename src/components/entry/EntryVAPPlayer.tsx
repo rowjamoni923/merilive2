@@ -432,6 +432,11 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
 
   if (error) return <div className={cn("bg-transparent", className)} />;
 
+  if (nativeMode === 'pending' || nativeMode === 'active') {
+    return <div className={cn("relative flex items-center justify-center overflow-hidden bg-transparent", className)} />;
+  }
+
+
   return (
     <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
       {loading && <div className="absolute inset-0 bg-transparent" />}
