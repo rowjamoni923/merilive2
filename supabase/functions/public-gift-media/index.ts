@@ -110,14 +110,13 @@ Deno.serve(async (req) => {
     // We'll try these keys in the `gifts` bucket in order:
     // 1. The full path (e.g. "gifts/pro/file.mp4")
     // 2. The path without "gifts/" (e.g. "pro/file.mp4")
-    // 3. If it's a .json request but only a .mp4 exists, try the .mp4 (VAP fix)
-    // 4. The path with "gifts/legacy-chat-media/" (for backward compatibility)
+    // 3. The path with "gifts/legacy-chat-media/" (for backward compatibility).
+    // IMPORTANT: never answer a .json config request with the .mp4 file. VAP
+    // players probe vapc.json; returning video/mp4 there makes JSON parsing fail.
     const searchKeys = [
-      path, 
+      path,
       pathWithoutGiftsPrefix,
-      path.replace(/\.json$/i, ".mp4"),
-      pathWithoutGiftsPrefix.replace(/\.json$/i, ".mp4"),
-      `legacy-chat-media/${pathWithoutGiftsPrefix}`
+      `legacy-chat-media/${pathWithoutGiftsPrefix}`,
     ];
 
     let foundData = null;
@@ -157,21 +156,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const ext = (foundKey.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
-    const contentType = usefulMimeType(foundData.type) || MIME[ext] || "application/octet-stream";
-    const body = req.method === "HEAD" ? null : foundData;
-
-    return new Response(body, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": contentType,
-        "Content-Length": String(foundData.size),
-        "Cache-Control": "public, max-age=604800, immutable",
-        "Accept-Ranges": "bytes",
-      },
-    });
-
+    const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+    const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
+    const body = req.method === "HEAD" ? null : data;
 
     return new Response(body, {
       status: 200,
@@ -181,7 +168,6 @@ Deno.serve(async (req) => {
         "Content-Length": String(data.size),
         "Cache-Control": "public, max-age=604800, immutable",
         "Accept-Ranges": "bytes",
-        "X-Gift-Public-Url": publicGiftUrl,
       },
     });
   } catch (error) {
