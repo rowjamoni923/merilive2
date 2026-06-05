@@ -218,6 +218,10 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   // If not visible, render a placeholder to save GPU/CPU
   // Pkg-fix: Bypass visibility check for full-screen overlays (fixed/inset-0/w-screen)
   const isOverlay = className?.includes('fixed') || className?.includes('inset-0') || className?.includes('w-screen');
+  const fullscreenChildClassName = cn(
+    'w-full h-full',
+    isOverlay && 'fixed inset-0 w-screen h-screen',
+  );
   if (!isVisible && !loop && !isOverlay) {
      return <div ref={containerRef} className={className} />;
   }
@@ -312,7 +316,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           <VAPPlayer
             src={resolvedSrc}
             configSrc={configSrc}
-            className="w-full h-full"
+            className={fullscreenChildClassName}
             loop={loop}
             autoPlay={autoPlay && (isVisible || isOverlay)}
             muted={muted}
@@ -511,8 +515,8 @@ const NativeSVGAOverlay: React.FC<{
 
     return () => {
       cancelled = true;
-      try { listener?.remove?.(); } catch {}
-      try { NativeSVGA.stop(); } catch {}
+      try { listener?.remove?.(); } catch { /* native listener cleanup best-effort */ }
+      try { NativeSVGA.stop(); } catch { /* native stop cleanup best-effort */ }
     };
   }, [src, loop]);
 
