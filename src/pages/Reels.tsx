@@ -626,6 +626,23 @@ const Reels = () => {
 
   const currentReel = reels[currentIndex];
 
+  // Pkg427 — Native Android Reels Player (ExoPlayer). When the
+  // `reels:native:enabled` flag is ON for this device, ExoPlayer takes
+  // over playback and the <video> element below is hidden so the
+  // transparent WebView reveals the native surface. UI overlays (like /
+  // gift / comments / captions) keep rendering on top byte-identically.
+  // When the flag is OFF (default) or the plugin is unavailable, this
+  // hook silently no-ops and the existing <video> path runs.
+  const nativeReels = useNativeReelsPlayer({
+    url: currentReel?.video_url ?? null,
+    muted: isMuted,
+    enabled: true,
+    prefetchUrls: [
+      reels[currentIndex + 1]?.video_url,
+      reels[currentIndex - 1]?.video_url,
+    ].filter((u): u is string => !!u),
+  });
+
   return (
     <div className="fixed inset-0 bg-[#05050d] flex flex-col overflow-hidden">
       {/* Header — Premium Midnight Indigo */}
