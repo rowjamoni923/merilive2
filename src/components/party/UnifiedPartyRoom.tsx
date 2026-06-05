@@ -1772,7 +1772,7 @@ export function UnifiedPartyRoom({
                 : "bg-gradient-to-r from-purple-500 to-violet-600"
             )}
           >
-            <Gamepad2 className="w-4 h-4" />
+            <BrandedGameIcon className="w-6 h-6" />
           </motion.button>
 
           {/* Beauty Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
