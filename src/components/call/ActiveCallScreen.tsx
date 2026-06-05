@@ -1160,7 +1160,7 @@ export function ActiveCallScreen({
             >
               <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
                 style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.5), transparent 70%)' }} />
-              <Gift className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }} />
+              <BrandedGiftIcon className="w-7 h-7 relative rounded-md" />
             </motion.button>
 
             {/* Three dot menu */}
