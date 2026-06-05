@@ -202,16 +202,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }, 3500);
   }, [gift.giftName, handleAnimationComplete]);
 
-  useEffect(() => {
-    if (!needsFullscreenSlot || typeof window === 'undefined') return;
-    const onPreempt = (event: Event) => {
-      const detail = (event as CustomEvent<{ previousId?: string; nextId?: string }>).detail;
-      if (detail?.previousId === gift.id && detail.nextId !== gift.id) handleAnimationComplete();
-    };
-    window.addEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
-    return () => window.removeEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
-  }, [gift.id, needsFullscreenSlot, handleAnimationComplete]);
-
   // Count-up animation — re-runs on combo merge (comboKey changes)
   useEffect(() => {
     const target = gift.count;
