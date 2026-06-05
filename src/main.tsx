@@ -33,6 +33,10 @@ installRealtimeGuard();
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
 
+// ⚡ PERFORMANCE: Tune WebView for native smoothness
+import { initWebViewPerformance } from "./utils/nativePerformance";
+initWebViewPerformance();
+
 schedule(() => {
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
     startNetworkResilienceEngine();
