@@ -23,6 +23,7 @@ import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
@@ -143,6 +144,23 @@ const Reels = () => {
   const userCoinsRef = useRef(0);
   const currentIndexRef = useRef(0);
   const currentUserIdRef = useRef<string | null>(null);
+
+  // Pkg427 — Native Android Reels Player (ExoPlayer). When the
+  // `reels:native:enabled` flag is ON for this device, ExoPlayer takes
+  // over and `nativeReels.active === true` — Reels.tsx then hides the
+  // <video> element so the transparent WebView reveals the native
+  // surface beneath. UI overlays (like / gift / comments / captions)
+  // keep rendering on top byte-identically. Default OFF → existing
+  // <video> path runs for everyone.
+  const nativeReels = useNativeReelsPlayer({
+    url: reels[currentIndex]?.video_url ?? null,
+    muted: isMuted,
+    enabled: true,
+    prefetchUrls: [
+      reels[currentIndex + 1]?.video_url,
+      reels[currentIndex - 1]?.video_url,
+    ].filter((u): u is string => !!u),
+  });
   
   useEffect(() => {
     userCoinsRef.current = userCoins;
@@ -479,13 +497,25 @@ const Reels = () => {
   const autoUnmutedRef = useRef(false);
 
   const togglePlay = () => {
+    // Unmute on first tap regardless of path (TikTok behaviour).
+    const wasMuted = isMuted;
+    if (wasMuted && !autoUnmutedRef.current) {
+      autoUnmutedRef.current = true;
+      setIsMuted(false);
+    }
+
+    // Pkg427 — when native ExoPlayer owns playback, route through plugin.
+    if (nativeReels.active) {
+      if (isPlaying) nativeReels.pause();
+      else nativeReels.play();
+      setIsPlaying(!isPlaying);
+      return;
+    }
+
     const currentVideo = videoRefs.current[reels[currentIndex]?.id];
     if (currentVideo) {
-      // On the FIRST tap inside Reels, also unmute — user clearly wants sound.
-      if (isMuted && !autoUnmutedRef.current) {
-        autoUnmutedRef.current = true;
+      if (wasMuted && !autoUnmutedRef.current) {
         Object.values(videoRefs.current).forEach(v => { if (v) v.muted = false; });
-        setIsMuted(false);
       }
       if (isPlaying) {
         currentVideo.pause();
@@ -498,34 +528,47 @@ const Reels = () => {
 
   const toggleMute = () => {
     autoUnmutedRef.current = true;
-    Object.values(videoRefs.current).forEach(video => {
-      if (video) video.muted = !isMuted;
-    });
-    setIsMuted(!isMuted);
+    const next = !isMuted;
+    // Pkg427 — route mute to native plugin when active; the hook also
+    // mirrors isMuted via a separate effect, but this gives instant feel.
+    if (nativeReels.active) {
+      nativeReels.setMuted(next);
+    } else {
+      Object.values(videoRefs.current).forEach(video => {
+        if (video) video.muted = next;
+      });
+    }
+    setIsMuted(next);
   };
 
-  // Auto-play current video
+  // Auto-play current video (web <video> path only — native plugin
+  // already auto-plays inside useNativeReelsPlayer).
   useEffect(() => {
-    Object.entries(videoRefs.current).forEach(([id, video]) => {
-      if (video) {
-        if (id === reels[currentIndex]?.id) {
-          // Honour user's unmute decision across reel switches.
-          video.muted = isMuted;
-          video.play().catch(() => {});
-          setIsPlaying(true);
-        } else {
-          video.pause();
-          video.currentTime = 0;
+    if (!nativeReels.active) {
+      Object.entries(videoRefs.current).forEach(([id, video]) => {
+        if (video) {
+          if (id === reels[currentIndex]?.id) {
+            video.muted = isMuted;
+            video.play().catch(() => {});
+            setIsPlaying(true);
+          } else {
+            video.pause();
+            video.currentTime = 0;
+          }
         }
-      }
-    });
+      });
+    } else {
+      // Native took over — make sure we report "playing" so the play-icon
+      // overlay stays hidden.
+      setIsPlaying(true);
+    }
 
     // Increment view count
     const currentReel = reels[currentIndex];
     if (currentReel) {
       supabase.rpc('increment_reel_view', { reel_uuid: currentReel.id });
     }
-  }, [currentIndex, reels, isMuted]);
+  }, [currentIndex, reels, isMuted, nativeReels.active]);
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -692,20 +735,31 @@ const Reels = () => {
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 className="h-full w-full relative"
               >
-                {/* Video */}
-                <video 
-                  ref={el => {
-                    videoRefs.current[currentReel.id] = el;
-                    if (el) hardenVideoElementForNative(el, { muted: isMuted });
-                  }}
-                  src={currentReel.video_url}
-                  className="w-full h-full object-cover"
-                  loop
-                  playsInline
-                  autoPlay
-                  muted={isMuted}
-                  onClick={togglePlay}
-                />
+                {/* Video — Pkg427: when native ExoPlayer is active, render
+                    a transparent tap-target instead of <video> so the
+                    SurfaceView beneath the (transparent) WebView shows
+                    through. Web / iOS / flag-OFF fallback keeps <video>. */}
+                {nativeReels.active ? (
+                  <div
+                    className="absolute inset-0 w-full h-full"
+                    style={{ background: 'transparent' }}
+                    onClick={togglePlay}
+                  />
+                ) : (
+                  <video
+                    ref={el => {
+                      videoRefs.current[currentReel.id] = el;
+                      if (el) hardenVideoElementForNative(el, { muted: isMuted });
+                    }}
+                    src={currentReel.video_url}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                    autoPlay
+                    muted={isMuted}
+                    onClick={togglePlay}
+                  />
+                )}
 
 
 
