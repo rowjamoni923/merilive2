@@ -691,12 +691,15 @@ const App = () => {
     // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
     // sent in any room/call/chat plays with zero network delay on the receiver side.
     const giftIdleId = idle(() => {
-      Promise.all([
-        import('@/hooks/useGiftPrefetch').then(m => m.prefetchGifts()),
-        import('@/utils/giftAnimationPrewarm').then(m => m.prewarmGiftAnimations()),
-      ])
+      import('@/hooks/useGiftPrefetch')
+        .then(m => m.prefetchGifts())
         .catch(() => {});
-    }, 1800);
+    }, 2200);
+    const giftAssetIdleId = idle(() => {
+      import('@/utils/giftAnimationPrewarm')
+        .then(m => m.prewarmGiftAnimations())
+        .catch(() => {});
+    }, 7000);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
@@ -722,6 +725,7 @@ const App = () => {
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
+      cancelIdle(giftAssetIdleId);
       cancelIdle(framesIdleId);
       cancelIdle(batteryIdleId);
     };
