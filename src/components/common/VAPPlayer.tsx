@@ -224,10 +224,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // High-precision sampling with slight inset to avoid edge artifacts
+        // High-precision sampling for 4K and professional animations
         float edgeInset = 0.0001; 
         
-        // Calculate RGB coordinates from the RGB rect (usually the right or top half)
+        // Map current texture coordinate to RGB gift area
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
@@ -235,7 +235,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         rgbCoord = clamp(rgbCoord, u_rgbRect.xy + edgeInset, u_rgbRect.xy + u_rgbRect.zw - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
-        // Calculate Alpha coordinates from the alpha mask rect (usually the left or bottom half)
+        // Map current texture coordinate to Alpha mask area
         vec2 alphaCoord = vec2(
           u_alphaRect.x + v_texCoord.x * u_alphaRect.z,
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
@@ -243,11 +243,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord = clamp(alphaCoord, u_alphaRect.xy + edgeInset, u_alphaRect.xy + u_alphaRect.zw - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Standard VAP transparency: RGB color from RGB area, Alpha from R channel of Alpha area
-        // We use max(r, g, b) for the mask to ensure better extraction of the alpha layer
+        // Professional VAP Transparency Extraction:
+        // RGB is the pure color data.
+        // Alpha is extracted from the Grey/R channel of the mask area.
         float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
         
-        // Output final professional transparent pixel
+        // Final composite: Output RGB with correct transparency mask
         gl_FragColor = vec4(rgbColor.rgb, alphaValue);
       }
     `;
