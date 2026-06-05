@@ -18,6 +18,7 @@ import {
   Hand,
   Sparkles,
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { cn } from "@/lib/utils";
 import { useState, useCallback } from "react";
 
