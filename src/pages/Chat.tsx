@@ -80,6 +80,7 @@ import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
+import { getCachedGifts } from "@/hooks/useGiftPrefetch";
 
 interface Conversation {
   id: string;
