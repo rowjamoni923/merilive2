@@ -428,8 +428,7 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
         playsInline
         crossOrigin="anonymous"
         preload="auto"
-        // @ts-expect-error — non-standard but supported on Chromium / WebKit
-        disableRemotePlayback
+        {...({ disableRemotePlayback: true } as any)}
         className={cn(
           "absolute opacity-0 pointer-events-none",
           useVideoFallback && "relative opacity-100 w-full h-full object-cover"
