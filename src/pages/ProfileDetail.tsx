@@ -23,7 +23,6 @@ import {
   Ban,
   Phone,
   Diamond,
-  Gift,
   ShieldX,
   EyeOff,
   Eye,
@@ -1333,7 +1332,6 @@ const ProfileDetail = () => {
                   boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
                 }}
               >
-                <Gift className="w-5 h-5" />
                 <span>Gift</span>
               </motion.button>
             </div>
@@ -1355,7 +1353,7 @@ const ProfileDetail = () => {
                 onClick={() => navigate("/leaderboard")}
                 className="flex items-center gap-1 text-lg font-bold text-slate-950"
               >
-                🎁 Gifts Received
+                Gifts Received
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </button>
               <div className="flex items-center gap-3">
