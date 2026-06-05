@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Howl } from 'howler';
 
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 
 interface EntranceAnimationProps {
   userId: string;
@@ -195,7 +195,7 @@ const EntranceAnimationInner = memo(({
               transformOrigin: 'center center',
             }}
           >
-            <FixedAnimationFrame
+            <EntryAnimationFrame
               src={displayAnimationUrl}
               size="fill"
               type="svga"
@@ -215,7 +215,7 @@ const EntranceAnimationInner = memo(({
       );
     }
 
-    // Pkg430 — VAP / video / image all go through FixedAnimationFrame so the
+    // Pkg430 — VAP / video / image all go through EntryAnimationFrame so the
     // alpha-aware unified renderer (which handles VAP side-by-side RGB/alpha)
     // is used everywhere.
     if (animationType === 'vap' || animationType === 'video' || animationType === 'image') {
@@ -236,7 +236,7 @@ const EntranceAnimationInner = memo(({
           exit={{ opacity: 0 }}
           className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
         >
-          <FixedAnimationFrame
+          <EntryAnimationFrame
             src={displayAnimationUrl || ''}
             type={ext as any}
             size="fullscreen"

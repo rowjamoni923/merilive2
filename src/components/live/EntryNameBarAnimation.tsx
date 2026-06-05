@@ -8,7 +8,7 @@ import {
   ensureValidLevel, 
   formatLevel 
 } from "@/features/shared/level";
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
@@ -155,7 +155,7 @@ const EntryNameBarAnimationInner = memo(({
               {/* Layer 1: SVGA background */}
               {hasSvga && cleanAnimUrl && (
                 <div className="absolute inset-0 z-[1]">
-                  <FixedAnimationFrame
+                  <EntryAnimationFrame
                     src={cleanAnimUrl}
                     size="fill"
                     type="svga"

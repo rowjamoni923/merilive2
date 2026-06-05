@@ -4,7 +4,7 @@ import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { getEquippedPrivilegesForUser } from "@/hooks/useUserPrivileges";
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { playSoundUrl, playSynthSequence } from "@/utils/soundPlayer";
 
 interface UserInfo {
@@ -186,7 +186,7 @@ const VIPEntryBar = ({ user, animationUrl }: { user: UserInfo; animationUrl?: st
       {/* Background animation layer - supports all formats via UniversalAnimationPlayer */}
       {hasAnimation && (
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl">
-          <FixedAnimationFrame
+          <EntryAnimationFrame
             src={animationUrl}
             size="fill"
             className="object-cover"
