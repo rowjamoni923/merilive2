@@ -497,13 +497,25 @@ const Reels = () => {
   const autoUnmutedRef = useRef(false);
 
   const togglePlay = () => {
+    // Unmute on first tap regardless of path (TikTok behaviour).
+    const wasMuted = isMuted;
+    if (wasMuted && !autoUnmutedRef.current) {
+      autoUnmutedRef.current = true;
+      setIsMuted(false);
+    }
+
+    // Pkg427 — when native ExoPlayer owns playback, route through plugin.
+    if (nativeReels.active) {
+      if (isPlaying) nativeReels.pause();
+      else nativeReels.play();
+      setIsPlaying(!isPlaying);
+      return;
+    }
+
     const currentVideo = videoRefs.current[reels[currentIndex]?.id];
     if (currentVideo) {
-      // On the FIRST tap inside Reels, also unmute — user clearly wants sound.
-      if (isMuted && !autoUnmutedRef.current) {
-        autoUnmutedRef.current = true;
+      if (wasMuted && !autoUnmutedRef.current) {
         Object.values(videoRefs.current).forEach(v => { if (v) v.muted = false; });
-        setIsMuted(false);
       }
       if (isPlaying) {
         currentVideo.pause();
@@ -516,34 +528,47 @@ const Reels = () => {
 
   const toggleMute = () => {
     autoUnmutedRef.current = true;
-    Object.values(videoRefs.current).forEach(video => {
-      if (video) video.muted = !isMuted;
-    });
-    setIsMuted(!isMuted);
+    const next = !isMuted;
+    // Pkg427 — route mute to native plugin when active; the hook also
+    // mirrors isMuted via a separate effect, but this gives instant feel.
+    if (nativeReels.active) {
+      nativeReels.setMuted(next);
+    } else {
+      Object.values(videoRefs.current).forEach(video => {
+        if (video) video.muted = next;
+      });
+    }
+    setIsMuted(next);
   };
 
-  // Auto-play current video
+  // Auto-play current video (web <video> path only — native plugin
+  // already auto-plays inside useNativeReelsPlayer).
   useEffect(() => {
-    Object.entries(videoRefs.current).forEach(([id, video]) => {
-      if (video) {
-        if (id === reels[currentIndex]?.id) {
-          // Honour user's unmute decision across reel switches.
-          video.muted = isMuted;
-          video.play().catch(() => {});
-          setIsPlaying(true);
-        } else {
-          video.pause();
-          video.currentTime = 0;
+    if (!nativeReels.active) {
+      Object.entries(videoRefs.current).forEach(([id, video]) => {
+        if (video) {
+          if (id === reels[currentIndex]?.id) {
+            video.muted = isMuted;
+            video.play().catch(() => {});
+            setIsPlaying(true);
+          } else {
+            video.pause();
+            video.currentTime = 0;
+          }
         }
-      }
-    });
+      });
+    } else {
+      // Native took over — make sure we report "playing" so the play-icon
+      // overlay stays hidden.
+      setIsPlaying(true);
+    }
 
     // Increment view count
     const currentReel = reels[currentIndex];
     if (currentReel) {
       supabase.rpc('increment_reel_view', { reel_uuid: currentReel.id });
     }
-  }, [currentIndex, reels, isMuted]);
+  }, [currentIndex, reels, isMuted, nativeReels.active]);
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
