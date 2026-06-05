@@ -44,7 +44,7 @@ export async function prewarmPopularAssets(urls: string[]): Promise<void> {
   // Load and parse sequentially. Parallel parser.load() on 10–20 SVGA files was
   // saturating low-end devices and delaying normal page data loads.
   for (const url of urls.slice(0, 4)) {
-    if (svgaCacheHas(url)) return;
+    if (svgaCacheHas(url)) continue;
 
     await new Promise<void>((resolve) => {
       const parser = new SVGA.Parser();
