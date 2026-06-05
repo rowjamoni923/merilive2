@@ -180,6 +180,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
+                background="none"
               />
             )}
           </div>

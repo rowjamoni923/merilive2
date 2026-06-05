@@ -2,9 +2,8 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
-import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
+import { detectVapLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
 
 interface VAPConfig {
   v: number;           // version
@@ -32,17 +31,16 @@ interface VAPPlayerProps {
   soundUrl?: string | null;
 }
 
-type VideoFrameCallbackVideo = HTMLVideoElement & {
-  requestVideoFrameCallback?: (callback: () => void) => number;
-  cancelVideoFrameCallback?: (handle: number) => void;
-};
-
 const getAutoVapRects = (video: HTMLVideoElement) => {
   const layout = detectVapLayout(video);
   if (layout === 'alpha-top' || layout === 'alpha-bottom') {
-    return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] }; // Top RGB, Bottom Alpha
+    // Top-Bottom Stacked
+    if (layout === 'alpha-top') return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
+    return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
   }
-  return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }; // Right RGB, Left Alpha
+  // Side-by-Side
+  if (layout === 'alpha-left') return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+  return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
 };
 
 const VAPPlayer: React.FC<VAPPlayerProps> = ({
@@ -67,10 +65,6 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const animationRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
   const initializedRef = useRef(false);
-  const lastVideoTimeRef = useRef<number>(-1);
-  const completedRef = useRef(false);
-  
-  const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [configReady, setConfigReady] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
@@ -87,7 +81,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => { 
+      mountedRef.current = false;
+      if (videoRef.current) cleanupVideoHardening(videoRef.current);
+    };
   }, []);
 
   // Fetch config if available
@@ -137,7 +134,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
-        gl_FragColor = vec4(rgbColor.rgb, alphaValue);
+        // Use premultiplied alpha for cleaner transparency on all browsers
+        gl_FragColor = vec4(rgbColor.rgb * alphaValue, alphaValue);
       }
     `;
 
@@ -145,6 +143,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const shader = gl.createShader(type)!;
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('[VAPPlayer] Shader compile error:', gl.getShaderInfoLog(shader));
+      }
       return shader;
     };
 
@@ -152,6 +153,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.attachShader(program, createShader(vs, gl.VERTEX_SHADER));
     gl.attachShader(program, createShader(fs, gl.FRAGMENT_SHADER));
     gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('[VAPPlayer] Program link error:', gl.getProgramInfoLog(program));
+    }
     return program;
   };
 
@@ -171,9 +175,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     }
 
     if (!v.ended || loop) {
-      const frameVideo = v as VideoFrameCallbackVideo;
-      if (frameVideo.requestVideoFrameCallback) {
-        animationRef.current = frameVideo.requestVideoFrameCallback(render);
+      if ((v as any).requestVideoFrameCallback) {
+        animationRef.current = (v as any).requestVideoFrameCallback(render);
       } else {
         animationRef.current = requestAnimationFrame(render);
       }
@@ -187,9 +190,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
+    // Use premultipliedAlpha: true as we handle it in the shader for professional look
+    const gl = canvas.getContext('webgl', { 
+      alpha: true, 
+      premultipliedAlpha: true,
+      antialias: true,
+      preserveDrawingBuffer: false
+    });
+
     if (!gl) {
-      setLoading(false);
       onErrorRef.current?.(new Error('WebGL not supported'));
       return;
     }
@@ -239,25 +248,25 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
+    gl.clearColor(0, 0, 0, 0);
 
+    // Play video
     if (autoPlay) {
+      hardenVideoElementForNative(video, { muted: muted || !!soundUrl });
       try {
         if (!muted && soundUrl) {
           const { playSoundUrl } = await import('@/utils/soundPlayer');
-          video.muted = true;
           playSoundUrl(soundUrl, { volume, loop });
-        } else {
-          video.muted = muted;
         }
         await video.play();
       } catch (e) {
+        // Fallback to muted if unmuted fails
         video.muted = true;
         await video.play().catch(() => {});
       }
     }
 
     render();
-    setLoading(false);
     onLoadRef.current?.();
   }, [config, autoPlay, muted, volume, loop, soundUrl, render]);
 
@@ -268,11 +277,18 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [configReady, init]);
 
   useEffect(() => {
-    const v = videoRef.current;
     return () => {
       if (animationRef.current) {
-        if (v && (v as any).cancelVideoFrameCallback) (v as any).cancelVideoFrameCallback(animationRef.current);
-        else cancelAnimationFrame(animationRef.current);
+        if (videoRef.current && (videoRef.current as any).cancelVideoFrameCallback) {
+          (videoRef.current as any).cancelVideoFrameCallback(animationRef.current);
+        } else {
+          cancelAnimationFrame(animationRef.current);
+        }
+      }
+      if (glRef.current) {
+        const gl = glRef.current;
+        const ext = gl.getExtension('WEBGL_lose_context');
+        if (ext) ext.loseContext();
       }
     };
   }, []);
@@ -292,7 +308,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       <canvas 
         ref={canvasRef} 
         className="w-full h-full object-contain pointer-events-none"
-        style={{ opacity: webglPainted ? 1 : 0 }}
+        style={{ 
+          opacity: webglPainted ? 1 : 0,
+          transition: 'opacity 0.2s ease-in'
+        }}
       />
     </div>
   );
