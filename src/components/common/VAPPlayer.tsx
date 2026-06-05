@@ -81,6 +81,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
+  const [configReady, setConfigReady] = useState(false);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
@@ -119,8 +120,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const jsonPath = resolvedConfigSrc || (/\.(mp4|webm)(\?|#|$)/i.test(resolvedSrc)
       ? resolvedSrc.replace(/\.(mp4|webm)(?=\?|#|$)/i, '.json')
       : '');
+    setConfigReady(false);
     if (!jsonPath) {
       setConfig(null);
+      setConfigReady(true);
       return;
     }
     
@@ -128,6 +131,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       try {
         const res = await fetch(jsonPath);
         if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (!contentType.includes('json')) {
+            if (mountedRef.current) setConfig(null);
+            return;
+          }
           const data = await res.json();
           if (mountedRef.current) {
             const nextConfig = data.info || data;
@@ -139,6 +147,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         }
       } catch {
         if (mountedRef.current) setConfig(null);
+      } finally {
+        if (mountedRef.current) setConfigReady(true);
       }
     };
 
@@ -386,7 +396,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [autoPlay, createShaders, muted, volume, loop]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
-    if (initializedRef.current || !video.videoWidth) return;
+    if (initializedRef.current || !video.videoWidth || !configReady) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
@@ -414,7 +424,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       return;
     }
     initWebGL(video, config);
-  }, [config, initWebGL, loop, src]);
+  }, [config, configReady, initWebGL, loop, src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || initializedRef.current || !configReady || !video.videoWidth) return;
+    handleVideoReady(video);
+  }, [configReady, handleVideoReady]);
 
   useEffect(() => {
     return () => {
