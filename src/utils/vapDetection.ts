@@ -1,4 +1,4 @@
-export type VapSideBySideLayout = 'alpha-left' | 'alpha-right';
+export type VapLayout = 'alpha-left' | 'alpha-right' | 'alpha-top' | 'alpha-bottom';
 
 const vapCompositeHint = new Map<string, boolean>();
 
@@ -16,75 +16,91 @@ export const getVapCompositeHint = (url: string): boolean => {
 
 /**
  * VAP MP4s are composite videos: RGB and alpha-mask frames packed together.
- * Square exports are usually 2:1. Portrait live-stream gift exports are often
- * ~0.85–1.35:1 because two portrait halves are placed side-by-side.
+ * Square exports are usually 2:1 (Side-by-Side).
+ * Portrait live-stream gift exports are often ~1:1 but stacked Top-Bottom or Side-by-Side.
  */
 export const isLikelyVapCompositeSize = (width: number, height: number): boolean => {
   if (!width || !height || width < 100 || height < 100) return false;
   const ratio = width / height;
-  return Math.abs(ratio - 2) < 0.08 || (ratio >= 0.85 && ratio <= 1.35);
+  // Side-by-side (2:1) or stacked (1:1 or 1:2)
+  return (
+    Math.abs(ratio - 2) < 0.15 || // Side-by-Side (RGB+Alpha)
+    Math.abs(ratio - 0.5) < 0.15 || // Top-Bottom (RGB+Alpha)
+    (ratio >= 0.7 && ratio <= 1.45) // Possible stacked or portrait side-by-side
+  );
 };
 
-export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySideLayout | null => {
+export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
   const width = video.videoWidth;
   const height = video.videoHeight;
   if (!isLikelyVapCompositeSize(width, height)) return null;
 
   try {
     const canvas = document.createElement('canvas');
-    canvas.width = 120;
-    canvas.height = 72;
+    canvas.width = 128;
+    canvas.height = 128;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      const half = canvas.width / 2;
-      let leftChroma = 0;
-      let rightChroma = 0;
-      let leftExtremes = 0;
-      let rightExtremes = 0;
-      let leftCount = 0;
-      let rightCount = 0;
-
-      for (let y = 0; y < canvas.height; y += 2) {
-        for (let x = 0; x < canvas.width; x += 2) {
-          const i = (y * canvas.width + x) * 4;
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-          const luma = (r + g + b) / 3;
-          const extreme = luma < 24 || luma > 224 ? 1 : 0;
-          if (x < half) {
-            leftChroma += chroma;
-            leftExtremes += extreme;
-            leftCount += 1;
-          } else {
-            rightChroma += chroma;
-            rightExtremes += extreme;
-            rightCount += 1;
+      
+      const checkArea = (xStart: number, yStart: number, xEnd: number, yEnd: number) => {
+        let chroma = 0;
+        let extremes = 0;
+        let count = 0;
+        for (let y = yStart; y < yEnd; y += 4) {
+          for (let x = xStart; x < xEnd; x += 4) {
+            const i = (y * canvas.width + x) * 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const c = Math.max(r, g, b) - Math.min(r, g, b);
+            const luma = (r + g + b) / 3;
+            chroma += c;
+            if (luma < 24 || luma > 230) extremes++;
+            count++;
           }
         }
-      }
+        return { chroma: chroma / count, extremes: extremes / count };
+      };
 
-      const left = leftChroma / Math.max(1, leftCount);
-      const right = rightChroma / Math.max(1, rightCount);
-      const leftExtremeRatio = leftExtremes / Math.max(1, leftCount);
-      const rightExtremeRatio = rightExtremes / Math.max(1, rightCount);
-      const leftLooksMask = left < 12 || (left < right * 0.55 && leftExtremeRatio >= rightExtremeRatio * 0.8);
-      const rightLooksMask = right < 12 || (right < left * 0.55 && rightExtremeRatio >= leftExtremeRatio * 0.8);
+      const left = checkArea(0, 0, 64, 128);
+      const right = checkArea(64, 0, 128, 128);
+      const top = checkArea(0, 0, 128, 64);
+      const bottom = checkArea(0, 64, 128, 128);
 
-      if (leftLooksMask && !rightLooksMask) return 'alpha-left';
-      if (rightLooksMask && !leftLooksMask) return 'alpha-right';
-      if (Math.abs(left - right) > 8) return right > left ? 'alpha-left' : 'alpha-right';
+      // A mask area usually has low chroma (mostly grayscale) and high extremes (black or white)
+      const looksLikeMask = (stat: { chroma: number, extremes: number }, other: { chroma: number, extremes: number }) => {
+        return stat.chroma < 15 && (stat.chroma < other.chroma * 0.6 || stat.extremes > other.extremes * 1.2);
+      };
+
+      // Check Side-by-Side first (more common)
+      if (looksLikeMask(left, right)) return 'alpha-left';
+      if (looksLikeMask(right, left)) return 'alpha-right';
+      
+      // Check Top-Bottom
+      if (looksLikeMask(top, bottom)) return 'alpha-top';
+      if (looksLikeMask(bottom, top)) return 'alpha-bottom';
+
+      // Fallback based on aspect ratio
+      const ratio = width / height;
+      if (ratio > 1.5) return 'alpha-right';
+      if (ratio < 0.7) return 'alpha-bottom';
+      return 'alpha-right'; // Default
     }
   } catch {
-    // Cross-origin or first-frame read can fail; size fallback below still keeps
-    // known professional VAP layouts working instead of falling back to raw MP4.
+    // Ignore cross-origin issues
   }
 
   const ratio = width / height;
-  if (ratio >= 0.85 && ratio <= 1.35) return 'alpha-left';
-  if (Math.abs(ratio - 2) < 0.08) return 'alpha-right';
+  if (ratio >= 1.5) return 'alpha-right';
+  if (ratio <= 0.75) return 'alpha-bottom';
   return 'alpha-right';
+};
+
+/** @deprecated use detectVapLayout */
+export const detectVapSideBySideLayout = (video: HTMLVideoElement) => {
+  const layout = detectVapLayout(video);
+  if (layout === 'alpha-left' || layout === 'alpha-right') return layout;
+  return null;
 };

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
 
 interface VAPConfig {
   v: number;           // version
@@ -15,8 +15,8 @@ interface VAPConfig {
   videoH: number;      // video height
   aFrame: number[];    // alpha frame position [x, y, w, h]
   rgbFrame: number[];  // RGB frame position [x, y, w, h]
-  isVapx: number;      // is vapx format
-  orien: number;       // orientation
+  isVapx?: number;     // is vapx format
+  orien?: number;      // orientation
 }
 
 interface VAPPlayerProps {
@@ -39,10 +39,14 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 };
 
 const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
-  return layout === 'alpha-left'
-    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
-    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+  const layout = detectVapLayout(video) || 'alpha-right';
+  switch (layout) {
+    case 'alpha-left': return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+    case 'alpha-right': return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    case 'alpha-top': return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
+    case 'alpha-bottom': return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
+    default: return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+  }
 };
 
 const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
@@ -132,23 +136,39 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         .then(res => res.json())
         .then(data => {
           if (cancelled) return;
-          setConfig(data.info || data);
+          const configData = data.info || data;
+          // Validate required properties to avoid crashes
+          if (configData && configData.rgbFrame && configData.aFrame) {
+            setConfig(configData);
+          } else {
+            console.warn('[VAPPlayer] Invalid config object:', configData);
+            setConfig(null);
+          }
         })
         .catch(err => {
           console.warn('[VAPPlayer] Config load failed, using defaults:', err);
+          setConfig(null);
         })
         .finally(() => {
           if (!cancelled) setConfigReady(true);
         });
     } else {
-      setConfigReady(true);
       const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
-          if (!cancelled) setConfig(data.info || data);
+          if (cancelled) return;
+          const configData = data.info || data;
+          if (configData && configData.rgbFrame && configData.aFrame) {
+            setConfig(configData);
+          } else {
+            setConfig(null);
+          }
         })
-        .catch(() => setConfig(null));
+        .catch(() => setConfig(null))
+        .finally(() => {
+          if (!cancelled) setConfigReady(true);
+        });
     }
 
     return () => { cancelled = true; };
