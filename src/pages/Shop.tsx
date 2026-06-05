@@ -666,12 +666,19 @@ const Shop = () => {
       </div>
 
       {/* Item Detail Modal - Light Luxury */}
-      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+      {(() => {
+        const _selAnimType = selectedItem ? pickAnimType(selectedItem) : 'static';
+        const _selAnimSrc = selectedItem ? (selectedItem.animation_file_url || selectedItem.animation_url || '') : '';
+        const _selIsAnimated = !!_selAnimSrc && isAnimatedType(_selAnimType);
+        const _selIsEntry = !!selectedItem && isEntryAnimationCategory(selectedItem.category);
+        // Treat ANY animated item (VAP/SVGA/Lottie/MP4…) like an entry preview:
+        // big full-square stage, instant autoplay — same feel as the gift fullscreen.
+        const _useBigStage = _selIsAnimated || _selIsEntry;
+        return (
+        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent
           className={`border-0 shadow-2xl ${
-            selectedItem && isEntryAnimationCategory(selectedItem.category)
-              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
-              : 'max-w-sm'
+            _useBigStage ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto' : 'max-w-sm'
           }`}
           style={{
             background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
@@ -691,39 +698,37 @@ const Shop = () => {
                 {/* Preview */}
                 <div
                   className={`${
-                    isEntryAnimationCategory(selectedItem.category)
-                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
+                    _useBigStage
+                      ? (_selIsEntry ? 'aspect-[9/16] min-h-[320px] max-h-[55vh]' : 'aspect-square min-h-[320px] max-h-[55vh]')
                       : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
+                  } rounded-2xl flex items-center justify-center p-4 relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
                   {(() => {
-                    const animType = pickAnimType(selectedItem);
-                    const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
-                    if (animSrc && isAnimatedType(animType)) {
+                    if (_selIsAnimated) {
                       return (
                         <FixedAnimationFrame
-                          src={animSrc}
-                          type={animType as any}
+                          src={_selAnimSrc}
+                          type={_selAnimType as any}
                           configSrc={selectedItem.animation_config_url || undefined}
-                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                          size="full-square"
                           loop
                           autoPlay
-                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                          muted={_selAnimType !== 'svga' || !_selIsEntry}
                           background="none"
-                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                          className={_selIsEntry ? 'scale-110' : ''}
                         />
                       );
                     }
-                    if (selectedItem.preview_url || animSrc) {
+                    if (selectedItem.preview_url || _selAnimSrc) {
                       return (
                         <img loading="eager" decoding="async" {...({ fetchpriority: 'high' } as any)}
-                          src={selectedItem.preview_url || animSrc}
+                          src={selectedItem.preview_url || _selAnimSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[90%] max-h-[90%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          className={`max-w-[90%] max-h-[90%] object-contain drop-shadow-2xl mx-auto ${_selIsEntry ? 'scale-110' : ''}`}
                           style={{ margin: 'auto' }}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
@@ -825,6 +830,8 @@ const Shop = () => {
           )}
         </DialogContent>
       </Dialog>
+        );
+      })()}
     </div>
   );
 };
