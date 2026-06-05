@@ -294,7 +294,7 @@ const ProfileDetail = () => {
   };
 
   const fetchData = useCallback(async (isBackground = false) => {
-    if (!isBackground) setLoading(true);
+    if (!isBackground && !profile) setLoading(true);
 
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user ?? null;
