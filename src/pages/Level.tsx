@@ -11,6 +11,7 @@ import { fetchActiveLevelTiers, isFemaleHostProfile, resolveLevelFromTiers } fro
 import PrivilegePreviewModal from "@/components/level/PrivilegePreviewModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface LevelData {
   level: number;
@@ -111,9 +112,13 @@ const Level = () => {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [currentDiamonds, setCurrentDiamonds] = useState(0);
   const [selectedLevelTab, setSelectedLevelTab] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [privileges, setPrivileges] = useState<LevelPrivilege[]>([]);
-  const [levelAnimations, setLevelAnimations] = useState<LevelAnimation[]>([]);
+  const [privCache, setPrivCache, hadPrivCache] = usePersistedCache<LevelPrivilege[]>("level:privileges", []);
+  const [animCache, setAnimCache, hadAnimCache] = usePersistedCache<LevelAnimation[]>("level:animations", []);
+  const privileges = privCache ?? [];
+  const levelAnimations = animCache ?? [];
+  const setPrivileges = (next: LevelPrivilege[]) => setPrivCache(next);
+  const setLevelAnimations = (next: LevelAnimation[]) => setAnimCache(next);
+  const [loading, setLoading] = useState(!(hadPrivCache && hadAnimCache));
   
   const [selectedPrivilege, setSelectedPrivilege] = useState<LevelPrivilege | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);

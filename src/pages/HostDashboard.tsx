@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -71,8 +72,11 @@ const HostDashboard = () => {
     pendingEarnings: 0,
     nextTransferDate: null,
   });
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [txCache, setTxCache, hadTxCache] = usePersistedCache<Transaction[]>("hostDashboard:transactions", []);
+  const transactions = txCache ?? [];
+  const setTransactions = (next: Transaction[] | ((prev: Transaction[]) => Transaction[])) =>
+    setTxCache((prev) => (typeof next === 'function' ? (next as any)(prev ?? []) : next));
+  const [loading, setLoading] = useState(!hadTxCache);
   const [activeTab, setActiveTab] = useState("/profile");
   const [commissionPercent, setCommissionPercent] = useState(50);
   

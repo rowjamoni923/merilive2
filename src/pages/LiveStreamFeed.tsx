@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface LiveStream {
   id: string;
@@ -38,9 +39,12 @@ interface LiveStream {
 export default function LiveStreamFeed() {
   const { id: currentStreamId } = useParams();
   const navigate = useNavigate();
-  const [streams, setStreams] = useState<LiveStream[]>([]);
+  const [streamsCache, setStreamsCache, hadStreamsCache] = usePersistedCache<LiveStream[]>("liveStreamFeed:list", []);
+  const streams = streamsCache ?? [];
+  const setStreams = (next: LiveStream[] | ((prev: LiveStream[]) => LiveStream[])) =>
+    setStreamsCache((prev) => (typeof next === 'function' ? (next as any)(prev ?? []) : next));
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hadStreamsCache);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
