@@ -79,8 +79,8 @@ class ErrorBoundary extends Component<Props, State> {
             await Promise.all(keys.map(k => caches.delete(k)));
           }
         } catch {}
-        // After manual click, we can safely reload.
-        window.location.reload();
+        // After manual click, force a cache-busting hard reload.
+        hardReloadForChunkRecovery();
       })();
       return;
     }
