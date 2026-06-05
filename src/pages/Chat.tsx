@@ -1331,6 +1331,7 @@ const Chat = () => {
       });
 
       setConversations(formattedConversations);
+      setConvCache(formattedConversations);
     } catch (err) {
       console.error('[Chat] Error:', err);
       recordClientError({ label: "Chat.formattedConversations", message: err instanceof Error ? err.message : String(err) });
