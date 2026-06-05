@@ -11,6 +11,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { warmupVapUrls } from '@/utils/vapWarmup';
 
 // ============= IN-MEMORY CACHE FOR INSTANT LOOKUPS =============
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -40,6 +41,11 @@ function setCache(key: string, value: string | undefined) {
     if (firstKey) animationCache.delete(firstKey);
   }
   animationCache.set(key, { value, timestamp: Date.now() });
+  // Pkg424: any cached URL → warm into HTTP cache for instant first play.
+  // Skip JSON-serialized payloads (key starts with `entry:` writes a JSON blob).
+  if (value && typeof value === 'string' && !key.startsWith('entry:') && (value.startsWith('http') || value.startsWith('/'))) {
+    warmupVapUrls([value]);
+  }
 }
 
 export function clearEntryAnimationCache(): void {
@@ -112,6 +118,8 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
     const cacheAndReturn = (url: string, sound?: string | null): AnimationWithSound => {
       setCache(`anim:${animationId}`, url);
       setCache(`sound:${animationId}`, sound || undefined);
+      // Pkg424: fire-and-forget HTTP-cache warmup → instant first play.
+      warmupVapUrls([url, sound]);
       return { animationUrl: url, soundUrl: sound || undefined };
     };
 

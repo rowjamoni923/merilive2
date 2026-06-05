@@ -417,6 +417,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         muted={muted}
         playsInline
         crossOrigin="anonymous"
+        preload="auto"
+        {...({ disableRemotePlayback: true } as any)}
         className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "relative opacity-100 w-full h-full object-cover")}
         style={useVideoFallback ? {
           objectPosition: `${-(fallbackCrop[0] * 100)}% 0`,

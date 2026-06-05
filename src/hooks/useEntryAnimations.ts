@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { EntryAnimation } from '@/components/live/UnifiedEntryAnimation';
+import { warmupEntryAnimationPayload } from '@/utils/vapWarmup';
 
 // Validate URL is proper
 const isValidUrl = (url?: string): boolean => {
@@ -54,6 +55,16 @@ export function useEntryAnimations() {
    * Name Bar: ALWAYS shown independently as compact banner if user has one
    */
   const addEntryAnimation = useCallback((params: AddEntryParams) => {
+    // Pkg424: Fire-and-forget warmup — populate HTTP cache the instant the
+    // animation enters the queue, so by the time React mounts the VAP player
+    // (a few ms later) the MP4/JSON bytes are already in cache → instant play.
+    warmupEntryAnimationPayload({
+      entranceUrl: params.entranceUrl,
+      entryNameBarUrl: params.entryNameBarUrl,
+      vehicleAnimationUrl: params.vehicleAnimationUrl,
+      soundUrl: params.soundUrl,
+    });
+
     // Deduplicate ONLY identical payloads (don't block richer follow-up payloads)
     const signature = [
       params.userId,
