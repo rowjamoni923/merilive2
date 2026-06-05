@@ -293,20 +293,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
-    return (
-      <motion.div
-        key="emoji-fullscreen"
-        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
-        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
-        exit={{ opacity: 0, scale: 0.86 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        style={FULLSCREEN_GIFT_LAYER_STYLE}
-      >
-        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
-          {gift.giftIcon || '🎁'}
-        </span>
-      </motion.div>
-    );
+    // No animation URL available - show NOTHING or fallback to a transparent placeholder.
+    // User requested absolute removal of generic gift icons/emojis.
+    return null;
   };
 
   // Banner gradient based on gift value (Bigo style)
