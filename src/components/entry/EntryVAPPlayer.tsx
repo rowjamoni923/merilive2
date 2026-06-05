@@ -94,6 +94,16 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     () => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc,
     [configSrc]
   );
+
+  // Pkg426 Phase-2: native Android VAP attempt. See VAPPlayer.tsx for full rationale.
+  const nativeOnComplete = useCallback(() => { onCompleteRef.current?.(); }, []);
+  const nativeOnError = useCallback((e: Error) => { onErrorRef.current?.(e); }, []);
+  const nativeMode = useNativeVAPAttempt(resolvedSrc, {
+    loop: loop ? 0 : 1,
+    onComplete: nativeOnComplete,
+    onError: nativeOnError,
+  });
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
