@@ -39,9 +39,8 @@ import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
-// CallProvider needs special handling as it wraps children
 // =============================================
-import { CallProvider } from "./components/call/CallProvider";
+const CallProvider = lazy(lazyRetry(() => import("./components/call/CallProvider").then(m => ({ default: m.CallProvider }))));
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
 import DeferredAppHooks from "./components/common/DeferredAppHooks";
