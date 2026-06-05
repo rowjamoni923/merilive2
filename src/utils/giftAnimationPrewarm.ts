@@ -6,7 +6,7 @@
  *   - SVGA binaries → cached via svgaPrewarm Cache API
  *   - Lottie JSON   → parsed + put in lottieCache
  *   - GIF/WebP/PNG  → handed to the unified image SW (WARM_IMAGES)
- *   - MP4/WebM      → skipped (too big to prefetch eagerly)
+ *   - MP4/WebM/VAP  → staggered browser + SW cache warm for top assets only
  *
  * Runs once per session, bounded to ~25 assets so memory + bandwidth stay sane.
  */
