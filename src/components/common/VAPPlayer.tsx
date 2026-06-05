@@ -133,12 +133,18 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
+        // Sample RGB color
         vec2 rgbCoord = vec2(u_rgbRect.x + v_texCoord.x * u_rgbRect.z, u_rgbRect.y + v_texCoord.y * u_rgbRect.w);
-        vec2 alphaCoord = vec2(u_alphaRect.x + v_texCoord.x * u_alphaRect.z, u_alphaRect.y + v_texCoord.y * u_alphaRect.w);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
+        
+        // Sample Alpha mask
+        vec2 alphaCoord = vec2(u_alphaRect.x + v_texCoord.x * u_alphaRect.z, u_alphaRect.y + v_texCoord.y * u_alphaRect.w);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
+        
+        // VAP standard: take the maximum of R, G, B as the alpha value
         float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
-        // Use premultiplied alpha for cleaner transparency on all browsers
+        
+        // Premultiply alpha for high-quality blending on transparent canvas
         gl_FragColor = vec4(rgbColor.rgb * alphaValue, alphaValue);
       }
     `;
