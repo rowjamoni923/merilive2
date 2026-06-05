@@ -344,18 +344,22 @@ const FullScreenGiftAnimation = ({
 
     if (animationType === 'vap' && gift.animation_url) {
       return (
-        <Suspense fallback={<AnimationLoader />}>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <VAPPlayer
-              src={gift.animation_url}
-              className="w-full h-full"
-              loop={false}
-              autoPlay={true}
-              muted={true}
-              onComplete={handleAnimationEnd}
-            />
-          </div>
-        </Suspense>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <FixedAnimationFrame
+            src={gift.animation_url}
+            type="vap"
+            configSrc={gift.animation_config_url || undefined}
+            size="fullscreen"
+            loop={false}
+            autoPlay
+            muted
+            soundUrl={gift.sound_url}
+            dynamicData={dynamicData}
+            onComplete={handleAnimationEnd}
+            center
+            className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
+          />
+        </div>
       );
     }
 
