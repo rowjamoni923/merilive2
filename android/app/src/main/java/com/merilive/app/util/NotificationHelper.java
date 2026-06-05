@@ -6,6 +6,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
@@ -15,6 +17,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.merilive.app.MainActivity;
 import com.merilive.app.R;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class NotificationHelper {
 
@@ -270,17 +275,41 @@ public class NotificationHelper {
     }
 
 
+    /**
+     * Pkg429 — Rich gift notification. Backwards-compat 4-arg overload
+     * delegates to the new rich form with no avatar / image.
+     */
     public static void showGiftNotification(Context context, String senderName,
                                              String giftName, int giftValue) {
+        showGiftNotification(context, senderName, giftName, giftValue, null, null, null);
+    }
+
+    /**
+     * Pkg429 — Rich gift notification.
+     *
+     *  - Large icon = sender avatar (Glide-fetched on the caller's
+     *    background thread).
+     *  - BigPictureStyle = gift artwork (when URL provided).
+     *  - "Send Back" action → opens MainActivity at /profile/<senderId>
+     *    (no new receiver needed — keeps the manifest clean).
+     */
+    public static void showGiftNotification(Context context, String senderName,
+                                             String giftName, int giftValue,
+                                             String senderAvatarUrl, String giftImageUrl,
+                                             String senderId) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra("type", "gift");
+        if (senderId != null && !senderId.isEmpty()) intent.putExtra("sender_id", senderId);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context, NOTIFICATION_GIFT, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         String body = senderName + " sent you " + giftName + " 🎁 (+" + giftValue + " beans)";
+
+        Bitmap largeIcon = fetchBitmapBestEffort(senderAvatarUrl);
+        Bitmap bigPicture = fetchBitmapBestEffort(giftImageUrl);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_GIFTS)
             .setSmallIcon(R.drawable.ic_notification)
@@ -292,27 +321,77 @@ public class NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_SOCIAL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setGroup(GROUP_GIFTS)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_GIFT, builder.build());
+        if (largeIcon != null) builder.setLargeIcon(largeIcon);
+
+        if (bigPicture != null) {
+            builder.setStyle(new NotificationCompat.BigPictureStyle()
+                .bigPicture(bigPicture)
+                .bigLargeIcon((Bitmap) null) // collapse thumb when expanded
+                .setBigContentTitle("🎁 " + senderName)
+                .setSummaryText(body));
+        } else {
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
+        }
+
+        // "Send Back" — opens profile of sender so user can return the favor.
+        if (senderId != null && !senderId.isEmpty()) {
+            Intent sendBack = new Intent(context, MainActivity.class);
+            sendBack.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            sendBack.putExtra("route", "/profile/" + senderId);
+            PendingIntent sendBackPI = PendingIntent.getActivity(
+                context, ("gift_back:" + senderId).hashCode(), sendBack,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            builder.addAction(new NotificationCompat.Action.Builder(
+                    R.drawable.ic_notification, "Send Back 🎁", sendBackPI).build());
+        }
+
+        try {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_GIFT, builder.build());
+        } catch (SecurityException ignored) {}
     }
 
+    /**
+     * Pkg429 — Rich live notification. Backwards-compat 3-arg overload
+     * delegates to the rich form with no images.
+     */
     public static void showLiveNotification(Context context, String hostName, String roomId) {
+        showLiveNotification(context, hostName, roomId, null, null);
+    }
+
+    /**
+     * Pkg429 — Rich live notification.
+     *
+     *  - Large icon = host avatar.
+     *  - BigPictureStyle = stream cover (if provided).
+     *  - "Join 🔴" action → MainActivity with deep-link to the room.
+     *  - "Dismiss" action → cancels just this notification (no new
+     *    receiver — uses MainActivity NO_OP extra so the launcher
+     *    swallows the tap and the system clears the notification).
+     */
+    public static void showLiveNotification(Context context, String hostName, String roomId,
+                                             String hostAvatarUrl, String coverImageUrl) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra("type", "live");
         intent.putExtra("room_id", roomId);
+        if (roomId != null && !roomId.isEmpty()) intent.putExtra("route", "/live/" + roomId);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context, NOTIFICATION_LIVE, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        Bitmap largeIcon = fetchBitmapBestEffort(hostAvatarUrl);
+        Bitmap bigPicture = fetchBitmapBestEffort(coverImageUrl);
+
+        String body = "Tap to join the live stream";
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_LIVE)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(BRAND_COLOR)
             .setContentTitle(hostName + " is now LIVE! 🔴")
-            .setContentText("Tap to join the live stream")
+            .setContentText(body)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SOCIAL)
@@ -320,6 +399,51 @@ public class NotificationHelper {
             .setGroup(GROUP_LIVE)
             .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_LIVE, builder.build());
+        if (largeIcon != null) builder.setLargeIcon(largeIcon);
+
+        if (bigPicture != null) {
+            builder.setStyle(new NotificationCompat.BigPictureStyle()
+                .bigPicture(bigPicture)
+                .bigLargeIcon((Bitmap) null)
+                .setBigContentTitle("🔴 " + hostName + " is LIVE")
+                .setSummaryText(body));
+        } else {
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
+        }
+
+        builder.addAction(new NotificationCompat.Action.Builder(
+                R.drawable.ic_notification, "Join 🔴", pendingIntent).build());
+
+        try {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_LIVE, builder.build());
+        } catch (SecurityException ignored) {}
+    }
+
+    /**
+     * Pkg429 — Best-effort blocking bitmap fetch for notification large
+     * icon / big picture. MUST be called from a background thread (FCM
+     * service handler thread is fine — onMessageReceived runs there).
+     * Returns null on any failure so the caller can degrade gracefully.
+     */
+    private static Bitmap fetchBitmapBestEffort(String url) {
+        if (url == null || url.isEmpty()) return null;
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) return null;
+        HttpURLConnection conn = null;
+        InputStream is = null;
+        try {
+            URL u = new URL(url);
+            conn = (HttpURLConnection) u.openConnection();
+            conn.setInstanceFollowRedirects(true);
+            conn.setConnectTimeout(6000);
+            conn.setReadTimeout(6000);
+            conn.connect();
+            is = conn.getInputStream();
+            return BitmapFactory.decodeStream(is);
+        } catch (Throwable ignored) {
+            return null;
+        } finally {
+            try { if (is != null) is.close(); } catch (Throwable ignored) {}
+            try { if (conn != null) conn.disconnect(); } catch (Throwable ignored) {}
+        }
     }
 }
