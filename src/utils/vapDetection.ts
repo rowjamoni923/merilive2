@@ -87,16 +87,18 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
       if (looksLikeMask(top, bottom)) return 'alpha-top';
       if (looksLikeMask(bottom, top)) return 'alpha-bottom';
 
-      // If none of the 4 quadrants look like a mask area, it might just be a normal video
-      if (!looksLikeMask(left, right) && !looksLikeMask(right, left) && 
-          !looksLikeMask(top, bottom) && !looksLikeMask(bottom, top)) {
-        return null; 
-      }
-
       // Fallback based on aspect ratio if detection is fuzzy
       const ratio = width / height;
-      if (ratio > 1.5) return 'alpha-left'; // Side-by-side: Alpha Left, RGB Right
-      if (ratio < 0.7) return 'alpha-bottom'; // Stacked: Alpha Bottom, RGB Top
+      if (ratio > 1.5) {
+        // If 2:1 and we can't tell, alpha-left is the most common industry standard (Tencent)
+        return 'alpha-left';
+      }
+      if (ratio < 0.7) {
+        return 'alpha-bottom'; // Standard for portrait stacked
+      }
+      
+      // If none of the 4 quadrants look like a mask area but it's a known VAP size,
+      // default to alpha-left (most common portrait layout).
       return 'alpha-left'; 
     }
   } catch {
