@@ -6,7 +6,6 @@ import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 
 export interface FlyingGift {
@@ -148,7 +147,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // fullscreen SVGA/VAP/MP4 player; otherwise native duration is broken and the
   // WebView can jank while the heavy decoder is torn down mid-play.
   const fullscreenMediaRef = useRef({
-    displayAnimationUrl: gift.animationUrl || gift.giftImageUrl,
+    displayAnimationUrl: gift.animationUrl,
     animationFormat: gift.animationFormat,
     animationConfigUrl: gift.animationConfigUrl,
     soundUrl: gift.soundUrl,
