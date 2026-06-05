@@ -15,6 +15,7 @@ import {
   MoreVertical,
   Send
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
