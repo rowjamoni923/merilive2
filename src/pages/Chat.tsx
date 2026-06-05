@@ -1444,10 +1444,19 @@ const Chat = () => {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
     const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
-    if (now - lastPlayed < 4000) return;
+    
+    // Pkg-fix: stricter debouncing (4s) for the SAME gift from SAME user,
+    // but Allow immediate play if content changes (different gift).
+    if (now - lastPlayed < 4000) {
+      console.log('[Chat] Skipping duplicate gift animation:', signature);
+      return;
+    }
 
     recentGiftAnimationsRef.current.set(signature, now);
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
+    
+    console.log('[Chat] Triggering gift animation:', mediaUrl || emoji, 'Format:', animationFormat || parsedFormat);
+    
     setAnimatingGiftEmoji(mediaUrl || emoji);
     setAnimatingGiftFormat(animationFormat || parsedFormat || null);
     setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
@@ -3402,15 +3411,16 @@ const Chat = () => {
           />
 
           {/* Gift Emoji Animation */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {showGiftAnimation && animatingGiftEmoji && (
               <GiftEmojiAnimation
-                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
+                key={`gift-anim-container-${giftAnimationInstance}`}
                 emoji={animatingGiftEmoji}
                 animationFormat={animatingGiftFormat}
                 animationConfigUrl={animatingGiftConfigUrl}
                 soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
+                  console.log('[Chat] Gift animation finished state cleanup');
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
                   setAnimatingGiftFormat(null);
