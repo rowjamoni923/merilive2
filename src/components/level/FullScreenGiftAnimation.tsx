@@ -312,7 +312,7 @@ const FullScreenGiftAnimation = ({
             type="svga"
             width="100%"
             height="100%"
-            className="max-w-[90vw] max-h-[90vh]"
+            className="w-full h-full object-contain"
             loop={false}
             muted={false}
             volume={0.8}
@@ -332,7 +332,7 @@ const FullScreenGiftAnimation = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <VAPPlayer
               src={gift.animation_url}
-              className="w-full h-full max-w-[90vw] max-h-[90vh]"
+              className="w-full h-full"
               loop={false}
               autoPlay={true}
               muted={false}
@@ -350,7 +350,7 @@ const FullScreenGiftAnimation = ({
             animationData={lottieData}
             loop={false}
             onComplete={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh]"
+            className="w-full h-full"
           />
         </div>
       );
@@ -366,7 +366,7 @@ const FullScreenGiftAnimation = ({
             muted
             playsInline
             onEnded={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"/>
+            className="w-full h-full object-contain"/>
         </div>
       );
     }

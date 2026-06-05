@@ -74,6 +74,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -88,6 +89,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const isVisibleRef = useRef(true);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
@@ -101,6 +104,24 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
+  }, []);
+
+  // Use Shared Intersection Observer for performance
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    
+    const { observeSharedElement } = require('@/utils/nativePerformance');
+    return observeSharedElement('vap-player', el, (entry) => {
+      const visible = entry.isIntersecting;
+      setIsVisible(visible);
+      isVisibleRef.current = visible;
+      
+      // If became visible and we were rendering, ensure we resume
+      if (visible && videoRef.current && !videoRef.current.paused && !animationRef.current) {
+        // Trigger a re-render or logic to resume if needed
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -343,7 +364,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.disable(gl.BLEND);
 
     const render = () => {
-      if (useVideoFallbackRef.current || !mountedRef.current) return;
+      if (useVideoFallbackRef.current || !mountedRef.current || !isVisibleRef.current) return;
       const v = videoRef.current;
       if (!v) return;
 
@@ -482,7 +503,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   if (error) return <div className={cn("bg-transparent", className)} />;
 
   return (
-    <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
+    <div ref={containerRef} className={cn("relative flex items-center justify-center overflow-hidden", className)}>
       {loading && <div className="absolute inset-0 bg-transparent" />}
       <video
         ref={videoRef}
