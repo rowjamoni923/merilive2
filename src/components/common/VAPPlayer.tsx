@@ -118,8 +118,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setUseVideoFallback(false);
     setLoading(true);
     setError(null);
-    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-    if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+    if (webglFallbackTimerRef.current) {
+      clearTimeout(webglFallbackTimerRef.current);
+      webglFallbackTimerRef.current = null;
+    }
   }, [resolvedSrc, resolvedConfigSrc]);
   
   useEffect(() => {
@@ -478,8 +484,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     return () => {
-      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-      if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
+      if (webglFallbackTimerRef.current) {
+        clearTimeout(webglFallbackTimerRef.current);
+        webglFallbackTimerRef.current = null;
+      }
       if (soundHandleRef.current) {
         soundHandleRef.current.stop();
         soundHandleRef.current = null;
