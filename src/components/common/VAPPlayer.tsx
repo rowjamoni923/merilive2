@@ -32,7 +32,7 @@ interface VAPPlayerProps {
   onComplete?: () => void;
   soundUrl?: string | null;
   /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
-  dynamicData?: any;
+  dynamicData?: unknown;
 }
 
 type VideoFrameCallbackVideo = HTMLVideoElement & {
@@ -373,9 +373,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       if (!webglPaintedRef.current || v.paused || v.readyState < 2) {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
-      } else if (typeof (v as any).requestVideoFrameCallback === 'function') {
+      } else if (typeof (v as VideoFrameCallbackVideo).requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = (v as any).requestVideoFrameCallback(render);
+        animationRef.current = (v as VideoFrameCallbackVideo).requestVideoFrameCallback?.(render) ?? null;
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
@@ -420,7 +420,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-  }, [autoPlay, createShaders, muted, volume, loop, src]);
+  }, [autoPlay, createShaders, muted, volume, loop, src, soundUrl]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth || !configReady) return;
@@ -460,6 +460,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [configReady, handleVideoReady]);
 
   useEffect(() => {
+    const video = videoRef.current;
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
@@ -468,8 +469,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         soundHandleRef.current = null;
       }
       if (animationRef.current !== null) {
-        if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
-          (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);
+        if (frameCallbackModeRef.current === 'rvfc' && video) {
+          (video as VideoFrameCallbackVideo).cancelVideoFrameCallback?.(animationRef.current);
         } else {
           cancelAnimationFrame(animationRef.current);
         }
