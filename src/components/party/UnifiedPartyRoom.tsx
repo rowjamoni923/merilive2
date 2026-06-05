@@ -1751,7 +1751,7 @@ export function UnifiedPartyRoom({
                 : "bg-gradient-to-r from-green-500 to-emerald-500"
             )}
           >
-            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
+            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <BrandedVoiceIcon className="w-6 h-6" />}
           </motion.button>
 
           {/* Game Button — Opens Game Selection for ALL room types */}
