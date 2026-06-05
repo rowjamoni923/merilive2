@@ -49,7 +49,7 @@ export function useRoomGifts({
         id: `gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         senderName: detail.senderName || 'Someone',
         giftName: detail.giftName || 'Gift',
-        giftIcon: '🎁',
+        giftIcon: '',
         giftImageUrl: detail.giftIconUrl || detail.giftIcon,
         animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || detail.giftIcon,
         animationFormat: detail.giftAnimationFormat || null,
@@ -59,7 +59,6 @@ export function useRoomGifts({
         count: detail.count || 1,
         coins: detail.totalCoins || detail.giftCoins || 0,
       });
-      onPlaySoundRef.current?.();
     };
 
     window.addEventListener('livekit-gift-sent', onGift);
@@ -83,7 +82,7 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
       id: `local_gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       senderName: params.senderName,
       giftName: params.gift.name,
-      giftIcon: '🎁',
+      giftIcon: '',
       giftImageUrl: params.gift.icon_url || undefined,
       animationUrl: params.gift.animation_url || params.gift.icon_url || undefined,
       animationFormat: (params.gift as any).animation_format || null,
