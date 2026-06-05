@@ -39,7 +39,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useToast } from "@/hooks/use-toast";
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";

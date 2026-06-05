@@ -17,7 +17,7 @@ import { fetchLottieCached } from '@/utils/lottieCache';
 import { markVapCompositeHint } from '@/utils/vapDetection';
 import { prewarmGiftVideos } from '@/utils/giftVideoPreload';
 
-const MAX_GIFTS = 60;
+const MAX_GIFTS = 12;
 let started = false;
 
 type GiftAssetRow = {
@@ -111,17 +111,17 @@ export async function prewarmGiftAnimations(): Promise<void> {
 
     // SVGA binaries → Cache API + PRE-PARSE (Zero-delay CPU logic)
     if (svgaUrls.length > 0) {
-      prewarmPopularAssets(svgaUrls.slice(0, 20));
+      prewarmPopularAssets(svgaUrls.slice(0, 4));
     }
 
     // Lottie JSON → in-memory cache (bounded)
     await Promise.allSettled(
-      lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
+      lottieUrls.slice(0, 4).map(u => fetchLottieCached(u).catch(() => null))
     );
 
     // MP4/WebM/VAP: warm only the most likely assets, staggered and cached so
     // panel open never floods the network or blocks Live/Call/Party UI.
-    prewarmGiftVideos(videoUrls, 6);
+    prewarmGiftVideos(videoUrls, 2);
   } catch {
     // best-effort only
   }

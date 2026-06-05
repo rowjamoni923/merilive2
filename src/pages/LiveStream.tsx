@@ -92,7 +92,7 @@ import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { CallButton } from "@/components/call/CallButton";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
-import { useCall } from "@/features/call";
+import { useCall } from "@/components/call/CallContext";
 import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGameOverlay";
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)

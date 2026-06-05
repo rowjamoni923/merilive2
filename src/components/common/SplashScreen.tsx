@@ -18,7 +18,7 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDuration = 700 }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   // ★ Live version: on native, pulled from the actual installed APK / IPA so
   //   the splash always matches what's on the device. Falls back to the JS
