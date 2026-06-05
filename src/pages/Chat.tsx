@@ -764,11 +764,8 @@ const Chat = () => {
     // Optimistic coin deduction
     setUserCoins(prev => prev - totalCost);
     
-    // Play gift sound IMMEDIATELY
-    playSoundDebounced('gift');
-    
     // Show gift animation IMMEDIATELY
-    const giftEmoji = gift.emoji || '🎁';
+    const giftEmoji = gift.emoji || '';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
@@ -1443,8 +1440,6 @@ const Chat = () => {
     if (now - lastPlayed < 4000) return;
 
     recentGiftAnimationsRef.current.set(signature, now);
-    if (playSoundEffect) playSoundDebounced('gift');
-
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
     setAnimatingGiftFormat(animationFormat || parsedFormat || null);

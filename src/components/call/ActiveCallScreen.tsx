@@ -327,14 +327,13 @@ export function ActiveCallScreen({
       if (detail.senderId !== remoteUserId) return;
       if (!mountedRef.current) return;
 
-      playSound('gift');
       addFlyingGift({
         senderId: detail.senderId,
         senderName: detail.senderName || "User",
         senderAvatar: detail.senderAvatar || undefined,
         receiverName: remoteUserName,
         giftName: detail.giftName || 'Gift',
-        giftIcon: "🎁",
+        giftIcon: "",
         giftImageUrl: detail.giftIconUrl || undefined,
         animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || undefined,
         animationFormat: detail.giftAnimationFormat || null,
@@ -402,7 +401,7 @@ export function ActiveCallScreen({
         senderId: userId,
         senderName: "You",
         giftName: gift.name,
-        giftIcon: "🎁",
+        giftIcon: "",
         giftImageUrl: gift.icon_url || undefined,
         animationUrl: gift.animation_url || gift.icon_url || undefined,
         animationFormat: gift.animation_format || null,
@@ -413,7 +412,6 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
-      playSound('gift');
 
       const result = await sendGift({
         giftId: gift.id,
