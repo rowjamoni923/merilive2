@@ -13,6 +13,7 @@ import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData } from "@/features/shared/gifting";
@@ -243,7 +244,8 @@ const Chat = () => {
   const [chatTab, setChatTab] = useState("messages");
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [convCache, setConvCache, hadConvCache] = usePersistedCache<Conversation[]>('chat:conversations', []);
+  const [conversations, setConversations] = useState<Conversation[]>(convCache ?? []);
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
@@ -306,7 +308,7 @@ const Chat = () => {
     return () => { cancelled = true; };
   }, [messages, groupMessages, pendingMedia?.url, signedChatMediaUrls]);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hadConvCache);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number; host_level: number; max_user_level: number; gender: string | null; is_host: boolean } | null>(null);
@@ -1329,6 +1331,7 @@ const Chat = () => {
       });
 
       setConversations(formattedConversations);
+      setConvCache(formattedConversations);
     } catch (err) {
       console.error('[Chat] Error:', err);
       recordClientError({ label: "Chat.formattedConversations", message: err instanceof Error ? err.message : String(err) });

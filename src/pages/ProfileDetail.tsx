@@ -79,6 +79,7 @@ import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPriv
 import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface ProfileData {
   id: string;
@@ -175,9 +176,10 @@ const ProfileDetail = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
   const { startCall, isInCall } = useCall();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profileCache, setProfileCache, hadProfileCache] = usePersistedCache<ProfileData | null>(`profileDetail:${userId ?? 'self'}`, null);
+  const [profile, setProfile] = useState<ProfileData | null>(profileCache);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hadProfileCache);
   const [isBannedProfile, setIsBannedProfile] = useState(false);
   const [giftsSent, setGiftsSent] = useState<GiftSent[]>([]);
   const [giftsReceived, setGiftsReceived] = useState<GiftSent[]>([]);
@@ -292,7 +294,7 @@ const ProfileDetail = () => {
   };
 
   const fetchData = useCallback(async (isBackground = false) => {
-    if (!isBackground) setLoading(true);
+    if (!isBackground && !profile) setLoading(true);
 
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user ?? null;
@@ -373,6 +375,7 @@ const ProfileDetail = () => {
     }
 
     setProfile(profileData as ProfileData);
+    if (profileData) setProfileCache(profileData as ProfileData);
 
     // Set poster images
     setPosterImages((postersResult?.data || []).map((poster: any) => ({

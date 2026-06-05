@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { getActiveCurrencyRates } from "@/utils/currencyRatesCache";
 
 import { useToast } from "@/hooks/use-toast";
@@ -164,9 +165,11 @@ const Level5HelperDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const imageViewer = useImageViewer();
-  const [loading, setLoading] = useState(true);
+  const [l5HelperCache, setL5HelperCache, hadL5HelperCache] = usePersistedCache<any>('l5Helper:data', null);
+  const [l5WithdrawalsCache, setL5WithdrawalsCache, hadL5WithdrawalsCache] = usePersistedCache<AgencyWithdrawal[]>('l5Helper:agencyWithdrawals', []);
+  const [loading, setLoading] = useState(!hadL5HelperCache);
   const [processing, setProcessing] = useState(false);
-  const [helperData, setHelperData] = useState<any>(null);
+  const [helperData, setHelperData] = useState<any>(l5HelperCache);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState<number>(0);
   const [agencyId, setAgencyId] = useState<string | null>(null);
   
@@ -179,7 +182,7 @@ const Level5HelperDashboard = () => {
   // Data states
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
-  const [agencyWithdrawals, setAgencyWithdrawals] = useState<AgencyWithdrawal[]>([]);
+  const [agencyWithdrawals, setAgencyWithdrawals] = useState<AgencyWithdrawal[]>(l5WithdrawalsCache ?? []);
   const [countryPaymentMethods, setCountryPaymentMethods] = useState<CountryPaymentMethod[]>([]);
   const [assignedCountries, setAssignedCountries] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<HelperNotification[]>([]);
@@ -425,6 +428,7 @@ const Level5HelperDashboard = () => {
       }
 
       setHelperData(helper);
+      setL5HelperCache(helper);
 
       // Load agency diamond_balance — combined with wallet_balance = total Trader Wallet
       const { data: agencyData } = await supabase
@@ -545,6 +549,7 @@ const Level5HelperDashboard = () => {
       
       console.log('[Level5Helper] Loaded agency withdrawals:', filteredWithdrawals.length, 'for country:', helperCountry);
       setAgencyWithdrawals(filteredWithdrawals as AgencyWithdrawal[]);
+      setL5WithdrawalsCache(filteredWithdrawals as AgencyWithdrawal[]);
     } catch (err) {
       console.error('[Level5Helper] Error in loadAgencyWithdrawals:', err);
       recordClientError({ label: "Level5HelperDashboard.withdrawalCountry", message: err instanceof Error ? err.message : String(err) });
