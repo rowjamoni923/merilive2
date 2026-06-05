@@ -40,7 +40,7 @@ import { isLowEndDevice } from "@/utils/lowEndDevice";
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
 // =============================================
-const CallProvider = lazy(lazyRetry(() => import("./components/call/CallProvider").then(m => ({ default: m.CallProvider }))));
+import { DeferredCallProvider } from "./components/call/DeferredCallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
 import DeferredAppHooks from "./components/common/DeferredAppHooks";
@@ -1173,7 +1173,7 @@ const App = () => {
               <AudioUnlockOverlay />
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
               <DisconnectReasonToaster />
-              <CallProvider>
+              <DeferredCallProvider>
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
@@ -1508,7 +1508,7 @@ const App = () => {
                 />
               )}
             </Suspense>
-              </CallProvider>
+              </DeferredCallProvider>
             </BrowserRouter>
           </TooltipProvider>
           </MotionConfig>
