@@ -128,6 +128,7 @@ import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { Capacitor } from "@capacitor/core";
+import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
@@ -3966,6 +3967,7 @@ const LiveStream = () => {
           
           const optimisticReceiverBeans = Math.floor(totalCost * adminGiftCommission / 100);
           const giftKey = getGiftRealtimeKey(currentUserId, gift.id, totalCost, count);
+          warmGiftForInstantPlay(gift as any);
 
           // Trigger flying gift animation IMMEDIATELY
           addFlyingGift({
