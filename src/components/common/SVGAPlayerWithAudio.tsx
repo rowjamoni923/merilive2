@@ -256,7 +256,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
                 }
                 handleAnimationComplete('safety-timer');
               }
-            }, Math.ceil(exactDuration));
+            }, Math.ceil(exactDuration) + 120);
           }
         }
         

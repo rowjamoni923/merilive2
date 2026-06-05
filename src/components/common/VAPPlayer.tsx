@@ -118,8 +118,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setUseVideoFallback(false);
     setLoading(true);
     setError(null);
-    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-    if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+    if (webglFallbackTimerRef.current) {
+      clearTimeout(webglFallbackTimerRef.current);
+      webglFallbackTimerRef.current = null;
+    }
   }, [resolvedSrc, resolvedConfigSrc]);
   
   useEffect(() => {
@@ -243,16 +249,31 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   const scheduleCompletionFallback = useCallback((video: HTMLVideoElement) => {
     if (loop || completionTimerRef.current || completedRef.current) return;
-    const fallbackMs = Number.isFinite(video.duration) && video.duration > 0
-      ? Math.min(Math.max(video.duration * 1000, 250), 65000)
-      : 12000;
-    completionTimerRef.current = setTimeout(() => {
-      if (mountedRef.current && !completedRef.current) {
-        console.warn('[VAPPlayer] ⚠️ Duration fallback triggered for', src.split('/').pop());
-        completedRef.current = true;
-        onCompleteRef.current?.();
+    const checkNativeEnd = () => {
+      completionTimerRef.current = null;
+      if (!mountedRef.current || completedRef.current) return;
+
+      const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+      if (duration > 0) {
+        const remainingMs = Math.max((duration - video.currentTime) * 1000, 0);
+        if (!video.ended && remainingMs > 80) {
+          completionTimerRef.current = setTimeout(checkNativeEnd, Math.min(Math.max(remainingMs + 80, 120), 1000));
+          return;
+        }
+      } else if (!video.ended) {
+        completionTimerRef.current = setTimeout(checkNativeEnd, 1000);
+        return;
       }
-    }, fallbackMs);
+
+      console.warn('[VAPPlayer] ⚠️ Native ended event missed; completing at media duration for', src.split('/').pop());
+      completedRef.current = true;
+      onCompleteRef.current?.();
+    };
+
+    const firstCheckMs = Number.isFinite(video.duration) && video.duration > 0
+      ? Math.min(Math.max((video.duration - video.currentTime) * 1000 + 120, 250), 65000)
+      : 12000;
+    completionTimerRef.current = setTimeout(checkNativeEnd, firstCheckMs);
   }, [loop, src]);
 
   const initWebGL = useCallback((video: HTMLVideoElement, cfg: VAPConfig | null) => {
@@ -463,8 +484,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     return () => {
-      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-      if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
+      if (webglFallbackTimerRef.current) {
+        clearTimeout(webglFallbackTimerRef.current);
+        webglFallbackTimerRef.current = null;
+      }
       if (soundHandleRef.current) {
         soundHandleRef.current.stop();
         soundHandleRef.current = null;

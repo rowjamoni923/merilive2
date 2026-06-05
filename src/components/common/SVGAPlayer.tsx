@@ -176,7 +176,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
               if (mountedRef.current && !completedRef.current) {
                 handleComplete();
               }
-            }, Math.ceil(exactDuration));
+            }, Math.ceil(exactDuration) + 120);
           }
         }
         

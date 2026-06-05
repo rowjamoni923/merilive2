@@ -136,8 +136,31 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const animationStartedRef = useRef(false);
   const hostPercent = useHostGiftPercent();
 
-  const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
-  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Freeze the fullscreen media payload for this gift instance. Combo bumps may
+  // update the flying banner count, but they must NEVER rebuild/restart the
+  // fullscreen SVGA/VAP/MP4 player; otherwise native duration is broken and the
+  // WebView can jank while the heavy decoder is torn down mid-play.
+  const fullscreenMediaRef = useRef({
+    displayAnimationUrl: gift.animationUrl || gift.giftImageUrl,
+    animationFormat: gift.animationFormat,
+    animationConfigUrl: gift.animationConfigUrl,
+    soundUrl: gift.soundUrl,
+    senderAvatar: gift.senderAvatar || '',
+    receiverAvatar: gift.receiverAvatar || '',
+    senderName: gift.senderName || '',
+    receiverName: gift.receiverName || '',
+    giftCount: gift.count,
+  });
+
+  const displayAnimationUrl = fullscreenMediaRef.current.displayAnimationUrl;
+  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, fullscreenMediaRef.current.animationFormat), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
   const needsFullscreenSlot = completesFromPlayer;
@@ -158,23 +181,23 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Professional dynamic data for SVGA/VAP (RPG replacement)
   const dynamicData = useMemo(() => ({
     images: {
-      user_avatar: gift.senderAvatar || '',
-      receiver_avatar: gift.receiverAvatar || '',
-      sender_avatar: gift.senderAvatar || '', // Alias
+      user_avatar: fullscreenMediaRef.current.senderAvatar,
+      receiver_avatar: fullscreenMediaRef.current.receiverAvatar,
+      sender_avatar: fullscreenMediaRef.current.senderAvatar, // Alias
     },
     text: {
-      user_name: gift.senderName || '',
-      receiver_name: gift.receiverName || '',
-      sender_name: gift.senderName || '', // Alias
-      gift_count: String(gift.count),
+      user_name: fullscreenMediaRef.current.senderName,
+      receiver_name: fullscreenMediaRef.current.receiverName,
+      sender_name: fullscreenMediaRef.current.senderName, // Alias
+      gift_count: String(fullscreenMediaRef.current.giftCount),
     }
-  }), [gift.senderAvatar, gift.receiverAvatar, gift.senderName, gift.receiverName, gift.count]);
+  }), []);
 
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
     if (soundPlayedRef.current || !hasFullscreenSlot) return;
-    if (!gift.soundUrl) return;
+    if (!fullscreenMediaRef.current.soundUrl) return;
     
     // SVGAPlayerWithAudio handles its own internal/fallback sound for SVGA.
     // For VAP/Video/Images, we play the sound here only once the player is mounted.
@@ -182,8 +205,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     
     soundPlayedRef.current = true;
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
-    playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
-  }, [isSVGA, gift.giftName, gift.soundUrl, hasFullscreenSlot]);
+    playSoundUrl(fullscreenMediaRef.current.soundUrl, { volume: 0.8, maxConcurrent: 2 });
+  }, [isSVGA, gift.giftName, hasFullscreenSlot]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
@@ -237,7 +260,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       // Animated media path: NO fixed timer. SVGA/VAP/PAG/Lottie/MP4/WebM
       // complete from their own native end callbacks only.
       animationStartedRef.current = true;
-      return () => { mountedRef.current = false; };
+      return;
     }
 
     // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
@@ -245,7 +268,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
     }, 3500);
-    return () => { mountedRef.current = false; clearTimeout(timer); };
+    return () => { clearTimeout(timer); };
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
@@ -322,14 +345,14 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               width="100dvw"
               height="100dvh"
               type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
-              configSrc={gift.animationConfigUrl || undefined}
+              configSrc={fullscreenMediaRef.current.animationConfigUrl || undefined}
               loop={false}
               // VAP/MP4/WebM must ALWAYS be muted for reliable autoplay on
               // mobile/WebView; their sound is played separately by soundUrl.
               // Leaving VAP unmuted when soundUrl is empty blocks playback.
               muted={isSVGA ? false : true}
               volume={0.8}
-              soundUrl={gift.soundUrl}
+              soundUrl={fullscreenMediaRef.current.soundUrl}
               triggerKey={gift.comboKey}
               dynamicData={dynamicData}
               placeholderUrl={giftIconSrc && /\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(giftIconSrc) ? giftIconSrc : undefined}
