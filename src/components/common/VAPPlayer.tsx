@@ -512,7 +512,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         )}
         style={fallbackStyle}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
-        onEnded={() => !loop && onCompleteRef.current?.()}
+        onEnded={() => {
+          if (loop || completedRef.current) return;
+          completedRef.current = true;
+          if (completionTimerRef.current) {
+            clearTimeout(completionTimerRef.current);
+            completionTimerRef.current = null;
+          }
+          onCompleteRef.current?.();
+        }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (
