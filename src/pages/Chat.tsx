@@ -184,6 +184,19 @@ const getGiftAnimationSignature = (content: string, senderId?: string | null): s
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
 };
 
+const parseGiftAnimationDetails = (content: string) => {
+  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?([^\s\]]+)\s+(.+?)\s+x(\d+)/i);
+  const diamondsMatch = content.match(/\|\s*-(\d+)\s*diamonds/i);
+  const beansMatch = content.match(/\|\s*\+(\d+)\s*beans/i);
+  return {
+    emoji: detailMatch?.[1] || '🎁',
+    name: detailMatch?.[2]?.trim() || 'Gift',
+    count: Math.max(1, Number(detailMatch?.[3] || 1)),
+    diamonds: Math.max(0, Number(diamondsMatch?.[1] || 0)),
+    beans: Math.max(0, Number(beansMatch?.[1] || 0)),
+  };
+};
+
 // Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
