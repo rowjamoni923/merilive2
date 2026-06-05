@@ -9,8 +9,14 @@
 
 import { svgaCacheSet, svgaCacheHas } from './svgaCache';
 
-let svgaModule: any = null;
-let modulePromise: Promise<any> | null = null;
+type SVGAModule = {
+  Parser: new () => {
+    load: (url: string, success: (videoItem: unknown) => void, failure?: (err: unknown) => void) => void;
+  };
+};
+
+let svgaModule: SVGAModule | null = null;
+let modulePromise: Promise<SVGAModule> | null = null;
 
 /**
  * Pre-import svgaplayerweb module
@@ -18,17 +24,17 @@ let modulePromise: Promise<any> | null = null;
 export function prewarmSVGA(): void {
   if (svgaModule || modulePromise) return;
   modulePromise = import('svgaplayerweb')
-    .then(m => { svgaModule = m; return m; })
+    .then(m => { svgaModule = m as SVGAModule; return svgaModule; })
     .catch(() => { modulePromise = null; });
 }
 
 /**
  * Get module with pre-warm check
  */
-export async function getSVGAModule(): Promise<any> {
+export async function getSVGAModule(): Promise<SVGAModule> {
   if (svgaModule) return svgaModule;
   if (modulePromise) return modulePromise;
-  modulePromise = import('svgaplayerweb').then(m => { svgaModule = m; return m; });
+  modulePromise = import('svgaplayerweb').then(m => { svgaModule = m as SVGAModule; return svgaModule; });
   return modulePromise;
 }
 
@@ -48,13 +54,13 @@ export async function prewarmPopularAssets(urls: string[]): Promise<void> {
 
     await new Promise<void>((resolve) => {
       const parser = new SVGA.Parser();
-      parser.load(url, (videoItem: any) => {
+      parser.load(url, (videoItem: unknown) => {
         if (videoItem) {
           svgaCacheSet(url, videoItem);
           console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
         }
         window.setTimeout(resolve, 900);
-      }, (err: any) => {
+      }, (err: unknown) => {
         console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
         resolve();
       });
