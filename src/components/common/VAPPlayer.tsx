@@ -227,35 +227,31 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // High-precision HD sampling.
-        // We use a negligible inset (0.00005) to maintain maximum sharpness
-        // while preventing sub-pixel sampling bleed between channels.
-        float edgeInset = 0.00005; 
+        // High-precision sampling with slight inset to avoid edge artifacts
+        float edgeInset = 0.0001; 
         
+        // Calculate RGB coordinates from the RGB rect (usually the right or top half)
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
         );
-        rgbCoord.x = clamp(rgbCoord.x, u_rgbRect.x + edgeInset, u_rgbRect.x + u_rgbRect.z - edgeInset);
-        rgbCoord.y = clamp(rgbCoord.y, u_rgbRect.y + edgeInset, u_rgbRect.y + u_rgbRect.w - edgeInset);
+        rgbCoord = clamp(rgbCoord, u_rgbRect.xy + edgeInset, u_rgbRect.xy + u_rgbRect.zw - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
+        // Calculate Alpha coordinates from the alpha mask rect (usually the left or bottom half)
         vec2 alphaCoord = vec2(
           u_alphaRect.x + v_texCoord.x * u_alphaRect.z,
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
         );
-        alphaCoord.x = clamp(alphaCoord.x, u_alphaRect.x + edgeInset, u_alphaRect.x + u_alphaRect.z - edgeInset);
-        alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
+        alphaCoord = clamp(alphaCoord, u_alphaRect.xy + edgeInset, u_alphaRect.xy + u_alphaRect.zw - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Tencent VAP official shader outputs straight RGBA:
-        //   vec4(rgbColor.r, rgbColor.g, rgbColor.b, alphaColor.r)
-        // Do NOT premultiply rgb here. Canvas/WebGL compositing handles alpha;
-        // multiplying again makes dark VAP gifts almost invisible.
-        // Alpha is derived from the R channel (standard for VAP).
-        // Using max(R, G, B) can sometimes provide a cleaner mask depending on export.
-        float alpha = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
-        gl_FragColor = vec4(rgbColor.rgb, alpha);
+        // Standard VAP transparency: RGB color from RGB area, Alpha from R channel of Alpha area
+        // We use max(r, g, b) for the mask to ensure better extraction of the alpha layer
+        float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
+        
+        // Output final professional transparent pixel
+        gl_FragColor = vec4(rgbColor.rgb, alphaValue);
       }
     `;
 
@@ -304,8 +300,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: false, // Tencent VAP uses straight-alpha output
-      preserveDrawingBuffer: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true, // Set to true to avoid flickers on some mobile browsers
       powerPreference: 'high-performance',
     });
 
