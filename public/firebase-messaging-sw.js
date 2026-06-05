@@ -163,7 +163,7 @@ self.addEventListener('notificationclick', function(event) {
 // =============================================
 var ASSET_CACHE = 'meri-assets-v1';
 var HTML_CACHE = 'meri-html-v1';
-var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
+var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico|mp4|webm|m4v)(?:\?.*)?$/i;
 
 self.addEventListener('install', function(event) {
   // Pkg B pass-3: do NOT auto-skipWaiting; wait for SKIP_WAITING message from
@@ -302,6 +302,9 @@ self.addEventListener('message', function(event) {
 // =============================================
 var IMG_CACHE_NAME = 'meri-img-cache-v3';
 var IMG_MAX_ENTRIES = 600;
+var GIFT_MEDIA_CACHE_NAME = 'meri-gift-media-v1';
+var GIFT_MEDIA_EXT_RE = /\.(mp4|webm|m4v)(\?|$)/i;
+var GIFT_MEDIA_URL_RE = /\/functions\/v1\/public-gift-media\/gifts\//i;
 
 var IMG_HOST_RE = /(supabase\.co\/storage|supabase\.in\/storage|images?\.|cdn\.|cloudflarestorage|googleusercontent|cloudinary|imgur)/i;
 var IMG_EXT_RE = /\.(png|jpe?g|webp|avif|gif|svg|ico)(\?|$)/i;
