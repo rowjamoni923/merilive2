@@ -115,6 +115,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [onLoad, onError, onComplete]);
 
   useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+
+  // Pkg426 Phase-2: when native plugin takes over, surface onLoad to caller
+  // so overlay containers (e.g. FullScreenGiftAnimation) reveal themselves.
+  useEffect(() => {
+    if (nativeMode === 'active') onLoadRef.current?.();
+  }, [nativeMode]);
+
   
   useEffect(() => {
     const video = videoRef.current;
