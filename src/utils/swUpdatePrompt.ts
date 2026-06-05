@@ -11,12 +11,7 @@ import { toast } from 'sonner';
 let installed = false;
 
 function promptForReload(_waiting: ServiceWorker) {
-  // De-dupe if the same prompt is already on screen
-  toast('New version ready', {
-    id: 'sw-update-prompt',
-    description: 'It will apply next time you open the app. No auto refresh will run.',
-    duration: 5000,
-  });
+  // Silent: new SW will activate next natural app open. No user-facing toast.
 }
 
 function wireRegistration(reg: ServiceWorkerRegistration) {
