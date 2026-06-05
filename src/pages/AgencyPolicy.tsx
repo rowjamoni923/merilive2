@@ -622,66 +622,106 @@ const AgencyPolicy = () => {
 
             {/* Rules Tab */}
             <TabsContent value="rules" className="mt-4 space-y-4">
-              {/* Violations */}
-              <Card className="border-0 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
- <div className="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
- <AlertTriangle className="w-4 h-4 text-danger-600" />
-                    </div>
-                    Violation Penalties
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {violations.map((violation, index) => (
-                    <div 
-                      key={index}
-                      className={`rounded-xl p-4 border ${
-                        violation.severity === 'high' 
- ?'bg-danger-50 border-danger-200' 
- :'bg-warning-50 border-warning-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
- <p className={`font-semibold text-sm ${violation.severity ==='high' ?'text-danger-800' :'text-warning-800'}`}>
-                          {violation.title}
-                        </p>
+              {/* Rules & Regulations (admin "rules" section) */}
+              {rulesItems.length > 0 && (
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-info-600" />
                       </div>
- <ul className={`text-xs space-y-1 ${violation.severity ==='high' ?'text-danger-700' :'text-warning-700'}`}>
-                        {violation.penalties.map((penalty, idx) => (
-                          <li key={idx}>• {penalty}</li>
+                      Rules & Regulations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2.5">
+                      {rulesItems.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-info-100 text-info-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
+                            {idx + 1}
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Violation Penalties — structured first, fallback to admin "penalties" */}
+              {(violations.length > 0 || penaltiesItems.length > 0) && (
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
+                        <AlertTriangle className="w-4 h-4 text-danger-600" />
+                      </div>
+                      Violation Penalties
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {violations.length > 0 ? (
+                      violations.map((violation, index) => (
+                        <div
+                          key={index}
+                          className={`rounded-xl p-4 border ${
+                            violation.severity === 'high'
+                              ? 'bg-danger-50 border-danger-200'
+                              : 'bg-warning-50 border-warning-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
+                            <p className={`font-semibold text-sm ${violation.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>
+                              {violation.title}
+                            </p>
+                          </div>
+                          <ul className={`text-xs space-y-1 ${violation.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
+                            {violation.penalties.map((penalty, idx) => (
+                              <li key={idx}>• {penalty}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    ) : (
+                      <ul className="space-y-2.5">
+                        {penaltiesItems.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-danger-100 text-danger-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
+                              {idx + 1}
+                            </div>
+                            <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
+                          </li>
                         ))}
                       </ul>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Prohibited Content */}
-              <Card className="border-0 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
- <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
- <Shield className="w-4 h-4 text-slate-600" />
-                    </div>
-                    Prohibited Content
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-2">
-                    {prohibitedContent.map((item, index) => (
-                      <div 
-                        key={index}
- className="bg-slate-50 rounded-lg p-3"
-                      >
- <p className="font-semibold text-xs text-slate-800">{item.title}</p>
- <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
+              {/* Prohibited Content — only when admin populated it */}
+              {prohibitedContent.length > 0 && (
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-slate-600" />
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      Prohibited Content
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-2">
+                      {prohibitedContent.map((item, index) => (
+                        <div key={index} className="bg-slate-50 rounded-lg p-3">
+                          <p className="font-semibold text-xs text-slate-800">{item.title}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Important Warning */}
  <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-white">
