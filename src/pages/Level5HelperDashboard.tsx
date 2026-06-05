@@ -182,7 +182,7 @@ const Level5HelperDashboard = () => {
   // Data states
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
-  const [agencyWithdrawals, setAgencyWithdrawals] = useState<AgencyWithdrawal[]>([]);
+  const [agencyWithdrawals, setAgencyWithdrawals] = useState<AgencyWithdrawal[]>(l5WithdrawalsCache ?? []);
   const [countryPaymentMethods, setCountryPaymentMethods] = useState<CountryPaymentMethod[]>([]);
   const [assignedCountries, setAssignedCountries] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<HelperNotification[]>([]);
