@@ -134,7 +134,12 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   debug,
   debugTag,
   triggerKey,
+  playOnClick = false,
+  posterUrl = null,
 }) => {
+  const [activated, setActivated] = React.useState(false);
+  // If the src changes, reset activation so the new asset waits for a fresh tap.
+  React.useEffect(() => { setActivated(false); }, [src, playOnClick]);
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
