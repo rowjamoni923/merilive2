@@ -693,6 +693,7 @@ const App = () => {
     const giftIdleId = idle(() => {
       import('@/hooks/useGiftPrefetch')
         .then(m => m.prefetchGifts())
+        .then(() => import('@/utils/giftAnimationPrewarm').then(m => m.prewarmGiftAnimations()))
         .catch(() => {});
     }, 3500);
 
