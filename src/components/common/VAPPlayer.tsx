@@ -370,6 +370,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const isVertical = layout === 'alpha-top' || layout === 'alpha-bottom';
       canvas.width = (isVertical ? videoWidth : videoWidth / 2); 
       canvas.height = (isVertical ? videoHeight / 2 : videoHeight);
+      
+      // Force container to be full screen if it's an overlay
+      if (className?.includes('fixed') || className?.includes('absolute inset-0')) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.objectFit = 'contain';
+      }
+
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
