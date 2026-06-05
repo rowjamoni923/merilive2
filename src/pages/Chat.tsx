@@ -2398,7 +2398,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat, iconUrl: parsedIconUrl } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat, animationConfigUrl, iconUrl: parsedIconUrl } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2411,7 +2411,8 @@ const Chat = () => {
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
-                          const isVap = animationFormat === 'vap' || normalizedGiftUrl.endsWith('.mp4') || normalizedGiftUrl.endsWith('.mov') || normalizedGiftUrl.endsWith('.webm');
+                          const isVap = animationFormat === 'vap' || (!!iconUrl && detectProfessionalAnimationFormat(iconUrl, animationFormat) === 'vap');
+                          const isPlainVideo = !isVap && (animationFormat === 'mp4' || animationFormat === 'webm' || normalizedGiftUrl.endsWith('.mp4') || normalizedGiftUrl.endsWith('.mov') || normalizedGiftUrl.endsWith('.webm'));
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           // Prefer a dedicated preview icon (parsedIconUrl) when present; else if the
                           // animation URL itself is a static image, use it; else fall back to playing
@@ -2457,6 +2458,18 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isVap && iconUrl ? (
+                                  <Suspense fallback={null}>
+                                    <UniversalAnimationPlayer
+                                      src={iconUrl}
+                                      type="vap"
+                                      configSrc={animationConfigUrl || undefined}
+                                      className="w-10 h-10"
+                                      loop={true}
+                                      autoPlay={true}
+                                      muted={true}
+                                    />
+                                  </Suspense>
+                                ) : isPlainVideo && iconUrl ? (
                                   <video
                                     src={iconUrl}
                                     className="w-10 h-10 object-contain"

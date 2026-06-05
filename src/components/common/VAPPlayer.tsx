@@ -79,6 +79,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
+  const [configReady, setConfigReady] = useState(false);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
@@ -113,22 +114,44 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [volume, muted, resolvedSrc]);
 
   useEffect(() => {
+    let cancelled = false;
+    initializedRef.current = false;
+    completedRef.current = false;
+    lastVideoTimeRef.current = -1;
+    webglPaintedRef.current = false;
+    useVideoFallbackRef.current = false;
+    setConfig(null);
+    setConfigReady(false);
+    setError(null);
+    setLoading(true);
+    setWebglPainted(false);
+    setUseVideoFallback(false);
+
     if (resolvedConfigSrc) {
       fetch(resolvedConfigSrc)
         .then(res => res.json())
         .then(data => {
+          if (cancelled) return;
           setConfig(data.info || data);
         })
         .catch(err => {
           console.warn('[VAPPlayer] Config load failed, using defaults:', err);
+        })
+        .finally(() => {
+          if (!cancelled) setConfigReady(true);
         });
     } else {
+      setConfigReady(true);
       const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => setConfig(data.info || data))
+        .then(data => {
+          if (!cancelled) setConfig(data.info || data);
+        })
         .catch(() => setConfig(null));
     }
+
+    return () => { cancelled = true; };
   }, [resolvedSrc, resolvedConfigSrc]);
 
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
@@ -171,10 +194,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Output premultiplied alpha for professional-grade blending.
+        // Tencent VAP official shader outputs straight RGBA:
+        //   vec4(rgbColor.r, rgbColor.g, rgbColor.b, alphaColor.r)
+        // Do NOT premultiply rgb here. Canvas/WebGL compositing handles alpha;
+        // multiplying again makes dark VAP gifts almost invisible.
         // Alpha is derived from the R channel (standard for VAP).
         float alpha = alphaColor.r;
-        gl_FragColor = vec4(rgbColor.rgb * alpha, alpha);
+        gl_FragColor = vec4(rgbColor.rgb, alpha);
       }
     `;
 
@@ -223,7 +249,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: true, // Switched to true for professional blending
+      premultipliedAlpha: false, // Tencent VAP uses straight-alpha output
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     });
@@ -288,8 +314,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setFallbackCrop(rgbRect as [number, number, number, number]);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // Render one VAP frame into the canvas; the browser will composite the
+    // canvas over the page. Internal WebGL blending would premultiply/darken
+    // Tencent VAP frames a second time, so keep it disabled here.
+    gl.disable(gl.BLEND);
 
     const render = () => {
       if (useVideoFallbackRef.current || !mountedRef.current) return;
@@ -362,6 +390,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [autoPlay, createShaders, muted, volume, loop, soundUrl]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    if (resolvedConfigSrc && !configReady) return;
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
@@ -387,9 +416,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       return;
     }
     initWebGL(video, config);
-  }, [config, initWebGL, loop, src]);
+  }, [config, configReady, initWebGL, loop, resolvedConfigSrc, src]);
 
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !configReady || initializedRef.current || !video.videoWidth) return;
+    handleVideoReady(video);
+  }, [configReady, config, handleVideoReady]);
+
+  useEffect(() => {
+    const cleanupVideo = videoRef.current as VideoFrameCallbackVideo | null;
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       if (soundHandleRef.current) {
@@ -397,9 +433,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         soundHandleRef.current = null;
       }
       if (animationRef.current !== null) {
-        const video = videoRef.current as VideoFrameCallbackVideo | null;
-        if (frameCallbackModeRef.current === 'rvfc' && video) {
-          video.cancelVideoFrameCallback?.(animationRef.current);
+        if (frameCallbackModeRef.current === 'rvfc' && cleanupVideo) {
+          cleanupVideo.cancelVideoFrameCallback?.(animationRef.current);
         } else {
           cancelAnimationFrame(animationRef.current);
         }
