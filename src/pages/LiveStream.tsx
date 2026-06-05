@@ -1386,6 +1386,13 @@ const LiveStream = () => {
       if (data.senderId === currentUserId) return;
 
       console.log('[LiveStream] ⚡ Pkg76 livekit-gift-sent received:', data.giftName, 'from', data.senderName);
+      warmGiftForInstantPlay({
+        icon_url: data.giftIconUrl || null,
+        animation_url: data.giftAnimationUrl || null,
+        animation_format: data.giftAnimationFormat || null,
+        animation_config_url: data.giftAnimationConfigUrl || null,
+        sound_url: data.giftSoundUrl || null,
+      } as any);
 
       addFlyingGift({
         senderId: data.senderId,

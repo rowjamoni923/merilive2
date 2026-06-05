@@ -109,26 +109,9 @@ export async function prewarmGiftAnimations(): Promise<void> {
     // popular few fully into HTTP cache; metadata warm keeps the decoder ready.
     const criticalVideos = videoUrls.slice(0, 3);
     warmupVapUrls(criticalVideos, { warmJsonSibling: false });
-    criticalVideos.forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
   }
-}
-
-function warmVideoMetadata(url: string) {
-  if (typeof document === 'undefined') return;
-  try {
-    const v = document.createElement('video');
-    v.preload = 'metadata';
-    v.muted = true;
-    v.playsInline = true;
-    v.crossOrigin = 'anonymous';
-    v.src = url;
-    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
-    v.onloadedmetadata = () => cleanup();
-    v.onerror = () => cleanup();
-    v.load();
-  } catch {}
 }
 
 /**
@@ -173,5 +156,4 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   );
   const criticalVideos = videoUrls.slice(0, 2);
   warmupVapUrls(criticalVideos, { warmJsonSibling: false });
-  criticalVideos.forEach((u) => warmVideoMetadata(u));
 }

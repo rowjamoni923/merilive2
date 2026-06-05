@@ -329,6 +329,13 @@ export function ActiveCallScreen({
       if (detail.senderId !== remoteUserId) return;
       if (!mountedRef.current) return;
 
+      warmGiftForInstantPlay({
+        icon_url: detail.giftIconUrl || null,
+        animation_url: detail.giftAnimationUrl || null,
+        animation_format: detail.giftAnimationFormat || null,
+        animation_config_url: detail.giftAnimationConfigUrl || null,
+        sound_url: detail.giftSoundUrl || null,
+      } as any);
       playSound('gift');
       addFlyingGift({
         senderId: detail.senderId,

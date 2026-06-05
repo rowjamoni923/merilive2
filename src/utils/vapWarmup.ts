@@ -23,6 +23,7 @@ import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 const done = new Set<string>();
 const inFlight = new Map<string, Promise<void>>();
 const MAX_DONE = 400; // keep memory bounded
+const MAX_FULL_WARM_BYTES = 12 * 1024 * 1024;
 
 function resolveUrl(raw?: string | null): string | null {
   if (!raw || typeof raw !== 'string') return null;
@@ -39,7 +40,7 @@ function resolveUrl(raw?: string | null): string | null {
  * Warm a single media URL into the HTTP cache.
  * Returns a promise that resolves whether warm succeeded or failed.
  */
-export function warmupVapUrl(rawUrl?: string | null): Promise<void> {
+export function warmupVapUrl(rawUrl?: string | null, options?: { priority?: 'low' | 'high'; maxBytes?: number }): Promise<void> {
   const url = resolveUrl(rawUrl);
   if (!url) return Promise.resolve();
   if (done.has(url)) return Promise.resolve();
@@ -57,11 +58,17 @@ export function warmupVapUrl(rawUrl?: string | null): Promise<void> {
         credentials: 'omit',
         cache: 'force-cache',
         // @ts-ignore — Chrome/Edge supports priority hint
-        priority: 'low',
+        priority: options?.priority || 'low',
       });
       // Drain the body so the browser stores it in the cache.
       if (res.ok && res.body) {
-        try { await res.arrayBuffer(); } catch { /* noop */ }
+        const len = Number(res.headers.get('content-length') || '0');
+        const maxBytes = options?.maxBytes ?? MAX_FULL_WARM_BYTES;
+        if (!len || len <= maxBytes || options?.priority === 'high') {
+          try { await res.arrayBuffer(); } catch { /* noop */ }
+        } else {
+          try { await res.body.cancel(); } catch { /* noop */ }
+        }
       }
       done.add(url);
       if (done.size > MAX_DONE) {
@@ -83,17 +90,21 @@ export function warmupVapUrl(rawUrl?: string | null): Promise<void> {
  * Warm multiple URLs in parallel.
  * Also auto-warms the sibling `.json` VAP config for `.mp4`/`.webm` URLs.
  */
-export function warmupVapUrls(urls: Array<string | null | undefined>, options?: { warmJsonSibling?: boolean }): void {
+export function warmupVapUrls(urls: Array<string | null | undefined>, options?: { warmJsonSibling?: boolean; priority?: 'low' | 'high'; maxBytes?: number }): void {
   const warmJsonSibling = options?.warmJsonSibling !== false;
   for (const u of urls) {
     if (!u) continue;
-    void warmupVapUrl(u);
+    void warmupVapUrl(u, { priority: options?.priority, maxBytes: options?.maxBytes });
     // VAP players probe a sibling .json config — warm it too.
     if (warmJsonSibling && /\.(mp4|webm)(\?|$)/i.test(u)) {
       const jsonSibling = u.replace(/\.(mp4|webm)(\?|$)/i, '.json$2');
-      if (jsonSibling !== u) void warmupVapUrl(jsonSibling);
+      if (jsonSibling !== u) void warmupVapUrl(jsonSibling, { priority: options?.priority, maxBytes: 512 * 1024 });
     }
   }
+}
+
+export function warmupSelectedVapUrls(urls: Array<string | null | undefined>): void {
+  warmupVapUrls(urls, { warmJsonSibling: false, priority: 'high', maxBytes: 32 * 1024 * 1024 });
 }
 
 /**

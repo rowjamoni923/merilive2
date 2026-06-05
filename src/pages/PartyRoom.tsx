@@ -894,6 +894,13 @@ const PartyRoom = () => {
       if (giftData.senderId === cuid) return;
 
       console.log('[PartyRoom] 🟣 ⚡ Pkg76 livekit-gift-sent received:', giftData.giftName);
+      warmGiftForInstantPlay({
+        icon_url: giftData.giftIconUrl || null,
+        animation_url: giftData.giftAnimationUrl || null,
+        animation_format: giftData.giftAnimationFormat || null,
+        animation_config_url: giftData.giftAnimationConfigUrl || null,
+        sound_url: giftData.giftSoundUrl || null,
+      } as any);
       const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftCoins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
       const broadcastCoins = Number(giftData.totalCoins ?? (giftData.giftCoins || 0) * (giftData.count || 1));
       if (giftData.receiverId === cuid && broadcastBeans > 0) {
