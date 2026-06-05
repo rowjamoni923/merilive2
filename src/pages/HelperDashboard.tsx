@@ -101,9 +101,10 @@ const filterMethodsByCountry = (methods: PaymentMethod[], countryCode: string | 
 const HelperDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [helperData, setHelperData] = useState<any>(null);
+  const [helperCache, setHelperCache, hadHelperCache] = usePersistedCache<any>('helperDashboard:data', null);
+  const [helperData, setHelperData] = useState<any>(helperCache);
   const [helperId, setHelperId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hadHelperCache);
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
