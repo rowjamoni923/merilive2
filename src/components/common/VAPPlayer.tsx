@@ -59,7 +59,7 @@ const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConf
   const pixels = video.videoWidth * video.videoHeight;
   const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
-  return pixels >= 6_000_000 || (coarsePointer && cores <= 2 && pixels >= 3_000_000);
+  return pixels >= 10_000_000 || (coarsePointer && cores <= 2 && pixels >= 5_000_000);
 };
 
 const VAPPlayer: React.FC<VAPPlayerProps> = ({
@@ -355,14 +355,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w * dpr; 
-      canvas.height = cfg.h * dpr;
+      canvas.width = cfg.w; 
+      canvas.height = cfg.h;
     } else {
       const layout = detectVapLayout(video) || 'alpha-right';
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
       const isVertical = layout === 'alpha-top' || layout === 'alpha-bottom';
-      canvas.width = (isVertical ? videoWidth : videoWidth / 2) * dpr; 
-      canvas.height = (isVertical ? videoHeight / 2 : videoHeight) * dpr;
+      canvas.width = (isVertical ? videoWidth : videoWidth / 2); 
+      canvas.height = (isVertical ? videoHeight / 2 : videoHeight);
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
