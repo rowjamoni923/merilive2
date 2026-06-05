@@ -103,6 +103,7 @@ import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
+import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 
 interface PartyRoom {
   id: string;
@@ -2334,6 +2335,7 @@ const PartyRoom = () => {
               playSound('gift');
               
               // Prepare gift animation data
+              warmGiftForInstantPlay(gift as any);
               const optimisticReceiverBeans = Math.floor(totalCost * hostCommissionPercentRef.current / 100);
               const giftKey = getPartyGiftRealtimeKey(sendingUserId, gift.id, totalCost, count);
               const senderName = sendingUser?.profile?.display_name || 'You';
