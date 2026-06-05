@@ -2442,7 +2442,6 @@ const Chat = () => {
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).style.display = 'none';
-                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
                                     }}
                                   />
                                 ) : (
