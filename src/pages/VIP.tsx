@@ -10,6 +10,7 @@ import {
   Shield,
   Check,
   Zap,
+  Gift,
   MessageCircle,
   Users,
   Image,
