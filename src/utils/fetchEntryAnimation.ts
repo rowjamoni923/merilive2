@@ -11,6 +11,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { warmupVapUrls } from '@/utils/vapWarmup';
 
 // ============= IN-MEMORY CACHE FOR INSTANT LOOKUPS =============
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
