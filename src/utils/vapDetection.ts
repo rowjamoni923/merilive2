@@ -22,10 +22,15 @@ export const getVapCompositeHint = (url: string): boolean => {
 export const isLikelyVapCompositeSize = (width: number, height: number): boolean => {
   if (!width || !height || width < 100 || height < 100) return false;
   const ratio = width / height;
-  // Side-by-side (2:1) or stacked (1:1 or 1:2)
+  // Professional VAP exports are often:
+  // 2:1 (Side-by-Side RGB + Alpha)
+  // 1:2 (Stacked Top-Bottom)
+  // 1:1.125 (Special portrait stacked used in newer Tencent exports)
   return (
     Math.abs(ratio - 2) < 0.15 || // Side-by-Side (RGB+Alpha)
     Math.abs(ratio - 0.5) < 0.15 || // Top-Bottom (RGB+Alpha)
+    Math.abs(ratio - 1) < 0.15 ||   // 1:1 stacked
+    Math.abs(ratio - 0.88) < 0.1 ||  // 1:1.125 portrait stacked
     (ratio >= 0.7 && ratio <= 1.45) // Possible stacked or portrait side-by-side
   );
 };
