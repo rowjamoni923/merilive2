@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import {
   Drawer,
   DrawerContent,
@@ -58,9 +59,11 @@ const formatNumber = (num: number): string => {
 const AgentRank = () => {
   const navigate = useNavigate();
   const [periodType, setPeriodType] = useState<PeriodType>("weekly");
-  const [rankings, setRankings] = useState<AgencyRanking[]>([]);
-  const [rewards, setRewards] = useState<RankingReward[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rankingsCache, setRankings, hadRankingsCache] = usePersistedCache<AgencyRanking[]>(`agentRank:rankings:${"weekly"}`, null);
+  const [rewardsCache, setRewards, hadRewardsCache] = usePersistedCache<RankingReward[]>(`agentRank:rewards:${"weekly"}`, null);
+  const rankings = rankingsCache ?? [];
+  const rewards = rewardsCache ?? [];
+  const [loading, setLoading] = useState(!(hadRankingsCache && hadRewardsCache));
   const [showRules, setShowRules] = useState(false);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [currentUserAgency, setCurrentUserAgency] = useState<AgencyRanking | null>(null);

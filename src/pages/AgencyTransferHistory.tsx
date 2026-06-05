@@ -20,6 +20,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface Transfer {
   id: string;
@@ -61,9 +62,11 @@ type DateFilter = 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'all
 
 const AgencyTransferHistory = () => {
   const navigate = useNavigate();
-  const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [commissions, setCommissions] = useState<CommissionRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [transfersCache, setTransfers, hadTransfersCache] = usePersistedCache<Transfer[]>('agencyTransferHist:transfers', null);
+  const [commissionsCache, setCommissions, hadCommCache] = usePersistedCache<CommissionRecord[]>('agencyTransferHist:commissions', null);
+  const transfers = transfersCache ?? [];
+  const commissions = commissionsCache ?? [];
+  const [loading, setLoading] = useState(!(hadTransfersCache && hadCommCache));
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
   const [activeTab, setActiveTab] = useState<'earnings' | 'commission'>('earnings');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
@@ -75,6 +78,7 @@ const AgencyTransferHistory = () => {
 
   const fetchData = async () => {
     try {
+      if (!transfersCache && !commissionsCache) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/auth'); return; }
 

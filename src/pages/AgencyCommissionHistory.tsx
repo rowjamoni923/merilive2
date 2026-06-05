@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface CommissionRecord {
   id: string;
@@ -46,15 +47,17 @@ interface CommissionStats {
 
 const AgencyCommissionHistory = () => {
   const navigate = useNavigate();
-  const [commissions, setCommissions] = useState<CommissionRecord[]>([]);
-  const [stats, setStats] = useState<CommissionStats>({
+  const [commissionsCache, setCommissions, hadCommCache] = usePersistedCache<CommissionRecord[]>('agencyCommHist:commissions', null);
+  const [statsCache, setStats, hadStatsCache] = usePersistedCache<CommissionStats>('agencyCommHist:stats', null);
+  const commissions = commissionsCache ?? [];
+  const stats = statsCache ?? {
     totalCommission: 0,
     todayCommission: 0,
     thisWeekCommission: 0,
     thisMonthCommission: 0,
     totalTransactions: 0
-  });
-  const [loading, setLoading] = useState(true);
+  };
+  const [loading, setLoading] = useState(!(hadCommCache && hadStatsCache));
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // Default: 9000 beans = $1 (matching AgencyDashboard)
 
   useEffect(() => {
@@ -63,6 +66,7 @@ const AgencyCommissionHistory = () => {
 
   const fetchData = async () => {
     try {
+      if (!commissionsCache) setLoading(true);
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
       if (!user) {
