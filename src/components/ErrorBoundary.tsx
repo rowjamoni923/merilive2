@@ -45,14 +45,12 @@ class ErrorBoundary extends Component<Props, State> {
       // if it's a persistent chunk failure, as that's the only way to fetch 
       // the new manifest/assets from the server.
       void (async () => {
-        try { 
-          await scheduleChunkLoadRecovery(error, error.message); 
-          // Wait 1.5s so the user sees the professional "Updating" state
-          await new Promise(r => setTimeout(r, 1500));
-          if (typeof window !== 'undefined') window.location.reload();
-        } catch { 
-          if (typeof window !== 'undefined') window.location.reload();
-        }
+        try {
+          await scheduleChunkLoadRecovery(error, error.message);
+          // Wait briefly so user sees the professional "Updating" state
+          await new Promise(r => setTimeout(r, 1200));
+        } catch { /* best-effort */ }
+        hardReloadForChunkRecovery();
       })();
     }
 
