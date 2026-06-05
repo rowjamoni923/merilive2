@@ -37,6 +37,7 @@ import {
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
+import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
@@ -1598,21 +1599,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
     if (!room) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const mod = await import('@/lib/livekitGiftSignaling');
-        if (cancelled) return;
-        mod.registerGiftRoom('live', streamId, room);
-      } catch (e) {
-        console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
-      }
-    })();
+    try {
+      registerGiftRoom('live', streamId, room);
+    } catch (e) {
+      console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
+    }
     return () => {
-      cancelled = true;
-      import('@/lib/livekitGiftSignaling').then((mod) => {
-        mod.unregisterGiftRoom('live', streamId);
-      }).catch(() => {});
+      unregisterGiftRoom('live', streamId);
     };
   }, [options.giftSignalingStreamId, isJoined]);
 

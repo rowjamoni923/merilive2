@@ -83,12 +83,13 @@ export function warmupVapUrl(rawUrl?: string | null): Promise<void> {
  * Warm multiple URLs in parallel.
  * Also auto-warms the sibling `.json` VAP config for `.mp4`/`.webm` URLs.
  */
-export function warmupVapUrls(urls: Array<string | null | undefined>): void {
+export function warmupVapUrls(urls: Array<string | null | undefined>, options?: { warmJsonSibling?: boolean }): void {
+  const warmJsonSibling = options?.warmJsonSibling !== false;
   for (const u of urls) {
     if (!u) continue;
     void warmupVapUrl(u);
     // VAP players probe a sibling .json config — warm it too.
-    if (/\.(mp4|webm)(\?|$)/i.test(u)) {
+    if (warmJsonSibling && /\.(mp4|webm)(\?|$)/i.test(u)) {
       const jsonSibling = u.replace(/\.(mp4|webm)(\?|$)/i, '.json$2');
       if (jsonSibling !== u) void warmupVapUrl(jsonSibling);
     }

@@ -78,6 +78,7 @@ import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPriv
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
+import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 
@@ -1716,6 +1717,7 @@ const ProfileDetail = () => {
           updateCachedBalance(getCachedBalance() - totalCost);
 
           // Trigger LOCAL full-screen SVGA animation INSTANTLY for the sender
+          warmGiftForInstantPlay(gift as any);
           addFlyingGift({
             senderId: currentUser.id,
             senderName: 'You',

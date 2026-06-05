@@ -84,7 +84,7 @@ const warmSelectedVideoGift = (url?: string | null) => {
   try {
     void import('@/components/common/VAPPlayer');
     const video = document.createElement('video');
-    video.preload = 'auto';
+    video.preload = 'metadata';
     video.muted = true;
     video.playsInline = true;
     video.crossOrigin = 'anonymous';

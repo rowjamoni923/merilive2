@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { markVapCompositeHint } from '@/utils/vapDetection';
+import { warmGiftUrlsForInstantPlay } from '@/utils/instantGiftWarmup';
 
 // Global cache - shared across all components
 interface GiftCacheItem {
@@ -100,6 +101,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
         }));
         seedAnimationHints(giftCache.gifts);
+        warmGiftUrlsForInstantPlay(giftCache.gifts.slice(0, 8).flatMap((gift) => [gift.icon_url]));
         giftCache.timestamp = Date.now();
         listeners.forEach(cb => cb());
       }

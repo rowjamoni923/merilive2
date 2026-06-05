@@ -694,7 +694,12 @@ const App = () => {
       import('@/hooks/useGiftPrefetch')
         .then(m => m.prefetchGifts())
         .catch(() => {});
-    }, 3500);
+    }, 2200);
+    const giftAssetIdleId = idle(() => {
+      import('@/utils/giftAnimationPrewarm')
+        .then(m => m.prewarmGiftAnimations())
+        .catch(() => {});
+    }, 7000);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
@@ -720,6 +725,7 @@ const App = () => {
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
+      cancelIdle(giftAssetIdleId);
       cancelIdle(framesIdleId);
       cancelIdle(batteryIdleId);
     };
