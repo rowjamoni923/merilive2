@@ -217,7 +217,7 @@ const AgencyPolicy = () => {
 
         policiesResult.data.forEach((item: any) => {
           policies[item.section_key] = item.content;
-          if (!STRUCTURED_KEYS.has(item.section_key)) {
+          if (!STRUCTURED_KEYS.has(item.section_key) && !INLINED_SEMANTIC_KEYS.has(item.section_key)) {
             dynamic.push({
               section_key: item.section_key,
               section_title: item.section_title,
