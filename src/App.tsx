@@ -98,20 +98,12 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  
-  // Pkg: ULTRA-AGGRESSIVE preloading for "Zero-Second" navigation.
-  // Instead of waiting for timeouts, we start importing immediately.
-  // The browser handles the priority.
-  CORE_PAGE_IMPORTERS.forEach((fn) => {
-    // Fire-and-forget, browser handles concurrency
-    fn().catch(() => {});
-  });
-}
 
-// Pkg: Fire preload at module-evaluation time (ASAP).
-if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
-  // Use a microtask to avoid blocking the main bundle execution
-  Promise.resolve().then(preloadCoreRoutes);
+  // Warm routes gently. The old simultaneous import storm downloaded many page
+  // chunks during boot and starved real data requests on Android/WebView.
+  CORE_PAGE_IMPORTERS.forEach((fn, index) => {
+    window.setTimeout(() => fn().catch(() => {}), index * 1800);
+  });
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
