@@ -12,10 +12,10 @@
 let started = false;
 
 const ric = (cb: () => void, timeout = 4000) => {
-  const ric = (window as any).requestIdleCallback as
-    | ((cb: () => void, opts?: { timeout: number }) => number)
-    | undefined;
-  if (ric) ric(cb, { timeout });
+  const w = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  };
+  if (w.requestIdleCallback) w.requestIdleCallback(cb, { timeout });
   else setTimeout(cb, 1500);
 };
 
