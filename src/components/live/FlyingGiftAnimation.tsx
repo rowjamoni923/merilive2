@@ -197,7 +197,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
     if (soundPlayedRef.current || !hasFullscreenSlot) return;
-    if (!gift.soundUrl) return;
+    if (!fullscreenMediaRef.current.soundUrl) return;
     
     // SVGAPlayerWithAudio handles its own internal/fallback sound for SVGA.
     // For VAP/Video/Images, we play the sound here only once the player is mounted.
@@ -205,8 +205,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     
     soundPlayedRef.current = true;
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
-    playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
-  }, [isSVGA, gift.giftName, gift.soundUrl, hasFullscreenSlot]);
+    playSoundUrl(fullscreenMediaRef.current.soundUrl, { volume: 0.8, maxConcurrent: 2 });
+  }, [isSVGA, gift.giftName, hasFullscreenSlot]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
@@ -260,7 +260,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       // Animated media path: NO fixed timer. SVGA/VAP/PAG/Lottie/MP4/WebM
       // complete from their own native end callbacks only.
       animationStartedRef.current = true;
-      return () => { mountedRef.current = false; };
+      return;
     }
 
     // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
@@ -268,7 +268,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
     }, 3500);
-    return () => { mountedRef.current = false; clearTimeout(timer); };
+    return () => { clearTimeout(timer); };
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
@@ -345,14 +345,14 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               width="100dvw"
               height="100dvh"
               type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
-              configSrc={gift.animationConfigUrl || undefined}
+              configSrc={fullscreenMediaRef.current.animationConfigUrl || undefined}
               loop={false}
               // VAP/MP4/WebM must ALWAYS be muted for reliable autoplay on
               // mobile/WebView; their sound is played separately by soundUrl.
               // Leaving VAP unmuted when soundUrl is empty blocks playback.
               muted={isSVGA ? false : true}
               volume={0.8}
-              soundUrl={gift.soundUrl}
+              soundUrl={fullscreenMediaRef.current.soundUrl}
               triggerKey={gift.comboKey}
               dynamicData={dynamicData}
               placeholderUrl={giftIconSrc && /\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(giftIconSrc) ? giftIconSrc : undefined}
