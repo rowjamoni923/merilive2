@@ -4,6 +4,7 @@ import { warmupVapUrls } from '@/utils/vapWarmup';
 type GiftWarmupPayload = {
   icon_url?: string | null;
   animation_url?: string | null;
+  animation_format?: string | null;
   animation_config_url?: string | null;
   sound_url?: string | null;
 };
@@ -30,13 +31,13 @@ export function warmGiftForInstantPlay(gift?: GiftWarmupPayload | null): void {
   if (!gift || typeof window === 'undefined') return;
   const urls = [gift.animation_url, gift.animation_config_url, gift.icon_url, gift.sound_url];
   warmImageNow(gift.icon_url || gift.animation_url || null);
-  warmupVapUrls(urls);
+  warmupVapUrls(urls, { warmJsonSibling: String(gift.animation_format || '').toLowerCase() === 'vap' });
   void prewarmGiftAssets(urls).catch(() => {});
 }
 
 export function warmGiftUrlsForInstantPlay(urls: Array<string | null | undefined>): void {
   if (typeof window === 'undefined') return;
   urls.forEach(warmImageNow);
-  warmupVapUrls(urls);
+  warmupVapUrls(urls, { warmJsonSibling: false });
   void prewarmGiftAssets(urls).catch(() => {});
 }
