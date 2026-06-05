@@ -50,6 +50,7 @@ export default function AdminAuth() {
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const MAX_LOGIN_ATTEMPTS = 3;
+  const freshAccessToken = searchParams.get('access')?.trim() || null;
 
   // After 3 failed login attempts on the owner/sub-admin secret link, kick
   // the visitor out to the public landing page. Prevents brute-force probing
@@ -88,6 +89,11 @@ export default function AdminAuth() {
   // screen. Pkg359 NO-AUTO-LOGOUT: on timeout we KEEP the session intact.
   useEffect(() => {
     let cancelled = false;
+    // A fresh URL secret link is always authoritative. Persist it immediately
+    // and never let stale local admin-session cleanup delete this link state.
+    if (freshAccessToken) {
+      setAdminLinkToken(freshAccessToken);
+    }
     const existing = getAdminSession();
     if (existing) {
       (async () => {
@@ -105,7 +111,7 @@ export default function AdminAuth() {
           }
           // Server says not us → stale local session; clear so the user can re-log.
           clearAdminSession();
-          revokeAdminAccess();
+          if (!freshAccessToken) revokeAdminAccess();
         } catch (e) {
           // Network slow / timeout → DO NOT touch the session. Just let the
           // login form render so the user can act.
@@ -114,7 +120,7 @@ export default function AdminAuth() {
       })();
     }
     return () => { cancelled = true; };
-  }, [navigate, searchParams]);
+  }, [navigate, freshAccessToken]);
 
 
   // Poll device status while in pending state — auto-redirect when owner approves
@@ -216,7 +222,7 @@ export default function AdminAuth() {
       // Fresh URL token must win over any persisted old token. Otherwise a
       // newly generated secret link can be ignored because the browser still
       // has yesterday's invalid link in localStorage.
-      const accessToken = searchParams.get('access')?.trim() || getAdminLinkToken() || null;
+      const accessToken = freshAccessToken || getAdminLinkToken() || null;
       if (!accessToken) {
         toast.error('Access link missing or expired. Please reopen the secret link.');
         revokeAdminAccess();

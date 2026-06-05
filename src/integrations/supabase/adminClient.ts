@@ -99,7 +99,9 @@ const redirectToAdminAuthAfterInvalidSession = () => {
   revokeAdminAccess();
   window.dispatchEvent(new Event('admin-session-change'));
   if (window.location.pathname.startsWith('/admin')) {
-    const target = linkToken ? `/admin/auth?access=${encodeURIComponent(linkToken)}` : '/admin/auth';
+    const target = linkToken
+      ? `https://merilive.com/admin/auth?access=${encodeURIComponent(linkToken)}`
+      : 'https://merilive.com/admin/auth';
     window.location.replace(target);
   }
 };
