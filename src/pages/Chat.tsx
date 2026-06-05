@@ -2422,7 +2422,7 @@ const Chat = () => {
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
                               <div className="w-10 h-10 flex items-center justify-center relative">
                                 {isSvga && iconUrl ? (
-                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                  <Suspense fallback={<BrandedGiftIcon className="w-10 h-10" />}>
                                     <SVGAPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2432,7 +2432,7 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isLottie && iconUrl ? (
-                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                  <Suspense fallback={<BrandedGiftIcon className="w-10 h-10" />}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2442,17 +2442,17 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isImage && iconUrl ? (
-                                  <img loading="lazy" decoding="async" 
-                                    src={iconUrl} 
-                                    alt="Gift" 
+                                  <img loading="lazy" decoding="async"
+                                    src={iconUrl}
+                                    alt="Gift"
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
+                                      const img = e.target as HTMLImageElement;
+                                      img.style.display = 'none';
                                     }}
                                   />
                                 ) : (
-                                  <span className="text-xl">{giftEmoji}</span>
+                                  <BrandedGiftIcon className="w-10 h-10" />
                                 )}
                               </div>
                               
