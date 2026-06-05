@@ -331,7 +331,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setUseVideoFallback(true);
       setLoading(false);
       onLoadRef.current?.();
-    }, 900);
+    }, 1800);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
     gl.enable(gl.BLEND);
@@ -376,7 +376,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
       if (v.ended && !loop) return;
 
-      if (typeof (v as any).requestVideoFrameCallback === 'function') {
+      // Do NOT switch to requestVideoFrameCallback until the first real WebGL
+      // paint succeeds. On mobile WebView, RVFC may not fire while play() is
+      // still resolving, which leaves VAP fullscreen blank forever. RAF keeps
+      // ticking until the first decoded frame is actually uploaded to WebGL.
+      if (!webglPaintedRef.current || v.paused || v.readyState < 2) {
+        frameCallbackModeRef.current = 'raf';
+        animationRef.current = requestAnimationFrame(render);
+      } else if (typeof (v as any).requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
         animationRef.current = (v as any).requestVideoFrameCallback(render);
       } else {
