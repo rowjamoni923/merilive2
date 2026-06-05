@@ -4,6 +4,7 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
   v: number;           // version
@@ -68,6 +69,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
+
+  // Pkg426 Phase-2: attempt native Android VAP. When mode==='active', the
+  // native plugin owns the screen and we skip the WebView render path
+  // entirely. 'pending' is sub-100ms; existing WebView path runs on 'fallback'.
+  const nativeOnComplete = useCallback(() => { onCompleteRef.current?.(); }, []);
+  const nativeOnError = useCallback((e: Error) => { onErrorRef.current?.(e); }, []);
+  const nativeMode = useNativeVAPAttempt(resolvedSrc, {
+    loop: loop ? 0 : 1,
+    onComplete: nativeOnComplete,
+    onError: nativeOnError,
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
@@ -103,6 +115,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [onLoad, onError, onComplete]);
 
   useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+
+  // Pkg426 Phase-2: when native plugin takes over, surface onLoad to caller
+  // so overlay containers (e.g. FullScreenGiftAnimation) reveal themselves.
+  useEffect(() => {
+    if (nativeMode === 'active') onLoadRef.current?.();
+  }, [nativeMode]);
+
   
   useEffect(() => {
     const video = videoRef.current;
@@ -405,6 +424,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, []);
 
   if (error) return <div className={cn("bg-transparent", className)} />;
+
+  // Pkg426 Phase-2: native VAP path. Don't mount the WebView <video> /
+  // <canvas> while native plugin is attempting or actively playing.
+  if (nativeMode === 'pending' || nativeMode === 'active') {
+    return <div className={cn("relative flex items-center justify-center overflow-hidden bg-transparent", className)} />;
+  }
+
 
   return (
     <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>

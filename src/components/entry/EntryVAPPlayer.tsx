@@ -34,6 +34,7 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
   v: number; f: number; w: number; h: number; fps: number;
@@ -93,6 +94,16 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     () => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc,
     [configSrc]
   );
+
+  // Pkg426 Phase-2: native Android VAP attempt. See VAPPlayer.tsx for full rationale.
+  const nativeOnComplete = useCallback(() => { onCompleteRef.current?.(); }, []);
+  const nativeOnError = useCallback((e: Error) => { onErrorRef.current?.(e); }, []);
+  const nativeMode = useNativeVAPAttempt(resolvedSrc, {
+    loop: loop ? 0 : 1,
+    onComplete: nativeOnComplete,
+    onError: nativeOnError,
+  });
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
@@ -129,6 +140,11 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
   }, [onLoad, onError, onComplete]);
 
   useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+
+  useEffect(() => {
+    if (nativeMode === 'active') onLoadRef.current?.();
+  }, [nativeMode]);
+
 
   useEffect(() => {
     const video = videoRef.current;
@@ -415,6 +431,11 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
   }, []);
 
   if (error) return <div className={cn("bg-transparent", className)} />;
+
+  if (nativeMode === 'pending' || nativeMode === 'active') {
+    return <div className={cn("relative flex items-center justify-center overflow-hidden bg-transparent", className)} />;
+  }
+
 
   return (
     <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
