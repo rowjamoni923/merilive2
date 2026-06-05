@@ -263,16 +263,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         />
       );
     }
-    return (
-      <motion.span
-        className="text-4xl drop-shadow-lg"
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.3, 1] }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-      >
-        {gift.giftIcon || '🎁'}
-      </motion.span>
-    );
+    return <span className="block w-12 h-12" aria-hidden="true" />;
   };
 
   // Full-screen gift animation — every gift occupies the complete app viewport.
@@ -307,6 +298,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               muted={isSVGA ? false : true}
               volume={0.8}
               soundUrl={gift.soundUrl}
+              fallbackEmoji=""
               triggerKey={gift.comboKey}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
@@ -317,20 +309,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
-    return (
-      <motion.div
-        key="emoji-fullscreen"
-        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
-        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
-        exit={{ opacity: 0, scale: 0.86 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        style={FULLSCREEN_GIFT_LAYER_STYLE}
-      >
-        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
-          {gift.giftIcon || '🎁'}
-        </span>
-      </motion.div>
-    );
+    return null;
   };
 
   // Banner gradient based on gift value (Bigo style)
