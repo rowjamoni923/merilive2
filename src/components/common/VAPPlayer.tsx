@@ -5,6 +5,10 @@ import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
 import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
+import { observeSharedElement } from '@/utils/nativePerformance';
+
+let activeVapCount = 0;
+const MAX_ACTIVE_VAPS = 3;
 
 interface VAPConfig {
   v: number;           // version
@@ -111,7 +115,6 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const el = containerRef.current;
     if (!el) return;
     
-    const { observeSharedElement } = require('@/utils/nativePerformance');
     return observeSharedElement('vap-player', el, (entry) => {
       const visible = entry.isIntersecting;
       setIsVisible(visible);
@@ -119,9 +122,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       
       // If became visible and we were rendering, ensure we resume
       if (visible && videoRef.current && !videoRef.current.paused && !animationRef.current) {
-        // Trigger a re-render or logic to resume if needed
+        // The render loop will restart via the video event listeners or manual trigger
       }
     });
+  }, []);
+
+  useEffect(() => {
+    activeVapCount++;
+    return () => {
+      activeVapCount = Math.max(0, activeVapCount - 1);
+    };
   }, []);
 
   useEffect(() => {
@@ -275,7 +285,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (shouldUsePerformanceVideoFallback(video, cfg)) {
+    if (shouldUsePerformanceVideoFallback(video, cfg) || activeVapCount > MAX_ACTIVE_VAPS) {
       const { rgbRect } = getAutoVapRects(video);
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
