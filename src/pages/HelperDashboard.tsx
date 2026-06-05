@@ -365,6 +365,7 @@ const HelperDashboard = () => {
       }
 
       setHelperData(helper);
+      setHelperCache(helper);
       setHelperId(helper.id);
       // Load WhatsApp number from contact_info
       const ci = helper.contact_info as any;
