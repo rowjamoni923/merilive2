@@ -277,18 +277,21 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
 
   // Intersection Observer to only play animations when visible
   useEffect(() => {
-    if (!containerRef.current) return;
-    
+    const el = containerRef.current;
+    if (!el) return;
+
     const observer = getSharedObserver('avatar-visibility', (entries) => {
       entries.forEach(entry => {
-        if (entry.target === containerRef.current) {
+        if (entry.target === el) {
           setIsVisible(entry.isIntersecting);
         }
       });
     }, { rootMargin: '100px' });
 
-    observer.observe(containerRef.current);
-    return () => observer.unobserve(containerRef.current!);
+    observer.observe(el);
+    return () => {
+      try { observer.unobserve(el); } catch {}
+    };
   }, []);
 
   // ───────── Gender-aware AI placeholder resolution ─────────
