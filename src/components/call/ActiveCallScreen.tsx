@@ -3,7 +3,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
-import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Eye, EyeOff, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
@@ -1157,7 +1157,7 @@ export function ActiveCallScreen({
             >
               <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full"
                 style={{ background: 'radial-gradient(60% 40% at 50% 18%, rgba(255,255,255,0.5), transparent 70%)' }} />
-              <Gift className="w-5 h-5 text-white relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }} />
+              <span className="relative text-[10px] font-black uppercase tracking-wide text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }}>Gift</span>
             </motion.button>
 
             {/* Three dot menu */}
