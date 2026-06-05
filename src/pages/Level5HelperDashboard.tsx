@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { getActiveCurrencyRates } from "@/utils/currencyRatesCache";
 
 import { useToast } from "@/hooks/use-toast";
