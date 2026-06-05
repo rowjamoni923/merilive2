@@ -14,6 +14,7 @@ import { updateCachedBalance } from "@/hooks/useUserBalance";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface DailyTask {
   id: string;
@@ -68,9 +69,14 @@ const taskNavigationMap: Record<string, string> = {
 
 const Tasks = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<DailyTask[]>([]);
-  const [progress, setProgress] = useState<Record<string, TaskProgress>>({});
-  const [loading, setLoading] = useState(true);
+  const [tasksCache, setTasksCache, hadTasksCache] = usePersistedCache<DailyTask[]>("tasks:list", []);
+  const [progressCache, setProgressCache, hadProgressCache] = usePersistedCache<Record<string, TaskProgress>>("tasks:progress", {});
+  const tasks = tasksCache ?? [];
+  const progress = progressCache ?? {};
+  const setTasks = (next: DailyTask[]) => setTasksCache(next);
+  const setProgress = (next: Record<string, TaskProgress> | ((p: Record<string, TaskProgress>) => Record<string, TaskProgress>)) =>
+    setProgressCache((prev) => (typeof next === 'function' ? (next as any)(prev ?? {}) : next));
+  const [loading, setLoading] = useState(!(hadTasksCache && hadProgressCache));
   const [isHost, setIsHost] = useState<boolean>(false);
   const [isCurrentlyLive, setIsCurrentlyLive] = useState<boolean>(false);
   const [claimingTask, setClaimingTask] = useState<string | null>(null);
