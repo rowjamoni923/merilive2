@@ -859,8 +859,8 @@ const Chat = () => {
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
-          : `[Gift: ${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`
+          : `[Gift: ${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
