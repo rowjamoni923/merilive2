@@ -360,18 +360,22 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
-    // Pkg-fix: Add safety completion timer for non-looping VAP
-    // If the video ended event doesn't fire, we force completion after duration + 1s.
-    if (!loop && video.duration > 0) {
+    // Pkg423: VAP must play for EXACTLY its native duration. The safety
+    // timer only exists as a last-resort backstop in case `onEnded` never
+    // fires (rare buffer stall). Padding tightened from +1000ms → +150ms so
+    // there is no perceivable "extra second" after the visual ends, and the
+    // noisy warn log is dropped (it fires in normal conditions on slow GPUs
+    // and creates the impression that something is broken when it isn't).
+    if (!loop && video.duration > 0 && Number.isFinite(video.duration)) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       completionTimerRef.current = setTimeout(() => {
         if (mountedRef.current && !completedRef.current) {
-          console.warn('[VAPPlayer] ⚠️ Safety timer triggered for', src.split('/').pop());
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, (video.duration * 1000) + 1000);
+      }, Math.max(300, video.duration * 1000 + 150));
     }
+
 
     if (!isComposite) {
       setFallbackCrop([0, 0, 1, 1]);
