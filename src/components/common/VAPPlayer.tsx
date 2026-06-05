@@ -89,6 +89,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const webglFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const soundHandleRef = useRef<{ stop: () => void } | null>(null);
 
   const onLoadRef = useRef(onLoad);
@@ -107,6 +108,19 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [onLoad, onError, onComplete]);
 
   useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
+  
+  useEffect(() => {
+    initializedRef.current = false;
+    completedRef.current = false;
+    webglPaintedRef.current = false;
+    lastVideoTimeRef.current = -1;
+    setWebglPainted(false);
+    setUseVideoFallback(false);
+    setLoading(true);
+    setError(null);
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+  }, [resolvedSrc, resolvedConfigSrc]);
   
   useEffect(() => {
     const video = videoRef.current;
@@ -310,6 +324,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
+    if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
+    webglFallbackTimerRef.current = setTimeout(() => {
+      if (!mountedRef.current || webglPaintedRef.current || useVideoFallbackRef.current) return;
+      console.warn('[VAPPlayer] WebGL did not paint quickly; showing RGB video fallback:', src.split('/').pop());
+      setUseVideoFallback(true);
+      setLoading(false);
+      onLoadRef.current?.();
+    }, 900);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
     gl.enable(gl.BLEND);
@@ -329,6 +351,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           gl.drawArrays(gl.TRIANGLES, 0, 6);
           if (!webglPaintedRef.current) {
             webglPaintedRef.current = true;
+            if (webglFallbackTimerRef.current) {
+              clearTimeout(webglFallbackTimerRef.current);
+              webglFallbackTimerRef.current = null;
+            }
             setWebglPainted(true);
           }
         } catch (e) {
@@ -341,6 +367,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       // Safety: If video is playing but canvas isn't painted yet, force paint check
       if (v.currentTime > 0 && !webglPaintedRef.current && !v.paused) {
         webglPaintedRef.current = true;
+        if (webglFallbackTimerRef.current) {
+          clearTimeout(webglFallbackTimerRef.current);
+          webglFallbackTimerRef.current = null;
+        }
         setWebglPainted(true);
       }
 
@@ -393,7 +423,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-  }, [autoPlay, createShaders, muted, volume, loop]);
+  }, [autoPlay, createShaders, muted, volume, loop, src]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth || !configReady) return;
@@ -435,6 +465,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      if (webglFallbackTimerRef.current) clearTimeout(webglFallbackTimerRef.current);
       if (soundHandleRef.current) {
         soundHandleRef.current.stop();
         soundHandleRef.current = null;
@@ -473,6 +504,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         muted={muted}
         playsInline
         crossOrigin="anonymous"
+        preload="auto"
         className={cn(
           "absolute opacity-0 pointer-events-none", 
           useVideoFallback && "opacity-100",
@@ -480,7 +512,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         )}
         style={fallbackStyle}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
-        onEnded={() => !loop && onCompleteRef.current?.()}
+        onEnded={() => {
+          if (loop || completedRef.current) return;
+          completedRef.current = true;
+          if (completionTimerRef.current) {
+            clearTimeout(completionTimerRef.current);
+            completionTimerRef.current = null;
+          }
+          onCompleteRef.current?.();
+        }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (

@@ -165,9 +165,12 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
     mediaUrl = normalizeGiftMediaUrl(content);
   }
 
+  const rawEmoji = emojiMatch?.[1] ?? '🎁';
+  const safeEmoji = isGiftUrl(rawEmoji) || /^https?:\/\//i.test(rawEmoji) || rawEmoji.startsWith('/') ? '🎁' : rawEmoji;
+
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] ?? '🎁',
+    emoji: safeEmoji,
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
@@ -190,8 +193,9 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
     .replace(/\[Gift:\s*[^|\s\]]+\|/i, '[Gift: ')
-    // Strip optional trailing |snd:URL field before final ] so preview regex matches
-    .replace(/\|\s*snd:[^|\]]+/i, '');
+    // Strip hidden media metadata before final ] so preview never exposes URLs.
+    .replace(/\|\s*(snd|cfg):[^|\]]+/gi, '')
+    .replace(/\|\s*fmt:[a-z0-9_-]+/gi, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
   const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
@@ -776,7 +780,7 @@ const Chat = () => {
     // Show gift animation IMMEDIATELY
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
-    const giftEmoji = iconUrl || '🎁';
+    const giftEmoji = '🎁';
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = normalizeGiftMediaUrl(gift.sound_url) || '';
     const giftAnimationFormat = detectProfessionalAnimationFormat(giftMediaUrl, gift.animation_format) || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
@@ -2403,7 +2407,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat, animationConfigUrl } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2442,6 +2446,8 @@ const Chat = () => {
                                   <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
+                                      type={isVap ? 'vap' : isLottie ? 'lottie' : undefined}
+                                      configSrc={animationConfigUrl || undefined}
                                       className="w-10 h-10"
                                       loop={true}
                                       autoPlay={true}

@@ -221,6 +221,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     BG_CLASSES[background],
     className,
   );
+  const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
 
   return (
     <div className={wrapperClass} style={frameStyle}>
@@ -247,7 +248,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           >
             <SVGAPlayerWithAudio
               src={src}
-              className={wrapperClass}
+              className={playerClassName}
               loop={loop}
               autoPlay={autoPlay}
               volume={volume}
@@ -272,7 +273,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             src={src}
             type={safeType}
             configSrc={configSrc || undefined}
-            className={wrapperClass}
+            className={playerClassName}
             loop={loop}
             autoPlay={autoPlay}
             muted={safeMuted}
