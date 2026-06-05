@@ -213,8 +213,7 @@ const ShopItemCard = ({
           const animSrc = item.animation_file_url || item.animation_url || '';
           const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
 
-          // PRIORITY 1 — Static logo/image (always centered).
-          // If admin uploaded a static preview/logo, render it instead of the animation.
+          // PRIORITY 1 — Admin-uploaded static logo wins (centered, uniform size).
           if (previewIsStatic && !imageError) {
             return (
               <img
@@ -223,22 +222,29 @@ const ShopItemCard = ({
                 loading="eager"
                 decoding="async"
                 {...({ fetchpriority: 'high' } as any)}
-                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto block ${isFullWidth ? 'scale-105' : ''}`}
+                className="w-[72%] h-[72%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto block"
                 onError={() => setImageError(true)}
               />
             );
           }
 
-          // PRIORITY 2 — Animation-only item: render a lightweight static placeholder.
-          // The full animation plays inside the detail modal after the user taps the card.
+          // PRIORITY 2 — No logo uploaded: play the actual animation directly
+          // on the card so the user sees the asset (SVGA / VAP / MP4 / Lottie / GIF).
+          // Centered + same visual footprint as the logo branch.
           if (animSrc && isAnimatedType(animType) && !imageError) {
             return (
-              <div className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40 mx-auto text-amber-700/70"
-                style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-              >
-                <svg viewBox="0 0 24 24" className="w-7 h-7" fill="currentColor" aria-hidden="true">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+              <div className="w-[72%] h-[72%] mx-auto flex items-center justify-center">
+                <FixedAnimationFrame
+                  src={animSrc}
+                  type={animType as any}
+                  configSrc={item.animation_config_url || undefined}
+                  size="fill"
+                  loop
+                  autoPlay
+                  muted
+                  background="none"
+                  onError={() => setImageError(true)}
+                />
               </div>
             );
           }
@@ -693,17 +699,20 @@ const Shop = () => {
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
                     if (animSrc && isAnimatedType(animType)) {
                       return (
-                        <FixedAnimationFrame
-                          src={animSrc}
-                          type={animType as any}
-                          configSrc={selectedItem.animation_config_url || undefined}
-                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                          loop
-                          autoPlay
-                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
-                          background="none"
-                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                        />
+                        <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
+                          <div className="w-full h-full max-w-full max-h-full flex items-center justify-center">
+                            <FixedAnimationFrame
+                              src={animSrc}
+                              type={animType as any}
+                              configSrc={selectedItem.animation_config_url || undefined}
+                              size="fill"
+                              loop
+                              autoPlay
+                              muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                              background="none"
+                            />
+                          </div>
+                        </div>
                       );
                     }
                     if (selectedItem.preview_url || animSrc) {
@@ -711,7 +720,7 @@ const Shop = () => {
                         <img loading="lazy" decoding="async"
                           src={selectedItem.preview_url || animSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          className="max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto block"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       );
