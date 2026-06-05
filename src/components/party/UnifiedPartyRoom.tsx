@@ -23,6 +23,8 @@ import {
   Smile
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
+import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
