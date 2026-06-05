@@ -3,7 +3,8 @@ import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
+import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
 
 interface VAPConfig {
   v: number;           // version
@@ -15,8 +16,8 @@ interface VAPConfig {
   videoH: number;      // video height
   aFrame: number[];    // alpha frame position [x, y, w, h]
   rgbFrame: number[];  // RGB frame position [x, y, w, h]
-  isVapx: number;      // is vapx format
-  orien: number;       // orientation
+  isVapx?: number;     // is vapx format
+  orien?: number;      // orientation
 }
 
 interface VAPPlayerProps {
@@ -39,10 +40,14 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 };
 
 const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
-  return layout === 'alpha-left'
-    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
-    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+  const layout = detectVapLayout(video) || 'alpha-right';
+  switch (layout) {
+    case 'alpha-left': return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+    case 'alpha-right': return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    case 'alpha-top': return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
+    case 'alpha-bottom': return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
+    default: return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+  }
 };
 
 const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
@@ -80,7 +85,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [configReady, setConfigReady] = useState(false);
-  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
+  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
   const webglPaintedRef = useRef(false);
@@ -132,23 +137,39 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         .then(res => res.json())
         .then(data => {
           if (cancelled) return;
-          setConfig(data.info || data);
+          const configData = data.info || data;
+          // Validate required properties to avoid crashes
+          if (configData && configData.rgbFrame && configData.aFrame) {
+            setConfig(configData);
+          } else {
+            console.warn('[VAPPlayer] Invalid config object:', configData);
+            setConfig(null);
+          }
         })
         .catch(err => {
           console.warn('[VAPPlayer] Config load failed, using defaults:', err);
+          setConfig(null);
         })
         .finally(() => {
           if (!cancelled) setConfigReady(true);
         });
     } else {
-      setConfigReady(true);
       const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
-          if (!cancelled) setConfig(data.info || data);
+          if (cancelled) return;
+          const configData = data.info || data;
+          if (configData && configData.rgbFrame && configData.aFrame) {
+            setConfig(configData);
+          } else {
+            setConfig(null);
+          }
         })
-        .catch(() => setConfig(null));
+        .catch(() => setConfig(null))
+        .finally(() => {
+          if (!cancelled) setConfigReady(true);
+        });
     }
 
     return () => { cancelled = true; };
@@ -306,9 +327,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w * dpr; 
       canvas.height = cfg.h * dpr;
     } else {
+      const layout = detectVapLayout(video) || 'alpha-right';
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
-      canvas.width = (videoWidth / 2) * dpr; 
-      canvas.height = videoHeight * dpr;
+      const isVertical = layout === 'alpha-top' || layout === 'alpha-bottom';
+      canvas.width = (isVertical ? videoWidth : videoWidth / 2) * dpr; 
+      canvas.height = (isVertical ? videoHeight / 2 : videoHeight) * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
@@ -324,7 +347,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 3 && v.currentTime !== lastVideoTimeRef.current) {
+      if (!v.paused && !v.ended && v.readyState >= 2 && v.currentTime !== lastVideoTimeRef.current) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
@@ -356,13 +379,20 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (autoPlay) {
       void (async () => {
         try {
-          await ensureAudioUnlocked();
+          const v = videoRef.current;
+          if (!v || !mountedRef.current) return;
+
+          const needsUnlock = !muted || !!soundUrl;
+          if (needsUnlock) {
+            // Only wait for unlock if we actually need to play sound
+            await ensureAudioUnlocked();
+          }
+
           if (!mountedRef.current || !videoRef.current) return;
           
           if (!muted && soundUrl) {
             console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
             const { playSoundUrl } = await import('@/utils/soundPlayer');
-            // If we have a soundUrl, we mute the video to prevent doubling
             videoRef.current.muted = true;
             soundHandleRef.current = playSoundUrl(soundUrl, { 
               volume: volume, 
@@ -374,12 +404,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           }
 
           videoRef.current.volume = volume;
-          await videoRef.current.play();
-        } catch {
-          if (videoRef.current) {
+          try {
+            await videoRef.current.play();
+          } catch (playErr) {
+            console.warn('[VAPPlayer] Autoplay blocked, retrying muted:', playErr);
             videoRef.current.muted = true;
-            void videoRef.current.play().catch(() => {});
+            await videoRef.current.play().catch(() => {});
           }
+        } catch (err) {
+          console.error('[VAPPlayer] Play sequence failed:', err);
         }
       })();
     }
@@ -392,11 +425,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (resolvedConfigSrc && !configReady) return;
     if (initializedRef.current || !video.videoWidth) return;
+    
+    // Harden video for mobile autoplay / inline play
+    hardenVideoElementForNative(video, { muted: video.muted });
+    
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
-    // Pkg-fix: Add safety completion timer for non-looping VAP
-    // If the video ended event doesn't fire, we force completion after duration + 1s.
+    // Safety completion timer for non-looping VAP
     if (!loop && video.duration > 0) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       completionTimerRef.current = setTimeout(() => {
@@ -405,10 +441,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, (video.duration * 1000) + 1000);
+      }, (video.duration * 1000) + 1500); // 1.5s padding
     }
 
     if (!isComposite) {
+      console.log('[VAPPlayer] Not a composite VAP, using native video fallback');
       setFallbackCrop([0, 0, 1, 1]);
       setUseVideoFallback(true);
       setLoading(false);
@@ -458,9 +495,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         crossOrigin="anonymous"
         className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "relative opacity-100 w-full h-full object-cover")}
         style={useVideoFallback ? {
-          objectPosition: `${-(fallbackCrop[0] * 100)}% 0`,
-          width: `${(1 / fallbackCrop[2]) * 100}%`,
-          maxWidth: 'none'
+          objectPosition: `${-(fallbackCrop[0] * 100 / (1 - fallbackCrop[2] || 1))}% ${-(fallbackCrop[1] * 100 / (1 - fallbackCrop[3] || 1))}%`,
+          width: `${(1 / (fallbackCrop[2] || 0.5)) * 100}%`,
+          height: `${(1 / (fallbackCrop[3] || 1)) * 100}%`,
+          maxWidth: 'none',
+          maxHeight: 'none'
         } : {}}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onEnded={() => !loop && onCompleteRef.current?.()}
