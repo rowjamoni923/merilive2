@@ -830,6 +830,8 @@ const Shop = () => {
           )}
         </DialogContent>
       </Dialog>
+        );
+      })()}
     </div>
   );
 };
