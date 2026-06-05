@@ -3666,7 +3666,7 @@ const LiveStream = () => {
               {isHostMicMuted ? (
                 <MicOff className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
               ) : (
-                <Mic className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+                <BrandedVoiceIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
               )}
             </motion.button>
           )}
