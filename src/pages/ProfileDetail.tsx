@@ -28,6 +28,7 @@ import {
   EyeOff,
   Eye,
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
