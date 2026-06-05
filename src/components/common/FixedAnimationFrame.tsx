@@ -74,6 +74,19 @@ export interface FixedAnimationFrameProps {
   debugTag?: string;
   /** Changing this key re-triggers the audio segments without restarting the animation */
   triggerKey?: string | number;
+  /**
+   * Performance: when true the heavy animation player is NOT mounted on render.
+   * Shows a lightweight poster/play overlay; user taps to load + play once.
+   * Tap again to stop and unmount the player.
+   * Use in lists/grids (Shop, admin tables) to keep the app snappy.
+   */
+  playOnClick?: boolean;
+  /**
+   * Optional admin-uploaded static logo. When provided and `playOnClick` is true,
+   * the logo is shown as the poster (centered) instead of a generic icon.
+   * If `playOnClick` is false the logo is ignored (animation auto-plays).
+   */
+  posterUrl?: string | null;
 }
 
 // ⚠️ NEVER use `backdrop-blur` here — this frame sits over animated content
