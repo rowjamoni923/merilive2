@@ -310,7 +310,18 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             String v = firstNonEmpty(data.get("gift_value"), data.get("giftValue"), "0");
             giftValue = Integer.parseInt(v);
         } catch (NumberFormatException ignored) {}
-        NotificationHelper.showGiftNotification(this, senderName, giftName, giftValue);
+        // Pkg429 — rich-push enrichment: sender avatar + gift artwork + senderId
+        // for the "Send Back 🎁" action. All fields optional; helper degrades
+        // gracefully to the plain BigTextStyle path when missing.
+        String senderAvatar = firstNonEmpty(data.get("sender_avatar_url"),
+                data.get("senderAvatarUrl"), data.get("avatar_url"), "");
+        String giftImage = firstNonEmpty(data.get("gift_image_url"),
+                data.get("giftImageUrl"), data.get("image_url"), "");
+        String senderId = firstNonEmpty(data.get("sender_id"), data.get("senderId"), "");
+        NotificationHelper.showGiftNotification(this, senderName, giftName, giftValue,
+                senderAvatar.isEmpty() ? null : senderAvatar,
+                giftImage.isEmpty() ? null : giftImage,
+                senderId.isEmpty() ? null : senderId);
     }
 
     /**
@@ -320,7 +331,15 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
     private void handleLiveStart(Map<String, String> data) {
         String hostName = firstNonEmpty(data.get("host_name"), data.get("hostName"), "A creator");
         String roomId = firstNonEmpty(data.get("room_id"), data.get("roomId"), "");
-        NotificationHelper.showLiveNotification(this, hostName, roomId);
+        // Pkg429 — rich-push enrichment: host avatar + cover image for the
+        // expanded BigPictureStyle layout. Optional, degrades gracefully.
+        String hostAvatar = firstNonEmpty(data.get("host_avatar_url"),
+                data.get("hostAvatarUrl"), data.get("avatar_url"), "");
+        String cover = firstNonEmpty(data.get("cover_image_url"),
+                data.get("coverImageUrl"), data.get("image_url"), "");
+        NotificationHelper.showLiveNotification(this, hostName, roomId,
+                hostAvatar.isEmpty() ? null : hostAvatar,
+                cover.isEmpty() ? null : cover);
     }
 
     private Bitmap loadBitmapFromUrl(String urlString) {
