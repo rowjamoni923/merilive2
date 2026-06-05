@@ -244,12 +244,8 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
     }
 
     return (
-      <motion.div
+      <div
         key="generic-entry-animation"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.1 }}
         className="pointer-events-none"
         style={{
           position: 'fixed',
@@ -262,28 +258,21 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%', left: '50%',
-            width: '100%', height: '100%',
-            transform: 'translate(-50%, -50%) scale(1.2)',
-            transformOrigin: 'center center',
-          }}
-        >
-          <FixedAnimationFrame
-            src={displayAnimationUrl}
-            size="fill"
-            type={animationType === 'vap' ? 'vap' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
-            loop={animationType === 'image'}
-            muted={animationType === 'lottie' ? true : !!entry.soundUrl}
-            soundUrl={entry.soundUrl ?? null}
-            onComplete={handleAnimationComplete}
-            onError={() => handleAnimationComplete()}
-            center={false}
-          />
-        </div>
-      </motion.div>
+        <FixedAnimationFrame
+          src={displayAnimationUrl}
+          size="fullscreen"
+          width="100dvw"
+          height="100dvh"
+          type={animationType === 'vap' ? 'vap' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
+          loop={animationType === 'image'}
+          muted={animationType === 'lottie' ? true : !!entry.soundUrl}
+          soundUrl={entry.soundUrl ?? null}
+          onComplete={handleAnimationComplete}
+          onError={() => handleAnimationComplete()}
+          center
+          className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
+        />
+      </div>
     );
   };
 
