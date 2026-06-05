@@ -10,7 +10,7 @@ interface VoiceMessagePlayerProps {
 export function VoiceMessagePlayer({ src, isMine }: VoiceMessagePlayerProps) {
   const [waveform, setWaveform] = useState<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(2);
+  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
