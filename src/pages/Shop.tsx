@@ -699,17 +699,20 @@ const Shop = () => {
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
                     if (animSrc && isAnimatedType(animType)) {
                       return (
-                        <FixedAnimationFrame
-                          src={animSrc}
-                          type={animType as any}
-                          configSrc={selectedItem.animation_config_url || undefined}
-                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
-                          loop
-                          autoPlay
-                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
-                          background="none"
-                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                        />
+                        <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
+                          <div className="w-full h-full max-w-full max-h-full flex items-center justify-center">
+                            <FixedAnimationFrame
+                              src={animSrc}
+                              type={animType as any}
+                              configSrc={selectedItem.animation_config_url || undefined}
+                              size="fill"
+                              loop
+                              autoPlay
+                              muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                              background="none"
+                            />
+                          </div>
+                        </div>
                       );
                     }
                     if (selectedItem.preview_url || animSrc) {
@@ -717,7 +720,7 @@ const Shop = () => {
                         <img loading="lazy" decoding="async"
                           src={selectedItem.preview_url || animSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          className="max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto block"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       );
