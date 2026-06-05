@@ -800,9 +800,11 @@ const Chat = () => {
     const giftConfigUrl = normalizeGiftMediaUrl(gift.animation_config_url) || '';
     const configSuffix = giftConfigUrl ? ` | cfg:${giftConfigUrl}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
+    const imgSuffix = iconUrl && iconUrl !== giftMediaUrl ? ` | img:${iconUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${imgSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${imgSuffix}]`;
+
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
