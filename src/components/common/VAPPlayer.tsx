@@ -84,7 +84,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [configReady, setConfigReady] = useState(false);
-  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
+  const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
   const webglPaintedRef = useRef(false);
@@ -376,13 +376,20 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (autoPlay) {
       void (async () => {
         try {
-          await ensureAudioUnlocked();
+          const v = videoRef.current;
+          if (!v || !mountedRef.current) return;
+
+          const needsUnlock = !muted || !!soundUrl;
+          if (needsUnlock) {
+            // Only wait for unlock if we actually need to play sound
+            await ensureAudioUnlocked();
+          }
+
           if (!mountedRef.current || !videoRef.current) return;
           
           if (!muted && soundUrl) {
             console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
             const { playSoundUrl } = await import('@/utils/soundPlayer');
-            // If we have a soundUrl, we mute the video to prevent doubling
             videoRef.current.muted = true;
             soundHandleRef.current = playSoundUrl(soundUrl, { 
               volume: volume, 
@@ -394,12 +401,15 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           }
 
           videoRef.current.volume = volume;
-          await videoRef.current.play();
-        } catch {
-          if (videoRef.current) {
+          try {
+            await videoRef.current.play();
+          } catch (playErr) {
+            console.warn('[VAPPlayer] Autoplay blocked, retrying muted:', playErr);
             videoRef.current.muted = true;
-            void videoRef.current.play().catch(() => {});
+            await videoRef.current.play().catch(() => {});
           }
+        } catch (err) {
+          console.error('[VAPPlayer] Play sequence failed:', err);
         }
       })();
     }
@@ -478,9 +488,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         crossOrigin="anonymous"
         className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "relative opacity-100 w-full h-full object-cover")}
         style={useVideoFallback ? {
-          objectPosition: `${-(fallbackCrop[0] * 100)}% 0`,
-          width: `${(1 / fallbackCrop[2]) * 100}%`,
-          maxWidth: 'none'
+          objectPosition: `${-(fallbackCrop[0] * 100 / (1 - fallbackCrop[2] || 1))}% ${-(fallbackCrop[1] * 100 / (1 - fallbackCrop[3] || 1))}%`,
+          width: `${(1 / (fallbackCrop[2] || 0.5)) * 100}%`,
+          height: `${(1 / (fallbackCrop[3] || 1)) * 100}%`,
+          maxWidth: 'none',
+          maxHeight: 'none'
         } : {}}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
         onEnded={() => !loop && onCompleteRef.current?.()}
