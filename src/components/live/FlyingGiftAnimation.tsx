@@ -191,7 +191,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       sender_name: fullscreenMediaRef.current.senderName, // Alias
       gift_count: String(fullscreenMediaRef.current.giftCount),
     }
-  }), [gift.id]);
+  }), []);
 
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
