@@ -1320,7 +1320,12 @@ const VIP = () => {
                                 : `ring-1 ring-white/10 ${ringColor}`
                           }`}>
                             <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
-                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
+                              {priv.preview_url && isValidAssetUrl(priv.preview_url) && !priv.preview_url.match(/\.(svga|json|mp4|webm|mov)(\?|$)/i) ? (
+                                <img loading="lazy" decoding="async"
+                                  src={priv.preview_url}
+                                  alt={priv.name}
+                                  className="w-full h-full object-cover" />
+                              ) : priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
                                 <UniversalFramePlayer
                                   src={priv.animation_url}
                                   className="w-full h-full"
@@ -1328,11 +1333,6 @@ const VIP = () => {
                                   autoPlay={true}
                                   muted={true}
                                 />
-                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
-                                <img loading="lazy" decoding="async" 
-                                  src={priv.preview_url} 
-                                  alt={priv.name}
-                                  className="w-full h-full object-cover" />
                               ) : (
                                 fallbackIcon
                               )}
