@@ -297,6 +297,13 @@ const AgencyPolicy = () => {
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
   const callRules = policyData?.call_rules?.rules || [];
+
+  // Inline semantic admin-managed bullet lists (rendered inside Host / Rules tabs
+  // when the structured arrays above are empty — admin actually fills these).
+  const hostManagementItems = extractItems((policyData as any)?.host_management);
+  const rulesItems = extractItems((policyData as any)?.rules);
+  const penaltiesItems = extractItems((policyData as any)?.penalties);
+  const commissionItems = extractItems((policyData as any)?.commission);
   const withdrawal = {
     minimum_usd: 10,
     settlement_day: 'Monday',
