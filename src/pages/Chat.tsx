@@ -2412,6 +2412,7 @@ const Chat = () => {
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
                           const isVap = animationFormat === 'vap' || (!!iconUrl && detectProfessionalAnimationFormat(iconUrl, animationFormat) === 'vap');
+                          const isPlainVideo = !isVap && (animationFormat === 'mp4' || animationFormat === 'webm' || normalizedGiftUrl.endsWith('.mp4') || normalizedGiftUrl.endsWith('.mov') || normalizedGiftUrl.endsWith('.webm'));
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
                           // Prefer a dedicated preview icon (parsedIconUrl) when present; else if the
                           // animation URL itself is a static image, use it; else fall back to playing
@@ -2468,6 +2469,16 @@ const Chat = () => {
                                       muted={true}
                                     />
                                   </Suspense>
+                                ) : isPlainVideo && iconUrl ? (
+                                  <video
+                                    src={iconUrl}
+                                    className="w-10 h-10 object-contain"
+                                    muted
+                                    autoPlay
+                                    loop
+                                    playsInline
+                                    preload="metadata"
+                                  />
                                 ) : null}
                               </div>
 
