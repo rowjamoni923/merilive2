@@ -98,16 +98,14 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
       if (ratio > 1.5) return 'alpha-left'; // Side-by-side: Alpha Left, RGB Right
       if (ratio < 0.7) return 'alpha-bottom'; // Stacked: Alpha Bottom, RGB Top
       return 'alpha-left'; 
-
     }
   } catch {
     // Ignore cross-origin issues
   }
 
-  // Pure size-based fallback only for very specific ratios (2:1 or 1:2)
   const ratio = width / height;
-  if (Math.abs(ratio - 2) < 0.08) return 'alpha-right';
-  if (Math.abs(ratio - 0.5) < 0.08) return 'alpha-bottom';
+  if (Math.abs(ratio - 2) < 0.15) return 'alpha-left';
+  if (Math.abs(ratio - 0.5) < 0.15) return 'alpha-bottom';
   return null;
 };
 
