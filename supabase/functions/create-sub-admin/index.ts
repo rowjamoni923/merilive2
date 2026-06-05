@@ -22,17 +22,17 @@ const json = (body: unknown, status = 200) =>
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const ADMIN_PANEL_ORIGIN = "https://merilive.top";
+const ADMIN_PANEL_ORIGIN = "https://merilive.com";
 const getAdminPanelOrigin = (req: Request): string => {
   const origin = req.headers.get("origin")?.trim();
-  if (origin && /^https:\/\/(merilive\.com|www\.merilive\.com)$/i.test(origin)) {
+  if (origin && /^https:\/\/(merilive\.top|www\.merilive\.top)$/i.test(origin)) {
     return ADMIN_PANEL_ORIGIN;
   }
-  if (origin && /^https:\/\/(merilive\.top|www\.merilive\.top|merilive2\.lovable\.app|id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b\.lovable\.app)$/i.test(origin)) {
+  if (origin && /^https:\/\/(merilive\.com|www\.merilive\.com|merilive2\.lovable\.app|id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b\.lovable\.app)$/i.test(origin)) {
     return origin.replace(/\/$/, "");
   }
   const envOrigin = Deno.env.get("ADMIN_PANEL_ORIGIN")?.trim().replace(/\/$/, "");
-  return envOrigin && !/^https:\/\/(merilive\.com|www\.merilive\.com)$/i.test(envOrigin)
+  return envOrigin && !/^https:\/\/(merilive\.top|www\.merilive\.top)$/i.test(envOrigin)
     ? envOrigin
     : ADMIN_PANEL_ORIGIN;
 };
