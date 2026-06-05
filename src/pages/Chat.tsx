@@ -74,6 +74,7 @@ import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
