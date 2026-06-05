@@ -75,6 +75,9 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
+import icon3dTranslate from "@/assets/icon-3d-translate.png";
+import icon3dGift from "@/assets/icon-3d-gift.png";
+import icon3dGames from "@/assets/icon-3d-games.png";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 import { ChatListView } from "@/components/chat/ChatListView";
@@ -3179,21 +3182,20 @@ const Chat = () => {
                   className="flex flex-col items-center gap-1.5 group"
                 >
                   <div
-                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-300"
-                    style={inlineTranslateEnabled ? {
-                      background: 'radial-gradient(120% 120% at 30% 20%, #c7d2fe 0%, #6366f1 45%, #4338ca 100%)',
-                      boxShadow: '0 10px 22px -8px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
-                    } : {
-                      background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)',
-                      boxShadow: '0 6px 16px -8px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 4px rgba(15,23,42,0.08)',
-                      border: '1px solid hsl(var(--border))'
-                    }}
+                    className={cn(
+                      "relative w-12 h-12 flex items-center justify-center transition-all duration-300",
+                      inlineTranslateEnabled && "drop-shadow-[0_0_10px_rgba(99,102,241,0.55)]"
+                    )}
                   >
-                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/35 blur-[2px] pointer-events-none" />
-                    <Languages className={cn(
-                      "w-5 h-5 relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]",
-                      inlineTranslateEnabled ? "text-white" : "text-foreground"
-                    )} />
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={icon3dTranslate}
+                      alt="Translate"
+                      width={96}
+                      height={96}
+                      className="w-12 h-12 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]"
+                    />
                   </div>
                   <span className={cn(
                     "text-[9px] font-bold tracking-wide",
@@ -3210,15 +3212,16 @@ const Chat = () => {
                   onClick={() => setShowGiftPanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div
-                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
-                    style={{
-                      background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #ec4899 45%, #9d174d 100%)',
-                      boxShadow: '0 10px 22px -8px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                    <BrandedGiftIcon className="w-7 h-7 relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)] rounded-lg" />
+                  <div className="relative w-12 h-12 flex items-center justify-center">
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={icon3dGift}
+                      alt="Gift"
+                      width={96}
+                      height={96}
+                      className="w-12 h-12 object-contain drop-shadow-[0_4px_8px_rgba(236,72,153,0.35)]"
+                    />
                   </div>
                   <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Gift</span>
                 </motion.button>
@@ -3230,15 +3233,16 @@ const Chat = () => {
                   onClick={() => setShowGamePanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div
-                    className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
-                    style={{
-                      background: 'radial-gradient(120% 120% at 30% 20%, #a7f3d0 0%, #10b981 45%, #065f46 100%)',
-                      boxShadow: '0 10px 22px -8px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                    <Gamepad2 className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                  <div className="relative w-12 h-12 flex items-center justify-center">
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={icon3dGames}
+                      alt="Games"
+                      width={96}
+                      height={96}
+                      className="w-12 h-12 object-contain drop-shadow-[0_4px_8px_rgba(16,185,129,0.35)]"
+                    />
                   </div>
                   <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Games</span>
                 </motion.button>
