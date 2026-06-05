@@ -126,7 +126,9 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const detectedType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
-  const animationType: AnimationType = autoDetectedVap ? 'vap' : detectedType;
+  
+  // Pkg-fix: trust detected 'vap' immediately to prevent <video> flash
+  const animationType: AnimationType = (detectedType === 'vap' || autoDetectedVap) ? 'vap' : detectedType;
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
   useEffect(() => {
