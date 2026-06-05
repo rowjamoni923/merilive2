@@ -18,7 +18,7 @@ import {
   requestGender,
   ensureViewerLoaded,
 } from '@/utils/avatarGenderCache';
-import { getSharedObserver } from '@/utils/nativePerformance';
+import { observeSharedElement } from '@/utils/nativePerformance';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
@@ -280,18 +280,12 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     const el = containerRef.current;
     if (!el) return;
 
-    const observer = getSharedObserver('avatar-visibility', (entries) => {
-      entries.forEach(entry => {
-        if (entry.target === el) {
-          setIsVisible(entry.isIntersecting);
-        }
-      });
-    }, { rootMargin: '100px' });
-
-    observer.observe(el);
-    return () => {
-      try { observer.unobserve(el); } catch {}
-    };
+    return observeSharedElement(
+      'avatar-visibility',
+      el,
+      (entry) => setIsVisible(entry.isIntersecting),
+      { rootMargin: '100px' }
+    );
   }, []);
 
   // ───────── Gender-aware AI placeholder resolution ─────────
