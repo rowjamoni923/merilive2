@@ -386,22 +386,26 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.disable(gl.BLEND);
 
     const render = () => {
-      if (useVideoFallbackRef.current || !mountedRef.current || !isVisibleRef.current) return;
+      if (!mountedRef.current || !isVisibleRef.current) return;
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.paused && !v.ended && v.readyState >= 2 && v.currentTime !== lastVideoTimeRef.current) {
+      // Professional optimization: even if paused, we want to paint the current frame
+      // if it's different from the last one or if we haven't painted yet.
+      if (v.readyState >= 2) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
+          
           if (!webglPaintedRef.current) {
             webglPaintedRef.current = true;
             setWebglPainted(true);
           }
         } catch (e) {
+          console.error('[VAPPlayer] Render error:', e);
           setUseVideoFallback(true);
           return;
         }
@@ -421,20 +425,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     if (autoPlay) {
       void (async () => {
+        const v = videoRef.current;
+        if (!v || !mountedRef.current) return;
+
+        // CRITICAL: Professional VAP must start rendering immediately.
+        // Do NOT block on ensureAudioUnlocked() unless it's absolutely necessary.
+        // We attempt to play and only if blocked do we try to unlock or play muted.
+        
         try {
-          const v = videoRef.current;
-          if (!v || !mountedRef.current) return;
-
-          const needsUnlock = !muted || !!soundUrl;
-          if (needsUnlock) {
-            // Only wait for unlock if we actually need to play sound
-            await ensureAudioUnlocked();
-          }
-
-          if (!mountedRef.current || !videoRef.current) return;
-          
           if (!muted && soundUrl) {
-            console.log('[VAPPlayer] 🔊 Playing separate sound:', soundUrl.split('/').pop());
+            console.log('[VAPPlayer] 🔊 Separate sound requested:', soundUrl.split('/').pop());
             const { playSoundUrl } = await import('@/utils/soundPlayer');
             videoRef.current.muted = true;
             soundHandleRef.current = playSoundUrl(soundUrl, { 
@@ -447,15 +447,25 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           }
 
           videoRef.current.volume = volume;
-          try {
-            await videoRef.current.play();
-          } catch (playErr) {
-            console.warn('[VAPPlayer] Autoplay blocked, retrying muted:', playErr);
-            videoRef.current.muted = true;
-            await videoRef.current.play().catch(() => {});
+          
+          // Try playing. If it fails (browser block), we'll try to unlock in background
+          // but we won't let it stop the animation from starting if possible.
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(async (playErr) => {
+              console.warn('[VAPPlayer] Autoplay blocked, trying to unlock/mute:', playErr.name);
+              // If sound was requested, we need interaction.
+              if (!muted || soundUrl) {
+                await ensureAudioUnlocked().catch(() => {});
+              }
+              if (mountedRef.current && videoRef.current) {
+                videoRef.current.muted = true; // Force mute to ensure playback starts
+                await videoRef.current.play().catch(e => console.error('[VAPPlayer] Play failed even after mute:', e));
+              }
+            });
           }
         } catch (err) {
-          console.error('[VAPPlayer] Play sequence failed:', err);
+          console.error('[VAPPlayer] Play sequence exception:', err);
         }
       })();
     }
@@ -552,7 +562,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         <canvas 
           ref={canvasRef} 
           className="w-full h-full object-contain pointer-events-none"
-          style={{ opacity: webglPainted ? 1 : 0 }}
+          style={{ opacity: 1, backgroundColor: 'transparent' }}
         />
       )}
     </div>
