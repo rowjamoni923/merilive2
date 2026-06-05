@@ -251,7 +251,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         // Do NOT premultiply rgb here. Canvas/WebGL compositing handles alpha;
         // multiplying again makes dark VAP gifts almost invisible.
         // Alpha is derived from the R channel (standard for VAP).
-        float alpha = alphaColor.r;
+        // Using max(R, G, B) can sometimes provide a cleaner mask depending on export.
+        float alpha = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
         gl_FragColor = vec4(rgbColor.rgb, alpha);
       }
     `;
