@@ -15,9 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA, prewarmPopularAssets } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
 import { markVapCompositeHint } from '@/utils/vapDetection';
-import { warmupVapUrls } from '@/utils/vapWarmup';
+import { warmupVapUrls, warmupSelectedVapUrls } from '@/utils/vapWarmup';
 
 const MAX_GIFTS = 60;
+
 let started = false;
 
 function classify(url: string): 'svga' | 'lottie' | 'image' | 'video' | 'unknown' {
@@ -105,10 +106,15 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM/VAP files caused the real first-play delay. Warm only the most
-    // popular few fully into HTTP cache; metadata warm keeps the decoder ready.
-    const criticalVideos = videoUrls.slice(0, 3);
-    warmupVapUrls(criticalVideos, { warmJsonSibling: false });
+    // MP4/WebM/VAP files caused the real first-play delay. Top 15 popular
+    // videos get HIGH-priority persistent warm (Cache API) — same instant-on-
+    // second-play behaviour as SVGA's prewarmPopularAssets. Tail gets
+    // low-priority HTTP-cache warm.
+    const topVideos = videoUrls.slice(0, 15);
+    const tailVideos = videoUrls.slice(15, 40);
+    warmupSelectedVapUrls(topVideos);
+    if (tailVideos.length) warmupVapUrls(tailVideos, { warmJsonSibling: false });
+
   } catch {
     // best-effort only
   }
@@ -154,6 +160,11 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  const criticalVideos = videoUrls.slice(0, 2);
-  warmupVapUrls(criticalVideos, { warmJsonSibling: false });
+  // Gift panel open: warm top 10 visible videos with high priority +
+  // persistent Cache API store so first tap plays instantly.
+  const topVideos = videoUrls.slice(0, 10);
+  const tailVideos = videoUrls.slice(10, 30);
+  if (topVideos.length) warmupSelectedVapUrls(topVideos);
+  if (tailVideos.length) warmupVapUrls(tailVideos, { warmJsonSibling: false });
+
 }
