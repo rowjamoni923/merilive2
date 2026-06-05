@@ -3,7 +3,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import errorLoggingService from '@/services/ErrorLoggingService';
-import { isChunkLoadError, scheduleChunkLoadRecovery, resetChunkRecoveryMarkers } from '@/utils/lazyRetry';
+import { isChunkLoadError, scheduleChunkLoadRecovery, resetChunkRecoveryMarkers, hardReloadForChunkRecovery } from '@/utils/lazyRetry';
 
 interface Props {
   children: ReactNode;
@@ -45,14 +45,12 @@ class ErrorBoundary extends Component<Props, State> {
       // if it's a persistent chunk failure, as that's the only way to fetch 
       // the new manifest/assets from the server.
       void (async () => {
-        try { 
-          await scheduleChunkLoadRecovery(error, error.message); 
-          // Wait 1.5s so the user sees the professional "Updating" state
-          await new Promise(r => setTimeout(r, 1500));
-          if (typeof window !== 'undefined') window.location.reload();
-        } catch { 
-          if (typeof window !== 'undefined') window.location.reload();
-        }
+        try {
+          await scheduleChunkLoadRecovery(error, error.message);
+          // Wait briefly so user sees the professional "Updating" state
+          await new Promise(r => setTimeout(r, 1200));
+        } catch { /* best-effort */ }
+        hardReloadForChunkRecovery();
       })();
     }
 
@@ -81,8 +79,8 @@ class ErrorBoundary extends Component<Props, State> {
             await Promise.all(keys.map(k => caches.delete(k)));
           }
         } catch {}
-        // After manual click, we can safely reload.
-        window.location.reload();
+        // After manual click, force a cache-busting hard reload.
+        hardReloadForChunkRecovery();
       })();
       return;
     }
