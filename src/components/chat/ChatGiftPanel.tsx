@@ -29,6 +29,9 @@ interface GiftData {
   category: string;
   icon_url?: string | null;
   animation_url?: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
+  sound_url?: string | null;
 }
 
 interface GiftCategory {
@@ -49,7 +52,7 @@ const defaultCategories: GiftCategory[] = [
 interface ChatGiftPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendGift: (gift: { id: string; name: string; icon: string; coins: number }) => void;
+  onSendGift: (gift: GiftData) => void;
   userCoins?: number;
 }
 
@@ -146,6 +149,9 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
       animation_url: normalizeGiftAssetUrl(gift.animation_url),
+      animation_format: gift.animation_format || null,
+      animation_config_url: normalizeGiftAssetUrl(gift.animation_config_url),
+      sound_url: normalizeGiftAssetUrl(gift.sound_url),
     }));
   }, []);
 
@@ -242,8 +248,14 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
-        icon: selectedGift.icon_url || selectedGift.animation_url || "",
+        emoji: selectedGift.emoji,
         coins: selectedGift.coins,
+        category: selectedGift.category,
+        icon_url: selectedGift.icon_url,
+        animation_url: selectedGift.animation_url,
+        animation_format: selectedGift.animation_format,
+        animation_config_url: selectedGift.animation_config_url,
+        sound_url: selectedGift.sound_url,
       });
       setSelectedGift(null);
       onClose();
