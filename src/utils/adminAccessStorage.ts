@@ -144,5 +144,8 @@ export const revokeAdminAccess = () => {
   removeFlag(ADMIN_LINK_TOKEN_KEY);
   removeFlag(ADMIN_LINK_KIND_KEY);
   removeFlag(ADMIN_LINK_CHALLENGE_KEY);
+  if (!hasWindow()) return;
+  window.localStorage.removeItem(ADMIN_LINK_TOKEN_PERSIST_KEY);
+  window.localStorage.removeItem(ADMIN_LINK_KIND_PERSIST_KEY);
 };
 

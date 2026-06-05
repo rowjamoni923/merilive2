@@ -69,7 +69,7 @@ export default function AdminAuth() {
   };
 
   const getAdminAuthPath = () => {
-    const accessToken = getAdminLinkToken() || searchParams.get('access')?.trim() || null;
+    const accessToken = searchParams.get('access')?.trim() || getAdminLinkToken() || null;
     return accessToken
       ? `/admin/auth?access=${encodeURIComponent(accessToken)}`
       : '/admin/auth';
@@ -213,7 +213,10 @@ export default function AdminAuth() {
 
     setLoading(true);
     try {
-      const accessToken = getAdminLinkToken() || searchParams.get('access')?.trim() || null;
+      // Fresh URL token must win over any persisted old token. Otherwise a
+      // newly generated secret link can be ignored because the browser still
+      // has yesterday's invalid link in localStorage.
+      const accessToken = searchParams.get('access')?.trim() || getAdminLinkToken() || null;
       if (!accessToken) {
         toast.error('Access link missing or expired. Please reopen the secret link.');
         revokeAdminAccess();
