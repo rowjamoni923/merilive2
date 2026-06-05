@@ -720,10 +720,11 @@ const Shop = () => {
                     }
                     if (selectedItem.preview_url || animSrc) {
                       return (
-                        <img loading="lazy" decoding="async"
+                        <img loading="eager" decoding="async" {...({ fetchpriority: 'high' } as any)}
                           src={selectedItem.preview_url || animSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          className={`max-w-[90%] max-h-[90%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          style={{ margin: 'auto' }}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       );
