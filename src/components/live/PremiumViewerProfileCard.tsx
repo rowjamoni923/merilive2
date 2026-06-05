@@ -5,6 +5,7 @@ import {
   Heart, 
   MessageCircle, 
   UserPlus, 
+  Gift, 
   Crown, 
   Star,
   Phone,
@@ -450,6 +451,7 @@ export const PremiumViewerProfileCard = ({
                       whileHover={{ scale: 1.05 }}
                     >
                       <div className="flex items-center justify-center gap-1 mb-1">
+                        <Gift className="w-4 h-4 text-pink-500" />
                         <motion.span 
                           className="text-lg font-bold text-foreground"
                           initial={{ opacity: 0, scale: 0.5 }}
@@ -537,6 +539,7 @@ export const PremiumViewerProfileCard = ({
                           }}
                           transition={{ duration: 3, repeat: Infinity }}
                         />
+                        <Gift className="w-4 h-4 mr-2 text-pink-500 relative z-10" />
                         <span className="relative z-10">Send Gift</span>
                       </Button>
                     </motion.div>

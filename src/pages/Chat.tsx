@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
@@ -31,7 +31,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
-import { useCall } from "@/components/call/CallContext";
+import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
@@ -151,29 +151,27 @@ interface GroupMessage {
 // Parse gift payload from chat content
 // Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
 // URLs may be absolute, Supabase storage paths, or project-local Lovable asset paths.
-const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null; iconUrl: string | null } => {
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null; animationFormat: string | null; animationConfigUrl: string | null } => {
   const mediaMatch = content.match(/\[Gift:\s*([^|\s\]]+)\|/i);
   const emojiMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?([^\s\]]+)/i);
   const soundMatch = content.match(/\|\s*snd:([^\s|\]]+)/i);
   const formatMatch = content.match(/\|\s*fmt:([a-z0-9_-]+)/i);
   const configMatch = content.match(/\|\s*cfg:([^\s|\]]+)/i);
-  const iconMatch = content.match(/\|\s*ico:([^\s|\]]+)/i);
   const mediaUrl = normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null;
 
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] && emojiMatch[1] !== '\u{1F381}' && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
+    emoji: emojiMatch?.[1] ?? '🎁',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
-    iconUrl: normalizeGiftMediaUrl(iconMatch?.[1]) ?? null,
   };
 };
 
 const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
   const { mediaUrl, emoji } = parseGiftContent(content || '');
-  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?(.+?)\s+x(\d+)/i);
-  const name = detailMatch?.[1]?.replace(/^\p{Extended_Pictographic}\s*/u, '').trim().toLowerCase() || 'gift';
+  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+  const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
   const count = detailMatch?.[2] || '1';
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
 };
@@ -182,20 +180,18 @@ const getGiftAnimationSignature = (content: string, senderId?: string | null): s
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
 
-  // Match format: [Gift: URL|NAME xCOUNT | +BEANS beans] or legacy [Gift: EMOJI NAME xCOUNT | +BEANS beans]
+  // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
     .replace(/\[Gift:\s*[^|\s\]]+\|/i, '[Gift: ')
-    // Strip optional trailing |snd:URL / |ico:URL / |cfg:URL / |fmt:X fields before final ] so preview regex matches
-    .replace(/\|\s*snd:[^|\]]+/i, '')
-    .replace(/\|\s*ico:[^|\]]+/i, '');
+    // Strip optional trailing |snd:URL field before final ] so preview regex matches
+    .replace(/\|\s*snd:[^|\]]+/i, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
-  const match = urlRemoved.match(/\[Gift:\s*(?:[^|\s\]]+\|)?(.+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans/i);
+  const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
   if (match) {
-    const [, label, count, beans] = match;
-    const cleanName = label.replace(/^\p{Extended_Pictographic}\s*/u, '').trim();
-    return `[Gift: ${cleanName} x${count} | +${Number(beans).toLocaleString()} bea...]`;
+    const [, emoji, name, count, beans] = match;
+    return `[Gift: ${emoji} ${name.trim()} x${count} | +${Number(beans).toLocaleString()} bea...]`;
   }
 
   // Fallback - just remove URL part
@@ -768,8 +764,11 @@ const Chat = () => {
     // Optimistic coin deduction
     setUserCoins(prev => prev - totalCost);
     
+    // Play gift sound IMMEDIATELY
+    playSoundDebounced('gift');
+    
     // Show gift animation IMMEDIATELY
-    const giftLabel = gift.name.trim();
+    const giftEmoji = gift.emoji || '🎁';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
@@ -781,17 +780,14 @@ const Chat = () => {
     const giftConfigUrl = normalizeGiftMediaUrl(gift.animation_config_url) || '';
     const configSuffix = giftConfigUrl ? ` | cfg:${giftConfigUrl}` : '';
     const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
-    // Include preview icon URL (when distinct from animation URL) so chat bubble can render
-    // a small static thumbnail for VAP/MP4 gifts instead of nothing.
-    const iconSuffix = iconUrl && iconUrl !== giftMediaUrl ? ` | ico:${iconUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftLabel} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`
-      : `[Gift: ${giftLabel} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
-    setAnimatingGiftEmoji(giftMediaUrl);
+    setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
     setAnimatingGiftFormat(giftAnimationFormat);
     setAnimatingGiftConfigUrl(giftConfigUrl || null);
     setAnimatingGiftSound(giftSoundUrl || null);
@@ -859,8 +855,8 @@ const Chat = () => {
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`
-          : `[Gift: ${giftLabel} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}${iconSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
@@ -1444,19 +1440,12 @@ const Chat = () => {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
     const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
-    
-    // Pkg-fix: stricter debouncing (4s) for the SAME gift from SAME user,
-    // but Allow immediate play if content changes (different gift).
-    if (now - lastPlayed < 4000) {
-      console.log('[Chat] Skipping duplicate gift animation:', signature);
-      return;
-    }
+    if (now - lastPlayed < 4000) return;
 
     recentGiftAnimationsRef.current.set(signature, now);
+    if (playSoundEffect) playSoundDebounced('gift');
+
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
-    
-    console.log('[Chat] Triggering gift animation:', mediaUrl || emoji, 'Format:', animationFormat || parsedFormat);
-    
     setAnimatingGiftEmoji(mediaUrl || emoji);
     setAnimatingGiftFormat(animationFormat || parsedFormat || null);
     setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
@@ -1503,13 +1492,6 @@ const Chat = () => {
       ]);
     });
 
-    // Pkg-fix: play gift animation BEFORE return for sender, so they see the effect too
-    if (newMessage.message_type === 'gift') {
-      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
-    } else if (newMessage.sender_id !== currentUserId) {
-      playSoundDebounced('message');
-    }
-
     if (newMessage.sender_id === currentUserId) return;
 
     void markMessageAsRead(newMessage.id);
@@ -1521,6 +1503,12 @@ const Chat = () => {
         event: 'read',
         payload: { userId: currentUserId, conversationId: selectedConversation.id }
       });
+    }
+
+    if (newMessage.message_type === 'gift') {
+      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+    } else {
+      playSoundDebounced('message');
     }
   }
 
@@ -1627,7 +1615,7 @@ const Chat = () => {
         // so the receiver sees it when entering the chat (as requested by user).
         const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift');
         if (latestUnreadGift) {
-          console.log('[Chat] Replaying unread gift animation for receiver');
+          console.log('[Chat] 🎁 Replaying unread gift animation for receiver');
           playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
         }
 
@@ -2408,7 +2396,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat, animationConfigUrl, iconUrl: parsedIconUrl } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2421,13 +2409,7 @@ const Chat = () => {
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
-                          const isVap = animationFormat === 'vap' || (!!iconUrl && detectProfessionalAnimationFormat(iconUrl, animationFormat) === 'vap');
-                          const isPlainVideo = !isVap && (animationFormat === 'mp4' || animationFormat === 'webm' || normalizedGiftUrl.endsWith('.mp4') || normalizedGiftUrl.endsWith('.mov') || normalizedGiftUrl.endsWith('.webm'));
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
-                          // Prefer a dedicated preview icon (parsedIconUrl) when present; else if the
-                          // animation URL itself is a static image, use it; else fall back to playing
-                          // the animation (SVGA/Lottie/MP4/VAP) inline at 40x40.
-                          const previewIconUrl = parsedIconUrl || (isImage ? iconUrl : null);
                           
                           return (
                             <motion.div 
@@ -2437,18 +2419,9 @@ const Chat = () => {
                               transition={{ duration: 0.2 }}
                             >
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
-                              <div className="w-10 h-10 flex items-center justify-center relative overflow-hidden rounded-md">
-                                {previewIconUrl ? (
-                                  <img loading="lazy" decoding="async"
-                                    src={previewIconUrl}
-                                    alt="Gift"
-                                    className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                ) : isSvga && iconUrl ? (
-                                  <Suspense fallback={null}>
+                              <div className="w-10 h-10 flex items-center justify-center relative">
+                                {isSvga && iconUrl ? (
+                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <SVGAPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2458,7 +2431,7 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isLottie && iconUrl ? (
-                                  <Suspense fallback={null}>
+                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2467,31 +2440,20 @@ const Chat = () => {
                                       muted={true}
                                     />
                                   </Suspense>
-                                ) : isVap && iconUrl ? (
-                                  <Suspense fallback={null}>
-                                    <UniversalAnimationPlayer
-                                      src={iconUrl}
-                                      type="vap"
-                                      configSrc={animationConfigUrl || undefined}
-                                      className="w-10 h-10"
-                                      loop={true}
-                                      autoPlay={true}
-                                      muted={true}
-                                    />
-                                  </Suspense>
-                                ) : isPlainVideo && iconUrl ? (
-                                  <video
-                                    src={iconUrl}
+                                ) : isImage && iconUrl ? (
+                                  <img loading="lazy" decoding="async" 
+                                    src={iconUrl} 
+                                    alt="Gift" 
                                     className="w-10 h-10 object-contain"
-                                    muted
-                                    autoPlay
-                                    loop
-                                    playsInline
-                                    preload="metadata"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
+                                    }}
                                   />
-                                ) : null}
+                                ) : (
+                                  <span className="text-xl">{giftEmoji}</span>
+                                )}
                               </div>
-
                               
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
@@ -3243,7 +3205,7 @@ const Chat = () => {
                     }}
                   >
                     <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                    <span className="relative text-[9px] font-black uppercase tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">Gift</span>
+                    <Gift className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   </div>
                   <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Gift</span>
                 </motion.button>
@@ -3411,16 +3373,15 @@ const Chat = () => {
           />
 
           {/* Gift Emoji Animation */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {showGiftAnimation && animatingGiftEmoji && (
               <GiftEmojiAnimation
-                key={`gift-anim-container-${giftAnimationInstance}`}
+                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
                 emoji={animatingGiftEmoji}
                 animationFormat={animatingGiftFormat}
                 animationConfigUrl={animatingGiftConfigUrl}
                 soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
-                  console.log('[Chat] Gift animation finished state cleanup');
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
                   setAnimatingGiftFormat(null);

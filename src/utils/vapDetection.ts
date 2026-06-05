@@ -1,4 +1,4 @@
-export type VapLayout = 'alpha-left' | 'alpha-right' | 'alpha-top' | 'alpha-bottom';
+export type VapSideBySideLayout = 'alpha-left' | 'alpha-right';
 
 const vapCompositeHint = new Map<string, boolean>();
 
@@ -16,108 +16,75 @@ export const getVapCompositeHint = (url: string): boolean => {
 
 /**
  * VAP MP4s are composite videos: RGB and alpha-mask frames packed together.
- * Square exports are usually 2:1 (Side-by-Side).
- * Portrait live-stream gift exports are often ~1:1 but stacked Top-Bottom or Side-by-Side.
+ * Square exports are usually 2:1. Portrait live-stream gift exports are often
+ * ~0.85–1.35:1 because two portrait halves are placed side-by-side.
  */
 export const isLikelyVapCompositeSize = (width: number, height: number): boolean => {
   if (!width || !height || width < 100 || height < 100) return false;
   const ratio = width / height;
-  // Professional VAP exports (Tencent standard):
-  // 2:1 (Side-by-Side RGB + Alpha) -> ratio ~2.0
-  // 1:2 (Stacked Top-Bottom) -> ratio ~0.5
-  // 1.125:1 or similar (Portrait stacked/SBS) -> ratio ~1.125
-  return (
-    Math.abs(ratio - 2) < 0.25 || // Side-by-Side (RGB+Alpha)
-    Math.abs(ratio - 0.5) < 0.15 || // Top-Bottom (RGB+Alpha)
-    Math.abs(ratio - 1) < 0.15 ||   // 1:1 stacked
-    Math.abs(ratio - 0.88) < 0.15 ||  // 1:1.125 portrait stacked
-    (ratio >= 0.6 && ratio <= 1.6) // Broad range for any potential composite
-  );
+  return Math.abs(ratio - 2) < 0.08 || (ratio >= 0.85 && ratio <= 1.35);
 };
 
-export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
+export const detectVapSideBySideLayout = (video: HTMLVideoElement): VapSideBySideLayout | null => {
   const width = video.videoWidth;
   const height = video.videoHeight;
   if (!isLikelyVapCompositeSize(width, height)) return null;
 
   try {
     const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = 120;
+    canvas.height = 72;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      
-      const checkArea = (xStart: number, yStart: number, xEnd: number, yEnd: number) => {
-        let chroma = 0;
-        let extremes = 0;
-        let totalLuma = 0;
-        let count = 0;
-        for (let y = yStart; y < yEnd; y += 2) {
-          for (let x = xStart; x < xEnd; x += 2) {
-            const i = (y * canvas.width + x) * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            // Chroma check: mask areas are usually grayscale (low chroma)
-            const c = Math.max(r, g, b) - Math.min(r, g, b);
-            const luma = (r + g + b) / 3;
-            chroma += c;
-            totalLuma += luma;
-            // Extremes check: mask areas are often very black or very white
-            if (luma < 15 || luma > 240) extremes++;
-            count++;
+      const half = canvas.width / 2;
+      let leftChroma = 0;
+      let rightChroma = 0;
+      let leftExtremes = 0;
+      let rightExtremes = 0;
+      let leftCount = 0;
+      let rightCount = 0;
+
+      for (let y = 0; y < canvas.height; y += 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const i = (y * canvas.width + x) * 4;
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+          const luma = (r + g + b) / 3;
+          const extreme = luma < 24 || luma > 224 ? 1 : 0;
+          if (x < half) {
+            leftChroma += chroma;
+            leftExtremes += extreme;
+            leftCount += 1;
+          } else {
+            rightChroma += chroma;
+            rightExtremes += extreme;
+            rightCount += 1;
           }
         }
-        return { 
-          chroma: chroma / count, 
-          extremes: extremes / count, 
-          avgLuma: totalLuma / count 
-        };
-      };
+      }
 
-      const left = checkArea(0, 0, 64, 128);
-      const right = checkArea(64, 0, 128, 128);
-      const top = checkArea(0, 0, 128, 64);
-      const bottom = checkArea(0, 64, 128, 128);
+      const left = leftChroma / Math.max(1, leftCount);
+      const right = rightChroma / Math.max(1, rightCount);
+      const leftExtremeRatio = leftExtremes / Math.max(1, leftCount);
+      const rightExtremeRatio = rightExtremes / Math.max(1, rightCount);
+      const leftLooksMask = left < 12 || (left < right * 0.55 && leftExtremeRatio >= rightExtremeRatio * 0.8);
+      const rightLooksMask = right < 12 || (right < left * 0.55 && rightExtremeRatio >= leftExtremeRatio * 0.8);
 
-      // Detection heuristic: 
-      // A mask area has VERY low chroma (grayscale) compared to RGB area.
-      // We also check 'extremes' because mask edges are sharp.
-      const isMaskArea = (stat: any, other: any) => {
-        return stat.chroma < 12 && (stat.chroma < other.chroma * 0.5 || stat.extremes > other.extremes * 1.5);
-      };
-
-      // 1. Check Side-by-Side (SBS) - Most common
-      if (isMaskArea(left, right)) return 'alpha-left';
-      if (isMaskArea(right, left)) return 'alpha-right';
-      
-      // 2. Check Top-Bottom (Stacked)
-      if (isMaskArea(top, bottom)) return 'alpha-top';
-      if (isMaskArea(bottom, top)) return 'alpha-bottom';
-
-      // 3. Aspect ratio fallbacks if pixel analysis is inconclusive (e.g. cross-origin restriction)
-      const ratio = width / height;
-      if (ratio > 1.6) return 'alpha-left'; // Standard 2:1 SBS
-      if (ratio < 0.6) return 'alpha-bottom'; // Standard 1:2 Stacked
-      
-      // Industry default for portrait VAP (like the image provided) is Alpha-Left
-      return 'alpha-left'; 
+      if (leftLooksMask && !rightLooksMask) return 'alpha-left';
+      if (rightLooksMask && !leftLooksMask) return 'alpha-right';
+      if (Math.abs(left - right) > 8) return right > left ? 'alpha-left' : 'alpha-right';
     }
   } catch {
-    // Ignore cross-origin issues
+    // Cross-origin or first-frame read can fail; size fallback below still keeps
+    // known professional VAP layouts working instead of falling back to raw MP4.
   }
 
   const ratio = width / height;
-  if (ratio > 1.6) return 'alpha-left';
-  if (ratio < 0.6) return 'alpha-bottom';
-  return 'alpha-left'; // Default to alpha-left for unknown portrait files
-};
-
-/** @deprecated use detectVapLayout */
-export const detectVapSideBySideLayout = (video: HTMLVideoElement) => {
-  const layout = detectVapLayout(video);
-  if (layout === 'alpha-left' || layout === 'alpha-right') return layout;
-  return null;
+  if (ratio >= 0.85 && ratio <= 1.35) return 'alpha-left';
+  if (Math.abs(ratio - 2) < 0.08) return 'alpha-right';
+  return 'alpha-right';
 };

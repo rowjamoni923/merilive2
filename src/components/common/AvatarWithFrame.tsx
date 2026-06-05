@@ -18,7 +18,6 @@ import {
   requestGender,
   ensureViewerLoaded,
 } from '@/utils/avatarGenderCache';
-import { observeSharedElement } from '@/utils/nativePerformance';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
@@ -272,21 +271,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(null);
   const [activeFrameType, setActiveFrameType] = useState<string>('static');
   const [frameError, setFrameError] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Intersection Observer to only play animations when visible
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    return observeSharedElement(
-      'avatar-visibility',
-      el,
-      (entry) => setIsVisible(entry.isIntersecting),
-      { rootMargin: '100px' }
-    );
-  }, []);
 
   // ───────── Gender-aware AI placeholder resolution ─────────
   // If src is missing AND viewer is NOT the profile owner, show a stable AI
@@ -458,7 +442,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
 
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
-  const frameAutoPlay = isVisible; // Only play animations when visible in viewport
+  const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
   const isAnimatedFrame = ['svga', 'lottie', 'gif', 'webp'].includes(activeFrameType);
   const isStaticFrame = activeFrameType === 'static';
 
@@ -494,11 +478,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   }
 
   return (
-    <div ref={(node) => {
-      if (typeof ref === 'function') ref(node);
-      else if (ref) (ref as any).current = node;
-      (containerRef as any).current = node;
-    }} className={cn('relative', className)} onClick={onClick} style={containerStyle}>
+    <div ref={ref} className={cn('relative', className)} onClick={onClick} style={containerStyle}>
       
       {/* Animated Frame Layer - SVGA/Lottie */}
       {hasValidFrame && (activeFrameType === 'svga' || activeFrameType === 'lottie') && (

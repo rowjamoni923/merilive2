@@ -6,14 +6,17 @@
  * Zero-refresh policy: service-worker updates must never reload the running app.
  * New workers are left waiting until the user naturally opens the app again.
  */
-// Zero-noise policy: no toast/banner — new SW silently waits and activates
-// the next time the app is opened. UI keeps updating live via realtime.
+import { toast } from 'sonner';
 
 let installed = false;
 
 function promptForReload(_waiting: ServiceWorker) {
-  // Intentionally silent — do NOT show any "new version" banner to users.
-  // The waiting worker will take over on next natural app open.
+  // De-dupe if the same prompt is already on screen
+  toast('New version ready', {
+    id: 'sw-update-prompt',
+    description: 'It will apply next time you open the app. No auto refresh will run.',
+    duration: 5000,
+  });
 }
 
 function wireRegistration(reg: ServiceWorkerRegistration) {

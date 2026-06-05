@@ -52,7 +52,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { goOfflineManually, isManuallyOffline } from "@/components/common/PresenceProvider";
 // usePresence disabled here to avoid duplicate online-status DB writes (PresenceProvider already handles global presence)
-import { useCall } from "@/components/call/CallContext";
+import { useCall } from "@/components/call/CallProvider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { RatingProofStatusRow } from "@/components/rewards/RatingProofStatusRow";
 import { useNotifications } from "@/hooks/useNotifications";

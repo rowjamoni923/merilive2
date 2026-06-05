@@ -14,13 +14,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
-import { useCall } from "@/components/call/CallContext";
+import { useCall } from "@/components/call/CallProvider";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import AvatarWithFrame, { preloadFrames } from "@/components/common/AvatarWithFrame";
 import { getCountryByCode } from "@/data/countryCodes";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { CountryFlag } from "@/components/common/CountryFlag";
-import { CallButton } from "@/components/call/CallButton";
+import { CallButton } from "@/features/call";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
@@ -161,8 +161,6 @@ const Index = () => {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [displayLimit, setDisplayLimit] = useState(12); // Pkg Performance: Virtualized rendering
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
   const isEligibleCachedHost = useCallback((host: (Partial<Profile> & { isLive?: boolean; is_in_call?: boolean }) | null | undefined) => {
     if (!host) return false;
@@ -221,8 +219,7 @@ const Index = () => {
       const liveStreamsRes = await supabase
         .from("live_streams")
         .select("id, host_id, title, viewer_count, thumbnail_url, started_at")
-        .eq("is_active", true)
-        .limit(40); // Pkg Performance: Limit initial fetch size to prevent payload bloat
+        .eq("is_active", true);
 
       const liveStreamMap = new Map(liveStreamsRes.data?.map(s => [s.host_id, s]) || []);
       const liveHostIds = Array.from(liveStreamMap.keys());
@@ -311,27 +308,7 @@ const Index = () => {
   // Only fall back to the cached snapshot for the default view (Popular + All countries).
   // For any other tab/country, always reflect the live query so users see filter changes immediately.
   const isDefaultView = subTab === "popular" && selectedCountry === "all";
-  const displayHosts = useMemo(() => {
-    const allHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
-    return allHosts.slice(0, displayLimit);
-  }, [hosts, instantHosts, isDefaultView, displayLimit]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    if (!loadMoreRef.current || displayHosts.length < displayLimit) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setDisplayLimit((prev) => prev + 12);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [displayHosts.length, displayLimit]);
+  const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
@@ -806,13 +783,6 @@ const Index = () => {
                 ))}
               </div>
             )}
-
-            {/* Load more trigger */}
-            <div ref={loadMoreRef} className="h-20 w-full flex items-center justify-center">
-              {displayHosts.length < (hosts?.length || instantHosts.length) && (
-                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              )}
-            </div>
           </>
         ) : isLoading ? (
           <HomeFeedSkeleton />

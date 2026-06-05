@@ -124,22 +124,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase.storage.from("chat-media").download(path);
     if (error || !data) {
-      // Optional VAP/Lottie sidecar JSONs are frequently absent. Return a
-      // graceful 200 with an empty object so the client can fall back without
-      // surfacing a 404 as a runtime error / blank-screen alert.
-      const isOptionalSidecar = /\.json$/i.test(path);
-      if (isOptionalSidecar) {
-        return new Response("{}", {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Cache-Control": "public, max-age=300",
-            "X-Gift-Fallback": "missing-sidecar",
-          },
-        });
-      }
-      return new Response(JSON.stringify({ error: "Gift media not found", fallback: true }), {
+      return new Response(JSON.stringify({ error: "Gift media not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

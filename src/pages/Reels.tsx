@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Coins } from "lucide-react";
+import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -565,7 +565,7 @@ const Reels = () => {
     addFlyingGift({
       senderId: sendingUserId,
       giftName: gift.name,
-      giftIcon: '',
+      giftIcon: gift.emoji,
       giftImageUrl: gift.icon_url || undefined,
       animationUrl: gift.animation_url || gift.icon_url || undefined,
       animationFormat: gift.animation_format || null,
@@ -789,7 +789,7 @@ const Reels = () => {
                         className="relative w-[52px] h-[52px] rounded-full flex items-center justify-center bg-gradient-to-br from-amber-300 via-orange-500 to-rose-600 ring-1 ring-amber-200/50"
                       >
                         <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/35 to-transparent pointer-events-none" />
-                        <span className="relative z-10 text-[10px] font-black uppercase tracking-wide text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">Gift</span>
+                        <Gift className="w-[26px] h-[26px] text-white relative z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" strokeWidth={2} />
                       </motion.div>
                       <span className="text-white text-[11px] font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]">Gift</span>
                     </motion.button>

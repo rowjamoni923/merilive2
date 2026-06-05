@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
   Gamepad2,
+  Gift,
   LayoutGrid,
   X,
   Mic,
@@ -274,7 +275,7 @@ export const ChametStyleBottomBar = ({
                     transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-10"
                   >
-                    <span className="text-[10px] font-black uppercase tracking-wide text-white drop-shadow-lg">Gift</span>
+                    <Gift className="w-7 h-7 text-white drop-shadow-lg" />
                   </motion.div>
                 </motion.div>
                 {/* Breathing aura glow */}

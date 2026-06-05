@@ -9,15 +9,8 @@
 
 import { svgaCacheSet, svgaCacheHas } from './svgaCache';
 
-type SVGAModule = {
-  Player: new (container: HTMLElement) => unknown;
-  Parser: new () => {
-    load: (url: string, success: (videoItem: unknown) => void, failure?: (err: unknown) => void) => void;
-  };
-};
-
-let svgaModule: SVGAModule | null = null;
-let modulePromise: Promise<SVGAModule> | null = null;
+let svgaModule: any = null;
+let modulePromise: Promise<any> | null = null;
 
 /**
  * Pre-import svgaplayerweb module
@@ -25,17 +18,17 @@ let modulePromise: Promise<SVGAModule> | null = null;
 export function prewarmSVGA(): void {
   if (svgaModule || modulePromise) return;
   modulePromise = import('svgaplayerweb')
-    .then(m => { svgaModule = m as SVGAModule; return svgaModule; })
-    .catch((error) => { modulePromise = null; throw error; });
+    .then(m => { svgaModule = m; return m; })
+    .catch(() => { modulePromise = null; });
 }
 
 /**
  * Get module with pre-warm check
  */
-export async function getSVGAModule(): Promise<SVGAModule> {
+export async function getSVGAModule(): Promise<any> {
   if (svgaModule) return svgaModule;
   if (modulePromise) return modulePromise;
-  modulePromise = import('svgaplayerweb').then(m => { svgaModule = m as SVGAModule; return svgaModule; });
+  modulePromise = import('svgaplayerweb').then(m => { svgaModule = m; return m; });
   return modulePromise;
 }
 
@@ -45,28 +38,23 @@ export async function getSVGAModule(): Promise<SVGAModule> {
  */
 export async function prewarmPopularAssets(urls: string[]): Promise<void> {
   if (!urls.length) return;
-
+  
   const SVGA = await getSVGAModule();
+  const parser = new SVGA.Parser();
 
-  // Load and parse sequentially. Parallel parser.load() on 10–20 SVGA files was
-  // saturating low-end devices and delaying normal page data loads.
-  for (const url of urls.slice(0, 4)) {
-    if (svgaCacheHas(url)) continue;
-
-    await new Promise<void>((resolve) => {
-      const parser = new SVGA.Parser();
-      parser.load(url, (videoItem: unknown) => {
-        if (videoItem) {
-          svgaCacheSet(url, videoItem);
-          console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
-        }
-        window.setTimeout(resolve, 900);
-      }, (err: unknown) => {
-        console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
-        resolve();
-      });
+  // Load and parse in background
+  urls.forEach(url => {
+    if (svgaCacheHas(url)) return;
+    
+    parser.load(url, (videoItem: any) => {
+      if (videoItem) {
+        svgaCacheSet(url, videoItem);
+        console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
+      }
+    }, (err: any) => {
+      console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
     });
-  }
+  });
 }
 
 // ---- Browser Cache API (unchanged but integrated) ----
@@ -103,9 +91,7 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
         }
         return await blobToDataUrl(blob);
       }
-    } catch {
-      // cache miss/failure falls back to network
-    }
+    } catch {}
   }
 
   try {
@@ -125,9 +111,7 @@ export async function fetchWithBinaryCache(url: string): Promise<string> {
       }
       return await blobToDataUrl(blob);
     }
-  } catch {
-    // best-effort prefetch only
-  }
+  } catch {}
 
   return url;
 }

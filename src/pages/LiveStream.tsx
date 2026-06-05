@@ -32,6 +32,7 @@ import {
   X,
   Send,
   Phone,
+  Gift,
   Grid3X3,
   Users,
   Eye,
@@ -92,7 +93,7 @@ import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { CallButton } from "@/components/call/CallButton";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
-import { useCall } from "@/components/call/CallContext";
+import { useCall } from "@/features/call";
 import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGameOverlay";
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
@@ -1387,7 +1388,7 @@ const LiveStream = () => {
         senderName: data.senderName || 'User',
         senderAvatar: data.senderAvatar || undefined,
         giftName: data.giftName,
-        giftIcon: '',
+        giftIcon: data.giftIcon || '🎁',
         giftImageUrl: data.giftIconUrl || undefined,
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
         animationFormat: data.giftAnimationFormat || null,
@@ -1424,6 +1425,7 @@ const LiveStream = () => {
         giftIconUrl: data.giftIconUrl || undefined,
       }]);
 
+      playSound('gift');
     };
     window.addEventListener('livekit-gift-sent', handleLiveKitGift);
 
@@ -3718,7 +3720,7 @@ const LiveStream = () => {
               animate={{ x: ['-100%', '100%'] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.6 }}
             />
-            <span className="relative z-10 text-[8px] md:text-[10px] font-black uppercase tracking-wide text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }}>Gift</span>
+            <Gift className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
           </motion.button>
 
           {/* More Options Button — Glass orb */}
@@ -3952,6 +3954,7 @@ const LiveStream = () => {
           setUserCoins(userCoinsRef.current);
           
           // Play gift sound IMMEDIATELY
+          playSound('gift');
           
           // Get sender info for animation (from currentUser - already loaded)
           const senderName = currentUser?.display_name || "User";
@@ -3967,7 +3970,7 @@ const LiveStream = () => {
             senderName: senderName,
             senderAvatar: senderAvatar,
             giftName: gift.name,
-            giftIcon: "",
+            giftIcon: gift.emoji || "🎁",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,

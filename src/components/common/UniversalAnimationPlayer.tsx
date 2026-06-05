@@ -105,7 +105,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onCompleteDebug,
   soundUrl = null,
   showControls = false,
-  fallbackEmoji = '',
+  fallbackEmoji = '🎁',
   preferNative = false,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
@@ -126,9 +126,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const detectedType = type || detectProfessionalAnimationFormat(resolvedSrc) || detectAnimationType(resolvedSrc);
-  
-  // Pkg-fix: trust detected 'vap' immediately to prevent <video> flash
-  const animationType: AnimationType = (detectedType === 'vap' || autoDetectedVap) ? 'vap' : detectedType;
+  const animationType: AnimationType = autoDetectedVap ? 'vap' : detectedType;
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
   useEffect(() => {

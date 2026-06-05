@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Suspense, lazy, useCallback, useMem
 import { createPortal } from "react-dom";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 
-import { X, Diamond, Sparkles, Send, Plus, Minus, Gift } from "lucide-react";
+import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { GiftSwipeableGrid } from "./GiftSwipeableGrid";
@@ -11,7 +11,6 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
-import { prewarmGiftVideo } from "@/utils/giftVideoPreload";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -83,7 +82,6 @@ const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
 const warmSelectedVideoGift = (url?: string | null) => {
   if (!url || typeof document === 'undefined' || !VIDEO_OR_GIF_PATTERN.test(url) || GIF_PATTERN.test(url)) return;
   try {
-    prewarmGiftVideo(url, { eager: true });
     void import('@/components/common/VAPPlayer');
     const video = document.createElement('video');
     video.preload = 'auto';
@@ -646,7 +644,10 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     GIF_PATTERN.test(selectedGift.animation_url) ? (
                       <img loading="lazy" decoding="async" src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover" />
                     ) : (
-                      <video src={selectedGift.animation_url} className="w-full h-full object-contain" preload="metadata" muted playsInline />
+                      <div className="w-full h-full grid place-items-center bg-white/10">
+                        <Play className="w-4 h-4 text-white/80" fill="currentColor" />
+                      </div>
+
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
                     <Suspense fallback={<div className="w-6 h-6 rounded-full bg-white/10 animate-pulse" />}>
@@ -672,7 +673,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   ) : selectedGift.icon_url ? (
                     <img loading="lazy" decoding="async" src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" />
                   ) : (
-                    <div className="w-6 h-6" aria-hidden="true" />
+                    <Gift className="w-6 h-6 text-white/70" />
                   )}
                 </div>
                 <div>

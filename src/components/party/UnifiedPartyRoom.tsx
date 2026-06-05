@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
   Users, 
+  Gift, 
   Gamepad2,
   Crown,
   Mic,
@@ -1803,7 +1804,7 @@ export function UnifiedPartyRoom({
             aria-label="Send gift"
             className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center justify-center shadow-lg shrink-0"
           >
-            <span className="text-[9px] font-black uppercase tracking-wide">Gift</span>
+            <Gift className="w-4 h-4" />
           </motion.button>
 
           {/* More Options Button — 3D design */}

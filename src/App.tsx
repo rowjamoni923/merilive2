@@ -39,8 +39,9 @@ import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
+// CallProvider needs special handling as it wraps children
 // =============================================
-import { DeferredCallProvider } from "./components/call/DeferredCallProvider";
+import { CallProvider } from "./components/call/CallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
 import DeferredAppHooks from "./components/common/DeferredAppHooks";
@@ -97,12 +98,20 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-
-  // Warm routes gently. The old simultaneous import storm downloaded many page
-  // chunks during boot and starved real data requests on Android/WebView.
-  CORE_PAGE_IMPORTERS.forEach((fn, index) => {
-    window.setTimeout(() => fn().catch(() => {}), index * 1800);
+  
+  // Pkg: ULTRA-AGGRESSIVE preloading for "Zero-Second" navigation.
+  // Instead of waiting for timeouts, we start importing immediately.
+  // The browser handles the priority.
+  CORE_PAGE_IMPORTERS.forEach((fn) => {
+    // Fire-and-forget, browser handles concurrency
+    fn().catch(() => {});
   });
+}
+
+// Pkg: Fire preload at module-evaluation time (ASAP).
+if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
+  // Use a microtask to avoid blocking the main bundle execution
+  Promise.resolve().then(preloadCoreRoutes);
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
@@ -644,27 +653,18 @@ const App = () => {
       initWebViewPerformance();
     }
 
-    type IdleWindow = Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
     const idle = (cb: () => void, timeout = 2500) => {
-      const w = window as IdleWindow;
+      const w = window as any;
       if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
       return window.setTimeout(cb, 1200);
     };
-    const slowIdle = (cb: () => void, timeout = 2500) => {
-      const w = window as IdleWindow;
-      if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
-      return window.setTimeout(cb, timeout);
-    };
     const cancelIdle = (id: number) => {
-      const w = window as IdleWindow;
+      const w = window as any;
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
 
-    const routeIdleId = slowIdle(preloadCoreRoutes, 9000);
+    const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
@@ -690,19 +690,19 @@ const App = () => {
     // Pkg C — prewarm top gift animations (SVGA binaries + Lottie JSON + images)
     // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
     // sent in any room/call/chat plays with zero network delay on the receiver side.
-    const giftIdleId = slowIdle(() => {
+    const giftIdleId = idle(() => {
       import('@/hooks/useGiftPrefetch')
         .then(m => m.prefetchGifts())
         .catch(() => {});
-    }, 15000);
+    }, 3500);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
-    const framesIdleId = slowIdle(() => {
+    const framesIdleId = idle(() => {
       import('@/utils/frameBulkPrewarm')
         .then(m => m.prewarmActiveFrames())
         .catch(() => {});
-    }, 30000);
+    }, 12000);
 
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
@@ -1173,7 +1173,7 @@ const App = () => {
               <AudioUnlockOverlay />
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
               <DisconnectReasonToaster />
-              <DeferredCallProvider>
+              <CallProvider>
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
@@ -1508,7 +1508,7 @@ const App = () => {
                 />
               )}
             </Suspense>
-              </DeferredCallProvider>
+              </CallProvider>
             </BrowserRouter>
           </TooltipProvider>
           </MotionConfig>

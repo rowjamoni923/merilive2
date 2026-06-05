@@ -12,10 +12,10 @@
 let started = false;
 
 const ric = (cb: () => void, timeout = 4000) => {
-  const w = window as Window & {
-    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-  };
-  if (w.requestIdleCallback) w.requestIdleCallback(cb, { timeout });
+  const ric = (window as any).requestIdleCallback as
+    | ((cb: () => void, opts?: { timeout: number }) => number)
+    | undefined;
+  if (ric) ric(cb, { timeout });
   else setTimeout(cb, 1500);
 };
 
@@ -53,8 +53,8 @@ export function startIdleRoutePrefetch() {
         () => import('@/pages/CallHistory'),
         () => import('@/pages/FollowingList'),
         () => import('@/pages/SearchUsers'),
-    ], 2200);
-    }, 18000);
+      ], 1200);
+    }, 6000);
 
     // Tier 3 — agency / helper / withdrawal / leaderboard
     ric(() => {
@@ -74,7 +74,7 @@ export function startIdleRoutePrefetch() {
         () => import('@/pages/HostDashboard'),
         () => import('@/pages/HostTransferHistory'),
         () => import('@/pages/Rewards'),
-      ], 2600);
-    }, 35000);
-  }, 20000);
+      ], 1400);
+    }, 10000);
+  }, 2000);
 }

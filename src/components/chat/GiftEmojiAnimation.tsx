@@ -150,7 +150,6 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
           <div style={FULLSCREEN_STAGE_STYLE}>
             {isSvga && (
               <FixedAnimationFrame
-                key={`anim-svga-${emoji}`}
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
@@ -168,7 +167,6 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
 
             {(isLottie || isVap || isVideo) && (
               <FixedAnimationFrame
-                key={`anim-vap-${emoji}-${Date.now()}`}
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
@@ -182,7 +180,6 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
-                background="none"
               />
             )}
           </div>
@@ -331,13 +328,11 @@ export const GiftEmojiAnimation = ({
   onComplete,
 }: GiftEmojiAnimationProps) => {
   // CRITICAL: Use stable key based on emoji URL to prevent re-mounting
-  // Pkg-fix: add Date.now() to ensure the same gift sent multiple times in a row
-  // triggers a fresh mount of the player (GiftPanel handles double-tap guard).
-  const stableKey = `gift-anim-${Date.now()}-${emoji.slice(-30).replace(/[^a-zA-Z0-9]/g, '')}`;
+  const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-20)}`);
 
   return (
     <GiftEmojiAnimationInner
-      key={stableKey}
+      key={stableKey.current}
       emoji={emoji}
       count={count}
       animationFormat={animationFormat}

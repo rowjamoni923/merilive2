@@ -2,8 +2,8 @@ import { Phone, Star, Gem, Eye, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
-import { CallButton } from "@/components/call/CallButton";
-import { useCall } from "@/components/call/CallContext";
+import { CallButton } from "@/features/call";
+import { useCall } from "@/features/call";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface UserCardProps {

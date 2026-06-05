@@ -199,7 +199,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-2 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -211,56 +211,48 @@ const ShopItemCard = ({
         {(() => {
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
-          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm|mov)(\?|$)/i);
+          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
 
-          // Prefer static preview icon (logo) in grid cards — full animation
-          // only plays in the detail/full-screen modal. Keeps grid lag-free.
-          if (previewIsStatic && !imageError) {
+          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
+          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
+          if (animSrc && isAnimatedType(animType) && !imageError) {
             return (
-              <div className="absolute inset-0 flex items-center justify-center p-2">
-                <img
-                  src={item.preview_url!}
-                  alt={item.name}
-                  loading="eager"
-                  decoding="async"
-                  {...({ fetchpriority: 'high' } as any)}
-                  className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
-                  style={{ margin: 'auto' }}
+              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+                <FixedAnimationFrame
+                  src={animSrc}
+                  type={animType as any}
+                  configSrc={item.animation_config_url || undefined}
+                  size="fill"
+                  loop
+                  autoPlay
+                  muted
+                  center={false}
                   onError={() => setImageError(true)}
                 />
               </div>
             );
           }
 
-          // No static preview icon — fall back to playing the full animation.
-          if (animSrc && isAnimatedType(animType) && !imageError) {
+          if (previewIsStatic && !imageError) {
             return (
-              <div className="absolute inset-0 flex items-center justify-center p-2">
-                <div className="w-full h-full flex items-center justify-center">
-                  <FixedAnimationFrame
-                    src={animSrc}
-                    type={animType as any}
-                    configSrc={item.animation_config_url || undefined}
-                    size="fill"
-                    loop
-                    autoPlay
-                    muted
-                    center
-                    onError={() => setImageError(true)}
-                  />
-                </div>
-              </div>
+              <img
+                src={item.preview_url!}
+                alt={item.name}
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: 'high' } as any)}
+                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+                onError={() => setImageError(true)}
+              />
             );
           }
 
           return (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
-                style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-              >
-                <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
-              </div>
+            <div
+              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
+              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+            >
+              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
             </div>
           );
         })()}
@@ -666,19 +658,12 @@ const Shop = () => {
       </div>
 
       {/* Item Detail Modal - Light Luxury */}
-      {(() => {
-        const _selAnimType = selectedItem ? pickAnimType(selectedItem) : 'static';
-        const _selAnimSrc = selectedItem ? (selectedItem.animation_file_url || selectedItem.animation_url || '') : '';
-        const _selIsAnimated = !!_selAnimSrc && isAnimatedType(_selAnimType);
-        const _selIsEntry = !!selectedItem && isEntryAnimationCategory(selectedItem.category);
-        // Treat ANY animated item (VAP/SVGA/Lottie/MP4…) like an entry preview:
-        // big full-square stage, instant autoplay — same feel as the gift fullscreen.
-        const _useBigStage = _selIsAnimated || _selIsEntry;
-        return (
-        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent
           className={`border-0 shadow-2xl ${
-            _useBigStage ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto' : 'max-w-sm'
+            selectedItem && isEntryAnimationCategory(selectedItem.category)
+              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
+              : 'max-w-sm'
           }`}
           style={{
             background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
@@ -698,38 +683,39 @@ const Shop = () => {
                 {/* Preview */}
                 <div
                   className={`${
-                    _useBigStage
-                      ? (_selIsEntry ? 'aspect-[9/16] min-h-[320px] max-h-[55vh]' : 'aspect-square min-h-[320px] max-h-[55vh]')
+                    isEntryAnimationCategory(selectedItem.category)
+                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
                       : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-4 relative overflow-hidden`}
+                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
                   {(() => {
-                    if (_selIsAnimated) {
+                    const animType = pickAnimType(selectedItem);
+                    const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
+                    if (animSrc && isAnimatedType(animType)) {
                       return (
                         <FixedAnimationFrame
-                          src={_selAnimSrc}
-                          type={_selAnimType as any}
+                          src={animSrc}
+                          type={animType as any}
                           configSrc={selectedItem.animation_config_url || undefined}
-                          size="full-square"
+                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
                           loop
                           autoPlay
-                          muted={_selAnimType !== 'svga' || !_selIsEntry}
+                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
                           background="none"
-                          className={_selIsEntry ? 'scale-110' : ''}
+                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
                         />
                       );
                     }
-                    if (selectedItem.preview_url || _selAnimSrc) {
+                    if (selectedItem.preview_url || animSrc) {
                       return (
-                        <img loading="eager" decoding="async" {...({ fetchpriority: 'high' } as any)}
-                          src={selectedItem.preview_url || _selAnimSrc}
+                        <img loading="lazy" decoding="async"
+                          src={selectedItem.preview_url || animSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[90%] max-h-[90%] object-contain drop-shadow-2xl mx-auto ${_selIsEntry ? 'scale-110' : ''}`}
-                          style={{ margin: 'auto' }}
+                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       );
@@ -830,8 +816,6 @@ const Shop = () => {
           )}
         </DialogContent>
       </Dialog>
-        );
-      })()}
     </div>
   );
 };

@@ -19,8 +19,7 @@
 
 // ========== MAIN PROVIDER & HOOK (THE SINGLE LINK) ==========
 // Use useCall() hook to trigger calls from ANYWHERE in the app
-export { CallProvider } from '@/components/call/CallProvider';
-export { useCall } from '@/components/call/CallContext';
+export { CallProvider, useCall } from '@/components/call/CallProvider';
 
 // ========== UI COMPONENTS ==========
 export { ActiveCallScreen } from '@/components/call/ActiveCallScreen';

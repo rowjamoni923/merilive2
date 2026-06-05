@@ -1,5 +1,5 @@
 import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
-import { X, Send } from "lucide-react";
+import { X, Gift, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -241,7 +241,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
-        icon: selectedGift.icon_url || selectedGift.animation_url || '',
+        icon: selectedGift.emoji || '🎁',
         coins: selectedGift.coins,
       });
       setSelectedGift(null);
@@ -278,7 +278,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
           <div className="relative flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/40">
-                <span className="text-[9px] font-black uppercase tracking-wide text-white drop-shadow-lg">Gift</span>
+                <Gift className="w-4 h-4 text-white drop-shadow-lg" />
               </div>
               <div>
                 <h3 className="font-bold text-white text-sm tracking-wide">Send Gift</h3>
@@ -357,7 +357,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
             ) : currentGifts.length === 0 ? (
               <div className="col-span-4 py-12 text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
-                  <span className="text-[11px] font-black uppercase tracking-wide text-muted-foreground/60">Gift</span>
+                  <Gift className="w-10 h-10 text-muted-foreground/50" />
                 </div>
                 <p className="text-muted-foreground text-sm font-medium">No gifts in this category</p>
               </div>
@@ -398,7 +398,9 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
                         className="w-8 h-8 object-contain" />
-                    ) : null}
+                    ) : (
+                      <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-foreground text-xs truncate">{selectedGift.name}</p>
