@@ -13,6 +13,7 @@ import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData } from "@/features/shared/gifting";
