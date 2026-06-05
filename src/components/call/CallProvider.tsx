@@ -1,32 +1,14 @@
-import { createContext, useContext, ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
 // subscribeToTables no longer needed - usePrivateCall handles all call-end detection
 import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@/plugins/NativeCall';
+import { CallContext } from './CallContext';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
-
-interface CallContextType {
-  startCall: (hostId: string, streamId?: string) => Promise<string | null>;
-  isInCall: boolean;
-}
-
-const CallContext = createContext<CallContextType | null>(null);
-
-export function useCall() {
-  const context = useContext(CallContext);
-  if (!context) {
-    // Silent fallback during HMR/edge cases - no console spam
-    return {
-      startCall: async () => null as string | null,
-      isInCall: false,
-    };
-  }
-  return context;
-}
 
 interface CallProviderProps {
   children: ReactNode;
