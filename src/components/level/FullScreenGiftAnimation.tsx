@@ -391,10 +391,10 @@ const FullScreenGiftAnimation = ({
       );
     }
 
-    if ((animationType === 'image' && gift.animation_url) || gift.icon_url) {
+    if (animationType === 'image' && gift.animation_url) {
       return (
         <motion.img 
-          src={gift.animation_url || gift.icon_url} 
+          src={gift.animation_url} 
           alt={gift.name}
           className="w-48 h-48 md:w-64 md:h-64 object-contain"
           animate={{ 
@@ -407,21 +407,7 @@ const FullScreenGiftAnimation = ({
       );
     }
 
-    if (!gift.icon_url) return null;
-
-    return (
-      <motion.img 
-        src={gift.icon_url} 
-        alt={gift.name}
-        className="w-48 h-48 md:w-64 md:h-64 object-contain"
-        animate={{ 
-          y: [-10, 10, -10],
-          scale: [1, 1.08, 1],
-          rotate: [-2, 2, -2]
-        }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-    );
+    return null;
   };
 
   return (

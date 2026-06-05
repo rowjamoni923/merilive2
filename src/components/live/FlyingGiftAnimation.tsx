@@ -355,7 +355,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               soundUrl={fullscreenMediaRef.current.soundUrl}
               triggerKey={gift.comboKey}
               dynamicData={dynamicData}
-              placeholderUrl={giftIconSrc && /\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(giftIconSrc) ? giftIconSrc : undefined}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
@@ -366,25 +365,12 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
-    if (expectedAnimatedFullscreen || !giftIconSrc) return null;
+    // Fullscreen is reserved for real admin-uploaded animation media only.
+    // Never fall back to the preview/photo here; static photo belongs only in
+    // the compact flying banner / chat bubble, not the fullscreen player.
+    if (expectedAnimatedFullscreen || giftIconSrc) return null;
 
-    return (
-      <motion.div
-        key="emoji-fullscreen"
-        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
-        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
-        exit={{ opacity: 0, scale: 0.86 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        style={FULLSCREEN_GIFT_LAYER_STYLE}
-      >
-        <motion.img 
-          src={giftIconSrc} 
-          className="w-48 h-48 object-contain drop-shadow-2xl" 
-          animate={{ y: [-10, 10, -10] }} 
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      </motion.div>
-    );
+    return null;
   };
 
   // Banner gradient based on gift value (Bigo style)
