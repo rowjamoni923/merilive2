@@ -52,21 +52,29 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
       const checkArea = (xStart: number, yStart: number, xEnd: number, yEnd: number) => {
         let chroma = 0;
         let extremes = 0;
+        let totalLuma = 0;
         let count = 0;
-        for (let y = yStart; y < yEnd; y += 4) {
-          for (let x = xStart; x < xEnd; x += 4) {
+        for (let y = yStart; y < yEnd; y += 2) {
+          for (let x = xStart; x < xEnd; x += 2) {
             const i = (y * canvas.width + x) * 4;
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
+            // Chroma check: mask areas are usually grayscale (low chroma)
             const c = Math.max(r, g, b) - Math.min(r, g, b);
             const luma = (r + g + b) / 3;
             chroma += c;
-            if (luma < 24 || luma > 230) extremes++;
+            totalLuma += luma;
+            // Extremes check: mask areas are often very black or very white
+            if (luma < 15 || luma > 240) extremes++;
             count++;
           }
         }
-        return { chroma: chroma / count, extremes: extremes / count };
+        return { 
+          chroma: chroma / count, 
+          extremes: extremes / count, 
+          avgLuma: totalLuma / count 
+        };
       };
 
       const left = checkArea(0, 0, 64, 128);
@@ -74,31 +82,27 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
       const top = checkArea(0, 0, 128, 64);
       const bottom = checkArea(0, 64, 128, 128);
 
-      // A mask area usually has low chroma (mostly grayscale) and high extremes (black or white)
-      const looksLikeMask = (stat: { chroma: number, extremes: number }, other: { chroma: number, extremes: number }) => {
-        return stat.chroma < 15 && (stat.chroma < other.chroma * 0.6 || stat.extremes > other.extremes * 1.2);
+      // Detection heuristic: 
+      // A mask area has VERY low chroma (grayscale) compared to RGB area.
+      // We also check 'extremes' because mask edges are sharp.
+      const isMaskArea = (stat: any, other: any) => {
+        return stat.chroma < 12 && (stat.chroma < other.chroma * 0.5 || stat.extremes > other.extremes * 1.5);
       };
 
-      // Check Side-by-Side first (more common)
-      if (looksLikeMask(left, right)) return 'alpha-left';
-      if (looksLikeMask(right, left)) return 'alpha-right';
+      // 1. Check Side-by-Side (SBS) - Most common
+      if (isMaskArea(left, right)) return 'alpha-left';
+      if (isMaskArea(right, left)) return 'alpha-right';
       
-      // Check Top-Bottom
-      if (looksLikeMask(top, bottom)) return 'alpha-top';
-      if (looksLikeMask(bottom, top)) return 'alpha-bottom';
+      // 2. Check Top-Bottom (Stacked)
+      if (isMaskArea(top, bottom)) return 'alpha-top';
+      if (isMaskArea(bottom, top)) return 'alpha-bottom';
 
-      // Fallback based on aspect ratio if detection is fuzzy
+      // 3. Aspect ratio fallbacks if pixel analysis is inconclusive (e.g. cross-origin restriction)
       const ratio = width / height;
-      if (ratio > 1.5) {
-        // If 2:1 and we can't tell, alpha-left is the most common industry standard (Tencent)
-        return 'alpha-left';
-      }
-      if (ratio < 0.7) {
-        return 'alpha-bottom'; // Standard for portrait stacked
-      }
+      if (ratio > 1.6) return 'alpha-left'; // Standard 2:1 SBS
+      if (ratio < 0.6) return 'alpha-bottom'; // Standard 1:2 Stacked
       
-      // If none of the 4 quadrants look like a mask area but it's a known VAP size,
-      // default to alpha-left (most common portrait layout).
+      // Industry default for portrait VAP (like the image provided) is Alpha-Left
       return 'alpha-left'; 
     }
   } catch {
@@ -106,9 +110,9 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
   }
 
   const ratio = width / height;
-  if (Math.abs(ratio - 2) < 0.15) return 'alpha-left';
-  if (Math.abs(ratio - 0.5) < 0.15) return 'alpha-bottom';
-  return null;
+  if (ratio > 1.6) return 'alpha-left';
+  if (ratio < 0.6) return 'alpha-bottom';
+  return 'alpha-left'; // Default to alpha-left for unknown portrait files
 };
 
 /** @deprecated use detectVapLayout */
