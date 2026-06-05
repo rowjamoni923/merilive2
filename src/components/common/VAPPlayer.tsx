@@ -411,6 +411,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         autoPlay={autoPlay}
         loop={loop}
         muted={muted}
+        preload="auto"
         playsInline
         crossOrigin="anonymous"
         className={cn("absolute opacity-0 pointer-events-none", useVideoFallback && "relative opacity-100 w-full h-full object-cover")}

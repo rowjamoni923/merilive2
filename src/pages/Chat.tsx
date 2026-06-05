@@ -161,7 +161,7 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] ?? '🎁',
+    emoji: emojiMatch?.[1] && emojiMatch[1] !== '🎁' && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
@@ -764,11 +764,8 @@ const Chat = () => {
     // Optimistic coin deduction
     setUserCoins(prev => prev - totalCost);
     
-    // Play gift sound IMMEDIATELY
-    playSoundDebounced('gift');
-    
     // Show gift animation IMMEDIATELY
-    const giftEmoji = gift.emoji || '🎁';
+    const giftEmoji = gift.emoji || '';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
@@ -1443,8 +1440,6 @@ const Chat = () => {
     if (now - lastPlayed < 4000) return;
 
     recentGiftAnimationsRef.current.set(signature, now);
-    if (playSoundEffect) playSoundDebounced('gift');
-
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
     setAnimatingGiftFormat(animationFormat || parsedFormat || null);
@@ -2447,7 +2442,6 @@ const Chat = () => {
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).style.display = 'none';
-                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
                                     }}
                                   />
                                 ) : (

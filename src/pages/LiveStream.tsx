@@ -1388,7 +1388,7 @@ const LiveStream = () => {
         senderName: data.senderName || 'User',
         senderAvatar: data.senderAvatar || undefined,
         giftName: data.giftName,
-        giftIcon: data.giftIcon || '🎁',
+        giftIcon: data.giftIcon || '',
         giftImageUrl: data.giftIconUrl || undefined,
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
         animationFormat: data.giftAnimationFormat || null,
@@ -1425,7 +1425,6 @@ const LiveStream = () => {
         giftIconUrl: data.giftIconUrl || undefined,
       }]);
 
-      playSound('gift');
     };
     window.addEventListener('livekit-gift-sent', handleLiveKitGift);
 
@@ -3954,7 +3953,6 @@ const LiveStream = () => {
           setUserCoins(userCoinsRef.current);
           
           // Play gift sound IMMEDIATELY
-          playSound('gift');
           
           // Get sender info for animation (from currentUser - already loaded)
           const senderName = currentUser?.display_name || "User";
@@ -3970,7 +3968,7 @@ const LiveStream = () => {
             senderName: senderName,
             senderAvatar: senderAvatar,
             giftName: gift.name,
-            giftIcon: gift.emoji || "🎁",
+            giftIcon: gift.emoji || "",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,

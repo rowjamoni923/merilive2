@@ -6,7 +6,7 @@
  *   - SVGA binaries → cached via svgaPrewarm Cache API
  *   - Lottie JSON   → parsed + put in lottieCache
  *   - GIF/WebP/PNG  → handed to the unified image SW (WARM_IMAGES)
- *   - MP4/WebM      → skipped (too big to prefetch eagerly)
+ *   - MP4/WebM/VAP  → staggered browser + SW cache warm for top assets only
  *
  * Runs once per session, bounded to ~25 assets so memory + bandwidth stay sane.
  */
@@ -15,9 +15,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA, prewarmPopularAssets } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
 import { markVapCompositeHint } from '@/utils/vapDetection';
+import { prewarmGiftVideos } from '@/utils/giftVideoPreload';
 
 const MAX_GIFTS = 60;
 let started = false;
+
+type GiftAssetRow = {
+  icon_url?: string | null;
+  animation_url?: string | null;
+  svga_url?: string | null;
+  lottie_url?: string | null;
+  preview_url?: string | null;
+  animation_format?: string | null;
+  animation_type?: string | null;
+};
 
 function classify(url: string): 'svga' | 'lottie' | 'image' | 'video' | 'unknown' {
   if (!url || typeof url !== 'string') return 'unknown';
@@ -34,7 +45,9 @@ function pushImageWarm(urls: string[]) {
   try {
     const sw = navigator.serviceWorker?.controller;
     if (sw) sw.postMessage({ type: 'WARM_IMAGES', urls });
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export async function prewarmGiftAnimations(): Promise<void> {
@@ -50,11 +63,13 @@ export async function prewarmGiftAnimations(): Promise<void> {
     // (top sends over last 7d, falls back to display_order). Avoids
     // exposing gift_transactions to clients and skews prewarm toward
     // the gifts users actually see/send most often.
-    let rows: any[] | null = null;
+    let rows: GiftAssetRow[] | null = null;
     try {
       const { data, error } = await supabase.rpc('get_popular_gift_assets', { _limit: MAX_GIFTS });
-      if (!error && Array.isArray(data)) rows = data;
-    } catch {}
+      if (!error && Array.isArray(data)) rows = data as GiftAssetRow[];
+    } catch {
+      rows = null;
+    }
 
     // Fallback: legacy display_order ranking if RPC missing/blocked
     if (!rows) {
@@ -72,7 +87,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
     const svgaUrls: string[] = [];
     const lottieUrls: string[] = [];
     const videoUrls: string[] = [];
-    for (const row of rows as any[]) {
+    for (const row of rows) {
       const candidates = [row.svga_url, row.lottie_url, row.animation_url, row.icon_url, row.preview_url].filter(Boolean) as string[];
       for (const url of candidates) {
         switch (classify(url)) {
@@ -85,7 +100,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
       }
     }
 
-    for (const row of rows as any[]) {
+    for (const row of rows) {
       const fmt = String(row.animation_format || row.animation_type || '').toLowerCase();
       if (fmt === 'vap' && row.animation_url) markVapCompositeHint(row.animation_url, true);
     }
@@ -104,28 +119,12 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM gift files are large, so only warm browser metadata for the top
-    // few. This primes the HTTP cache + VAP hint without downloading every gift.
-    videoUrls.slice(0, 6).forEach((u) => warmVideoMetadata(u));
+    // MP4/WebM/VAP: warm only the most likely assets, staggered and cached so
+    // panel open never floods the network or blocks Live/Call/Party UI.
+    prewarmGiftVideos(videoUrls, 6);
   } catch {
     // best-effort only
   }
-}
-
-function warmVideoMetadata(url: string) {
-  if (typeof document === 'undefined') return;
-  try {
-    const v = document.createElement('video');
-    v.preload = 'metadata';
-    v.muted = true;
-    v.playsInline = true;
-    v.crossOrigin = 'anonymous';
-    v.src = url;
-    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
-    v.onloadedmetadata = () => cleanup();
-    v.onerror = () => cleanup();
-    v.load();
-  } catch {}
 }
 
 /**
@@ -161,10 +160,10 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   // Hard caps so opening a category with 200 gifts does not flood the network
   const svgaCap = Math.min(svgaUrls.length, 20);
   for (let i = 0; i < svgaCap; i++) {
-    try { await fetchWithBinaryCache(svgaUrls[i]); } catch {}
+    try { await fetchWithBinaryCache(svgaUrls[i]); } catch { continue; }
   }
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  videoUrls.slice(0, 4).forEach((u) => warmVideoMetadata(u));
+  prewarmGiftVideos(videoUrls, 4);
 }

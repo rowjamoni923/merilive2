@@ -905,7 +905,7 @@ const PartyRoom = () => {
         senderId: giftData.senderId,
         senderName: giftData.senderName || 'Someone',
         giftName: giftData.giftName,
-        giftIcon: giftData.giftIcon || '🎁',
+        giftIcon: giftData.giftIcon || '',
         giftImageUrl: giftData.giftIconUrl,
         animationUrl: giftData.giftAnimationUrl,
         animationFormat: giftData.giftAnimationFormat || null,
@@ -925,7 +925,6 @@ const PartyRoom = () => {
           [giftData.senderId!]: (prev[giftData.senderId!] || 0) + broadcastCoins,
         }));
       }
-      playSound('gift');
     };
     window.addEventListener('livekit-gift-sent', handleLiveKitPartyGift);
 
@@ -2331,7 +2330,6 @@ const PartyRoom = () => {
               setUserCoins(userCoinsRef.current);
               
               // Play gift sound IMMEDIATELY
-              playSound('gift');
               
               // Prepare gift animation data
               const optimisticReceiverBeans = Math.floor(totalCost * hostCommissionPercentRef.current / 100);
@@ -2343,7 +2341,7 @@ const PartyRoom = () => {
                 senderId: sendingUserId,
                 senderName,
                 giftName: gift.name,
-                giftIcon: gift.emoji,
+                giftIcon: gift.emoji || '',
                 giftImageUrl: gift.icon_url || undefined,
                 animationUrl: gift.animation_url || gift.icon_url || undefined,
                 animationFormat: gift.animation_format || null,

@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 
 import { GiftData, formatCoinValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import { Play } from "lucide-react";
 
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
 
@@ -129,9 +128,7 @@ const GiftItem = memo(({
             />
           </Suspense>
         ) : url && isVideo ? (
-          <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/10 grid place-items-center">
-            <Play className="w-5 h-5 text-white/80" fill="currentColor" />
-          </div>
+          <video src={url} className="w-10 h-10 object-contain" preload="metadata" muted playsInline />
         ) : url ? (
           <img loading="lazy" decoding="async" 
             src={url} 

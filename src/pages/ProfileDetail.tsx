@@ -400,7 +400,7 @@ const ProfileDetail = () => {
     giftTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!giftCounts[giftId]) {
-        giftCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0 };
+        giftCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "", count: 0 };
       }
       giftCounts[giftId].count++;
     });
@@ -426,13 +426,13 @@ const ProfileDetail = () => {
     receivedTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!receivedCounts[giftId]) {
-        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0, totalCoins: 0 };
+        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "", count: 0, totalCoins: 0 };
       }
       receivedCounts[giftId].count++;
       receivedCounts[giftId].totalCoins += t.coin_amount || 0;
       const sender = senderMap[t.sender_id];
       giftSendersList.push({
-        id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "🎁",
+        id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "",
         coin_amount: t.coin_amount || 0, sender_id: t.sender_id,
         sender_name: sender?.display_name || sender?.username || "Anonymous",
         sender_avatar: sender?.avatar_url || null, sender_uid: sender?.app_uid || null, created_at: t.created_at
@@ -1450,12 +1450,12 @@ const ProfileDetail = () => {
                                   onError={(e) => {
                                     // Replace broken img with emoji fallback so viewers never see a broken icon.
                                     const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                                    if (parent) parent.innerHTML = '<span class="text-4xl">🎁</span>';
+                                    if (parent) parent.innerHTML = '';
                                   }}
                                 />
                               );
                             }
-                            return <span className="text-4xl">{gift.icon || '🎁'}</span>;
+                            return <span className="block w-12 h-12" aria-hidden="true" />;
                           })()}
                         </div>
                         <span className="text-xs font-bold text-fuchsia-600">×{gift.count}</span>
@@ -1499,12 +1499,12 @@ const ProfileDetail = () => {
                       className="w-8 h-8 object-contain"
                       onError={(e) => {
                         const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                        if (parent) parent.innerHTML = '<span class="text-2xl">🎁</span>';
+                        if (parent) parent.innerHTML = '';
                       }}
                     />
                   );
                 }
-                return <span className="text-2xl">{selectedGift?.icon || '🎁'}</span>;
+                return <span className="block w-8 h-8" aria-hidden="true" />;
               })()}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
@@ -1717,7 +1717,7 @@ const ProfileDetail = () => {
             senderName: 'You',
             receiverName: profile?.display_name || 'User',
             giftName: gift.name,
-            giftIcon: '🎁',
+            giftIcon: '',
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,
