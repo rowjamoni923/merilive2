@@ -390,6 +390,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [autoPlay, createShaders, muted, volume, loop, soundUrl]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
+    if (resolvedConfigSrc && !configReady) return;
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
@@ -415,7 +416,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       return;
     }
     initWebGL(video, config);
-  }, [config, initWebGL, loop, src]);
+  }, [config, configReady, initWebGL, loop, resolvedConfigSrc, src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !configReady || initializedRef.current || !video.videoWidth) return;
+    handleVideoReady(video);
+  }, [configReady, config, handleVideoReady]);
 
   useEffect(() => {
     return () => {
