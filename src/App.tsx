@@ -645,18 +645,22 @@ const App = () => {
       initWebViewPerformance();
     }
 
+    type IdleWindow = Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
     const idle = (cb: () => void, timeout = 2500) => {
-      const w = window as any;
+      const w = window as IdleWindow;
       if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
       return window.setTimeout(cb, 1200);
     };
     const slowIdle = (cb: () => void, timeout = 2500) => {
-      const w = window as any;
+      const w = window as IdleWindow;
       if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
       return window.setTimeout(cb, timeout);
     };
     const cancelIdle = (id: number) => {
-      const w = window as any;
+      const w = window as IdleWindow;
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
