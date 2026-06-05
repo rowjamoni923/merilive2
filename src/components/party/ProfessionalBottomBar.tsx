@@ -10,6 +10,7 @@ import {
   X,
   Loader2
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
@@ -348,7 +349,7 @@ export function ProfessionalBottomBar({
                 onClick={onOpenGifts}
                 className="flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-gradient-to-br from-pink-600/80 to-red-600/80 border border-pink-400/30"
               >
-                <Gift className="w-6 h-6 text-white" />
+                <BrandedGiftIcon className="w-8 h-8 rounded-md" />
                 <span className="text-[10px] text-white font-medium">Gift</span>
               </Button>
             </motion.div>

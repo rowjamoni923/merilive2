@@ -59,6 +59,7 @@ import {
   Hand,
   Bot,
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -3720,7 +3721,7 @@ const LiveStream = () => {
               animate={{ x: ['-100%', '100%'] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.6 }}
             />
-            <Gift className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+            <BrandedGiftIcon className="w-6 h-6 md:w-7 md:h-7 relative z-10 rounded-md" />
           </motion.button>
 
           {/* More Options Button — Glass orb */}

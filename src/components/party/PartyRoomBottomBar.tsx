@@ -15,6 +15,7 @@ import {
   MoreVertical,
   Send
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -138,7 +139,7 @@ const PartyRoomBottomBar = ({
             onClick={onOpenGiftPanel}
             className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 flex items-center justify-center shadow-xl shadow-pink-500/30"
           >
-            <Gift className="w-6 h-6 text-white" />
+            <BrandedGiftIcon className="w-8 h-8 rounded-md" />
           </motion.button>
         </div>
 

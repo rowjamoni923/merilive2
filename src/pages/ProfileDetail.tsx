@@ -28,6 +28,7 @@ import {
   EyeOff,
   Eye,
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
@@ -1333,7 +1334,7 @@ const ProfileDetail = () => {
                   boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
                 }}
               >
-                <Gift className="w-5 h-5" />
+                <BrandedGiftIcon className="w-6 h-6 rounded-md" />
                 <span>Gift</span>
               </motion.button>
             </div>

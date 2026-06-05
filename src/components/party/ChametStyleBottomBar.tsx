@@ -18,6 +18,7 @@ import {
   Hand,
   Sparkles,
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { cn } from "@/lib/utils";
 import { useState, useCallback } from "react";
 
@@ -275,7 +276,7 @@ export const ChametStyleBottomBar = ({
                     transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-10"
                   >
-                    <Gift className="w-7 h-7 text-white drop-shadow-lg" />
+                    <BrandedGiftIcon className="w-9 h-9 rounded-md drop-shadow-lg" />
                   </motion.div>
                 </motion.div>
                 {/* Breathing aura glow */}
