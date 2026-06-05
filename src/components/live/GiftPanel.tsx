@@ -85,7 +85,10 @@ const warmSelectedVideoGift = (url?: string | null) => {
   try {
     void import('@/components/common/VAPPlayer');
     const video = document.createElement('video');
-    video.preload = 'auto';
+    // Only read metadata for VAP detection. Never use preload="auto" here:
+    // selecting/sending a gift must not start a parallel multi-MB download that
+    // races the actual fullscreen VAP player and causes media ERR_ABORTED.
+    video.preload = 'metadata';
     video.muted = true;
     video.playsInline = true;
     video.crossOrigin = 'anonymous';

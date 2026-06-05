@@ -6,7 +6,7 @@
  *   - SVGA binaries → cached via svgaPrewarm Cache API
  *   - Lottie JSON   → parsed + put in lottieCache
  *   - GIF/WebP/PNG  → handed to the unified image SW (WARM_IMAGES)
- *   - MP4/WebM      → skipped (too big to prefetch eagerly)
+ *   - MP4/WebM      → NEVER prefetched eagerly (too big; can starve the real fullscreen VAP player)
  *
  * Runs once per session, bounded to ~25 assets so memory + bandwidth stay sane.
  */
@@ -71,7 +71,6 @@ export async function prewarmGiftAnimations(): Promise<void> {
     const imageUrls: string[] = [];
     const svgaUrls: string[] = [];
     const lottieUrls: string[] = [];
-    const videoUrls: string[] = [];
     for (const row of rows as any[]) {
       const candidates = [row.svga_url, row.lottie_url, row.animation_url, row.icon_url, row.preview_url].filter(Boolean) as string[];
       for (const url of candidates) {
@@ -79,7 +78,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
           case 'svga': svgaUrls.push(url); break;
           case 'lottie': lottieUrls.push(url); break;
           case 'image': imageUrls.push(url); break;
-          case 'video': videoUrls.push(url); break;
+          case 'video': break;
           default: break;
         }
       }
@@ -104,38 +103,12 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM gift files are large, but for a premium lag-free experience we
-    // warm the top few to the browser's HTTP cache.
-    videoUrls.slice(0, 15).forEach((u) => warmVideoMetadata(u));
+    // IMPORTANT: Do not prewarm MP4/WebM/VAP files. Opening the gift panel used
+    // to start 10–15 large video downloads at once, aborting/racing the actual
+    // fullscreen VAP gift playback in Chat/Live/Party/Call.
   } catch {
     // best-effort only
   }
-}
-
-function warmVideoMetadata(url: string) {
-  if (typeof document === 'undefined') return;
-  try {
-    // For VAP/MP4 gifts, we use 'auto' preload to ensure chunks are in the HTTP cache
-    // so they play instantly without network delay.
-    const v = document.createElement('video');
-    v.preload = 'auto'; 
-    v.muted = true;
-    v.playsInline = true;
-    v.crossOrigin = 'anonymous';
-    v.src = url;
-    
-    // We only need to start the download; once metadata is loaded, 
-    // the browser has established the connection and cached headers.
-    const cleanup = () => { 
-      v.onloadedmetadata = null;
-      v.onerror = null;
-      // Don't fully remove src if we want it to stay in disk cache
-    };
-    
-    v.onloadedmetadata = () => cleanup();
-    v.onerror = () => cleanup();
-    v.load();
-  } catch {}
 }
 
 /**
@@ -151,8 +124,6 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   const svgaUrls: string[] = [];
   const lottieUrls: string[] = [];
   const imageUrls: string[] = [];
-  const videoUrls: string[] = [];
-
   for (const raw of urls) {
     if (!raw || typeof raw !== 'string') continue;
     if (sessionPrewarmed.has(raw)) continue;
@@ -161,7 +132,7 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
       case 'svga': svgaUrls.push(raw); break;
       case 'lottie': lottieUrls.push(raw); break;
       case 'image': imageUrls.push(raw); break;
-      case 'video': videoUrls.push(raw); break;
+      case 'video': break;
       default: break;
     }
   }
@@ -176,5 +147,6 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  videoUrls.slice(0, 10).forEach((u) => warmVideoMetadata(u));
+  // MP4/WebM/VAP intentionally skipped here too. Visible panel prewarm must not
+  // compete with the real fullscreen VAP player for media decoders/network.
 }
