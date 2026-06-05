@@ -142,6 +142,11 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
   useEffect(() => { useVideoFallbackRef.current = useVideoFallback; }, [useVideoFallback]);
 
   useEffect(() => {
+    if (nativeMode === 'active') onLoadRef.current?.();
+  }, [nativeMode]);
+
+
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     video.volume = Math.max(0, Math.min(1, volume));
