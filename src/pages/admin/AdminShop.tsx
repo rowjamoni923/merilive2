@@ -761,16 +761,15 @@ const AdminShop = () => {
                       return <SmartImage src={previewUrl} alt={item.name} cdnWidth={200} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />;
                     }
                     
-                    // Otherwise use animation player for SVGA/Lottie
+                    // Otherwise show a lightweight placeholder — tap the Eye button to preview the animation.
                     const srcUrl = animUrl || previewUrl;
                     if (srcUrl) {
                       return (
-                        <UniversalFramePlayer
-                          src={srcUrl}
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
+                        <div className="w-full h-full flex items-center justify-center bg-slate-800/60 text-white/70">
+                          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden="true">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
                       );
                     }
                     
