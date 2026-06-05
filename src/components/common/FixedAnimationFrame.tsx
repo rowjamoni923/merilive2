@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { SVGADynamicData } from './SVGAPlayer';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
@@ -162,7 +163,6 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   const explicitMismatch =
     !!type && detected !== 'static' && type !== detected && !isValidContainerOverride;
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
-    // eslint-disable-next-line no-console
     console.warn(
       `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
     );
@@ -204,7 +204,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             className="w-full h-full object-contain" 
             onError={() => setImageError(true)}
             loading="eager"
-            {...({ fetchpriority: 'high' } as any)}
+            fetchPriority="high"
           />
         ) : (
           <span className="text-4xl">{fallbackEmoji}</span>
@@ -215,7 +215,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 
   const isFullscreen = size === 'fullscreen' || className?.includes('fixed');
   const wrapperClass = cn(
-    isFullscreen ? 'fixed inset-0 w-screen h-screen' : 'relative shrink-0',
+    isFullscreen ? 'fixed inset-0 w-screen h-screen pointer-events-none' : 'relative shrink-0',
     'overflow-hidden',
     center && !isFullscreen && 'mx-auto',
     BG_CLASSES[background],
@@ -223,7 +223,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   );
   const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
 
-  return (
+  const frameElement = (
     <div className={wrapperClass} style={frameStyle}>
       {/* Placeholder / Icon shown immediately */}
       {placeholderUrl && !imageError && (
@@ -235,7 +235,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           )}
           onError={() => setImageError(true)}
           loading="eager"
-          {...({ fetchpriority: 'high' } as any)}
+          fetchPriority="high"
         />
       )}
 
@@ -296,6 +296,17 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
       </div>
     </div>
   );
+
+  // Fullscreen animations must escape caller stacking/transform contexts.
+  // Any transformed parent (chat sheet, gift panel, room controls, motion wrappers)
+  // makes CSS position:fixed behave like absolute inside that parent, so VAP/MP4
+  // no longer covers the viewport. Portaling to <body> restores true fullscreen
+  // across messages, private calls, live, audio/video/game party, and profiles.
+  if (isFullscreen && typeof document !== 'undefined') {
+    return createPortal(frameElement, document.body);
+  }
+
+  return frameElement;
 };
 
 export default FixedAnimationFrame;
