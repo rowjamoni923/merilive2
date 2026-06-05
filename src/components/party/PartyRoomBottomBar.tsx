@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageCircle, 
   Gamepad2, 
-  Gift, 
   X,
   Mic,
   MicOff,
@@ -138,7 +137,7 @@ const PartyRoomBottomBar = ({
             onClick={onOpenGiftPanel}
             className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 flex items-center justify-center shadow-xl shadow-pink-500/30"
           >
-            <Gift className="w-6 h-6 text-white" />
+            <span className="text-[10px] font-black uppercase tracking-wide text-white">Gift</span>
           </motion.button>
         </div>
 
