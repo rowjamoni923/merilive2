@@ -15,7 +15,7 @@ import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +63,6 @@ import { messageOutbox, type OutboxItem } from "@/lib/messageOutbox";
 import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
-import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
