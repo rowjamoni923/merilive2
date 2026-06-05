@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Gift, TrendingUp, Crown, Star } from "lucide-react";
+import { X, TrendingUp, Crown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
@@ -242,7 +242,7 @@ export function GiftContributorsPanel({
                       boxShadow: '0 6px 18px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
                     }}
                   >
-                    <Gift className="w-5 h-5 text-white relative z-10" />
+                    <span className="relative z-10 text-[10px] font-black uppercase tracking-wide text-white">Gift</span>
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
@@ -315,7 +315,7 @@ export function GiftContributorsPanel({
                 ) : contributors.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-3">
-                      <Gift className="w-8 h-8 text-white/30" />
+                      <span className="text-[11px] font-black uppercase tracking-wide text-white/50">Gift</span>
                     </div>
                     <p className="text-white/70 text-sm font-medium">No gifts yet</p>
                     <p className="text-white/40 text-xs mt-1">Be the first to send a gift!</p>
