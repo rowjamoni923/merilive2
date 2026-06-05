@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { SVGADynamicData } from './SVGAPlayer';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
@@ -223,7 +224,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   );
   const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
 
-  return (
+  const frameElement = (
     <div className={wrapperClass} style={frameStyle}>
       {/* Placeholder / Icon shown immediately */}
       {placeholderUrl && !imageError && (
@@ -296,6 +297,17 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
       </div>
     </div>
   );
+
+  // Fullscreen animations must escape caller stacking/transform contexts.
+  // Any transformed parent (chat sheet, gift panel, room controls, motion wrappers)
+  // makes CSS position:fixed behave like absolute inside that parent, so VAP/MP4
+  // no longer covers the viewport. Portaling to <body> restores true fullscreen
+  // across messages, private calls, live, audio/video/game party, and profiles.
+  if (isFullscreen && typeof document !== 'undefined') {
+    return createPortal(frameElement, document.body);
+  }
+
+  return frameElement;
 };
 
 export default FixedAnimationFrame;
