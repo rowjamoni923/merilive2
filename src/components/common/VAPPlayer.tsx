@@ -35,11 +35,15 @@ const getAutoVapRects = (video: HTMLVideoElement) => {
   const layout = detectVapLayout(video);
   if (layout === 'alpha-top' || layout === 'alpha-bottom') {
     // Top-Bottom Stacked
+    // If layout is alpha-top, then Alpha is in [0, 0, 1, 0.5] and RGB is in [0, 0.5, 1, 0.5]
     if (layout === 'alpha-top') return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
+    // If layout is alpha-bottom, then RGB is in [0, 0, 1, 0.5] and Alpha is in [0, 0.5, 1, 0.5]
     return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
   }
   // Side-by-Side
+  // If layout is alpha-left, then Alpha is in [0, 0, 0.5, 1] and RGB is in [0.5, 0, 0.5, 1]
   if (layout === 'alpha-left') return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+  // If layout is alpha-right, then RGB is in [0, 0, 0.5, 1] and Alpha is in [0.5, 0, 0.5, 1]
   return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
 };
 
