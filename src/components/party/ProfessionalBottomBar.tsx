@@ -11,6 +11,7 @@ import {
   Loader2
 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
@@ -229,7 +230,7 @@ export function ProfessionalBottomBar({
                     className="flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-gradient-to-br from-purple-600/80 to-pink-600/80 border border-purple-400/30"
                   >
                     <div className="relative">
-                      <Gamepad2 className="w-6 h-6 text-white" />
+                      <BrandedGameIcon className="w-8 h-8" />
                       <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                     </div>
                     <span className="text-[10px] text-white font-medium">Games</span>
@@ -262,7 +263,7 @@ export function ProfessionalBottomBar({
                         boxShadow: '0 10px 40px rgba(168, 85, 247, 0.4)'
                       }}
                     >
-                      <Gamepad2 className="w-7 h-7 text-white" />
+                      <BrandedGameIcon className="w-9 h-9" />
                     </motion.div>
                     <div>
                       <h2 className="text-xl font-bold text-white flex items-center gap-2">

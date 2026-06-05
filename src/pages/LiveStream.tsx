@@ -60,6 +60,8 @@ import {
   Bot,
 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
+import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -3637,7 +3639,7 @@ const LiveStream = () => {
             }}
           >
             <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-            <Gamepad2 className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+            <BrandedGameIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
           </motion.button>
 
           {isHost && (
@@ -3664,7 +3666,7 @@ const LiveStream = () => {
               {isHostMicMuted ? (
                 <MicOff className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
               ) : (
-                <Mic className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+                <BrandedVoiceIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
               )}
             </motion.button>
           )}

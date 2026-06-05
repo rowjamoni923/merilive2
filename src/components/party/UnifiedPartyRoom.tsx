@@ -23,6 +23,8 @@ import {
   Smile
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
+import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -1749,7 +1751,7 @@ export function UnifiedPartyRoom({
                 : "bg-gradient-to-r from-green-500 to-emerald-500"
             )}
           >
-            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
+            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <BrandedVoiceIcon className="w-6 h-6" />}
           </motion.button>
 
           {/* Game Button — Opens Game Selection for ALL room types */}
@@ -1770,7 +1772,7 @@ export function UnifiedPartyRoom({
                 : "bg-gradient-to-r from-purple-500 to-violet-600"
             )}
           >
-            <Gamepad2 className="w-4 h-4" />
+            <BrandedGameIcon className="w-6 h-6" />
           </motion.button>
 
           {/* Beauty Button — only for video/game (cameras). Hidden on mobile; available in Settings panel */}
