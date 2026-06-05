@@ -161,7 +161,7 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
+    emoji: emojiMatch?.[1] && emojiMatch[1] !== '🎁' && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
