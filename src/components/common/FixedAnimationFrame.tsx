@@ -211,8 +211,59 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     className,
   );
 
+  // Lazy / play-on-tap: do not mount the heavy player until the user taps.
+  if (playOnClick && !activated) {
+    return (
+      <div
+        className={cn(wrapperClass, 'cursor-pointer group/play')}
+        style={frameStyle}
+        role="button"
+        tabIndex={0}
+        aria-label="Tap to play preview"
+        onClick={(e) => { e.stopPropagation(); setActivated(true); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActivated(true);
+          }
+        }}
+      >
+        {posterUrl ? (
+          <img
+            src={posterUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted/30 text-3xl select-none">
+            {fallbackEmoji}
+          </div>
+        )}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-10 h-10 rounded-full bg-black/55 backdrop-blur-[2px] flex items-center justify-center transition-transform group-hover/play:scale-110">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white translate-x-[1px]" fill="currentColor" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={wrapperClass} style={frameStyle}>
+      {playOnClick && (
+        <button
+          type="button"
+          aria-label="Stop preview"
+          onClick={(e) => { e.stopPropagation(); setActivated(false); }}
+          className="absolute top-1 right-1 z-10 w-6 h-6 rounded-full bg-black/55 text-white flex items-center justify-center text-xs leading-none"
+        >
+          ×
+        </button>
+      )}
       {useAudioPlayer ? (
         <Suspense
           fallback={
