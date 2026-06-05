@@ -84,6 +84,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
+  const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,14 +116,24 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   useEffect(() => {
     // Pkg: Use a cached fetch for VAP configs to ensure instant load on repeat sends
-    const jsonPath = resolvedConfigSrc || resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
+    const jsonPath = resolvedConfigSrc || (/\.(mp4|webm)(\?|#|$)/i.test(resolvedSrc)
+      ? resolvedSrc.replace(/\.(mp4|webm)(?=\?|#|$)/i, '.json')
+      : '');
+    if (!jsonPath) {
+      setConfig(null);
+      return;
+    }
     
     const fetchConfig = async () => {
       try {
         const res = await fetch(jsonPath);
         if (res.ok) {
           const data = await res.json();
-          if (mountedRef.current) setConfig(data.info || data);
+          if (mountedRef.current) {
+            const nextConfig = data.info || data;
+            if (nextConfig?.rgbFrame && nextConfig?.aFrame) setConfig(nextConfig);
+            else setConfig(null);
+          }
         } else {
           if (mountedRef.current) setConfig(null);
         }
@@ -215,6 +226,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
+      webglPaintedRef.current = true;
       setWebglPainted(true);
       onLoadRef.current?.();
       return;
@@ -298,14 +310,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.ended && v.readyState >= 2 && v.videoWidth > 0 && (v.currentTime !== lastVideoTimeRef.current || !webglPainted)) {
+      if (!v.ended && v.readyState >= 2 && v.videoWidth > 0 && (v.currentTime !== lastVideoTimeRef.current || !webglPaintedRef.current)) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          if (!webglPainted) setWebglPainted(true);
+          if (!webglPaintedRef.current) {
+            webglPaintedRef.current = true;
+            setWebglPainted(true);
+          }
         } catch (e) {
           console.warn('[VAPPlayer] WebGL render error, falling back:', e);
           setUseVideoFallback(true);
@@ -314,7 +329,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       }
 
       // Safety: If video is playing but canvas isn't painted yet, force paint check
-      if (v.currentTime > 0 && !webglPainted && !v.paused) {
+      if (v.currentTime > 0 && !webglPaintedRef.current && !v.paused) {
+        webglPaintedRef.current = true;
         setWebglPainted(true);
       }
 
@@ -369,19 +385,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     onLoadRef.current?.();
   }, [autoPlay, createShaders, muted, volume, loop]);
 
-  const configRef = useRef<VAPConfig | null>(null);
-  useEffect(() => { configRef.current = config; }, [config]);
-
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
-    // Pkg423: read config from ref so we always pick up the JSON if it has
-    // already arrived by the time `onLoadedData` fires. (Reading from the
-    // closure-captured state caused the second VAP gift to init in the
-    // wrong rendering mode when the JSON resolved a tick later.)
-    const cfg = configRef.current ?? config;
-    const isComposite = !!cfg || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
-
+    const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
+    
     // Pkg-fix: Add safety completion timer for non-looping VAP
     // If the video ended event doesn't fire, we force completion after duration + 1s.
     if (!loop) {
@@ -405,23 +413,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       onLoadRef.current?.();
       return;
     }
-    initWebGL(video, cfg);
+    initWebGL(video, config);
   }, [config, initWebGL, loop, src]);
-
-  // Pkg423: If the JSON config arrives AFTER the video already initialised
-  // (race between fetch() and <video> onLoadedData), re-run init with the
-  // proper VAPX rectangles so the gift renders correctly.
-  useEffect(() => {
-    if (!config) return;
-    const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
-    if (!initializedRef.current) return;
-    initializedRef.current = false;
-    setWebglPainted(false);
-    setUseVideoFallback(false);
-    handleVideoReady(video);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
 
   useEffect(() => {
     return () => {

@@ -97,86 +97,78 @@ Deno.serve(async (req) => {
       });
     }
 
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false } },
+    );
 
-    // Pkg423: STREAM the storage object directly (no 302 redirect).
-    // Why: a redirect forces the <video> element to do TWO CORS preflights
-    // (proxy + storage). Under preload-flood (many VAP gifts in the panel)
-    // the second preflight is often ERR_ABORTED, the texture upload fails,
-    // and the next VAP gift never plays. Streaming = ONE response, one
-    // CORS context, full Range/Accept-Ranges pass-through so WebGL
-    // texture2D + <video> seeking both work reliably.
-
+    // The incoming `path` from the proxy URL already has the form "gifts/some/file.ext"
+    // or just "some/file.ext". We want to be smart about finding it in the `gifts` bucket.
     const pathWithoutGiftsPrefix = path.replace(/^gifts\//, "");
-    const candidateKeys = [
+    
+    // We'll try these keys in the `gifts` bucket in order:
+    // 1. The full path (e.g. "gifts/pro/file.mp4")
+    // 2. The path without "gifts/" (e.g. "pro/file.mp4")
+    // 3. The path with "gifts/legacy-chat-media/" (for backward compatibility).
+    // IMPORTANT: never answer a .json config request with the .mp4 file. VAP
+    // players probe vapc.json; returning video/mp4 there makes JSON parsing fail.
+    const searchKeys = [
+      path,
       pathWithoutGiftsPrefix,
-      pathWithoutGiftsPrefix.replace(/\.json$/i, ".mp4"),
       `legacy-chat-media/${pathWithoutGiftsPrefix}`,
-    ].filter((k, i, arr) => k && arr.indexOf(k) === i);
+    ];
 
-    // Forward Range header so the browser can seek/byte-range fetch.
-    const range = req.headers.get("range");
-    const upstreamHeaders: Record<string, string> = {
-      apikey: SERVICE_ROLE,
-      Authorization: `Bearer ${SERVICE_ROLE}`,
-    };
-    if (range) upstreamHeaders["Range"] = range;
-
-    let upstream: Response | null = null;
+    let foundData = null;
     let foundKey = "";
-    for (const key of candidateKeys) {
-      const encodedKey = key.split("/").map(encodeURIComponent).join("/");
-      // Use the authenticated storage endpoint so private/public both work,
-      // and so we never depend on the bucket being public.
-      const objectUrl = `${SUPABASE_URL}/storage/v1/object/gifts/${encodedKey}`;
-      const resp = await fetch(objectUrl, { method: req.method, headers: upstreamHeaders });
-      if (resp.ok || resp.status === 206) {
-        upstream = resp;
+
+    for (const key of searchKeys) {
+      if (!key) continue;
+      const { data, error } = await supabase.storage.from("gifts").download(key);
+      if (data && !error) {
+        foundData = data;
         foundKey = key;
         break;
       }
-      // Drain to free the connection.
-      try { await resp.body?.cancel(); } catch { /* noop */ }
     }
 
-    // Legacy fallback: chat-media bucket.
-    if (!upstream) {
-      const encodedKey = path.split("/").map(encodeURIComponent).join("/");
-      const legacyUrl = `${SUPABASE_URL}/storage/v1/object/chat-media/${encodedKey}`;
-      const resp = await fetch(legacyUrl, { method: req.method, headers: upstreamHeaders });
-      if (resp.ok || resp.status === 206) {
-        upstream = resp;
-        foundKey = path;
-      } else {
-        try { await resp.body?.cancel(); } catch { /* noop */ }
-      }
+    if (foundData) {
+      const encodedKey = foundKey.split("/").map(encodeURIComponent).join("/");
+      const redirectUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${encodedKey}`;
+      
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": redirectUrl,
+          "Cache-Control": "public, max-age=604800, immutable",
+          "X-Gift-Public-Url": redirectUrl,
+        },
+      });
     }
 
-    if (!upstream) {
+    // 3) Legacy fallback: chat-media bucket
+    const { data, error } = await supabase.storage.from("chat-media").download(path);
+    if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const ext = (foundKey.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
-    const contentType = usefulMimeType(upstream.headers.get("content-type")) || MIME[ext] || "application/octet-stream";
+    const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+    const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
+    const body = req.method === "HEAD" ? null : data;
 
-    const outHeaders: Record<string, string> = {
-      ...corsHeaders,
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=604800, immutable",
-      "Accept-Ranges": "bytes",
-    };
-    const contentLength = upstream.headers.get("content-length");
-    if (contentLength) outHeaders["Content-Length"] = contentLength;
-    const contentRange = upstream.headers.get("content-range");
-    if (contentRange) outHeaders["Content-Range"] = contentRange;
-
-    return new Response(req.method === "HEAD" ? null : upstream.body, {
-      status: upstream.status,
-      headers: outHeaders,
+    return new Response(body, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": contentType,
+        "Content-Length": String(data.size),
+        "Cache-Control": "public, max-age=604800, immutable",
+        "Accept-Ranges": "bytes",
+      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Gift media proxy failed";

@@ -774,12 +774,12 @@ const Chat = () => {
     playSoundDebounced('gift');
     
     // Show gift animation IMMEDIATELY
-    const giftEmoji = gift.icon_url || gift.animation_url || '';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
+    const giftEmoji = iconUrl || '🎁';
     const giftMediaUrl = animationUrl || iconUrl;
-    const giftSoundUrl = normalizeGiftMediaUrl((gift as any).sound_url) || '';
-    const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
+    const giftSoundUrl = normalizeGiftMediaUrl(gift.sound_url) || '';
+    const giftAnimationFormat = detectProfessionalAnimationFormat(giftMediaUrl, gift.animation_format) || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
     const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
