@@ -512,6 +512,32 @@ const AgencyPolicy = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Commission Policy (admin "commission" section) */}
+              {commissionItems.length > 0 && (
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 text-success-600" />
+                      </div>
+                      Commission Policy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2.5">
+                      {commissionItems.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-success-100 text-success-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
+                            {idx + 1}
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             {/* Host Tab */}
