@@ -4,6 +4,7 @@ import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
   v: number;           // version
