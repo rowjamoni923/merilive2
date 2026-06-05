@@ -199,7 +199,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-2 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -217,43 +217,50 @@ const ShopItemCard = ({
           // only plays in the detail/full-screen modal. Keeps grid lag-free.
           if (previewIsStatic && !imageError) {
             return (
-              <img
-                src={item.preview_url!}
-                alt={item.name}
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: 'high' } as any)}
-                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-                onError={() => setImageError(true)}
-              />
-            );
-          }
-
-          // No static preview icon — fall back to playing the full animation.
-          if (animSrc && isAnimatedType(animType) && !imageError) {
-            return (
-              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
-                <FixedAnimationFrame
-                  src={animSrc}
-                  type={animType as any}
-                  configSrc={item.animation_config_url || undefined}
-                  size="fill"
-                  loop
-                  autoPlay
-                  muted
-                  center={false}
+              <div className="absolute inset-0 flex items-center justify-center p-2">
+                <img
+                  src={item.preview_url!}
+                  alt={item.name}
+                  loading="eager"
+                  decoding="async"
+                  {...({ fetchpriority: 'high' } as any)}
+                  className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                  style={{ margin: 'auto' }}
                   onError={() => setImageError(true)}
                 />
               </div>
             );
           }
 
+          // No static preview icon — fall back to playing the full animation.
+          if (animSrc && isAnimatedType(animType) && !imageError) {
+            return (
+              <div className="absolute inset-0 flex items-center justify-center p-2">
+                <div className="w-full h-full flex items-center justify-center">
+                  <FixedAnimationFrame
+                    src={animSrc}
+                    type={animType as any}
+                    configSrc={item.animation_config_url || undefined}
+                    size="fill"
+                    loop
+                    autoPlay
+                    muted
+                    center
+                    onError={() => setImageError(true)}
+                  />
+                </div>
+              </div>
+            );
+          }
+
           return (
-            <div
-              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
-              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
-            >
-              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
+                style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+              >
+                <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
+              </div>
             </div>
           );
         })()}
@@ -713,10 +720,11 @@ const Shop = () => {
                     }
                     if (selectedItem.preview_url || animSrc) {
                       return (
-                        <img loading="lazy" decoding="async"
+                        <img loading="eager" decoding="async" {...({ fetchpriority: 'high' } as any)}
                           src={selectedItem.preview_url || animSrc}
                           alt={selectedItem.name}
-                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          className={`max-w-[90%] max-h-[90%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          style={{ margin: 'auto' }}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       );
