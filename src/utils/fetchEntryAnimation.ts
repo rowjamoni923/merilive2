@@ -41,6 +41,11 @@ function setCache(key: string, value: string | undefined) {
     if (firstKey) animationCache.delete(firstKey);
   }
   animationCache.set(key, { value, timestamp: Date.now() });
+  // Pkg424: any cached URL → warm into HTTP cache for instant first play.
+  // Skip JSON-serialized payloads (key starts with `entry:` writes a JSON blob).
+  if (value && typeof value === 'string' && !key.startsWith('entry:') && (value.startsWith('http') || value.startsWith('/'))) {
+    warmupVapUrls([value]);
+  }
 }
 
 export function clearEntryAnimationCache(): void {
