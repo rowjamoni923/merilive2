@@ -61,6 +61,36 @@ async function clearStaleRuntimeCaches() {
   } catch {
     // best-effort only
   }
+
+  // CRITICAL: after a deploy the cached app-shell `index.html` references
+  // chunk hashes that no longer exist on origin. Asset-cache wipe alone is
+  // not enough — the navigation cache and the SW itself keep serving the
+  // stale shell, looping the chunk-load error forever. Unregister every SW
+  // so the next reload fetches a fresh index from origin directly.
+  try {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((reg) => reg.unregister().catch(() => false)));
+    }
+  } catch {
+    // best-effort only
+  }
+}
+
+/**
+ * Force a clean reload that cannot be satisfied by any HTTP / SW cache layer.
+ * Appends a cache-busting query so the origin must return a fresh index.html
+ * with the current asset manifest.
+ */
+export function hardReloadForChunkRecovery() {
+  if (typeof window === 'undefined') return;
+  try {
+    const u = new URL(window.location.href);
+    u.searchParams.set('_cb', String(Date.now()));
+    window.location.replace(u.toString());
+  } catch {
+    try { window.location.reload(); } catch { /* noop */ }
+  }
 }
 
 const MAX_RECOVERIES_PER_MODULE = 1;
