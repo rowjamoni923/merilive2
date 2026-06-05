@@ -213,7 +213,7 @@ export function AdvancedPartyBottomBar({
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-              <Gift className="w-7 h-7 text-white relative z-10 drop-shadow-lg" />
+              <BrandedGiftIcon className="w-9 h-9 relative z-10 rounded-md drop-shadow-lg" />
             </div>
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.1, 0.35] }}
