@@ -44,16 +44,13 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 };
 
 const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapLayout(video) || 'alpha-left';
-  // User explicitly confirmed: Left side (0, 0, 0.5, 1) is the alpha layer (behind).
-  // Right side (0.5, 0, 0.5, 1) is the RGB gift that should play.
-  switch (layout) {
-    case 'alpha-left': return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
-    case 'alpha-right': return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
-    case 'alpha-top': return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
-    case 'alpha-bottom': return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
-    default: return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+  const layout = detectVapLayout(video);
+  // User confirmed: Left side is Alpha layer (mask), Right side is RGB gift.
+  // This matches standard Tencent VAP 2:1 side-by-side or stacked exports.
+  if (layout === 'alpha-top' || layout === 'alpha-bottom') {
+    return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] }; // Top RGB, Bottom Alpha
   }
+  return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }; // Right RGB, Left Alpha
 };
 
 const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
@@ -227,10 +224,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
-        // High-precision sampling with slight inset to avoid edge artifacts
+        // High-precision sampling for 4K and professional animations
         float edgeInset = 0.0001; 
         
-        // Calculate RGB coordinates from the RGB rect (usually the right or top half)
+        // Map current texture coordinate to RGB gift area
         vec2 rgbCoord = vec2(
           u_rgbRect.x + v_texCoord.x * u_rgbRect.z,
           u_rgbRect.y + v_texCoord.y * u_rgbRect.w
@@ -238,7 +235,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         rgbCoord = clamp(rgbCoord, u_rgbRect.xy + edgeInset, u_rgbRect.xy + u_rgbRect.zw - edgeInset);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
         
-        // Calculate Alpha coordinates from the alpha mask rect (usually the left or bottom half)
+        // Map current texture coordinate to Alpha mask area
         vec2 alphaCoord = vec2(
           u_alphaRect.x + v_texCoord.x * u_alphaRect.z,
           u_alphaRect.y + v_texCoord.y * u_alphaRect.w
@@ -246,11 +243,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord = clamp(alphaCoord, u_alphaRect.xy + edgeInset, u_alphaRect.xy + u_alphaRect.zw - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Standard VAP transparency: RGB color from RGB area, Alpha from R channel of Alpha area
-        // We use max(r, g, b) for the mask to ensure better extraction of the alpha layer
+        // Professional VAP Transparency Extraction:
+        // RGB is the pure color data.
+        // Alpha is extracted from the Grey/R channel of the mask area.
         float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
         
-        // Output final professional transparent pixel
+        // Final composite: Output RGB with correct transparency mask
         gl_FragColor = vec4(rgbColor.rgb, alphaValue);
       }
     `;

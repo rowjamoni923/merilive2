@@ -93,11 +93,12 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
         return null; 
       }
 
-      // Fallback based on aspect ratio if detection is fuzzy but one quadrant is notably "maskier"
+      // Fallback based on aspect ratio if detection is fuzzy
       const ratio = width / height;
-      if (ratio > 1.5) return 'alpha-right';
-      if (ratio < 0.7) return 'alpha-bottom';
-      return 'alpha-right'; 
+      if (ratio > 1.5) return 'alpha-left'; // Side-by-side: Alpha Left, RGB Right
+      if (ratio < 0.7) return 'alpha-bottom'; // Stacked: Alpha Bottom, RGB Top
+      return 'alpha-left'; 
+
     }
   } catch {
     // Ignore cross-origin issues
