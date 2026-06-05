@@ -398,13 +398,8 @@ const Chat = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const translateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Gift Animation State
-  const [showGiftAnimation, setShowGiftAnimation] = useState(false);
-  const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
-  const [animatingGiftFormat, setAnimatingGiftFormat] = useState<string | null>(null);
-  const [animatingGiftConfigUrl, setAnimatingGiftConfigUrl] = useState<string | null>(null);
-  const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
-  const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
+  // Gift Animation State — use the same fullscreen renderer as Live/Party/Profile.
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
