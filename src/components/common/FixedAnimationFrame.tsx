@@ -116,7 +116,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   className,
   center = true,
   background = 'none',
-  fallbackEmoji = '🎁',
+  fallbackEmoji = '',
   soundUrl = null,
   debug,
   debugTag,
