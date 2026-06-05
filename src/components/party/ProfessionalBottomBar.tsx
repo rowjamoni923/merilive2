@@ -10,6 +10,7 @@ import {
   X,
   Loader2
 } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
