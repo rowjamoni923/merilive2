@@ -3411,15 +3411,16 @@ const Chat = () => {
           />
 
           {/* Gift Emoji Animation */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {showGiftAnimation && animatingGiftEmoji && (
               <GiftEmojiAnimation
-                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
+                key={`gift-anim-container-${giftAnimationInstance}`}
                 emoji={animatingGiftEmoji}
                 animationFormat={animatingGiftFormat}
                 animationConfigUrl={animatingGiftConfigUrl}
                 soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
+                  console.log('[Chat] Gift animation finished state cleanup');
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
                   setAnimatingGiftFormat(null);
