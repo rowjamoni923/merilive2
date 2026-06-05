@@ -263,7 +263,7 @@ export function ProfessionalBottomBar({
                         boxShadow: '0 10px 40px rgba(168, 85, 247, 0.4)'
                       }}
                     >
-                      <Gamepad2 className="w-7 h-7 text-white" />
+                      <BrandedGameIcon className="w-9 h-9" />
                     </motion.div>
                     <div>
                       <h2 className="text-xl font-bold text-white flex items-center gap-2">
