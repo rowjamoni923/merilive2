@@ -79,6 +79,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
+  const [configReady, setConfigReady] = useState(false);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
@@ -113,22 +114,44 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [volume, muted, resolvedSrc]);
 
   useEffect(() => {
+    let cancelled = false;
+    initializedRef.current = false;
+    completedRef.current = false;
+    lastVideoTimeRef.current = -1;
+    webglPaintedRef.current = false;
+    useVideoFallbackRef.current = false;
+    setConfig(null);
+    setConfigReady(false);
+    setError(null);
+    setLoading(true);
+    setWebglPainted(false);
+    setUseVideoFallback(false);
+
     if (resolvedConfigSrc) {
       fetch(resolvedConfigSrc)
         .then(res => res.json())
         .then(data => {
+          if (cancelled) return;
           setConfig(data.info || data);
         })
         .catch(err => {
           console.warn('[VAPPlayer] Config load failed, using defaults:', err);
+        })
+        .finally(() => {
+          if (!cancelled) setConfigReady(true);
         });
     } else {
+      setConfigReady(true);
       const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => setConfig(data.info || data))
+        .then(data => {
+          if (!cancelled) setConfig(data.info || data);
+        })
         .catch(() => setConfig(null));
     }
+
+    return () => { cancelled = true; };
   }, [resolvedSrc, resolvedConfigSrc]);
 
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
