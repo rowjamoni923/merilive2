@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import defaultBanner from "@/assets/invitation-banner.jpg";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface LeaderboardEntry {
   rank: number;
@@ -48,9 +49,13 @@ interface InvitedUser {
 
 const Invitation = () => {
   const navigate = useNavigate();
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [invitationTiers, setInvitationTiers] = useState<InvitationTier[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lbCache, setLbCache, hadLbCache] = usePersistedCache<LeaderboardEntry[]>("invitation:leaderboard", []);
+  const [tiersCache, setTiersCache, hadTiersCache] = usePersistedCache<InvitationTier[]>("invitation:tiers", []);
+  const leaderboard = lbCache ?? [];
+  const invitationTiers = tiersCache ?? [];
+  const setLeaderboard = (next: LeaderboardEntry[]) => setLbCache(next);
+  const setInvitationTiers = (next: InvitationTier[]) => setTiersCache(next);
+  const [loading, setLoading] = useState(!(hadLbCache && hadTiersCache));
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [myRank, setMyRank] = useState<LeaderboardEntry | null>(null);
   const [shareLink, setShareLink] = useState("");

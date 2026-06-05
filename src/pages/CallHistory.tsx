@@ -10,6 +10,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface CallRecord {
   id: string;
@@ -40,8 +41,11 @@ interface CallRecord {
 
 const CallHistory = () => {
   const navigate = useNavigate();
-  const [calls, setCalls] = useState<CallRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [callsCache, setCallsCache, hadCallsCache] = usePersistedCache<CallRecord[]>("callHistory:list", []);
+  const calls = callsCache ?? [];
+  const setCalls = (next: CallRecord[] | ((prev: CallRecord[]) => CallRecord[])) =>
+    setCallsCache((prev) => (typeof next === 'function' ? (next as any)(prev ?? []) : next));
+  const [loading, setLoading] = useState(!hadCallsCache);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("/profile");
   const [isHost, setIsHost] = useState(false);
