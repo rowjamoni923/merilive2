@@ -30,6 +30,7 @@ import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 
 
 interface ActiveCallScreenProps {
@@ -396,6 +397,7 @@ export function ActiveCallScreen({
       // or call gifts double-deduct the app-wide diamond cache.
       userCoinsRef.current = Math.max(0, availableCoins - totalCost);
       setUserCoins(userCoinsRef.current);
+      warmGiftForInstantPlay(gift as any);
 
       // Show local animation immediately; the receiver gets the LiveKit packet
       // from sendGift's optimistic path without waiting for the DB round-trip.
