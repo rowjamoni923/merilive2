@@ -119,31 +119,32 @@ Deno.serve(async (req) => {
       `legacy-chat-media/${pathWithoutGiftsPrefix}`,
     ];
 
-    let foundData = null;
-    let foundKey = "";
-
     for (const key of searchKeys) {
       if (!key) continue;
-      const { data, error } = await supabase.storage.from("gifts").download(key);
-      if (data && !error) {
-        foundData = data;
-        foundKey = key;
-        break;
-      }
-    }
-
-    if (foundData) {
-      const encodedKey = foundKey.split("/").map(encodeURIComponent).join("/");
-      const redirectUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${encodedKey}`;
-      
-      return new Response(null, {
-        status: 302,
+      const encodedKey = key.split("/").map(encodeURIComponent).join("/");
+      const upstream = await fetch(`${Deno.env.get("SUPABASE_URL")}/storage/v1/object/gifts/${encodedKey}`, {
+        method: req.method,
         headers: {
-          ...corsHeaders,
-          "Location": redirectUrl,
-          "Cache-Control": "public, max-age=604800, immutable",
-          "X-Gift-Public-Url": redirectUrl,
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          ...(req.headers.get("range") ? { "Range": req.headers.get("range")! } : {}),
         },
+      });
+      if (upstream.status === 404 || upstream.status === 400) continue;
+
+      const ext = (key.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+      const contentType = usefulMimeType(upstream.headers.get("content-type")) || MIME[ext] || "application/octet-stream";
+      const headers = new Headers(corsHeaders);
+      headers.set("Content-Type", contentType);
+      headers.set("Cache-Control", "public, max-age=604800, immutable");
+      headers.set("Accept-Ranges", upstream.headers.get("accept-ranges") || "bytes");
+      for (const h of ["content-length", "content-range", "etag", "last-modified"]) {
+        const value = upstream.headers.get(h);
+        if (value) headers.set(h, value);
+      }
+      return new Response(req.method === "HEAD" ? null : upstream.body, {
+        status: upstream.status,
+        headers,
       });
     }
 
