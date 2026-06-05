@@ -6,7 +6,7 @@
  *   - SVGA binaries → cached via svgaPrewarm Cache API
  *   - Lottie JSON   → parsed + put in lottieCache
  *   - GIF/WebP/PNG  → handed to the unified image SW (WARM_IMAGES)
- *   - MP4/WebM      → skipped (too big to prefetch eagerly)
+ *   - MP4/WebM/VAP  → top files warmed into HTTP cache for instant first play
  *
  * Runs once per session, bounded to ~25 assets so memory + bandwidth stay sane.
  */
@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA, prewarmPopularAssets } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
 import { markVapCompositeHint } from '@/utils/vapDetection';
+import { warmupVapUrls } from '@/utils/vapWarmup';
 
 const MAX_GIFTS = 60;
 let started = false;
@@ -104,9 +105,11 @@ export async function prewarmGiftAnimations(): Promise<void> {
       lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
     );
 
-    // MP4/WebM gift files are large, so only warm browser metadata for the top
-    // few. This primes the HTTP cache + VAP hint without downloading every gift.
-    videoUrls.slice(0, 6).forEach((u) => warmVideoMetadata(u));
+    // MP4/WebM/VAP files caused the real first-play delay. Warm only the most
+    // popular few fully into HTTP cache; metadata warm keeps the decoder ready.
+    const criticalVideos = videoUrls.slice(0, 10);
+    warmupVapUrls(criticalVideos);
+    criticalVideos.forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
   }
@@ -166,5 +169,7 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  videoUrls.slice(0, 4).forEach((u) => warmVideoMetadata(u));
+  const criticalVideos = videoUrls.slice(0, 8);
+  warmupVapUrls(criticalVideos);
+  criticalVideos.forEach((u) => warmVideoMetadata(u));
 }
