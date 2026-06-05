@@ -15,7 +15,9 @@ const postServiceWorkerWarm = (url: string) => {
   try {
     const sw = navigator.serviceWorker?.controller;
     if (sw) sw.postMessage({ type: 'WARM_GIFT_MEDIA', urls: [url] });
-  } catch {}
+  } catch {
+    return;
+  }
 };
 
 const trimWarmPool = () => {
@@ -28,7 +30,9 @@ const trimWarmPool = () => {
       video?.pause();
       video?.removeAttribute('src');
       video?.load();
-    } catch {}
+    } catch {
+      return;
+    }
   }
 };
 
@@ -66,7 +70,7 @@ export function prewarmGiftVideo(url?: string | null, options: { eager?: boolean
       video.onerror = () => {
         warmedVideos.delete(normalized);
         inFlight.delete(normalized);
-        try { video.removeAttribute('src'); video.load(); } catch {}
+        try { video.removeAttribute('src'); video.load(); } catch { return; }
       };
       window.setTimeout(done, 7000);
       video.load();
