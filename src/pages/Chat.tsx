@@ -1476,12 +1476,28 @@ const Chat = () => {
     if (playSoundEffect) playSoundDebounced('gift');
 
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
-    setAnimatingGiftEmoji(mediaUrl || emoji);
-    setAnimatingGiftFormat(animationFormat || parsedFormat || null);
-    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
-    setAnimatingGiftSound(soundUrl);
-    setGiftAnimationInstance(prev => prev + 1);
-    setShowGiftAnimation(true);
+    const details = parseGiftAnimationDetails(content || '');
+    const isMine = senderId === currentUserId;
+    addFlyingGift({
+      senderId: senderId || undefined,
+      senderName: isMine ? (myProfile?.display_name || 'You') : (selectedConversationRef.current?.other_user?.display_name || 'User'),
+      senderAvatar: isMine ? (myProfile?.avatar_url || undefined) : (selectedConversationRef.current?.other_user?.avatar_url || undefined),
+      receiverName: isMine ? (selectedConversationRef.current?.other_user?.display_name || 'User') : (myProfile?.display_name || 'You'),
+      receiverAvatar: isMine ? (selectedConversationRef.current?.other_user?.avatar_url || undefined) : (myProfile?.avatar_url || undefined),
+      giftName: details.name,
+      giftIcon: mediaUrl || emoji,
+      giftImageUrl: mediaUrl || undefined,
+      animationUrl: mediaUrl || undefined,
+      animationFormat: animationFormat || parsedFormat || null,
+      animationConfigUrl: normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || undefined,
+      soundUrl: soundUrl || undefined,
+      giftColor: 'from-pink-500 to-purple-500',
+      count: details.count,
+      coins: details.diamonds > 0 ? Math.max(1, Math.floor(details.diamonds / details.count)) : 0,
+      isOwnGift: isMine,
+      isReceiverGift: !isMine,
+      beansEarned: details.beans,
+    });
   }
 
   async function loadReplyMessages(replyIds: string[]) {
