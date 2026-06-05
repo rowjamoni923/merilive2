@@ -144,6 +144,23 @@ const Reels = () => {
   const userCoinsRef = useRef(0);
   const currentIndexRef = useRef(0);
   const currentUserIdRef = useRef<string | null>(null);
+
+  // Pkg427 — Native Android Reels Player (ExoPlayer). When the
+  // `reels:native:enabled` flag is ON for this device, ExoPlayer takes
+  // over and `nativeReels.active === true` — Reels.tsx then hides the
+  // <video> element so the transparent WebView reveals the native
+  // surface beneath. UI overlays (like / gift / comments / captions)
+  // keep rendering on top byte-identically. Default OFF → existing
+  // <video> path runs for everyone.
+  const nativeReels = useNativeReelsPlayer({
+    url: reels[currentIndex]?.video_url ?? null,
+    muted: isMuted,
+    enabled: true,
+    prefetchUrls: [
+      reels[currentIndex + 1]?.video_url,
+      reels[currentIndex - 1]?.video_url,
+    ].filter((u): u is string => !!u),
+  });
   
   useEffect(() => {
     userCoinsRef.current = userCoins;
