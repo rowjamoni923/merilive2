@@ -549,6 +549,7 @@ const Level5HelperDashboard = () => {
       
       console.log('[Level5Helper] Loaded agency withdrawals:', filteredWithdrawals.length, 'for country:', helperCountry);
       setAgencyWithdrawals(filteredWithdrawals as AgencyWithdrawal[]);
+      setL5WithdrawalsCache(filteredWithdrawals as AgencyWithdrawal[]);
     } catch (err) {
       console.error('[Level5Helper] Error in loadAgencyWithdrawals:', err);
       recordClientError({ label: "Level5HelperDashboard.withdrawalCountry", message: err instanceof Error ? err.message : String(err) });
