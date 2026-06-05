@@ -5,17 +5,19 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
+import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
 
 // Lazy load remaining specialty players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
-const VAPPlayer = lazy(() => import("@/components/common/VAPPlayer"));
 
 interface GiftData {
   id: string;
   name: string;
   icon_url?: string;
   animation_url?: string;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
   sound_url?: string;
   coin_value: number;
 }
@@ -173,23 +175,21 @@ const FullScreenGiftAnimation = ({
   const animationStartedRef = useRef(false);
 
   // Detect animation type
-  const getAnimationType = (url?: string): 'svga' | 'vap' | 'lottie' | 'video' | 'image' | 'none' => {
+  const getAnimationType = (url?: string, format?: string | null): 'svga' | 'vap' | 'lottie' | 'video' | 'image' | 'none' => {
     if (!url) return 'none';
-    const lower = url.toLowerCase();
+    const detected = detectProfessionalAnimationFormat(url, format);
+    if (detected === 'svga' || detected === 'vap' || detected === 'lottie') return detected;
+    if (detected === 'mp4' || detected === 'webm') return 'video';
+    if (detected === 'gif' || detected === 'webp' || detected === 'png' || detected === 'static') return 'image';
+    const lower = url.toLowerCase().split('?')[0].split('#')[0];
     if (lower.endsWith('.svga')) return 'svga';
-    if (lower.endsWith('.json')) {
-      if (lower.includes('vap') || lower.includes('_bmp')) return 'vap';
-      return 'lottie';
-    }
-    if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
-      if (lower.includes('vap') || lower.includes('_bmp')) return 'vap';
-      return 'video';
-    }
+    if (lower.endsWith('.json')) return format?.toLowerCase() === 'vap' ? 'vap' : 'lottie';
+    if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov') || lower.endsWith('.m4v')) return format?.toLowerCase() === 'vap' ? 'vap' : 'video';
     if (lower.endsWith('.gif') || lower.endsWith('.webp') || lower.endsWith('.png')) return 'image';
     return 'image';
   };
 
-  const animationType = getAnimationType(gift.animation_url);
+  const animationType = getAnimationType(gift.animation_url, gift.animation_format);
   const isPremium = gift.coin_value >= 1000;
   const isLegendary = gift.coin_value >= 10000;
   const isMythic = gift.coin_value >= 50000;
