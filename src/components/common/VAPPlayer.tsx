@@ -391,7 +391,6 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       if (!v) return;
 
       // Professional optimization: even if paused, we want to paint the current frame
-      // if it's different from the last one or if we haven't painted yet.
       if (v.readyState >= 2) {
         try {
           lastVideoTimeRef.current = v.currentTime;
@@ -413,6 +412,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
       if (v.ended && !loop) return;
 
+      // CRITICAL: Request next frame to keep animation playing
       const frameVideo = v as VideoFrameCallbackVideo;
       if (typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
