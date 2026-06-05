@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -56,11 +57,22 @@ const quickExchangeAmounts = [10000, 50000, 100000, 500000];
 const AgentWallet = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [diamondBalance, setDiamondBalance] = useState(0); // REAL: agency diamond_balance + helper wallet + profile coins
-  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
-  const [helperWalletBalance, setHelperWalletBalance] = useState(0);
-  const [profileCoins, setProfileCoins] = useState(0);
-  const [beansBalance, setBeansBalance] = useState(0); // Income in beans
+  type WalletSnapshot = {
+    diamondBalance: number;
+    agencyDiamondBalance: number;
+    helperWalletBalance: number;
+    profileCoins: number;
+    beansBalance: number;
+  };
+  const [walletCache, setWalletCache, hadWalletCache] = usePersistedCache<WalletSnapshot>("agentWallet:balances", null);
+  const [transfersCache, setTransfersCache, hadTransfersCache] = usePersistedCache<TransferRecord[]>("agentWallet:transfers", []);
+  const diamondBalance = walletCache?.diamondBalance ?? 0;
+  const agencyDiamondBalance = walletCache?.agencyDiamondBalance ?? 0;
+  const helperWalletBalance = walletCache?.helperWalletBalance ?? 0;
+  const profileCoins = walletCache?.profileCoins ?? 0;
+  const beansBalance = walletCache?.beansBalance ?? 0;
+  const transfers = transfersCache ?? [];
+  const setTransfers = (next: TransferRecord[]) => setTransfersCache(next);
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExchange, setShowExchange] = useState(false);
   const [transferAmount, setTransferAmount] = useState("");
@@ -70,8 +82,7 @@ const AgentWallet = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [foundUser, setFoundUser] = useState<FoundUser | null>(null);
   const [searchResults, setSearchResults] = useState<FoundUser[]>([]);
-  const [transfers, setTransfers] = useState<TransferRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!(hadWalletCache && hadTransfersCache));
 
   // Helper to refresh all tiered balances
   const refreshBalances = async (uid: string) => {
@@ -86,11 +97,13 @@ const AgentWallet = () => {
     const userCoins = profileRes.data?.coins || 0;
     const userBeans = profileRes.data?.beans || 0;
 
-    setAgencyDiamondBalance(agencyDiamonds);
-    setHelperWalletBalance(helperWallet);
-    setProfileCoins(userCoins);
-    setDiamondBalance(agencyDiamonds + helperWallet + userCoins);
-    setBeansBalance(userBeans);
+    setWalletCache({
+      diamondBalance: agencyDiamonds + helperWallet + userCoins,
+      agencyDiamondBalance: agencyDiamonds,
+      helperWalletBalance: helperWallet,
+      profileCoins: userCoins,
+      beansBalance: userBeans,
+    });
   };
 
   // Fetch data

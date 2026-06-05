@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense, lazy } from "react";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -316,8 +317,12 @@ const ShopItemCard = ({
 const Shop = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [items, setItems] = useState<ShopItem[]>([]);
-  const [purchases, setPurchases] = useState<UserPurchase[]>([]);
+  const [itemsCache, setItemsCache, hadItemsCache] = usePersistedCache<ShopItem[]>("shop:items", []);
+  const [purchasesCache, setPurchasesCache, hadPurchasesCache] = usePersistedCache<UserPurchase[]>("shop:purchases", []);
+  const items = itemsCache ?? [];
+  const purchases = purchasesCache ?? [];
+  const setItems = (next: ShopItem[]) => setItemsCache(next);
+  const setPurchases = (next: UserPurchase[]) => setPurchasesCache(next);
   const [userDiamonds, setUserDiamonds] = useState(0);
   const [userLevel, setUserLevel] = useState(() => {
     try {
@@ -332,7 +337,7 @@ const Shop = () => {
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [userFrameId, setUserFrameId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!(hadItemsCache && hadPurchasesCache));
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [purchasing, setPurchasing] = useState(false);
