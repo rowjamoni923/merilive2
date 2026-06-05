@@ -69,6 +69,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
+
+  // Pkg426 Phase-2: attempt native Android VAP. When mode==='active', the
+  // native plugin owns the screen and we skip the WebView render path
+  // entirely. 'pending' is sub-100ms; existing WebView path runs on 'fallback'.
+  const nativeOnComplete = useCallback(() => { onCompleteRef.current?.(); }, []);
+  const nativeOnError = useCallback((e: Error) => { onErrorRef.current?.(e); }, []);
+  const nativeMode = useNativeVAPAttempt(resolvedSrc, {
+    loop: loop ? 0 : 1,
+    onComplete: nativeOnComplete,
+    onError: nativeOnError,
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
