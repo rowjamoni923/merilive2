@@ -428,6 +428,7 @@ const Level5HelperDashboard = () => {
       }
 
       setHelperData(helper);
+      setL5HelperCache(helper);
 
       // Load agency diamond_balance — combined with wallet_balance = total Trader Wallet
       const { data: agencyData } = await supabase
