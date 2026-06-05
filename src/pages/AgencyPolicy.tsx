@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
-import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { 
   ArrowLeft, 
   FileText, 
@@ -139,34 +138,6 @@ const STRUCTURED_KEYS = new Set([
   "violations", "prohibited_content", "call_rules", "withdrawal"
 ]);
 
-// Semantic admin keys consumed inline by Host / Rules / Commission tabs
-// (kept out of "More" so they aren't duplicated)
-const INLINED_SEMANTIC_KEYS = new Set([
-  "rules", "host_management", "penalties", "commission",
-]);
-
-// Normalize any admin-stored content shape → flat string[] of bullet items.
-const extractItems = (content: any): string[] => {
-  if (!content) return [];
-  const src = Array.isArray(content?.items)
-    ? content.items
-    : Array.isArray(content?.rules)
-      ? content.rules
-      : Array.isArray(content)
-        ? content
-        : null;
-  if (src) {
-    return src
-      .map((it: any) => typeof it === "string" ? it : (it?.text || it?.title || it?.description || ""))
-      .filter((s: string) => s && s.trim().length > 0);
-  }
-  if (typeof content === "string") return [content];
-  if (typeof content === "object") {
-    return Object.values(content).filter((v) => typeof v === "string") as string[];
-  }
-  return [];
-};
-
 const AgencyPolicy = () => {
   const navigate = useNavigate();
   // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
@@ -181,15 +152,17 @@ const AgencyPolicy = () => {
     commission_rate: number;
   }>>("agencyPolicy:tiers", []);
   const [loading, setLoading] = useState(!hadPolicyCache);
-  const latestFetchId = useRef(0);
-  const mountedRef = useRef(true);
-  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchPolicies = useCallback(async (showSpinner = false) => {
-    const fetchId = ++latestFetchId.current;
+  useEffect(() => {
+    fetchPolicies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  const fetchPolicies = async () => {
     try {
-      // Only block UI on true cold load. Realtime/admin updates refresh silently.
-      if (showSpinner) setLoading(true);
+      // Only block UI with spinner if we have nothing cached yet.
+      if (!policyData) setLoading(true);
 
       // Fetch policies and level tiers in parallel
       const [policiesResult, tiersResult] = await Promise.all([
@@ -208,8 +181,6 @@ const AgencyPolicy = () => {
       if (policiesResult.error) throw policiesResult.error;
       if (tiersResult.error) throw tiersResult.error;
 
-      if (!mountedRef.current || fetchId !== latestFetchId.current) return;
-
       if (policiesResult.data) {
         // Structured policies (typed cards)
         const policies: any = {};
@@ -218,7 +189,7 @@ const AgencyPolicy = () => {
 
         policiesResult.data.forEach((item: any) => {
           policies[item.section_key] = item.content;
-          if (!STRUCTURED_KEYS.has(item.section_key) && !INLINED_SEMANTIC_KEYS.has(item.section_key)) {
+          if (!STRUCTURED_KEYS.has(item.section_key)) {
             dynamic.push({
               section_key: item.section_key,
               section_title: item.section_title,
@@ -238,35 +209,9 @@ const AgencyPolicy = () => {
       console.error('Error fetching policies:', error);
       recordClientError({ label: "AgencyPolicy.dynamic", message: error instanceof Error ? error.message : String(error) });
     } finally {
-      if (mountedRef.current && fetchId === latestFetchId.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [setDynamicSections, setLevelTiers, setPolicyData]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    void fetchPolicies(!hadPolicyCache);
-
-    const refreshNow = () => {
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = setTimeout(() => {
-        void fetchPolicies(false);
-      }, 120);
-    };
-
-    const unsubscribe = subscribeToTables(
-      `agency-policy-${Date.now()}`,
-      ['agency_policy_settings', 'agency_level_tiers'],
-      refreshNow,
-    );
-
-    return () => {
-      mountedRef.current = false;
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-      unsubscribe();
-    };
-  }, [fetchPolicies, hadPolicyCache]);
+  };
 
 
 
@@ -324,13 +269,6 @@ const AgencyPolicy = () => {
   const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
   const callRules = policyData?.call_rules?.rules || [];
-
-  // Inline semantic admin-managed bullet lists (rendered inside Host / Rules tabs
-  // when the structured arrays above are empty — admin actually fills these).
-  const hostManagementItems = extractItems((policyData as any)?.host_management);
-  const rulesItems = extractItems((policyData as any)?.rules);
-  const penaltiesItems = extractItems((policyData as any)?.penalties);
-  const commissionItems = extractItems((policyData as any)?.commission);
   const withdrawal = {
     minimum_usd: 10,
     settlement_day: 'Monday',
@@ -539,32 +477,6 @@ const AgencyPolicy = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Commission Policy (admin "commission" section) */}
-              {commissionItems.length > 0 && (
-                <Card className="border-0 shadow-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-success-600" />
-                      </div>
-                      Commission Policy
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2.5">
-                      {commissionItems.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-success-100 text-success-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
-                            {idx + 1}
-                          </div>
-                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
             </TabsContent>
 
             {/* Host Tab */}
@@ -579,35 +491,20 @@ const AgencyPolicy = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {hostRequirements.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      {hostRequirements.map((req, index) => (
-                        <div
-                          key={index}
-                          className="bg-muted/50 rounded-xl p-4 text-center"
-                        >
-                          <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600">
-                            {iconMap[req.key] || <Star className="w-5 h-5" />}
-                          </div>
-                          <p className="font-semibold text-sm">{req.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{req.description}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {hostRequirements.map((req, index) => (
+                      <div 
+                        key={index}
+                        className="bg-muted/50 rounded-xl p-4 text-center"
+                      >
+ <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600">
+                          {iconMap[req.key] || <Star className="w-5 h-5" />}
                         </div>
-                      ))}
-                    </div>
-                  ) : hostManagementItems.length > 0 ? (
-                    <ul className="space-y-2.5">
-                      {hostManagementItems.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-success-100 text-success-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
-                            {idx + 1}
-                          </div>
-                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">No host requirements published yet.</p>
-                  )}
+                        <p className="font-semibold text-sm">{req.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{req.description}</p>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -675,106 +572,66 @@ const AgencyPolicy = () => {
 
             {/* Rules Tab */}
             <TabsContent value="rules" className="mt-4 space-y-4">
-              {/* Rules & Regulations (admin "rules" section) */}
-              {rulesItems.length > 0 && (
-                <Card className="border-0 shadow-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
-                        <Shield className="w-4 h-4 text-info-600" />
+              {/* Violations */}
+              <Card className="border-0 shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+ <div className="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
+ <AlertTriangle className="w-4 h-4 text-danger-600" />
+                    </div>
+                    Violation Penalties
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {violations.map((violation, index) => (
+                    <div 
+                      key={index}
+                      className={`rounded-xl p-4 border ${
+                        violation.severity === 'high' 
+ ?'bg-danger-50 border-danger-200' 
+ :'bg-warning-50 border-warning-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
+ <p className={`font-semibold text-sm ${violation.severity ==='high' ?'text-danger-800' :'text-warning-800'}`}>
+                          {violation.title}
+                        </p>
                       </div>
-                      Rules & Regulations
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2.5">
-                      {rulesItems.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-info-100 text-info-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
-                            {idx + 1}
-                          </div>
-                          <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Violation Penalties — structured first, fallback to admin "penalties" */}
-              {(violations.length > 0 || penaltiesItems.length > 0) && (
-                <Card className="border-0 shadow-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <div className="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
-                        <AlertTriangle className="w-4 h-4 text-danger-600" />
-                      </div>
-                      Violation Penalties
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {violations.length > 0 ? (
-                      violations.map((violation, index) => (
-                        <div
-                          key={index}
-                          className={`rounded-xl p-4 border ${
-                            violation.severity === 'high'
-                              ? 'bg-danger-50 border-danger-200'
-                              : 'bg-warning-50 border-warning-200'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
-                            <p className={`font-semibold text-sm ${violation.severity === 'high' ? 'text-danger-800' : 'text-warning-800'}`}>
-                              {violation.title}
-                            </p>
-                          </div>
-                          <ul className={`text-xs space-y-1 ${violation.severity === 'high' ? 'text-danger-700' : 'text-warning-700'}`}>
-                            {violation.penalties.map((penalty, idx) => (
-                              <li key={idx}>• {penalty}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))
-                    ) : (
-                      <ul className="space-y-2.5">
-                        {penaltiesItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-danger-100 text-danger-600 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
-                              {idx + 1}
-                            </div>
-                            <p className="text-sm text-foreground leading-relaxed flex-1">{item}</p>
-                          </li>
+ <ul className={`text-xs space-y-1 ${violation.severity ==='high' ?'text-danger-700' :'text-warning-700'}`}>
+                        {violation.penalties.map((penalty, idx) => (
+                          <li key={idx}>• {penalty}</li>
                         ))}
                       </ul>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Prohibited Content — only when admin populated it */}
-              {prohibitedContent.length > 0 && (
-                <Card className="border-0 shadow-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Shield className="w-4 h-4 text-slate-600" />
-                      </div>
-                      Prohibited Content
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-2">
-                      {prohibitedContent.map((item, index) => (
-                        <div key={index} className="bg-slate-50 rounded-lg p-3">
-                          <p className="font-semibold text-xs text-slate-800">{item.title}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
-                        </div>
-                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Prohibited Content */}
+              <Card className="border-0 shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+ <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+ <Shield className="w-4 h-4 text-slate-600" />
+                    </div>
+                    Prohibited Content
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-2">
+                    {prohibitedContent.map((item, index) => (
+                      <div 
+                        key={index}
+ className="bg-slate-50 rounded-lg p-3"
+                      >
+ <p className="font-semibold text-xs text-slate-800">{item.title}</p>
+ <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Important Warning */}
  <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-white">

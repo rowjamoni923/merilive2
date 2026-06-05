@@ -246,9 +246,33 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
   const giftIconSrc = gift.giftImageUrl || (/^(https?:\/\/|\/)/i.test(gift.giftIcon || '') ? gift.giftIcon : null);
 
-  // Render gift icon in banner - REMOVED per user request to eliminate "gift icons"
+  // Render gift icon in banner
   const renderBannerGiftIcon = () => {
-    return null;
+    if (giftIconSrc) {
+      return (
+        <motion.img
+          src={giftIconSrc}
+          alt={gift.giftName}
+          className="w-12 h-12 object-contain drop-shadow-lg"
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: [0, 1.3, 1], rotate: [0, 10, 0] }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+      );
+    }
+    return (
+      <motion.span
+        className="text-4xl drop-shadow-lg"
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.3, 1] }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+      >
+        {gift.giftIcon || '🎁'}
+      </motion.span>
+    );
   };
 
   // Full-screen gift animation — every gift occupies the complete app viewport.
@@ -293,9 +317,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
-    // No animation URL available - show NOTHING or fallback to a transparent placeholder.
-    // User requested absolute removal of generic gift icons/emojis.
-    return null;
+    return (
+      <motion.div
+        key="emoji-fullscreen"
+        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
+        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
+        exit={{ opacity: 0, scale: 0.86 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        style={FULLSCREEN_GIFT_LAYER_STYLE}
+      >
+        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
+          {gift.giftIcon || '🎁'}
+        </span>
+      </motion.div>
+    );
   };
 
   // Banner gradient based on gift value (Bigo style)
