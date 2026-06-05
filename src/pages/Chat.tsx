@@ -170,8 +170,8 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
 const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
   const { mediaUrl, emoji } = parseGiftContent(content || '');
-  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
-  const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
+  const detailMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?(.+?)\s+x(\d+)/i);
+  const name = detailMatch?.[1]?.replace(/^\p{Extended_Pictographic}\s*/u, '').trim().toLowerCase() || 'gift';
   const count = detailMatch?.[2] || '1';
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
 };
@@ -188,10 +188,10 @@ const cleanGiftMessageForPreview = (content: string): string => {
     .replace(/\|\s*snd:[^|\]]+/i, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
-  const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
+  const match = urlRemoved.match(/\[Gift:\s*(?:[^|\s\]]+\|)?(.+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans/i);
   if (match) {
-    const [, emoji, name, count, beans] = match;
-    const cleanName = `${/\p{Extended_Pictographic}/u.test(emoji) ? '' : emoji} ${name}`.trim();
+    const [, label, count, beans] = match;
+    const cleanName = label.replace(/^\p{Extended_Pictographic}\s*/u, '').trim();
     return `[Gift: ${cleanName} x${count} | +${Number(beans).toLocaleString()} bea...]`;
   }
 
