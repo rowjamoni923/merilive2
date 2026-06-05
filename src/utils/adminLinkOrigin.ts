@@ -1,7 +1,6 @@
-// This Lovable project is published on merilive.top. Do not generate admin
-// links for merilive.com: that domain is not connected to this project and can
-// serve a stale/other frontend bundle that falsely rejects valid secret links.
-const FALLBACK_ADMIN_ORIGIN = 'https://merilive.top';
+// Production admin links must use the main .com domain. The .top domain is only
+// a landing/download host and must not be used for admin login links.
+const FALLBACK_ADMIN_ORIGIN = 'https://merilive.com';
 
 const BLOCKED_HOST_PATTERNS = [
   'localhost',
@@ -15,7 +14,7 @@ export const getAdminLinkOrigin = (): string => {
 
   const { origin, hostname } = window.location;
   const isAdminRoute = window.location.pathname.startsWith('/admin');
-  const isProjectDomain = hostname === 'merilive.top' || hostname === 'www.merilive.top';
+  const isProjectDomain = hostname === 'merilive.com' || hostname === 'www.merilive.com';
   const isBlockedHost = BLOCKED_HOST_PATTERNS.some((pattern) =>
     hostname === pattern || hostname.endsWith(`.${pattern}`),
   );
@@ -24,7 +23,7 @@ export const getAdminLinkOrigin = (): string => {
     return origin;
   }
 
-  return isBlockedHost || hostname === 'merilive.com' || hostname === 'www.merilive.com'
+  return isBlockedHost || hostname === 'merilive.top' || hostname === 'www.merilive.top'
     ? FALLBACK_ADMIN_ORIGIN
     : origin;
 };
