@@ -82,20 +82,27 @@ export const detectVapLayout = (video: HTMLVideoElement): VapLayout | null => {
       if (looksLikeMask(top, bottom)) return 'alpha-top';
       if (looksLikeMask(bottom, top)) return 'alpha-bottom';
 
-      // Fallback based on aspect ratio
+      // If none of the 4 quadrants look like a mask area, it might just be a normal video
+      if (!looksLikeMask(left, right) && !looksLikeMask(right, left) && 
+          !looksLikeMask(top, bottom) && !looksLikeMask(bottom, top)) {
+        return null; 
+      }
+
+      // Fallback based on aspect ratio if detection is fuzzy but one quadrant is notably "maskier"
       const ratio = width / height;
       if (ratio > 1.5) return 'alpha-right';
       if (ratio < 0.7) return 'alpha-bottom';
-      return 'alpha-right'; // Default
+      return 'alpha-right'; 
     }
   } catch {
     // Ignore cross-origin issues
   }
 
+  // Pure size-based fallback only for very specific ratios (2:1 or 1:2)
   const ratio = width / height;
-  if (ratio >= 1.5) return 'alpha-right';
-  if (ratio <= 0.75) return 'alpha-bottom';
-  return 'alpha-right';
+  if (Math.abs(ratio - 2) < 0.08) return 'alpha-right';
+  if (Math.abs(ratio - 0.5) < 0.08) return 'alpha-bottom';
+  return null;
 };
 
 /** @deprecated use detectVapLayout */
