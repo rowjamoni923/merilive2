@@ -650,13 +650,18 @@ const App = () => {
       if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
       return window.setTimeout(cb, 1200);
     };
+    const slowIdle = (cb: () => void, timeout = 2500) => {
+      const w = window as any;
+      if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+      return window.setTimeout(cb, timeout);
+    };
     const cancelIdle = (id: number) => {
       const w = window as any;
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
 
-    const routeIdleId = idle(preloadCoreRoutes, 1800);
+    const routeIdleId = slowIdle(preloadCoreRoutes, 9000);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
@@ -682,20 +687,19 @@ const App = () => {
     // Pkg C — prewarm top gift animations (SVGA binaries + Lottie JSON + images)
     // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
     // sent in any room/call/chat plays with zero network delay on the receiver side.
-    const giftIdleId = idle(() => {
+    const giftIdleId = slowIdle(() => {
       import('@/hooks/useGiftPrefetch')
         .then(m => m.prefetchGifts())
-        .then(() => import('@/utils/giftAnimationPrewarm').then(m => m.prewarmGiftAnimations()))
         .catch(() => {});
-    }, 3500);
+    }, 15000);
 
     // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
     // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
-    const framesIdleId = idle(() => {
+    const framesIdleId = slowIdle(() => {
       import('@/utils/frameBulkPrewarm')
         .then(m => m.prewarmActiveFrames())
         .catch(() => {});
-    }, 12000);
+    }, 30000);
 
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
