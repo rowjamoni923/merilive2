@@ -23,6 +23,7 @@ import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
