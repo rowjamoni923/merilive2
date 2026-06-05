@@ -640,9 +640,8 @@ const App = () => {
   const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
   const isAdminRoute = currentPath.startsWith('/admin');
-  // merilive.top is the public landing host, but admin secret links must still
-  // render the admin app. Otherwise /admin/auth falls through to LandingPage.
-  const isLandingDomain = isLandingOnlyHostname(hostname) && !isAdminRoute;
+  // merilive.top is landing-only. Admin/main app routes belong on merilive.com.
+  const isLandingDomain = isLandingOnlyHostname(hostname);
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
@@ -1108,6 +1107,11 @@ const App = () => {
   if (loading) {
     // No full-screen "Checking your session…" loader — render nothing so the
     // app feels instant. Auth-gated routes already handle their own redirect.
+    return null;
+  }
+
+  if (isLandingDomain && isAdminRoute) {
+    window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
     return null;
   }
 
