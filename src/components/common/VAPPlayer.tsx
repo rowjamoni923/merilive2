@@ -5,6 +5,10 @@ import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { detectVapLayout, isLikelyVapCompositeSize, type VapLayout } from '@/utils/vapDetection';
 import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
+import { observeSharedElement } from '@/utils/nativePerformance';
+
+let activeVapCount = 0;
+const MAX_ACTIVE_VAPS = 3;
 
 interface VAPConfig {
   v: number;           // version
@@ -55,7 +59,7 @@ const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConf
   const pixels = video.videoWidth * video.videoHeight;
   const coarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
-  return pixels >= 6_000_000 || (coarsePointer && cores <= 2 && pixels >= 3_000_000);
+  return pixels >= 10_000_000 || (coarsePointer && cores <= 2 && pixels >= 5_000_000);
 };
 
 const VAPPlayer: React.FC<VAPPlayerProps> = ({
@@ -74,6 +78,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mountedRef = useRef(true);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -88,6 +93,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const isVisibleRef = useRef(true);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
@@ -101,6 +108,30 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
+  }, []);
+
+  // Use Shared Intersection Observer for performance
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    
+    return observeSharedElement('vap-player', el, (entry) => {
+      const visible = entry.isIntersecting;
+      setIsVisible(visible);
+      isVisibleRef.current = visible;
+      
+      // If became visible and we were rendering, ensure we resume
+      if (visible && videoRef.current && !videoRef.current.paused && !animationRef.current) {
+        // The render loop will restart via the video event listeners or manual trigger
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    activeVapCount++;
+    return () => {
+      activeVapCount = Math.max(0, activeVapCount - 1);
+    };
   }, []);
 
   useEffect(() => {
@@ -254,7 +285,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (shouldUsePerformanceVideoFallback(video, cfg)) {
+    if (shouldUsePerformanceVideoFallback(video, cfg) || activeVapCount > MAX_ACTIVE_VAPS) {
       const { rgbRect } = getAutoVapRects(video);
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
@@ -324,14 +355,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w * dpr; 
-      canvas.height = cfg.h * dpr;
+      canvas.width = cfg.w; 
+      canvas.height = cfg.h;
     } else {
       const layout = detectVapLayout(video) || 'alpha-right';
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
       const isVertical = layout === 'alpha-top' || layout === 'alpha-bottom';
-      canvas.width = (isVertical ? videoWidth : videoWidth / 2) * dpr; 
-      canvas.height = (isVertical ? videoHeight / 2 : videoHeight) * dpr;
+      canvas.width = (isVertical ? videoWidth : videoWidth / 2); 
+      canvas.height = (isVertical ? videoHeight / 2 : videoHeight);
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
@@ -343,7 +374,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     gl.disable(gl.BLEND);
 
     const render = () => {
-      if (useVideoFallbackRef.current || !mountedRef.current) return;
+      if (useVideoFallbackRef.current || !mountedRef.current || !isVisibleRef.current) return;
       const v = videoRef.current;
       if (!v) return;
 
@@ -482,7 +513,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   if (error) return <div className={cn("bg-transparent", className)} />;
 
   return (
-    <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
+    <div ref={containerRef} className={cn("relative flex items-center justify-center overflow-hidden", className)}>
       {loading && <div className="absolute inset-0 bg-transparent" />}
       <video
         ref={videoRef}
