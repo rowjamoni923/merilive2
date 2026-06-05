@@ -136,8 +136,31 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const animationStartedRef = useRef(false);
   const hostPercent = useHostGiftPercent();
 
-  const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
-  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Freeze the fullscreen media payload for this gift instance. Combo bumps may
+  // update the flying banner count, but they must NEVER rebuild/restart the
+  // fullscreen SVGA/VAP/MP4 player; otherwise native duration is broken and the
+  // WebView can jank while the heavy decoder is torn down mid-play.
+  const fullscreenMediaRef = useRef({
+    displayAnimationUrl: gift.animationUrl || gift.giftImageUrl,
+    animationFormat: gift.animationFormat,
+    animationConfigUrl: gift.animationConfigUrl,
+    soundUrl: gift.soundUrl,
+    senderAvatar: gift.senderAvatar || '',
+    receiverAvatar: gift.receiverAvatar || '',
+    senderName: gift.senderName || '',
+    receiverName: gift.receiverName || '',
+    giftCount: gift.count,
+  });
+
+  const displayAnimationUrl = fullscreenMediaRef.current.displayAnimationUrl;
+  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, fullscreenMediaRef.current.animationFormat), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
   const needsFullscreenSlot = completesFromPlayer;
@@ -158,17 +181,17 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Professional dynamic data for SVGA/VAP (RPG replacement)
   const dynamicData = useMemo(() => ({
     images: {
-      user_avatar: gift.senderAvatar || '',
-      receiver_avatar: gift.receiverAvatar || '',
-      sender_avatar: gift.senderAvatar || '', // Alias
+      user_avatar: fullscreenMediaRef.current.senderAvatar,
+      receiver_avatar: fullscreenMediaRef.current.receiverAvatar,
+      sender_avatar: fullscreenMediaRef.current.senderAvatar, // Alias
     },
     text: {
-      user_name: gift.senderName || '',
-      receiver_name: gift.receiverName || '',
-      sender_name: gift.senderName || '', // Alias
-      gift_count: String(gift.count),
+      user_name: fullscreenMediaRef.current.senderName,
+      receiver_name: fullscreenMediaRef.current.receiverName,
+      sender_name: fullscreenMediaRef.current.senderName, // Alias
+      gift_count: String(fullscreenMediaRef.current.giftCount),
     }
-  }), [gift.senderAvatar, gift.receiverAvatar, gift.senderName, gift.receiverName, gift.count]);
+  }), [gift.id]);
 
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
