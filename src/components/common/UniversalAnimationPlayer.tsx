@@ -515,8 +515,8 @@ const NativeSVGAOverlay: React.FC<{
 
     return () => {
       cancelled = true;
-      try { listener?.remove?.(); } catch {}
-      try { NativeSVGA.stop(); } catch {}
+      try { listener?.remove?.(); } catch { /* native listener cleanup best-effort */ }
+      try { NativeSVGA.stop(); } catch { /* native stop cleanup best-effort */ }
     };
   }, [src, loop]);
 
