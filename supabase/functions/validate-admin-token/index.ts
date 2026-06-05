@@ -87,21 +87,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { token, action } = body || {};
 
-    // Pull a single base secret. Falls back to legacy ADMIN_OWNER_TOKEN if set.
-    // No hardcoded fallback — without a real secret the server refuses to validate
-    // (otherwise tokens become predictable from source code).
-    const BASE_SECRET =
-      Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
-      Deno.env.get('ADMIN_OWNER_TOKEN');
-
-    if (!BASE_SECRET || BASE_SECRET.length < 16) {
-      console.error('[validate-admin-token] ADMIN_TOKEN_BASE_SECRET missing or too short');
-      return new Response(
-        JSON.stringify({ valid: false, role: null, reason: 'server_unconfigured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const currentYear = new Date().getUTCFullYear();
     const overriddenKinds = new Set<'owner' | 'sub_admin'>();
     const adminClient = createClient(
@@ -111,9 +96,7 @@ Deno.serve(async (req) => {
 
     // ────────────────────────────────────────────────────────────
     // ACTION: generate has been REMOVED — was a critical takeover
-    // vector (returned the live owner/sub-admin tokens to any anon
-    // caller). Owners must use `get-admin-tokens` which requires a
-    // server-validated admin session.
+    // vector. Owners must use `get-admin-tokens` (owner session req).
     // ────────────────────────────────────────────────────────────
     if (action === 'generate') {
       return new Response(
@@ -132,7 +115,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check owner-rotated overrides first (current year)
+    const trimmedToken = token.trim();
+
+    // Pkg-FIX: Check owner-rotated overrides BEFORE requiring BASE_SECRET.
+    // Rotated tokens are the canonical live admin link and do NOT depend on
+    // the year-hash base secret — accept them even if the env var is missing
+    // or too short. Otherwise a freshly generated link can fail validation
+    // purely because of an unrelated server config drift.
     try {
       const { data: overrides } = await adminClient
         .from('admin_token_overrides')
@@ -141,7 +130,7 @@ Deno.serve(async (req) => {
         for (const o of overrides) {
           if (o.rotated_year !== currentYear) continue;
           if (o.kind === 'owner' || o.kind === 'sub_admin') overriddenKinds.add(o.kind);
-          if (o.token === token.trim()) {
+          if (o.token === trimmedToken) {
             const role = o.kind === 'owner' ? 'owner' : 'sub_admin';
             const challenge = await issueLoginChallenge(adminClient, role);
             return new Response(
@@ -153,6 +142,19 @@ Deno.serve(async (req) => {
       }
     } catch (e) {
       console.warn('override check failed:', e);
+    }
+
+    // Beyond this point we need the base secret for the year-hashed fallback.
+    const BASE_SECRET =
+      Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
+      Deno.env.get('ADMIN_OWNER_TOKEN');
+
+    if (!BASE_SECRET || BASE_SECRET.length < 16) {
+      console.error('[validate-admin-token] ADMIN_TOKEN_BASE_SECRET missing or too short — only rotated override tokens will validate');
+      return new Response(
+        JSON.stringify({ valid: false, role: null, reason: 'server_unconfigured' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Parse luxurious format
