@@ -44,13 +44,15 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 };
 
 const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapLayout(video) || 'alpha-right';
+  const layout = detectVapLayout(video) || 'alpha-left';
+  // User explicitly confirmed: Left side (0, 0, 0.5, 1) is the alpha layer (behind).
+  // Right side (0.5, 0, 0.5, 1) is the RGB gift that should play.
   switch (layout) {
     case 'alpha-left': return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
     case 'alpha-right': return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
     case 'alpha-top': return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
     case 'alpha-bottom': return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
-    default: return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    default: return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
   }
 };
 
