@@ -97,7 +97,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
 
     // SVGA binaries → Cache API + PRE-PARSE (Zero-delay CPU logic)
     if (svgaUrls.length > 0) {
-      prewarmPopularAssets(svgaUrls.slice(0, 20));
+      prewarmPopularAssets(svgaUrls.slice(0, 10));
     }
 
     // Lottie JSON → in-memory cache (bounded)
@@ -107,7 +107,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
 
     // MP4/WebM/VAP files caused the real first-play delay. Warm only the most
     // popular few fully into HTTP cache; metadata warm keeps the decoder ready.
-    const criticalVideos = videoUrls.slice(0, 10);
+    const criticalVideos = videoUrls.slice(0, 3);
     warmupVapUrls(criticalVideos, { warmJsonSibling: false });
     criticalVideos.forEach((u) => warmVideoMetadata(u));
   } catch {
@@ -162,14 +162,16 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
   if (imageUrls.length) pushImageWarm(imageUrls);
 
   // Hard caps so opening a category with 200 gifts does not flood the network
-  const svgaCap = Math.min(svgaUrls.length, 20);
-  for (let i = 0; i < svgaCap; i++) {
-    try { await fetchWithBinaryCache(svgaUrls[i]); } catch {}
+  const svgaCap = Math.min(svgaUrls.length, 12);
+  for (let i = 0; i < svgaCap; i += 4) {
+    await Promise.allSettled(
+      svgaUrls.slice(i, i + 4).map(u => fetchWithBinaryCache(u).catch(() => null))
+    );
   }
   await Promise.allSettled(
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
-  const criticalVideos = videoUrls.slice(0, 8);
+  const criticalVideos = videoUrls.slice(0, 2);
   warmupVapUrls(criticalVideos, { warmJsonSibling: false });
   criticalVideos.forEach((u) => warmVideoMetadata(u));
 }
