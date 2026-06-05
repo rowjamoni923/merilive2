@@ -60,6 +60,8 @@ import {
   Bot,
 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
+import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
+import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
