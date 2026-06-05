@@ -214,7 +214,6 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   }
 
   const isFullscreen = size === 'fullscreen' || className?.includes('fixed');
-  const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
   const wrapperClass = cn(
     isFullscreen ? 'fixed inset-0 w-screen h-screen' : 'relative shrink-0',
     'overflow-hidden',
@@ -222,6 +221,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     BG_CLASSES[background],
     className,
   );
+  const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
 
   return (
     <div className={wrapperClass} style={frameStyle}>
@@ -273,7 +273,6 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             src={src}
             type={safeType}
             configSrc={configSrc || undefined}
-            className={wrapperClass}
             className={playerClassName}
             loop={loop}
             autoPlay={autoPlay}
