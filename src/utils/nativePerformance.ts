@@ -65,6 +65,15 @@ export function enablePassiveScrolling(container: HTMLElement) {
 // === INTERSECTION OBSERVER POOL ===
 // Reusable observers to avoid creating too many
 const observerPool = new Map<string, IntersectionObserver>();
+type SharedElementCallback = (entry: IntersectionObserverEntry) => void;
+const sharedElementObservers = new Map<string, {
+  observer: IntersectionObserver;
+  callbacksByElement: Map<Element, Set<SharedElementCallback>>;
+}>();
+
+function isDomElement(value: unknown): value is Element {
+  return typeof Element !== 'undefined' && value instanceof Element;
+}
 
 export function getSharedObserver(
   key: string, 
@@ -75,6 +84,71 @@ export function getSharedObserver(
     observerPool.set(key, new IntersectionObserver(callback, options));
   }
   return observerPool.get(key)!;
+}
+
+export function observeSharedElement(
+  key: string,
+  element: Element | null | undefined,
+  callback: SharedElementCallback,
+  options?: IntersectionObserverInit
+): () => void {
+  if (typeof IntersectionObserver === 'undefined' || !isDomElement(element)) return () => {};
+
+  let poolEntry = sharedElementObservers.get(key);
+  if (!poolEntry) {
+    const callbacksByElement = new Map<Element, Set<SharedElementCallback>>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const callbacks = callbacksByElement.get(entry.target);
+        if (!callbacks?.size) return;
+        callbacks.forEach((cb) => {
+          try { cb(entry); } catch {}
+        });
+      });
+    }, options);
+    poolEntry = { observer, callbacksByElement };
+    sharedElementObservers.set(key, poolEntry);
+  }
+
+  let callbacks = poolEntry.callbacksByElement.get(element);
+  if (!callbacks) {
+    callbacks = new Set<SharedElementCallback>();
+    poolEntry.callbacksByElement.set(element, callbacks);
+    try { poolEntry.observer.observe(element); } catch {}
+  }
+  callbacks.add(callback);
+
+  return () => {
+    if (!isDomElement(element)) return;
+    const latestEntry = sharedElementObservers.get(key);
+    if (!latestEntry) return;
+    const latestCallbacks = latestEntry.callbacksByElement.get(element);
+    if (!latestCallbacks) return;
+
+    latestCallbacks.delete(callback);
+    if (latestCallbacks.size > 0) return;
+
+    latestEntry.callbacksByElement.delete(element);
+    try { latestEntry.observer.unobserve(element); } catch {}
+
+    if (latestEntry.callbacksByElement.size === 0) {
+      try { latestEntry.observer.disconnect(); } catch {}
+      sharedElementObservers.delete(key);
+    }
+  };
+}
+
+function installIntersectionObserverSafetyGuard() {
+  if (typeof IntersectionObserver === 'undefined') return;
+  const proto = IntersectionObserver.prototype as IntersectionObserver & { __meriliveSafeUnobserve?: boolean };
+  if (proto.__meriliveSafeUnobserve) return;
+
+  const nativeUnobserve = IntersectionObserver.prototype.unobserve;
+  IntersectionObserver.prototype.unobserve = function safeUnobserve(target: Element) {
+    if (!isDomElement(target)) return;
+    return nativeUnobserve.call(this, target);
+  };
+  proto.__meriliveSafeUnobserve = true;
 }
 
 // === IMAGE LAZY LOADING ===
@@ -121,6 +195,8 @@ export function prefersReducedMotion(): boolean {
 // === WEBVIEW PERFORMANCE INIT ===
 // Call once on app startup for global performance tuning
 export function initWebViewPerformance() {
+  installIntersectionObserverSafetyGuard();
+
   // Disable text size adjustment (prevents Android WebView auto-resize)
   (document.body.style as any).textSizeAdjust = '100%';
   (document.body.style as any).webkitTextSizeAdjust = '100%';
