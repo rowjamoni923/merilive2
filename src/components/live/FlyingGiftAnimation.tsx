@@ -121,6 +121,7 @@ const releaseFullscreen = (id: string) => {
 const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimationProps) => {
   const [currentCount, setCurrentCount] = useState(0);
   const [showFullScreen, setShowFullScreen] = useState(true);
+  const [showBanner, setShowBanner] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [svgaError, setSvgaError] = useState(false);
   const mountedRef = useRef(true);
@@ -218,6 +219,17 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     rafId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafId);
   }, [gift.count, gift.comboKey]);
+
+  // The compact flying banner is only an announcement. It must not wait for a
+  // 8–12s fullscreen VAP/SVGA/video to finish; otherwise it looks “stuck” over
+  // chat/call/live UI while the fullscreen player is still loading or playing.
+  useEffect(() => {
+    setShowBanner(true);
+    const timer = window.setTimeout(() => {
+      if (mountedRef.current) setShowBanner(false);
+    }, needsFullscreenSlot ? 1850 : 2200);
+    return () => window.clearTimeout(timer);
+  }, [gift.id, gift.comboKey, needsFullscreenSlot]);
 
   // Dismiss timer — SVGA uses its OWN native duration via onComplete (no fixed timer).
   // Non-SVGA banner stays 3.5s — RESETS on every combo bump.
@@ -317,6 +329,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
               dynamicData={dynamicData}
+              placeholderUrl={giftIconSrc && /\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(giftIconSrc) ? giftIconSrc : undefined}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
@@ -371,6 +384,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
 
       {/* ======= BIGO/CHAMET STYLE GIFT BANNER ======= */}
       {/* Left-side banner: [Avatar] [Name / sent GiftName] [GiftIcon] [xCount] */}
+      <AnimatePresence>
+      {showBanner && (
       <motion.div
         className="absolute left-0 will-change-transform"
         style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
@@ -532,6 +547,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           </div>
         )}
       </motion.div>
+      )}
+      </AnimatePresence>
     </div>,
     portalTarget
   );
