@@ -131,6 +131,14 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 }) => {
   const [animLoaded, setAnimLoaded] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    setAnimLoaded(false);
+    setImageError(false);
+    const safetyTimer = window.setTimeout(() => setAnimLoaded(true), 1800);
+    return () => window.clearTimeout(safetyTimer);
+  }, [src, type]);
+
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
