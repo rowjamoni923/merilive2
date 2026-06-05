@@ -165,9 +165,11 @@ const Level5HelperDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const imageViewer = useImageViewer();
-  const [loading, setLoading] = useState(true);
+  const [l5HelperCache, setL5HelperCache, hadL5HelperCache] = usePersistedCache<any>('l5Helper:data', null);
+  const [l5WithdrawalsCache, setL5WithdrawalsCache, hadL5WithdrawalsCache] = usePersistedCache<AgencyWithdrawal[]>('l5Helper:agencyWithdrawals', []);
+  const [loading, setLoading] = useState(!hadL5HelperCache);
   const [processing, setProcessing] = useState(false);
-  const [helperData, setHelperData] = useState<any>(null);
+  const [helperData, setHelperData] = useState<any>(l5HelperCache);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState<number>(0);
   const [agencyId, setAgencyId] = useState<string | null>(null);
   
