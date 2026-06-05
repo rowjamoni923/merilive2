@@ -77,6 +77,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import icon3dTranslate from "@/assets/icon-3d-translate.png";
 import icon3dGift from "@/assets/icon-3d-gift.png";
+import icon3dVoice from "@/assets/icon-3d-voice.png";
 import icon3dGames from "@/assets/icon-3d-games.png";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
