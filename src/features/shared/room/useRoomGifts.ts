@@ -51,7 +51,7 @@ export function useRoomGifts({
         giftName: detail.giftName || 'Gift',
         giftIcon: detail.giftIconUrl || detail.giftIcon || '',
         giftImageUrl: detail.giftIconUrl || detail.giftIcon,
-        animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || detail.giftIcon,
+        animationUrl: detail.giftAnimationUrl || undefined,
         animationFormat: detail.giftAnimationFormat || null,
         animationConfigUrl: detail.giftAnimationConfigUrl || undefined,
         soundUrl: detail.giftSoundUrl,
@@ -75,7 +75,13 @@ export function useRoomGifts({
 export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => void) {
   const triggerLocalGift = useCallback((params: {
     senderName: string;
-    gift: { name: string; icon_url?: string; animation_url?: string };
+    gift: {
+      name: string;
+      icon_url?: string;
+      animation_url?: string;
+      animation_format?: string | null;
+      animation_config_url?: string | null;
+    };
     count: number;
     coins: number;
   }) => {
@@ -85,9 +91,9 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
       giftName: params.gift.name,
       giftIcon: params.gift.icon_url || '',
       giftImageUrl: params.gift.icon_url || undefined,
-      animationUrl: params.gift.animation_url || params.gift.icon_url || undefined,
-      animationFormat: (params.gift as any).animation_format || null,
-      animationConfigUrl: (params.gift as any).animation_config_url || undefined,
+      animationUrl: params.gift.animation_url || undefined,
+      animationFormat: params.gift.animation_format || null,
+      animationConfigUrl: params.gift.animation_config_url || undefined,
       giftColor: 'from-pink-500 to-purple-500',
       count: params.count,
       coins: params.coins,

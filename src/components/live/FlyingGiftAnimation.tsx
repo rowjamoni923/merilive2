@@ -6,7 +6,6 @@ import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 
 export interface FlyingGift {
@@ -148,7 +147,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // fullscreen SVGA/VAP/MP4 player; otherwise native duration is broken and the
   // WebView can jank while the heavy decoder is torn down mid-play.
   const fullscreenMediaRef = useRef({
-    displayAnimationUrl: gift.animationUrl || gift.giftImageUrl,
+    displayAnimationUrl: gift.animationUrl,
     animationFormat: gift.animationFormat,
     animationConfigUrl: gift.animationConfigUrl,
     soundUrl: gift.soundUrl,
@@ -163,6 +162,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl, fullscreenMediaRef.current.animationFormat), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
+  const expectedAnimatedFullscreen = /^(svga|vap|mp4|webm|video|pag|lottie)$/i.test(fullscreenMediaRef.current.animationFormat || '');
   const needsFullscreenSlot = completesFromPlayer;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
@@ -329,7 +329,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     if (needsFullscreenSlot && !hasFullscreenSlot) return null;
 
 
-    if (displayAnimationUrl) {
+    if (displayAnimationUrl && completesFromPlayer) {
       // CRITICAL: plain <div> (NOT motion.div). framer-motion sets CSS
       // transform on the wrapper which creates a transform containing block,
       // scoping `position: fixed` descendants to the wrapper bounds instead of
@@ -366,7 +366,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       );
     }
 
-    if (!giftIconSrc) return null;
+    if (expectedAnimatedFullscreen || !giftIconSrc) return null;
 
     return (
       <motion.div

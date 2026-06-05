@@ -570,7 +570,7 @@ const Reels = () => {
       giftName: gift.name,
       giftIcon: gift.icon_url || "",
       giftImageUrl: gift.icon_url || undefined,
-      animationUrl: gift.animation_url || gift.icon_url || undefined,
+      animationUrl: gift.animation_url || undefined,
       animationFormat: gift.animation_format || null,
       animationConfigUrl: gift.animation_config_url || undefined,
       soundUrl: gift.sound_url || undefined,

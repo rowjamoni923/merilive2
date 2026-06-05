@@ -1718,7 +1718,7 @@ const ProfileDetail = () => {
             giftName: gift.name,
             giftIcon: gift.icon_url || "",
             giftImageUrl: gift.icon_url || undefined,
-            animationUrl: gift.animation_url || gift.icon_url || undefined,
+            animationUrl: gift.animation_url || undefined,
             animationFormat: gift.animation_format || null,
             animationConfigUrl: gift.animation_config_url || undefined,
             soundUrl: (gift as any).sound_url || undefined,
