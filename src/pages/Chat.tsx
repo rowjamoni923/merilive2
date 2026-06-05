@@ -2404,17 +2404,15 @@ const Chat = () => {
                           const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
                           const giftName = nameMatch?.[1]?.trim() || '';
 
-                          // Fallback: if message has no embedded media (old gift rows),
-                          // resolve the gift's own icon_url from the prefetched catalog by name.
-                          let iconUrl = mediaUrl;
-                          let resolvedFormat = animationFormat;
-                          if (!iconUrl && giftName) {
-                            const cached = getCachedGifts().find(g => g.name === giftName);
-                            if (cached) {
-                              iconUrl = cached.animation_url || cached.icon_url || null;
-                              resolvedFormat = cached.animation_format || resolvedFormat;
-                            }
-                          }
+                          // Gift bubble must show THIS gift's own logo first.
+                          // If that gift has no logo, then show its animation preview.
+                          const cachedGift = giftName
+                            ? getCachedGifts().find(g => (g.name || '').trim().toLowerCase() === giftName.trim().toLowerCase())
+                            : null;
+                          const catalogIconUrl = normalizeGiftMediaUrl(cachedGift?.icon_url) || null;
+                          const catalogAnimationUrl = normalizeGiftMediaUrl(cachedGift?.animation_url) || null;
+                          let iconUrl = catalogIconUrl || mediaUrl || catalogAnimationUrl;
+                          let resolvedFormat = catalogIconUrl ? detectProfessionalAnimationFormat(catalogIconUrl) : (animationFormat || cachedGift?.animation_format || null);
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
                           const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
@@ -2436,7 +2434,7 @@ const Chat = () => {
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
                               <div className="w-10 h-10 flex items-center justify-center relative">
                                 {isSvga && iconUrl ? (
-                                  <Suspense fallback={<BrandedGiftIcon className="w-10 h-10" />}>
+                                  <Suspense fallback={<Gift className="w-6 h-6 text-muted-foreground" />}>
                                     <SVGAPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2446,7 +2444,7 @@ const Chat = () => {
                                     />
                                   </Suspense>
                                 ) : isLottie && iconUrl ? (
-                                  <Suspense fallback={<BrandedGiftIcon className="w-10 h-10" />}>
+                                  <Suspense fallback={<Gift className="w-6 h-6 text-muted-foreground" />}>
                                     <UniversalAnimationPlayer
                                       src={iconUrl}
                                       className="w-10 h-10"
@@ -2466,7 +2464,7 @@ const Chat = () => {
                                     }}
                                   />
                                 ) : (
-                                  <BrandedGiftIcon className="w-10 h-10" />
+                                  <Gift className="w-6 h-6 text-muted-foreground" />
                                 )}
                               </div>
                               
