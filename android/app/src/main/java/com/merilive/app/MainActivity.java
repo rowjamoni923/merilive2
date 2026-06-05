@@ -87,6 +87,10 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.AudioFocusPlugin.class);
         registerPlugin(com.merilive.app.plugin.AudioRecorderPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeSVGAPlugin.class);
+        // Pkg426 — Native Android VAP (Tencent alpha-MP4 player). Additive:
+        // registered for JS callers, but no existing animation component
+        // calls it yet (gated behind vapNativeFlag, default OFF).
+        registerPlugin(com.merilive.app.plugin.NativeVAPPlugin.class);
 
         super.onCreate(savedInstanceState);
 
