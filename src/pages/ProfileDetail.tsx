@@ -79,6 +79,7 @@ import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPriv
 import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface ProfileData {
   id: string;
