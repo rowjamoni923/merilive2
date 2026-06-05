@@ -364,16 +364,6 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         }
       }
 
-      // Safety: If video is playing but canvas isn't painted yet, force paint check
-      if (v.currentTime > 0 && !webglPaintedRef.current && !v.paused) {
-        webglPaintedRef.current = true;
-        if (webglFallbackTimerRef.current) {
-          clearTimeout(webglFallbackTimerRef.current);
-          webglFallbackTimerRef.current = null;
-        }
-        setWebglPainted(true);
-      }
-
       if (v.ended && !loop) return;
 
       // Do NOT switch to requestVideoFrameCallback until the first real WebGL
