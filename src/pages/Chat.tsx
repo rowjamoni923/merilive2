@@ -1494,6 +1494,13 @@ const Chat = () => {
       ]);
     });
 
+    // Pkg-fix: play gift animation BEFORE return for sender, so they see the effect too
+    if (newMessage.message_type === 'gift') {
+      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+    } else if (newMessage.sender_id !== currentUserId) {
+      playSoundDebounced('message');
+    }
+
     if (newMessage.sender_id === currentUserId) return;
 
     void markMessageAsRead(newMessage.id);
@@ -1505,12 +1512,6 @@ const Chat = () => {
         event: 'read',
         payload: { userId: currentUserId, conversationId: selectedConversation.id }
       });
-    }
-
-    if (newMessage.message_type === 'gift') {
-      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
-    } else {
-      playSoundDebounced('message');
     }
   }
 
