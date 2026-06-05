@@ -300,8 +300,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: false, // Tencent VAP uses straight-alpha output
-      preserveDrawingBuffer: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true, // Set to true to avoid flickers on some mobile browsers
       powerPreference: 'high-performance',
     });
 
