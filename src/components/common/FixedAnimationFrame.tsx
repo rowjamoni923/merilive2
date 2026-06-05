@@ -216,7 +216,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 
   const isFullscreen = size === 'fullscreen' || className?.includes('fixed');
   const wrapperClass = cn(
-    isFullscreen ? 'fixed inset-0 w-screen h-screen' : 'relative shrink-0',
+    isFullscreen ? 'fixed inset-0 w-screen h-screen pointer-events-none' : 'relative shrink-0',
     'overflow-hidden',
     center && !isFullscreen && 'mx-auto',
     BG_CLASSES[background],
