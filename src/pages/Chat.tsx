@@ -791,7 +791,7 @@ const Chat = () => {
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftEmoji = '🎁';
-    const giftMediaUrl = animationUrl || iconUrl;
+    const giftMediaUrl = animationUrl;
     const giftSoundUrl = normalizeGiftMediaUrl(gift.sound_url) || '';
     const giftAnimationFormat = detectProfessionalAnimationFormat(giftMediaUrl, gift.animation_format) || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
@@ -816,9 +816,9 @@ const Chat = () => {
       receiverName: selectedConversation.other_user?.display_name || 'User',
       receiverAvatar: selectedConversation.other_user?.avatar_url || undefined,
       giftName: gift.name,
-      giftIcon: gift.icon_url || giftMediaUrl || giftEmoji,
+      giftIcon: gift.icon_url || giftEmoji,
       giftImageUrl: iconUrl || undefined,
-      animationUrl: giftMediaUrl || undefined,
+      animationUrl: animationUrl || undefined,
       animationFormat: giftAnimationFormat,
       animationConfigUrl: giftConfigUrl || undefined,
       soundUrl: giftSoundUrl || undefined,
@@ -1481,7 +1481,7 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(signature, now);
     if (playSoundEffect) playSoundDebounced('gift');
 
-    const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
+    const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl, iconUrl } = parseGiftContent(content || '');
     const details = parseGiftAnimationDetails(content || '');
     const isMine = senderId === currentUserId;
     addFlyingGift({
@@ -1491,8 +1491,8 @@ const Chat = () => {
       receiverName: isMine ? (selectedConversationRef.current?.other_user?.display_name || 'User') : (myProfile?.display_name || 'You'),
       receiverAvatar: isMine ? (selectedConversationRef.current?.other_user?.avatar_url || undefined) : (myProfile?.avatar_url || undefined),
       giftName: details.name,
-      giftIcon: mediaUrl || emoji,
-      giftImageUrl: mediaUrl || undefined,
+      giftIcon: iconUrl || mediaUrl || emoji,
+      giftImageUrl: iconUrl || undefined,
       animationUrl: mediaUrl || undefined,
       animationFormat: animationFormat || parsedFormat || null,
       animationConfigUrl: normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || undefined,
