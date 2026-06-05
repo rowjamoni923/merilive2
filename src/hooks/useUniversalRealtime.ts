@@ -90,6 +90,8 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'helper_orders',
   'live_game_bets',
   'live_game_rounds',
+  'agency_policy_settings',
+  'agency_level_tiers',
 ]);
 
 

@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { 
   ArrowLeft, 
   FileText, 
@@ -180,17 +181,15 @@ const AgencyPolicy = () => {
     commission_rate: number;
   }>>("agencyPolicy:tiers", []);
   const [loading, setLoading] = useState(!hadPolicyCache);
+  const latestFetchId = useRef(0);
+  const mountedRef = useRef(true);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    fetchPolicies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-
-  const fetchPolicies = async () => {
+  const fetchPolicies = useCallback(async (showSpinner = false) => {
+    const fetchId = ++latestFetchId.current;
     try {
-      // Only block UI with spinner if we have nothing cached yet.
-      if (!policyData) setLoading(true);
+      // Only block UI on true cold load. Realtime/admin updates refresh silently.
+      if (showSpinner) setLoading(true);
 
       // Fetch policies and level tiers in parallel
       const [policiesResult, tiersResult] = await Promise.all([
@@ -208,6 +207,8 @@ const AgencyPolicy = () => {
 
       if (policiesResult.error) throw policiesResult.error;
       if (tiersResult.error) throw tiersResult.error;
+
+      if (!mountedRef.current || fetchId !== latestFetchId.current) return;
 
       if (policiesResult.data) {
         // Structured policies (typed cards)
@@ -237,9 +238,35 @@ const AgencyPolicy = () => {
       console.error('Error fetching policies:', error);
       recordClientError({ label: "AgencyPolicy.dynamic", message: error instanceof Error ? error.message : String(error) });
     } finally {
-      setLoading(false);
+      if (mountedRef.current && fetchId === latestFetchId.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [setDynamicSections, setLevelTiers, setPolicyData]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    void fetchPolicies(!hadPolicyCache);
+
+    const refreshNow = () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = setTimeout(() => {
+        void fetchPolicies(false);
+      }, 120);
+    };
+
+    const unsubscribe = subscribeToTables(
+      `agency-policy-${Date.now()}`,
+      ['agency_policy_settings', 'agency_level_tiers'],
+      refreshNow,
+    );
+
+    return () => {
+      mountedRef.current = false;
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      unsubscribe();
+    };
+  }, [fetchPolicies, hadPolicyCache]);
 
 
 

@@ -1,0 +1,2 @@
+ALTER PUBLICATION supabase_realtime ADD TABLE public.agency_policy_settings;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.agency_level_tiers;
