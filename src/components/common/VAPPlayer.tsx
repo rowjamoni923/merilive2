@@ -357,6 +357,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
       canvas.width = cfg.w; 
       canvas.height = cfg.h;
+      // Force container to be full screen if specified or in full-screen contexts
+      if (className?.includes('fixed') || className?.includes('absolute inset-0')) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.objectFit = 'contain';
+      }
+
     } else {
       const layout = detectVapLayout(video) || 'alpha-right';
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
