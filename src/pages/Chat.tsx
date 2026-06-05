@@ -3205,7 +3205,7 @@ const Chat = () => {
                     }}
                   >
                     <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                    <Gift className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <BrandedGiftIcon className="w-7 h-7 relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)] rounded-lg" />
                   </div>
                   <span className="text-[9px] font-bold text-muted-foreground tracking-wide">Gift</span>
                 </motion.button>
