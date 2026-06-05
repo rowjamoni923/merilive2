@@ -82,6 +82,7 @@ export function prewarmGiftVideo(url?: string | null, options: { eager?: boolean
 }
 
 export function prewarmGiftVideos(urls: Array<string | null | undefined>, max = 4): void {
+  if (typeof window === 'undefined') return;
   const normalized = urls.map(normalizeVideoUrl).filter(Boolean) as string[];
   Array.from(new Set(normalized)).slice(0, max).forEach((url, index) => {
     window.setTimeout(() => prewarmGiftVideo(url), index * 300);
