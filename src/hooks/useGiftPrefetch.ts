@@ -101,14 +101,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
         }));
         seedAnimationHints(giftCache.gifts);
-        warmGiftUrlsForInstantPlay(
-          giftCache.gifts.slice(0, 24).flatMap((gift) => [
-            gift.animation_url,
-            gift.animation_config_url,
-            gift.icon_url,
-            gift.sound_url,
-          ])
-        );
+        warmGiftUrlsForInstantPlay(giftCache.gifts.slice(0, 8).flatMap((gift) => [gift.icon_url]));
         giftCache.timestamp = Date.now();
         listeners.forEach(cb => cb());
       }
