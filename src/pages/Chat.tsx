@@ -2398,7 +2398,7 @@ const Chat = () => {
                         if (isGift) {
                           // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
+                          const { mediaUrl, emoji, animationFormat, iconUrl: parsedIconUrl } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
@@ -2411,7 +2411,12 @@ const Chat = () => {
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
                           const isSvga = animationFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
                           const isLottie = animationFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
+                          const isVap = animationFormat === 'vap' || normalizedGiftUrl.endsWith('.mp4') || normalizedGiftUrl.endsWith('.mov') || normalizedGiftUrl.endsWith('.webm');
                           const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
+                          // Prefer a dedicated preview icon (parsedIconUrl) when present; else if the
+                          // animation URL itself is a static image, use it; else fall back to playing
+                          // the animation (SVGA/Lottie/MP4/VAP) inline at 40x40.
+                          const previewIconUrl = parsedIconUrl || (isImage ? iconUrl : null);
                           
                           return (
                             <motion.div 
@@ -2421,8 +2426,17 @@ const Chat = () => {
                               transition={{ duration: 0.2 }}
                             >
                               {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
-                              <div className="w-10 h-10 flex items-center justify-center relative">
-                                {isSvga && iconUrl ? (
+                              <div className="w-10 h-10 flex items-center justify-center relative overflow-hidden rounded-md">
+                                {previewIconUrl ? (
+                                  <img loading="lazy" decoding="async"
+                                    src={previewIconUrl}
+                                    alt="Gift"
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                ) : isSvga && iconUrl ? (
                                   <Suspense fallback={null}>
                                     <SVGAPlayer
                                       src={iconUrl}
@@ -2442,17 +2456,19 @@ const Chat = () => {
                                       muted={true}
                                     />
                                   </Suspense>
-                                ) : isImage && iconUrl ? (
-                                  <img loading="lazy" decoding="async" 
-                                    src={iconUrl} 
-                                    alt="Gift" 
+                                ) : isVap && iconUrl ? (
+                                  <video
+                                    src={iconUrl}
                                     className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
+                                    muted
+                                    autoPlay
+                                    loop
+                                    playsInline
+                                    preload="metadata"
                                   />
                                 ) : null}
                               </div>
+
                               
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
