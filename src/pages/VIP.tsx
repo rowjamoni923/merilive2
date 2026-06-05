@@ -38,6 +38,7 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import VipNobleSection from "@/components/vip/VipNobleSection";
 import { recordClientError } from "@/utils/clientErrorLog";
+import gift3d from "@/assets/gift-3d.png";
 
 interface VIPTier {
   id: string;
