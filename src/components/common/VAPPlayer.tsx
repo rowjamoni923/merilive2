@@ -275,12 +275,19 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w * dpr; 
-      canvas.height = cfg.h * dpr;
+      
+      // Professional performance: cap internal resolution at ~1080p max to ensure 60fps on high-DPI mobile.
+      const maxRes = 1080;
+      const scale = Math.min(1, maxRes / Math.max(cfg.w, cfg.h));
+      canvas.width = cfg.w * dpr * scale; 
+      canvas.height = cfg.h * dpr * scale;
     } else {
       ({ rgbRect, alphaRect } = getAutoVapRects(video));
-      canvas.width = (videoWidth / 2) * dpr; 
-      canvas.height = videoHeight * dpr;
+      const maxRes = 1080;
+      const targetW = videoWidth / 2;
+      const scale = Math.min(1, maxRes / Math.max(targetW, videoHeight));
+      canvas.width = targetW * dpr * scale; 
+      canvas.height = videoHeight * dpr * scale;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
