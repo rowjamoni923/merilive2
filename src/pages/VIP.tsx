@@ -1292,7 +1292,7 @@ const VIP = () => {
                 { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-orange-50', ringColor: 'hover:ring-amber-300/60', delay: 0.2 },
                 { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-blue-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.25 },
                 { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-600" />, bgFrom: 'from-emerald-50', bgTo: 'to-teal-50', ringColor: 'hover:ring-emerald-300/60', delay: 0.3 },
-                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <Gift className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-slate-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.35 },
+                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <img src={gift3d} alt="Gift" loading="lazy" decoding="async" className="w-12 h-12 object-contain drop-shadow-[0_4px_8px_rgba(220,38,38,0.35)]" />, bgFrom: 'from-cyan-50', bgTo: 'to-slate-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.35 },
               ].map(({ items, icon, title, fallbackIcon, bgFrom, bgTo, ringColor, delay }) => (
                 items.length > 0 && (
                   <motion.div
