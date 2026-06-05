@@ -244,7 +244,8 @@ const Chat = () => {
   const [chatTab, setChatTab] = useState("messages");
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [convCache, setConvCache, hadConvCache] = usePersistedCache<Conversation[]>('chat:conversations', []);
+  const [conversations, setConversations] = useState<Conversation[]>(convCache ?? []);
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
