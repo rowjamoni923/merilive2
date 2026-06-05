@@ -38,23 +38,28 @@ export async function getSVGAModule(): Promise<any> {
  */
 export async function prewarmPopularAssets(urls: string[]): Promise<void> {
   if (!urls.length) return;
-  
-  const SVGA = await getSVGAModule();
-  const parser = new SVGA.Parser();
 
-  // Load and parse in background
-  urls.forEach(url => {
+  const SVGA = await getSVGAModule();
+
+  // Load and parse sequentially. Parallel parser.load() on 10–20 SVGA files was
+  // saturating low-end devices and delaying normal page data loads.
+  for (const url of urls.slice(0, 4)) {
     if (svgaCacheHas(url)) return;
-    
-    parser.load(url, (videoItem: any) => {
-      if (videoItem) {
-        svgaCacheSet(url, videoItem);
-        console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
-      }
-    }, (err: any) => {
-      console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
+
+    await new Promise<void>((resolve) => {
+      const parser = new SVGA.Parser();
+      parser.load(url, (videoItem: any) => {
+        if (videoItem) {
+          svgaCacheSet(url, videoItem);
+          console.log('[SVGA-Prewarm] ✅ Parsed popular asset:', url.split('/').pop());
+        }
+        window.setTimeout(resolve, 900);
+      }, (err: any) => {
+        console.warn('[SVGA-Prewarm] ❌ Failed to pre-parse:', url.split('/').pop(), err);
+        resolve();
+      });
     });
-  });
+  }
 }
 
 // ---- Browser Cache API (unchanged but integrated) ----
