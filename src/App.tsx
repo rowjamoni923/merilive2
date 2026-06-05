@@ -639,8 +639,10 @@ const App = () => {
   // 🔐 SINGLE DEVICE SESSION & APP RESUME - Deferred via lazy component
   const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
-  const isLandingDomain = isLandingOnlyHostname(hostname);
   const isAdminRoute = currentPath.startsWith('/admin');
+  // merilive.top is the public landing host, but admin secret links must still
+  // render the admin app. Otherwise /admin/auth falls through to LandingPage.
+  const isLandingDomain = isLandingOnlyHostname(hostname) && !isAdminRoute;
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
