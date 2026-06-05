@@ -53,8 +53,8 @@ export function startIdleRoutePrefetch() {
         () => import('@/pages/CallHistory'),
         () => import('@/pages/FollowingList'),
         () => import('@/pages/SearchUsers'),
-      ], 1200);
-    }, 6000);
+    ], 2200);
+    }, 18000);
 
     // Tier 3 — agency / helper / withdrawal / leaderboard
     ric(() => {
@@ -74,7 +74,7 @@ export function startIdleRoutePrefetch() {
         () => import('@/pages/HostDashboard'),
         () => import('@/pages/HostTransferHistory'),
         () => import('@/pages/Rewards'),
-      ], 1400);
-    }, 10000);
-  }, 2000);
+      ], 2600);
+    }, 35000);
+  }, 20000);
 }
