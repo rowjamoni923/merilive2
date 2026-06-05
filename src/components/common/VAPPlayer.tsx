@@ -171,10 +171,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         alphaCoord.y = clamp(alphaCoord.y, u_alphaRect.y + edgeInset, u_alphaRect.y + u_alphaRect.w - edgeInset);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
         
-        // Output premultiplied alpha for professional-grade blending.
+        // Tencent VAP official shader outputs straight RGBA:
+        //   vec4(rgbColor.r, rgbColor.g, rgbColor.b, alphaColor.r)
+        // Do NOT premultiply rgb here. Canvas/WebGL compositing handles alpha;
+        // multiplying again makes dark VAP gifts almost invisible.
         // Alpha is derived from the R channel (standard for VAP).
         float alpha = alphaColor.r;
-        gl_FragColor = vec4(rgbColor.rgb * alpha, alpha);
+        gl_FragColor = vec4(rgbColor.rgb, alpha);
       }
     `;
 
@@ -223,7 +226,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       antialias: true, // Enable antialiasing for smoother edges
       depth: false,
       stencil: false,
-      premultipliedAlpha: true, // Switched to true for professional blending
+      premultipliedAlpha: false, // Tencent VAP uses straight-alpha output
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     });
