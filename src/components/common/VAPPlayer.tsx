@@ -291,8 +291,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     setFallbackCrop(rgbRect as [number, number, number, number]);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
     gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // Render one VAP frame into the canvas; the browser will composite the
+    // canvas over the page. Internal WebGL blending would premultiply/darken
+    // Tencent VAP frames a second time, so keep it disabled here.
+    gl.disable(gl.BLEND);
 
     const render = () => {
       if (useVideoFallbackRef.current || !mountedRef.current) return;
