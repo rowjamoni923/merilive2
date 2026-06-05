@@ -108,7 +108,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
     // MP4/WebM/VAP files caused the real first-play delay. Warm only the most
     // popular few fully into HTTP cache; metadata warm keeps the decoder ready.
     const criticalVideos = videoUrls.slice(0, 10);
-    warmupVapUrls(criticalVideos);
+    warmupVapUrls(criticalVideos, { warmJsonSibling: false });
     criticalVideos.forEach((u) => warmVideoMetadata(u));
   } catch {
     // best-effort only
@@ -170,6 +170,6 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
     lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
   );
   const criticalVideos = videoUrls.slice(0, 8);
-  warmupVapUrls(criticalVideos);
+  warmupVapUrls(criticalVideos, { warmJsonSibling: false });
   criticalVideos.forEach((u) => warmVideoMetadata(u));
 }
