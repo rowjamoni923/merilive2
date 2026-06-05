@@ -331,7 +331,9 @@ export const GiftEmojiAnimation = ({
   onComplete,
 }: GiftEmojiAnimationProps) => {
   // CRITICAL: Use stable key based on emoji URL to prevent re-mounting
-  const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-20)}`);
+  // Pkg-fix: add Date.now() to ensure the same gift sent multiple times in a row
+  // triggers a fresh mount of the player (GiftPanel handles double-tap guard).
+  const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-30).replace(/[^a-zA-Z0-9]/g, '')}`);
 
   return (
     <GiftEmojiAnimationInner
