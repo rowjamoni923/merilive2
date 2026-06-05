@@ -196,6 +196,20 @@ self.addEventListener('activate', function(event) {
 
 self.addEventListener('fetch', function(event) {
   var req = event.request;
+  if (req.method === 'GET' && GIFT_MEDIA_EXT_RE.test(req.url) && GIFT_MEDIA_URL_RE.test(req.url)) {
+    event.respondWith(
+      caches.open(GIFT_MEDIA_CACHE_NAME).then(function(cache) {
+        return cache.match(req, { ignoreVary: true }).then(function(cached) {
+          if (cached && !req.headers.get('range')) return cached;
+          return fetch(req).then(function(res) {
+            if (res && res.ok && !req.headers.get('range')) cache.put(req, res.clone()).catch(function() {});
+            return res;
+          }).catch(function() { return cached || Response.error(); });
+        });
+      })
+    );
+    return;
+  }
 
   // Only handle GET
   if (req.method !== 'GET') return;
@@ -370,6 +384,21 @@ self.addEventListener('message', function(event) {
             }).catch(function() {});
           });
         })).then(function() { return trimImgCache(cache); });
+      })
+    );
+  }
+  if (data.type === 'WARM_GIFT_MEDIA' && Array.isArray(data.urls)) {
+    event.waitUntil(
+      caches.open(GIFT_MEDIA_CACHE_NAME).then(function(cache) {
+        return Promise.all(data.urls.slice(0, 8).map(function(u) {
+          if (!GIFT_MEDIA_EXT_RE.test(u) || !GIFT_MEDIA_URL_RE.test(u)) return;
+          return cache.match(u, { ignoreVary: true }).then(function(hit) {
+            if (hit) return;
+            return fetch(u, { mode: 'cors', credentials: 'omit' }).then(function(res) {
+              if (res && res.ok) return cache.put(u, res.clone());
+            }).catch(function() {});
+          });
+        }));
       })
     );
   }
