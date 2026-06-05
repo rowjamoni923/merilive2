@@ -231,9 +231,42 @@ export default function AdminAuth() {
       // already-created owner/sub-admin link remains the authority, but users
       // should not get locked out just because the login page stayed open for
       // more than a few minutes before they typed credentials.
-      const { data: linkData, error: linkError } = await adminSupabase.functions.invoke('validate-admin-token', {
-        body: { token: accessToken },
-      });
+      let linkData: any = null;
+      let linkError: any = null;
+      try {
+        const response = await adminSupabase.functions.invoke('validate-admin-token', {
+          body: { token: accessToken },
+        });
+        linkData = response.data;
+        linkError = response.error;
+      } catch (e) {
+        linkError = e;
+      }
+
+      // Extra hardening for merilive.com production: some stale browser/CDN
+      // sessions have returned an empty invoke payload even while the edge
+      // function itself validates the token correctly. Re-check with a plain
+      // fetch before declaring the live admin link invalid.
+      if (!linkData?.valid) {
+        try {
+          const directResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-admin-token`, {
+            method: 'POST',
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({ token: accessToken }),
+          });
+          const directData = await directResp.json().catch(() => null);
+          if (directData?.valid) {
+            linkData = directData;
+            linkError = null;
+          }
+        } catch (e) {
+          linkError = linkError || e;
+        }
+      }
       if (linkData?.valid && typeof linkData.challenge === 'string') {
         const refreshedLinkKind = linkData.role === 'owner' ? 'owner' : 'sub_admin';
         setAdminLinkToken(accessToken);
@@ -242,13 +275,12 @@ export default function AdminAuth() {
       } else if (
         previouslyValidatedToken === accessToken &&
         previouslyValidatedChallenge &&
-        previouslyValidatedKind &&
-        !linkError
+        previouslyValidatedKind
       ) {
         // The route guard already validated this exact link and issued a fresh
-        // server challenge. If the submit-time validation races/transiently
-        // returns an empty body, keep the valid challenge instead of falsely
-        // rejecting the new admin link.
+        // server challenge. If submit-time validation races, times out, or
+        // returns an empty body, keep that valid challenge instead of falsely
+        // rejecting the live merilive.com admin link.
         setAdminLinkKind(previouslyValidatedKind);
         setAdminLinkChallenge(previouslyValidatedChallenge);
       } else {
