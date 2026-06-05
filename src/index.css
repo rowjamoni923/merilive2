@@ -4150,3 +4150,88 @@ html.reduce-motion .backdrop-blur-3xl {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+/* === AgencyPolicy 3D polish (Pkg-policy-3d) ============================ */
+/* Adds depth, gloss highlight, soft inner shadow, and subtle lift on press. */
+.policy-3d-card {
+  position: relative;
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.6) inset,
+    0 -1px 0 hsl(0 0% 0% / 0.04) inset,
+    0 10px 24px -12px hsl(220 40% 20% / 0.18),
+    0 4px 10px -4px hsl(220 40% 20% / 0.10);
+  border-radius: 1rem;
+  transition: transform .18s ease, box-shadow .18s ease;
+  isolation: isolate;
+}
+.policy-3d-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.18) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 1;
+}
+.policy-3d-card > * { position: relative; z-index: 2; }
+.policy-3d-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.7) inset,
+    0 -1px 0 hsl(0 0% 0% / 0.05) inset,
+    0 18px 36px -14px hsl(220 40% 20% / 0.28),
+    0 8px 16px -6px hsl(220 40% 20% / 0.14);
+}
+.policy-3d-card:active { transform: translateY(0); }
+.dark .policy-3d-card {
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.06) inset,
+    0 -1px 0 hsl(0 0% 0% / 0.4) inset,
+    0 14px 30px -14px hsl(0 0% 0% / 0.6),
+    0 6px 14px -6px hsl(0 0% 0% / 0.4);
+}
+.dark .policy-3d-card::before {
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.08) 0%, transparent 45%);
+}
+
+/* Inner gloss + depth for tier rows and item chips */
+.policy-3d-tile {
+  position: relative;
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.3) inset,
+    0 -2px 0 hsl(0 0% 0% / 0.08) inset,
+    0 6px 14px -8px hsl(220 40% 20% / 0.25);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.policy-3d-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 60% at 50% -10%, hsl(0 0% 100% / 0.22), transparent 60%),
+    linear-gradient(180deg, transparent 60%, hsl(0 0% 0% / 0.08) 100%);
+  pointer-events: none;
+}
+.policy-3d-tile:hover { transform: translateY(-1px); }
+.dark .policy-3d-tile {
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.06) inset,
+    0 -2px 0 hsl(0 0% 0% / 0.45) inset,
+    0 8px 18px -10px hsl(0 0% 0% / 0.55);
+}
+
+/* Icon badge with 3D ring + inner highlight */
+.policy-3d-badge {
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.7) inset,
+    0 -1px 0 hsl(0 0% 0% / 0.08) inset,
+    0 4px 10px -4px hsl(220 40% 20% / 0.25);
+  background-image: linear-gradient(180deg, hsl(0 0% 100% / 0.35), transparent 60%);
+}
+.dark .policy-3d-badge {
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.1) inset,
+    0 -1px 0 hsl(0 0% 0% / 0.4) inset,
+    0 4px 10px -4px hsl(0 0% 0% / 0.5);
+}

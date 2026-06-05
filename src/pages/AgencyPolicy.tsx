@@ -336,11 +336,11 @@ const AgencyPolicy = () => {
 
         {/* Exchange Rate Card */}
         <div className="mx-4 mt-4">
- <Card className="border-0 shadow-lg bg-gradient-to-br from-success-500 to-success-600 text-white">
+ <Card className="border-0 shadow-lg policy-3d-card bg-gradient-to-br from-success-500 to-success-600 text-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center policy-3d-badge">
                     <DollarSign className="w-6 h-6" />
                   </div>
                   <div>
@@ -390,7 +390,7 @@ const AgencyPolicy = () => {
 
             {/* Commission Tab */}
             <TabsContent value="commission" className="mt-4 space-y-4">
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
@@ -412,7 +412,7 @@ const AgencyPolicy = () => {
                       return (
                       <div 
                         key={tier.level}
-                        className={`bg-gradient-to-r ${getTierStyle(tier)} rounded-xl p-4 text-white relative overflow-hidden shadow-md ring-1 ring-white/10`}
+                        className={`bg-gradient-to-r ${getTierStyle(tier)} rounded-xl p-4 text-white relative overflow-hidden shadow-md ring-1 ring-white/10 policy-3d-tile`}
                       >
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10 pointer-events-none" />
@@ -444,7 +444,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Commission Example */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50">
+ <Card className="border-0 shadow-md policy-3d-card bg-gradient-to-br from-info-50 to-info-50">
                 <CardHeader className="pb-2">
  <CardTitle className="text-base flex items-center gap-2 text-info-800">
                     <Target className="w-5 h-5" />
@@ -481,7 +481,7 @@ const AgencyPolicy = () => {
 
             {/* Host Tab */}
             <TabsContent value="host" className="mt-4 space-y-4">
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
@@ -495,9 +495,9 @@ const AgencyPolicy = () => {
                     {hostRequirements.map((req, index) => (
                       <div 
                         key={index}
-                        className="bg-muted/50 rounded-xl p-4 text-center"
+                        className="bg-muted/50 rounded-xl p-4 text-center policy-3d-tile"
                       >
- <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600">
+ <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2 policy-3d-badge text-success-600">
                           {iconMap[req.key] || <Star className="w-5 h-5" />}
                         </div>
                         <p className="font-semibold text-sm">{req.title}</p>
@@ -509,7 +509,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Earning Methods */}
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
@@ -550,7 +550,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Call Rules */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50">
+ <Card className="border-0 shadow-md policy-3d-card bg-gradient-to-br from-info-50 to-info-50">
                 <CardHeader className="pb-2">
  <CardTitle className="text-base flex items-center gap-2 text-info-800">
                     <Phone className="w-5 h-5" />
@@ -573,7 +573,7 @@ const AgencyPolicy = () => {
             {/* Rules Tab */}
             <TabsContent value="rules" className="mt-4 space-y-4">
               {/* Violations */}
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
@@ -609,7 +609,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Prohibited Content */}
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
@@ -623,7 +623,7 @@ const AgencyPolicy = () => {
                     {prohibitedContent.map((item, index) => (
                       <div 
                         key={index}
- className="bg-slate-50 rounded-lg p-3"
+ className="bg-slate-50 rounded-lg p-3 policy-3d-tile"
                       >
  <p className="font-semibold text-xs text-slate-800">{item.title}</p>
  <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
@@ -634,7 +634,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Important Warning */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-white">
+ <Card className="border-0 shadow-md policy-3d-card bg-gradient-to-br from-danger-500 to-danger-600 text-white">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0">
@@ -654,7 +654,7 @@ const AgencyPolicy = () => {
 
             {/* Withdrawal Tab */}
             <TabsContent value="withdraw" className="mt-4 space-y-4">
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
  <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
@@ -689,7 +689,7 @@ const AgencyPolicy = () => {
                     <p className="font-semibold text-sm mb-3">Supported Payment Methods</p>
                     <div className="grid grid-cols-2 gap-2">
                       {withdrawal.payment_methods.map((method, index) => (
-                        <div key={index} className="bg-background rounded-lg p-3 text-center border">
+                        <div key={index} className="bg-background rounded-lg p-3 text-center border policy-3d-tile">
                           <p className="font-medium text-sm">{method.name}</p>
                           <p className="text-xs text-muted-foreground">{method.type}</p>
                         </div>
@@ -717,14 +717,14 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Withdrawal Steps */}
-              <Card className="border-0 shadow-md">
+              <Card className="border-0 shadow-md policy-3d-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Withdrawal Steps</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
- <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
+ <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 policy-3d-badge font-bold text-brand-600 text-sm">
                         1
                       </div>
                       <div>
@@ -733,7 +733,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
- <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
+ <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 policy-3d-badge font-bold text-brand-600 text-sm">
                         2
                       </div>
                       <div>
@@ -742,7 +742,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
- <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
+ <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center shrink-0 policy-3d-badge font-bold text-brand-600 text-sm">
                         3
                       </div>
                       <div>
@@ -751,7 +751,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
- <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center shrink-0 font-bold text-success-600 text-sm">
+ <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center shrink-0 policy-3d-badge font-bold text-success-600 text-sm">
                         ✓
                       </div>
                       <div>
@@ -764,7 +764,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Time Zone Info */}
-              <Card className="border-0 shadow-md bg-muted/50">
+              <Card className="border-0 shadow-md policy-3d-card bg-muted/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Clock className="w-4 h-4" />
@@ -774,7 +774,7 @@ const AgencyPolicy = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {withdrawal.timezones.map((tz, index) => (
-                      <div key={index} className="bg-background rounded-lg p-2.5 border">
+                      <div key={index} className="bg-background rounded-lg p-2.5 border policy-3d-tile">
                         <p className="text-muted-foreground">{tz.flag} {tz.country}</p>
                         <p className="font-medium">{tz.time}</p>
                       </div>
@@ -787,7 +787,7 @@ const AgencyPolicy = () => {
             {/* More Tab — Admin-managed dynamic policy sections */}
             <TabsContent value="more" className="mt-4 space-y-4">
               {(dynamicSections ?? []).length === 0 ? (
-                <Card className="border-0 shadow-md">
+                <Card className="border-0 shadow-md policy-3d-card">
                   <CardContent className="p-8 text-center">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
@@ -823,11 +823,11 @@ const AgencyPolicy = () => {
                   }
 
                   return (
-                    <Card key={section.section_key} className="border-0 shadow-md overflow-hidden">
+                    <Card key={section.section_key} className="border-0 shadow-md policy-3d-card overflow-hidden">
                       {/* Gradient Header */}
                       <div className={`bg-gradient-to-r ${visual.gradient} p-4 text-white`}>
                         <div className="flex items-center gap-3">
-                          <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                          <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center policy-3d-badge">
                             {visual.icon}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -865,7 +865,7 @@ const AgencyPolicy = () => {
               )}
 
               {/* Last Updated Notice */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-brand-50">
+ <Card className="border-0 shadow-md policy-3d-card bg-gradient-to-br from-info-50 to-brand-50">
                 <CardContent className="p-4 text-center">
  <Sparkles className="w-6 h-6 text-info-600 mx-auto mb-2" />
  <p className="text-xs text-info-700">
@@ -879,7 +879,7 @@ const AgencyPolicy = () => {
 
         {/* Footer Note */}
         <div className="mx-4 mt-6 mb-4">
- <Card className="border-0 shadow-md bg-gradient-to-br from-brand-100 to-info-100">
+ <Card className="border-0 shadow-md policy-3d-card bg-gradient-to-br from-brand-100 to-info-100">
             <CardContent className="p-4 text-center">
  <Sparkles className="w-8 h-8 text-brand-600 mx-auto mb-2" />
  <p className="text-sm text-brand-800 font-medium">
