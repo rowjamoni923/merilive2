@@ -387,18 +387,9 @@ const FullScreenGiftAnimation = ({
       );
     }
 
-    return (
-      <motion.div 
-        className="text-8xl md:text-9xl"
-        animate={{ 
-          y: [-10, 10, -10],
-          scale: [1, 1.1, 1]
-        }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        🎁
-      </motion.div>
-    );
+    // No animation OR photo available - show NOTHING.
+    // User requested absolute removal of generic gift icons/emojis.
+    return null;
   };
 
   return (
