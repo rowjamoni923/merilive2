@@ -35,11 +35,15 @@ const getAutoVapRects = (video: HTMLVideoElement) => {
   const layout = detectVapLayout(video);
   if (layout === 'alpha-top' || layout === 'alpha-bottom') {
     // Top-Bottom Stacked
+    // If layout is alpha-top, then Alpha is in [0, 0, 1, 0.5] and RGB is in [0, 0.5, 1, 0.5]
     if (layout === 'alpha-top') return { rgbRect: [0, 0.5, 1, 0.5], alphaRect: [0, 0, 1, 0.5] };
+    // If layout is alpha-bottom, then RGB is in [0, 0, 1, 0.5] and Alpha is in [0, 0.5, 1, 0.5]
     return { rgbRect: [0, 0, 1, 0.5], alphaRect: [0, 0.5, 1, 0.5] };
   }
   // Side-by-Side
+  // If layout is alpha-left, then Alpha is in [0, 0, 0.5, 1] and RGB is in [0.5, 0, 0.5, 1]
   if (layout === 'alpha-left') return { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] };
+  // If layout is alpha-right, then RGB is in [0, 0, 0.5, 1] and Alpha is in [0.5, 0, 0.5, 1]
   return { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
 };
 
@@ -129,12 +133,18 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       uniform vec4 u_rgbRect;
       uniform vec4 u_alphaRect;
       void main() {
+        // Sample RGB color
         vec2 rgbCoord = vec2(u_rgbRect.x + v_texCoord.x * u_rgbRect.z, u_rgbRect.y + v_texCoord.y * u_rgbRect.w);
-        vec2 alphaCoord = vec2(u_alphaRect.x + v_texCoord.x * u_alphaRect.z, u_alphaRect.y + v_texCoord.y * u_alphaRect.w);
         vec4 rgbColor = texture2D(u_texture, rgbCoord);
+        
+        // Sample Alpha mask
+        vec2 alphaCoord = vec2(u_alphaRect.x + v_texCoord.x * u_alphaRect.z, u_alphaRect.y + v_texCoord.y * u_alphaRect.w);
         vec4 alphaColor = texture2D(u_texture, alphaCoord);
+        
+        // VAP standard: take the maximum of R, G, B as the alpha value
         float alphaValue = max(alphaColor.r, max(alphaColor.g, alphaColor.b));
-        // Use premultiplied alpha for cleaner transparency on all browsers
+        
+        // Premultiply alpha for high-quality blending on transparent canvas
         gl_FragColor = vec4(rgbColor.rgb * alphaValue, alphaValue);
       }
     `;
@@ -310,7 +320,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         className="w-full h-full object-contain pointer-events-none"
         style={{ 
           opacity: webglPainted ? 1 : 0,
-          transition: 'opacity 0.2s ease-in'
+          transition: 'opacity 0.1s ease-in',
+          width: '100dvw',
+          height: '100dvh'
         }}
       />
     </div>

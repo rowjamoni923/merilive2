@@ -168,7 +168,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
 
             {(isLottie || isVap || isVideo) && (
               <FixedAnimationFrame
-                key={`anim-vap-${emoji}`}
+                key={`anim-vap-${emoji}-${Date.now()}`}
                 src={emoji}
                 size="fullscreen"
                 width="100dvw"
