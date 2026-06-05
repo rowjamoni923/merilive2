@@ -161,7 +161,7 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
 
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] && emojiMatch[1] !== '🎁' && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
+    emoji: emojiMatch?.[1] && emojiMatch[1] !== '\u{1F381}' && /\p{Extended_Pictographic}/u.test(emojiMatch[1]) ? emojiMatch[1] : '',
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
@@ -180,7 +180,7 @@ const getGiftAnimationSignature = (content: string, senderId?: string | null): s
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
 
-  // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
+  // Match format: [Gift: URL|NAME xCOUNT | +BEANS beans] or legacy [Gift: EMOJI NAME xCOUNT | +BEANS beans]
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
     .replace(/\[Gift:\s*[^|\s\]]+\|/i, '[Gift: ')
@@ -191,7 +191,8 @@ const cleanGiftMessageForPreview = (content: string): string => {
   const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
   if (match) {
     const [, emoji, name, count, beans] = match;
-    return `[Gift: ${emoji} ${name.trim()} x${count} | +${Number(beans).toLocaleString()} bea...]`;
+    const cleanName = `${/\p{Extended_Pictographic}/u.test(emoji) ? '' : emoji} ${name}`.trim();
+    return `[Gift: ${cleanName} x${count} | +${Number(beans).toLocaleString()} bea...]`;
   }
 
   // Fallback - just remove URL part
@@ -765,7 +766,7 @@ const Chat = () => {
     setUserCoins(prev => prev - totalCost);
     
     // Show gift animation IMMEDIATELY
-    const giftEmoji = gift.emoji || '';
+    const giftEmoji = '';
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
     const giftMediaUrl = animationUrl || iconUrl;
@@ -1610,7 +1611,7 @@ const Chat = () => {
         // so the receiver sees it when entering the chat (as requested by user).
         const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift');
         if (latestUnreadGift) {
-          console.log('[Chat] 🎁 Replaying unread gift animation for receiver');
+          console.log('[Chat] Replaying unread gift animation for receiver');
           playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
         }
 
