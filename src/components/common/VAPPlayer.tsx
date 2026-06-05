@@ -81,6 +81,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [config, setConfig] = useState<VAPConfig | null>(null);
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const [webglPainted, setWebglPainted] = useState(false);
   const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
@@ -212,6 +213,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setUseVideoFallback(true);
       setLoading(false);
       webglPaintedRef.current = true;
+      setWebglPainted(true);
       onLoadRef.current?.();
       return;
     }
@@ -301,7 +303,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          webglPaintedRef.current = true;
+          if (!webglPaintedRef.current) {
+            webglPaintedRef.current = true;
+            setWebglPainted(true);
+          }
         } catch (e) {
           setUseVideoFallback(true);
           return;
@@ -310,9 +315,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
       if (v.ended && !loop) return;
 
-      if (typeof (v as any).requestVideoFrameCallback === 'function') {
+      const frameVideo = v as VideoFrameCallbackVideo;
+      if (typeof frameVideo.requestVideoFrameCallback === 'function') {
         frameCallbackModeRef.current = 'rvfc';
-        animationRef.current = (v as any).requestVideoFrameCallback(render);
+        animationRef.current = frameVideo.requestVideoFrameCallback(render);
       } else {
         frameCallbackModeRef.current = 'raf';
         animationRef.current = requestAnimationFrame(render);
@@ -353,7 +359,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-  }, [autoPlay, createShaders, muted, volume, loop]);
+  }, [autoPlay, createShaders, muted, volume, loop, soundUrl]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth) return;
@@ -391,8 +397,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         soundHandleRef.current = null;
       }
       if (animationRef.current !== null) {
-        if (frameCallbackModeRef.current === 'rvfc' && videoRef.current) {
-          (videoRef.current as any).cancelVideoFrameCallback?.(animationRef.current);
+        const video = videoRef.current as VideoFrameCallbackVideo | null;
+        if (frameCallbackModeRef.current === 'rvfc' && video) {
+          video.cancelVideoFrameCallback?.(animationRef.current);
         } else {
           cancelAnimationFrame(animationRef.current);
         }
@@ -428,7 +435,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         <canvas 
           ref={canvasRef} 
           className="w-full h-full object-contain pointer-events-none"
-          style={{ opacity: webglPaintedRef.current ? 1 : 0 }}
+          style={{ opacity: webglPainted ? 1 : 0 }}
         />
       )}
     </div>
