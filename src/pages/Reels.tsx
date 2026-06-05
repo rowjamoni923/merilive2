@@ -735,20 +735,31 @@ const Reels = () => {
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 className="h-full w-full relative"
               >
-                {/* Video */}
-                <video 
-                  ref={el => {
-                    videoRefs.current[currentReel.id] = el;
-                    if (el) hardenVideoElementForNative(el, { muted: isMuted });
-                  }}
-                  src={currentReel.video_url}
-                  className="w-full h-full object-cover"
-                  loop
-                  playsInline
-                  autoPlay
-                  muted={isMuted}
-                  onClick={togglePlay}
-                />
+                {/* Video — Pkg427: when native ExoPlayer is active, render
+                    a transparent tap-target instead of <video> so the
+                    SurfaceView beneath the (transparent) WebView shows
+                    through. Web / iOS / flag-OFF fallback keeps <video>. */}
+                {nativeReels.active ? (
+                  <div
+                    className="absolute inset-0 w-full h-full"
+                    style={{ background: 'transparent' }}
+                    onClick={togglePlay}
+                  />
+                ) : (
+                  <video
+                    ref={el => {
+                      videoRefs.current[currentReel.id] = el;
+                      if (el) hardenVideoElementForNative(el, { muted: isMuted });
+                    }}
+                    src={currentReel.video_url}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                    autoPlay
+                    muted={isMuted}
+                    onClick={togglePlay}
+                  />
+                )}
 
 
 
