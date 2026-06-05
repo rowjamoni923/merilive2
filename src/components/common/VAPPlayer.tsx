@@ -320,7 +320,9 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         className="w-full h-full object-contain pointer-events-none"
         style={{ 
           opacity: webglPainted ? 1 : 0,
-          transition: 'opacity 0.2s ease-in'
+          transition: 'opacity 0.1s ease-in',
+          width: '100dvw',
+          height: '100dvh'
         }}
       />
     </div>
