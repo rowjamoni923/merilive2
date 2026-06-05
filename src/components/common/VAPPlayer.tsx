@@ -425,6 +425,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [configReady, config, handleVideoReady]);
 
   useEffect(() => {
+    const cleanupVideo = videoRef.current as VideoFrameCallbackVideo | null;
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       if (soundHandleRef.current) {
@@ -432,9 +433,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         soundHandleRef.current = null;
       }
       if (animationRef.current !== null) {
-        const video = videoRef.current as VideoFrameCallbackVideo | null;
-        if (frameCallbackModeRef.current === 'rvfc' && video) {
-          video.cancelVideoFrameCallback?.(animationRef.current);
+        if (frameCallbackModeRef.current === 'rvfc' && cleanupVideo) {
+          cleanupVideo.cancelVideoFrameCallback?.(animationRef.current);
         } else {
           cancelAnimationFrame(animationRef.current);
         }
