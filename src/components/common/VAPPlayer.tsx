@@ -136,10 +136,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   }, [volume, muted, resolvedSrc]);
 
   useEffect(() => {
-    // Pkg: Use a cached fetch for VAP configs to ensure instant load on repeat sends
-    const jsonPath = resolvedConfigSrc || (/\.(mp4|webm)(\?|#|$)/i.test(resolvedSrc)
-      ? resolvedSrc.replace(/\.(mp4|webm)(?=\?|#|$)/i, '.json')
-      : '');
+    // Only fetch a VAP config when one is explicitly provided.
+    // Auto-probing for a sibling `.json` next to the .mp4 caused noisy 404s
+    // (and a runtime-error overlay) for VAP gifts uploaded without a config —
+    // those play correctly as plain MP4 anyway.
+    const jsonPath = resolvedConfigSrc || '';
     setConfigReady(false);
     if (!jsonPath) {
       setConfig(null);
