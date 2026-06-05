@@ -4202,6 +4202,7 @@ html.reduce-motion .backdrop-blur-3xl {
     0 -2px 0 hsl(0 0% 0% / 0.08) inset,
     0 6px 14px -8px hsl(220 40% 20% / 0.25);
   transition: transform .15s ease, box-shadow .15s ease;
+  isolation: isolate;
 }
 .policy-3d-tile::after {
   content: "";
@@ -4209,10 +4210,12 @@ html.reduce-motion .backdrop-blur-3xl {
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(120% 60% at 50% -10%, hsl(0 0% 100% / 0.22), transparent 60%),
-    linear-gradient(180deg, transparent 60%, hsl(0 0% 0% / 0.08) 100%);
+    radial-gradient(120% 60% at 50% -10%, hsl(0 0% 100% / 0.18), transparent 60%),
+    linear-gradient(180deg, transparent 70%, hsl(0 0% 0% / 0.06) 100%);
   pointer-events: none;
+  z-index: 0;
 }
+.policy-3d-tile > * { position: relative; z-index: 1; }
 .policy-3d-tile:hover { transform: translateY(-1px); }
 .dark .policy-3d-tile {
   box-shadow:
