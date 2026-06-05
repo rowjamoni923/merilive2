@@ -229,21 +229,16 @@ const ShopItemCard = ({
             );
           }
 
-          // PRIORITY 2 — Animated asset (VAP/MP4/SVGA/Lottie) — always centered.
+          // PRIORITY 2 — Animation-only item: render a lightweight static placeholder.
+          // The full animation plays inside the detail modal after the user taps the card.
           if (animSrc && isAnimatedType(animType) && !imageError) {
             return (
-              <div className={`relative flex items-center justify-center mx-auto ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
-                <FixedAnimationFrame
-                  src={animSrc}
-                  type={animType as any}
-                  configSrc={item.animation_config_url || undefined}
-                  size="fill"
-                  loop
-                  autoPlay
-                  muted
-                  center={true}
-                  onError={() => setImageError(true)}
-                />
+              <div className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40 mx-auto text-amber-700/70"
+                style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+              >
+                <svg viewBox="0 0 24 24" className="w-7 h-7" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
               </div>
             );
           }

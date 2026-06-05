@@ -438,7 +438,7 @@ const AdminEntryNameBars = () => {
                       containerClassName="w-full h-16"
                     />
                   ) : nameBar.animation_url ? (
-                    <FixedAnimationFrame size="fill" center={false}
+                    <FixedAnimationFrame playOnClick size="fill" center={false}
                       src={nameBar.animation_url}
                       className="w-full h-16 object-contain"
                       loop

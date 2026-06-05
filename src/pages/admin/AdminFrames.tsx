@@ -607,7 +607,7 @@ const AdminFrames = () => {
                     // ART centered & filling the card, mirroring in-app Shop preview.
                     return (
                       <div className="relative w-[85%] h-[85%] flex items-center justify-center">
-                        <FixedAnimationFrame
+                        <FixedAnimationFrame playOnClick
                           src={frame.frame_url || previewUrl}
                           type={frame.frame_type as any}
                           size="fill"

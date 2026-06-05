@@ -889,13 +889,9 @@ export default function AdminGifts() {
                       {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
                           isSVGA(gift.icon_url) || isLottie(gift.icon_url) ? (
-                            <UniversalFramePlayer
-                              src={gift.icon_url}
-                              type={isSVGA(gift.icon_url) ? 'svga' : 'lottie'}
-                              className="w-full h-full"
-                              loop={true}
-                              autoPlay={true}
-                            />
+                            <div className="w-full h-full flex items-center justify-center text-pink-500/80">
+                              <Play className="w-5 h-5" />
+                            </div>
                           ) : (
                             <SmartImage src={gift.icon_url} alt={gift.name} cdnWidth={64} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                           )
@@ -903,13 +899,9 @@ export default function AdminGifts() {
                           <span className="text-3xl">{gift.icon_url}</span>
                         )
                       ) : gift.animation_url ? (
-                        <UniversalFramePlayer
-                          src={gift.animation_url}
-                          type={isSVGA(gift.animation_url) ? 'svga' : isLottie(gift.animation_url) ? 'lottie' : undefined}
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
+                        <div className="w-full h-full flex items-center justify-center text-pink-500/80">
+                          <Play className="w-5 h-5" />
+                        </div>
                       ) : (
                         <Gift className="w-8 h-8 text-pink-500" />
                       )}
