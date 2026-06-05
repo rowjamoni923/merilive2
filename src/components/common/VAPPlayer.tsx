@@ -562,7 +562,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         <canvas 
           ref={canvasRef} 
           className="w-full h-full object-contain pointer-events-none"
-          style={{ opacity: webglPainted ? 1 : 0 }}
+          style={{ opacity: 1, backgroundColor: 'transparent' }}
         />
       )}
     </div>
