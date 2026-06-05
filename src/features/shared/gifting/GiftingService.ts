@@ -18,6 +18,7 @@ import { publishGiftSent } from '@/lib/livekitGiftSignaling';
 import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 import { getVapCompositeHint, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
+import { warmGiftForInstantPlay } from '@/utils/instantGiftWarmup';
 
 export interface GiftItem {
   id: string;
@@ -166,6 +167,7 @@ export async function getGiftsByCategory(category: string): Promise<GiftItem[]> 
  */
 export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult> {
   const { giftId, gift: requestGift, senderId, receiverId, quantity, context, streamId, roomId, callId, reelId } = request;
+  warmGiftForInstantPlay(requestGift || null);
 
   // ⚡ ZERO-SECOND FANOUT: fire LiveKit envelope IMMEDIATELY (before RPC roundtrip).
   // Receivers see the flying gift + sound + chat row in <50ms instead of 300-650ms.
