@@ -138,6 +138,34 @@ const STRUCTURED_KEYS = new Set([
   "violations", "prohibited_content", "call_rules", "withdrawal"
 ]);
 
+// Semantic admin keys consumed inline by Host / Rules / Commission tabs
+// (kept out of "More" so they aren't duplicated)
+const INLINED_SEMANTIC_KEYS = new Set([
+  "rules", "host_management", "penalties", "commission",
+]);
+
+// Normalize any admin-stored content shape → flat string[] of bullet items.
+const extractItems = (content: any): string[] => {
+  if (!content) return [];
+  const src = Array.isArray(content?.items)
+    ? content.items
+    : Array.isArray(content?.rules)
+      ? content.rules
+      : Array.isArray(content)
+        ? content
+        : null;
+  if (src) {
+    return src
+      .map((it: any) => typeof it === "string" ? it : (it?.text || it?.title || it?.description || ""))
+      .filter((s: string) => s && s.trim().length > 0);
+  }
+  if (typeof content === "string") return [content];
+  if (typeof content === "object") {
+    return Object.values(content).filter((v) => typeof v === "string") as string[];
+  }
+  return [];
+};
+
 const AgencyPolicy = () => {
   const navigate = useNavigate();
   // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
