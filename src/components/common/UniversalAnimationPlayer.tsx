@@ -105,7 +105,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onCompleteDebug,
   soundUrl = null,
   showControls = false,
-  fallbackEmoji = '🎁',
+  fallbackEmoji = '',
   preferNative = false,
 }) => {
   const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
