@@ -142,17 +142,54 @@ above the WebView. To globally enable, set
 
 ---
 
-## What Lovable already shipped in Pkg426
+## What Lovable already shipped
+
+### Pkg426 Phase-1 — Infrastructure (additive, OFF by default)
 
 | File | Purpose |
 | --- | --- |
 | `android/app/src/main/java/com/merilive/app/plugin/NativeVAPPlugin.kt` | Native Kotlin VAP plugin |
-| `src/plugins/NativeVAP.ts` | JS bridge + safe wrappers |
-| `src/utils/vapNativeFlag.ts` | Feature-flag utility |
+| `src/plugins/NativeVAP.ts` | JS bridge + safe wrappers (`tryNativeVAPPlay`, `tryNativeVAPPrefetch`, `stopNativeVAP`) |
+| `src/utils/vapNativeFlag.ts` | Three-tier feature flag (local override / remote kill-switch / staged rollout) |
 | `android/app/src/main/java/com/merilive/app/MainActivity.java` | `registerPlugin(NativeVAPPlugin.class)` |
 | `android/app/build.gradle` | `com.tencent.qgame:vap:1.0.20` dependency |
 
-Phase 2 (NOT shipped in Pkg426, by user mandate): wire
-`tryNativeVAPPlay()` into `VAPPlayer.tsx` / `EntryVAPPlayer.tsx` behind
-the `isNativeVAPFlagEnabled()` gate so the staged-rollout dial can
-gradually replace the WebView VAP path with the native one.
+### Pkg426 Phase-2 — Wiring (ships gated, default OFF)
+
+| File | Purpose |
+| --- | --- |
+| `src/hooks/useNativeVAPAttempt.ts` | NEW. Returns `'pending' \| 'active' \| 'fallback'`. Loads remote flag once per session, attempts native play, surfaces complete/error events. |
+| `src/components/common/VAPPlayer.tsx` | Calls `useNativeVAPAttempt(resolvedSrc)`. When mode is `'active'` or `'pending'`, the WebView `<video>` + WebGL `<canvas>` are NOT mounted — native plugin owns the screen. On `'fallback'` the existing WebView path runs unchanged. |
+| `src/components/entry/EntryVAPPlayer.tsx` | Same wiring as `VAPPlayer.tsx`, mirrored for entry overlays. |
+
+#### Zero-regression guarantees
+
+- Flag remains OFF by default — `isNativeVAPFlagEnabled()` returns `false` on web, iOS, and any Android device until either the local override is set or `app_settings.vap_native_enabled = true`.
+- Native plugin missing or returning `ok:false` within 3 s → hook resolves to `'fallback'` → existing WebView path renders.
+- `onLoad` is re-emitted from the hook side-effect when mode flips to `'active'` so overlay containers (e.g. `FullScreenGiftAnimation`) still reveal themselves.
+- `onComplete` / `onError` are wired to the plugin's `vap:complete` / `vap:error` events so callers receive the same lifecycle they get from the WebView path.
+
+#### To enable on your own device
+
+```js
+// In the running app's JS console:
+localStorage.setItem('vap:native:enabled', '1');
+location.reload();
+```
+
+#### To roll out app-wide
+
+```sql
+INSERT INTO public.app_settings (setting_key, setting_value)
+VALUES ('vap_native_enabled', 'true'::jsonb),
+       ('vap_native_rollout_percent', '10'::jsonb)
+ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value;
+```
+
+Increase `vap_native_rollout_percent` (1 → 10 → 50 → 100) over a few days; Pkg378 broadcast bump invalidates the in-memory `app_settings` cache instantly across every connected client.
+
+### Phase-3 (not shipped yet)
+
+- Wire `tryNativeVAPPrefetch()` into the Pkg424 warmup pipeline so the same gift MP4 is also cached by the native plugin's on-disk store, giving first-play latency ≈ 50 ms even on cold cache.
+- iOS native VAP plugin (Tencent's iOS SDK is separate; only Android is in scope today).
+
