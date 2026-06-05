@@ -322,7 +322,8 @@ const Shop = () => {
   const items = itemsCache ?? [];
   const purchases = purchasesCache ?? [];
   const setItems = (next: ShopItem[]) => setItemsCache(next);
-  const setPurchases = (next: UserPurchase[]) => setPurchasesCache(next);
+  const setPurchases = (next: UserPurchase[] | ((prev: UserPurchase[]) => UserPurchase[])) =>
+    setPurchasesCache((prev) => (typeof next === 'function' ? (next as any)(prev ?? []) : next));
   const [userDiamonds, setUserDiamonds] = useState(0);
   const [userLevel, setUserLevel] = useState(() => {
     try {
