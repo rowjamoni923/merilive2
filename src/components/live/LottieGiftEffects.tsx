@@ -579,9 +579,9 @@ const getGiftEmoji = (giftType: string): string => {
     flame: "🔥",
     zap: "⚡",
     diamond: "💠",
-    gift: "🎁",
+    gift: "",
   };
-  return emojiMap[giftType] || "🎁";
+  return emojiMap[giftType] || "";
 };
 
 export default LottieGiftAnimation;
