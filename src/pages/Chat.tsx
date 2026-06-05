@@ -82,6 +82,7 @@ import icon3dVoice from "@/assets/icon-3d-voice.png";
 import icon3dGames from "@/assets/icon-3d-games.png";
 import { getVapCompositeHint } from "@/utils/vapDetection";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
+import { warmGiftForInstantPlay, warmGiftUrlsForInstantPlay } from "@/utils/instantGiftWarmup";
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
@@ -782,6 +783,7 @@ const Chat = () => {
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = normalizeGiftMediaUrl((gift as any).sound_url) || '';
     const giftAnimationFormat = gift.animation_format || (giftMediaUrl && (getVapCompositeHint(giftMediaUrl) ? 'vap' : detectProfessionalAnimationFormat(giftMediaUrl))) || null;
+    warmGiftForInstantPlay(gift as any);
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
     const formatSuffix = giftAnimationFormat ? ` | fmt:${giftAnimationFormat}` : '';
@@ -1455,6 +1457,7 @@ const Chat = () => {
     if (playSoundEffect) playSoundDebounced('gift');
 
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
+    warmGiftUrlsForInstantPlay([mediaUrl, parsedConfigUrl, animationConfigUrl, soundUrl]);
     setAnimatingGiftEmoji(mediaUrl || emoji);
     setAnimatingGiftFormat(animationFormat || parsedFormat || null);
     setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
