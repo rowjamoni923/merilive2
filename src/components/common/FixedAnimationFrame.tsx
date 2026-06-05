@@ -222,6 +222,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     className,
   );
   const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
+  const contentClassName = isFullscreen ? 'absolute inset-0 w-screen h-screen opacity-100' : cn("w-full h-full transition-opacity duration-300", animLoaded ? "opacity-100" : "opacity-0");
 
   const frameElement = (
     <div className={wrapperClass} style={frameStyle}>
@@ -239,7 +240,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
         />
       )}
 
-      <div className={cn("w-full h-full transition-opacity duration-300", animLoaded ? "opacity-100" : "opacity-0")}>
+      <div className={contentClassName}>
         {useAudioPlayer ? (
           <Suspense
             fallback={
