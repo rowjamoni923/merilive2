@@ -5,7 +5,6 @@ import {
   Heart, 
   MessageCircle, 
   UserPlus, 
-  Gift, 
   Crown, 
   Star,
   Phone,
@@ -185,7 +184,6 @@ export const ViewerProfileCard = ({
                   <div className="w-px bg-white/10" />
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <Gift className="w-4 h-4 text-pink-500" />
                       <span className="text-xl font-bold text-foreground">
                         {viewer.totalGiftsSent || 0}
                       </span>
@@ -252,7 +250,6 @@ export const ViewerProfileCard = ({
                     onClick={() => onGift?.(viewer.id)}
                     className="flex-1 rounded-xl h-11 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-foreground"
                   >
-                    <Gift className="w-4 h-4 mr-2 text-pink-500" />
                     Send Gift
                   </Button>
                   <Button

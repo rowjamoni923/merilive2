@@ -32,7 +32,6 @@ import {
   X,
   Send,
   Phone,
-  Gift,
   Grid3X3,
   Users,
   Eye,
@@ -1388,7 +1387,7 @@ const LiveStream = () => {
         senderName: data.senderName || 'User',
         senderAvatar: data.senderAvatar || undefined,
         giftName: data.giftName,
-        giftIcon: data.giftIcon || '',
+        giftIcon: '',
         giftImageUrl: data.giftIconUrl || undefined,
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
         animationFormat: data.giftAnimationFormat || null,
@@ -3719,7 +3718,7 @@ const LiveStream = () => {
               animate={{ x: ['-100%', '100%'] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1.6 }}
             />
-            <Gift className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+            <span className="relative z-10 text-[8px] md:text-[10px] font-black uppercase tracking-wide text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }}>Gift</span>
           </motion.button>
 
           {/* More Options Button — Glass orb */}
@@ -3968,7 +3967,7 @@ const LiveStream = () => {
             senderName: senderName,
             senderAvatar: senderAvatar,
             giftName: gift.name,
-            giftIcon: gift.emoji || "",
+            giftIcon: "",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,

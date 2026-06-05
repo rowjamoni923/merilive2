@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
-  Gift, 
   LayoutGrid, 
   Crown,
   Eye,
@@ -715,7 +714,7 @@ export function ChametStyleGameRoom({
               onClick={onOpenGifts}
               className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/30"
             >
-              <Gift className="w-5 h-5 text-white" />
+              <span className="text-[10px] font-black uppercase tracking-wide text-white">Gift</span>
             </motion.button>
 
             {/* More Options */}

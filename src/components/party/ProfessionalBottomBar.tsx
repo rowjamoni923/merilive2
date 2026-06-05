@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
   Gamepad2, 
-  Gift, 
   MessageSquare, 
   Settings,
   Sparkles,
@@ -348,7 +347,6 @@ export function ProfessionalBottomBar({
                 onClick={onOpenGifts}
                 className="flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-gradient-to-br from-pink-600/80 to-red-600/80 border border-pink-400/30"
               >
-                <Gift className="w-6 h-6 text-white" />
                 <span className="text-[10px] text-white font-medium">Gift</span>
               </Button>
             </motion.div>

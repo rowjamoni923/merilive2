@@ -5,7 +5,6 @@ import {
   Heart, 
   MessageCircle, 
   UserPlus, 
-  Gift, 
   Crown, 
   Phone,
   Ban,
@@ -287,7 +286,6 @@ export const UnifiedProfileCard = ({
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-0.5">
-                        <Gift className="w-3 h-3 text-pink-400" />
                         <span className="text-base font-bold text-white">
                           {profile.totalGiftsSent || 0}
                         </span>
@@ -355,7 +353,6 @@ export const UnifiedProfileCard = ({
                             onClick={() => onGift?.(profile.id)}
                             className="flex-1 rounded-xl h-10 font-bold text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
                           >
-                            <Gift className="w-4 h-4 mr-1.5" />
                             Send Gift
                           </Button>
                         </div>

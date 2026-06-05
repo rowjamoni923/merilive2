@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
   Gamepad2, 
-  Gift, 
   MessageSquare, 
   Settings,
   Sparkles,
@@ -212,7 +211,7 @@ export function AdvancedPartyBottomBar({
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-              <Gift className="w-7 h-7 text-white relative z-10 drop-shadow-lg" />
+              <span className="relative z-10 text-[10px] font-black uppercase tracking-wide text-white drop-shadow-lg">Gift</span>
             </div>
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.1, 0.35] }}
