@@ -32,11 +32,6 @@ import { InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
-import { isGiftUrl } from "@/utils/giftMediaUrl";
-import GiftMedia from "@/components/chat/GiftMedia";
-
-
 
 // ============================================================
 // Shared types
@@ -62,7 +57,7 @@ export interface UnifiedChatMessageData {
   type?: ChatMessageKind;
   giftName?: string;
   giftCount?: number;
-  giftImageUrl?: string;
+  giftEmoji?: string;
   bubbleUrl?: string; // designer SVGA / image bubble URL
   createdAt?: string | number | Date;
 }
@@ -103,7 +98,6 @@ const formatTime = (v?: string | number | Date) => {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-
 // ============================================================
 // 1. ROOM CHAT BUBBLE — Live / Private call / Parties
 // ============================================================
@@ -119,7 +113,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
   type = "message",
   giftName,
   giftCount,
-  giftImageUrl,
+  giftEmoji,
   bubbleUrl,
 }: UnifiedChatMessageData) {
   // -- Join / entrance pill --
@@ -151,11 +145,7 @@ export const RoomChatBubble = memo(function RoomChatBubble({
         <InlineLevelBadge level={userLevel} />
         <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
         <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
-        {giftImageUrl ? (
-          <img src={giftImageUrl} alt="" className="w-8 h-8 object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
-        ) : (
-          <GiftBox3DIcon size={24} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
-        )}
+        {giftEmoji && <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>}
         {giftName && (
           <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         )}
@@ -216,17 +206,9 @@ export const RoomChatBubble = memo(function RoomChatBubble({
             >
               {userName}:
             </span>
-            {isGiftUrl(message) ? (
-              <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-                <GiftMedia url={message} sizeClass="w-8 h-8" />
-                <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
-              </div>
-            ) : (
-              <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                {message}
-              </span>
-            )}
-
+            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              {message}
+            </span>
           </div>
         </MessageBubbleWrapper>
       </motion.div>
@@ -258,17 +240,9 @@ export const RoomChatBubble = memo(function RoomChatBubble({
       >
         {userName}:
       </span>
-      {isGiftUrl(message) ? (
-        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-          <GiftMedia url={message} />
-          <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
-        </div>
-      ) : (
-        <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">
-          {message}
-        </span>
-      )}
-
+      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">
+        {message}
+      </span>
     </motion.div>
   );
 });
@@ -318,17 +292,7 @@ export const DirectChatBubble = memo(function DirectChatBubble({
             : undefined
         }
       >
-        {children ?? (isGiftUrl(message) ? (
-          <div className="flex flex-col items-center gap-1 min-w-[120px]">
-            <GiftMedia url={message} sizeClass="w-24 h-24" />
-            <span className={cn("text-[10px] font-bold italic", isMine ? "text-slate-800" : "text-pink-600")}>
-              Sent a gift
-            </span>
-          </div>
-        ) : (
-          <span className="break-words">{message}</span>
-        ))}
-
+        {children ?? <span className="break-words">{message}</span>}
         <span
           className={cn(
             "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",

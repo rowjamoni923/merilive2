@@ -7,7 +7,6 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
@@ -29,9 +28,6 @@ interface GiftData {
   category: string;
   icon_url?: string | null;
   animation_url?: string | null;
-  animation_format?: string | null;
-  animation_config_url?: string | null;
-  sound_url?: string | null;
 }
 
 interface GiftCategory {
@@ -40,18 +36,6 @@ interface GiftCategory {
   icon: string;
   gradient: string;
 }
-
-type RawGiftRow = {
-  id: string;
-  name: string;
-  coin_value: number;
-  category?: string | null;
-  icon_url?: string | null;
-  animation_url?: string | null;
-  animation_format?: string | null;
-  animation_config_url?: string | null;
-  sound_url?: string | null;
-};
 
 const defaultCategories: GiftCategory[] = [
   { id: "wall", name: "Wall", icon: "🏠", gradient: "from-slate-500 to-gray-600" },
@@ -64,7 +48,7 @@ const defaultCategories: GiftCategory[] = [
 interface ChatGiftPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendGift: (gift: GiftData) => void;
+  onSendGift: (gift: { id: string; name: string; icon: string; coins: number }) => void;
   userCoins?: number;
 }
 
@@ -152,7 +136,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
   }, [isOpen]);
 
   // Transform cached gifts to component format
-  const transformGifts = useCallback((rawGifts: RawGiftRow[]): GiftData[] => {
+  const transformGifts = useCallback((rawGifts: any[]): GiftData[] => {
     return rawGifts.map((gift) => ({
       id: gift.id,
       name: gift.name,
@@ -161,9 +145,6 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
       animation_url: normalizeGiftAssetUrl(gift.animation_url),
-      animation_format: gift.animation_format || null,
-      animation_config_url: normalizeGiftAssetUrl(gift.animation_config_url),
-      sound_url: normalizeGiftAssetUrl(gift.sound_url),
     }));
   }, []);
 
@@ -260,14 +241,8 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
-        emoji: selectedGift.emoji,
+        icon: selectedGift.emoji || '🎁',
         coins: selectedGift.coins,
-        category: selectedGift.category,
-        icon_url: selectedGift.icon_url,
-        animation_url: selectedGift.animation_url,
-        animation_format: selectedGift.animation_format,
-        animation_config_url: selectedGift.animation_config_url,
-        sound_url: selectedGift.sound_url,
       });
       setSelectedGift(null);
       onClose();
@@ -417,14 +392,14 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
               <div className="flex items-center gap-3">
                 {/* Selected Gift Preview */}
                 <div className="flex items-center gap-2 flex-1 bg-muted/30 rounded-xl p-2 border border-border/30">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
                     {selectedGift.icon_url ? (
                       <img loading="lazy" decoding="async" 
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
                         className="w-8 h-8 object-contain" />
                     ) : (
-                      <GiftBox3DIcon size={24} />
+                      <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

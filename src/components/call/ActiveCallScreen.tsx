@@ -6,8 +6,6 @@ import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGa
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { isGiftUrl, normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 import { useProCamera } from "@/camera/useProCamera";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
@@ -338,7 +336,7 @@ export function ActiveCallScreen({
         giftName: detail.giftName || 'Gift',
         giftIcon: "🎁",
         giftImageUrl: detail.giftIconUrl || undefined,
-        animationUrl: detail.giftAnimationUrl || undefined,
+        animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || undefined,
         animationFormat: detail.giftAnimationFormat || null,
         animationConfigUrl: detail.giftAnimationConfigUrl || undefined,
         soundUrl: detail.giftSoundUrl || undefined,
@@ -404,9 +402,9 @@ export function ActiveCallScreen({
         senderId: userId,
         senderName: "You",
         giftName: gift.name,
-        giftIcon: gift.icon_url || "",
+        giftIcon: "🎁",
         giftImageUrl: gift.icon_url || undefined,
-        animationUrl: gift.animation_url || undefined,
+        animationUrl: gift.animation_url || gift.icon_url || undefined,
         animationFormat: gift.animation_format || null,
         animationConfigUrl: gift.animation_config_url || undefined,
         soundUrl: gift.sound_url || undefined,
@@ -1036,15 +1034,7 @@ export function ActiveCallScreen({
                     >
                       {msg.senderName}
                     </span>
-                    {isGiftUrl(msg.message) ? (
-                      <div className="flex flex-col items-center gap-1 py-1">
-                        <img src={normalizeGiftMediaUrl(msg.message) || ''} alt="Gift" className="w-16 h-16 object-contain" />
-                        <span className="text-[9px] text-pink-300 font-bold italic">sent a gift</span>
-                      </div>
-                    ) : (
-                      <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
-                    )}
-
+                    <span className="text-white/95" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>{msg.message}</span>
                   </div>
                 </motion.div>
               );

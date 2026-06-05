@@ -11,8 +11,6 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
-import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -77,25 +75,16 @@ const VIDEO_OR_GIF_PATTERN = /\.(mp4|webm|gif)(\?|$)/i;
 const GIF_PATTERN = /\.gif(\?|$)/i;
 
 const getAssetPathWithoutQuery = (url?: string | null) =>
-  url?.split('?')[0].split('#')[0] ?? '';
+  url?.split('?')[0] ?? '';
 
 const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
-
-const pickGiftAnimType = (gift: Pick<GiftData, 'animation_url' | 'animation_format'>) => {
-  const detected = detectProfessionalAnimationFormat(gift.animation_url, gift.animation_format);
-  if (detected === 'svga' || detected === 'vap' || detected === 'lottie' || detected === 'pag' || detected === 'mp4' || detected === 'webm' || detected === 'gif' || detected === 'webp' || detected === 'png') return detected;
-  return undefined;
-};
 
 const warmSelectedVideoGift = (url?: string | null) => {
   if (!url || typeof document === 'undefined' || !VIDEO_OR_GIF_PATTERN.test(url) || GIF_PATTERN.test(url)) return;
   try {
     void import('@/components/common/VAPPlayer');
     const video = document.createElement('video');
-    // Only read metadata for VAP detection. Never use preload="auto" here:
-    // selecting/sending a gift must not start a parallel multi-MB download that
-    // races the actual fullscreen VAP player and causes media ERR_ABORTED.
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.muted = true;
     video.playsInline = true;
     video.crossOrigin = 'anonymous';
@@ -671,10 +660,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                           muted={true}
                         />
                       ) : (
-                          <FixedAnimationFrame
+                        <FixedAnimationFrame
                           src={selectedGift.animation_url}
-                            type={pickGiftAnimType(selectedGift) as any}
-                            configSrc={selectedGift.animation_config_url || undefined}
                           width={24}
                           height={24}
                           loop
@@ -686,7 +673,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   ) : selectedGift.icon_url ? (
                     <img loading="lazy" decoding="async" src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" />
                   ) : (
-                    <GiftBox3DIcon size={24} />
+                    <Gift className="w-6 h-6 text-white/70" />
                   )}
                 </div>
                 <div>

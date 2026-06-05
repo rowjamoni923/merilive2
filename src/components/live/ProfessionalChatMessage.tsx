@@ -3,11 +3,6 @@ import { cn } from "@/lib/utils";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
-import { isGiftUrl } from "@/utils/giftMediaUrl";
-import GiftMedia from "@/components/chat/GiftMedia";
-
-
 
 interface ChatMessageProps {
   id: string;
@@ -20,7 +15,7 @@ interface ChatMessageProps {
   type?: 'message' | 'gift' | 'join' | 'leave' | 'system' | 'entrance';
   giftName?: string;
   giftCount?: number;
-  giftImageUrl?: string;
+  giftEmoji?: string;
   bubbleUrl?: string;
   isTrader?: boolean;
   traderLevel?: number;
@@ -36,7 +31,7 @@ export const ProfessionalChatMessage = ({
   type = 'message',
   giftName,
   giftCount,
-  giftImageUrl,
+  giftEmoji,
   bubbleUrl,
   isTrader = false,
   traderLevel = 0
@@ -78,11 +73,7 @@ export const ProfessionalChatMessage = ({
         <InlineLevelBadge level={userLevel} />
         <span className="text-amber-100 font-semibold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{userName}</span>
         <span className="text-white/85 text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">sent</span>
-        {giftImageUrl ? (
-          <img src={giftImageUrl} alt="" className="w-8 h-8 object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
-        ) : (
-          <GiftBox3DIcon size={24} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" />
-        )}
+        <span className="text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">{giftEmoji}</span>
         <span className="text-amber-200 font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{giftName}</span>
         {giftCount && giftCount > 1 && (
           <motion.span 
@@ -161,17 +152,9 @@ export const ProfessionalChatMessage = ({
             </span>
 
             {/* Message — sits inside the designer bubble */}
-            {isGiftUrl(message) ? (
-              <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-                <GiftMedia url={message} sizeClass="w-8 h-8" />
-                <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
-              </div>
-            ) : (
-              <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                {message}
-              </span>
-            )}
-
+            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              {message}
+            </span>
           </div>
         </MessageBubbleWrapper>
       </motion.div>
@@ -228,15 +211,7 @@ export const ProfessionalChatMessage = ({
       </span>
       
       {/* Message */}
-      {isGiftUrl(message) ? (
-        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-pink-500/20 border border-pink-400/30">
-          <GiftMedia url={message} />
-          <span className="text-[10px] text-pink-200 font-bold italic">sent a gift</span>
-        </div>
-      ) : (
-        <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">{message}</span>
-      )}
-
+      <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-snug">{message}</span>
     </motion.div>
   );
 };
@@ -254,7 +229,7 @@ interface ProfessionalChatProps {
     type?: 'message' | 'gift' | 'join' | 'leave' | 'system' | 'entrance';
     giftName?: string;
     giftCount?: number;
-    giftImageUrl?: string;
+    giftEmoji?: string;
     bubbleUrl?: string;
   }>;
   className?: string;
@@ -276,7 +251,7 @@ export const ProfessionalChat = ({ messages, className }: ProfessionalChatProps)
           type={msg.type}
           giftName={msg.giftName}
           giftCount={msg.giftCount}
-          giftImageUrl={msg.giftImageUrl}
+          giftEmoji={msg.giftEmoji}
           bubbleUrl={msg.bubbleUrl}
         />
       ))}

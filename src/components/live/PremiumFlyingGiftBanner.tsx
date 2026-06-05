@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 interface FlyingGiftBannerProps {
   senderName: string;
@@ -118,7 +117,12 @@ export const PremiumFlyingGiftBanner = ({
     }
 
     return (
-      <GiftBox3DIcon size={32} className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]" />
+      <span
+        className="text-3xl leading-none"
+        style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
+      >
+        {giftIcon}
+      </span>
     );
   };
 

@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, Sparkles, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Download, X, Sparkles, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Rocket3DIcon from './Rocket3DIcon';
 
 interface AppUpdateModalProps {
   isOpen: boolean;
@@ -40,7 +39,7 @@ const AppUpdateModal = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-sm bg-gradient-to-br from-white via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-900 rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20"
+          className="relative w-full max-w-sm bg-gradient-to-br from-card via-card to-card/95 rounded-3xl overflow-hidden shadow-2xl border border-primary/20"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Decorative Background */}
@@ -75,15 +74,15 @@ const AppUpdateModal = ({
                 }}
                 className="relative"
               >
-                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.15)] ${
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg ${
                   forceUpdate 
                     ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-red-500/30' 
-                    : 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600'
+                    : 'bg-gradient-to-br from-primary to-accent shadow-primary/30'
                 }`}>
                   {forceUpdate ? (
                     <AlertTriangle className="w-10 h-10 text-white" />
                   ) : (
-                    <Rocket3DIcon size={60} />
+                    <Rocket className="w-10 h-10 text-primary-foreground" />
                   )}
                 </div>
                 <motion.div
@@ -98,7 +97,7 @@ const AppUpdateModal = ({
 
             {/* Title */}
             <h2 className="text-xl font-bold text-center text-foreground mb-2">
-              {forceUpdate ? '⚠️ Critical Update Required' : 'New Version Available! 🚀'}
+              {forceUpdate ? '⚠️ Important Update!' : 'New Update Available! 🎉'}
             </h2>
             <p className="text-sm text-muted-foreground text-center mb-4">
               {updateMessage || 'A new version is available on Play Store'}
@@ -120,15 +119,15 @@ const AppUpdateModal = ({
             <div className="mb-6 space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Major stability & performance boost</span>
+                <span>New Features & Improvements</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span>New 3D professional gifting icons</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span>Bug Fixes & Performance Improvements</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span>Zero-delay UI & network optimizations</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span>Security Updates</span>
               </div>
             </div>
 

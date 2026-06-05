@@ -23,7 +23,6 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 import { 
   getLevelGradient, 
@@ -36,9 +35,7 @@ import {
 import { JoinNotification, RoomChatMessage } from './types';
 import { getGameLogoUrl, getGameEmoji } from '@/hooks/useGameLogos';
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
-import { isGiftUrl } from "@/utils/giftMediaUrl";
-import GiftMedia from "@/components/chat/GiftMedia";
-
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 // ============= WELCOME MESSAGE COMPONENT (Ultra Premium Luxury Style) =============
 interface WelcomeMessageProps {
@@ -62,7 +59,8 @@ export const WelcomeMessage = memo(({
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "flex items-start gap-2 py-2 px-3.5 rounded-2xl w-full",
-        "bg-slate-900/60 border border-amber-300/30",
+        "bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-orange-400/20",
+        "backdrop-blur-md border border-amber-300/30",
         "shadow-[0_2px_15px_rgba(251,191,36,0.2),0_0_30px_rgba(251,191,36,0.08)]",
         "ring-1 ring-amber-400/15"
       )}
@@ -108,7 +106,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
         "flex items-center gap-2 py-2 pl-2 pr-4 rounded-r-full rounded-l-2xl w-fit",
         "bg-gradient-to-r",
         getJoinBannerBg(level),
-        "bg-opacity-90",
+        "backdrop-blur-xl",
         "border-l-4 border-l-white/50"
       )}
     >
@@ -204,17 +202,10 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   const [isVisible, setIsVisible] = React.useState(true);
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
-  // Also handle cases where the message IS the URL itself
-  const giftUrlMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const giftUrl = giftUrlMatch?.[1] || (isGiftUrl(message.message) ? message.message : null);
-  
-  // Clean message text - remove the [GIFT:url] prefix or if it's just a URL, show a placeholder
+  const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
+  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1]);
+  // Clean message text - remove the [GIFT:url] prefix
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
-  if (giftUrl && (cleanMessage === giftUrl || isGiftUrl(cleanMessage))) {
-    cleanMessage = "sent a gift";
-  }
-
-
   
   // Parse game win message - supports both old and new formats
   // Old: [GAME_WIN:emoji:gameName:amount]
@@ -248,10 +239,9 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
     cleanMessage = `🏆 ${gameWinData.userName} (Lv.${gameWinData.userLevel}) won ${gameWinData.amount} in ${gameWinData.gameName}!`;
   }
   
-  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ') || !!giftUrl;
+  const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ');
   const isJoinMessage = message.type === 'join' || cleanMessage.includes('entered') || cleanMessage.includes('joined');
   const isSystemMessage = message.user === 'System' || message.type === 'system';
-
   const isHost = message.isHost || false;
   const isNewUser = message.isNewUser || false;
 
@@ -307,7 +297,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
           "rounded-[20px] max-w-[94%] md:max-w-[70%]",
-          "bg-gradient-to-r bg-opacity-80",
+          "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
@@ -422,17 +412,20 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       )}
 
       {/* Gift Image - smaller for quick notification */}
-      {isGiftMessage && (
+      {isGiftMessage && giftIconUrl && (
         <motion.div 
-          className="w-4 h-4 shrink-0 rounded overflow-hidden bg-white/10 shadow-md flex items-center justify-center"
+          className="w-4 h-4 shrink-0 rounded overflow-hidden bg-white/10 shadow-md"
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 0.4, repeat: 1 }}
         >
-          {giftUrl ? (
-            <GiftMedia url={giftUrl} sizeClass="w-4 h-4" />
-          ) : (
-            <GiftBox3DIcon size={12} />
-          )}
+          <img loading="lazy" decoding="async" 
+            src={giftIconUrl} 
+            alt="Gift" 
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
         </motion.div>
       )}
       

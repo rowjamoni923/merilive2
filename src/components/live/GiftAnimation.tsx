@@ -1,14 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, Star, Sparkles, Gem, Crown, Rocket, Flame, Zap, Diamond, Gift } from "lucide-react";
-import Heart3DIcon from "@/components/common/Heart3DIcon";
-import Star3DIcon from "@/components/common/Star3DIcon";
-import Crown3DIcon from "@/components/common/Crown3DIcon";
-import Rocket3DIcon from "@/components/common/Rocket3DIcon";
-import Flame3DIcon from "@/components/common/Flame3DIcon";
-import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import Gem3DIcon from "@/components/common/Gem3DIcon";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 import { cn } from "@/lib/utils";
 
 // Re-export from new GiftPanel
@@ -26,16 +18,16 @@ export interface LegacyGiftItem {
 }
 
 export const gifts: LegacyGiftItem[] = [
-  { id: "heart", name: "Heart", icon: Heart3DIcon as any, coins: 10, color: "text-pink-500", animation: "float", size: "sm" },
-  { id: "star", name: "Star", icon: Star3DIcon as any, coins: 50, color: "text-yellow-500", animation: "float", size: "sm" },
+  { id: "heart", name: "Heart", icon: Heart, coins: 10, color: "text-pink-500", animation: "float", size: "sm" },
+  { id: "star", name: "Star", icon: Star, coins: 50, color: "text-yellow-500", animation: "float", size: "sm" },
   { id: "sparkles", name: "Sparkles", icon: Sparkles, coins: 100, color: "text-purple-500", animation: "explode", size: "md" },
-  { id: "gem", name: "Gem", icon: Gem3DIcon as any, coins: 200, color: "text-cyan-500", animation: "spiral", size: "md" },
-  { id: "crown", name: "Crown", icon: Crown3DIcon as any, coins: 500, color: "text-amber-500", animation: "shake", size: "lg" },
-  { id: "rocket", name: "Rocket", icon: Rocket3DIcon as any, coins: 1000, color: "text-blue-500", animation: "float", size: "lg" },
-  { id: "flame", name: "Fire", icon: Flame3DIcon as any, coins: 2000, color: "text-orange-500", animation: "explode", size: "lg" },
+  { id: "gem", name: "Gem", icon: Gem, coins: 200, color: "text-cyan-500", animation: "spiral", size: "md" },
+  { id: "crown", name: "Crown", icon: Crown, coins: 500, color: "text-amber-500", animation: "shake", size: "lg" },
+  { id: "rocket", name: "Rocket", icon: Rocket, coins: 1000, color: "text-blue-500", animation: "float", size: "lg" },
+  { id: "flame", name: "Fire", icon: Flame, coins: 2000, color: "text-orange-500", animation: "explode", size: "lg" },
   { id: "zap", name: "Lightning", icon: Zap, coins: 5000, color: "text-yellow-400", animation: "shake", size: "xl" },
-  { id: "diamond", name: "Diamond", icon: Diamond3DIcon as any, coins: 10000, color: "text-cyan-400", animation: "rain", size: "xl" },
-  { id: "gift", name: "Gift Box", icon: Sparkles as any, coins: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
+  { id: "diamond", name: "Diamond", icon: Diamond, coins: 10000, color: "text-cyan-400", animation: "rain", size: "xl" },
+  { id: "gift", name: "Gift Box", icon: Gift, coins: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
 ];
 
 interface GiftAnimationProps {

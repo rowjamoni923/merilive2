@@ -1,7 +1,6 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
@@ -125,12 +124,9 @@ const categories = [
   { id: "lucky_gift", name: "Lucky Gift", icon: Star },
 ];
 
-// Entry animation categories
+// Entry animation categories that need full-width display
 const isEntryAnimationCategory = (category: string) => 
   ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
-
-const isWideCategory = (category: string) =>
-  ['entry_bar', 'party_background', 'entry_banner', 'entry_name_bar'].includes(category);
 
 const shouldClearEntryAnimationCache = (category: string) =>
   ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
@@ -140,28 +136,26 @@ const ShopItemCard = ({
   item, 
   index, 
   owned, 
-  onPreview 
+  onPreview,
+  isFullWidth = false
 }: { 
   item: ShopItem; 
   index: number; 
   owned: boolean; 
   onPreview: () => void;
+  isFullWidth?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
-  const photoUrl = item.preview_url || item.animation_file_url || item.animation_url;
-
+  
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
+    <div
       onClick={onPreview}
       onPointerDown={() => {
         // Pre-warm asset + animation chunk so detail modal opens with zero delay
-        const src = item.animation_file_url || item.animation_url;
+        const src = item.animation_file_url || item.preview_url;
         if (src) {
           if (src.endsWith('.svga')) {
-            import('@/components/common/SVGAPlayerWithAudio').catch(() => {});
+            import('@/components/common/SVGAPlayerWithAudio');
             try { fetch(src, { mode: 'cors' }).catch(() => {}); } catch {}
           } else if (src.endsWith('.json')) {
             import('lottie-react' as any).catch(() => {});
@@ -172,21 +166,22 @@ const ShopItemCard = ({
           }
         }
       }}
-      className="relative w-full rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-xl active:scale-95"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       style={{
         background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
         border: '1px solid rgba(217,182,107,0.40)',
-        boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+        boxShadow: '0 10px 28px -10px rgba(180,140,40,0.22), 0 2px 6px -2px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -2px 4px rgba(180,140,40,0.05)',
+        contain: 'content',
       }}
     >
       {/* Featured indicator */}
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div
-            className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center"
-            style={{ boxShadow: '0 4px 10px -2px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.6)' }}
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center"
+            style={{ boxShadow: '0 6px 14px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.6)' }}
           >
-            <Zap className="w-3 h-3 text-white" />
+            <Zap className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
           </div>
         </div>
       )}
@@ -195,100 +190,124 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div
-            className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-300 via-emerald-500 to-green-600 flex items-center justify-center"
-            style={{ boxShadow: '0 4px 10px -2px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.55)' }}
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-300 via-emerald-500 to-green-600 flex items-center justify-center"
+            style={{ boxShadow: '0 6px 14px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.55)' }}
           >
-            <Check className="w-3 h-3 text-white" />
+            <Check className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
           </div>
         </div>
       )}
 
-      {/* Preview Area - Instant Photo First */}
-      <div className={cn("aspect-square flex items-center justify-center relative overflow-hidden bg-white/40", (item.category !== 'frame' && item.category !== 'portrait_frame') && "p-2")}>
+      {/* Preview Area */}
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+        {/* Subtle radial glow */}
         <div
-          className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
-          style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
+          className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.22) 0%, rgba(255,251,242,0.0) 70%)',
+          }}
         />
 
-        <div className="w-full h-full flex items-center justify-center">
-          {item.category === 'frame' || item.category === 'portrait_frame' ? (
-            <div className="w-full h-full scale-110">
-              <FixedAnimationFrame
-                src={item.animation_file_url || item.animation_url || ''}
-                type={pickAnimType(item) as any}
-                className="w-full h-full"
-                size="fill"
-                loop
-                autoPlay
-                muted
-                fallbackEmoji="👑"
+        {(() => {
+          const animType = pickAnimType(item);
+          const animSrc = item.animation_file_url || item.animation_url || '';
+          const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
+
+          // Pkg430 — animated assets ALWAYS go through FixedAnimationFrame so
+          // VAP/MP4/SVGA/Lottie all use the alpha-aware unified renderer.
+          if (animSrc && isAnimatedType(animType) && !imageError) {
+            return (
+              <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+                <FixedAnimationFrame
+                  src={animSrc}
+                  type={animType as any}
+                  configSrc={item.animation_config_url || undefined}
+                  size="fill"
+                  loop
+                  autoPlay
+                  muted
+                  center={false}
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            );
+          }
+
+          if (previewIsStatic && !imageError) {
+            return (
+              <img
+                src={item.preview_url!}
+                alt={item.name}
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: 'high' } as any)}
+                className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
+                onError={() => setImageError(true)}
               />
+            );
+          }
+
+          return (
+            <div
+              className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40"
+              style={{ boxShadow: 'inset 0 2px 6px rgba(180,140,40,0.10)' }}
+            >
+              <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
             </div>
-          ) : item.preview_url ? (
-            <img 
-              src={item.preview_url} 
-              alt={item.name}
-              className="w-full h-full object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
-              onError={() => setImageError(true)}
-              loading="eager"
-            />
-          ) : (
-            <FixedAnimationFrame
-              src={item.animation_file_url || item.animation_url || ''}
-              type={pickAnimType(item) as any}
-              className="w-full h-full"
-              size="fill"
-              loop
-              autoPlay
-              muted
-              fallbackEmoji="🎁"
-            />
-          )}
-        </div>
+          );
+        })()}
       </div>
 
       {/* Item Info */}
-      <div className="p-2 flex flex-col items-center justify-between flex-1 min-h-[90px] pb-3">
-        <p className="text-heading text-[13px] font-bold line-clamp-1 text-center px-1 w-full mb-1">{item.name}</p>
+      <div className="px-3 pb-3 space-y-2">
+        {/* Name */}
+        <p className="text-heading text-sm font-semibold truncate text-center">{item.name}</p>
 
-        {/* Price */}
+        {/* Price with diamond icon */}
         <div
-          className="flex items-center justify-center gap-1 px-2 py-0.5 rounded-full mb-2"
+          className="flex items-center justify-center gap-1.5 mx-auto w-fit px-2.5 py-1 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(217,182,107,0.1) 100%)',
-            border: '1px solid rgba(217,182,107,0.3)',
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,182,107,0.12) 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
           }}
         >
-          <Diamond3DIcon size={12} />
-          <span className="text-heading text-[11px] font-bold">
+          <Diamond3DIcon size={14} />
+          <span className="text-heading text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-body font-normal ml-0.5">/{item.duration_days}d</span>
+              <span className="text-body font-normal">/{item.duration_days}d</span>
             )}
           </span>
         </div>
 
-        {/* Action Button */}
-        <div className="w-full mt-auto">
-          {owned ? (
-            <div className="w-full py-1.5 rounded-full text-center text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100">
-              ✓ Owned
-            </div>
-          ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); onPreview(); }}
-              className="w-full py-1.5 rounded-full text-[10px] font-bold text-white shadow-lg transition-all active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
-                boxShadow: '0 4px 12px -4px rgba(147,51,234,0.5)',
-              }}
-            >
-              Purchase
-            </button>
-          )}
-        </div>
+        {/* Purchase / Owned Button */}
+        {owned ? (
+          <div
+            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+              border: '1px solid rgba(16,185,129,0.40)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+            }}
+          >
+            ✓ Owned
+          </div>
+        ) : (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPreview(); }}
+            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+            style={{
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.15)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
+            }}
+          >
+            Purchase
+          </button>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -348,45 +367,32 @@ const Shop = () => {
       if (!user) { navigate("/auth"); return; }
       setCurrentUserId(user.id);
 
-      const [profileResult, shopItemsResult, partyBgResult, purchasesResult, purchasedBgResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
-          .eq("id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("shop_items")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order"),
-        supabase
-          .from("party_room_backgrounds")
-          .select("*")
-          .eq("is_active", true)
-          .eq("is_premium", true)
-          .not("image_url", "is", null)
-          .order("display_order"),
-        supabase
-          .from("user_purchases")
-          .select("id, item_id, is_equipped, expires_at")
-          .eq("user_id", user.id)
-          .eq("is_active", true),
-        supabase
-          .from("user_purchased_backgrounds" as any)
-          .select("id, background_id, is_active")
-          .eq("user_id", user.id)
-          .eq("is_active", true) as any
-      ]);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
+        .eq("id", user.id)
+        .single();
 
-      if (profileResult.data) {
-        setUserDiamonds(profileResult.data.coins || 0);
-        setUserLevel(profileResult.data.user_level || 0);
-        setUserAvatar(profileResult.data.avatar_url);
-        setUserFrameId(profileResult.data.frame_id);
+      if (profile) {
+        setUserDiamonds(profile.coins || 0);
+        setUserLevel(profile.user_level || 0);
+        setUserAvatar(profile.avatar_url);
+        setUserFrameId(profile.frame_id);
       }
 
-      const shopItems = shopItemsResult.data;
-      const partyBackgrounds = partyBgResult.data;
+      const { data: shopItems } = await supabase
+        .from("shop_items")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order");
+
+      const { data: partyBackgrounds } = await supabase
+        .from("party_room_backgrounds")
+        .select("*")
+        .eq("is_active", true)
+        .eq("is_premium", true)
+        .not("image_url", "is", null)
+        .order("display_order");
 
       const allItems: ShopItem[] = [];
       if (shopItems) {
@@ -421,8 +427,17 @@ const Shop = () => {
       }
       setItems(allItems);
 
-      const userPurchases = purchasesResult.data;
-      const purchasedBgs = purchasedBgResult.data;
+      const { data: userPurchases } = await supabase
+        .from("user_purchases")
+        .select("id, item_id, is_equipped, expires_at")
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
+      const { data: purchasedBgs } = await (supabase
+        .from("user_purchased_backgrounds" as any)
+        .select("id, background_id, is_active")
+        .eq("user_id", user.id)
+        .eq("is_active", true) as any);
 
       const allPurchases: UserPurchase[] = [];
       if (userPurchases) allPurchases.push(...(userPurchases as UserPurchase[]));
@@ -468,26 +483,6 @@ const Shop = () => {
         const newBalance = Number(bgResult.new_balance ?? (userDiamonds - (bgResult.price_paid ?? item.price_diamonds)));
         setUserDiamonds(Number.isFinite(newBalance) ? newBalance : userDiamonds - item.price_diamonds);
         setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
-        
-        // Pkg: Automatically apply background to user's room for "instant" use
-        try {
-          const { data: rooms } = await supabase
-            .from("party_rooms")
-            .select("id")
-            .eq("host_id", user.id);
-          
-          if (rooms && rooms.length > 0) {
-            await supabase
-              .from("party_rooms")
-              .update({ 
-                background_id: actualItemId,
-                background_url: item.preview_url 
-              })
-              .eq("host_id", user.id);
-          }
-        } catch (err) {
-          console.error("Failed to auto-apply room background:", err);
-        }
       } else {
 
         const { data: purchaseData, error: purchaseError } = await (supabase as any).rpc("purchase_shop_item", {
@@ -587,7 +582,7 @@ const Shop = () => {
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-1 justify-center">
+          <div className="flex gap-2 pb-1">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
@@ -619,15 +614,15 @@ const Shop = () => {
 
       {/* Items Grid */}
       <div 
-        className="flex-1 overflow-y-auto overscroll-contain px-2 py-2"
+        className="flex-1 overflow-y-auto overscroll-contain px-3 py-2"
         style={{ 
           WebkitOverflowScrolling: 'touch',
           paddingBottom: 'var(--content-bottom-padding)',
         }}
       >
         {filteredItems.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <div className="relative w-20 h-20 mx-auto mb-5">
+          <div className="text-center py-16">
+            <div className="relative w-24 h-24 mx-auto mb-5">
               <div
                 className="absolute inset-0 rounded-full blur-2xl opacity-50"
                 style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.45), transparent 70%)' }}
@@ -647,7 +642,7 @@ const Shop = () => {
             <p className="text-body text-xs">Browse other categories to discover premium items</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-center justify-items-center max-w-5xl mx-auto px-1">
+          <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
             {filteredItems.map((item, index) => (
               <ShopItemCard
                 key={item.id}
@@ -655,6 +650,7 @@ const Shop = () => {
                 index={index}
                 owned={isOwned(item.id)}
                 onPreview={() => setSelectedItem(item)}
+                isFullWidth={isEntryAnimationCategory(item.category)}
               />
             ))}
           </div>
@@ -665,7 +661,7 @@ const Shop = () => {
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent
           className={`border-0 shadow-2xl ${
-            selectedItem && (isEntryAnimationCategory(selectedItem.category) || isWideCategory(selectedItem.category))
+            selectedItem && isEntryAnimationCategory(selectedItem.category)
               ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
               : 'max-w-sm'
           }`}
@@ -689,10 +685,8 @@ const Shop = () => {
                   className={`${
                     isEntryAnimationCategory(selectedItem.category)
                       ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
-                      : isWideCategory(selectedItem.category)
-                        ? 'aspect-auto w-full min-h-[200px]'
-                        : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-4 relative overflow-hidden`}
+                      : 'aspect-square'
+                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
@@ -701,20 +695,32 @@ const Shop = () => {
                   {(() => {
                     const animType = pickAnimType(selectedItem);
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
-                    return (
-                      <FixedAnimationFrame
-                        src={animSrc}
-                        type={animType as any}
-                        placeholderUrl={selectedItem.preview_url || undefined}
-                        configSrc={selectedItem.animation_config_url || undefined}
-                        size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : (isWideCategory(selectedItem.category) ? 'fill' : 'large')}
-                        loop
-                        autoPlay
-                        muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
-                        background="none"
-                        className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
-                      />
-                    );
+                    if (animSrc && isAnimatedType(animType)) {
+                      return (
+                        <FixedAnimationFrame
+                          src={animSrc}
+                          type={animType as any}
+                          configSrc={selectedItem.animation_config_url || undefined}
+                          size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
+                          loop
+                          autoPlay
+                          muted={!isEntryAnimationCategory(selectedItem.category) || animType !== 'svga'}
+                          background="none"
+                          className={isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}
+                        />
+                      );
+                    }
+                    if (selectedItem.preview_url || animSrc) {
+                      return (
+                        <img loading="lazy" decoding="async"
+                          src={selectedItem.preview_url || animSrc}
+                          alt={selectedItem.name}
+                          className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      );
+                    }
+                    return <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />;
                   })()}
                 </div>
 

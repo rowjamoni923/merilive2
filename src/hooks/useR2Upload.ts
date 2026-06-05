@@ -8,7 +8,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { adminSupabase } from '@/integrations/supabase/adminClient';
 import { toast } from 'sonner';
 import { getAdminSessionToken } from '@/utils/adminSession';
 
@@ -227,7 +226,7 @@ export function useR2Upload() {
     setProgress(10);
     onProgress?.(10);
 
-    const { data, error } = await adminSupabase.storage
+    const { data, error } = await supabase.storage
       .from(uploadTarget.bucket)
       .upload(fileName, file, {
         cacheControl: '3600',
@@ -243,7 +242,7 @@ export function useR2Upload() {
     setProgress(100);
     onProgress?.(100);
 
-    const { data: { publicUrl } } = adminSupabase.storage
+    const { data: { publicUrl } } = supabase.storage
       .from(uploadTarget.bucket)
       .getPublicUrl(data.path);
 

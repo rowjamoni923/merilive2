@@ -34,7 +34,6 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
-import { robustAdminUpload } from "@/utils/adminUploadHelper";
 
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -159,19 +158,6 @@ const AdminFrames = () => {
     return result.url;
   };
 
-  // MIME types mapping
-  const extensionToMimeType: Record<string, string> = {
-    'svga': 'application/octet-stream',
-    'json': 'application/json',
-    'png': 'image/png',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'gif': 'image/gif',
-    'webp': 'image/webp',
-    'mp4': 'video/mp4',
-    'webm': 'video/webm',
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -217,30 +203,43 @@ const AdminFrames = () => {
 
       let publicUrl: string;
 
-      // Unify upload path: Try R2 multipart for large files, otherwise fallback to robust Supabase upload
-      try {
-        if (file.size > 50 * 1024 * 1024) {
-          toast.info(`Large file (${fileSizeMB}MB) - uploading to R2...`);
-          const result = await r2UploadFile(fileToUpload as File, { bucket: 'frames', folder: 'frames' });
-          if (!result.success || !result.url) throw new Error(result.error || 'R2 upload failed');
-          publicUrl = result.url;
-        } else {
-          // Standard Supabase upload via robust helper
-          const uniqueName = `frame_${Date.now()}_${Math.random().toString(36).substring(7)}.${finalExtension}`;
-          publicUrl = await robustAdminUpload(fileToUpload, uniqueName, {
-            bucket: 'frames',
-            folder: 'frames',
-            contentType: extensionToMimeType[finalExtension || ''] || 'application/octet-stream'
+      // Use R2 for files > 50MB
+      if (file.size > 50 * 1024 * 1024) {
+        toast.info(`Large file (${fileSizeMB}MB) - uploading to R2...`);
+        publicUrl = await uploadToR2(fileToUpload as File, 'frames');
+      } else {
+        // Upload to Supabase storage
+        const uniqueName = `frame_${Date.now()}_${Math.random().toString(36).substring(7)}.${finalExtension}`;
+        
+        // Determine content type based on file extension
+        const extensionToMimeType: Record<string, string> = {
+          'svga': 'application/octet-stream',
+          'json': 'application/json',
+          'png': 'image/png',
+          'jpg': 'image/jpeg',
+          'jpeg': 'image/jpeg',
+          'gif': 'image/gif',
+          'webp': 'image/webp',
+          'mp4': 'video/mp4',
+          'webm': 'video/webm',
+        };
+        const contentType = extensionToMimeType[finalExtension || ''] || 'application/octet-stream';
+        
+        const { data, error } = await supabase.storage
+          .from('frames')
+          .upload(uniqueName, fileToUpload, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: contentType,
           });
-        }
-      } catch (uploadErr: any) {
-        console.warn('Primary upload failed, attempting direct Supabase fallback:', uploadErr);
-        // Direct absolute fallback to Supabase if anything above failed
-        const uniqueName = `fallback_${Date.now()}_${Math.random().toString(36).substring(7)}.${finalExtension}`;
-        publicUrl = await robustAdminUpload(fileToUpload, uniqueName, {
-          bucket: 'frames',
-          folder: 'fallbacks'
-        });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+          .from('frames')
+          .getPublicUrl(uniqueName);
+
+        publicUrl = urlData.publicUrl;
       }
 
       setFormData({
@@ -607,12 +606,12 @@ const AdminFrames = () => {
                     // Animated formats (.svga, .json/lottie, .mp4, .webm) — render frame
                     // ART centered & filling the card, mirroring in-app Shop preview.
                     return (
-                      <div className="relative w-full h-full flex items-center justify-center">
+                      <div className="relative w-[85%] h-[85%] flex items-center justify-center">
                         <FixedAnimationFrame
                           src={frame.frame_url || previewUrl}
                           type={frame.frame_type as any}
-                          size="card"
-                          center={true}
+                          size="fill"
+                          center={false}
                           loop={true}
                           autoPlay={true}
                         />

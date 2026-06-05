@@ -114,7 +114,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
     <div className="space-y-4 px-4 mt-4">
       {/* ───── Daily Reward Card ───── */}
       {dailyStatus && dailyStatus.total_amount > 0 && (
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-300/60 shadow-sm">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-300/60 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber-200/70 flex items-center justify-center">
@@ -154,7 +154,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Active Noble banner ───── */}
       {noble && (
         <div
-          className="p-3 rounded-2xl border bg-white shadow-sm"
+          className="p-4 rounded-2xl border bg-white shadow-sm"
           style={{
             background: `linear-gradient(135deg, ${noble.badge_color || '#FFD700'}26, #ffffff 70%)`,
             borderColor: `${noble.badge_color || '#FFD700'}66`,
@@ -188,7 +188,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Noble Subscriptions ───── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-slate-800 font-bold text-base flex items-center gap-2">
+          <h3 className="text-slate-800 font-bold text-lg flex items-center gap-2">
             <Crown className="w-5 h-5 text-amber-500" />
             Noble Subscriptions
           </h3>
@@ -215,19 +215,19 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                 className="rounded-2xl border border-amber-200/60 bg-white shadow-sm overflow-hidden"
               >
                 <div
-                  className="p-2 flex items-center justify-between gap-3"
+                  className="p-3 flex items-center justify-between gap-3"
                   style={{
                     background: `linear-gradient(135deg, ${card.badge_color || '#FFD700'}26, transparent)`,
                   }}
                 >
                   <div className="flex items-center gap-3">
                     {card.crown_url ? (
-                      <img loading="lazy" decoding="async" src={card.crown_url} alt="" className="w-9 h-9 object-contain" />
+                      <img loading="lazy" decoding="async" src={card.crown_url} alt="" className="w-10 h-10 object-contain" />
                     ) : (
-                      <Crown className="w-7 h-7" style={{ color: card.badge_color || '#FFD700' }} />
+                      <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                     )}
                     <div>
-                      <div className="text-slate-800 font-bold text-sm">{card.rank_name}</div>
+                      <div className="text-slate-800 font-bold">{card.rank_name}</div>
                       <div className="text-xs text-slate-500">
                         💎 {card.monthly_diamond_cost.toLocaleString()} · {card.duration_days}d
                       </div>
@@ -246,7 +246,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                     </Button>
                   )}
                 </div>
-                <div className="p-2 space-y-2">
+                <div className="p-3 space-y-2">
                   {card.description && (
                     <p className="text-xs text-slate-600">{card.description}</p>
                   )}
@@ -258,38 +258,16 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                     {card.daily_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-cyan-400 text-cyan-700"><Gem className="w-3 h-3 mr-1" />{card.daily_free_diamonds}/day</Badge>}
                     {card.monthly_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-pink-400 text-pink-700"><Sparkles className="w-3 h-3 mr-1" />{card.monthly_free_diamonds}/mo</Badge>}
                   </div>
-                  {card.entrance_animation_url || card.crown_url || card.custom_avatar_frame_url ? (
-                    <div className="w-14 h-14 bg-amber-50 border border-amber-200/60 rounded-xl overflow-hidden flex items-center justify-center p-1 relative">
-                      {card.custom_avatar_frame_url ? (
-                         <div className="absolute inset-0">
-                            <UniversalAnimationPlayer
-                              src={card.custom_avatar_frame_url}
-                              className="w-full h-full"
-                              loop
-                              autoPlay
-                              muted
-                            />
-                          </div>
-                      ) : card.crown_url ? (
-                        <img 
-                          src={card.crown_url} 
-                          className="w-full h-full object-contain p-1 z-10" 
-                          alt="" 
-                          loading="eager"
-                        />
-                      ) : (
-                        <div className="absolute inset-0">
-                          <UniversalAnimationPlayer
-                            src={card.entrance_animation_url!}
-                            className="w-full h-full"
-                            loop
-                            autoPlay
-                            muted
-                          />
-                        </div>
-                      )}
+                  {card.entrance_animation_url && (
+                    <div className="w-16 h-16 bg-amber-50 border border-amber-200/60 rounded overflow-hidden">
+                      <UniversalAnimationPlayer
+                        src={card.entrance_animation_url}
+                        className="w-full h-full"
+                        loop
+                        autoPlay
+                      />
                     </div>
-                  ) : null}
+                  )}
                 </div>
               </div>
             );

@@ -32,7 +32,6 @@ import {
 import { Upload, X, Loader2, FileVideo, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { getAdminSessionToken } from '@/utils/adminSession';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
 import { cn } from '@/lib/utils';
 import { detectVapSideBySideLayout } from '@/utils/vapDetection';
@@ -66,15 +65,15 @@ interface Props {
 }
 
 const FORMAT_LIMITS_MB: Record<AnimationFormat, number> = {
-  svga: 500, // Expanded for professional high-res animations
-  vap: 500,  // Vibe files can be large
-  pag: 500,
-  lottie: 50,
-  webp: 100,
+  svga: 50,
+  vap: 50,
+  pag: 50,
+  lottie: 10,
+  webp: 50,
   png: 50,
-  gif: 100,
-  mp4: 500,
-  webm: 500,
+  gif: 50,
+  mp4: 50,
+  webm: 50,
 };
 
 const FORMAT_LABEL: Record<AnimationFormat, string> = {
@@ -156,79 +155,23 @@ export const AnimationUploader: React.FC<Props> = ({
   const uploadFile = async (file: File, kind: 'file' | 'config', uploadFormat: AnimationFormat = format): Promise<string> => {
     setUploading(kind);
     try {
-      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-
-      // For files > 5MB, try R2 silently. If it fails for ANY reason, fall through to Supabase without alarming the user.
-      if (file.size > 5 * 1024 * 1024) {
-        try {
-          const CHUNK_SIZE = 5 * 1024 * 1024;
-          const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
-
-          const initRes = await fetch(R2_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
-            body: JSON.stringify({ action: 'init-multipart', folder, fileName: file.name, fileType: file.type || 'application/octet-stream' }),
-          });
-          const initResult = await initRes.json();
-          if (initResult.isHandshakeError || !initResult.success) throw new Error('R2_UNAVAILABLE');
-
-          const { uploadId, key } = initResult;
-          const totalParts = Math.ceil(file.size / CHUNK_SIZE);
-          const results: { PartNumber: number; ETag: string }[] = [];
-          const CONCURRENCY = 3;
-
-          for (let i = 1; i <= totalParts; i += CONCURRENCY) {
-            const batch = Array.from({ length: Math.min(CONCURRENCY, totalParts - i + 1) }, (_, idx) => i + idx);
-            await Promise.all(batch.map(async (partNum) => {
-              const start = (partNum - 1) * CHUNK_SIZE;
-              const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
-              const uploadUrl = `${R2_FUNCTION_URL}?action=upload-part&uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNum}`;
-              const res = await fetch(uploadUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/octet-stream', 'x-admin-token': getAdminSessionToken() },
-                body: chunk,
-              });
-              const { etag, success } = await res.json();
-              if (!success) throw new Error('R2_PART_FAILED');
-              results.push({ PartNumber: partNum, ETag: etag });
-            }));
-          }
-
-          const compRes = await fetch(R2_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
-            body: JSON.stringify({ action: 'complete-multipart', uploadId, key, parts: results }),
-          });
-          const { url, success: compSuccess } = await compRes.json();
-          if (!compSuccess) throw new Error('R2_COMPLETE_FAILED');
-          return url;
-        } catch {
-          // Silent fallback — no toast, just use Supabase Storage
-          console.info('[Upload] Using Supabase Storage (R2 unavailable)');
-        }
-      }
-
-      // Standard Supabase Storage path — works reliably for files up to 50MB
-      if (file.size > 50 * 1024 * 1024) {
-        toast.info(`Uploading large file (${fileSizeMB}MB), please wait...`, { duration: 5000 });
-      }
       const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-
+      const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
         upsert: true,
         contentType: file.type || 'application/octet-stream',
       });
       if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(bucket).getPublicUrl(fileName);
       return publicUrl;
     } finally {
       setUploading(null);
     }
   };
-
-
 
   const handleMainFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

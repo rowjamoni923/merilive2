@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
   Crown, 
@@ -32,7 +31,6 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { VIPBadge } from "@/components/common/VIPBadge";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
@@ -90,7 +88,6 @@ type PrivilegeSlot =
   | 'vehicle'
   | 'medal'
   | 'noble_card'
-  | 'room_background'
   | 'other';
 
 // Helper: check if a URL is a valid asset (not just placeholder text)
@@ -162,16 +159,12 @@ const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
   if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
   if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect') return 'entry_name_bar';
-  if (category === 'party_background') return 'room_background';
   if (category === 'bubble' || category === 'chat_bubble') return 'bubble';
   if (category === 'vehicle' || category === 'vehicle_entrance') return 'vehicle';
   if (category === 'badge' || category === 'medal' || category === 'vip_medal') return 'medal';
   if (category === 'noble_card') return 'noble_card';
   return 'other';
 };
-
-const isWideCategory = (category: string) =>
-  ['entry_bar', 'party_background', 'entry_banner', 'entry_name_bar'].includes(category);
 
 // VIP Page Component - Updated 2026-01-27
 const VIP = () => {
@@ -235,71 +228,12 @@ const VIP = () => {
       // Set user id for expired items restorer
       setCurrentUserId(user.id);
 
-      // Parallel fetch for speed
-      const [
-        profileResult,
-        vipResult,
-        tiersResult,
-        purchasesResult,
-        purchasedBgResult,
-        framesResult,
-        levelPrivilegesResult,
-        entryBarsResult
-      ] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
-          .eq("id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("user_vip_subscriptions")
-          .select("vip_tier_id, vip_tiers(tier_level), expires_at")
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-          .gte("expires_at", new Date().toISOString())
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from("vip_tiers")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order"),
-        supabase
-          .from("user_purchases")
-          .select("id, item_id, is_equipped, expires_at, item_type")
-          .eq("user_id", user.id)
-          .eq("is_active", true),
-        supabase
-          .from("user_purchased_backgrounds" as any)
-          .select("id, background_id, is_active, party_room_backgrounds(*)")
-          .eq("user_id", user.id)
-          .eq("is_active", true) as any,
-        supabase
-          .from("avatar_frames")
-          .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
-          .eq("is_active", true)
-          .order("min_level", { ascending: true }),
-        supabase
-          .from("level_privileges")
-          .select("*")
-          .eq("is_active", true)
-          .order("unlock_level", { ascending: true }),
-        supabase
-          .from("entry_name_bars")
-          .select("*")
-          .eq("is_active", true)
-          .order("level_required", { ascending: true })
-      ]);
-
-      const profileData = profileResult.data;
-      const vipData = vipResult.data;
-      const tiersData = tiersResult.data;
-      const purchases = purchasesResult.data;
-      const purchasedBgs = (purchasedBgResult.data || []) as any[];
-      const availableFramesRaw = framesResult.data;
-      const levelPrivileges = levelPrivilegesResult.data;
-      const entryNameBars = entryBarsResult.data;
+      // Fetch user profile - include ALL equipped fields for unified selection logic
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .eq("id", user.id)
+        .maybeSingle();
 
       const resolvedLevel = profileData
         ? await resolveLevelFromTiers({
@@ -326,15 +260,45 @@ const VIP = () => {
       const equippedMedalId = profileData?.equipped_medal_id;
       const equippedNobleCardId = profileData?.equipped_noble_card_id;
       
+      console.log('[VIP] Profile equipped IDs:', {
+        frame: equippedFrameId || 'none',
+        entrance: equippedEntranceId || 'none',
+        entryBar: equippedEntryNameBarId || 'none',
+        bubble: equippedBubbleId || 'none',
+        vehicle: equippedVehicleId || 'none',
+        medal: equippedMedalId || 'none',
+        nobleCard: equippedNobleCardId || 'none',
+        effectiveLevel,
+        targetType
+      });
+
       if (profileData) {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
       }
 
+      // Fetch current VIP subscription
+      const { data: vipData } = await supabase
+        .from("user_vip_subscriptions")
+        .select("vip_tier_id, vip_tiers(tier_level), expires_at")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       if (vipData?.vip_tiers) {
         setCurrentVIPTier((vipData.vip_tiers as any).tier_level || 0);
         setVIPExpiresAt(vipData.expires_at);
       }
+
+      // Fetch VIP tiers
+      const { data: tiersData } = await supabase
+        .from("vip_tiers")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order");
 
       if (tiersData) {
         setTiers(tiersData);
@@ -342,7 +306,13 @@ const VIP = () => {
 
       const allPrivileges: UserPrivilege[] = [];
 
-      // Fetch shop items info for purchases
+      // Fetch ONLY user's purchased items (from shop)
+      const { data: purchases } = await supabase
+        .from("user_purchases")
+        .select("id, item_id, is_equipped, expires_at, item_type")
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
       const purchaseItemIds = (purchases || []).map((purchase) => purchase.item_id).filter(Boolean);
       const { data: purchasedShopItems } = purchaseItemIds.length > 0
         ? await supabase
@@ -389,8 +359,13 @@ const VIP = () => {
         }
       }
 
-      // Use already fetched availableFramesRaw
-      const availableFrames = availableFramesRaw;
+      // Fetch unlocked avatar frames only for the current role/level
+      const { data: availableFrames } = await supabase
+        .from("avatar_frames")
+        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
+        .eq("is_active", true)
+        .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
+        .order("min_level", { ascending: true });
 
       if (availableFrames) {
         const hasEquippedFrameInDB = !!equippedFrameId;
@@ -422,6 +397,13 @@ const VIP = () => {
           }
         }
       }
+
+      // Fetch unlocked level privileges only
+      const { data: levelPrivileges } = await supabase
+        .from("level_privileges")
+        .select("*")
+        .eq("is_active", true)
+        .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
@@ -456,6 +438,13 @@ const VIP = () => {
         }
       }
 
+      // Fetch unlocked entry name bars only
+      const { data: entryNameBars } = await supabase
+        .from("entry_name_bars")
+        .select("*")
+        .eq("is_active", true)
+        .order("level_required", { ascending: true });
+
       if (entryNameBars) {
         for (const bar of entryNameBars) {
           if (
@@ -481,25 +470,6 @@ const VIP = () => {
               unlock_level: bar.level_required || 1,
             });
           }
-        }
-      }
-      
-      if (purchasedBgs) {
-        for (const bgWrap of purchasedBgs) {
-          const bg = bgWrap.party_room_backgrounds;
-          if (!bg) continue;
-          
-          allPrivileges.push({
-            id: `bg_${bg.id}`,
-            item_id: bg.id,
-            name: bg.name,
-            category: 'party_background',
-            preview_url: bg.image_url,
-            animation_url: bg.image_url,
-            is_equipped: bgWrap.is_active,
-            expires_at: null,
-            source: 'shop',
-          });
         }
       }
 
@@ -845,49 +815,8 @@ const VIP = () => {
         throw new Error('No user found');
       }
 
-      // For party backgrounds
-      if (privilege.category === 'party_background') {
-        // Deactivate others
-        await supabase
-          .from("user_purchased_backgrounds" as any)
-          .update({ is_active: false })
-          .eq("user_id", user.id);
-
-        // Activate this one
-        const { error: equipError } = await supabase
-          .from("user_purchased_backgrounds" as any)
-          .update({ is_active: true })
-          .eq("id", privilege.id);
-        
-        if (equipError) throw equipError;
-
-        // Also update their active room if they have one
-        const { data: rooms } = await supabase
-          .from("party_rooms")
-          .select("id")
-          .eq("host_id", user.id);
-        
-        if (rooms && rooms.length > 0) {
-          const { data: bgData } = await supabase
-            .from("party_room_backgrounds")
-            .select("image_url")
-            .eq("id", privilege.item_id)
-            .maybeSingle();
-          
-          if (bgData?.image_url) {
-            await supabase
-              .from("party_rooms")
-              .update({ 
-                background_id: privilege.item_id,
-                background_url: bgData.image_url 
-              })
-              .eq("host_id", user.id);
-          }
-        }
-      }
-
       // For shop purchases, update user_purchases table
-      if (privilege.source === 'shop' && privilege.category !== 'party_background') {
+      if (privilege.source === 'shop') {
         const { data: allPurchases } = await supabase
           .from("user_purchases")
           .select("id, shop_items(category)")
@@ -1103,7 +1032,7 @@ const VIP = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList
-          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1 justify-center"
+          className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
           style={{
             background: 'rgba(15,23,42,0.08)',
             boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
@@ -1197,7 +1126,7 @@ const VIP = () => {
           )}
 
           {/* VIP Tiers Grid */}
-          <div className="grid gap-3 max-w-2xl mx-auto w-full">
+          <div className="grid gap-4">
             {tiers.map((tier, index) => {
               const TierIcon = getTierIcon(tier.tier_level);
               const privileges = getPrivilegesList(tier);
@@ -1232,30 +1161,29 @@ const VIP = () => {
                   )}
 
                   {/* Tier Header */}
-                  <div className={`p-3 bg-gradient-to-r ${getTierGradient(tier.tier_level)} relative`}>
+                  <div className={`p-4 bg-gradient-to-r ${getTierGradient(tier.tier_level)} relative`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
                           style={{
                             background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,251,242,0.7))',
                             boxShadow: '0 6px 14px -4px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.85)',
                           }}
                         >
-                          <FixedAnimationFrame
-                            src={tier.badge_animation_url || ''}
-                            className="w-full h-full"
-                            size="fill"
-                            loop
-                            autoPlay
-                            fallbackEmoji=""
-                          />
-                          {!tier.badge_animation_url && (
-                            <TierIcon className="w-7 h-7 absolute text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
+                          {tier.badge_animation_url ? (
+                            <UniversalAnimationPlayer
+                              src={tier.badge_animation_url}
+                              className="w-full h-full"
+                              loop
+                              autoPlay
+                            />
+                          ) : (
+                            <TierIcon className="w-7 h-7 text-heading drop-shadow-[0_1px_2px_rgba(146,64,14,0.30)]" />
                           )}
                         </div>
                         <div>
-                          <h3 className="text-heading font-bold text-base" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
+                          <h3 className="text-heading font-bold text-lg" style={{ textShadow: '0 1px 0 rgba(255,255,255,0.7)' }}>{tier.tier_name}</h3>
                           <p className="text-body text-xs font-medium">{tier.duration_days} Days Membership</p>
                         </div>
                       </div>
@@ -1275,11 +1203,11 @@ const VIP = () => {
                   </div>
 
                   {/* Privileges */}
-                  <div className="p-3 bg-white/95">
+                  <div className="p-4 bg-white/95">
                     {tier.description && <p className="text-heading text-sm mb-3 leading-snug">{tier.description}</p>}
 
-                    <div className="grid grid-cols-2 gap-2 mb-4 justify-items-center">
-                      {privileges.slice(0, 4).map((priv, i) => (
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {privileges.slice(0, 6).map((priv, i) => (
                         <div
                           key={i}
                           className="flex items-center gap-2 text-body text-xs font-medium px-2 py-1.5 rounded-lg"
@@ -1295,7 +1223,7 @@ const VIP = () => {
                     </div>
 
                     {/* Price & Action */}
-                    <div className="flex items-center justify-between pt-2 border-t border-amber-200/60">
+                    <div className="flex items-center justify-between pt-3 border-t border-amber-200/60">
                       <div
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
                         style={{
@@ -1313,7 +1241,7 @@ const VIP = () => {
                       <button
                         onClick={() => setSelectedTier(tier)}
                         disabled={isOwned || purchasing}
-                        className="px-4 py-1.5 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
+                        className="px-5 py-2 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
                         style={isOwned ? {
                           background: 'linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.12))',
                           color: '#065f46',
@@ -1358,8 +1286,8 @@ const VIP = () => {
             <div className="space-y-6">
               {/* Reusable privilege item renderer */}
               {[
-                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-amber-100', ringColor: 'hover:ring-amber-300/60', delay: 0.1 },
-                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-500" />, bgFrom: 'from-purple-50', bgTo: 'to-purple-100', ringColor: 'hover:ring-purple-300/60', delay: 0.15 },
+                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-500" />, bgFrom: 'from-purple-50', bgTo: 'to-pink-50', ringColor: 'hover:ring-purple-300/60', delay: 0.1 },
+                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-500" />, bgFrom: 'from-pink-50', bgTo: 'to-purple-50', ringColor: 'hover:ring-pink-300/60', delay: 0.15 },
                 { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-orange-50', ringColor: 'hover:ring-amber-300/60', delay: 0.2 },
                 { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-blue-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.25 },
                 { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-600" />, bgFrom: 'from-emerald-50', bgTo: 'to-teal-50', ringColor: 'hover:ring-emerald-300/60', delay: 0.3 },
@@ -1372,62 +1300,41 @@ const VIP = () => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay }}
                   >
-                    <div className="flex items-center justify-center gap-2 text-base font-bold mb-4">
+                    <div className="flex items-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
-                      <span className="text-heading tracking-wide uppercase text-sm">{title}</span>
+                      <span className="text-heading">{title}</span>
+                        <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-2 justify-items-center max-w-5xl mx-auto px-1">
+                    <div className="flex flex-wrap gap-3">
                       {items.map((priv) => (
                         <motion.div
                           key={priv.id}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleEquip(priv)}
-                          className="flex flex-col items-center w-full"
+                          className="flex flex-col items-center"
                         >
-                          <div className={`relative w-full ${isWideCategory(priv.category) ? 'aspect-video' : 'aspect-square'} rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
+                          <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
                             priv.is_equipped 
-                                ? 'ring-2 ring-green-500 shadow-lg shadow-green-500/20' 
-                                : `ring-1 ring-amber-200/50 ${ringColor} shadow-md`
-                          }`}
-                          style={{
-                            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
-                            boxShadow: '0 8px 20px -8px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
-                          }}>
-                            <div className={cn("w-full h-full flex items-center justify-center relative", (priv.category !== 'frame' && priv.category !== 'portrait_frame' && !isWideCategory(priv.category)) && "p-1.5")}>
-                              <div
-                                className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300 pointer-events-none"
-                                style={{ background: 'radial-gradient(circle at center, rgba(251,191,36,0.15) 0%, transparent 75%)' }}
-                              />
-                              {priv.category === 'frame' || priv.category === 'portrait_frame' ? (
-                                <div className="w-full h-full scale-110">
-                                  <FixedAnimationFrame
-                                    src={priv.animation_url || ''}
-                                    className="w-full h-full"
-                                    size="fill"
-                                    loop
-                                    autoPlay
-                                    muted
-                                    fallbackEmoji="👑"
-                                  />
-                                </div>
-                              ) : priv.preview_url ? (
-                                <img 
+                                ? 'ring-2 ring-green-500 shadow-green-500/30' 
+                                : `ring-1 ring-white/10 ${ringColor}`
+                          }`}>
+                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
+                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
+                                <UniversalFramePlayer
+                                  src={priv.animation_url}
+                                  className="w-full h-full"
+                                  loop={true}
+                                  autoPlay={true}
+                                  muted={true}
+                                />
+                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
+                                <img loading="lazy" decoding="async" 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-full h-full object-contain drop-shadow-md transition-transform duration-300 hover:scale-110"
-                                  loading="eager"
-                                />
+                                  className="w-full h-full object-cover" />
                               ) : (
-                                <FixedAnimationFrame
-                                  src={priv.animation_url || ''}
-                                  className="w-full h-full"
-                                  size="fill"
-                                  loop
-                                  autoPlay
-                                  muted
-                                  fallbackEmoji="🎁"
-                                />
+                                fallbackIcon
                               )}
                             </div>
                             
@@ -1446,7 +1353,7 @@ const VIP = () => {
                             )}
                           </div>
                           
-                          <div className="mt-1 max-w-[64px] truncate text-center text-[10px] font-medium text-heading">
+                          <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-heading">
                             {priv.name}
                           </div>
 
@@ -1476,8 +1383,8 @@ const VIP = () => {
                               handleEquip(priv);
                             }}
                             className={priv.is_equipped
-                              ? 'mt-2 h-6 px-2 rounded-full bg-green-100 text-green-700 hover:bg-green-100 font-semibold text-[10px]'
-                              : 'mt-2 h-6 px-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-purple-500/30 text-[10px]'}
+                              ? 'mt-2 h-7 rounded-full bg-green-100 text-green-700 hover:bg-green-100 font-semibold'
+                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-purple-500/30'}
                           >
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>

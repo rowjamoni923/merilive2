@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { Gift, X, Coins, Diamond, Play, Sparkles } from "lucide-react";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -437,7 +436,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                     )}
                   </Suspense>
                 ) : (
-                  <GiftBox3DIcon size={24} />
+                  <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
                 )}
                 <div>
                   <p className="text-white font-medium text-sm">{selectedGift.name}</p>

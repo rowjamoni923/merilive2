@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 
 import { GiftData, formatCoinValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import GiftBox3DIcon from "@/components/common/GiftBox3DIcon";
 import { Play } from "lucide-react";
 
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -140,7 +139,7 @@ const GiftItem = memo(({
             className="w-10 h-10 object-contain"
  />
         ) : (
-          <GiftBox3DIcon size={32} />
+          <div className="w-10 h-10 rounded-lg bg-white/5" />
         )}
       </div>
 

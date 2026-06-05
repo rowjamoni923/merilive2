@@ -328,7 +328,7 @@ const AdminVIPMedals = () => {
               <CardContent>
                 <div className="aspect-square bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <FixedAnimationFrame size="card" center={true}
+                    <FixedAnimationFrame size="fill" center={false}
                       src={item.animation_url}
                       
                       loop
@@ -446,7 +446,7 @@ const AdminVIPMedals = () => {
 
             {formData.animation_url && (
               <div className="aspect-square bg-muted rounded-lg overflow-hidden max-w-[200px] mx-auto">
-                <FixedAnimationFrame size="card" center={true}
+                <FixedAnimationFrame size="fill" center={false}
                   src={formData.animation_url}
                   
                   loop
@@ -472,7 +472,7 @@ const AdminVIPMedals = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="aspect-square bg-black rounded-lg overflow-hidden">
-              <FixedAnimationFrame size="large" center={true}
+              <FixedAnimationFrame size="fill" center={false}
                 src={previewUrl}
                 
                 loop

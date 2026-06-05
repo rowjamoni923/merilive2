@@ -400,7 +400,7 @@ const ProfileDetail = () => {
     giftTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!giftCounts[giftId]) {
-        giftCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "", count: 0 };
+        giftCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0 };
       }
       giftCounts[giftId].count++;
     });
@@ -426,13 +426,13 @@ const ProfileDetail = () => {
     receivedTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!receivedCounts[giftId]) {
-        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "", count: 0, totalCoins: 0 };
+        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0, totalCoins: 0 };
       }
       receivedCounts[giftId].count++;
       receivedCounts[giftId].totalCoins += t.coin_amount || 0;
       const sender = senderMap[t.sender_id];
       giftSendersList.push({
-        id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "",
+        id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "🎁",
         coin_amount: t.coin_amount || 0, sender_id: t.sender_id,
         sender_name: sender?.display_name || sender?.username || "Anonymous",
         sender_avatar: sender?.avatar_url || null, sender_uid: sender?.app_uid || null, created_at: t.created_at
@@ -1448,12 +1448,14 @@ const ProfileDetail = () => {
                                  
                                   className="w-12 h-12 object-contain"
                                   onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    // Replace broken img with emoji fallback so viewers never see a broken icon.
+                                    const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                    if (parent) parent.innerHTML = '<span class="text-4xl">🎁</span>';
                                   }}
                                 />
                               );
                             }
-                            return null;
+                            return <span className="text-4xl">{gift.icon || '🎁'}</span>;
                           })()}
                         </div>
                         <span className="text-xs font-bold text-fuchsia-600">×{gift.count}</span>
@@ -1496,12 +1498,13 @@ const ProfileDetail = () => {
                      
                       className="w-8 h-8 object-contain"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                        if (parent) parent.innerHTML = '<span class="text-2xl">🎁</span>';
                       }}
                     />
                   );
                 }
-                return null;
+                return <span className="text-2xl">{selectedGift?.icon || '🎁'}</span>;
               })()}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
@@ -1712,13 +1715,11 @@ const ProfileDetail = () => {
           addFlyingGift({
             senderId: currentUser.id,
             senderName: 'You',
-            senderAvatar: currentUser?.avatar_url || undefined,
             receiverName: profile?.display_name || 'User',
-            receiverAvatar: profile?.avatar_url || undefined,
             giftName: gift.name,
-            giftIcon: gift.icon_url || "",
+            giftIcon: '🎁',
             giftImageUrl: gift.icon_url || undefined,
-            animationUrl: gift.animation_url || undefined,
+            animationUrl: gift.animation_url || gift.icon_url || undefined,
             animationFormat: gift.animation_format || null,
             animationConfigUrl: gift.animation_config_url || undefined,
             soundUrl: (gift as any).sound_url || undefined,

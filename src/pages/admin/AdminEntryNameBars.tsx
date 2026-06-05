@@ -340,18 +340,6 @@ const AdminEntryNameBars = () => {
                 src={formData.animation_url}
                 className="w-80 h-20"
                 containerClassName="w-80 h-20"
-                dynamicData={{
-                  text: {
-                    "#name#": "Admin User",
-                    "name": "Admin User",
-                    "#level#": "Lv.99",
-                    "level": "Lv.99"
-                  },
-                  images: {
-                    "#avatar#": "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
-                    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin"
-                  }
-                }}
               />
             </Suspense>
           </div>
@@ -450,7 +438,7 @@ const AdminEntryNameBars = () => {
                       containerClassName="w-full h-16"
                     />
                   ) : nameBar.animation_url ? (
-                    <FixedAnimationFrame size="card" center={true}
+                    <FixedAnimationFrame size="fill" center={false}
                       src={nameBar.animation_url}
                       className="w-full h-16 object-contain"
                       loop

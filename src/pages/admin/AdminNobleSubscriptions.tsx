@@ -233,12 +233,12 @@ const AdminNobleSubscriptions = () => {
                 <div className="flex gap-2 pt-2 border-t border-slate-800">
                   {card.entrance_animation_url && (
                     <div className="w-14 h-14 bg-slate-800 rounded overflow-hidden">
-                      <FixedAnimationFrame size="card" center={true} src={card.entrance_animation_url}  loop />
+                      <FixedAnimationFrame size="fill" center={false} src={card.entrance_animation_url}  loop />
                     </div>
                   )}
                   {card.custom_avatar_frame_url && (
                     <div className="w-14 h-14 bg-slate-800 rounded overflow-hidden">
-                      <FixedAnimationFrame size="card" center={true} src={card.custom_avatar_frame_url}  loop />
+                      <FixedAnimationFrame size="fill" center={false} src={card.custom_avatar_frame_url}  loop />
                     </div>
                   )}
                 </div>
@@ -396,7 +396,7 @@ const AdminNobleSubscriptions = () => {
                       />
                       {(form as any)[key] && (key === 'entrance_animation_url' || key === 'custom_avatar_frame_url' || key === 'custom_chat_bubble_url') && (
                         <div className="mt-2 w-20 h-20 bg-slate-900 rounded overflow-hidden">
-                          <FixedAnimationFrame size="card" center={true} src={(form as any)[key]}  loop />
+                          <FixedAnimationFrame size="fill" center={false} src={(form as any)[key]}  loop />
                         </div>
                       )}
                     </div>

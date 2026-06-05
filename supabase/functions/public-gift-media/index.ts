@@ -103,52 +103,25 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    // The incoming `path` from the proxy URL already has the form "gifts/some/file.ext"
-    // or just "some/file.ext". We want to be smart about finding it in the `gifts` bucket.
-    const pathWithoutGiftsPrefix = path.replace(/^gifts\//, "");
-    
-    // We'll try these keys in the `gifts` bucket in order:
-    // 1. The full path (e.g. "gifts/pro/file.mp4")
-    // 2. The path without "gifts/" (e.g. "pro/file.mp4")
-    // 3. The path with "gifts/legacy-chat-media/" (for backward compatibility).
-    // IMPORTANT: never answer a .json config request with the .mp4 file. VAP
-    // players probe vapc.json; returning video/mp4 there makes JSON parsing fail.
-    const searchKeys = [
-      path,
-      pathWithoutGiftsPrefix,
-      `legacy-chat-media/${pathWithoutGiftsPrefix}`,
-    ];
+    const publicGiftPath = `legacy-chat-media/${path.replace(/^gifts\//, "")}`;
+    const publicGiftUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${publicGiftPath.split("/").map(encodeURIComponent).join("/")}`;
 
-    for (const key of searchKeys) {
-      if (!key) continue;
-      const encodedKey = key.split("/").map(encodeURIComponent).join("/");
-      const upstream = await fetch(`${Deno.env.get("SUPABASE_URL")}/storage/v1/object/gifts/${encodedKey}`, {
-        method: req.method,
+    // Prefer the real public gifts bucket first. If the asset has already been
+    // copied there, redirect viewers to Supabase Storage CDN instead of proxying
+    // the bytes through this Edge Function on every request.
+    const existingPublic = await supabase.storage.from("gifts").download(publicGiftPath);
+    if (existingPublic.data && !existingPublic.error) {
+      return new Response(null, {
+        status: 302,
         headers: {
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-          "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-          ...(req.headers.get("range") ? { "Range": req.headers.get("range")! } : {}),
+          ...corsHeaders,
+          "Location": publicGiftUrl,
+          "Cache-Control": "public, max-age=604800, immutable",
+          "X-Gift-Public-Url": publicGiftUrl,
         },
-      });
-      if (upstream.status === 404 || upstream.status === 400) continue;
-
-      const ext = (key.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
-      const contentType = usefulMimeType(upstream.headers.get("content-type")) || MIME[ext] || "application/octet-stream";
-      const headers = new Headers(corsHeaders);
-      headers.set("Content-Type", contentType);
-      headers.set("Cache-Control", "public, max-age=604800, immutable");
-      headers.set("Accept-Ranges", upstream.headers.get("accept-ranges") || "bytes");
-      for (const h of ["content-length", "content-range", "etag", "last-modified"]) {
-        const value = upstream.headers.get(h);
-        if (value) headers.set(h, value);
-      }
-      return new Response(req.method === "HEAD" ? null : upstream.body, {
-        status: upstream.status,
-        headers,
       });
     }
 
-    // 3) Legacy fallback: chat-media bucket
     const { data, error } = await supabase.storage.from("chat-media").download(path);
     if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
@@ -161,6 +134,28 @@ Deno.serve(async (req) => {
     const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
     const body = req.method === "HEAD" ? null : data;
 
+    // Lazy-copy old chat-media/gifts assets into the real public gifts bucket,
+    // then redirect this same request to the public CDN. If another request won
+    // the race and uploaded first, duplicate errors are harmless; redirect still works.
+    if (data.size > 0) {
+      const uploadResult = await supabase.storage.from("gifts").upload(publicGiftPath, data, {
+        upsert: false,
+        contentType,
+        cacheControl: "31536000",
+      });
+      if (!uploadResult.error || /already exists|duplicate/i.test(uploadResult.error.message || "")) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            "Location": publicGiftUrl,
+            "Cache-Control": "public, max-age=604800, immutable",
+            "X-Gift-Public-Url": publicGiftUrl,
+          },
+        });
+      }
+    }
+
     return new Response(body, {
       status: 200,
       headers: {
@@ -169,6 +164,7 @@ Deno.serve(async (req) => {
         "Content-Length": String(data.size),
         "Cache-Control": "public, max-age=604800, immutable",
         "Accept-Ranges": "bytes",
+        "X-Gift-Public-Url": publicGiftUrl,
       },
     });
   } catch (error) {

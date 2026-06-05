@@ -325,7 +325,7 @@ const AdminChatBubbles = () => {
               <CardContent>
                 <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <FixedAnimationFrame size="card" center={true}
+                    <FixedAnimationFrame size="fill" center={false}
                       src={item.animation_url}
                       
                       loop
@@ -443,7 +443,7 @@ const AdminChatBubbles = () => {
 
             {formData.animation_url && (
               <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                <FixedAnimationFrame size="card" center={true}
+                <FixedAnimationFrame size="fill" center={false}
                   src={formData.animation_url}
                   
                   loop
@@ -469,7 +469,7 @@ const AdminChatBubbles = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
-              <FixedAnimationFrame size="large" center={true}
+              <FixedAnimationFrame size="fill" center={false}
                 src={previewUrl}
                 
                 loop

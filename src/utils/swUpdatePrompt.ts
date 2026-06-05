@@ -6,20 +6,23 @@
  * Zero-refresh policy: service-worker updates must never reload the running app.
  * New workers are left waiting until the user naturally opens the app again.
  */
-// Sonner import removed for zero-toast policy
+import { toast } from 'sonner';
 
 let installed = false;
 
-function handleUpdateReady(sw: ServiceWorker) {
-  // Silent auto-update: tell the new worker to skip waiting immediately.
-  // This activates the new version in the background.
-  sw.postMessage({ type: 'SKIP_WAITING' });
+function promptForReload(_waiting: ServiceWorker) {
+  // De-dupe if the same prompt is already on screen
+  toast('New version ready', {
+    id: 'sw-update-prompt',
+    description: 'It will apply next time you open the app. No auto refresh will run.',
+    duration: 5000,
+  });
 }
 
 function wireRegistration(reg: ServiceWorkerRegistration) {
   // Already waiting (e.g., page reopened mid-update)
   if (reg.waiting && navigator.serviceWorker.controller) {
-    handleUpdateReady(reg.waiting);
+    promptForReload(reg.waiting);
   }
 
   reg.addEventListener('updatefound', () => {
@@ -27,39 +30,25 @@ function wireRegistration(reg: ServiceWorkerRegistration) {
     if (!sw) return;
     sw.addEventListener('statechange', () => {
       if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-        // A new worker has installed alongside an active one → safe to activate.
-        handleUpdateReady(sw);
+        // A new worker has installed alongside an active one → safe to prompt.
+        promptForReload(sw);
       }
     });
   });
 }
 
 /**
- * Install the SW update-handler. Idempotent.
- * Updates are now completely silent and automatic.
+ * Install the SW update-prompt listener. Idempotent.
+ * Safe to call after any registration (boot, FCM, image-cache warm).
  */
 export function installSWUpdatePrompt(): void {
   if (installed) return;
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   installed = true;
 
-  // When the new worker takes control, we should ideally refresh to get new assets.
-  // To be professional, we only do this if the user is not in an active session (call/live).
+  // Zero-refresh policy: never reload on service-worker controller changes.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    // Check if we are in a critical path before reloading
-    const isCriticalPath = 
-      window.location.pathname.includes('/live/') || 
-      window.location.pathname.includes('/party/') || 
-      window.location.pathname.includes('/call') ||
-      (window as any).isStreamingActive === true;
-
-    if (!isCriticalPath) {
-      console.log('[SWUpdate] New version activated, reloading silently...');
-      window.location.reload();
-    } else {
-      console.log('[SWUpdate] New version activated, deferred reload until session ends.');
-      // The reload will happen naturally next time they open the app or navigate.
-    }
+    console.log('[SWUpdate] Controller changed — auto reload disabled');
   });
 
   // Wire any registrations that already exist…
@@ -67,8 +56,9 @@ export function installSWUpdatePrompt(): void {
     regs.forEach(wireRegistration);
   }).catch(() => {});
 
-  // …and any that register later.
+  // …and any that register later (FCM/image-cache call register() lazily).
   navigator.serviceWorker.ready.then((reg) => {
     wireRegistration(reg);
+    // Zero-refresh policy: no periodic service-worker update polling.
   }).catch(() => {});
 }

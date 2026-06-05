@@ -291,7 +291,7 @@ const AdminVIPPrivileges = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                     {tier.badge_animation_url ? (
-                      <FixedAnimationFrame size="card" center={true}
+                      <FixedAnimationFrame size="fill" center={false}
                         src={tier.badge_animation_url}
                         className="w-10 h-10"
                         loop
@@ -352,7 +352,7 @@ const AdminVIPPrivileges = () => {
                   {tier.frame_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <FixedAnimationFrame size="card" center={true}
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.frame_animation_url}
                           
                           loop
@@ -364,7 +364,7 @@ const AdminVIPPrivileges = () => {
                   {tier.entry_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <FixedAnimationFrame size="card" center={true}
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.entry_animation_url}
                           
                           loop
@@ -376,7 +376,7 @@ const AdminVIPPrivileges = () => {
                   {tier.bubble_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <FixedAnimationFrame size="card" center={true}
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.bubble_animation_url}
                           
                           loop
@@ -717,7 +717,7 @@ const AdminVIPPrivileges = () => {
                     {tierForm.frame_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <FixedAnimationFrame size="card" center={true}
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.frame_animation_url}
                             
                             loop
@@ -770,7 +770,7 @@ const AdminVIPPrivileges = () => {
                     {tierForm.entry_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <FixedAnimationFrame size="card" center={true}
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.entry_animation_url}
                             
                             loop
@@ -823,7 +823,7 @@ const AdminVIPPrivileges = () => {
                     {tierForm.bubble_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <FixedAnimationFrame size="card" center={true}
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.bubble_animation_url}
                             
                             loop
@@ -876,7 +876,7 @@ const AdminVIPPrivileges = () => {
                     {tierForm.badge_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <FixedAnimationFrame size="card" center={true}
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.badge_animation_url}
                             
                             loop

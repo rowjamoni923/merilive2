@@ -1,6 +1,4 @@
 import React, { Suspense, lazy, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import type { SVGADynamicData } from './SVGAPlayer';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
 import {
@@ -33,7 +31,7 @@ const SIZE_STYLES: Record<AnimationSizePreset, React.CSSProperties> = {
   large:        { width: 360, height: 360 },
   fill:         { width: '100%', height: '100%' },
   'full-square':{ width: '90vmin', height: '90vmin', maxWidth: '90vw', maxHeight: '90vh' },
-  fullscreen:   { width: '100dvw', height: '100dvh', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2147483647 },
+  fullscreen:   { width: '100vw', height: '100vh' },
 };
 
 export interface FixedAnimationFrameProps {
@@ -76,10 +74,6 @@ export interface FixedAnimationFrameProps {
   debugTag?: string;
   /** Changing this key re-triggers the audio segments without restarting the animation */
   triggerKey?: string | number;
-  /** Pkg: Professional dynamic data replacement (SVGA/VAP/PAG) */
-  dynamicData?: SVGADynamicData;
-  /** Optional placeholder/icon URL shown immediately while animation loads */
-  placeholderUrl?: string;
 }
 
 // ⚠️ NEVER use `backdrop-blur` here — this frame sits over animated content
@@ -127,19 +121,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   debug,
   debugTag,
   triggerKey,
-  dynamicData,
-  placeholderUrl,
 }) => {
-  const [animLoaded, setAnimLoaded] = React.useState(false);
-  const [imageError, setImageError] = React.useState(false);
-
-  React.useEffect(() => {
-    setAnimLoaded(false);
-    setImageError(false);
-    const safetyTimer = window.setTimeout(() => setAnimLoaded(true), 1800);
-    return () => window.clearTimeout(safetyTimer);
-  }, [src, type]);
-
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
@@ -163,6 +145,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   const explicitMismatch =
     !!type && detected !== 'static' && type !== detected && !isValidContainerOverride;
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
+    // eslint-disable-next-line no-console
     console.warn(
       `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
     );
@@ -195,119 +178,64 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   if (!src) {
     return (
       <div
-        className={cn('flex items-center justify-center relative overflow-hidden', BG_CLASSES[background], className)}
+        className={cn('flex items-center justify-center text-4xl', BG_CLASSES[background], className)}
         style={frameStyle}
       >
-        {placeholderUrl && !imageError ? (
-          <img 
-            src={placeholderUrl} 
-            className="w-full h-full object-contain" 
-            onError={() => setImageError(true)}
-            loading="eager"
-            fetchPriority="high"
-          />
-        ) : (
-          <span className="text-4xl">{fallbackEmoji}</span>
-        )}
+        {fallbackEmoji}
       </div>
     );
   }
 
-  const isFullscreen = size === 'fullscreen' || className?.includes('fixed');
   const wrapperClass = cn(
-    isFullscreen ? 'fixed inset-0 w-screen h-screen pointer-events-none' : 'relative shrink-0',
-    'overflow-hidden',
-    center && !isFullscreen && 'mx-auto',
+    'relative shrink-0 overflow-hidden',
+    center && 'mx-auto',
     BG_CLASSES[background],
     className,
   );
-  const playerClassName = isFullscreen ? 'w-screen h-screen' : wrapperClass;
-  const contentClassName = isFullscreen ? 'absolute inset-0 w-screen h-screen opacity-100' : cn("w-full h-full transition-opacity duration-300", animLoaded ? "opacity-100" : "opacity-0");
 
-  const frameElement = (
+  return (
     <div className={wrapperClass} style={frameStyle}>
-      {/* Placeholder / Icon shown immediately */}
-      {placeholderUrl && !imageError && (
-        <img 
-          src={placeholderUrl} 
-          className={cn(
-            "absolute inset-0 w-full h-full object-contain transition-opacity duration-300",
-            animLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
-          )}
-          onError={() => setImageError(true)}
-          loading="eager"
-          fetchPriority="high"
-        />
-      )}
-
-      <div className={contentClassName}>
-        {useAudioPlayer ? (
-          <Suspense
-            fallback={
-              <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
-            }
-          >
-            <SVGAPlayerWithAudio
-              src={src}
-              className={playerClassName}
-              loop={loop}
-              autoPlay={autoPlay}
-              volume={volume}
-              onLoad={() => {
-                setAnimLoaded(true);
-                onLoad?.();
-              }}
-              onComplete={onComplete}
-              onCompleteDebug={handleDebugComplete}
-              onError={(err) => {
-                setImageError(true);
-                onError?.(err);
-              }}
-              onAudioExtracted={onAudioExtracted}
-              soundUrl={soundUrl}
-              triggerKey={triggerKey}
-              dynamicData={dynamicData}
-            />
-          </Suspense>
-        ) : (
-          <UniversalAnimationPlayer
+      {useAudioPlayer ? (
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
+          }
+        >
+          <SVGAPlayerWithAudio
             src={src}
-            type={safeType}
-            configSrc={configSrc || undefined}
-            className={playerClassName}
+            className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
-            muted={safeMuted}
             volume={volume}
-            soundUrl={soundUrl}
-            onLoad={() => {
-              setAnimLoaded(true);
-              onLoad?.();
-            }}
-            onError={(err) => {
-              setImageError(true);
-              onError?.(err);
-            }}
+            onLoad={onLoad}
             onComplete={onComplete}
             onCompleteDebug={handleDebugComplete}
-            fallbackEmoji={fallbackEmoji}
-            dynamicData={dynamicData}
+            onError={onError}
+            onAudioExtracted={onAudioExtracted}
+            soundUrl={soundUrl}
+            triggerKey={triggerKey}
           />
-        )}
-      </div>
+        </Suspense>
+      ) : (
+        <UniversalAnimationPlayer
+          src={src}
+          type={safeType}
+          configSrc={configSrc || undefined}
+          className="w-full h-full"
+          loop={loop}
+          autoPlay={autoPlay}
+          muted={safeMuted}
+          volume={volume}
+          soundUrl={soundUrl}
+          onLoad={onLoad}
+          onError={onError}
+          onComplete={onComplete}
+          onCompleteDebug={handleDebugComplete}
+          fallbackEmoji={fallbackEmoji}
+        />
+      )}
     </div>
   );
-
-  // Fullscreen animations must escape caller stacking/transform contexts.
-  // Any transformed parent (chat sheet, gift panel, room controls, motion wrappers)
-  // makes CSS position:fixed behave like absolute inside that parent, so VAP/MP4
-  // no longer covers the viewport. Portaling to <body> restores true fullscreen
-  // across messages, private calls, live, audio/video/game party, and profiles.
-  if (isFullscreen && typeof document !== 'undefined') {
-    return createPortal(frameElement, document.body);
-  }
-
-  return frameElement;
 };
 
 export default FixedAnimationFrame;

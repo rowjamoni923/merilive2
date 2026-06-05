@@ -49,7 +49,6 @@ import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 
 import { useR2Upload } from "@/hooks/useR2Upload";
-import { robustAdminUpload } from "@/utils/adminUploadHelper";
 
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -329,31 +328,16 @@ const AdminShop = () => {
 
     setUploading(true);
     try {
-      let publicUrl: string;
-      
-      // Try R2 for large files (> 50MB), otherwise fallback to robust Supabase upload
-      try {
-        if (file.size > 50 * 1024 * 1024) {
-          const result = await r2UploadFile(file, { bucket: 'shop-items', folder: 'shop-items' });
-          if (!result.success || !result.url) throw new Error(result.error || 'R2 upload failed');
-          publicUrl = result.url;
-        } else {
-          // Standard Supabase upload via robust helper
-          const uniqueName = `shop_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-          publicUrl = await robustAdminUpload(file, uniqueName, {
-            bucket: 'shop-items',
-            folder: 'shop-items'
-          });
-        }
-      } catch (uploadErr: any) {
-        console.warn('Primary shop upload failed, attempting direct Supabase fallback:', uploadErr);
-        // Direct absolute fallback to Supabase if anything above failed
-        const uniqueName = `fallback_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        publicUrl = await robustAdminUpload(file, uniqueName, {
-          bucket: 'shop-items',
-          folder: 'fallbacks'
-        });
+      const result = await r2UploadFile(file, {
+        bucket: 'shop-items',
+        folder: 'shop-items',
+      });
+
+      if (!result.success || !result.url) {
+        throw new Error(result.error || 'Upload failed');
       }
+
+      const publicUrl = result.url;
 
       let detectedType = 'image';
       if (fileExt === 'svga') detectedType = 'svga';
@@ -943,8 +927,8 @@ const AdminShop = () => {
                       ) : formData.file_type === 'lottie' ? (
                         <FixedAnimationFrame
                           src={previewFile}
-                          size="card"
-                          center={true}
+                          size="fill"
+                          center={false}
                           loop
                         />
                       ) : formData.file_type === 'vap' ? (
@@ -952,8 +936,8 @@ const AdminShop = () => {
                           src={previewFile}
                           type="vap"
                           configSrc={formData.animation_config_url || undefined}
-                          size="card"
-                          center={true}
+                          size="fill"
+                          center={false}
                           loop
                           muted
                         />
@@ -961,8 +945,8 @@ const AdminShop = () => {
                         <FixedAnimationFrame
                           src={previewFile}
                           type={previewFile.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}
-                          size="card"
-                          center={true}
+                          size="fill"
+                          center={false}
                           loop
                           muted
                         />
@@ -1319,11 +1303,11 @@ const AdminShop = () => {
                 const url = getAnimationUrl(fullscreenPreviewItem);
                 if (!url) return <p className="text-white/50">No animation file</p>;
                 if (isSVGA(url)) return (
-                  <FixedAnimationFrame src={url} type="svga" size="large" center={true} loop muted={false} />
+                  <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
-                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="large" center={true} loop muted={false} />;
-                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="large" center={true} loop muted={false} />;
-                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="large" center={true} loop muted={false} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
+                if (isVAP(url)) return <FixedAnimationFrame src={url} type="vap" configSrc={(fullscreenPreviewItem as any).animation_config_url || undefined} size="fill" center={false} loop muted={false} />;
+                if (isVideo(url)) return <FixedAnimationFrame src={url} type={url.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'} size="fill" center={false} loop muted={false} />;
                 return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>

@@ -14,7 +14,6 @@ export interface FlyingGift {
   senderName: string;
   senderAvatar?: string;
   receiverName?: string;
-  receiverAvatar?: string;
   giftName: string;
   giftIcon: string;
   giftImageUrl?: string;
@@ -58,8 +57,8 @@ const getAnimationType = (url?: string, format?: string | null): 'svga' | 'lotti
 const FULLSCREEN_GIFT_LAYER_STYLE: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  width: '100vw',
-  height: '100vh',
+  width: '100dvw',
+  height: '100dvh',
   minWidth: '100vw',
   minHeight: '100vh',
   zIndex: 2147483000,
@@ -74,8 +73,8 @@ const FULLSCREEN_GIFT_LAYER_STYLE: CSSProperties = {
 const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
   position: 'absolute',
   inset: 0,
-  width: '100vw',
-  height: '100vh',
+  width: '100dvw',
+  height: '100dvh',
   minWidth: '100vw',
   minHeight: '100vh',
   display: 'flex',
@@ -85,37 +84,30 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 
 // ============================================================
 // FULLSCREEN HEAVY-ANIMATION ARBITER (module-level singleton)
-// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment.
-// IMPORTANT: never preempt/shorten a playing asset. Later gifts wait FIFO so
-// every fullscreen animation completes at its own native SVGA/VAP/MP4 duration.
+// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment,
+// but NEVER queues a later gift behind a 10–15s animation. New gifts preempt
+// the current full-screen owner so delivery remains zero-second and the WebView
+// never renders stacked heavy players.
 // ============================================================
 let activeFullscreenOwner: string | null = null;
-const fullscreenWaitQueue: string[] = [];
-const FULLSCREEN_GRANTED_EVENT = 'meri-fullscreen-gift-granted';
+const FULLSCREEN_PREEMPT_EVENT = 'meri-fullscreen-gift-preempt';
 
 const tryAcquireFullscreen = (id: string): boolean => {
   if (activeFullscreenOwner === null || activeFullscreenOwner === id) {
     activeFullscreenOwner = id;
     return true;
   }
-  if (!fullscreenWaitQueue.includes(id)) fullscreenWaitQueue.push(id);
-  return false;
+  const previousId = activeFullscreenOwner;
+  activeFullscreenOwner = id;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FULLSCREEN_PREEMPT_EVENT, { detail: { previousId, nextId: id } }));
+  }
+  return true;
 };
 
 const releaseFullscreen = (id: string) => {
   if (activeFullscreenOwner !== id) return;
   activeFullscreenOwner = null;
-  const nextId = fullscreenWaitQueue.shift();
-  if (!nextId) return;
-  activeFullscreenOwner = nextId;
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(FULLSCREEN_GRANTED_EVENT, { detail: { id: nextId } }));
-  }
-};
-
-const removeFromFullscreenQueue = (id: string) => {
-  const index = fullscreenWaitQueue.indexOf(id);
-  if (index >= 0) fullscreenWaitQueue.splice(index, 1);
 };
 
 
@@ -127,7 +119,6 @@ const removeFromFullscreenQueue = (id: string) => {
 const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimationProps) => {
   const [currentCount, setCurrentCount] = useState(0);
   const [showFullScreen, setShowFullScreen] = useState(true);
-  const [showBanner, setShowBanner] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [svgaError, setSvgaError] = useState(false);
   const mountedRef = useRef(true);
@@ -135,34 +126,10 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const animationStartedRef = useRef(false);
   const hostPercent = useHostGiftPercent();
 
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // Freeze the fullscreen media payload for this gift instance. Combo bumps may
-  // update the flying banner count, but they must NEVER rebuild/restart the
-  // fullscreen SVGA/VAP/MP4 player; otherwise native duration is broken and the
-  // WebView can jank while the heavy decoder is torn down mid-play.
-  const fullscreenMediaRef = useRef({
-    displayAnimationUrl: gift.animationUrl,
-    animationFormat: gift.animationFormat,
-    animationConfigUrl: gift.animationConfigUrl,
-    soundUrl: gift.soundUrl,
-    senderAvatar: gift.senderAvatar || '',
-    receiverAvatar: gift.receiverAvatar || '',
-    senderName: gift.senderName || '',
-    receiverName: gift.receiverName || '',
-    giftCount: gift.count,
-  });
-
-  const displayAnimationUrl = fullscreenMediaRef.current.displayAnimationUrl;
-  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, fullscreenMediaRef.current.animationFormat), [displayAnimationUrl]);
+  const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
+  const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
-  const expectedAnimatedFullscreen = /^(svga|vap|mp4|webm|video|pag|lottie)$/i.test(fullscreenMediaRef.current.animationFormat || '');
   const needsFullscreenSlot = completesFromPlayer;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
@@ -178,26 +145,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 
-  // Professional dynamic data for SVGA/VAP (RPG replacement)
-  const dynamicData = useMemo(() => ({
-    images: {
-      user_avatar: fullscreenMediaRef.current.senderAvatar,
-      receiver_avatar: fullscreenMediaRef.current.receiverAvatar,
-      sender_avatar: fullscreenMediaRef.current.senderAvatar, // Alias
-    },
-    text: {
-      user_name: fullscreenMediaRef.current.senderName,
-      receiver_name: fullscreenMediaRef.current.receiverName,
-      sender_name: fullscreenMediaRef.current.senderName, // Alias
-      gift_count: String(fullscreenMediaRef.current.giftCount),
-    }
-  }), []);
-
   // Sound logic: Plays only when the animation actually starts (owns the slot)
   // to ensure 100% synchronization between audio and video.
   useEffect(() => {
     if (soundPlayedRef.current || !hasFullscreenSlot) return;
-    if (!fullscreenMediaRef.current.soundUrl) return;
+    if (!gift.soundUrl) return;
     
     // SVGAPlayerWithAudio handles its own internal/fallback sound for SVGA.
     // For VAP/Video/Images, we play the sound here only once the player is mounted.
@@ -205,8 +157,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     
     soundPlayedRef.current = true;
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
-    playSoundUrl(fullscreenMediaRef.current.soundUrl, { volume: 0.8, maxConcurrent: 2 });
-  }, [isSVGA, gift.giftName, hasFullscreenSlot]);
+    playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
+  }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
@@ -225,6 +177,16 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }, 3500);
   }, [gift.giftName, handleAnimationComplete]);
 
+  useEffect(() => {
+    if (!needsFullscreenSlot || typeof window === 'undefined') return;
+    const onPreempt = (event: Event) => {
+      const detail = (event as CustomEvent<{ previousId?: string; nextId?: string }>).detail;
+      if (detail?.previousId === gift.id && detail.nextId !== gift.id) handleAnimationComplete();
+    };
+    window.addEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
+    return () => window.removeEventListener(FULLSCREEN_PREEMPT_EVENT, onPreempt as EventListener);
+  }, [gift.id, needsFullscreenSlot, handleAnimationComplete]);
+
   // Count-up animation — re-runs on combo merge (comboKey changes)
   useEffect(() => {
     const target = gift.count;
@@ -240,17 +202,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return () => cancelAnimationFrame(rafId);
   }, [gift.count, gift.comboKey]);
 
-  // The compact flying banner is only an announcement. It must not wait for a
-  // 8–12s fullscreen VAP/SVGA/video to finish; otherwise it looks “stuck” over
-  // chat/call/live UI while the fullscreen player is still loading or playing.
-  useEffect(() => {
-    setShowBanner(true);
-    const timer = window.setTimeout(() => {
-      if (mountedRef.current) setShowBanner(false);
-    }, 1800);
-    return () => window.clearTimeout(timer);
-  }, [gift.id, gift.comboKey]);
-
   // Dismiss timer — SVGA uses its OWN native duration via onComplete (no fixed timer).
   // Non-SVGA banner stays 3.5s — RESETS on every combo bump.
   useEffect(() => {
@@ -260,7 +211,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       // Animated media path: NO fixed timer. SVGA/VAP/PAG/Lottie/MP4/WebM
       // complete from their own native end callbacks only.
       animationStartedRef.current = true;
-      return;
+      return () => { mountedRef.current = false; };
     }
 
     // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
@@ -268,7 +219,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
     }, 3500);
-    return () => { clearTimeout(timer); };
+    return () => { mountedRef.current = false; clearTimeout(timer); };
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
@@ -284,15 +235,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       setHasFullscreenSlot(true);
       return;
     }
-    setHasFullscreenSlot(tryAcquireFullscreen(gift.id));
-    const onGranted = (event: Event) => {
-      const detail = (event as CustomEvent<{ id?: string }>).detail;
-      if (detail?.id === gift.id && mountedRef.current) setHasFullscreenSlot(true);
-    };
-    window.addEventListener(FULLSCREEN_GRANTED_EVENT, onGranted as EventListener);
+    tryAcquireFullscreen(gift.id);
+    setHasFullscreenSlot(true);
     return () => {
-      window.removeEventListener(FULLSCREEN_GRANTED_EVENT, onGranted as EventListener);
-      removeFromFullscreenQueue(gift.id);
       releaseFullscreen(gift.id);
     };
   }, [needsFullscreenSlot, svgaError, gift.id]);
@@ -318,8 +263,16 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         />
       );
     }
-    // Professional fix: no non-professional generic box icons as per user request
-    return null;
+    return (
+      <motion.span
+        className="text-4xl drop-shadow-lg"
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.3, 1] }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+      >
+        {gift.giftIcon || '🎁'}
+      </motion.span>
+    );
   };
 
   // Full-screen gift animation — every gift occupies the complete app viewport.
@@ -329,15 +282,16 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     if (needsFullscreenSlot && !hasFullscreenSlot) return null;
 
 
-    if (displayAnimationUrl && completesFromPlayer) {
-      // CRITICAL: plain <div> (NOT motion.div). framer-motion sets CSS
-      // transform on the wrapper which creates a transform containing block,
-      // scoping `position: fixed` descendants to the wrapper bounds instead of
-      // the viewport. VAP/MP4 gifts then render clipped to the room container
-      // (visible as a sky/background rectangle smaller than the screen) while
-      // SVGA's centered transparent canvas hides the issue.
+    if (displayAnimationUrl) {
       return (
-        <div key={`fullscreen-${displayAnimationUrl}`} style={FULLSCREEN_GIFT_LAYER_STYLE}>
+        <motion.div
+          key={`fullscreen-${displayAnimationUrl}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          style={FULLSCREEN_GIFT_LAYER_STYLE}
+        >
           <div style={FULLSCREEN_GIFT_STAGE_STYLE}>
             <FixedAnimationFrame
               src={displayAnimationUrl}
@@ -345,32 +299,38 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
               width="100dvw"
               height="100dvh"
               type={animationType === 'vap' ? 'vap' : isSVGA ? 'svga' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
-              configSrc={fullscreenMediaRef.current.animationConfigUrl || undefined}
+              configSrc={gift.animationConfigUrl || undefined}
               loop={false}
               // VAP/MP4/WebM must ALWAYS be muted for reliable autoplay on
               // mobile/WebView; their sound is played separately by soundUrl.
               // Leaving VAP unmuted when soundUrl is empty blocks playback.
               muted={isSVGA ? false : true}
               volume={0.8}
-              soundUrl={fullscreenMediaRef.current.soundUrl}
+              soundUrl={gift.soundUrl}
               triggerKey={gift.comboKey}
-              dynamicData={dynamicData}
               onComplete={completesFromPlayer ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
               center
-              className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
             />
           </div>
-        </div>
+        </motion.div>
       );
     }
 
-    // Fullscreen is reserved for real admin-uploaded animation media only.
-    // Never fall back to the preview/photo here; static photo belongs only in
-    // the compact flying banner / chat bubble, not the fullscreen player.
-    if (expectedAnimatedFullscreen || giftIconSrc) return null;
-
-    return null;
+    return (
+      <motion.div
+        key="emoji-fullscreen"
+        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
+        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
+        exit={{ opacity: 0, scale: 0.86 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        style={FULLSCREEN_GIFT_LAYER_STYLE}
+      >
+        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
+          {gift.giftIcon || '🎁'}
+        </span>
+      </motion.div>
+    );
   };
 
   // Banner gradient based on gift value (Bigo style)
@@ -389,15 +349,13 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   return createPortal(
     <div
       className="pointer-events-none"
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', minWidth: '100vw', minHeight: '100vh', zIndex: 2147483000, pointerEvents: 'none', overflow: 'hidden', isolation: 'isolate' }}
+      style={{ position: 'fixed', inset: 0, width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh', zIndex: 2147483000, pointerEvents: 'none', overflow: 'hidden', isolation: 'isolate' }}
     >
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
 
       {/* ======= BIGO/CHAMET STYLE GIFT BANNER ======= */}
       {/* Left-side banner: [Avatar] [Name / sent GiftName] [GiftIcon] [xCount] */}
-      <AnimatePresence>
-      {showBanner && (
       <motion.div
         className="absolute left-0 will-change-transform"
         style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
@@ -408,7 +366,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       >
         <div className={cn(
           "flex items-center gap-0 rounded-r-full overflow-hidden relative",
-          "bg-slate-900/80 shadow-2xl",
+          "backdrop-blur-xl shadow-2xl",
           "border border-white/25"
         )}
           style={{ boxShadow: isPremium
@@ -559,8 +517,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           </div>
         )}
       </motion.div>
-      )}
-      </AnimatePresence>
     </div>,
     portalTarget
   );

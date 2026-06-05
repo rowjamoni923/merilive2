@@ -5,19 +5,17 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
-import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
 
 // Lazy load remaining specialty players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
+const VAPPlayer = lazy(() => import("@/components/common/VAPPlayer"));
 
 interface GiftData {
   id: string;
   name: string;
   icon_url?: string;
   animation_url?: string;
-  animation_format?: string | null;
-  animation_config_url?: string | null;
   sound_url?: string;
   coin_value: number;
 }
@@ -153,21 +151,6 @@ const FullScreenGiftAnimation = ({
   const [currentCount, setCurrentCount] = useState(0);
   const soundPlayedRef = useRef(false);
   const [svgaHasAudio, setSvgaHasAudio] = useState(false);
-
-  // Professional dynamic data for SVGA/VAP (RPG replacement)
-  const dynamicData = {
-    images: {
-      user_avatar: senderAvatar || '',
-      receiver_avatar: receiverAvatar || '',
-      sender_avatar: senderAvatar || '', // Alias
-    },
-    text: {
-      user_name: senderName || '',
-      receiver_name: receiverName || '',
-      sender_name: senderName || '', // Alias
-      gift_count: String(quantity),
-    }
-  };
   
   // CRITICAL: Prevent re-initialization on re-renders
   const mountedRef = useRef(true);
@@ -175,21 +158,23 @@ const FullScreenGiftAnimation = ({
   const animationStartedRef = useRef(false);
 
   // Detect animation type
-  const getAnimationType = (url?: string, format?: string | null): 'svga' | 'vap' | 'lottie' | 'video' | 'image' | 'none' => {
+  const getAnimationType = (url?: string): 'svga' | 'vap' | 'lottie' | 'video' | 'image' | 'none' => {
     if (!url) return 'none';
-    const detected = detectProfessionalAnimationFormat(url, format);
-    if (detected === 'svga' || detected === 'vap' || detected === 'lottie') return detected;
-    if (detected === 'mp4' || detected === 'webm') return 'video';
-    if (detected === 'gif' || detected === 'webp' || detected === 'png' || detected === 'static') return 'image';
-    const lower = url.toLowerCase().split('?')[0].split('#')[0];
+    const lower = url.toLowerCase();
     if (lower.endsWith('.svga')) return 'svga';
-    if (lower.endsWith('.json')) return format?.toLowerCase() === 'vap' ? 'vap' : 'lottie';
-    if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov') || lower.endsWith('.m4v')) return format?.toLowerCase() === 'vap' ? 'vap' : 'video';
+    if (lower.endsWith('.json')) {
+      if (lower.includes('vap') || lower.includes('_bmp')) return 'vap';
+      return 'lottie';
+    }
+    if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
+      if (lower.includes('vap') || lower.includes('_bmp')) return 'vap';
+      return 'video';
+    }
     if (lower.endsWith('.gif') || lower.endsWith('.webp') || lower.endsWith('.png')) return 'image';
     return 'image';
   };
 
-  const animationType = getAnimationType(gift.animation_url, gift.animation_format);
+  const animationType = getAnimationType(gift.animation_url);
   const isPremium = gift.coin_value >= 1000;
   const isLegendary = gift.coin_value >= 10000;
   const isMythic = gift.coin_value >= 50000;
@@ -327,13 +312,12 @@ const FullScreenGiftAnimation = ({
             type="svga"
             width="100%"
             height="100%"
-            className="w-full h-full"
+            className="max-w-[90vw] max-h-[90vh]"
             loop={false}
             muted={false}
             volume={0.8}
             soundUrl={gift.sound_url}
             triggerKey={quantity > 1 ? quantity : undefined}
-            dynamicData={dynamicData}
             onAudioExtracted={handleSvgaAudioExtracted}
             onComplete={handleAnimationEnd}
             center={false}
@@ -344,22 +328,18 @@ const FullScreenGiftAnimation = ({
 
     if (animationType === 'vap' && gift.animation_url) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <FixedAnimationFrame
-            src={gift.animation_url}
-            type="vap"
-            configSrc={gift.animation_config_url || undefined}
-            size="fullscreen"
-            loop={false}
-            autoPlay
-            muted
-            soundUrl={gift.sound_url}
-            dynamicData={dynamicData}
-            onComplete={handleAnimationEnd}
-            center
-            className="fixed inset-0 w-dvw h-dvh z-[2147483647]"
-          />
-        </div>
+        <Suspense fallback={<AnimationLoader />}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <VAPPlayer
+              src={gift.animation_url}
+              className="w-full h-full max-w-[90vw] max-h-[90vh]"
+              loop={false}
+              autoPlay={true}
+              muted={false}
+              onComplete={handleAnimationEnd}
+            />
+          </div>
+        </Suspense>
       );
     }
 
@@ -370,7 +350,7 @@ const FullScreenGiftAnimation = ({
             animationData={lottieData}
             loop={false}
             onComplete={handleAnimationEnd}
-            className="w-full h-full"
+            className="w-full h-full max-w-[90vw] max-h-[90vh]"
           />
         </div>
       );
@@ -386,15 +366,15 @@ const FullScreenGiftAnimation = ({
             muted
             playsInline
             onEnded={handleAnimationEnd}
-            className="w-full h-full object-contain"/>
+            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"/>
         </div>
       );
     }
 
-    if (animationType === 'image' && gift.animation_url) {
+    if ((animationType === 'image' && gift.animation_url) || gift.icon_url) {
       return (
         <motion.img 
-          src={gift.animation_url} 
+          src={gift.animation_url || gift.icon_url} 
           alt={gift.name}
           className="w-48 h-48 md:w-64 md:h-64 object-contain"
           animate={{ 
@@ -407,7 +387,18 @@ const FullScreenGiftAnimation = ({
       );
     }
 
-    return null;
+    return (
+      <motion.div 
+        className="text-8xl md:text-9xl"
+        animate={{ 
+          y: [-10, 10, -10],
+          scale: [1, 1.1, 1]
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        🎁
+      </motion.div>
+    );
   };
 
   return (
