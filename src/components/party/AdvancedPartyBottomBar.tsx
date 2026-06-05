@@ -338,7 +338,7 @@ export function AdvancedPartyBottomBar({
                 transition={{ duration: 4, repeat: Infinity }}
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-                <Gamepad2 className="w-6 h-6 text-white relative z-10" />
+                <BrandedGameIcon className="w-8 h-8 relative z-10" />
               </motion.div>
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
