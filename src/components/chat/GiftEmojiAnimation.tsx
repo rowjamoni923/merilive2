@@ -337,7 +337,7 @@ export const GiftEmojiAnimation = ({
 
   return (
     <GiftEmojiAnimationInner
-      key={stableKey.current}
+      key={`container-${stableKey.current}`}
       emoji={emoji}
       count={count}
       animationFormat={animationFormat}
