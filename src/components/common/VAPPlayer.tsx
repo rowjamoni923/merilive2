@@ -418,6 +418,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   if (error) return <div className={cn("bg-transparent", className)} />;
 
+  // Pkg426 Phase-2: native VAP path. Don't mount the WebView <video> /
+  // <canvas> while native plugin is attempting or actively playing.
+  if (nativeMode === 'pending' || nativeMode === 'active') {
+    return <div className={cn("relative flex items-center justify-center overflow-hidden bg-transparent", className)} />;
+  }
+
+
   return (
     <div className={cn("relative flex items-center justify-center overflow-hidden", className)}>
       {loading && <div className="absolute inset-0 bg-transparent" />}
