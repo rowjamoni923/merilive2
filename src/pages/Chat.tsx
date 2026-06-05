@@ -3159,7 +3159,7 @@ const Chat = () => {
                   {message.trim() ? (
                     <Send className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   ) : (
-                    <Mic className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <img src={icon3dVoice} alt="Voice" width={512} height={512} loading="lazy" className="w-6 h-6 object-contain relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
                   )}
                 </motion.button>
               </>
