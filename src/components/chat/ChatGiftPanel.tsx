@@ -41,6 +41,18 @@ interface GiftCategory {
   gradient: string;
 }
 
+type RawGiftRow = {
+  id: string;
+  name: string;
+  coin_value: number;
+  category?: string | null;
+  icon_url?: string | null;
+  animation_url?: string | null;
+  animation_format?: string | null;
+  animation_config_url?: string | null;
+  sound_url?: string | null;
+};
+
 const defaultCategories: GiftCategory[] = [
   { id: "wall", name: "Wall", icon: "🏠", gradient: "from-slate-500 to-gray-600" },
   { id: "lucky", name: "Lucky", icon: "🎰", gradient: "from-yellow-400 to-amber-500" },
@@ -140,7 +152,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
   }, [isOpen]);
 
   // Transform cached gifts to component format
-  const transformGifts = useCallback((rawGifts: any[]): GiftData[] => {
+  const transformGifts = useCallback((rawGifts: RawGiftRow[]): GiftData[] => {
     return rawGifts.map((gift) => ({
       id: gift.id,
       name: gift.name,
