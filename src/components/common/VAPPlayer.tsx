@@ -427,12 +427,12 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
-    // Pkg-fix: Add safety completion timer for non-looping VAP
-    // If the video ended event doesn't fire, we force completion after duration + 1s.
+    // Duration fallback for non-looping VAP only if the native ended event fails.
+    // Keep it tied to the media's own duration — no extra 1s+ hold.
     if (!loop) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       const fallbackMs = Number.isFinite(video.duration) && video.duration > 0
-        ? Math.min(Math.max(video.duration * 1000 + 1200, 4000), 65000)
+        ? Math.min(Math.max(video.duration * 1000, 250), 65000)
         : 12000;
       completionTimerRef.current = setTimeout(() => {
         if (mountedRef.current && !completedRef.current) {
