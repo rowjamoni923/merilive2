@@ -3422,24 +3422,15 @@ const Chat = () => {
             onOpenGifts={() => setShowGiftPanel(true)}
           />
 
-          {/* Gift Emoji Animation */}
+          {/* Full-screen Gift Animations - shared Live/Party/Profile renderer */}
           <AnimatePresence>
-            {showGiftAnimation && animatingGiftEmoji && (
-              <GiftEmojiAnimation
-                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
-                emoji={animatingGiftEmoji}
-                animationFormat={animatingGiftFormat}
-                animationConfigUrl={animatingGiftConfigUrl}
-                soundUrl={animatingGiftSound || undefined}
-                onComplete={() => {
-                  setShowGiftAnimation(false);
-                  setAnimatingGiftEmoji("");
-                  setAnimatingGiftFormat(null);
-                  setAnimatingGiftConfigUrl(null);
-                  setAnimatingGiftSound(null);
-                }}
+            {flyingGifts.map(g => (
+              <FlyingGiftAnimation
+                key={g.id}
+                gift={g}
+                onComplete={() => removeFlyingGift(g.id)}
               />
-            )}
+            ))}
           </AnimatePresence>
 
           {/* Message Info Dialog */}
