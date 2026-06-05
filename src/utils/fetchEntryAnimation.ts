@@ -113,6 +113,8 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
     const cacheAndReturn = (url: string, sound?: string | null): AnimationWithSound => {
       setCache(`anim:${animationId}`, url);
       setCache(`sound:${animationId}`, sound || undefined);
+      // Pkg424: fire-and-forget HTTP-cache warmup → instant first play.
+      warmupVapUrls([url, sound]);
       return { animationUrl: url, soundUrl: sound || undefined };
     };
 
