@@ -175,9 +175,10 @@ const ProfileDetail = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
   const { startCall, isInCall } = useCall();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profileCache, setProfileCache, hadProfileCache] = usePersistedCache<ProfileData | null>(`profileDetail:${userId ?? 'self'}`, null);
+  const [profile, setProfile] = useState<ProfileData | null>(profileCache);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hadProfileCache);
   const [isBannedProfile, setIsBannedProfile] = useState(false);
   const [giftsSent, setGiftsSent] = useState<GiftSent[]>([]);
   const [giftsReceived, setGiftsReceived] = useState<GiftSent[]>([]);
