@@ -163,7 +163,6 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   const explicitMismatch =
     !!type && detected !== 'static' && type !== detected && !isValidContainerOverride;
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
-    // eslint-disable-next-line no-console
     console.warn(
       `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
     );
@@ -205,7 +204,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             className="w-full h-full object-contain" 
             onError={() => setImageError(true)}
             loading="eager"
-            {...({ fetchpriority: 'high' } as any)}
+            fetchPriority="high"
           />
         ) : (
           <span className="text-4xl">{fallbackEmoji}</span>
@@ -236,7 +235,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           )}
           onError={() => setImageError(true)}
           loading="eager"
-          {...({ fetchpriority: 'high' } as any)}
+          fetchPriority="high"
         />
       )}
 
