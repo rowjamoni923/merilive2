@@ -165,9 +165,12 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
     mediaUrl = normalizeGiftMediaUrl(content);
   }
 
+  const rawEmoji = emojiMatch?.[1] ?? '🎁';
+  const safeEmoji = isGiftUrl(rawEmoji) || /^https?:\/\//i.test(rawEmoji) || rawEmoji.startsWith('/') ? '🎁' : rawEmoji;
+
   return {
     mediaUrl,
-    emoji: emojiMatch?.[1] ?? '🎁',
+    emoji: safeEmoji,
     soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
     animationFormat: formatMatch?.[1] || (mediaUrl ? detectProfessionalAnimationFormat(mediaUrl) : null),
     animationConfigUrl: normalizeGiftMediaUrl(configMatch?.[1]) ?? null,
@@ -776,7 +779,7 @@ const Chat = () => {
     // Show gift animation IMMEDIATELY
     const animationUrl = normalizeGiftMediaUrl(gift.animation_url) || '';
     const iconUrl = normalizeGiftMediaUrl(gift.icon_url) || '';
-    const giftEmoji = iconUrl || '🎁';
+    const giftEmoji = '🎁';
     const giftMediaUrl = animationUrl || iconUrl;
     const giftSoundUrl = normalizeGiftMediaUrl(gift.sound_url) || '';
     const giftAnimationFormat = detectProfessionalAnimationFormat(giftMediaUrl, gift.animation_format) || (giftMediaUrl && getVapCompositeHint(giftMediaUrl) ? 'vap' : null);
