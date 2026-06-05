@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
 interface WeeklyEarning {
   id: string;
@@ -28,16 +29,18 @@ interface EarningsStats {
 
 const HostTransferHistory = () => {
   const navigate = useNavigate();
-  const [weeklyEarnings, setWeeklyEarnings] = useState<WeeklyEarning[]>([]);
-  const [stats, setStats] = useState<EarningsStats>({
+  const [weeklyCache, setWeeklyEarnings, hadWeeklyCache] = usePersistedCache<WeeklyEarning[]>('hostTransferHist:weekly', null);
+  const [statsCache, setStats, hadStatsCache] = usePersistedCache<EarningsStats>('hostTransferHist:stats', null);
+  const weeklyEarnings = weeklyCache ?? [];
+  const stats = statsCache ?? {
     totalEarnings: 0,
     thisWeekEarnings: 0,
     thisMonthEarnings: 0,
     totalWeeks: 0,
     giftTotal: 0,
     callTotal: 0
-  });
-  const [loading, setLoading] = useState(true);
+  };
+  const [loading, setLoading] = useState(!(hadWeeklyCache && hadStatsCache));
 
   useEffect(() => {
     fetchEarnings();
@@ -47,6 +50,7 @@ const HostTransferHistory = () => {
   }, []);
 
   const fetchEarnings = async () => {
+    if (!weeklyCache) setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {

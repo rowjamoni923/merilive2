@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 
  interface RechargeOrder {
   id: string;
@@ -26,8 +27,9 @@ import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 const RechargeHistory = () => {
   const navigate = useNavigate();
-   const [rechargeOrders, setRechargeOrders] = useState<RechargeOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [ordersCache, setRechargeOrders, hadOrdersCache] = usePersistedCache<RechargeOrder[]>('rechargeHist:orders', null);
+  const rechargeOrders = ordersCache ?? [];
+  const [loading, setLoading] = useState(!hadOrdersCache);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "completed">("all");
 
@@ -51,6 +53,7 @@ const RechargeHistory = () => {
 
   const fetchRechargeOrders = async (userId: string) => {
     try {
+      if (!ordersCache) setLoading(true);
       // 1. Fetch helper orders
       const { data: helperOrders, error: helperError } = await supabase
         .from('helper_orders')

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedUser } from "@/utils/cachedAuth";
+import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -80,8 +81,8 @@ const getLevelName = (level: string) => {
 
 const AgencyDetailsPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [hostAgency, setHostAgency] = useState<AgencyDetails | null>(null);
+  const [hostAgency, setHostAgency, hadAgencyCache] = usePersistedCache<AgencyDetails | null>('agencyDetails:hostAgency', null);
+  const [loading, setLoading] = useState(!hadAgencyCache);
   const [currentUserUid, setCurrentUserUid] = useState<string>('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const isOwner = !!currentUserId && currentUserId === hostAgency?.owner_id;
@@ -89,7 +90,7 @@ const AgencyDetailsPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      if (!hostAgency) setLoading(true);
       try {
         const user = await getCachedUser();
         if (!user) { navigate("/auth"); return; }
