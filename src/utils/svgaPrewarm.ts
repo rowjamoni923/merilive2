@@ -10,6 +10,7 @@
 import { svgaCacheSet, svgaCacheHas } from './svgaCache';
 
 type SVGAModule = {
+  Player: new (container: HTMLElement) => unknown;
   Parser: new () => {
     load: (url: string, success: (videoItem: unknown) => void, failure?: (err: unknown) => void) => void;
   };
@@ -25,7 +26,7 @@ export function prewarmSVGA(): void {
   if (svgaModule || modulePromise) return;
   modulePromise = import('svgaplayerweb')
     .then(m => { svgaModule = m as SVGAModule; return svgaModule; })
-    .catch(() => { modulePromise = null; });
+    .catch((error) => { modulePromise = null; throw error; });
 }
 
 /**
