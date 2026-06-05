@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
+import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
