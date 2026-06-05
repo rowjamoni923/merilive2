@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AvatarWithFrame from '@/components/common/AvatarWithFrame';
 import { LevelBadge } from '@/components/common/LevelBadge';
 
-import FixedAnimationFrame from '@/components/common/FixedAnimationFrame';
+import EntryAnimationFrame from '@/components/entry/EntryAnimationFrame';
 
 interface UnifiedEntryEffectsProps {
   // Full Screen Entrance Animation props
@@ -245,7 +245,7 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
         }}
       >
         {/* SVGA Vehicle Animation with Audio - plays ONCE based on SVGA's own duration */}
-        <FixedAnimationFrame
+        <EntryAnimationFrame
           src={vehicleAnimationUrl}
           size="fill"
           type="svga"

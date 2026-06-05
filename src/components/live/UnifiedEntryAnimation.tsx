@@ -12,7 +12,7 @@ import React, { useEffect, useState, useMemo, useCallback, memo, forwardRef, use
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import CinematicEntranceOverlay from "./CinematicEntranceOverlay";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
@@ -226,7 +226,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
               transformOrigin: 'center center',
             }}
           >
-            <FixedAnimationFrame
+            <EntryAnimationFrame
               src={displayAnimationUrl}
               size="fill"
               type="svga"
@@ -271,7 +271,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             transformOrigin: 'center center',
           }}
         >
-          <FixedAnimationFrame
+          <EntryAnimationFrame
             src={displayAnimationUrl}
             size="fill"
             type={animationType === 'vap' ? 'vap' : animationType === 'lottie' ? 'lottie' : animationType === 'pag' ? 'pag' : animationType === 'video' ? 'mp4' : undefined}
