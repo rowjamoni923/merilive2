@@ -84,6 +84,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [fallbackCrop, setFallbackCrop] = useState<[number, number, number, number]>([0.5, 0, 0.5, 1]);
   const [useVideoFallback, setUseVideoFallback] = useState(false);
   const [webglPainted, setWebglPainted] = useState(false);
+  const webglPaintedRef = useRef(false);
   const completedRef = useRef(false);
   const useVideoFallbackRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,14 +116,24 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   useEffect(() => {
     // Pkg: Use a cached fetch for VAP configs to ensure instant load on repeat sends
-    const jsonPath = resolvedConfigSrc || resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
+    const jsonPath = resolvedConfigSrc || (/\.(mp4|webm)(\?|#|$)/i.test(resolvedSrc)
+      ? resolvedSrc.replace(/\.(mp4|webm)(?=\?|#|$)/i, '.json')
+      : '');
+    if (!jsonPath) {
+      setConfig(null);
+      return;
+    }
     
     const fetchConfig = async () => {
       try {
         const res = await fetch(jsonPath);
         if (res.ok) {
           const data = await res.json();
-          if (mountedRef.current) setConfig(data.info || data);
+          if (mountedRef.current) {
+            const nextConfig = data.info || data;
+            if (nextConfig?.rgbFrame && nextConfig?.aFrame) setConfig(nextConfig);
+            else setConfig(null);
+          }
         } else {
           if (mountedRef.current) setConfig(null);
         }
@@ -215,6 +226,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
+      webglPaintedRef.current = true;
       setWebglPainted(true);
       onLoadRef.current?.();
       return;
@@ -298,14 +310,17 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const v = videoRef.current;
       if (!v) return;
 
-      if (!v.ended && v.readyState >= 2 && v.videoWidth > 0 && (v.currentTime !== lastVideoTimeRef.current || !webglPainted)) {
+      if (!v.ended && v.readyState >= 2 && v.videoWidth > 0 && (v.currentTime !== lastVideoTimeRef.current || !webglPaintedRef.current)) {
         try {
           lastVideoTimeRef.current = v.currentTime;
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
           gl.viewport(0, 0, canvas.width, canvas.height);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          if (!webglPainted) setWebglPainted(true);
+          if (!webglPaintedRef.current) {
+            webglPaintedRef.current = true;
+            setWebglPainted(true);
+          }
         } catch (e) {
           console.warn('[VAPPlayer] WebGL render error, falling back:', e);
           setUseVideoFallback(true);
@@ -314,7 +329,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       }
 
       // Safety: If video is playing but canvas isn't painted yet, force paint check
-      if (v.currentTime > 0 && !webglPainted && !v.paused) {
+      if (v.currentTime > 0 && !webglPaintedRef.current && !v.paused) {
+        webglPaintedRef.current = true;
         setWebglPainted(true);
       }
 
