@@ -113,22 +113,6 @@ export async function prewarmGiftAnimations(): Promise<void> {
   }
 }
 
-function warmVideoMetadata(url: string) {
-  if (typeof document === 'undefined') return;
-  try {
-    const v = document.createElement('video');
-    v.preload = 'metadata';
-    v.muted = true;
-    v.playsInline = true;
-    v.crossOrigin = 'anonymous';
-    v.src = url;
-    const cleanup = () => { v.removeAttribute('src'); try { v.load(); } catch {} };
-    v.onloadedmetadata = () => cleanup();
-    v.onerror = () => cleanup();
-    v.load();
-  } catch {}
-}
-
 /**
  * Pkg C pass-2 — prewarm a caller-supplied list of gift asset URLs.
  * Called when GiftPanel opens so every visible gift is buttery-smooth on first tap.
