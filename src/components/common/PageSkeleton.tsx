@@ -29,11 +29,8 @@ export function PageSkeleton({
   tabs = false,
 }: PageSkeletonProps) {
   return (
-    <div
-      className={`${className} fixed inset-0 flex flex-col overflow-hidden`}
-      style={style}
-      aria-busy="true"
-    >
+    <div className={className} style={style} aria-busy="true">
+
 
       <div className={`flex-shrink-0 ${headerClassName}`}>
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top">
