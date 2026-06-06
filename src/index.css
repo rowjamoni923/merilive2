@@ -197,6 +197,120 @@ img {
 }
 
 
+/* ============================================
+   Pkg434 — Pass 4: Native Visual Feedback Polish
+   Page transitions, ripple, skeleton shimmer, momentum.
+   Pure CSS / utility classes. Opt-in via className.
+   ZERO impact on gift/entry/camera/LiveKit paths.
+   ============================================ */
+
+/* Respect OS reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Page transition (route change). Wrap route root with .page-enter ---- */
+@keyframes pkg434-page-in {
+  0%   { opacity: 0; transform: translate3d(0, 8px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.page-enter {
+  animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+@keyframes pkg434-sheet-up {
+  0%   { opacity: 0; transform: translate3d(0, 100%, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.sheet-enter {
+  animation: pkg434-sheet-up 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+/* ---- Material ripple (drop on any button-ish element via className="ripple") ---- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--rx, 50%) var(--ry, 50%),
+              hsl(var(--foreground) / 0.18) 0%,
+              hsl(var(--foreground) / 0.10) 25%,
+              transparent 60%);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 420ms ease-out, transform 420ms ease-out;
+}
+.ripple:active::after {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0ms, transform 0ms;
+}
+
+/* ---- Skeleton shimmer ---- */
+@keyframes pkg434-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted) / 0.55) 0%,
+    hsl(var(--muted-foreground) / 0.12) 50%,
+    hsl(var(--muted) / 0.55) 100%
+  );
+  background-size: 200% 100%;
+  animation: pkg434-shimmer 1.4s linear infinite;
+  border-radius: 0.5rem;
+}
+
+/* ---- Pull-to-refresh spinner (native feel) ---- */
+@keyframes pkg434-spin {
+  to { transform: rotate(360deg); }
+}
+.ptr-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--muted-foreground) / 0.25);
+  border-top-color: hsl(var(--primary));
+  animation: pkg434-spin 0.7s linear infinite;
+}
+
+/* ---- Image fade-in on load (avoid pop-in flicker) ---- */
+img.fade-in-on-load {
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+}
+img.fade-in-on-load.is-loaded,
+img.fade-in-on-load[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* ---- Long-press hint ---- */
+.long-press {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- Promote heavy animated containers to GPU layer ---- */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
 
 @tailwind base;
 @tailwind components;
