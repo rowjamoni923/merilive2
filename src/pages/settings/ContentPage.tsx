@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 interface ContentPage {
@@ -92,7 +92,7 @@ const ContentPageView = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return <PageSkeleton className="bg-background" rows={6} hero={false} />;
   }
 
   if (!pageData) {

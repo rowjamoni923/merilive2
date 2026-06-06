@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, ShieldOff, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -155,7 +155,18 @@ const UserManagement = () => {
         </h2>
 
         {loading ? (
-          <LoadingSpinner text="Loading..." />
+          <div className="space-y-2" aria-busy="true">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <SkeletonPrim className="w-12 h-12 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonPrim className="h-4 w-2/3 rounded" />
+                  <SkeletonPrim className="h-3 w-1/3 rounded" />
+                </div>
+                <SkeletonPrim className="h-8 w-16 rounded-lg" />
+              </div>
+            ))}
+          </div>
         ) : filteredUsers.length === 0 ? (
           <div className="text-center py-12">
             <ShieldOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />

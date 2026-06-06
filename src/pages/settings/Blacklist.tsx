@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, Trash2 } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,7 +129,7 @@ const Blacklist = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return <PageSkeleton className="bg-background" rows={5} hero={false} />;
   }
 
   return (
