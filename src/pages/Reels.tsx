@@ -551,9 +551,9 @@ const Reels = () => {
   const handleVideoTap = (e: React.MouseEvent<HTMLElement>) => {
     const now = Date.now();
     const since = now - tapStateRef.current.lastAt;
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Heart burst uses viewport coords (native overlay is fullscreen on decorView).
+    const x = e.clientX;
+    const y = e.clientY;
     if (since < 280 && tapStateRef.current.timer != null) {
       window.clearTimeout(tapStateRef.current.timer);
       tapStateRef.current.timer = null;
@@ -804,7 +804,7 @@ const Reels = () => {
                   <div
                     className="absolute inset-0 w-full h-full"
                     style={{ background: 'transparent' }}
-                    onClick={togglePlay}
+                    onClick={handleVideoTap}
                   />
                 ) : (
                   <video
