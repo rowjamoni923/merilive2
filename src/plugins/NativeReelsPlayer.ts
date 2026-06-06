@@ -34,7 +34,13 @@ export interface NativeReelsPlayerPlugin {
   seek(opts: { positionMs: number }): Promise<void>;
   stop(): Promise<void>;
   dispose(): Promise<void>;
-  prefetch(opts: { url: string }): Promise<{ ok: boolean }>;
+  prefetch(opts: { url: string; bytes?: number }): Promise<{ ok: boolean; url?: string }>;
+  prefetchBatch(opts: {
+    urls: string[];
+    bytesPerUrl?: number;
+  }): Promise<{ ok: boolean; queued: number }>;
+  cancelPrefetch(): Promise<{ ok: boolean }>;
+  cacheStats(): Promise<{ bytes: number; maxBytes: number }>;
   addListener(
     event: 'reel:ready' | 'reel:complete' | 'reel:error' | 'reel:playing',
     cb: (data: {
