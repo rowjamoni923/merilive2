@@ -18354,6 +18354,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      auto_grant_helper_from_crypto_payment: {
+        Args: {
+          _contact_telegram?: string
+          _contact_whatsapp?: string
+          _payroll_requested?: boolean
+          _reason?: string
+          _selected_level: number
+          _topup_id: string
+        }
+        Returns: Json
+      }
       auto_process_live_game: { Args: never; Returns: undefined }
       ban_duplicate_face_attempt: {
         Args: { _face_hash: string; _matched_user_id: string; _user_id: string }
