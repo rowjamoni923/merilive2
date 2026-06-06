@@ -547,7 +547,14 @@ const Chat = () => {
   
   // Start Voice Recording
   const startVoiceRecording = async () => {
+    if (nativeRecorder.isNative) {
+      const success = await nativeRecorder.start();
+      if (!success) toast.error("Failed to start native recorder");
+      return;
+    }
+    
     try {
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
