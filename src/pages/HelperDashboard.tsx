@@ -29,6 +29,7 @@ import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 import { recordClientError } from "@/utils/clientErrorLog";
+import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
 
 
 interface TraderLevel {
