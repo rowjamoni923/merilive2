@@ -26,6 +26,7 @@ export const NATIVE_FLAG_KEYS = [
   "nativeStorage",
   "webSocketBridge",
   "nativeRouterShell",
+  "videoPrecache",
 ] as const;
 
 export type NativeFlagKey = (typeof NATIVE_FLAG_KEYS)[number];
