@@ -31,9 +31,11 @@ import {
 import {
   VIDEO_QUALITY_CHANGED_EVENT,
   applyVideoQualityToRoom,
+  applyVideoQualityCapToRoom,
   getVideoQualityChoice,
   resolveVideoQuality,
 } from '@/lib/livekitVideoQuality';
+import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
