@@ -2781,18 +2781,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <Button 
                       onClick={requestTransferToAgency}
                       disabled={transferProcessing || !transferAmount || parseInt(transferAmount) <= 0}
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-12 rounded-xl text-base font-semibold"
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 min-h-12 h-auto py-2 rounded-xl text-sm sm:text-base font-semibold"
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-                          Processing...
+                          <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <span>Processing...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <Send className="w-5 h-5" />
-                          Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
-                          <ArrowRight className="w-5 h-5" />
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap min-w-0 px-1">
+                          <Send className="w-4 h-4 shrink-0" />
+                          <span className="tabular-nums">Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎</span>
+                          <ArrowRight className="w-4 h-4 shrink-0" />
                         </div>
                       )}
                     </Button>
