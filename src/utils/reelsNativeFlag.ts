@@ -79,6 +79,12 @@ export function isNativeReelsFlagEnabled(): boolean {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return false;
   }
+  // Developer Options dial — highest priority.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNativeFlag } = require('@/utils/nativeFlags') as typeof import('@/utils/nativeFlags');
+    if (getNativeFlag('nativeReelsPlayer')) return true;
+  } catch { /* noop */ }
   const override = getLocalNativeReelsOverride();
   if (override !== null) return override;
   if (cachedRemoteEnabled === false) return false;
@@ -88,3 +94,4 @@ export function isNativeReelsFlagEnabled(): boolean {
   if (cachedRemoteRolloutPercent == null) return false;
   return getStableBucket() < cachedRemoteRolloutPercent;
 }
+

@@ -14,6 +14,12 @@ import { isNativeWebSocketAvailable } from '@/plugins/WebSocketBridge';
 export function isSocketNativeEnabled(): boolean {
   if (!isNativeWebSocketAvailable()) return false;
   try {
+    // Developer Options dial — highest priority.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNativeFlag } = require('@/utils/nativeFlags') as typeof import('@/utils/nativeFlags');
+    if (getNativeFlag('webSocketBridge')) return true;
+  } catch { /* noop */ }
+  try {
     const v = localStorage.getItem('socket:native');
     if (v === 'on') return true;
     if (v === 'off') return false;
