@@ -268,6 +268,202 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return agency + trader;
   }, [agencyData, traderWallet]);
 
+  // Pkg425: Unified Trader-Wallet history loader. Merges every source that
+  // touches the user's diamond/bean flow so Self-Recharge, Admin-Topup credits,
+  // others sending to your trader wallet, and gifts all appear in History.
+  const loadTransferHistory = useCallback(async () => {
+    try {
+      setHistoryLoading(true);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data: ownedAgencies } = await supabase
+        .from('agencies')
+        .select('id')
+        .eq('owner_id', authUser.id);
+      const ownedAgencyIds = (ownedAgencies || []).map((a: any) => a.id);
+
+      const [transfersRes, giftsSentRes, giftsRecvRes, helperLedgerRes, traderLedgerRes, agencyLedgerRes] = await Promise.all([
+        supabase
+          .from('coin_transfers')
+          .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
+          .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('gift_transactions')
+          .select('id, sender_id, receiver_id, coin_amount, created_at, gifts(name)')
+          .eq('sender_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('gift_transactions')
+          .select('id, sender_id, receiver_id, receiver_beans, coin_amount, created_at, gifts(name)')
+          .eq('receiver_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('helper_transactions')
+          .select('id, transaction_type, amount, balance_before, balance_after, description, reference_id, user_id, created_at')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('coin_trader_transfers')
+          .select('id, user_id, counterparty_user_id, counterparty_agency_id, amount, transfer_type, status, created_at')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        ownedAgencyIds.length > 0
+          ? supabase
+              .from('agency_diamond_transactions')
+              .select('id, agency_id, transaction_type, diamond_amount, user_id, created_at, description')
+              .in('agency_id', ownedAgencyIds)
+              .order('created_at', { ascending: false })
+              .limit(50)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const transferList = (transfersRes.data || []).map((r: any) => ({
+        id: r.id,
+        sender_id: r.sender_id,
+        receiver_id: r.receiver_id,
+        amount: Number(r.amount || 0),
+        transfer_type: r.transfer_type,
+        status: r.status,
+        notes: r.notes,
+        created_at: r.created_at,
+        direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
+        kind: 'transfer' as const,
+        currency: 'diamond' as const,
+      }));
+
+      const giftSentList = (giftsSentRes.data || []).map((g: any) => ({
+        id: `gs-${g.id}`,
+        sender_id: g.sender_id,
+        receiver_id: g.receiver_id,
+        amount: Number(g.coin_amount || 0),
+        transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+        status: 'completed',
+        notes: null,
+        created_at: g.created_at,
+        direction: 'sent' as const,
+        kind: 'gift' as const,
+        currency: 'diamond' as const,
+      }));
+
+      const giftRecvList = (giftsRecvRes.data || []).map((g: any) => {
+        const beans = Number(g.receiver_beans || 0);
+        return {
+          id: `gr-${g.id}`,
+          sender_id: g.sender_id,
+          receiver_id: g.receiver_id,
+          amount: beans > 0 ? beans : Number(g.coin_amount || 0),
+          transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+          status: 'completed',
+          notes: null,
+          direction: 'received' as const,
+          kind: 'gift' as const,
+          currency: (beans > 0 ? 'bean' : 'diamond') as 'bean' | 'diamond',
+          created_at: g.created_at,
+        };
+      });
+
+      const helperLedgerList = (helperLedgerRes.data || [])
+        .filter((r: any) => {
+          const t = String(r.transaction_type || '').toLowerCase();
+          return t === 'admin_topup_credit'
+            || t === 'self_recharge_debit'
+            || t === 'transfer_to_agency_debit';
+        })
+        .map((r: any) => {
+          const amt = Number(r.amount || 0);
+          const isCredit = amt > 0;
+          const t = String(r.transaction_type || '').toLowerCase();
+          const label = t === 'admin_topup_credit'
+            ? 'Admin Top-up Credit'
+            : t === 'self_recharge_debit'
+              ? 'Self Recharge'
+              : t === 'transfer_to_agency_debit'
+                ? 'Trader → Agency'
+                : (r.description || 'Trader Wallet');
+          return {
+            id: `ht-${r.id}`,
+            sender_id: isCredit ? '' : authUser.id,
+            receiver_id: isCredit ? authUser.id : '',
+            amount: Math.abs(amt),
+            transfer_type: label,
+            status: 'completed',
+            notes: r.description || null,
+            created_at: r.created_at,
+            direction: (isCredit ? 'received' : 'sent') as 'sent' | 'received',
+            kind: 'helper_ledger' as const,
+            currency: 'diamond' as const,
+            counterparty_name: isCredit ? 'Admin / Top-up' : (label.includes('Agency') ? 'Agency' : 'My Diamond Balance'),
+          };
+        });
+
+      const traderLedgerList = (traderLedgerRes.data || [])
+        .filter((r: any) => String(r.transfer_type || '').toLowerCase() === 'to_agency')
+        .map((r: any) => ({
+          id: `tt-${r.id}`,
+          sender_id: r.user_id,
+          receiver_id: r.counterparty_agency_id || '',
+          amount: Number(r.amount || 0),
+          transfer_type: 'Trader → Agency',
+          status: r.status || 'completed',
+          notes: null,
+          created_at: r.created_at,
+          direction: 'sent' as const,
+          kind: 'trader_ledger' as const,
+          currency: 'diamond' as const,
+          counterparty_name: 'Agency',
+        }));
+
+      const agencyLedgerList = (((agencyLedgerRes as any).data) || [])
+        .filter((r: any) => String(r.transaction_type || '').toLowerCase() === 'transfer_in')
+        .map((r: any) => ({
+          id: `ad-${r.id}`,
+          sender_id: r.user_id || '',
+          receiver_id: authUser.id,
+          amount: Number(r.diamond_amount || 0),
+          transfer_type: 'Agency Top-up Received',
+          status: 'completed',
+          notes: r.description || null,
+          created_at: r.created_at,
+          direction: 'received' as const,
+          kind: 'agency_ledger' as const,
+          currency: 'diamond' as const,
+        }));
+
+      const list = [...transferList, ...giftSentList, ...giftRecvList, ...helperLedgerList, ...traderLedgerList, ...agencyLedgerList]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 100);
+
+      const otherIds = Array.from(new Set(list
+        .map((r: any) => r.direction === 'sent' ? r.receiver_id : r.sender_id)
+        .filter((id: any) => id && typeof id === 'string' && id.length === 36)));
+      if (otherIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, app_uid')
+          .in('id', otherIds);
+        const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name || p.app_uid || 'User']));
+        list.forEach((r: any) => {
+          if (r.counterparty_name) return;
+          const otherId = r.direction === 'sent' ? r.receiver_id : r.sender_id;
+          r.counterparty_name = nameMap.get(otherId) || 'User';
+        });
+      }
+      setTransferHistory(list as any);
+    } catch (err) {
+      console.error('[Profile] Failed to load transfer history:', err);
+      recordClientError({ label: "Profile.loadTransferHistory", message: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
   const refreshTransferBalances = async () => {
     if (!currentUser?.id) {
       return {
