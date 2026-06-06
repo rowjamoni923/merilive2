@@ -27,6 +27,8 @@ import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
+import { useNativeFeed } from "@/hooks/useNativeFeed";
+import type { NativeFeedCard } from "@/plugins/NativeFeed";
 
 interface Profile {
   id: string;
