@@ -423,6 +423,12 @@ class NativeReelsPlayerPlugin : Plugin() {
     override fun handleOnDestroy() {
         super.handleOnDestroy()
         try {
+            cancelInFlight()
+        } catch (_: Throwable) {}
+        try {
+            prefetchExecutor.shutdownNow()
+        } catch (_: Throwable) {}
+        try {
             player?.release()
             player = null
         } catch (_: Throwable) {}
