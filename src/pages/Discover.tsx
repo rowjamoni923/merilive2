@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
