@@ -1863,13 +1863,15 @@ const Chat = () => {
     });
   }, [myProfile]);
 
-  const handleSend = async () => {
-    if (!message.trim() || sending) return;
+  const handleSend = async (overrideText?: string) => {
+    const rawText = (overrideText ?? message).trim();
+    if (!rawText || sending) return;
     if (!currentUserId || (!selectedConversation && !selectedGroup)) return;
 
     setSending(true);
-    const originalContent = message.trim();
-    setMessage("");
+    const originalContent = rawText;
+    if (overrideText === undefined) setMessage("");
+
     
     // 🚀 OPTIMISTIC UI: Show message instantly with 'sending' status
     const optimisticId = `optimistic-${Date.now()}`;
