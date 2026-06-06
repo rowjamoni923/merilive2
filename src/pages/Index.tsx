@@ -27,6 +27,8 @@ import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
+import { useNativeFeed } from "@/hooks/useNativeFeed";
+import type { NativeFeedCard } from "@/plugins/NativeFeed";
 
 interface Profile {
   id: string;
@@ -447,6 +449,49 @@ const Index = () => {
       navigate(`/profile-detail/${userId}`);
     }
   };
+
+  // Pkg436 Phase-2 — mirror displayHosts to native RecyclerView grid (Android only,
+  // flag-gated). Tap → same handleUserClick route. React grid below stays rendered;
+  // the native overlay sits on top when active. No-op on web/iOS/older APKs/flag-off.
+  const hostIndexRef = useRef(new Map<string, { isLive: boolean; liveStreamId?: string }>());
+  hostIndexRef.current = useMemo(() => {
+    const m = new Map<string, { isLive: boolean; liveStreamId?: string }>();
+    displayHosts.forEach((u) => m.set(u.id, { isLive: !!u.isLive, liveStreamId: u.liveStreamId }));
+    return m;
+  }, [displayHosts]);
+
+  const nativeFeedCards = useMemo<NativeFeedCard[]>(
+    () =>
+      displayHosts.map((u) => {
+        const liveThumb = u.isLive ? (normalizeProfileMediaUrl(u.liveThumbnailUrl) || u.liveThumbnailUrl) : null;
+        const avatar = normalizeProfileMediaUrl(u.avatar_url) || u.avatar_url;
+        return {
+          id: u.id,
+          title: u.display_name || u.username || "Host",
+          subtitle: u.country_flag || u.country_code || undefined,
+          thumbUrl: liveThumb || avatar || null,
+          liveBadge: !!u.isLive,
+          country: u.country_code || null,
+        };
+      }),
+    [displayHosts]
+  );
+
+  const { active: nativeFeedActive, setItems: setNativeFeedItems } = useNativeFeed({
+    enabled: true,
+    title: "Home",
+    onTap: (id) => {
+      const meta = hostIndexRef.current.get(id);
+      if (meta) handleUserClick(id, meta.isLive, meta.liveStreamId);
+    },
+  });
+
+  useEffect(() => {
+    if (!nativeFeedActive) return;
+    setNativeFeedItems(nativeFeedCards);
+  }, [nativeFeedActive, nativeFeedCards, setNativeFeedItems]);
+
+
 
   const handleCall = async (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
