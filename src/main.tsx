@@ -15,6 +15,7 @@ import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { installColdStartCapture } from "./utils/coldStartCapture";
 import { installRippleTracker } from "./utils/rippleTracker";
 import { installGlobalHaptics } from "./utils/globalHaptics";
+import { installRoutePrefetch } from "./utils/routePrefetch";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 
@@ -45,6 +46,7 @@ schedule(() => {
   installAudioUnlock();
   installRippleTracker();
   installGlobalHaptics();
+  installRoutePrefetch();
 });
 
 // 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.
