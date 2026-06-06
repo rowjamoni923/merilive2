@@ -153,6 +153,10 @@ dependencies {
     // Pkg440 — UCrop (image cropper) for avatar/cover/reels thumb
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
+    // Pkg438 Phase C — LeakCanary (debug builds only). Reports activity /
+    // fragment / view leaks during QA; ZERO bytes in release APK.
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.3')

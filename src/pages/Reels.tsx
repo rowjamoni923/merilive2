@@ -25,6 +25,8 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
+import { tryHeartBurst } from "@/plugins/NativeHeartBurst";
+import { isNativeHeartBurstFlagOn } from "@/utils/nativeHeartBurstFlag";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
@@ -541,6 +543,34 @@ const Reels = () => {
     }
   };
 
+  // Pkg438 Phase C — double-tap to like + native heart-burst overlay.
+  // Pattern: schedule single-tap (togglePlay) on a 250ms delay; if a
+  // second tap arrives within that window, cancel the toggle and run
+  // the like + heart-burst. Matches Instagram/TikTok feel.
+  const tapStateRef = useRef<{ timer: number | null; lastAt: number }>({ timer: null, lastAt: 0 });
+  const handleVideoTap = (e: React.MouseEvent<HTMLElement>) => {
+    const now = Date.now();
+    const since = now - tapStateRef.current.lastAt;
+    // Heart burst uses viewport coords (native overlay is fullscreen on decorView).
+    const x = e.clientX;
+    const y = e.clientY;
+    if (since < 280 && tapStateRef.current.timer != null) {
+      window.clearTimeout(tapStateRef.current.timer);
+      tapStateRef.current.timer = null;
+      tapStateRef.current.lastAt = 0;
+      const reel = reels[currentIndex];
+      if (reel && !reel.is_liked) void handleLike(reel.id);
+      if (isNativeHeartBurstFlagOn()) void tryHeartBurst(x, y, { count: 7, size: 72 });
+      return;
+    }
+    tapStateRef.current.lastAt = now;
+    tapStateRef.current.timer = window.setTimeout(() => {
+      tapStateRef.current.timer = null;
+      togglePlay();
+    }, 260);
+  };
+
+
   const toggleMute = () => {
     autoUnmutedRef.current = true;
     const next = !isMuted;
@@ -774,7 +804,7 @@ const Reels = () => {
                   <div
                     className="absolute inset-0 w-full h-full"
                     style={{ background: 'transparent' }}
-                    onClick={togglePlay}
+                    onClick={handleVideoTap}
                   />
                 ) : (
                   <video
@@ -788,7 +818,7 @@ const Reels = () => {
                     playsInline
                     autoPlay
                     muted={isMuted}
-                    onClick={togglePlay}
+                    onClick={handleVideoTap}
                   />
                 )}
 
