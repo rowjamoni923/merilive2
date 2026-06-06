@@ -188,8 +188,17 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
 
           <div className="p-2 space-y-1.5">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+              <div className="space-y-1.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-2.5 w-1/3" />
+                    </div>
+                    <Skeleton className="h-4 w-14" />
+                  </div>
+                ))}
               </div>
             ) : transactions.length === 0 ? (
               <div className="text-center py-8 text-white/50 text-sm">
