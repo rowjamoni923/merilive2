@@ -81,6 +81,12 @@ export const NATIVE_FLAG_META: ReadonlyArray<NativeFlagMeta> = [
     description:
       "Wrap React routes in a native Activity shell with hardware back-button handling.",
   },
+  {
+    key: "videoPrecache",
+    label: "Native Video Pre-cache",
+    description:
+      "Warm the next 3 reels into ExoPlayer's 256 MB disk cache so swiping shows the first frame instantly (no buffering spinner).",
+  },
 ];
 
 const STORAGE_PREFIX = "merilive-native-flag:";
