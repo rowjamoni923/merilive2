@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { Phone, PhoneOff, Radio, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 
 interface IncomingCallModalProps {
