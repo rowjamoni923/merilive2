@@ -1,5 +1,5 @@
 
-const fs = require('fs');
+import fs from 'fs';
 const content = fs.readFileSync('src/components/call/ActiveCallScreen.tsx', 'utf8');
 
 let stack = [];
@@ -7,7 +7,7 @@ let lines = content.split('\n');
 
 for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
-    // Very naive tag finder
+    // Very naive tag finder, but helps
     let matches = line.matchAll(/<(div|motion\.div|AnimatePresence|BeautyFilterPanel|StickerOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame|LiveKitVideoPlayer|CaptionOverlay|NetworkQualityIndicator|ShieldCheck|BeansIcon|Lock|Mic|MicOff|Eye|EyeOff|Gift|Volume2|VolumeX|Maximize2|Minimize2|TrendingUp|SwitchCamera|MessageCircle|MoreVertical|Send|Sparkles|Smile|BrandedGiftIcon|PhoneOff|AvatarWithFrame|LiveKitVideoPlayer|PictureInPictureButton|AudioOnlyToggleButton|VideoQualityButton|NetworkQualityIndicator|CaptionOverlay|GiftPanel|FlyingGiftAnimation)(?:\s+[^>]*)?(\/?)>|<\/(div|motion\.div|AnimatePresence|BeautyFilterPanel|StickerOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame|LiveKitVideoPlayer|CaptionOverlay|NetworkQualityIndicator|ShieldCheck|BeansIcon|Lock|Mic|MicOff|Eye|EyeOff|Gift|Volume2|VolumeX|Maximize2|Minimize2|TrendingUp|SwitchCamera|MessageCircle|MoreVertical|Send|Sparkles|Smile|BrandedGiftIcon|PhoneOff|AvatarWithFrame|LiveKitVideoPlayer|PictureInPictureButton|AudioOnlyToggleButton|VideoQualityButton|NetworkQualityIndicator|CaptionOverlay|GiftPanel|FlyingGiftAnimation)>/g);
 
     for (const match of matches) {
