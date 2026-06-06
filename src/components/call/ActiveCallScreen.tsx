@@ -851,6 +851,7 @@ export function ActiveCallScreen({
           </div>
         </div>
       </div>
+      </div>
     )}
 
       {/* ===== MAIN VIDEO VIEW ===== */}
