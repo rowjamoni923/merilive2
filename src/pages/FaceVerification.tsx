@@ -2732,13 +2732,13 @@ const FaceVerification = () => {
     return <LoadingSpinner fullScreen />;
   }
 
-  // Check if rejection is because female host tried to open user ID
-  const isContactSupportRequired = rejectionReason?.includes('Support Chat') || rejectionReason?.includes('contact us') || rejectionReason?.includes('ID:');
-  
   // Parse duplicate info if present in rejection reason
   const duplicateMatch = rejectionReason?.match(/\[duplicate_info:(.*?)\]/);
   const duplicateInfo = duplicateMatch ? JSON.parse(duplicateMatch[1]) : null;
   const cleanRejectionReason = rejectionReason?.replace(/\[duplicate_info:.*?\]/, '').trim();
+
+  // Contact Support is required for Gender mismatch or Duplicate account.
+  const isContactSupportRequired = cleanRejectionReason?.toLowerCase().includes('gender mismatch') || !!duplicateInfo;
 
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
