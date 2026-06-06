@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronRight, Crown, Diamond, Sparkles, Star, Gift, Car, Headphones, Image, TrendingUp, Coins } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -392,7 +392,34 @@ const Level = () => {
   const levelTabs = activeLevelData.map((item) => item.level);
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return (
+      <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden" aria-busy="true">
+        <div className="flex-shrink-0 safe-area-top">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <SkeletonPrim className="w-9 h-9 rounded-full" />
+            <SkeletonPrim className="h-5 w-24" />
+          </div>
+        </div>
+        <div className="flex-1 px-4 py-4 space-y-4 overflow-hidden">
+          <SkeletonPrim className="h-40 w-full rounded-2xl" />
+          <div className="flex gap-2 overflow-hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonPrim key={i} className="h-9 w-16 rounded-full flex-shrink-0" />
+            ))}
+          </div>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <SkeletonPrim className="h-4 w-1/3" />
+                <SkeletonPrim className="h-3 w-1/2" />
+              </div>
+              <SkeletonPrim className="h-6 w-16 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
