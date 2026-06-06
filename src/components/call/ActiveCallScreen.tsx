@@ -338,6 +338,8 @@ export function ActiveCallScreen({
         sound_url: detail.giftSoundUrl || null,
       } as any);
       playSound('gift');
+      hapticFeedback('gift');
+
       addFlyingGift({
         senderId: detail.senderId,
         senderName: detail.senderName || "User",
@@ -405,7 +407,9 @@ export function ActiveCallScreen({
       // or call gifts double-deduct the app-wide diamond cache.
       userCoinsRef.current = Math.max(0, availableCoins - totalCost);
       setUserCoins(userCoinsRef.current);
+      hapticFeedback('gift');
       warmGiftForInstantPlay(gift as any);
+
 
       // Show local animation immediately; the receiver gets the LiveKit packet
       // from sendGift's optimistic path without waiting for the DB round-trip.
