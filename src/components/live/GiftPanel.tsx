@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, Suspense, lazy, useCallback, useMemo, memo } from "react";
 import { createPortal } from "react-dom";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import { useNativeGiftPanel } from "@/hooks/useNativeGiftPanel";
 
 import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetec
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
+
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 // Gift data types
@@ -140,7 +142,20 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
 
+  const { isNative } = useNativeGiftPanel(
+    isOpen,
+    onClose,
+    (id, count) => {
+      const g = gifts.find(x => x.id === id);
+      if (g) onSendGift(g, count);
+    },
+    () => { /* Navigate to recharge */ },
+    gifts,
+    userCoins
+  );
+
   // Animation state for panel open/close (CSS-based for performance)
+
   useEffect(() => {
     if (isOpen) {
       // Small delay for CSS animation to trigger
@@ -432,8 +447,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
 
   const hasBalance = selectedGift ? userCoins >= selectedGift.coins * count : false;
 
-  // Don't render if not open
-  if (!isOpen) return null;
+  // Don't render if not open OR if native is active
+  if (!isOpen || isNative) return null;
+
 
   // Use Portal to render outside Chat stacking context - this ensures GiftPanel is ALWAYS on top
   return createPortal(
