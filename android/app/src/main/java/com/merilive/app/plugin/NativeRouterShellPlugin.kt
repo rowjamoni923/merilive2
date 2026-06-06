@@ -194,18 +194,40 @@ class NativeRouterShellPlugin : Plugin() {
             if (badge > 0) {
                 val b = TextView(activity).apply {
                     text = if (badge > 99) "99+" else badge.toString()
-                    textSize = 9f
+                    textSize = 8.5f
                     setTextColor(Color.WHITE)
-                    setPadding(dp(5), dp(1), dp(5), dp(1))
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setPadding(dp(4), dp(0), dp(4), dp(0))
+                    gravity = Gravity.CENTER
                     val bg = GradientDrawable().apply {
                         shape = GradientDrawable.RECTANGLE
-                        cornerRadius = dp(8).toFloat()
-                        setColor(Color.parseColor("#EF4444"))
+                        cornerRadius = dp(10).toFloat()
+                        setColor(Color.parseColor("#EF4444")) // Red-500 (standard)
+                        setStroke(dp(1), Color.parseColor("#FFFFFF")) // Standard border
                     }
                     background = bg
+                    minWidth = dp(16)
+                    height = dp(16)
                 }
-                item.addView(b)
+                val blp = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                    marginStart = dp(10)
+                    topMargin = dp(4)
+                }
+                
+                // Wrap in FrameLayout to position badge over icon
+                val frame = FrameLayout(activity)
+                item.removeView(icon)
+                frame.addView(icon)
+                frame.addView(b, blp)
+                item.addView(frame, 0)
+            } else {
+                // No badge, just keep icon as is
             }
+
             val lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             bar.addView(item, lp)
             tabViews[id] = item
