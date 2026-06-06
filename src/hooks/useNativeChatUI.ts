@@ -1,14 +1,24 @@
 /**
- * Pkg432 — useNativeChatUI hook.
+ * Pkg437 — useNativeChatUI bridge.
  *
- * Convenience wrapper for opening the native RecyclerView chat overlay and
- * wiring its events back into React. No-op on every non-Android platform
- * and when `chatui:native` flag is OFF.
+ * Phase-3 of the "complete every incomplete plugin" roadmap. Mirrors an open
+ * Chat.tsx thread to the native `NativeChatUI` RecyclerView overlay
+ * (Pkg432 infra). Additive — when the flag is OFF, on web/iOS, or on older
+ * APKs, every method silently no-ops and React Chat UI is unchanged.
  *
- * Existing Chat.tsx stays in charge of business logic (DB writes, realtime
- * subs, blocked-user checks). This hook only mirrors the rendered message
- * list into the native overlay and surfaces user-initiated send/loadMore
- * intents back to React.
+ * Scope (intentional, honest):
+ *   - Open/close overlay on conversation switch
+ *   - Mirror message list (text + system fallbacks) to native list
+ *   - `chatui:send` → calls back into caller's `onSend(text)`
+ *   - `chatui:loadMore` → calls `onLoadMore()` (older history)
+ *
+ * NOT in scope yet (deferred to Phase-3 sub-tasks):
+ *   - Native input with mic/attach/gift buttons (React input still owns those)
+ *   - Avatar/level/reply previews in adapter (text-only for now)
+ *   - Voice/image/video viewholders
+ *   - Typing & read-receipt rendering
+ *   - Long-press reply/edit/delete popup
+ *   - Conversation list (separate page wrap)
  */
 import { useCallback, useEffect, useRef } from 'react';
 import {
@@ -20,44 +30,51 @@ import { isChatUINativeEnabled } from '@/utils/chatUINativeFlag';
 
 export interface UseNativeChatUIOpts {
   enabled: boolean;
-  currentUserId: string | null | undefined;
+  currentUserId: string | null;
   title?: string;
-  onSendIntent?: () => void;
+  onSend?: (text: string) => void;
   onLoadMore?: () => void;
-  onTap?: (id: string) => void;
+  onTap?: (messageId: string) => void;
 }
 
 export function useNativeChatUI(opts: UseNativeChatUIOpts) {
-  const { enabled, currentUserId, title, onSendIntent, onLoadMore, onTap } = opts;
+  const { enabled, currentUserId, title, onSend, onLoadMore, onTap } = opts;
   const openedRef = useRef(false);
-  const sendRef = useRef(onSendIntent);
-  const loadRef = useRef(onLoadMore);
+  const sendRef = useRef(onSend);
+  const loadMoreRef = useRef(onLoadMore);
   const tapRef = useRef(onTap);
-  sendRef.current = onSendIntent;
-  loadRef.current = onLoadMore;
+  sendRef.current = onSend;
+  loadMoreRef.current = onLoadMore;
   tapRef.current = onTap;
 
-  const active = enabled && isNativeChatUIAvailable() && isChatUINativeEnabled() && !!currentUserId;
+  const active =
+    enabled &&
+    !!currentUserId &&
+    isNativeChatUIAvailable() &&
+    isChatUINativeEnabled();
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !currentUserId) return;
     let cancelled = false;
     const handles: Array<{ remove: () => Promise<void> }> = [];
     (async () => {
       try {
-        await NativeChatUI.open({ currentUserId: currentUserId!, title });
+        await NativeChatUI.open({ currentUserId, title });
         if (cancelled) return;
         openedRef.current = true;
         handles.push(
-          await NativeChatUI.addListener('chatui:send', () => sendRef.current?.()),
-          await NativeChatUI.addListener('chatui:loadMore', () => loadRef.current?.()),
+          await NativeChatUI.addListener('chatui:send', (d: unknown) => {
+            const text = (d as { text?: string } | null)?.text;
+            if (typeof text === 'string' && text.trim()) sendRef.current?.(text.trim());
+          }),
+          await NativeChatUI.addListener('chatui:loadMore', () => loadMoreRef.current?.()),
           await NativeChatUI.addListener('chatui:tap', (d: unknown) => {
             const id = (d as { id?: string } | null)?.id;
             if (id) tapRef.current?.(id);
           })
         );
       } catch {
-        /* native unavailable — silent fallback */
+        /* native unavailable — silent */
       }
     })();
     return () => {
@@ -86,13 +103,5 @@ export function useNativeChatUI(opts: UseNativeChatUIOpts) {
     [active]
   );
 
-  const prependMessages = useCallback(
-    (messages: NativeChatMessage[]) => {
-      if (!active) return;
-      NativeChatUI.prependMessages({ messages }).catch(() => {});
-    },
-    [active]
-  );
-
-  return { active, setMessages, appendMessages, prependMessages };
+  return { active, setMessages, appendMessages };
 }

@@ -18,6 +18,8 @@ import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
+import { useNativeChatUI } from "@/hooks/useNativeChatUI";
+import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
@@ -1863,13 +1865,15 @@ const Chat = () => {
     });
   }, [myProfile]);
 
-  const handleSend = async () => {
-    if (!message.trim() || sending) return;
+  const handleSend = async (overrideText?: string) => {
+    const rawText = (overrideText ?? message).trim();
+    if (!rawText || sending) return;
     if (!currentUserId || (!selectedConversation && !selectedGroup)) return;
 
     setSending(true);
-    const originalContent = message.trim();
-    setMessage("");
+    const originalContent = rawText;
+    if (overrideText === undefined) setMessage("");
+
     
     // 🚀 OPTIMISTIC UI: Show message instantly with 'sending' status
     const optimisticId = `optimistic-${Date.now()}`;
@@ -2037,6 +2041,51 @@ const Chat = () => {
       setSending(false);
     }
   };
+
+  // Pkg437 Phase-3 — mirror open DM thread to native RecyclerView chat overlay.
+  // Additive, Android-only, flag-gated, default OFF. React UI stays canonical
+  // on web/iOS/older APKs/un-opted cohort. Text-only payload for now (gifts,
+  // voice, media, replies render as text fallback inside native list).
+  const nativeChatThreadTitle = selectedConversation?.other_user?.display_name || undefined;
+  const nativeChatThreadId = selectedConversation?.id || null;
+  const nativeChatMessages = React.useMemo<NativeChatMessage[]>(() => {
+    if (!nativeChatThreadId) return [];
+    const otherName = selectedConversation?.other_user?.display_name || "User";
+    const otherAvatar = selectedConversation?.other_user?.avatar_url || null;
+    return messages.map((m): NativeChatMessage => {
+      const isMine = m.sender_id === currentUserId;
+      let text = m.content || "";
+      if (m.message_type === "gift") text = `🎁 ${text || "Gift"}`;
+      else if (m.message_type === "voice") text = "🎙️ Voice message";
+      else if (m.message_type === "image") text = "🖼️ Image";
+      else if (m.message_type === "video") text = "🎬 Video";
+      else if (m.message_type === "file") text = "📎 File";
+      return {
+        id: m.id,
+        senderId: m.sender_id,
+        senderName: isMine ? "You" : otherName,
+        text,
+        createdAt: new Date(m.created_at).getTime() || Date.now(),
+        avatarUrl: isMine ? null : otherAvatar,
+      };
+    });
+  }, [messages, nativeChatThreadId, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
+
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+  const { active: nativeChatActive, setMessages: setNativeChatMessages } = useNativeChatUI({
+    enabled: !!nativeChatThreadId,
+    currentUserId,
+    title: nativeChatThreadTitle,
+    onSend: (text) => { void handleSendRef.current(text); },
+  });
+
+  useEffect(() => {
+    if (!nativeChatActive) return;
+    setNativeChatMessages(nativeChatMessages);
+  }, [nativeChatActive, nativeChatMessages, setNativeChatMessages]);
+
+
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim() || !currentUserId) return;
@@ -3247,7 +3296,7 @@ const Chat = () => {
                 <motion.button
                   initial={false}
                   whileTap={{ scale: 0.92 }}
-                  onClick={message.trim() ? handleSend : handleVoiceRecord}
+                  onClick={message.trim() ? () => { void handleSend(); } : handleVoiceRecord}
                   disabled={sending}
                   className={cn(
                     "shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-colors",
