@@ -9,6 +9,12 @@ const FLAG_KEY = 'feed:native';
 
 export function isFeedNativeEnabled(): boolean {
   try {
+    // Developer Options dial — highest priority.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNativeFlag } = require('@/utils/nativeFlags') as typeof import('@/utils/nativeFlags');
+    if (getNativeFlag('nativeFeed')) return true;
+  } catch { /* noop */ }
+  try {
     return typeof localStorage !== 'undefined' && localStorage.getItem(FLAG_KEY) === 'on';
   } catch {
     return false;
