@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
+import { Skeleton } from "@/components/Skeleton";
 
 /** Minimum USD required for crypto auto-payment + on-chain verification. */
 export const CRYPTO_PAYMENT_MIN_USD = 100;
@@ -439,8 +440,18 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <div className="flex flex-col max-h-[75vh] overflow-hidden p-4 space-y-4">
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-2/3" />
+        <div className="space-y-3 pt-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-11 w-full rounded-md mt-2" />
       </div>
     );
   }
