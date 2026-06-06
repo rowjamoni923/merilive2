@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -721,7 +721,23 @@ const Reels = () => {
       {/* Reels Container - Full Screen with native scroll */}
       <div className="flex-1 overflow-hidden">
         {loading ? (
-          <LoadingSpinner fullScreen />
+          <div className="h-full w-full relative bg-black" aria-busy="true">
+            {/* Side action buttons skeleton */}
+            <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center">
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+            </div>
+            {/* Bottom info skeleton */}
+            <div className="absolute left-4 bottom-20 flex items-center gap-3">
+              <SkeletonPrim className="w-10 h-10 rounded-full" />
+              <div className="space-y-2">
+                <SkeletonPrim className="h-4 w-32" />
+                <SkeletonPrim className="h-3 w-24" />
+              </div>
+            </div>
+          </div>
         ) : reels.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white px-6">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center mb-4 sm:mb-6">

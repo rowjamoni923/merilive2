@@ -6,7 +6,7 @@ import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
 import RechargeBannerCarousel from "@/components/recharge/RechargeBannerCarousel";
 
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -171,7 +171,7 @@ const Recharge = () => {
   const helperRotationPage = 0;
   // Pkg79 — show Admin deep-links inside empty-state diagnostic cards only when an admin session is present
   const isAdminViewer = useMemo(() => !!getAdminSession(), []);
-  const [loading, setLoading] = useState(true);
+  
   const [userId, setUserId] = useState<string | null>(null);
   const [userAppUid, setUserAppUid] = useState<string | null>(null);
   const [isFirstRecharge, setIsFirstRecharge] = useState(false);
@@ -1460,8 +1460,6 @@ const Recharge = () => {
     } catch (error) {
       console.error('Error fetching user data:', error);
       recordClientError({ label: "Recharge.user", message: error instanceof Error ? error.message : String(error) });
-    } finally {
-      setLoading(false);
     }
   };
 

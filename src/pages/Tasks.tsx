@@ -9,7 +9,7 @@ import { getCachedUser } from "@/utils/cachedAuth";
 import { getTaskDate, getMsUntilNextReset } from "@/utils/taskDateUtils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
@@ -442,7 +442,56 @@ const Tasks = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen size="lg" text="Loading Tasks" />;
+    return (
+      <div data-page="tasks" className="fixed inset-0 flex flex-col bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-y-auto overflow-x-hidden">
+        <header
+          className="flex-shrink-0 sticky top-0 z-40 bg-white/90 backdrop-blur-xl safe-area-top"
+          style={{ boxShadow: '0 6px 18px -10px rgba(217,119,6,0.32), inset 0 -1px 0 rgba(217,182,107,0.4)' }}
+        >
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="h-9 w-9 rounded-full bg-white flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{ boxShadow: '0 4px 12px -4px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(217,182,107,0.45)' }}
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-700" />
+            </button>
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"
+                style={{ boxShadow: '0 10px 20px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(146,64,14,0.2)' }}
+              >
+                <Star className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }} />
+              </div>
+              <div>
+                <h1 className="text-slate-900 font-bold text-base leading-tight tracking-tight">Task Center</h1>
+                <p className="text-slate-500 text-[10px]">Complete daily tasks, earn rewards</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3" aria-busy="true" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
+          {/* Summary card skeleton */}
+          <div className="rounded-2xl p-5 space-y-3 bg-white/50 border border-amber-100">
+            <SkeletonPrim className="h-5 w-2/3" />
+            <SkeletonPrim className="h-3 w-1/2" />
+            <SkeletonPrim className="h-2 w-full" />
+          </div>
+          {/* Task card skeletons */}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-2xl p-4 bg-white border border-amber-100/60 flex items-center gap-4">
+              <SkeletonPrim className="w-12 h-12 rounded-2xl" />
+              <div className="flex-1 space-y-2">
+                <SkeletonPrim className="h-4 w-1/3" />
+                <SkeletonPrim className="h-3 w-1/2" />
+                <SkeletonPrim className="h-2 w-full" />
+              </div>
+              <SkeletonPrim className="h-8 w-16 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
 
