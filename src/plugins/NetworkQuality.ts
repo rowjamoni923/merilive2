@@ -28,8 +28,8 @@ export const NetworkQuality = registerPlugin<NetworkQualityPlugin>('NetworkQuali
   web: {
     async getStatus(): Promise<NetworkSnapshot> {
       const online = typeof navigator !== 'undefined' ? navigator.onLine : true;
-      // @ts-expect-error — navigator.connection is non-standard but widely available
-      const c = (typeof navigator !== 'undefined' ? (navigator as any).connection : null) || null;
+      const c =
+        typeof navigator !== 'undefined' ? (navigator as unknown as { connection?: any }).connection ?? null : null;
       const downMbps = c?.downlink ? Number(c.downlink) : 0;
       const downKbps = Math.round(downMbps * 1000);
       const effective = (c?.effectiveType as string | undefined) || '';

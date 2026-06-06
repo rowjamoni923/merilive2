@@ -53,10 +53,8 @@ export const ThermalBattery = registerPlugin<ThermalBatteryPlugin>('ThermalBatte
     },
     async getBatteryStatus(): Promise<BatterySnapshot> {
       try {
-        // @ts-expect-error — getBattery is non-standard
-        const bat = typeof navigator !== 'undefined' && navigator.getBattery
-          ? await (navigator as any).getBattery()
-          : null;
+        const nav = typeof navigator !== 'undefined' ? (navigator as unknown as { getBattery?: () => Promise<any> }) : null;
+        const bat = nav?.getBattery ? await nav.getBattery() : null;
         return {
           level: bat ? Math.round((bat.level ?? 0) * 100) : -1,
           isCharging: !!bat?.charging,
