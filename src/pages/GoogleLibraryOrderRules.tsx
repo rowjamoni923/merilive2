@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, Gift, Users, MessageCircle, Radio, AlertTriangle, Headphones, Star, Flame, Trophy, Sparkles, Send, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/Skeleton";
 import BeansIcon from "@/components/common/BeansIcon";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
