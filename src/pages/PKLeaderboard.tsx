@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Session } from "@supabase/supabase-js";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 interface Competition {
   id: string;
@@ -181,11 +182,7 @@ const PKLeaderboard = () => {
   };
 
   if (loading && !competition) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PageSkeleton className="bg-background" rows={6} />;
   }
 
   if (!competition) {

@@ -37,6 +37,7 @@ import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import VipNobleSection from "@/components/vip/VipNobleSection";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 interface VIPTier {
@@ -979,12 +980,11 @@ const VIP = () => {
 
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col overflow-hidden"
         style={{ background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)' }}
-      >
-        <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+        rows={6}
+      />
     );
   }
 
