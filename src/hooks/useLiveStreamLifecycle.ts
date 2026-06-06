@@ -121,8 +121,14 @@ export const useLiveStreamLifecycle = ({
     console.log('[LiveStream Lifecycle] Starting heartbeat for stream:', streamId);
 
     const sendHeartbeat = async () => {
+      // CRITICAL FIX (Phase 1 audit): DB function signature is
+      // `update_stream_heartbeat(_stream_id uuid)` — leading underscore.
+      // PostgREST resolves named args by parameter name, so passing
+      // `{ stream_id }` always failed silently (PGRST202) and the server
+      // cron auto-closed every stream after 3 minutes. Must use `_stream_id`.
       try {
-        await supabase.rpc('update_stream_heartbeat', { stream_id: streamId });
+        const { error } = await supabase.rpc('update_stream_heartbeat', { _stream_id: streamId } as any);
+        if (error) console.error('[LiveStream Lifecycle] Heartbeat RPC error:', error);
       } catch (e) {
         console.error('[LiveStream Lifecycle] Heartbeat failed:', e);
       }
