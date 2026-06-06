@@ -92,6 +92,9 @@ public class MainActivity extends BridgeActivity {
         // calls it yet (gated behind vapNativeFlag, default OFF).
         registerPlugin(com.merilive.app.plugin.NativeVAPPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeLottiePlugin.class);
+        // Pkg438 — unified native gift + entry animation overlays.
+        registerPlugin(com.merilive.app.plugin.NativeGiftAnimationPlugin.class);
+        registerPlugin(com.merilive.app.plugin.NativeEntryAnimationPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeToastPlugin.class);
         registerPlugin(com.merilive.app.plugin.BatteryOptimizationPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativePerformanceOptimizerPlugin.class);
