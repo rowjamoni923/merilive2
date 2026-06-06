@@ -25,6 +25,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
+import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
@@ -1187,6 +1188,10 @@ const App = () => {
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
               <DisconnectReasonToaster />
               <CallProvider>
+                  {/* Pkg434 — Phase 14 — Tab keep-alive host (opt-in via localStorage 'tabKeepAlive=on') */}
+                  {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
+                    <TabKeepAliveHost />
+                  )}
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
@@ -1233,7 +1238,9 @@ const App = () => {
                 <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session
-                    ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
+                    ? (isTabKeepAliveEnabled()
+                        ? <ProtectedRoute session={session}><></></ProtectedRoute>
+                        : <ProtectedRoute session={session}><Index /></ProtectedRoute>)
                     : <Navigate to="/auth" replace />
                 } />
                 <Route path="/landing" element={<Navigate to="/" replace />} />
@@ -1262,13 +1269,13 @@ const App = () => {
                 {/* PROTECTED ROUTES - Authentication required */}
                 {/* Users MUST sign up first before accessing these */}
                 {/* ============================================= */}
-                <Route path="/index" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
-                <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
+                <Route path="/index" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Index /></ProtectedRoute>} />
+                <Route path="/discover" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
                 <Route path="/live-feed" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamKeyWrapper /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/chat" element={<ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
+                <Route path="/chat" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute session={session}><PaymentSuccess /></ProtectedRoute>} />
@@ -1335,7 +1342,7 @@ const App = () => {
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/reels" element={<ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
+                <Route path="/reels" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
                 <Route path="/create-party" element={<ProtectedRoute session={session}><CreateParty /></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
                 <Route path="/profile-detail/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
