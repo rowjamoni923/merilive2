@@ -142,6 +142,9 @@ public class MainActivity extends BridgeActivity {
         // Pkg441 — Phase-1 live-streaming stability
         registerPlugin(com.merilive.app.plugin.NetworkQualityPlugin.class);
         registerPlugin(com.merilive.app.plugin.ThermalBatteryPlugin.class);
+        // Pkg442 — Phase-2 PiP + headset routing
+        registerPlugin(com.merilive.app.plugin.PictureInPicturePlugin.class);
+        registerPlugin(com.merilive.app.plugin.HeadsetRoutingPlugin.class);
 
 
 
@@ -242,6 +245,7 @@ public class MainActivity extends BridgeActivity {
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
         LiveKitPlugin.notifyPipModeChanged(isInPictureInPictureMode);
+        com.merilive.app.plugin.PictureInPicturePlugin.notifyModeChanged(isInPictureInPictureMode);
     }
 
     private void handleNotificationRoute(Intent intent) {
