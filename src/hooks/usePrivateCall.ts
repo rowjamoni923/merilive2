@@ -338,55 +338,11 @@ export function usePrivateCall(userId: string | null) {
     });
   }, [clearAllTimers]);
 
-  // Pkg361 ZERO-REFRESH: Subscribe to private_calls table for instant status updates.
-  // Replaces the 5s polling delay with <100ms DB change detection.
-  useEffect(() => {
-    if (!userId) return;
-
-    const unsubscribe = subscribeToTables(
-      `private-calls-${userId}`,
-      ['private_calls'],
-      (table, event, payload) => {
-        const row = payload as any;
-        const currentCallId = currentCallIdRef.current;
-        
-        // 1. Check if it's an incoming call for us (Host side)
-        // Pkg425: start_private_call RPC writes status='ringing' (not 'pending').
-        // Accept both for backward compat in case the schema changes again — and so
-        // the host's Realtime path is not silently broken when FCM push is missed.
-        if (event === 'INSERT' && row.host_id === userId && (row.status === 'pending' || row.status === 'ringing')) {
-          console.log('[Call Realtime] Incoming call detected:', row.id);
-          showVerifiedIncomingCall(row.id);
-          return;
-        }
-
-        // 2. Check if it's an update for our current active call
-        if (currentCallId && row.id === currentCallId) {
-          console.log(`[Call Realtime] Status update for ${row.id}: ${row.status}`);
-          
-          if (row.status === 'connected') {
-            activateCallerConnectedState(row.id);
-          } else if (row.status === 'declined' || row.status === 'ended' || row.status === 'missed') {
-            console.log('[Call Realtime] Call ended via DB status:', row.status);
-            // We use softEndCall for connected calls so the summary modal shows, 
-            // and resetCallState for pending/ringing calls.
-            if (callStateRef.current.status === 'connected') {
-              softEndCallRef.current?.();
-            } else {
-              resetCallStateRef.current?.();
-            }
-            
-            const reasonMsg = row.status === 'declined' ? 'Host declined the call' 
-                           : row.status === 'missed' ? 'Host did not answer' 
-                           : 'The call has ended';
-            toastRef.current({ title: 'Call Finished', description: reasonMsg });
-          }
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+  // Phase 3 fix (B1): the duplicate subscribeToTables listener that used to live
+  // here was removed. The scoped supabase.channel(`private-call-${userId}`)
+  // listener further down is the single authoritative Realtime path for
+  // private_calls — having two fired activateCallerConnectedState / softEndCall
+  // twice, spawning duplicate billing timers and duplicate toasts.
 
 
   // Function to deduct coins per minute
