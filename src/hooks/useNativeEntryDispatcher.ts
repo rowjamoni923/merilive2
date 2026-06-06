@@ -94,12 +94,12 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'stream_viewers' },
           (payload) => {
-            const row = payload.new as { user_id?: string; stream_id?: string };
-            if (!row?.user_id) return;
-            if (row.user_id === currentUserId) return; // skip self
+            const row = payload.new as { viewer_id?: string; stream_id?: string };
+            if (!row?.viewer_id) return;
+            if (row.viewer_id === currentUserId) return; // skip self
             const ctx = ctxRef.current;
             if (!ctx.streamId || row.stream_id !== ctx.streamId) return;
-            void dispatchEntry(row.user_id);
+            void dispatchEntry(row.viewer_id);
           },
         )
         .on(
