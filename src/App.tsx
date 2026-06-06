@@ -1188,6 +1188,10 @@ const App = () => {
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
               <DisconnectReasonToaster />
               <CallProvider>
+                  {/* Pkg434 — Phase 14 — Tab keep-alive host (opt-in via localStorage 'tabKeepAlive=on') */}
+                  {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
+                    <TabKeepAliveHost />
+                  )}
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
