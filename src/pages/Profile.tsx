@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatCompactCount } from "@/utils/formatCount";
@@ -2087,10 +2087,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   if (!profile && isOwnProfile && currentUser) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-purple-100 to-background p-6">
-        <LoadingSpinner />
-        <p className="text-muted-foreground text-sm mt-4">Creating your profile...</p>
-      </div>
+      <PageSkeleton
+        className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-background"
+        headerClassName="bg-purple-200/50 border-b border-purple-200/30"
+        rows={4}
+        hero
+      />
     );
   }
 

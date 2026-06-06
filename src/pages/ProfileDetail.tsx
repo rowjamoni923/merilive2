@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo, type ImgHTMLAttributes } from "
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+
 import TraderBadge from "@/components/common/TraderBadge";
 import {
   ArrowLeft,
