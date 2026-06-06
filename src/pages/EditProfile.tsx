@@ -227,7 +227,17 @@ const EditProfile = () => {
     };
   }, [navigate]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { PhotoPicker } = await import("@/plugins/PhotoPicker");
+    if (PhotoPicker.isSupported()) {
+      const picked = await PhotoPicker.pickImage(false, true);
+      if (picked) {
+        const blob = PhotoPicker.toBlob(picked);
+        handleCropComplete(blob, "none");
+      }
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file || !profile) return;
 
@@ -252,6 +262,7 @@ const EditProfile = () => {
       fileInputRef.current.value = "";
     }
   };
+
 
   const handleCropComplete = async (croppedImage: Blob, _filter: string) => {
     if (!profile) return;
