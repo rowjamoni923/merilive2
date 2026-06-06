@@ -356,6 +356,7 @@ export const EmojiPicker = ({ isOpen, onClose, onSelect }: EmojiPickerProps) => 
           </div>
         )}
       </ScrollArea>
-    </div>
+      </div>
+    </>
   );
 };
