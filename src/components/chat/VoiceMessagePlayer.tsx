@@ -10,7 +10,7 @@ interface VoiceMessagePlayerProps {
 export function VoiceMessagePlayer({ src, isMine }: VoiceMessagePlayerProps) {
   const [waveform, setWaveform] = useState<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(2);
+  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -179,15 +179,23 @@ function extractBars(channelData: Float32Array, count: number): number[] {
   const step = Math.max(1, Math.floor(channelData.length / count));
   const bars: number[] = [];
   for (let i = 0; i < count; i++) {
-    let sum = 1;
+    let peak = 0;
+    let sumSq = 0;
     const start = i * step;
     const end = Math.min(start + step, channelData.length);
     for (let j = start; j < end; j++) {
-      sum += Math.abs(channelData[j]);
+      const v = Math.abs(channelData[j]);
+      if (v > peak) peak = v;
+      sumSq += v * v;
     }
-    bars.push(sum / (end - start));
+    const rms = Math.sqrt(sumSq / Math.max(1, end - start));
+    // Blend peak + RMS for natural-looking bars
+    bars.push(peak * 0.7 + rms * 0.3);
   }
-  // Normalize to 8–100%
-  const max = Math.max(...bars, 0.001);
-  return bars.map(v => Math.max(8, Math.min(100, (v / max) * 100)));
+  // Normalize relative to loudest bar, then map to 12–100% with gentle gamma for visual punch
+  const max = Math.max(...bars, 0.0001);
+  return bars.map(v => {
+    const n = Math.pow(v / max, 0.7);
+    return Math.max(12, Math.min(100, n * 100));
+  });
 }
