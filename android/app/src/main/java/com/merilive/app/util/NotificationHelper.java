@@ -29,6 +29,9 @@ public class NotificationHelper {
     public static final String CHANNEL_LIVE = "merilive_live";
     public static final String CHANNEL_SYSTEM = "merilive_system";
     public static final String CHANNEL_DEFAULT = "merilive_default";
+    // Pkg425 Phase-8 — promo / marketing channel (silent-ish, low importance,
+    // user can mute it independently without losing chat/call alerts).
+    public static final String CHANNEL_PROMO = "merilive_promo";
 
     public static final int NOTIFICATION_CALL = 1001;
     public static final int NOTIFICATION_MESSAGE = 2001;
