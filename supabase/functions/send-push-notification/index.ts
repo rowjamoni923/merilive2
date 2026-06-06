@@ -72,6 +72,7 @@ const channelPriority = (type?: string): string => {
   if (ch === "merilive_messages" || ch === "merilive_gifts") return "PRIORITY_HIGH";
   if (ch === "merilive_system" || ch === "merilive_promo") return "PRIORITY_LOW";
   return "PRIORITY_DEFAULT";
+};
 
 // Generate JWT for FCM V1 authentication
 async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
