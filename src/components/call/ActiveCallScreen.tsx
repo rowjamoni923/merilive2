@@ -849,7 +849,8 @@ export function ActiveCallScreen({
               </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* ===== MAIN VIDEO VIEW ===== */}
       <div 
@@ -1047,7 +1048,8 @@ export function ActiveCallScreen({
             })}
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* Three dot menu - positioned on right side above bottom bar */}
       <AnimatePresence>
