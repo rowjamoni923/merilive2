@@ -211,6 +211,44 @@ const cleanGiftMessageForPreview = (content: string): string => {
   return urlRemoved;
 };
 
+// Build a clean WhatsApp-style preview for reply bars / quoted snippets.
+// Hides raw URLs and gift payloads; surfaces a friendly label + optional thumb.
+const summarizeMessageForReply = (
+  content: string,
+  messageType?: string | null
+): { label: string; thumb: string | null; kind: 'gift' | 'image' | 'video' | 'audio' | 'text' } => {
+  const c = (content || '').trim();
+  const type = (messageType || '').toLowerCase();
+
+  if (type === 'gift' || /^\[Gift:/i.test(c)) {
+    const { mediaUrl, emoji } = parseGiftContent(c);
+    const nameMatch = c.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+    const giftName = nameMatch?.[1]?.trim() || 'Gift';
+    const count = nameMatch?.[2];
+    const label = `${emoji || '🎁'} ${giftName}${count && Number(count) > 1 ? ` ×${count}` : ''}`;
+    const thumb = mediaUrl && /\.(png|jpe?g|gif|webp)(\?|$)/i.test(mediaUrl) ? mediaUrl : null;
+    return { label, thumb, kind: 'gift' };
+  }
+
+  if (type === 'audio' || /^\[(Voice|Audio):/i.test(c) || /\.(webm|mp3|wav|ogg|m4a)(\?|$)/i.test(c)) {
+    return { label: '🎤 Voice message', thumb: null, kind: 'audio' };
+  }
+
+  if (type === 'image' || /^\[Image:/i.test(c) || /\.(jpe?g|png|gif|webp)(\?|$)/i.test(c)) {
+    const url = c.replace(/^\[Image:\s*/i, '').replace(/\]$/, '');
+    return { label: '📷 Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
+  }
+
+  if (type === 'video' || /^\[Video:/i.test(c) || /\.(mp4|mov|avi|mkv)(\?|$)/i.test(c)) {
+    return { label: '🎬 Video', thumb: null, kind: 'video' };
+  }
+
+  const text = c.replace(/^\[[^\]]+\]\s*/, '').slice(0, 80) || 'Message';
+  return { label: text, thumb: null, kind: 'text' };
+};
+
+
+
 const messageTimestamp = (value?: string | null) => {
   const time = value ? new Date(value).getTime() : 0;
   return Number.isFinite(time) ? time : 0;
@@ -261,8 +299,8 @@ const Chat = () => {
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
   // Reply state
-  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string } | null>(null);
-  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string }>>({});
+  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
+  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string; message_type?: string | null }>>({});
   
   // Message reactions (client-side only until DB table exists)
   const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
@@ -1504,10 +1542,10 @@ const Chat = () => {
 
     const { data: replies } = await supabase
       .from('messages')
-      .select('id, content, sender_id')
+      .select('id, content, sender_id, message_type')
       .in('id', missingReplyIds);
 
-    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id, message_type: (r as any).message_type ?? null }]));
     setReplyMessages(prev => ({ ...prev, ...map }));
   }
 
@@ -2405,23 +2443,35 @@ const Chat = () => {
                             ? (myProfile?.display_name || 'You')
                             : (isGroup ? msg.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User'
                         ) : 'Unknown';
-                        const rText = replyTo ? (replyTo.content || '').slice(0, 60) : 'Original message';
+                        const preview = replyTo
+                          ? summarizeMessageForReply(replyTo.content || '', replyTo.message_type)
+                          : { label: 'Original message', thumb: null, kind: 'text' as const };
                         return (
                           <div className={cn(
-                            "mb-1 pl-2.5 border-l-[3px] rounded-l-sm py-0.5 pr-1 cursor-pointer",
+                            "mb-1 pl-2.5 border-l-[3px] rounded-l-sm py-0.5 pr-1 cursor-pointer flex items-center gap-2",
                             isMine ? "border-primary-foreground/40" : "border-primary/40"
                           )} onClick={() => {
                             const el = document.getElementById(`msg-${msg.reply_to_id}`);
                             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                           }}>
-                            <p className={cn(
-                              "text-[10px] font-semibold truncate",
-                              isMine ? "text-primary-foreground/80" : "text-primary/80"
-                            )}>{rName}</p>
-                            <p className={cn(
-                              "text-[11px] truncate opacity-70",
-                              isMine ? "text-primary-foreground/60" : "text-muted-foreground/60"
-                            )}>{rText}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className={cn(
+                                "text-[10px] font-semibold truncate",
+                                isMine ? "text-primary-foreground/80" : "text-primary/80"
+                              )}>{rName}</p>
+                              <p className={cn(
+                                "text-[11px] truncate opacity-70",
+                                isMine ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                              )}>{preview.label}</p>
+                            </div>
+                            {preview.thumb && (
+                              <img
+                                src={preview.thumb}
+                                alt=""
+                                className="w-8 h-8 rounded object-cover shrink-0"
+                                loading="lazy"
+                              />
+                            )}
                           </div>
                         );
                       })()}
@@ -2657,12 +2707,14 @@ const Chat = () => {
                         <DropdownMenuItem onClick={() => {
                           setReplyingTo({
                             messageId: msg.id,
-                            content: (msg.content || '').slice(0, 80),
+                            content: msg.content || '',
                             senderName: senderName,
-                            senderId: msg.sender_id
+                            senderId: msg.sender_id,
+                            messageType: msg.message_type,
                           });
                           toast.success("Replying to message");
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+
                           <MessageSquareReply className="w-4 h-4 text-primary" />
                           <span className="font-medium text-sm">Reply</span>
                         </DropdownMenuItem>
@@ -2920,24 +2972,35 @@ const Chat = () => {
           )}
           
           {/* Reply Preview Bar */}
-          {replyingTo && (
-            <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
-              <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
-                <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-semibold text-foreground truncate">{replyingTo.senderName}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{replyingTo.content}</p>
+          {replyingTo && (() => {
+            const preview = summarizeMessageForReply(replyingTo.content, replyingTo.messageType);
+            return (
+              <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
+                <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
+                  <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold text-foreground truncate">{replyingTo.senderName}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{preview.label}</p>
+                  </div>
+                  {preview.thumb && (
+                    <img
+                      src={preview.thumb}
+                      alt=""
+                      className="w-9 h-9 rounded object-cover shrink-0"
+                      loading="lazy"
+                    />
+                  )}
                 </div>
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0"
+                  aria-label="Cancel reply"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
-              <button
-                onClick={() => setReplyingTo(null)}
-                className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0"
-                aria-label="Cancel reply"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
-          )}
+            );
+          })()}
           
           {/* Input Row - Voice Recording, Pending Media, or Text Mode */}
           <div className="px-4 py-3 flex items-center gap-2">
