@@ -143,11 +143,14 @@ export function useNativeLiveKitEvents(
         if (cancelled) { pipChanged.remove(); return; }
         subs.push(pipChanged);
 
-        const signalQuality = await NativeLiveKit.addListener('signal-quality', (e) => {
-          handlersRef.current.onSignalQuality?.(e.class);
+        const signalQuality = await NativeLiveKit.addListener('connection-quality' as any, (e: any) => {
+          if (e.sid === 'local' || !e.sid) {
+            handlersRef.current.onSignalQuality?.(e.quality);
+          }
         });
         if (cancelled) { signalQuality.remove(); return; }
         subs.push(signalQuality);
+
 
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
