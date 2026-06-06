@@ -299,8 +299,8 @@ const Chat = () => {
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
   // Reply state
-  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string } | null>(null);
-  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string }>>({});
+  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
+  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string; message_type?: string | null }>>({});
   
   // Message reactions (client-side only until DB table exists)
   const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
