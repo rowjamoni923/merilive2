@@ -1267,8 +1267,8 @@ const App = () => {
                 {/* PROTECTED ROUTES - Authentication required */}
                 {/* Users MUST sign up first before accessing these */}
                 {/* ============================================= */}
-                <Route path="/index" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
-                <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
+                <Route path="/index" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Index /></ProtectedRoute>} />
+                <Route path="/discover" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
                 <Route path="/live-feed" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
