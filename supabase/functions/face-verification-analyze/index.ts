@@ -754,9 +754,13 @@ serve(async (req) => {
     const isDuplicate = Boolean(duplicateBlock);
     let hardAutoReject: "gender_mismatch" | "duplicate_face" | "photo_mismatch" | null = null;
     
+    // Check for "no face" in required photos for hosts
+    const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
+    const noFaceInAvatar = profileMatchSkipReason === "no_face_in_avatar";
+
     if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
-    else if (profileMismatch || hostPhotosMismatch) hardAutoReject = "photo_mismatch";
+    else if (profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) hardAutoReject = "photo_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -767,7 +771,17 @@ serve(async (req) => {
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
       } else if (hardAutoReject === "photo_mismatch") {
-        rReason = `Unified scan failed. The face in your uploaded photos does not match the face in your verification video. All photos must be of the same real person. Please contact Support Chat if you believe this is an error.`;
+        if (noFaceInAvatar) {
+          rReason = "Verification failed: No clear face detected in your profile photo. Please upload a clear face photo as your profile picture and try again.";
+        } else if (hostNoFaceInGallery) {
+          rReason = "Verification failed: One or more of your host gallery photos do not have a clear face. All gallery photos must show your face clearly. Please update your photos and try again.";
+        } else if (profileMismatch && hostPhotosMismatch) {
+          rReason = "Verification failed: Both your profile photo and your host gallery photos do not match your face scan. Please ensure all uploaded photos are of you and try again.";
+        } else if (profileMismatch) {
+          rReason = "Verification failed: Your profile photo does not match your face scan. Please update your profile photo to a real photo of yourself and try again.";
+        } else {
+          rReason = "Verification failed: One or more of your host gallery photos do not match your face scan. Please ensure all your photos are of the same person and try again.";
+        }
       }
 
       await supabaseAdmin
