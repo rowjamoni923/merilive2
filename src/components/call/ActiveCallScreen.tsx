@@ -863,11 +863,12 @@ export function ActiveCallScreen({
                   )}
                     style={isConnected ? { boxShadow: '0 0 4px rgba(16,185,129,0.55)' } : undefined}
                   />
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* ===== MAIN VIDEO VIEW ===== */}
