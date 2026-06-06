@@ -3249,7 +3249,7 @@ const Chat = () => {
                 <motion.button
                   initial={false}
                   whileTap={{ scale: 0.92 }}
-                  onClick={message.trim() ? handleSend : handleVoiceRecord}
+                  onClick={message.trim() ? () => { void handleSend(); } : handleVoiceRecord}
                   disabled={sending}
                   className={cn(
                     "shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-colors",
