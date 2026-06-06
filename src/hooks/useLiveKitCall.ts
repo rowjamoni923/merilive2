@@ -266,6 +266,7 @@ export function useLiveKitCall(
       isAudioEnabled: true,
       isVideoEnabled: true,
       connectionState: 'new',
+      isInPip: false,
     });
   }, []);
 
