@@ -438,7 +438,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
             ) : filteredGroups.length > VIRTUALIZE_THRESHOLD ? (
               <VirtualGroups scrollRef={scrollRef} items={filteredGroups} onSelect={onSelectGroup} />
             ) : (
-              <div className="px-3 py-2 space-y-2">
+              <div className="py-1">
                 {filteredGroups.map((group) => (
                   <GroupRow key={group.id} group={group} onSelect={onSelectGroup} />
                 ))}
