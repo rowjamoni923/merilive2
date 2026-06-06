@@ -715,7 +715,7 @@ export function ActiveCallScreen({
           className="absolute top-0 left-0 right-0 z-10 safe-area-top"
           style={{ contain: 'layout' }}
         >
-        <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
+          <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
