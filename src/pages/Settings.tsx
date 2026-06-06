@@ -25,8 +25,10 @@ import {
   Calendar,
   Users,
   BarChart3,
+  Wrench,
   type LucideIcon
 } from "lucide-react";
+import { useDevAccess } from "@/hooks/useDevAccess";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { Button } from "@/components/ui/button";
 import {
