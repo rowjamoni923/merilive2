@@ -2803,12 +2803,14 @@ const FaceVerification = () => {
           )}
           
           <div className="flex flex-col gap-3 w-full max-w-[280px] px-6">
-            <Button
-              className="w-full bg-slate-900 text-white rounded-2xl py-6 font-bold shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
-              onClick={() => navigate('/settings/customer-service?mode=live_chat')}
-            >
-              💬 Contact Support Chat
-            </Button>
+            {isContactSupportRequired && (
+              <Button
+                className="w-full bg-slate-900 text-white rounded-2xl py-6 font-bold shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
+                onClick={() => navigate('/settings/customer-service?mode=live_chat')}
+              >
+                💬 Contact Support Chat
+              </Button>
+            )}
             
             {!duplicateInfo && (
               <Button 
