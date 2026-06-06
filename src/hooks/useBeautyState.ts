@@ -84,11 +84,11 @@ export function useBeautyState(): any {
     else if (bucket === 'poor') factor = 0.4;
     else if (bucket === 'fair') factor = 0.75;
     if (factor === 1) return levels;
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(levels ?? {})) {
-      out[k] = typeof v === 'number' ? Math.max(0, Math.min(1, v * factor)) : v;
+    const out = { ...(levels as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(out)) {
+      if (typeof v === 'number') out[k] = Math.max(0, Math.min(1, v * factor));
     }
-    return out as ProBeautyLevels;
+    return out as unknown as ProBeautyLevels;
   }, []);
 
   // ---- Core driver: push (levels, enabled) into the native engine. ----
