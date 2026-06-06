@@ -3073,48 +3073,48 @@ const Chat = () => {
               </>
 
             ) : pendingMedia ? (
-              /* Pending Media Mode - Show preview and send button */
+              /* Pending Media Mode - Show preview, change, remove, send */
               <>
-                {/* Cancel Button */}
+                {/* Remove Button */}
                 <motion.button
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setPendingMedia(null)}
-                  className="w-11 h-11 rounded-full bg-muted flex items-center justify-center"
+                  aria-label="Remove attachment"
+                  className="w-11 h-11 rounded-full bg-muted flex items-center justify-center shrink-0"
                 >
                   <X className="w-5 h-5 text-muted-foreground" />
                 </motion.button>
-                
-                {/* Media Preview */}
-                <div className="flex-1 relative">
-                  <div className="w-full h-11 rounded-full bg-primary/10 flex items-center justify-center gap-2 px-4">
+
+                {/* Media Preview (tap to change) */}
+                <div className="flex-1 relative min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingMedia(null);
+                      setShowMediaUploader(true);
+                    }}
+                    aria-label="Change attachment"
+                    className="w-full h-11 rounded-full bg-primary/10 flex items-center gap-2 px-3 active:opacity-80 transition"
+                  >
                     {pendingMedia.type === 'image' ? (
-                      <>
-                        <img loading="lazy" decoding="async" 
-                          src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url} 
-                          alt="Preview" 
-                          className="w-8 h-8 rounded-lg object-cover" />
-                        <span className="text-primary font-medium text-sm truncate">
-                          📷 Image ready to send
-                        </span>
-                      </>
+                      <img loading="lazy" decoding="async"
+                        src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url}
+                        alt="Preview"
+                        className="w-8 h-8 rounded-lg object-cover shrink-0" />
                     ) : pendingMedia.type === 'video' ? (
-                      <>
-                        <ImageIcon className="w-5 h-5 text-primary" />
-                        <span className="text-primary font-medium text-sm">
-                          🎥 Video ready to send
-                        </span>
-                      </>
+                      <ImageIcon className="w-5 h-5 text-primary shrink-0" />
                     ) : (
-                      <>
-                        <Mic className="w-5 h-5 text-warning-600" />
-                        <span className="text-warning-600 font-medium text-sm">
-                          🎵 Audio ready to send
-                        </span>
-                      </>
+                      <Mic className="w-5 h-5 text-warning-600 shrink-0" />
                     )}
-                  </div>
+                    <span className="text-primary font-medium text-sm truncate flex-1 text-left">
+                      {pendingMedia.type === 'image' ? '📷 Image' : pendingMedia.type === 'video' ? '🎥 Video' : '🎵 Audio'}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground font-medium px-2 py-0.5 rounded-full bg-background/70 shrink-0">
+                      Change
+                    </span>
+                  </button>
                 </div>
                 
                 {/* Send Button for Media */}
