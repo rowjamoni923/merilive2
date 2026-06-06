@@ -206,32 +206,111 @@ class NativeReelsPlayerPlugin : Plugin() {
 
     @PluginMethod
     fun prefetch(call: PluginCall) {
-        // Best-effort warmup — touches the URL via the shared cache data
-        // source so the first chunk is on disk before play() is called.
         val url = call.getString("url") ?: run {
             call.reject("url required")
             return
         }
-        Thread {
+        val bytes = (call.getInt("bytes") ?: DEFAULT_PREFETCH_BYTES).toLong()
+            .coerceIn(64L * 1024L, 8L * 1024L * 1024L)
+        prefetchExecutor.submit {
+            val ok = warmCache(url, bytes)
             try {
-                val ds = DefaultHttpDataSource.Factory().createDataSource()
-                val conn = ds.javaClass
-                // Lightweight HEAD-style: open + read ≈ 1MB then close.
-                val dataSpec = androidx.media3.datasource.DataSpec(Uri.parse(url))
-                ds.open(dataSpec)
-                val buf = ByteArray(64 * 1024)
-                var total = 0
-                while (total < 1024 * 1024) {
-                    val read = ds.read(buf, 0, buf.size)
-                    if (read == C.RESULT_END_OF_INPUT) break
-                    total += read
-                }
-                ds.close()
-                call.resolve(JSObject().put("ok", true))
-            } catch (t: Throwable) {
-                call.reject("prefetch failed: ${t.message}")
+                call.resolve(JSObject().put("ok", ok).put("url", url))
+            } catch (_: Throwable) {}
+        }
+    }
+
+    /**
+     * Queue a batch of URLs (next-N reels) for background warming.
+     * Skips URLs already fully cached. Cancels any in-flight batch first.
+     */
+    @PluginMethod
+    fun prefetchBatch(call: PluginCall) {
+        val arr: JSArray = call.getArray("urls") ?: run {
+            call.reject("urls required")
+            return
+        }
+        val bytes = (call.getInt("bytesPerUrl") ?: DEFAULT_PREFETCH_BYTES).toLong()
+            .coerceIn(64L * 1024L, 8L * 1024L * 1024L)
+        val urls = mutableListOf<String>()
+        for (i in 0 until arr.length()) {
+            val s = arr.optString(i, "")
+            if (!s.isNullOrBlank()) urls.add(s)
+        }
+        // Cancel any in-flight batch — newest scroll position wins.
+        cancelInFlight()
+        val futures = mutableListOf<Future<*>>()
+        for (u in urls) {
+            futures.add(prefetchExecutor.submit {
+                if (Thread.currentThread().isInterrupted) return@submit
+                warmCache(u, bytes)
+            })
+        }
+        synchronized(inFlightLock) {
+            inFlightFutures.addAll(futures)
+        }
+        call.resolve(JSObject().put("ok", true).put("queued", urls.size))
+    }
+
+    @PluginMethod
+    fun cancelPrefetch(call: PluginCall) {
+        cancelInFlight()
+        call.resolve(JSObject().put("ok", true))
+    }
+
+    @PluginMethod
+    fun cacheStats(call: PluginCall) {
+        try {
+            val c = cache(context)
+            val bytes = c.cacheSpace
+            call.resolve(
+                JSObject()
+                    .put("bytes", bytes)
+                    .put("maxBytes", CACHE_SIZE_BYTES)
+            )
+        } catch (t: Throwable) {
+            call.reject("cacheStats failed: ${t.message}")
+        }
+    }
+
+    private fun warmCache(url: String, maxBytes: Long): Boolean {
+        return try {
+            val cancelFlag = AtomicBoolean(false)
+            val dataSource = CacheDataSource.Factory()
+                .setCache(cache(context))
+                .setUpstreamDataSourceFactory(
+                    DefaultHttpDataSource.Factory()
+                        .setConnectTimeoutMs(15_000)
+                        .setReadTimeoutMs(30_000)
+                        .setAllowCrossProtocolRedirects(true)
+                )
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+                .createDataSource()
+            val spec = DataSpec.Builder()
+                .setUri(Uri.parse(url))
+                .setPosition(0)
+                .setLength(maxBytes)
+                .build()
+            // CacheWriter actually writes upstream bytes into SimpleCache
+            // (the old implementation read but discarded → playback got
+            // zero benefit). Progress listener is no-op; we only care
+            // that the bytes land on disk.
+            CacheWriter(dataSource, spec, null, null).cache()
+            true
+        } catch (_: InterruptedException) {
+            false
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun cancelInFlight() {
+        synchronized(inFlightLock) {
+            for (f in inFlightFutures) {
+                try { f.cancel(true) } catch (_: Throwable) {}
             }
-        }.start()
+            inFlightFutures.clear()
+        }
     }
 
     private fun ensureOverlay() {
