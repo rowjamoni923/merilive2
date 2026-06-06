@@ -2606,21 +2606,21 @@ const Chat = () => {
                           );
                         }
 
-                        // Regular text messages - WhatsApp-style compact bubbles
+                        // Regular text messages - premium WhatsApp-style bubbles
                         return (
                           <div
                             className={cn(
-                              "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
+                              "px-3 py-[7px] max-w-full text-[14.5px] leading-[1.38] tracking-[-0.005em] antialiased",
                               isMine
- ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-primary/20"
-                                : "bg-card border border-border rounded-bl-sm text-card-foreground shadow-sm",
+                                ? "bg-primary text-primary-foreground rounded-[18px] rounded-br-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                                : "bg-card text-card-foreground rounded-[18px] rounded-bl-[6px] border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
                               msg._optimistic && "opacity-70"
                             )}
                           >
-                            <span className="break-words">{content}</span>
+                            <span className="break-words whitespace-pre-wrap">{content}</span>
                             <span className={cn(
-                              "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-                              isMine ? "text-primary-foreground/80" : "text-muted-foreground"
+                              "text-[10px] ml-1.5 float-right mt-[5px] flex items-center gap-1 font-medium",
+                              isMine ? "text-primary-foreground/75" : "text-muted-foreground/80"
                             )}>
                               {formatTime(msg.created_at)}
                               <MessageStatusIndicator 
@@ -2718,7 +2718,7 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm bg-card border border-border">
+                <div className="rounded-[18px] rounded-bl-[6px] px-4 py-2.5 bg-card border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
