@@ -11,9 +11,12 @@ import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Cro
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
+import { VoiceWaveform } from "@/components/chat/VoiceWaveform";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
+
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData } from "@/features/shared/gifting";
@@ -309,6 +312,8 @@ const Chat = () => {
     return () => { cancelled = true; };
   }, [messages, groupMessages, pendingMedia?.url, signedChatMediaUrls]);
   const [message, setMessage] = useState("");
+  const nativeRecorder = useNativeAudioRecorder();
+
   const [loading, setLoading] = useState(!hadConvCache);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -613,8 +618,18 @@ const Chat = () => {
   };
   
   // Stop Voice Recording
-  const stopVoiceRecording = () => {
+  const stopVoiceRecording = async () => {
+    if (nativeRecorder.isNative) {
+      const result = await nativeRecorder.stop();
+      if (result) {
+        setAudioBlob(result.blob);
+        setRecordingDuration(Math.floor(result.durationMs / 1000));
+      }
+      return;
+    }
+
     console.log('[Voice] Stopping recording...');
+
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       // Request any remaining data before stopping
       try {
@@ -637,7 +652,14 @@ const Chat = () => {
   
   // Cancel Voice Recording
   const cancelVoiceRecording = () => {
+    if (nativeRecorder.isNative) {
+      nativeRecorder.cancel();
+      setAudioBlob(null);
+      setRecordingDuration(0);
+      return;
+    }
     stopVoiceRecording();
+
     setAudioBlob(null);
     setRecordingDuration(0);
   };
@@ -2908,7 +2930,7 @@ const Chat = () => {
           {/* Input Row - Voice Recording, Pending Media, or Text Mode */}
           <div className="px-4 py-3 flex items-center gap-2">
             {/* Recording Mode */}
-            {(isRecording || audioBlob) ? (
+            {(isRecording || nativeRecorder.isRecording || audioBlob) ? (
               <>
                 {/* Cancel Button */}
                 <motion.button
@@ -2925,21 +2947,26 @@ const Chat = () => {
                 <div className="flex-1 relative">
                   <div className={cn(
                     "w-full h-11 rounded-full flex items-center justify-center gap-2",
-                    isRecording ? "bg-destructive/10" : "bg-success/10"
+                    (isRecording || nativeRecorder.isRecording) ? "bg-destructive/10" : "bg-success/10"
                   )}>
-                    {isRecording ? (
+                    {(isRecording || nativeRecorder.isRecording) ? (
                       <>
-                        <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
-                        <span className="text-destructive font-semibold text-lg">
-                          {formatRecordingTime(recordingDuration)}
+                        <div className="flex-1 px-4">
+                          <VoiceWaveform 
+                            amplitudes={nativeRecorder.amplitudes} 
+                            isRecording={true} 
+                            className="w-full"
+                          />
+                        </div>
+                        <span className="text-destructive font-semibold text-lg pr-4">
+                          {formatRecordingTime(nativeRecorder.isNative ? nativeRecorder.duration : recordingDuration)}
                         </span>
-                        <span className="text-destructive/70 text-sm">Recording...</span>
                       </>
                     ) : (
                       <>
                         <Mic className="w-5 h-5 text-success-600" />
                         <span className="text-success-600 font-medium">
-                          {formatRecordingTime(recordingDuration)} Ready to send
+                          {formatRecordingTime(nativeRecorder.isNative ? nativeRecorder.duration : recordingDuration)} Ready to send
                         </span>
                       </>
                     )}
@@ -2951,24 +2978,25 @@ const Chat = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={isRecording ? stopVoiceRecording : sendVoiceMessage}
+                  onClick={(isRecording || nativeRecorder.isRecording) ? stopVoiceRecording : sendVoiceMessage}
                   disabled={sendingVoice}
                   className={cn(
                     "w-11 h-11 rounded-full flex items-center justify-center shadow-lg",
-                    isRecording 
+                    (isRecording || nativeRecorder.isRecording) 
                       ? "bg-destructive" 
                       : "bg-gradient-primary"
                   )}
                 >
                   {sendingVoice ? (
- <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : isRecording ? (
+                    <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (isRecording || nativeRecorder.isRecording) ? (
                     <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
                   ) : (
- <Send className="w-5 h-5 text-primary-foreground" />
+                    <Send className="w-5 h-5 text-primary-foreground" />
                   )}
                 </motion.button>
               </>
+
             ) : pendingMedia ? (
               /* Pending Media Mode - Show preview and send button */
               <>
