@@ -384,18 +384,10 @@ export function CallProvider({ children }: CallProviderProps) {
     <CallContext.Provider value={{ startCall, isInCall }}>
       {children}
 
-      {/* Incoming Call Modal - ✅ FIX: ALWAYS show when incomingCall exists
-          Auto-reset callEndedRef when new incoming call arrives to prevent blocking */}
+      {/* Incoming Call Modal. callEndedRef is reset by the effect on line 105
+          when a new incomingCall arrives — never mutate refs inside render. */}
       <IncomingCallModal
-        isOpen={(() => {
-          // ✅ CRITICAL FIX: Force-reset callEndedRef when new incoming call arrives
-          // This prevents the race condition where a previous call's ended state
-          // blocks the IncomingCallModal for a new call
-          if (incomingCall && callEndedRef.current) {
-            callEndedRef.current = false;
-          }
-          return !!incomingCall;
-        })()}
+        isOpen={!!incomingCall}
         callerName={incomingCall?.callerName || ''}
         callerAvatar={incomingCall?.callerAvatar || null}
         callerLevel={incomingCall?.callerLevel || 1}
