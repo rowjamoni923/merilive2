@@ -138,6 +138,7 @@ public class MainActivity extends BridgeActivity {
         // caller opens it unless explicitly opted in.
         registerPlugin(com.merilive.app.plugin.NativeRouterShellPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeGiftPanelPlugin.class);
+        registerPlugin(com.merilive.app.plugin.ImageCropperPlugin.class);
 
 
 
