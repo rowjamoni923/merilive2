@@ -173,6 +173,8 @@ const LiveStream = () => {
   const location = useLocation();
   // Pkg443 Phase-3: keep screen on for the entire viewer/host session.
   useScreenLock(true);
+  // Pkg444 Phase-5: hold media audio focus for the whole live session.
+  useNativeAudioFocus({ enabled: true, intent: 'media' });
   
   
   // isHost will be verified from database, not just from location state
