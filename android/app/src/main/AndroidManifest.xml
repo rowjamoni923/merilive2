@@ -266,6 +266,12 @@
                 android:resource="@xml/widget_quick_actions_info" />
         </receiver>
 
+        <!-- Pkg440 — UCrop activity for ImageCropperPlugin (avatar / cover / reels thumb) -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 
     <!-- Pkg260 — Speech recognition service visibility (Android 11+ package visibility) -->
