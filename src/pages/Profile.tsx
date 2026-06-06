@@ -2444,6 +2444,41 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </button>
           </div>
 
+          {/* Pkg432: Trader Wallet entry-point for users who are NOT yet a verified helper-trader
+              and NOT an agency owner. Tapping navigates to /helper-dashboard which renders the
+              L1 application form inline. Crypto auto-payment instantly grants the wallet. */}
+          {!isCoinTrader && !isAgencyOwner && (
+            <button
+              onClick={() => navigate('/helper-dashboard')}
+              className="w-full group relative"
+            >
+              <div className="absolute inset-0 bg-amber-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+                <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl" />
+
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <p className="text-display font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
+                        Unlock
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-foreground">Become a Diamond Trader</p>
+                    <p className="text-[9px] text-amber-700 mt-0.5">
+                      Apply for Level 1 Helper · Crypto auto-verified
+                    </p>
+                  </div>
+
+                  <div className="bg-amber-500/10 border border-amber-400/20 rounded-xl p-2 shrink-0">
+                    <Wallet className="w-5 h-5 text-amber-600" />
+                  </div>
+                </div>
+              </div>
+            </button>
+          )}
+
           {/* Trader Wallet Card for Diamond Traders - Opens Transfer Modal directly */}
           {isCoinTrader && !isAgencyOwner && (
             <button 
