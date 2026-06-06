@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/Skeleton";
 
 interface GameLeaderboardPanelProps {
   isOpen: boolean;
@@ -326,8 +327,18 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
 
           <div className="p-2 space-y-1">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+              <div className="space-y-1">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <Skeleton className="w-6 h-6 rounded-full" />
+                    <Skeleton className="w-9 h-9 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3 w-2/3" />
+                      <Skeleton className="h-2.5 w-1/3" />
+                    </div>
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                ))}
               </div>
             ) : leaderboard.length === 0 ? (
               <div className="text-center py-8">
