@@ -25,8 +25,10 @@ import {
   Calendar,
   Users,
   BarChart3,
+  Wrench,
   type LucideIcon
 } from "lucide-react";
+import { useDevAccess } from "@/hooks/useDevAccess";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { Button } from "@/components/ui/button";
 import {
@@ -154,6 +156,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
+  const { hasAccess: hasDevAccess } = useDevAccess();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false);
@@ -844,6 +847,14 @@ const Settings = () => {
       label: t("settings.customerService"),
       onClick: () => navigate("/settings/customer-service"),
     },
+    // Developer Options — only visible to whitelisted dev emails (see src/config/devAccess.ts)
+    ...(hasDevAccess ? [
+      {
+        icon: Wrench,
+        label: "Developer Options",
+        onClick: () => navigate("/developer-options"),
+      },
+    ] : []),
     {
       icon: UserX,
       label: t("settings.deleteAccount"),

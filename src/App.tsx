@@ -120,6 +120,7 @@ const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
 const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
 const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
 const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+const DeveloperOptions = lazy(lazyRetry(() => import("./pages/DeveloperOptions")));
 const ShareReceive = lazy(lazyRetry(() => import("./pages/ShareReceive")));
 const DebugReferrer = lazy(lazyRetry(() => import("./pages/DebugReferrer")));
 const DebugReferrerTest = lazy(lazyRetry(() => import("./pages/DebugReferrerTest")));
@@ -1288,6 +1289,7 @@ const App = () => {
                 <Route path="/settings/user-management" element={<ProtectedRoute session={session}><UserManagement /></ProtectedRoute>} />
                 <Route path="/settings/notifications" element={<ProtectedRoute session={session}><NotificationSettings /></ProtectedRoute>} />
                 <Route path="/settings/customer-service" element={<ProtectedRoute session={session}><CustomerService /></ProtectedRoute>} />
+                <Route path="/developer-options" element={<ProtectedRoute session={session}><DeveloperOptions /></ProtectedRoute>} />
                 <Route path="/app-support" element={<Navigate to="/settings/customer-service" replace />} />
                 <Route path="/rewards" element={<ProtectedRoute session={session}><Rewards /></ProtectedRoute>} />
                 <Route path="/rewards/rating-history" element={<ProtectedRoute session={session}><RatingProofHistory /></ProtectedRoute>} />
