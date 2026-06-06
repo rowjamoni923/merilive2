@@ -2042,6 +2042,51 @@ const Chat = () => {
     }
   };
 
+  // Pkg437 Phase-3 — mirror open DM thread to native RecyclerView chat overlay.
+  // Additive, Android-only, flag-gated, default OFF. React UI stays canonical
+  // on web/iOS/older APKs/un-opted cohort. Text-only payload for now (gifts,
+  // voice, media, replies render as text fallback inside native list).
+  const nativeChatThreadTitle = selectedConversation?.other_user?.display_name || undefined;
+  const nativeChatThreadId = selectedConversation?.id || null;
+  const nativeChatMessages = React.useMemo<NativeChatMessage[]>(() => {
+    if (!nativeChatThreadId) return [];
+    const otherName = selectedConversation?.other_user?.display_name || "User";
+    const otherAvatar = selectedConversation?.other_user?.avatar_url || null;
+    return messages.map((m): NativeChatMessage => {
+      const isMine = m.sender_id === currentUserId;
+      let text = m.content || "";
+      if (m.message_type === "gift") text = `🎁 ${text || "Gift"}`;
+      else if (m.message_type === "voice") text = "🎙️ Voice message";
+      else if (m.message_type === "image") text = "🖼️ Image";
+      else if (m.message_type === "video") text = "🎬 Video";
+      else if (m.message_type === "file") text = "📎 File";
+      return {
+        id: m.id,
+        senderId: m.sender_id,
+        senderName: isMine ? "You" : otherName,
+        text,
+        createdAt: new Date(m.created_at).getTime() || Date.now(),
+        avatarUrl: isMine ? null : otherAvatar,
+      };
+    });
+  }, [messages, nativeChatThreadId, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
+
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+  const { active: nativeChatActive, setMessages: setNativeChatMessages } = useNativeChatUI({
+    enabled: !!nativeChatThreadId,
+    currentUserId,
+    title: nativeChatThreadTitle,
+    onSend: (text) => { void handleSendRef.current(text); },
+  });
+
+  useEffect(() => {
+    if (!nativeChatActive) return;
+    setNativeChatMessages(nativeChatMessages);
+  }, [nativeChatActive, nativeChatMessages, setNativeChatMessages]);
+
+
+
   const handleCreateGroup = async () => {
     if (!newGroupName.trim() || !currentUserId) return;
 
