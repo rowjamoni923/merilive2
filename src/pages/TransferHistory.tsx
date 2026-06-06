@@ -9,7 +9,7 @@ import {
   Calendar,
   Filter
 } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,7 +99,30 @@ const TransferHistory = () => {
   }, {} as Record<string, TransferRecord[]>);
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen size="lg" text="Loading" />;
+    return (
+      <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" aria-busy="true">
+        <div className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 safe-area-top">
+          <div className="flex items-center h-14 px-4 gap-3">
+            <SkeletonPrim className="w-9 h-9 rounded-full bg-white/30" />
+            <SkeletonPrim className="h-5 w-32 bg-white/30" />
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden px-4 py-4 space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-4 rounded-2xl bg-card border border-border space-y-2">
+              <div className="flex items-center gap-3">
+                <SkeletonPrim className="w-10 h-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonPrim className="h-4 w-2/5" />
+                  <SkeletonPrim className="h-3 w-1/3" />
+                </div>
+                <SkeletonPrim className="h-5 w-16 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
