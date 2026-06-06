@@ -35,6 +35,7 @@ import {
   setBeautyEnabled as setNativeBeautyEnabled,
   type ProBeautyLevels,
 } from '@/plugins/GPUPixelBeauty';
+import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 
 const ENABLED_KEY = 'pkg417.beauty.enabled.v1';
 
