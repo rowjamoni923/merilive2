@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
+import Skeleton from "@/components/Skeleton";
 
 
 interface Viewer {
@@ -190,8 +191,16 @@ export const ViewerListPanel = ({
             >
 
               {loading ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                <div className="space-y-2 p-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-2/3" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : viewers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-white/70">

@@ -7,6 +7,7 @@ import { ArrowRight, Sparkles, CheckCircle2, X, ArrowDownUp } from "lucide-react
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { sendNotification } from "@/services/notificationService";
+import Skeleton from "@/components/Skeleton";
 
 /**
  * Tier shape matches the current `user_beans_exchange_tiers` schema:
@@ -290,8 +291,17 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="w-8 h-8 border-2 border-warning-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-border">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
             </div>
           ) : tiers.length === 0 ? (
             <div className="py-10 text-center text-muted-foreground text-sm">
