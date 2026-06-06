@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { createPortal } from "react-dom";
-import { isNativeAndroidApp } from "@/utils/nativeUtils";
+import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
+
 import { useProCamera } from "@/camera/useProCamera";
 import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
@@ -338,6 +339,8 @@ export function ActiveCallScreen({
         sound_url: detail.giftSoundUrl || null,
       } as any);
       playSound('gift');
+      hapticFeedback('gift');
+
       addFlyingGift({
         senderId: detail.senderId,
         senderName: detail.senderName || "User",
@@ -405,7 +408,9 @@ export function ActiveCallScreen({
       // or call gifts double-deduct the app-wide diamond cache.
       userCoinsRef.current = Math.max(0, availableCoins - totalCost);
       setUserCoins(userCoinsRef.current);
+      hapticFeedback('gift');
       warmGiftForInstantPlay(gift as any);
+
 
       // Show local animation immediately; the receiver gets the LiveKit packet
       // from sendGift's optimistic path without waiting for the DB round-trip.

@@ -8,8 +8,10 @@ import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/component
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
+import { hapticFeedback } from "@/utils/nativeUtils";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
+
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { VoiceWaveform } from "@/components/chat/VoiceWaveform";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
@@ -1891,8 +1893,10 @@ const Chat = () => {
           'text',
           replyingTo?.messageId
         );
+        hapticFeedback('message');
         
         // Clear reply after successful send
+
         setReplyingTo(null);
         
         // Track message sent for task progress

@@ -70,7 +70,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
+import { hapticFeedback } from "@/utils/nativeUtils";
 import { toast } from "@/utils/hybridToast";
+
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { usePKOpponentRoom } from "@/hooks/usePKOpponentRoom";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
@@ -2677,9 +2679,11 @@ const LiveStream = () => {
     if (!currentUserId || !hostInfo || !id) return;
     
     if (userCoins < gift.coins) {
+      hapticFeedback('error');
       toast.error("Not enough diamonds!");
       return;
     }
+
     
     const result = await sendGift({
       giftId: gift.id,
@@ -2701,14 +2705,15 @@ const LiveStream = () => {
       streamId: id,
     });
 
-    if (!result.success) {
+    if (result.success) {
+      hapticFeedback('gift');
+      setUserCoins(prev => prev - (result.transaction?.coins_spent || gift.coins));
+      setShowGiftPanel(false);
+    } else {
+      hapticFeedback('error');
       toast.error(result?.error || "Failed to send gift");
-      return;
     }
-    
-    setUserCoins(prev => prev - (result.transaction?.coins_spent || gift.coins));
-    // Balance will be refreshed by the background gift processing flow below
-    setShowGiftPanel(false);
+
   };
 
   // Get remote video track (for viewers) - with logging for debugging
