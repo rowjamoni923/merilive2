@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { PageSkeleton } from "@/components/common/PageSkeleton";
+import { Skeleton } from "@/components/Skeleton";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatCompactCount } from "@/utils/formatCount";
@@ -2922,8 +2923,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
               <TabsContent value="history" className="mt-4 space-y-3 max-h-[420px] overflow-y-auto">
                 {historyLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="space-y-2 py-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-card/50">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-2/3" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                        <Skeleton className="h-6 w-16" />
+                      </div>
+                    ))}
                   </div>
                 ) : transferHistory.length === 0 ? (
                   <div className="text-center py-10">
