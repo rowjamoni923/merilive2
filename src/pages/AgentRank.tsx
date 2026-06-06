@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
