@@ -323,6 +323,31 @@ class NativeLiveKitController {
   }
 
 
+  // --- Picture-in-Picture (Step 29) ----------------------------
+  async isPictureInPictureSupported(): Promise<{ supported: boolean; inPip: boolean }> {
+    try { return await NativeLiveKit.isPictureInPictureSupported(); }
+    catch { return { supported: false, inPip: false }; }
+  }
+
+  async enterPictureInPicture(opts?: { aspect?: string }): Promise<boolean> {
+    try {
+      const r = await NativeLiveKit.enterPictureInPicture(opts);
+      return !!r.entered;
+    } catch { return false; }
+  }
+
+  async setAutoPipOnLeaveHint(enabled: boolean, aspect?: string): Promise<boolean> {
+    try {
+      const r = await NativeLiveKit.setAutoPipOnLeaveHint({ enabled, aspect });
+      return !!r.supported;
+    } catch { return false; }
+  }
+
+  async getPipState() {
+    try { return await NativeLiveKit.getPipState(); }
+    catch { return null; }
+  }
+
   // --- Lifecycle event subscriptions (Step 17) -------------------
   // Returns an unsubscribe function. Safe no-op on web/iOS.
   /** Fires while LiveKit recovers from a transient network drop. */
@@ -344,6 +369,20 @@ class NativeLiveKitController {
     let handle: PluginListenerHandle | null = null;
     let cancelled = false;
     NativeLiveKit.addListener('audio-interruption', cb)
+      .then((h) => { if (cancelled) h.remove(); else handle = h; })
+      .catch(() => { /* not implemented on web/iOS */ });
+    return () => {
+      cancelled = true;
+      try { handle?.remove(); } catch { /* noop */ }
+      handle = null;
+    };
+  }
+
+  /** Fires when the activity enters or leaves PiP mode. */
+  onPipChanged(cb: (e: { isInPip: boolean }) => void): () => void {
+    let handle: PluginListenerHandle | null = null;
+    let cancelled = false;
+    NativeLiveKit.addListener('pip-changed', cb)
       .then((h) => { if (cancelled) h.remove(); else handle = h; })
       .catch(() => { /* not implemented on web/iOS */ });
     return () => {

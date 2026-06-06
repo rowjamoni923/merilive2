@@ -60,6 +60,7 @@ interface LiveKitCallState {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
   connectionState: RTCPeerConnectionState | 'new';
+  isInPip: boolean;
 }
 
 export function useLiveKitCall(
@@ -78,6 +79,7 @@ export function useLiveKitCall(
     isAudioEnabled: true,
     isVideoEnabled: true,
     connectionState: 'new',
+    isInPip: false,
   });
 
   const roomRef = useRef<Room | null>(null);
@@ -167,6 +169,10 @@ export function useLiveKitCall(
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       }
+    },
+    onPipChanged: (isInPip) => {
+      if (deadRef.current) return;
+      setState(p => ({ ...p, isInPip }));
     },
   });
 
@@ -260,6 +266,7 @@ export function useLiveKitCall(
       isAudioEnabled: true,
       isVideoEnabled: true,
       connectionState: 'new',
+      isInPip: false,
     });
   }, []);
 
@@ -352,6 +359,9 @@ export function useLiveKitCall(
                   attachLocal: true,
                   callType: 'Video Call',
                 });
+                // Step 29 — auto-enable PiP on leave hint for 1:1 calls.
+                // Parity with WhatsApp/Meet: home button = floating window.
+                nativeLiveKitController.setAutoPipOnLeaveHint(true, '9:16').catch(() => {});
                 lastNErr = null;
                 break;
               } catch (e) {
