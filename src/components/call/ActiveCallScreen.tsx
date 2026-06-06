@@ -768,6 +768,7 @@ export function ActiveCallScreen({
                 </span>
             </div>
           </div>
+          </div>
 
           {/* Center - Duration timer */}
           <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full backdrop-blur-xl shrink-0"
@@ -850,6 +851,7 @@ export function ActiveCallScreen({
           </div>
         </div>
       </div>
+        </div>
     )}
 
       {/* ===== MAIN VIDEO VIEW ===== */}
@@ -1048,8 +1050,10 @@ export function ActiveCallScreen({
             })}
           </div>
         </div>
-      </div>
-    )}
+      )}
+
+
+
 
       {/* Three dot menu - positioned on right side above bottom bar */}
       <AnimatePresence>
