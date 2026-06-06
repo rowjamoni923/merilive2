@@ -211,6 +211,44 @@ const cleanGiftMessageForPreview = (content: string): string => {
   return urlRemoved;
 };
 
+// Build a clean WhatsApp-style preview for reply bars / quoted snippets.
+// Hides raw URLs and gift payloads; surfaces a friendly label + optional thumb.
+const summarizeMessageForReply = (
+  content: string,
+  messageType?: string | null
+): { label: string; thumb: string | null; kind: 'gift' | 'image' | 'video' | 'audio' | 'text' } => {
+  const c = (content || '').trim();
+  const type = (messageType || '').toLowerCase();
+
+  if (type === 'gift' || /^\[Gift:/i.test(c)) {
+    const { mediaUrl, emoji } = parseGiftContent(c);
+    const nameMatch = c.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+    const giftName = nameMatch?.[1]?.trim() || 'Gift';
+    const count = nameMatch?.[2];
+    const label = `${emoji || '🎁'} ${giftName}${count && Number(count) > 1 ? ` ×${count}` : ''}`;
+    const thumb = mediaUrl && /\.(png|jpe?g|gif|webp)(\?|$)/i.test(mediaUrl) ? mediaUrl : null;
+    return { label, thumb, kind: 'gift' };
+  }
+
+  if (type === 'audio' || /^\[(Voice|Audio):/i.test(c) || /\.(webm|mp3|wav|ogg|m4a)(\?|$)/i.test(c)) {
+    return { label: '🎤 Voice message', thumb: null, kind: 'audio' };
+  }
+
+  if (type === 'image' || /^\[Image:/i.test(c) || /\.(jpe?g|png|gif|webp)(\?|$)/i.test(c)) {
+    const url = c.replace(/^\[Image:\s*/i, '').replace(/\]$/, '');
+    return { label: '📷 Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
+  }
+
+  if (type === 'video' || /^\[Video:/i.test(c) || /\.(mp4|mov|avi|mkv)(\?|$)/i.test(c)) {
+    return { label: '🎬 Video', thumb: null, kind: 'video' };
+  }
+
+  const text = c.replace(/^\[[^\]]+\]\s*/, '').slice(0, 80) || 'Message';
+  return { label: text, thumb: null, kind: 'text' };
+};
+
+
+
 const messageTimestamp = (value?: string | null) => {
   const time = value ? new Date(value).getTime() : 0;
   return Number.isFinite(time) ? time : 0;
