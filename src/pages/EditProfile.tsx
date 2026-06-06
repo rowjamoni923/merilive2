@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import {
   ArrowLeft,
   ChevronRight,
@@ -498,7 +498,14 @@ const EditProfile = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return (
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden"
+        headerClassName="bg-amber-100/50 border-b border-amber-200/30"
+        rows={5}
+        hero
+      />
+    );
   }
 
   return (
