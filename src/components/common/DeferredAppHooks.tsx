@@ -12,6 +12,8 @@ import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
 import { useStreamQualityDirector } from "@/hooks/useStreamQualityDirector";
 import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
 import { useNativeImageInterceptor } from "@/hooks/useNativeImagePrefetch";
+import { useNativeGiftDispatcher } from "@/hooks/useNativeGiftDispatcher";
+import { useNativeEntryDispatcher } from "@/hooks/useNativeEntryDispatcher";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import FeedbackDialog from "@/components/common/FeedbackDialog";
 import { queryClient } from "@/lib/queryClient";
@@ -67,6 +69,12 @@ const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null
   // gated by `nativeImageLoader` flag in Developer Options screen). Reacts
   // live to flag toggles — no rebuild needed to flip on/off.
   useNativeImageInterceptor();
+  // Pkg438 Phase B: Android-native gift + entry overlay dispatchers.
+  // Flag-gated (`nativeGiftAnim` / `nativeEntryAnim`) + Android-only +
+  // plugin-availability checked — full no-op on web / iOS / older APKs,
+  // so the existing WebView gift/entry pipeline is unaffected.
+  useNativeGiftDispatcher();
+  useNativeEntryDispatcher(userId);
 
 
   if (isAdminRoute) return null;
