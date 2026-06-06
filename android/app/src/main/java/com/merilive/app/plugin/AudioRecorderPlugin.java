@@ -54,6 +54,8 @@ public class AudioRecorderPlugin extends Plugin {
     private long pauseStartedMs;
     private boolean isPaused;
     private PluginCall pendingStartCall;
+    private java.util.Timer amplitudeTimer;
+
 
     @PluginMethod
     public void start(PluginCall call) {
@@ -111,6 +113,8 @@ public class AudioRecorderPlugin extends Plugin {
             startedAtMs = System.currentTimeMillis();
             pausedAccumMs = 0;
             isPaused = false;
+            startAmplitudeTimer();
+
 
             JSObject ret = new JSObject();
             ret.put("path", outputFile.getAbsolutePath());
@@ -132,6 +136,8 @@ public class AudioRecorderPlugin extends Plugin {
             recorder.pause();
             isPaused = true;
             pauseStartedMs = System.currentTimeMillis();
+            stopAmplitudeTimer();
+
             call.resolve();
         } catch (Exception e) {
             call.reject("pause_failed: " + e.getMessage());
@@ -149,6 +155,8 @@ public class AudioRecorderPlugin extends Plugin {
             recorder.resume();
             pausedAccumMs += System.currentTimeMillis() - pauseStartedMs;
             isPaused = false;
+            startAmplitudeTimer();
+
             call.resolve();
         } catch (Exception e) {
             call.reject("resume_failed: " + e.getMessage());
@@ -233,6 +241,7 @@ public class AudioRecorderPlugin extends Plugin {
             try { recorder.release(); } catch (Exception ignored) {}
             recorder = null;
         }
+        stopAmplitudeTimer();
         if (outputFile != null && outputFile.exists()) {
             //noinspection ResultOfMethodCallIgnored
             outputFile.delete();
@@ -241,6 +250,32 @@ public class AudioRecorderPlugin extends Plugin {
         isPaused = false;
         pausedAccumMs = 0;
     }
+
+    private void startAmplitudeTimer() {
+        stopAmplitudeTimer();
+        amplitudeTimer = new java.util.Timer();
+        amplitudeTimer.scheduleAtFixedRate(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                if (recorder != null && !isPaused) {
+                    try {
+                        int amp = recorder.getMaxAmplitude();
+                        JSObject data = new JSObject();
+                        data.put("amplitude", amp);
+                        notifyListeners("audioRecorderAmplitude", data);
+                    } catch (Exception ignored) {}
+                }
+            }
+        }, 100, 100); // 10fps for waveform
+    }
+
+    private void stopAmplitudeTimer() {
+        if (amplitudeTimer != null) {
+            amplitudeTimer.cancel();
+            amplitudeTimer = null;
+        }
+    }
+
 
     @Override
     protected void handleOnDestroy() {

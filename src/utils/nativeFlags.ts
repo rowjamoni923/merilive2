@@ -8,7 +8,9 @@ export type NativeFlagKey =
   | 'videoPrecache'
   | 'pipCall'
   | 'giftPanelNative'
+  | 'voiceNative'
   | 'nativeChatUI' // Legacy
+
   | 'nativeFeed' // Legacy
   | 'nativeImageLoader' // Legacy
   | 'nativeReelsPlayer' // Legacy
@@ -69,6 +71,12 @@ export const NATIVE_FLAG_META: NativeFlagMeta[] = [
     label: 'Native Gift Panel',
     description: 'Use Material BottomSheet for buttery smooth gift selecting.',
   },
+  {
+    key: 'voiceNative',
+    label: 'Native Voice Recorder',
+    description: 'Use native Android MediaRecorder with real-time waveform visualization.',
+  },
+
   // Legacy aliases to fix build errors in individual feature utils
   { key: 'nativeChatUI', label: '', description: '', hidden: true },
   { key: 'nativeFeed', label: '', description: '', hidden: true },
