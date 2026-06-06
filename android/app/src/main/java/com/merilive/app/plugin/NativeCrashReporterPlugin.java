@@ -1,6 +1,7 @@
 package com.merilive.app.plugin;
 
 import android.os.Build;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -8,6 +9,10 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
+/**
+ * Pkg435 — added {@code setAttribute} for per-event Crashlytics custom keys
+ * (was already production-grade otherwise).
+ */
 @CapacitorPlugin(name = "NativeCrashReporter")
 public class NativeCrashReporterPlugin extends Plugin {
 
@@ -50,6 +55,19 @@ public class NativeCrashReporterPlugin extends Plugin {
             call.resolve();
         } catch (Exception e) {
             call.reject("Failed to set user ID");
+        }
+    }
+
+    @PluginMethod
+    public void setAttribute(PluginCall call) {
+        String key = call.getString("key");
+        String value = call.getString("value");
+        if (key == null || value == null) { call.reject("Missing key or value"); return; }
+        try {
+            FirebaseCrashlytics.getInstance().setCustomKey(key, value);
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("setAttribute failed: " + t.getMessage());
         }
     }
 
