@@ -26,26 +26,29 @@ public class InAppReviewPlugin extends Plugin {
 
     @PluginMethod
     public void request(PluginCall call) {
-        final Activity activity = getActivity();
-        if (activity == null) {
-            call.reject("no activity");
-            return;
-        }
-        final ReviewManager manager = ReviewManagerFactory.create(getContext());
-        manager.requestReviewFlow().addOnCompleteListener(req -> {
-            if (!req.isSuccessful()) {
-                JSObject ret = new JSObject();
-                ret.put("shown", false);
-                ret.put("reason", req.getException() == null ? "unknown" : req.getException().getMessage());
-                call.resolve(ret);
-                return;
-            }
-            ReviewInfo info = req.getResult();
-            manager.launchReviewFlow(activity, info).addOnCompleteListener(flow -> {
-                JSObject ret = new JSObject();
-                ret.put("shown", flow.isSuccessful());
-                call.resolve(ret);
+        try {
+            final Activity activity = getActivity();
+            if (activity == null) { call.reject("no activity"); return; }
+            final ReviewManager manager = ReviewManagerFactory.create(getContext());
+            manager.requestReviewFlow().addOnCompleteListener(req -> {
+                try {
+                    if (!req.isSuccessful()) {
+                        JSObject ret = new JSObject();
+                        ret.put("shown", false);
+                        ret.put("reason", req.getException() == null ? "unknown" : req.getException().getMessage());
+                        call.resolve(ret);
+                        return;
+                    }
+                    ReviewInfo info = req.getResult();
+                    manager.launchReviewFlow(activity, info).addOnCompleteListener(flow -> {
+                        try {
+                            JSObject ret = new JSObject();
+                            ret.put("shown", flow.isSuccessful());
+                            call.resolve(ret);
+                        } catch (Throwable t) { call.reject(t.getMessage() == null ? "launchReviewFlow failed" : t.getMessage()); }
+                    });
+                } catch (Throwable t) { call.reject(t.getMessage() == null ? "requestReviewFlow failed" : t.getMessage()); }
             });
-        });
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "request failed" : t.getMessage()); }
     }
 }

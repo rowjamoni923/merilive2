@@ -25,24 +25,30 @@ public class AppLocalePlugin extends Plugin {
 
     @PluginMethod
     public void setAppLocale(PluginCall call) {
-        final String tag = call.getString("language", "");
-        getBridge().getActivity().runOnUiThread(() -> {
-            LocaleListCompat list = (tag == null || tag.isEmpty() || "auto".equalsIgnoreCase(tag))
-                    ? LocaleListCompat.getEmptyLocaleList()
-                    : LocaleListCompat.forLanguageTags(tag);
-            AppCompatDelegate.setApplicationLocales(list);
-            JSObject ret = new JSObject();
-            ret.put("language", tag);
-            ret.put("api", Build.VERSION.SDK_INT);
-            call.resolve(ret);
-        });
+        try {
+            final String tag = call.getString("language", "");
+            getBridge().getActivity().runOnUiThread(() -> {
+                try {
+                    LocaleListCompat list = (tag == null || tag.isEmpty() || "auto".equalsIgnoreCase(tag))
+                            ? LocaleListCompat.getEmptyLocaleList()
+                            : LocaleListCompat.forLanguageTags(tag);
+                    AppCompatDelegate.setApplicationLocales(list);
+                    JSObject ret = new JSObject();
+                    ret.put("language", tag);
+                    ret.put("api", Build.VERSION.SDK_INT);
+                    call.resolve(ret);
+                } catch (Throwable t) { call.reject(t.getMessage() == null ? "setAppLocale failed" : t.getMessage()); }
+            });
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "setAppLocale failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void getAppLocale(PluginCall call) {
-        LocaleListCompat list = AppCompatDelegate.getApplicationLocales();
-        JSObject ret = new JSObject();
-        ret.put("language", list.isEmpty() ? "" : list.toLanguageTags());
-        call.resolve(ret);
+        try {
+            LocaleListCompat list = AppCompatDelegate.getApplicationLocales();
+            JSObject ret = new JSObject();
+            ret.put("language", list.isEmpty() ? "" : list.toLanguageTags());
+            call.resolve(ret);
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "getAppLocale failed" : t.getMessage()); }
     }
 }

@@ -37,72 +37,88 @@ class NativeRouterShellPlugin : Plugin() {
     private fun dp(v: Int): Int =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), activity.resources.displayMetrics).toInt()
 
+    private inline fun safe(call: PluginCall, block: () -> Unit) {
+        try { block() } catch (t: Throwable) { call.reject(t.message ?: "router shell error") }
+    }
+
     @PluginMethod
-    fun open(call: PluginCall) {
+    fun open(call: PluginCall) = safe(call) {
         val title = call.getString("title") ?: ""
         val tabsArr = call.getArray("tabs") ?: JSONArray()
         val active = call.getString("activeTabId")
         activity.runOnUiThread {
-            ensureOverlay()
-            titleView?.text = title
-            tabs.clear()
-            for (i in 0 until tabsArr.length()) tabs.add(tabsArr.getJSONObject(i))
-            activeTabId = active ?: tabs.firstOrNull()?.optString("id")
-            rebuildTabs()
-            rootOverlay?.visibility = View.VISIBLE
-            call.resolve()
+            safe(call) {
+                ensureOverlay()
+                titleView?.text = title
+                tabs.clear()
+                for (i in 0 until tabsArr.length()) tabs.add(tabsArr.getJSONObject(i))
+                activeTabId = active ?: tabs.firstOrNull()?.optString("id")
+                rebuildTabs()
+                rootOverlay?.visibility = View.VISIBLE
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun close(call: PluginCall) {
+    fun close(call: PluginCall) = safe(call) {
         activity.runOnUiThread {
-            rootOverlay?.visibility = View.GONE
-            call.resolve()
+            safe(call) {
+                rootOverlay?.visibility = View.GONE
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun setTitle(call: PluginCall) {
+    fun setTitle(call: PluginCall) = safe(call) {
         val title = call.getString("title") ?: ""
         activity.runOnUiThread {
-            titleView?.text = title
-            call.resolve()
+            safe(call) {
+                titleView?.text = title
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun setActiveTab(call: PluginCall) {
-        val id = call.getString("tabId") ?: return call.reject("tabId required")
+    fun setActiveTab(call: PluginCall) = safe(call) {
+        val id = call.getString("tabId") ?: return@safe call.reject("tabId required")
         activity.runOnUiThread {
-            activeTabId = id
-            paintTabs()
-            call.resolve()
+            safe(call) {
+                activeTabId = id
+                paintTabs()
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun setBadge(call: PluginCall) {
-        val id = call.getString("tabId") ?: return call.reject("tabId required")
+    fun setBadge(call: PluginCall) = safe(call) {
+        val id = call.getString("tabId") ?: return@safe call.reject("tabId required")
         val count = call.getInt("count") ?: 0
         activity.runOnUiThread {
-            val idx = tabs.indexOfFirst { it.optString("id") == id }
-            if (idx >= 0) {
-                tabs[idx].put("badge", count)
-                rebuildTabs()
+            safe(call) {
+                val idx = tabs.indexOfFirst { it.optString("id") == id }
+                if (idx >= 0) {
+                    tabs[idx].put("badge", count)
+                    rebuildTabs()
+                }
+                call.resolve()
             }
-            call.resolve()
         }
     }
 
     @PluginMethod
-    fun setTabs(call: PluginCall) {
+    fun setTabs(call: PluginCall) = safe(call) {
         val tabsArr = call.getArray("tabs") ?: JSONArray()
         activity.runOnUiThread {
-            tabs.clear()
-            for (i in 0 until tabsArr.length()) tabs.add(tabsArr.getJSONObject(i))
-            rebuildTabs()
-            call.resolve()
+            safe(call) {
+                tabs.clear()
+                for (i in 0 until tabsArr.length()) tabs.add(tabsArr.getJSONObject(i))
+                rebuildTabs()
+                call.resolve()
+            }
         }
     }
 
