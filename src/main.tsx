@@ -13,6 +13,7 @@ import { initLocalizationEngine } from "./i18n/engine";
 initLocalizationEngine();
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { installColdStartCapture } from "./utils/coldStartCapture";
+import { installRippleTracker } from "./utils/rippleTracker";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 
@@ -41,6 +42,7 @@ schedule(() => {
     startNetworkResilienceEngine();
   }
   installAudioUnlock();
+  installRippleTracker();
 });
 
 // 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.
