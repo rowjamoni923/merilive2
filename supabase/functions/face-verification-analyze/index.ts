@@ -728,12 +728,11 @@ serve(async (req) => {
       .eq("id", submissionId);
 
     // ────────────────────────────────────────────────────────────────────
-    // POLICY (per product owner, 2026-05-23):
-    //   • The ONLY case that auto-rejects is `gender_mismatch` — the user
-    //     declared one gender at signup but the live face clearly shows
-    //     another. Status → 'rejected', client routes to support ticket.
+    // POLICY (Updated 2026-06-06):
+    //   • The ONLY case that auto-rejects is `gender_mismatch` OR `is_duplicate_face`.
+    //   • For `is_duplicate_face`, we provide detailed account info in the rejection reason.
     //   • Every other unclear signal (liveness_failed, replay_suspected,
-    //     profile_face_mismatch, duplicate_face, below-threshold scores,
+    //     profile_face_mismatch, below-threshold scores,
     //     occlusion, etc.) goes to admin MANUAL REVIEW — never auto-reject.
     //   • Clean submissions auto-approve (~90/100 target).
     // ────────────────────────────────────────────────────────────────────
@@ -749,18 +748,35 @@ serve(async (req) => {
       genderConf >= 70 &&
       !frontError
     );
-    const hardAutoReject: "gender_mismatch" | null = (genderDeclarationMismatch || strictGenderMismatch) ? "gender_mismatch" : null;
+    
+    // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
+    // If there is a clear mismatch, we auto-reject.
+    const isDuplicate = Boolean(duplicateBlock);
+    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "photo_mismatch" | null = null;
+    
+    if (isDuplicate) hardAutoReject = "duplicate_face";
+    else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
+    else if (profileMismatch || hostPhotosMismatch) hardAutoReject = "photo_mismatch";
 
     if (hardAutoReject) {
-      // Auto-reject: flip status to 'rejected' so admin doesn't have to
-      // touch it, and client sees rejection + support routing.
+      let rReason = "Verification rejected.";
+      if (hardAutoReject === "gender_mismatch") {
+        rReason = `Gender mismatch detected. Your declared gender (${declaredGender || expectedGender}) does not match our scan (${rawG}). Please contact Support Chat to resolve this.`;
+      } else if (hardAutoReject === "duplicate_face") {
+        const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
+        const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
+        rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
+      } else if (hardAutoReject === "photo_mismatch") {
+        rReason = `Unified scan failed. The face in your uploaded photos does not match the face in your verification video. All photos must be of the same real person. Please contact Support Chat if you believe this is an error.`;
+      }
+
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
           status: "rejected",
+          rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${detectedGenderForDecision}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
-          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${detectedGenderForDecision} (${genderConf.toFixed(1)}%)`,
+          admin_notes: `${summary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "Mismatch in photos vs video"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
