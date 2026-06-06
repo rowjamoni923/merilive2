@@ -54,6 +54,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     autoRefreshToken: true,
     lock: inProcessAuthLock,
   },
+  ...(__realtimeTransport ? { realtime: { transport: __realtimeTransport, params: { eventsPerSecond: 10 } } } : {}),
   global: {
     fetch: (input, init) => {
       const method = (init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
