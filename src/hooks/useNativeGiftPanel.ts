@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import NativeGiftPanel, { GiftItem } from '@/plugins/NativeGiftPanel';
-import { useNativeFlags } from './useNativeFlags';
+import { getNativeFlags } from '@/utils/nativeFlags';
 
 export const useNativeGiftPanel = (
   isOpen: boolean,
@@ -10,7 +10,8 @@ export const useNativeGiftPanel = (
   gifts: GiftItem[],
   balance: number
 ) => {
-  const { giftPanelNative } = useNativeFlags();
+  const flags = getNativeFlags();
+  const giftPanelNative = flags.giftPanelNative;
 
   useEffect(() => {
     if (!giftPanelNative || !isOpen) {

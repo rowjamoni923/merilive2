@@ -4,7 +4,7 @@ export interface GiftItem {
   id: string;
   name: string;
   coins: number;
-  icon_url: string;
+  icon_url?: string | null;
   category: string;
 }
 
