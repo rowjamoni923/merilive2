@@ -174,9 +174,8 @@ export default function NotificationSettings() {
 
   if (loading) {
     return (
-      <div className="mobile-page bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PageSkeleton className="mobile-page flex flex-col bg-background" rows={6} />
+
     );
   }
 
