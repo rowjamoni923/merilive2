@@ -135,8 +135,19 @@ Deno.serve(async (req) => {
           custom_price_usd?: number;
           /** "helper_application" (default, $100 floor) | "campaign" (no floor — campaign recharge mirrors My Diamond package flow) */
           purpose?: "helper_application" | "campaign";
+          /** Pkg433: stash helper-application context so the cron can auto-grant the Trader Wallet
+           *  even if the user closes the app right after paying. Shape:
+           *  { selected_level, contact_whatsapp, contact_telegram, reason, payroll_requested } */
+          helper_application_intent?: {
+            selected_level?: number;
+            contact_whatsapp?: string | null;
+            contact_telegram?: string | null;
+            reason?: string | null;
+            payroll_requested?: boolean;
+          };
         }
       | null;
+
 
     if (!body?.pay_currency) {
       return json({ error: "pay_currency is required" }, 400);
@@ -333,6 +344,20 @@ Deno.serve(async (req) => {
     }
 
 
+    // Pkg433: sanitise + persist helper-application intent for cron-side auto-grant.
+    let intentPayload: Record<string, unknown> | null = null;
+    if (body.helper_application_intent && typeof body.helper_application_intent === "object" && target === "user_diamond") {
+      const i = body.helper_application_intent;
+      const lvl = Number(i.selected_level);
+      intentPayload = {
+        selected_level: Number.isFinite(lvl) && lvl >= 1 && lvl <= 5 ? Math.floor(lvl) : 1,
+        contact_whatsapp: typeof i.contact_whatsapp === "string" ? i.contact_whatsapp.slice(0, 120) : null,
+        contact_telegram: typeof i.contact_telegram === "string" ? i.contact_telegram.slice(0, 120) : null,
+        reason: typeof i.reason === "string" ? i.reason.slice(0, 1000) : null,
+        payroll_requested: Boolean(i.payroll_requested),
+      };
+    }
+
     const { data: row, error: insErr } = await admin
       .from("swift_pay_topups")
       .insert({
@@ -352,9 +377,11 @@ Deno.serve(async (req) => {
         status: "pending",
         target_type: target,
         target_helper_id: targetHelperId,
+        helper_application_intent: intentPayload,
       })
       .select("id, pay_address, pay_amount, pay_currency, pay_network, expires_at, status")
       .single();
+
 
     if (insErr || !row) {
       console.error("[swift-pay-create-deposit] insert failed", insErr);

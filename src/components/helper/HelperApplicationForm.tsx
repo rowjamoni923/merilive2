@@ -840,11 +840,20 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         userCustomCoins={diamondsForUpgrade}
         userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
+        helperApplicationIntent={isPaidLevel ? {
+          selected_level: selectedLevel,
+          contact_whatsapp: contactWhatsapp || null,
+          contact_telegram: contactTelegram || null,
+          reason: reason || null,
+          payroll_requested: selectedLevel === 5 ? payrollRequested : false,
+        } : null}
         onCredited={async (_coins, topupId) => {
           setPaidConfirmed(true);
           // Close payment modal and submit application automatically.
           // Pass the real swift_pay_topups.id so Pkg65 auto-level-detection
-          // reads the on-chain verified deposit amount.
+          // reads the on-chain verified deposit amount. If the user closes the
+          // app before this fires, Pkg433 cron will auto-grant from the stored
+          // helper_application_intent so the Trader Wallet still activates.
           setSwiftPayOpen(false);
           await submitApplication(topupId || "swift_pay_auto");
         }}
@@ -852,5 +861,6 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     </div>
   );
 };
+
 
 export default HelperApplicationForm;

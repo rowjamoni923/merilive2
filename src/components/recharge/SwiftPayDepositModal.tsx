@@ -34,8 +34,19 @@ interface Props {
   userCustomPurpose?: "helper_application" | "campaign";
   /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number, topupId?: string) => void;
+  /** Pkg433: when set, the deposit row stores this intent so the swift-pay-poll-deposits
+   *  cron auto-grants the Trader Wallet on credit — even if the user closes the app
+   *  immediately after paying. Only honoured for mode="user" / custom user-diamond flow. */
+  helperApplicationIntent?: {
+    selected_level: number;
+    contact_whatsapp?: string | null;
+    contact_telegram?: string | null;
+    reason?: string | null;
+    payroll_requested?: boolean;
+  } | null;
 
 }
+
 
 // SwiftPay enabled currencies (verified live against the gateway API).
 // Anything outside this list returns "currency not enabled" — do NOT add
@@ -133,8 +144,10 @@ export default function SwiftPayDepositModal({
   userCustomLabel = null,
   userCustomPurpose = "helper_application",
   onCredited,
+  helperApplicationIntent = null,
 
 }: Props) {
+
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
@@ -215,9 +228,13 @@ export default function SwiftPayDepositModal({
           requestBody.custom_coins = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
           requestBody.purpose = userCustomPurpose;
+          if (helperApplicationIntent) {
+            requestBody.helper_application_intent = helperApplicationIntent;
+          }
         } else {
           requestBody.package_id = pkg.id;
         }
+
 
         const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
           body: requestBody,
@@ -283,7 +300,7 @@ export default function SwiftPayDepositModal({
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose, helperApplicationIntent]);
 
   useEffect(() => {
     if (step !== "pay" || !deposit?.topup_id) return;

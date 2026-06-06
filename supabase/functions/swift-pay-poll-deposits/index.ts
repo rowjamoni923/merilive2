@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
   // Build the candidate list
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, created_at")
+    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, created_at")
     .in("status", ["pending", "paid"])
     .order("created_at", { ascending: true })
     .limit(50);
@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
   const { data: pending, error: pErr } = await query;
   if (pErr) return json({ error: pErr.message }, 500);
   if (!pending || pending.length === 0) return json({ checked: 0, credited: 0 });
+
 
   const balanceCache = new Map<string, { balance: number; total_deposited: number }>();
   let credited = 0;
@@ -169,12 +170,30 @@ Deno.serve(async (req) => {
         credited_at: new Date().toISOString(),
       }).eq("id", row.id);
 
+      // Pkg433: if the user opened a helper-upgrade flow and stashed intent on the
+      // topup row, auto-grant the Trader Wallet right now — even if the user closed
+      // the app right after paying. RPC is idempotent on payment_transaction_id.
+      let autoGrantResult: any = null;
+      if (targetType === "user_diamond" && (row as any).helper_application_intent) {
+        try {
+          const { data: grantData, error: grantErr } = await admin.rpc(
+            "auto_grant_helper_from_crypto_payment" as any,
+            { _topup_id: row.id },
+          );
+          autoGrantResult = grantErr ? { error: grantErr.message } : grantData;
+          if (grantErr) console.error("[swift-pay-poll-deposits] auto-grant error", row.id, grantErr);
+        } catch (ge) {
+          console.error("[swift-pay-poll-deposits] auto-grant throw", row.id, ge);
+        }
+      }
+
       credited++;
-      results.push({ id: row.id, credited: true, coins: row.coins_amount, target: targetType, result: creditRes });
+      results.push({ id: row.id, credited: true, coins: row.coins_amount, target: targetType, result: creditRes, auto_grant: autoGrantResult });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });
     }
+
   }
 
   return json({ checked: pending.length, credited, results });
