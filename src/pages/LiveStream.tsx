@@ -766,6 +766,24 @@ const LiveStream = () => {
     },
   });
 
+  // Pkg444 Phase-6: host mic auto-mutes on transient audio-focus loss
+  // (incoming phone call, alarm, voice assistant) and restores on gain
+  // — unless the host had already muted themselves.
+  useAudioFocusAutoMute({
+    enabled: isHost,
+    intent: 'media',
+    isMicEnabled: !isHostMicMuted,
+    setMicEnabled: (want) => {
+      const wantMuted = !want;
+      if (wantMuted !== isHostMicMuted) {
+        setIsHostMicMuted(wantMuted);
+        try { void toggleAudio(want); } catch { /* ignore */ }
+      }
+    },
+  });
+
+
+
   // Pkg100: PK Cross-room Audio Bridge — secondary subscribe-only connection
   // to the opponent's stream room so both hosts + all audiences hear each other.
   const opponentStreamId = pkBattleState.isActive
