@@ -139,6 +139,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.NativeRouterShellPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeGiftPanelPlugin.class);
         registerPlugin(com.merilive.app.plugin.ImageCropperPlugin.class);
+        // Pkg441 — Phase-1 live-streaming stability
+        registerPlugin(com.merilive.app.plugin.NetworkQualityPlugin.class);
+        registerPlugin(com.merilive.app.plugin.ThermalBatteryPlugin.class);
 
 
 
