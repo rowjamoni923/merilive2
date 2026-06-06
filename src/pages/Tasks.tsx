@@ -9,7 +9,7 @@ import { getCachedUser } from "@/utils/cachedAuth";
 import { getTaskDate, getMsUntilNextReset } from "@/utils/taskDateUtils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";

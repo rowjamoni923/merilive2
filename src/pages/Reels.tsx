@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

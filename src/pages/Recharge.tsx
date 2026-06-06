@@ -6,7 +6,7 @@ import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
 import RechargeBannerCarousel from "@/components/recharge/RechargeBannerCarousel";
 
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
