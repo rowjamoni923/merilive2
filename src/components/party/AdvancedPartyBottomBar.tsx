@@ -8,7 +8,6 @@ import {
   Settings,
   Sparkles,
   X,
-  Loader2,
   Mic,
   MicOff,
   Eye,
@@ -20,6 +19,7 @@ import {
   Crown,
   Star
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { Button } from "@/components/ui/button";

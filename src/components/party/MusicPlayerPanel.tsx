@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music, Heart, Loader2, Upload, Trash2, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
