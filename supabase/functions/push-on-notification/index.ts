@@ -236,9 +236,6 @@ serve(async (req) => {
                   ...(imageUrl ? { image: String(imageUrl) } : {}),
                 },
               },
-                  ...(imageUrl ? { image: String(imageUrl) } : {}),
-                },
-              },
               apns: {
                 payload: {
                   aps: {
