@@ -3,6 +3,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
 
