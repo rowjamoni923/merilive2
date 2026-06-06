@@ -1187,6 +1187,7 @@ export function ActiveCallScreen({
             </motion.button>
           </div>
         </div>
+          </div>
         </div>
       )}
 
