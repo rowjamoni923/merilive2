@@ -2852,10 +2852,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     />
                     {selfRechargeAmount && parseInt(selfRechargeAmount) > 0 && (
                       <div className="text-xs space-y-1 mt-2">
-                        <p className="text-amber-600">
-                          Recharge source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
+                        <p className="text-amber-600 break-all tabular-nums">
+                          Source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
-                        <p className="text-emerald-600">
+                        <p className="text-emerald-600 break-all tabular-nums">
                           My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                       </div>
@@ -2865,17 +2865,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <Button 
                     onClick={requestSelfRecharge}
                     disabled={selfRechargeProcessing || !selfRechargeAmount || parseInt(selfRechargeAmount) <= 0}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 h-12 rounded-xl text-base font-semibold"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 min-h-12 h-auto py-2 rounded-xl text-sm sm:text-base font-semibold"
                   >
                     {selfRechargeProcessing ? (
                       <div className="flex items-center gap-2">
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-                        Processing...
+                        <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin shrink-0" />
+                        <span>Processing...</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <Gem className="w-5 h-5" />
-                        Recharge {selfRechargeAmount ? parseInt(selfRechargeAmount).toLocaleString() : 0} 💎 to My Balance
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap min-w-0 px-1">
+                        <Gem className="w-4 h-4 shrink-0" />
+                        <span className="tabular-nums">Recharge {selfRechargeAmount ? parseInt(selfRechargeAmount).toLocaleString() : 0} 💎</span>
                       </div>
                     )}
                   </Button>
