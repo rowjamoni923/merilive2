@@ -32,6 +32,7 @@ import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
@@ -665,9 +666,7 @@ const ProfileDetail = () => {
 
 
   if (loading && !profile) {
-    return (
-      <div className="mobile-page flex flex-col bg-background" />
-    );
+    return <PageSkeleton className="mobile-page flex flex-col bg-background" rows={6} />;
   }
 
   if (isBannedProfile) {
