@@ -130,6 +130,18 @@ public class NotificationHelper {
         defChannel.setSound(defaultSound, audioAttrs);
         defChannel.enableVibration(true);
         manager.createNotificationChannel(defChannel);
+
+        // 7. PROMO — Pkg425 Phase-8. Marketing / re-engagement / event banners.
+        // LOW importance: no heads-up, quieter sound, user can mute without
+        // losing critical alerts (calls/messages/gifts).
+        NotificationChannel promoChannel = new NotificationChannel(
+            CHANNEL_PROMO, "Promotions & Events", NotificationManager.IMPORTANCE_LOW);
+        promoChannel.setDescription("Offers, events, campaigns, re-engagement");
+        promoChannel.setSound(defaultSound, audioAttrs);
+        promoChannel.enableVibration(false);
+        promoChannel.enableLights(false);
+        promoChannel.setShowBadge(false);
+        manager.createNotificationChannel(promoChannel);
     }
 
     /**
