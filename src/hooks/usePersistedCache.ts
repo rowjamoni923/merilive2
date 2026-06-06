@@ -15,6 +15,7 @@
  * repeat visit" experience without rewriting 17 large pages to React Query.
  */
 import { useCallback, useRef, useState } from 'react';
+import { writeThroughPersistedCacheToNative } from '@/utils/persistedCacheNative';
 
 const PREFIX = 'merilive-pc:';
 const MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -38,16 +39,21 @@ function writeCache<T>(key: string, value: T | null): void {
     if (typeof window === 'undefined') return;
     if (value === null || value === undefined) {
       window.localStorage.removeItem(PREFIX + key);
+      // Pkg430 — mirror delete to MMKV.
+      writeThroughPersistedCacheToNative(key, null);
       return;
     }
     window.localStorage.setItem(
       PREFIX + key,
       JSON.stringify({ v: value, t: Date.now() }),
     );
+    // Pkg430 — mirror write to MMKV (fire-and-forget, no-op on web/iOS/off).
+    writeThroughPersistedCacheToNative(key, { v: value, t: Date.now() });
   } catch {
     // quota or private mode — ignore, behaviour degrades to plain useState
   }
 }
+
 
 export function usePersistedCache<T>(
   key: string,
