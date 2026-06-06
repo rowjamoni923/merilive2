@@ -457,6 +457,12 @@ const NativeSystemUIBridge = lazy(lazyRetry(() => import("./hooks/useNativeSyste
   return { default: Bridge };
 })));
 
+// Pkg434 Pass 2 — Keyboard inset bridge → exposes --kb-h CSS var globally.
+const KeyboardInsetsBridge = lazy(lazyRetry(() => import("./hooks/useKeyboardInsets").then(m => {
+  const Bridge = () => { m.useKeyboardInsets(); return null; };
+  return { default: Bridge };
+})));
+
 // Pkg209 — drains queued inline-reply / mark-as-read actions captured
 // from the DM notification shade and runs them through Supabase under
 // the user's own JWT (RLS-safe).
@@ -1163,6 +1169,7 @@ const App = () => {
         </Suspense>
       )}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
+      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
