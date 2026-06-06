@@ -2854,10 +2854,10 @@ const Recharge = () => {
                             </button>
                           </div>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
-                            {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
+                            {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 150k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
                           <div className="mt-1 text-[9px] font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 inline-block">
-                            Filters: country="{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true | base≥50,000 | tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                            Filters: country="{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true | base≥150,000 | tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
                           </div>
                           {isAdminViewer && (
                             <a
