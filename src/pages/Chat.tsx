@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
