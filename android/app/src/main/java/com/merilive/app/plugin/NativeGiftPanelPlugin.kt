@@ -56,8 +56,12 @@ class NativeGiftPanelPlugin : Plugin() {
         val name: String
     )
 
+    private inline fun safe(call: PluginCall, block: () -> Unit) {
+        try { block() } catch (t: Throwable) { call.reject(t.message ?: "gift-panel error") }
+    }
+
     @PluginMethod
-    fun open(call: PluginCall) {
+    fun open(call: PluginCall) = safe(call) {
         val giftsArr = call.getArray("gifts") ?: JSArray()
         val catsArr = call.getArray("categories") ?: JSArray()
         val balance = call.getInt("balance", 0) ?: 0
@@ -65,25 +69,31 @@ class NativeGiftPanelPlugin : Plugin() {
         parseData(giftsArr, catsArr)
 
         activity.runOnUiThread {
-            showPanel(balance)
-            call.resolve()
+            safe(call) {
+                showPanel(balance)
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun updateBalance(call: PluginCall) {
+    fun updateBalance(call: PluginCall) = safe(call) {
         val balance = call.getInt("balance", 0) ?: 0
         activity.runOnUiThread {
-            balanceText?.text = balance.toString()
-            call.resolve()
+            safe(call) {
+                balanceText?.text = balance.toString()
+                call.resolve()
+            }
         }
     }
 
     @PluginMethod
-    fun close(call: PluginCall) {
+    fun close(call: PluginCall) = safe(call) {
         activity.runOnUiThread {
-            dialog?.dismiss()
-            call.resolve()
+            safe(call) {
+                dialog?.dismiss()
+                call.resolve()
+            }
         }
     }
 
