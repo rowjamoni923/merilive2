@@ -1091,10 +1091,10 @@ const AgencyCoinTrader = () => {
               className="bg-gradient-to-r from-warning-500 to-warning-500 hover:from-warning-600 hover:to-warning-600 text-white"
               onClick={() => {
                 setShowHelperUpgradeDialog(false);
-                navigate('/agency-dashboard?openHelper=1');
+                navigate('/helper-dashboard');
               }}
             >
-              Upgrade Now
+              Apply Now
             </Button>
           </DialogFooter>
         </DialogContent>
