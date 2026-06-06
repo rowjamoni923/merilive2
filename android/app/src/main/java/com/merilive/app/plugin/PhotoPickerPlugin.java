@@ -1,13 +1,17 @@
 package com.merilive.app.plugin;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Base64;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -16,8 +20,11 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
+
 
 /**
  * Pkg218 — Android 13+ Photo Picker (privacy-preserving).
@@ -34,7 +41,9 @@ public class PhotoPickerPlugin extends Plugin {
 
     private ActivityResultLauncher<PickVisualMediaRequest> singleLauncher;
     private ActivityResultLauncher<PickVisualMediaRequest> multiLauncher;
+    private ActivityResultLauncher<Intent> cropLauncher;
     private PluginCall pendingCall;
+
 
     @Override
     public void load() {
@@ -47,9 +56,39 @@ public class PhotoPickerPlugin extends Plugin {
                 if (uri == null) { call.resolve(); return; }
                 JSObject obj = readToJson(uri);
                 if (obj == null) { call.reject("read failed"); return; }
-                call.resolve(obj);
+                
+                boolean crop = Boolean.TRUE.equals(call.getBoolean("crop", false));
+                if (crop) {
+                    launchCrop(uri);
+                } else {
+                    call.resolve(obj);
+                }
             }
         );
+
+        cropLauncher = getActivity().registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                PluginCall call = pendingCall;
+                pendingCall = null;
+                if (call == null) return;
+                
+                if (result.getResultCode() == android.app.Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    Uri croppedUri = data != null ? data.getData() : null;
+                    if (croppedUri != null) {
+                        JSObject obj = readToJson(croppedUri);
+                        if (obj != null) call.resolve(obj);
+                        else call.reject("read cropped failed");
+                    } else {
+                        call.reject("no cropped data");
+                    }
+                } else {
+                    call.resolve(); // Cancelled
+                }
+            }
+        );
+
 
         multiLauncher = getActivity().registerForActivityResult(
             new ActivityResultContracts.PickMultipleVisualMedia(10),
@@ -101,7 +140,40 @@ public class PhotoPickerPlugin extends Plugin {
         catch (Exception e) { pendingCall = null; call.reject("launch failed: " + e.getMessage()); }
     }
 
+    private void launchCrop(Uri uri) {
+        try {
+            // Android does not have a standard "crop" intent that is guaranteed to exist.
+            // However, many devices have a com.android.camera.action.CROP handler.
+            // If it fails, we fall back to resolving the original image.
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            cropIntent.setDataAndType(uri, "image/*");
+            cropIntent.putExtra("crop", "true");
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            cropIntent.putExtra("outputX", 512);
+            cropIntent.putExtra("outputY", 512);
+            cropIntent.putExtra("scale", true);
+            cropIntent.putExtra("return-data", false);
+            
+            File cropFile = new File(getContext().getCacheDir(), "cropped_" + System.currentTimeMillis() + ".jpg");
+            cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cropFile));
+            cropIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            
+            cropLauncher.launch(cropIntent);
+        } catch (Exception e) {
+            // Fallback: if no crop intent handler, just return original
+            PluginCall call = pendingCall;
+            pendingCall = null;
+            if (call != null) {
+                JSObject obj = readToJson(uri);
+                if (obj != null) call.resolve(obj);
+                else call.reject("crop failed and read original failed");
+            }
+        }
+    }
+
     private JSObject readToJson(Uri uri) {
+
         try {
             ContentResolver cr = getContext().getContentResolver();
             String mime = cr.getType(uri);

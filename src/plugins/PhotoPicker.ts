@@ -8,7 +8,7 @@ export interface PickedMedia {
 }
 
 interface PhotoPickerPlugin {
-  pickImage(opts?: { video?: boolean }): Promise<PickedMedia | Record<string, never>>;
+  pickImage(opts?: { video?: boolean; crop?: boolean }): Promise<PickedMedia | Record<string, never>>;
   pickImages(opts?: { video?: boolean }): Promise<{ items: PickedMedia[] }>;
 }
 
@@ -23,10 +23,11 @@ const isAndroidNative = () =>
 export const PhotoPicker = {
   isSupported: () => isAndroidNative(),
 
-  async pickImage(video = false): Promise<PickedMedia | null> {
+  async pickImage(video = false, crop = false): Promise<PickedMedia | null> {
     if (!isAndroidNative()) return null;
     try {
-      const res = await Native.pickImage({ video });
+      const res = await Native.pickImage({ video, crop });
+
       if (!('base64' in res)) return null;
       return res as PickedMedia;
     } catch {
