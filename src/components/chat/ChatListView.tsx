@@ -51,32 +51,19 @@ const formatTime = (dateString: string) => {
 // virtualized window keeps low-end Android at 60fps even with 500+
 // conversations.
 const VIRTUALIZE_THRESHOLD = 30;
-const CONV_ROW_HEIGHT = 86; // p-3 (24) + 54 content + 8 gap (space-y-2)
-const GROUP_ROW_HEIGHT = 86;
+const CONV_ROW_HEIGHT = 76;
+const GROUP_ROW_HEIGHT = 76;
 
-// ------------------------- Conversation row ------------------------- //
+// ------------------------- Conversation row (WhatsApp-style) ------------------------- //
 const ConversationRow: React.FC<{
   conv: Conversation;
   onSelect: (c: Conversation) => void;
 }> = React.memo(({ conv, onSelect }) => (
-  <motion.button
+  <button
     onClick={() => onSelect(conv)}
-    className="w-full flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/60 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 relative overflow-hidden"
-    style={{
-      boxShadow:
-        conv.unread_count > 0
-          ? "0 6px 18px -8px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.7)"
-          : "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
-    }}
-    whileTap={{ scale: 0.98 }}
+    className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
   >
-    {conv.unread_count > 0 && (
-      <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-gradient-to-b from-primary to-purple-600"
-        style={{ boxShadow: "0 0 12px rgba(99,102,241,0.6)" }}
-      />
-    )}
-    <div className="relative">
+    <div className="relative shrink-0 self-center">
       {conv.other_user?.id ? (
         <AvatarWithFrame
           userId={conv.other_user.id}
@@ -87,84 +74,78 @@ const ConversationRow: React.FC<{
           showAnimation={false}
         />
       ) : (
-        <Avatar className="w-14 h-14 ring-2 ring-primary/20">
+        <Avatar className="w-14 h-14">
           <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-          <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+          <AvatarFallback className="bg-muted text-muted-foreground">
             {conv.other_user?.display_name?.[0] || "?"}
           </AvatarFallback>
         </Avatar>
       )}
       {conv.other_user?.is_online && (
-        <span
-          className="absolute bottom-0 right-0 w-4 h-4 gradient-online border-2 border-card rounded-full z-10"
-          style={{ boxShadow: "0 0 10px rgba(34,197,94,0.6), inset 0 1px 0 rgba(255,255,255,0.5)" }}
-        />
+        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
       )}
     </div>
-    <div className="flex-1 text-left min-w-0">
-      <div className="flex items-center gap-2">
-        <h3 className="font-semibold truncate text-foreground">
+    <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
+      <div className="flex items-center gap-1.5">
+        <h3 className="font-medium text-[15.5px] truncate text-foreground">
           {conv.other_user?.display_name || "User"}
         </h3>
         {conv.other_user?.country_flag && (
-          <span className="text-xs">{conv.other_user.country_flag}</span>
+          <span className="text-xs shrink-0">{conv.other_user.country_flag}</span>
         )}
         <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-        <span className="text-[10px] text-muted-foreground shrink-0 ml-auto font-medium">
+        <span
+          className={cn(
+            "text-[11px] shrink-0 ml-auto",
+            conv.unread_count > 0 ? "text-emerald-600 font-semibold" : "text-muted-foreground",
+          )}
+        >
           {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
         </span>
       </div>
-      <div className="flex items-center justify-between mt-0.5">
+      <div className="flex items-center justify-between gap-2 mt-0.5">
         <p
           className={cn(
-            "text-sm truncate",
-            conv.unread_count > 0 ? "text-foreground/85 font-medium" : "text-muted-foreground",
+            "text-[13.5px] truncate",
+            conv.unread_count > 0 ? "text-foreground/90" : "text-muted-foreground",
           )}
         >
           {conv.last_message || "No messages yet"}
         </p>
         {conv.unread_count > 0 && (
-          <Badge
-            className="bg-gradient-to-br from-rose-500 to-red-600 text-white border-0 rounded-full ml-2 shrink-0 text-[10px] px-2"
-            style={{ boxShadow: "0 4px 10px -2px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.35)" }}
-          >
-            {conv.unread_count}
-          </Badge>
+          <span className="min-w-[20px] h-5 px-1.5 bg-emerald-500 text-white text-[11px] font-semibold rounded-full flex items-center justify-center shrink-0">
+            {conv.unread_count > 99 ? "99+" : conv.unread_count}
+          </span>
         )}
       </div>
     </div>
-  </motion.button>
+  </button>
 ));
 ConversationRow.displayName = "ConversationRow";
 
-// ------------------------- Group row ------------------------- //
+// ------------------------- Group row (WhatsApp-style) ------------------------- //
 const GroupRow: React.FC<{ group: Group; onSelect: (g: Group) => void }> = React.memo(
   ({ group, onSelect }) => (
-    <motion.button
+    <button
       onClick={() => onSelect(group)}
-      className="w-full flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/60 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200"
-      style={{ boxShadow: "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
-      whileTap={{ scale: 0.98 }}
+      className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
     >
-      <Avatar
-        className="w-14 h-14 ring-2 ring-emerald-500/25"
-        style={{ boxShadow: "0 6px 14px -6px rgba(16,185,129,0.35)" }}
-      >
+      <Avatar className="w-14 h-14 shrink-0 self-center">
         <AvatarImage src={group.avatar_url || undefined} />
-        <AvatarFallback className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white">
-          <Users className="w-6 h-6 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
+        <AvatarFallback className="bg-muted text-muted-foreground">
+          <Users className="w-6 h-6" />
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 text-left min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold truncate text-foreground">{group.name}</h3>
+      <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
+        <div className="flex items-center gap-1.5">
+          <h3 className="font-medium text-[15.5px] truncate text-foreground">{group.name}</h3>
           {group.is_owner && <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
         </div>
-        <p className="text-xs text-muted-foreground truncate">
+        <p className="text-[13px] text-muted-foreground truncate mt-0.5">
           {group.member_count} member{group.member_count === 1 ? "" : "s"}
         </p>
       </div>
-    </motion.button>
+    </button>
   ),
 );
 GroupRow.displayName = "GroupRow";
@@ -183,7 +164,7 @@ const VirtualConversations: React.FC<{
     getItemKey: (i) => items[i].id,
   });
   return (
-    <div className="px-3 py-2" style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+    <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
       {virtualizer.getVirtualItems().map((vi) => (
         <div
           key={vi.key}
@@ -195,7 +176,6 @@ const VirtualConversations: React.FC<{
             left: 0,
             right: 0,
             transform: `translateY(${vi.start}px)`,
-            paddingBottom: 8,
           }}
         >
           <ConversationRow conv={items[vi.index]} onSelect={onSelect} />
@@ -204,6 +184,7 @@ const VirtualConversations: React.FC<{
     </div>
   );
 };
+
 
 const VirtualGroups: React.FC<{
   scrollRef: React.RefObject<HTMLElement>;
@@ -218,7 +199,7 @@ const VirtualGroups: React.FC<{
     getItemKey: (i) => items[i].id,
   });
   return (
-    <div className="px-3 py-2" style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+    <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
       {virtualizer.getVirtualItems().map((vi) => (
         <div
           key={vi.key}
@@ -230,7 +211,6 @@ const VirtualGroups: React.FC<{
             left: 0,
             right: 0,
             transform: `translateY(${vi.start}px)`,
-            paddingBottom: 8,
           }}
         >
           <GroupRow group={items[vi.index]} onSelect={onSelect} />
@@ -428,7 +408,8 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                 onSelect={onSelectConversation}
               />
             ) : (
-              <div className="px-3 py-2 space-y-2">
+              <div className="py-1">
+
                 {filteredConversations.map((conv) => (
                   <ConversationRow key={conv.id} conv={conv} onSelect={onSelectConversation} />
                 ))}
@@ -457,7 +438,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
             ) : filteredGroups.length > VIRTUALIZE_THRESHOLD ? (
               <VirtualGroups scrollRef={scrollRef} items={filteredGroups} onSelect={onSelectGroup} />
             ) : (
-              <div className="px-3 py-2 space-y-2">
+              <div className="py-1">
                 {filteredGroups.map((group) => (
                   <GroupRow key={group.id} group={group} onSelect={onSelectGroup} />
                 ))}
