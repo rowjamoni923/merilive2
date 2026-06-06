@@ -92,6 +92,8 @@ public class MainActivity extends BridgeActivity {
         // calls it yet (gated behind vapNativeFlag, default OFF).
         registerPlugin(com.merilive.app.plugin.NativeVAPPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeLottiePlugin.class);
+        registerPlugin(com.merilive.app.plugin.NativeToastPlugin.class);
+
 
         // Pkg427 — Native Android Reels Player (ExoPlayer / Media3).
         // Additive: registered for JS callers; Reels.tsx only switches to
