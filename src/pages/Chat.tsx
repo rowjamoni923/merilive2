@@ -763,11 +763,12 @@ const Chat = () => {
   
   // Toggle Voice Recording
   const handleVoiceRecord = () => {
-    if (isRecording) {
+    if (isRecording || nativeRecorder.isRecording) {
       stopVoiceRecording();
     } else {
       startVoiceRecording();
     }
+
   };
   
   // Format recording duration
