@@ -25,6 +25,8 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
+import { tryHeartBurst } from "@/plugins/NativeHeartBurst";
+import { isNativeHeartBurstFlagOn } from "@/utils/nativeHeartBurstFlag";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
