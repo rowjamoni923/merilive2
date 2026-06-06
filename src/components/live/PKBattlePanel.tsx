@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import Skeleton from "@/components/Skeleton";
 
 
 interface LiveHost {
@@ -385,9 +386,17 @@ export const PKBattlePanel = ({
 
             <div className="p-4 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <div className="w-10 h-10 border-2 border-amber-400/70 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-white/55 text-sm mt-3">Loading...</p>
+                <div className="space-y-2 p-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-2/3" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                      <Skeleton className="h-8 w-16 rounded-md" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredHosts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
