@@ -198,12 +198,20 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                   const otherId = selectedConversation?.other_user?.id;
                   if (otherId) navigate(`/profile-detail/${otherId}`);
                 }}
-                className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5"
               >
-                <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-primary" />
-                </div>
-                <span className="font-medium text-sm">View Profile</span>
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <span>View Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setTimeout(() => setShowReportDialog(true), 100);
+                }}
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5"
+              >
+                <ShieldAlert className="w-4 h-4 text-muted-foreground" />
+                <span>Report</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
@@ -220,26 +228,12 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                     toast.error("Failed to block user");
                   }
                 }}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5 text-destructive focus:text-destructive"
               >
-                <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center">
-                  <X className="w-4 h-4 text-destructive" />
-                </div>
-                <span className="font-medium text-sm">Block User</span>
+                <X className="w-4 h-4" />
+                <span>Block User</span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setTimeout(() => setShowReportDialog(true), 100);
-                }}
-                className="text-warning-600 hover:text-warning-700 hover:bg-warning/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
-              >
-                <div className="w-8 h-8 rounded-lg bg-warning/15 border border-warning/20 flex items-center justify-center">
-                  <ShieldAlert className="w-4 h-4 text-warning-600" />
-                </div>
-                <span className="font-medium text-sm">Report</span>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
