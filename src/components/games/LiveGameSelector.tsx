@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
 import { GameErrorBoundary } from "./GameErrorBoundary";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { Skeleton } from "@/components/Skeleton";
 interface GameItem {
   game_id: string;
   game_name: string;
@@ -245,14 +246,13 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
           {/* Games Grid */}
           <div className="flex-1 overflow-y-auto px-3 pb-8">
             {loading ? (
-              <div className="flex flex-col items-center justify-center h-40">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  <Loader2 className="w-12 h-12 text-purple-400" />
-                </motion.div>
-                <p className="text-white/60 mt-4">Loading games...</p>
+              <div className={cn("grid gap-3", isLandscape ? "grid-cols-5 md:grid-cols-6" : "grid-cols-3")}>
+                {Array.from({ length: isLandscape ? 10 : 9 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <Skeleton className="w-full aspect-square rounded-2xl" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                ))}
               </div>
             ) : (
               <motion.div 

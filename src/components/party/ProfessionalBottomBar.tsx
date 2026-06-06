@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { Skeleton } from "@/components/Skeleton";
 
 interface GameInfo {
   id: string;
@@ -296,13 +297,13 @@ export function ProfessionalBottomBar({
                     <div className="flex-1 h-px bg-gradient-to-r from-green-500/40 to-transparent" />
                   </div>
                   {loadingGames ? (
-                    <div className="flex items-center justify-center py-6">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      >
-                        <Loader2 className="w-8 h-8 text-purple-400" />
-                      </motion.div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2 shrink-0">
+                          <Skeleton className="w-16 h-16 rounded-2xl" />
+                          <Skeleton className="h-2.5 w-12" />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
