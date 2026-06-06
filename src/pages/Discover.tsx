@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";

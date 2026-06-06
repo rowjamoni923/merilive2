@@ -9,6 +9,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
@@ -481,8 +482,17 @@ const FollowingList = () => {
 
       <main className="mobile-page-scrollable px-4 py-4">
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <LoadingSpinner size="md" text="Loading" />
+          <div className="divide-y divide-border/60" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3">
+                <SkeletonPrim className="w-12 h-12 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonPrim className="h-3.5 w-1/3" />
+                  <SkeletonPrim className="h-3 w-1/2" />
+                </div>
+                <SkeletonPrim className="h-8 w-20 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
