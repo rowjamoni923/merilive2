@@ -215,7 +215,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     created_at: string;
     direction: 'sent' | 'received';
     counterparty_name?: string;
-    kind?: 'transfer' | 'gift';
+    kind?: 'transfer' | 'gift' | 'helper_ledger' | 'agency_ledger' | 'trader_ledger';
     currency?: 'diamond' | 'bean';
   }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -239,10 +239,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     owner_name?: string | null;
     owner_uid?: string | null;
   } | null>(null);
-  
+
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingTransferType, setPendingTransferType] = useState<"user" | "agency" | "self" | null>(null);
+
+  // Pkg425: refs so realtime push handler (closed over once in useEffect) can
+  // always see latest modal/tab state + helpers without re-subscribing.
+  const showTransferModalRef = useRef(false);
+  const transferTabRef = useRef<"user" | "agency" | "self" | "history">("user");
+  const loadTransferHistoryRef = useRef<() => Promise<void>>(async () => {});
+  const refreshTransferBalancesRef = useRef<() => Promise<void>>(async () => {});
+  const agencyIdRef = useRef<string | null>(null);
+  useEffect(() => { showTransferModalRef.current = showTransferModal; }, [showTransferModal]);
+  useEffect(() => { transferTabRef.current = transferTab; }, [transferTab]);
+
 
   // Agency Beans Exchange modal state
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
@@ -259,6 +270,202 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     const trader = Number(traderWallet || 0);
     return agency + trader;
   }, [agencyData, traderWallet]);
+
+  // Pkg425: Unified Trader-Wallet history loader. Merges every source that
+  // touches the user's diamond/bean flow so Self-Recharge, Admin-Topup credits,
+  // others sending to your trader wallet, and gifts all appear in History.
+  const loadTransferHistory = useCallback(async () => {
+    try {
+      setHistoryLoading(true);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data: ownedAgencies } = await supabase
+        .from('agencies')
+        .select('id')
+        .eq('owner_id', authUser.id);
+      const ownedAgencyIds = (ownedAgencies || []).map((a: any) => a.id);
+
+      const [transfersRes, giftsSentRes, giftsRecvRes, helperLedgerRes, traderLedgerRes, agencyLedgerRes] = await Promise.all([
+        supabase
+          .from('coin_transfers')
+          .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
+          .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('gift_transactions')
+          .select('id, sender_id, receiver_id, coin_amount, created_at, gifts(name)')
+          .eq('sender_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('gift_transactions')
+          .select('id, sender_id, receiver_id, receiver_beans, coin_amount, created_at, gifts(name)')
+          .eq('receiver_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('helper_transactions')
+          .select('id, transaction_type, amount, balance_before, balance_after, description, reference_id, user_id, created_at')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('coin_trader_transfers')
+          .select('id, user_id, counterparty_user_id, counterparty_agency_id, amount, transfer_type, status, created_at')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        ownedAgencyIds.length > 0
+          ? supabase
+              .from('agency_diamond_transactions')
+              .select('id, agency_id, transaction_type, diamond_amount, user_id, created_at, description')
+              .in('agency_id', ownedAgencyIds)
+              .order('created_at', { ascending: false })
+              .limit(50)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const transferList = (transfersRes.data || []).map((r: any) => ({
+        id: r.id,
+        sender_id: r.sender_id,
+        receiver_id: r.receiver_id,
+        amount: Number(r.amount || 0),
+        transfer_type: r.transfer_type,
+        status: r.status,
+        notes: r.notes,
+        created_at: r.created_at,
+        direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
+        kind: 'transfer' as const,
+        currency: 'diamond' as const,
+      }));
+
+      const giftSentList = (giftsSentRes.data || []).map((g: any) => ({
+        id: `gs-${g.id}`,
+        sender_id: g.sender_id,
+        receiver_id: g.receiver_id,
+        amount: Number(g.coin_amount || 0),
+        transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+        status: 'completed',
+        notes: null,
+        created_at: g.created_at,
+        direction: 'sent' as const,
+        kind: 'gift' as const,
+        currency: 'diamond' as const,
+      }));
+
+      const giftRecvList = (giftsRecvRes.data || []).map((g: any) => {
+        const beans = Number(g.receiver_beans || 0);
+        return {
+          id: `gr-${g.id}`,
+          sender_id: g.sender_id,
+          receiver_id: g.receiver_id,
+          amount: beans > 0 ? beans : Number(g.coin_amount || 0),
+          transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+          status: 'completed',
+          notes: null,
+          direction: 'received' as const,
+          kind: 'gift' as const,
+          currency: (beans > 0 ? 'bean' : 'diamond') as 'bean' | 'diamond',
+          created_at: g.created_at,
+        };
+      });
+
+      const helperLedgerList = (helperLedgerRes.data || [])
+        .filter((r: any) => {
+          const t = String(r.transaction_type || '').toLowerCase();
+          return t === 'admin_topup_credit'
+            || t === 'self_recharge_debit'
+            || t === 'transfer_to_agency_debit';
+        })
+        .map((r: any) => {
+          const amt = Number(r.amount || 0);
+          const isCredit = amt > 0;
+          const t = String(r.transaction_type || '').toLowerCase();
+          const label = t === 'admin_topup_credit'
+            ? 'Admin Top-up Credit'
+            : t === 'self_recharge_debit'
+              ? 'Self Recharge'
+              : t === 'transfer_to_agency_debit'
+                ? 'Trader → Agency'
+                : (r.description || 'Trader Wallet');
+          return {
+            id: `ht-${r.id}`,
+            sender_id: isCredit ? '' : authUser.id,
+            receiver_id: isCredit ? authUser.id : '',
+            amount: Math.abs(amt),
+            transfer_type: label,
+            status: 'completed',
+            notes: r.description || null,
+            created_at: r.created_at,
+            direction: (isCredit ? 'received' : 'sent') as 'sent' | 'received',
+            kind: 'helper_ledger' as const,
+            currency: 'diamond' as const,
+            counterparty_name: isCredit ? 'Admin / Top-up' : (label.includes('Agency') ? 'Agency' : 'My Diamond Balance'),
+          };
+        });
+
+      const traderLedgerList = (traderLedgerRes.data || [])
+        .filter((r: any) => String(r.transfer_type || '').toLowerCase() === 'to_agency')
+        .map((r: any) => ({
+          id: `tt-${r.id}`,
+          sender_id: r.user_id,
+          receiver_id: r.counterparty_agency_id || '',
+          amount: Number(r.amount || 0),
+          transfer_type: 'Trader → Agency',
+          status: r.status || 'completed',
+          notes: null,
+          created_at: r.created_at,
+          direction: 'sent' as const,
+          kind: 'trader_ledger' as const,
+          currency: 'diamond' as const,
+          counterparty_name: 'Agency',
+        }));
+
+      const agencyLedgerList = (((agencyLedgerRes as any).data) || [])
+        .filter((r: any) => String(r.transaction_type || '').toLowerCase() === 'transfer_in')
+        .map((r: any) => ({
+          id: `ad-${r.id}`,
+          sender_id: r.user_id || '',
+          receiver_id: authUser.id,
+          amount: Number(r.diamond_amount || 0),
+          transfer_type: 'Agency Top-up Received',
+          status: 'completed',
+          notes: r.description || null,
+          created_at: r.created_at,
+          direction: 'received' as const,
+          kind: 'agency_ledger' as const,
+          currency: 'diamond' as const,
+        }));
+
+      const list = [...transferList, ...giftSentList, ...giftRecvList, ...helperLedgerList, ...traderLedgerList, ...agencyLedgerList]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 100);
+
+      const otherIds = Array.from(new Set(list
+        .map((r: any) => r.direction === 'sent' ? r.receiver_id : r.sender_id)
+        .filter((id: any) => id && typeof id === 'string' && id.length === 36)));
+      if (otherIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, app_uid')
+          .in('id', otherIds);
+        const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name || p.app_uid || 'User']));
+        list.forEach((r: any) => {
+          if (r.counterparty_name) return;
+          const otherId = r.direction === 'sent' ? r.receiver_id : r.sender_id;
+          r.counterparty_name = nameMap.get(otherId) || 'User';
+        });
+      }
+      setTransferHistory(list as any);
+    } catch (err) {
+      console.error('[Profile] Failed to load transfer history:', err);
+      recordClientError({ label: "Profile.loadTransferHistory", message: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
 
   const refreshTransferBalances = async () => {
     if (!currentUser?.id) {
@@ -331,6 +538,22 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       selfRechargeTotal: nextTraderWallet + nextAgencyBalance,
     };
   };
+
+  // Pkg425: keep helper refs in sync so realtime push handler always calls
+  // the latest closure-bound versions.
+  useEffect(() => {
+    loadTransferHistoryRef.current = loadTransferHistory;
+  }, [loadTransferHistory]);
+  useEffect(() => {
+    refreshTransferBalancesRef.current = async () => {
+      try { await refreshTransferBalances(); } catch { /* swallow */ }
+    };
+  });
+  useEffect(() => {
+    agencyIdRef.current = agencyData?.id || null;
+  }, [agencyData?.id]);
+
+
 
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
@@ -739,7 +962,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions'],
+        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions', 'helper_transactions', 'coin_transfers', 'coin_trader_transfers', 'agency_diamond_transactions'],
         (table, event, payload) => {
           // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
@@ -815,6 +1038,33 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setIsCoinTrader(true);
               setTraderWallet(Number(payload.wallet_balance || 0));
               setTraderId(payload.id || null);
+            }
+            // Refresh history if Trader Wallet modal is open on the History tab.
+            if (showTransferModalRef.current && transferTabRef.current === 'history') {
+              void loadTransferHistoryRef.current();
+            }
+          }
+
+          // Pkg425: trader-history table pushes → refresh wallet balance + history.
+          if (
+            table === 'helper_transactions'
+            || table === 'coin_transfers'
+            || table === 'coin_trader_transfers'
+            || table === 'agency_diamond_transactions'
+          ) {
+            const touchesUser =
+              payload?.user_id === activeProfileId
+              || payload?.sender_id === activeProfileId
+              || payload?.receiver_id === activeProfileId
+              || payload?.counterparty_user_id === activeProfileId
+              || payload?.owner_id === activeProfileId
+              || (table === 'agency_diamond_transactions'
+                  && agencyIdRef.current
+                  && payload?.agency_id === agencyIdRef.current);
+            if (!touchesUser) return;
+            void refreshTransferBalancesRef.current();
+            if (showTransferModalRef.current && transferTabRef.current === 'history') {
+              void loadTransferHistoryRef.current();
             }
           }
         }
@@ -2369,105 +2619,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setTransferAmount("");
               setSelfRechargeAmount("");
               if (v === "history") {
-                (async () => {
-                  try {
-                    setHistoryLoading(true);
-                    const { data: { user: authUser } } = await supabase.auth.getUser();
-                    if (!authUser) return;
-
-                    // Load BOTH coin_transfers (Trader Wallet) AND gift_transactions (Gifts) in parallel
-                    const [transfersRes, giftsSentRes, giftsRecvRes] = await Promise.all([
-                      supabase
-                        .from('coin_transfers')
-                        .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
-                        .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
-                        .order('created_at', { ascending: false })
-                        .limit(50),
-                      supabase
-                        .from('gift_transactions')
-                        .select('id, sender_id, receiver_id, coin_amount, created_at, gifts(name)')
-                        .eq('sender_id', authUser.id)
-                        .order('created_at', { ascending: false })
-                        .limit(50),
-                      supabase
-                        .from('gift_transactions')
-                        .select('id, sender_id, receiver_id, receiver_beans, coin_amount, created_at, gifts(name)')
-                        .eq('receiver_id', authUser.id)
-                        .order('created_at', { ascending: false })
-                        .limit(50),
-                    ]);
-
-                    const transferList = (transfersRes.data || []).map((r: any) => ({
-                      id: r.id,
-                      sender_id: r.sender_id,
-                      receiver_id: r.receiver_id,
-                      amount: Number(r.amount || 0),
-                      transfer_type: r.transfer_type,
-                      status: r.status,
-                      notes: r.notes,
-                      created_at: r.created_at,
-                      direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
-                      kind: 'transfer' as const,
-                      currency: 'diamond' as const,
-                    }));
-
-                    const giftSentList = (giftsSentRes.data || []).map((g: any) => ({
-                      id: `gs-${g.id}`,
-                      sender_id: g.sender_id,
-                      receiver_id: g.receiver_id,
-                      amount: Number(g.coin_amount || 0),
-                      transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
-                      status: 'completed',
-                      notes: null,
-                      created_at: g.created_at,
-                      direction: 'sent' as const,
-                      kind: 'gift' as const,
-                      currency: 'diamond' as const,
-                    }));
-
-                    const giftRecvList = (giftsRecvRes.data || []).map((g: any) => {
-                      const beans = Number(g.receiver_beans || 0);
-                      return {
-                        id: `gr-${g.id}`,
-                        sender_id: g.sender_id,
-                        receiver_id: g.receiver_id,
-                        amount: beans > 0 ? beans : Number(g.coin_amount || 0),
-                        transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
-                        status: 'completed',
-                        notes: null,
-                        created_at: g.created_at,
-                        direction: 'received' as const,
-                        kind: 'gift' as const,
-                        currency: (beans > 0 ? 'bean' : 'diamond') as 'bean' | 'diamond',
-                      };
-                    });
-
-                    const list = [...transferList, ...giftSentList, ...giftRecvList].sort(
-                      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                    );
-
-                    // Resolve counterparty names
-                    const otherIds = Array.from(new Set(list.map(r => r.direction === 'sent' ? r.receiver_id : r.sender_id).filter(Boolean)));
-                    if (otherIds.length > 0) {
-                      const { data: profiles } = await supabase
-                        .from('profiles_public')
-                        .select('id, display_name, app_uid')
-                        .in('id', otherIds);
-                      const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name || p.app_uid || 'User']));
-                      list.forEach((r: any) => {
-                        const otherId = r.direction === 'sent' ? r.receiver_id : r.sender_id;
-                        r.counterparty_name = nameMap.get(otherId) || 'User';
-                      });
-                    }
-                    setTransferHistory(list);
-                  } catch (err) {
-                    console.error('[Profile] Failed to load transfer history:', err);
-                    recordClientError({ label: "Profile.otherId", message: err instanceof Error ? err.message : String(err) });
-                  } finally {
-                    setHistoryLoading(false);
-                  }
-                })();
+                void loadTransferHistory();
               }
+
             }}>
               <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4 sticky top-0 z-10">
                 <TabsTrigger value="user" aria-label="Transfer to user" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
@@ -2547,18 +2701,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <Button 
                       onClick={requestTransferToUser}
                       disabled={transferProcessing || !transferAmount || parseInt(transferAmount) <= 0}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 h-12 rounded-xl text-base font-semibold"
+                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 min-h-12 h-auto py-2 rounded-xl text-sm sm:text-base font-semibold"
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-                          Processing...
+                          <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <span>Processing...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <Send className="w-5 h-5" />
-                          Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
-                          <ArrowRight className="w-5 h-5" />
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap min-w-0 px-1">
+                          <Send className="w-4 h-4 shrink-0" />
+                          <span className="tabular-nums">Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎</span>
+                          <ArrowRight className="w-4 h-4 shrink-0" />
                         </div>
                       )}
                     </Button>
@@ -2627,18 +2781,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <Button 
                       onClick={requestTransferToAgency}
                       disabled={transferProcessing || !transferAmount || parseInt(transferAmount) <= 0}
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-12 rounded-xl text-base font-semibold"
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 min-h-12 h-auto py-2 rounded-xl text-sm sm:text-base font-semibold"
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-                          Processing...
+                          <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <span>Processing...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <Send className="w-5 h-5" />
-                          Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
-                          <ArrowRight className="w-5 h-5" />
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap min-w-0 px-1">
+                          <Send className="w-4 h-4 shrink-0" />
+                          <span className="tabular-nums">Send {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎</span>
+                          <ArrowRight className="w-4 h-4 shrink-0" />
                         </div>
                       )}
                     </Button>
@@ -2660,27 +2814,27 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </div>
 
                   <div className="bg-white rounded-xl p-3 border border-amber-200 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-body text-sm">Recharge Source Balance</span>
-                      <span className="text-emerald-600 font-bold text-lg">
+                    <div className="flex justify-between items-center gap-2 min-w-0">
+                      <span className="text-body text-sm shrink-0">Recharge Source</span>
+                      <span className="text-emerald-600 font-bold text-base tabular-nums truncate text-right min-w-0">
                         {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                      <span className="text-body text-sm">Agency Balance</span>
-                      <span className="text-purple-600 font-semibold">
+                    <div className="flex justify-between items-center gap-2 min-w-0 pt-2 border-t border-amber-200">
+                      <span className="text-body text-sm shrink-0">Agency Balance</span>
+                      <span className="text-purple-600 font-semibold text-sm tabular-nums truncate text-right min-w-0">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-body text-sm">Trader Wallet</span>
-                      <span className="text-amber-600 font-semibold">
+                    <div className="flex justify-between items-center gap-2 min-w-0">
+                      <span className="text-body text-sm shrink-0">Trader Wallet</span>
+                      <span className="text-amber-600 font-semibold text-sm tabular-nums truncate text-right min-w-0">
                         {(traderWallet || 0).toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                      <span className="text-body text-sm">My Diamond Balance</span>
-                      <span className="text-cyan-600 font-bold text-lg">
+                    <div className="flex justify-between items-center gap-2 min-w-0 pt-2 border-t border-amber-200">
+                      <span className="text-body text-sm shrink-0">My Diamond Balance</span>
+                      <span className="text-cyan-600 font-bold text-base tabular-nums truncate text-right min-w-0">
                         {(profile?.coins || 0).toLocaleString()} 💎
                       </span>
                     </div>
@@ -2698,10 +2852,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     />
                     {selfRechargeAmount && parseInt(selfRechargeAmount) > 0 && (
                       <div className="text-xs space-y-1 mt-2">
-                        <p className="text-amber-600">
-                          Recharge source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
+                        <p className="text-amber-600 break-all tabular-nums">
+                          Source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
-                        <p className="text-emerald-600">
+                        <p className="text-emerald-600 break-all tabular-nums">
                           My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                       </div>
@@ -2711,17 +2865,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <Button 
                     onClick={requestSelfRecharge}
                     disabled={selfRechargeProcessing || !selfRechargeAmount || parseInt(selfRechargeAmount) <= 0}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 h-12 rounded-xl text-base font-semibold"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 min-h-12 h-auto py-2 rounded-xl text-sm sm:text-base font-semibold"
                   >
                     {selfRechargeProcessing ? (
                       <div className="flex items-center gap-2">
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-                        Processing...
+                        <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin shrink-0" />
+                        <span>Processing...</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <Gem className="w-5 h-5" />
-                        Recharge {selfRechargeAmount ? parseInt(selfRechargeAmount).toLocaleString() : 0} 💎 to My Balance
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap min-w-0 px-1">
+                        <Gem className="w-4 h-4 shrink-0" />
+                        <span className="tabular-nums">Recharge {selfRechargeAmount ? parseInt(selfRechargeAmount).toLocaleString() : 0} 💎</span>
                       </div>
                     )}
                   </Button>
@@ -2809,8 +2963,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               Confirm Transfer
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3 pt-4">
-              <div className="bg-white rounded-xl p-4 border border-amber-200">
-                <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+              <div className="bg-white rounded-xl p-4 border border-amber-200 overflow-hidden">
+                <p className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 break-all tabular-nums leading-tight">
                   {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
                 </p>
               </div>
