@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
