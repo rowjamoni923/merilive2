@@ -296,7 +296,7 @@ const Chat = () => {
   const MESSAGES_PAGE_SIZE = 100;
   const [visibleMessageCount, setVisibleMessageCount] = useState<number>(MESSAGES_PAGE_SIZE);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
-  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' | 'document' } | null>(null);
 
   // Reply state
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
