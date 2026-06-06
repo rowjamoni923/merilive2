@@ -26,6 +26,7 @@ import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 interface Profile {
   id: string;
