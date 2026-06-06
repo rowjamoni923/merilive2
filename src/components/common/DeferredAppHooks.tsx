@@ -10,6 +10,7 @@ import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
 import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
+import { useNativeImageInterceptor } from "@/hooks/useNativeImagePrefetch";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import FeedbackDialog from "@/components/common/FeedbackDialog";
 import { queryClient } from "@/lib/queryClient";
