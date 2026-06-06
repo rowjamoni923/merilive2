@@ -271,7 +271,17 @@ export const EmojiPicker = ({ isOpen, onClose, onSelect }: EmojiPickerProps) => 
     : currentCategory.emojis;
 
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-2 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-scale-in">
+    <>
+      {/* Backdrop to close on outside tap */}
+      <div
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className="fixed left-2 right-2 bottom-[88px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-scale-in"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border bg-gradient-to-r from-purple-500/10 to-pink-500/10">
         <span className="font-semibold text-sm">Emoji</span>
@@ -346,6 +356,7 @@ export const EmojiPicker = ({ isOpen, onClose, onSelect }: EmojiPickerProps) => 
           </div>
         )}
       </ScrollArea>
-    </div>
+      </div>
+    </>
   );
 };
