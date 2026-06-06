@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useCall } from "@/components/call/CallProvider";
-import { toast } from "sonner";
+import { toast } from "@/utils/hybridToast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { getCachedHostGiftPercent, ensureHostGiftPercentLoaded } from "@/hooks/useHostGiftPercent";
