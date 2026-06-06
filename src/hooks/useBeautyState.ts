@@ -145,6 +145,19 @@ export function useBeautyState(): any {
     };
   }, [drive]);
 
+  // Pkg443 (Phase 4): re-drive when the unified quality hint changes so
+  // the damper engages/disengages live (thermal cool-down, network recovery,
+  // power-save toggle, etc.).
+  useEffect(() => {
+    if (!isNativeBeautyAvailable()) return;
+    const unsub = subscribeQualityHint((h) => {
+      if (h.bucket === qualityBucketRef.current) return;
+      qualityBucketRef.current = h.bucket;
+      void drive(lastLevelsRef.current, lastEnabledRef.current);
+    });
+    return () => { unsub(); };
+  }, [drive]);
+
   const handleBeautyEnabledChange = useCallback((v: boolean) => {
     setBeautyEnabledState(v);
     persistEnabled(v);
