@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -338,7 +338,14 @@ const Tags = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return (
+      <PageSkeleton
+        className="flex flex-col h-[100dvh] bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden"
+        headerClassName="bg-white/85 backdrop-blur-lg border-b border-amber-200/60"
+        tabs
+        rows={5}
+      />
+    );
   }
 
   return (

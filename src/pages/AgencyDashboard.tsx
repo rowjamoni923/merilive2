@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { 
   ArrowLeft, 
   Building2,
@@ -669,7 +669,13 @@ const AgencyDashboard = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen text="Loading Dashboard..." />;
+    return (
+      <PageSkeleton
+        headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
+        tabs
+        rows={5}
+      />
+    );
   }
 
   if (!agency) {

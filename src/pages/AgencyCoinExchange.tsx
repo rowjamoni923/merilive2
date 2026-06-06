@@ -13,7 +13,7 @@ import {
   Send,
   History
 } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -598,7 +598,13 @@ const AgencyCoinExchange = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen size="lg" text="Loading" />;
+    return (
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20 overflow-hidden"
+        headerClassName="bg-gradient-to-r from-amber-500 to-orange-600"
+        tabs
+      />
+    );
   }
 
   if (!agency) return null;

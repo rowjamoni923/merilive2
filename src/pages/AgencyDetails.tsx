@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -170,7 +170,12 @@ const AgencyDetailsPage = () => {
     window.open(`https://wa.me/${cleanNumber}?text=${defaultMessage}`, '_blank');
   };
 
-  if (loading) return <LoadingSpinner fullScreen size="lg" text="Loading Agency Details" />;
+  if (loading) return (
+    <PageSkeleton
+      className="fixed inset-0 flex flex-col bg-gradient-to-br from-slate-50 via-white to-brand-50/40 overflow-hidden"
+      headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
+    />
+  );
   if (!hostAgency) return null;
 
   return (
