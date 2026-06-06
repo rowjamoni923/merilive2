@@ -13166,6 +13166,7 @@ export type Database = {
           error_message: string | null
           expires_at: string | null
           external_user_id: string
+          helper_application_intent: Json | null
           id: string
           idempotency_key: string
           last_polled_at: string | null
@@ -13192,6 +13193,7 @@ export type Database = {
           error_message?: string | null
           expires_at?: string | null
           external_user_id: string
+          helper_application_intent?: Json | null
           id?: string
           idempotency_key: string
           last_polled_at?: string | null
@@ -13218,6 +13220,7 @@ export type Database = {
           error_message?: string | null
           expires_at?: string | null
           external_user_id?: string
+          helper_application_intent?: Json | null
           id?: string
           idempotency_key?: string
           last_polled_at?: string | null
@@ -18360,7 +18363,7 @@ export type Database = {
           _contact_whatsapp?: string
           _payroll_requested?: boolean
           _reason?: string
-          _selected_level: number
+          _selected_level?: number
           _topup_id: string
         }
         Returns: Json
