@@ -1144,9 +1144,9 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
-          // Automatic visibility uses the SAME balance shown on Profile:
+          // Pkg430: helper tab floor raised to 150,000 (1.5 lakh) — owner mandate.
           // Trader Wallet = topup_helpers.wallet_balance + get_agency_diamond_balance(user_id).
-          if (traderWallet < 50000) {
+          if (traderWallet < 150000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
             return false;
