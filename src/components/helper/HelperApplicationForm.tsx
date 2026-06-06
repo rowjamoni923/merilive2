@@ -350,6 +350,37 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         auto_level_adjusted: autoLevelAdjusted,
       } : null;
 
+      // Pkg432: Paid path with on-chain verified crypto deposit → auto-grant the trader
+      // wallet immediately. No admin queue, no pending state. RPC re-verifies that the
+      // topup belongs to caller and was paid, then upserts topup_helpers (is_verified=true)
+      // and writes an `approved` helper_applications audit row in one atomic step.
+      if (isPaidLevel && paymentTopupId && paymentTopupId !== 'swift_pay_auto') {
+        const { data: grantData, error: grantError } = await supabase.rpc(
+          'auto_grant_helper_from_crypto_payment' as any,
+          {
+            _topup_id: paymentTopupId,
+            _selected_level: selectedLevel,
+            _contact_whatsapp: contactWhatsapp || null,
+            _contact_telegram: contactTelegram || null,
+            _reason: reason || null,
+            _payroll_requested: grantedLevel === 5 ? payrollRequested : false,
+          }
+        );
+        if (grantError) throw grantError;
+        const grantResult = grantData as { success: boolean; error?: string; trader_level?: number };
+        if (!grantResult?.success) {
+          throw new Error(grantResult?.error || 'Auto-grant failed — please contact support');
+        }
+        const finalLevel = Number(grantResult.trader_level ?? grantedLevel);
+        toast({
+          title: "Trader Wallet Activated! ✅",
+          description: `Level ${finalLevel} unlocked. ${diamondsForUpgrade.toLocaleString()} 💎 credited.`,
+        });
+        onSuccess?.();
+        return;
+      }
+
+      // Free-tier (or legacy fallback) path — admin review queue.
       const { error } = await supabase
         .from('helper_applications')
         .insert({
