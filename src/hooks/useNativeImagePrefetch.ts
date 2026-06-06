@@ -47,9 +47,10 @@ export function useNativeImageInterceptor(): void {
     // Initial apply + live re-apply when any native flag toggles
     // (Developer Options screen flips `nativeImageLoader`).
     apply();
-    const unsub = subscribeNativeFlags((key) => {
-      if (key === 'nativeImageLoader') apply();
+    const unsub = subscribeNativeFlags(() => {
+      apply();
     });
+
 
     return () => {
       interceptorMounted = false;

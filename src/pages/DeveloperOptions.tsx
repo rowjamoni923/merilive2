@@ -125,7 +125,7 @@ export default function DeveloperOptions() {
 
         {/* Flag list */}
         <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
-          {NATIVE_FLAG_META.map((meta) => {
+          {NATIVE_FLAG_META.filter(m => !m.hidden).map((meta) => {
             const value = flags[meta.key];
             return (
               <label
