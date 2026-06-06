@@ -39,7 +39,15 @@ export async function getSVGAModule(): Promise<any> {
 export async function prewarmPopularAssets(urls: string[]): Promise<void> {
   if (!urls.length) return;
   
+  // Pkg436: Try native prefetch first for Android
+  const { isNativeSVGAAvailable, default: NativeSVGA } = await import('@/plugins/NativeSVGA');
+  const available = await isNativeSVGAAvailable();
+  if (available) {
+    NativeSVGA.prefetchBatch({ urls }).catch(() => {});
+  }
+
   const SVGA = await getSVGAModule();
+
   const parser = new SVGA.Parser();
 
   // Load and parse in background
