@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
@@ -196,6 +197,22 @@ export function ActiveCallScreen({
     networkQuality,
     cleanup,
   } = useLiveKitCall(isOpen ? callId : null, userId, isHost);
+
+  // Pkg444 Phase-6: auto-mute mic on incoming phone call / alarm /
+  // assistant (AUDIOFOCUS_LOSS_TRANSIENT). Restored on focus regain
+  // only if we were the ones who muted.
+  useAudioFocusAutoMute({
+    enabled: isOpen,
+    intent: 'call',
+    isMicEnabled: isAudioEnabled,
+    setMicEnabled: (want) => {
+      if (want !== isAudioEnabled) {
+        try { void toggleAudio(); } catch { /* ignore */ }
+      }
+    },
+  });
+
+
 
 
   // Bug-fix: actually push speaker on/off to native audio routing whenever the

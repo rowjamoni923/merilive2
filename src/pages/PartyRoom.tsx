@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -647,6 +648,21 @@ const PartyRoom = () => {
     partyCameraReady,
     room?.host?.id || null
   );
+
+  // Pkg444 Phase-6: auto-mute host/co-host mic on transient audio-focus
+  // loss (phone call, alarm, voice assistant). Restored on focus regain
+  // only if the user hadn't already muted themselves.
+  useAudioFocusAutoMute({
+    enabled: isHost,
+    intent: 'media',
+    isMicEnabled: isAudioEnabled,
+    setMicEnabled: (want) => {
+      if (want !== isAudioEnabled) {
+        try { void toggleAudio(); } catch { /* ignore */ }
+      }
+    },
+  });
+
 
   // Voice/silence auto-close intentionally disabled for party rooms.
   // Mobile WebView audio analyzers can report 0 analyzers during permission,

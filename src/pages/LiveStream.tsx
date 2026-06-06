@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
@@ -764,6 +765,24 @@ const LiveStream = () => {
       }
     },
   });
+
+  // Pkg444 Phase-6: host mic auto-mutes on transient audio-focus loss
+  // (incoming phone call, alarm, voice assistant) and restores on gain
+  // — unless the host had already muted themselves.
+  useAudioFocusAutoMute({
+    enabled: isHost,
+    intent: 'media',
+    isMicEnabled: !isHostMicMuted,
+    setMicEnabled: (want) => {
+      const wantMuted = !want;
+      if (wantMuted !== isHostMicMuted) {
+        setIsHostMicMuted(wantMuted);
+        try { void toggleAudio(want); } catch { /* ignore */ }
+      }
+    },
+  });
+
+
 
   // Pkg100: PK Cross-room Audio Bridge — secondary subscribe-only connection
   // to the opponent's stream room so both hosts + all audiences hear each other.
