@@ -3105,11 +3105,13 @@ const Chat = () => {
                         className="w-8 h-8 rounded-lg object-cover shrink-0" />
                     ) : pendingMedia.type === 'video' ? (
                       <ImageIcon className="w-5 h-5 text-primary shrink-0" />
-                    ) : (
+                    ) : pendingMedia.type === 'audio' ? (
                       <Mic className="w-5 h-5 text-warning-600 shrink-0" />
+                    ) : (
+                      <FileText className="w-5 h-5 text-primary shrink-0" />
                     )}
                     <span className="text-primary font-medium text-sm truncate flex-1 text-left">
-                      {pendingMedia.type === 'image' ? '📷 Image' : pendingMedia.type === 'video' ? '🎥 Video' : '🎵 Audio'}
+                      {pendingMedia.type === 'image' ? '📷 Image' : pendingMedia.type === 'video' ? '🎥 Video' : pendingMedia.type === 'audio' ? '🎵 Audio' : '📄 Document'}
                     </span>
                     <span className="text-[11px] text-muted-foreground font-medium px-2 py-0.5 rounded-full bg-background/70 shrink-0">
                       Change
