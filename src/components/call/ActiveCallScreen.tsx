@@ -1183,7 +1183,6 @@ export function ActiveCallScreen({
             >
               <MoreVertical className="w-5 h-5 text-white/85" />
             </motion.button>
-          </div>
         </div>
       </div>
     )}
