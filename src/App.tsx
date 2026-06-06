@@ -402,6 +402,7 @@ import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonH
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
+import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
