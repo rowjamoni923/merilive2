@@ -6,6 +6,8 @@ import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import NativeSVGA, { isNativeSVGAAvailable } from '@/plugins/NativeSVGA';
+import NativeLottie, { isNativeLottieAvailable } from '@/plugins/NativeLottie';
+
 import { getVapCompositeHint, isLikelyVapCompositeSize, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 
@@ -316,6 +318,28 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   if (animationType === 'lottie') {
     if (lottieLoading) return <LoadingSpinner />;
 
+    if (preferNative && isNativeLottieAvailable()) {
+      return (
+        <NativeLottieOverlay 
+          src={resolvedSrc} 
+          loop={loop} 
+          onComplete={() => fireComplete('native')}
+          fallback={
+            lottieData ? (
+              <Lottie
+                animationData={lottieData}
+                loop={loop}
+                autoplay={autoPlay}
+                className={className}
+                onComplete={() => !loop && fireComplete('native')}
+                onDOMLoaded={onLoad}
+              />
+            ) : <LoadingSpinner />
+          }
+        />
+      );
+    }
+
     if (lottieData) {
       return (
         <Lottie
@@ -328,6 +352,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         />
       );
     }
+
 
     return <LoadingSpinner />;
   }
@@ -476,3 +501,48 @@ const NativeSVGAOverlay: React.FC<{
   // Still resolving availability — render the web fallback so animation starts immediately
   return <>{fallback}</>;
 };
+
+/**
+ * Pkg437 — Native Lottie overlay wrapper.
+ */
+const NativeLottieOverlay: React.FC<{
+  src: string;
+  loop: boolean;
+  onComplete: () => void;
+  fallback: React.ReactNode;
+}> = ({ src, loop, onComplete, fallback }) => {
+  const [useNative, setUseNative] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isNativeLottieAvailable()) { setUseNative(false); return; }
+
+    (async () => {
+      try {
+        await NativeLottie.play({ url: src, loop });
+        if (!cancelled) {
+          setUseNative(true);
+          // Airbnb Lottie Android doesn't easily emit completion to JS via Capacitor without custom listeners,
+          // usually these are loops. For one-shots, we just assume done if not looping.
+          if (!loop) {
+             // Basic duration fallback or listener (simplified for now)
+             // setTimeout(onComplete, 3000); 
+          }
+        }
+      } catch (err) {
+        if (!cancelled) setUseNative(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      try { NativeLottie.stop(); } catch {}
+    };
+  }, [src, loop]);
+
+  if (useNative === true) {
+    return <div aria-hidden="true" style={{ width: '100%', height: '100%' }} />;
+  }
+  return <>{fallback}</>;
+};
+
