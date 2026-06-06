@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
