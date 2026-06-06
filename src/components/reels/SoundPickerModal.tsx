@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/Skeleton";
 
 interface Sound {
   id: string;
@@ -237,8 +238,17 @@ export const SoundPickerModal = ({
           <ScrollArea className="h-[50vh]">
             <div className="px-4 py-3 space-y-2">
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                <div className="space-y-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+                      <Skeleton className="w-12 h-12 rounded-lg" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-2/3" />
+                        <Skeleton className="h-2.5 w-1/3" />
+                      </div>
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredSounds.length === 0 ? (
                 <div className="text-center py-12 text-white/50">
