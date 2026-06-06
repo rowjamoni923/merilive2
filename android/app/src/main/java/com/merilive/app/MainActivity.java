@@ -93,6 +93,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.NativeVAPPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeLottiePlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeToastPlugin.class);
+        registerPlugin(com.merilive.app.plugin.BatteryOptimizationPlugin.class);
 
 
         // Pkg427 — Native Android Reels Player (ExoPlayer / Media3).
