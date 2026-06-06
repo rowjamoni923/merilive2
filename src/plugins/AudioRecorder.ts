@@ -25,7 +25,12 @@ export interface AudioRecorderPluginNative {
     eventName: "audioRecorderMaxDuration",
     cb: (e: { reason: string }) => void
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
+  addListener(
+    eventName: "audioRecorderAmplitude",
+    cb: (e: { amplitude: number }) => void
+  ): Promise<PluginListenerHandle> & PluginListenerHandle;
 }
+
 
 const Native = registerPlugin<AudioRecorderPluginNative>("AudioRecorder");
 
@@ -180,6 +185,14 @@ export function onMaxDurationReached(
   if (!isAudioRecorderNative()) return null;
   return Native.addListener("audioRecorderMaxDuration", cb);
 }
+
+export function onAmplitudeUpdate(
+  cb: (e: { amplitude: number }) => void
+): Promise<PluginListenerHandle> | null {
+  if (!isAudioRecorderNative()) return null;
+  return Native.addListener("audioRecorderAmplitude", cb);
+}
+
 
 /**
  * Helper: read a native file:// path into a Blob for Supabase upload.
