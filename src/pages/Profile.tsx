@@ -1020,6 +1020,36 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setTraderWallet(Number(payload.wallet_balance || 0));
               setTraderId(payload.id || null);
             }
+            // Refresh history if Trader Wallet modal is open on the History tab.
+            if (showTransferModalRef.current && transferTabRef.current === 'history') {
+              void loadTransferHistory();
+            }
+          }
+
+          // Pkg425: trader-history table pushes → refresh wallet balance + history.
+          if (
+            table === 'helper_transactions'
+            || table === 'coin_transfers'
+            || table === 'coin_trader_transfers'
+            || table === 'agency_diamond_transactions'
+          ) {
+            const touchesUser =
+              payload?.user_id === activeProfileId
+              || payload?.sender_id === activeProfileId
+              || payload?.receiver_id === activeProfileId
+              || payload?.counterparty_user_id === activeProfileId
+              || payload?.owner_id === activeProfileId
+              // Agency-side rows: filter by agency owned by user
+              || (table === 'agency_diamond_transactions'
+                  && agencyData?.id
+                  && payload?.agency_id === agencyData.id);
+            if (!touchesUser) return;
+            // Refresh wallet balances so Trader Wallet card stays accurate.
+            void refreshTransferBalances().catch(() => {});
+            // Refresh history if modal is open on history tab.
+            if (showTransferModalRef.current && transferTabRef.current === 'history') {
+              void loadTransferHistory();
+            }
           }
         }
       );
