@@ -67,6 +67,16 @@ class NativeReelsPlayerPlugin : Plugin() {
     private var player: ExoPlayer? = null
     private var currentUrl: String? = null
 
+    // Single-threaded executor — serialise warm-cache jobs so a fast
+    // scroll doesn't spawn 30 parallel downloads. Latest batch wins
+    // (older batches are cancelled via Future.cancel(true) before the
+    // new ones are submitted).
+    private val prefetchExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "reels-prefetch").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }
+    }
+    private val inFlightLock = Any()
+    private val inFlightFutures = mutableListOf<Future<*>>()
+
     companion object {
         // Shared 256MB on-disk cache for reel MP4s. Survives plugin
         // re-init and is keyed by URL fragment so swiping back replays
@@ -74,6 +84,10 @@ class NativeReelsPlayerPlugin : Plugin() {
         @Volatile
         private var simpleCache: SimpleCache? = null
         private const val CACHE_SIZE_BYTES = 256L * 1024L * 1024L // 256MB
+        // Default bytes to warm per URL — ~2MB covers the moov atom +
+        // first ~3-5 seconds of a typical 720p reel MP4. Enough for
+        // instant first-frame; the rest streams as user watches.
+        private const val DEFAULT_PREFETCH_BYTES = 2L * 1024L * 1024L
 
         private fun cache(ctx: android.content.Context): SimpleCache {
             simpleCache?.let { return it }
