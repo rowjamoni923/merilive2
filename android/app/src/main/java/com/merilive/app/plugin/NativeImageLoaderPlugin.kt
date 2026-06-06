@@ -233,4 +233,9 @@ class NativeImageLoaderPlugin : Plugin() {
             else -> "image/jpeg"
         }
     }
+
+    override fun handleOnDestroy() {
+        try { ioPool.shutdownNow() } catch (_: Throwable) {}
+        super.handleOnDestroy()
+    }
 }
