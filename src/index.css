@@ -4491,3 +4491,36 @@ input, textarea, [contenteditable="true"], .selectable-text {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+/* =====================================================================
+ * Pkg434 — Pass 12: Native-feel focus rings + iOS text-size lock
+ * =====================================================================
+ * 1) Suppress focus rings on touch/mouse; keep them for keyboard users
+ *    via :focus-visible — matches native app convention.
+ * 2) Lock iOS text-size-adjust so landscape rotation doesn't bump font
+ *    sizes (very jarring on full-bleed cards).
+ * 3) Tap highlight cleared globally (some browsers still flash blue).
+ * ===================================================================== */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: inherit;
+}
