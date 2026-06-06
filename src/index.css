@@ -4447,3 +4447,47 @@ html.reduce-motion .pkg434-skel { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .pkg434-skel { animation: none; }
 }
+
+/* =====================================================================
+ * Pkg434 — Pass 11: Native-feel global guards + image blur-up
+ * =====================================================================
+ * 1) <NativeImg> blur-up while decoding (pairs with .fade-in-on-load).
+ * 2) Kill iOS document rubber-band overscroll (scroll containers keep theirs).
+ * 3) Remove 300ms tap delay + double-tap-zoom on interactive elements.
+ * 4) Suppress iOS long-press callout/selection on buttons & links;
+ *    inputs/textareas keep normal text selection.
+ * ===================================================================== */
+
+img.fade-in-on-load[data-loaded="false"] {
+  filter: blur(14px);
+  transform: scale(1.02);
+  transition: filter 260ms ease-out, transform 260ms ease-out, opacity 220ms ease-out;
+}
+img.fade-in-on-load[data-loaded="true"] {
+  filter: blur(0);
+  transform: scale(1);
+}
+html.reduce-motion img.fade-in-on-load[data-loaded="false"] {
+  filter: none;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  img.fade-in-on-load[data-loaded="false"] { filter: none; transform: none; }
+}
+
+html, body {
+  overscroll-behavior-y: none;
+}
+
+button, a, [role="button"], .tappable {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, [contenteditable="true"], .selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
