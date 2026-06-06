@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
@@ -3235,9 +3235,9 @@ const Chat = () => {
                     type="button"
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
                     className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center active:bg-muted transition-colors"
-                    aria-label="Gallery"
+                    aria-label="Attach photo or video"
                   >
-                    <Camera className="w-[20px] h-[20px] text-muted-foreground" />
+                    <Paperclip className="w-[20px] h-[20px] text-muted-foreground -rotate-45" />
                   </button>
                 </div>
 
