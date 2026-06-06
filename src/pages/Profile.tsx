@@ -539,6 +539,22 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     };
   };
 
+  // Pkg425: keep helper refs in sync so realtime push handler always calls
+  // the latest closure-bound versions.
+  useEffect(() => {
+    loadTransferHistoryRef.current = loadTransferHistory;
+  }, [loadTransferHistory]);
+  useEffect(() => {
+    refreshTransferBalancesRef.current = async () => {
+      try { await refreshTransferBalances(); } catch { /* swallow */ }
+    };
+  });
+  useEffect(() => {
+    agencyIdRef.current = agencyData?.id || null;
+  }, [agencyData?.id]);
+
+
+
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
     exchange_fee_percent: 25,
