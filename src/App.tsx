@@ -25,6 +25,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
+import TabKeepAliveHost, { isTabKeepAliveEnabled, isKeepAliveTabPath } from "./components/TabKeepAliveHost";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
