@@ -1238,7 +1238,9 @@ const App = () => {
                 <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session
-                    ? <ProtectedRoute session={session}><Index /></ProtectedRoute>
+                    ? (isTabKeepAliveEnabled()
+                        ? <ProtectedRoute session={session}><></></ProtectedRoute>
+                        : <ProtectedRoute session={session}><Index /></ProtectedRoute>)
                     : <Navigate to="/auth" replace />
                 } />
                 <Route path="/landing" element={<Navigate to="/" replace />} />
