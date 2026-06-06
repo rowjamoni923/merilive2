@@ -9,6 +9,8 @@ import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNo
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
+import { initLocalizationEngine } from "./i18n/engine";
+initLocalizationEngine();
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
