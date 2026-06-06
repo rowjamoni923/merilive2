@@ -360,8 +360,13 @@ export function AdvancedPartyBottomBar({
           
           <div className="px-5 pb-8">
             {loadingGames ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+              <div className="grid grid-cols-3 gap-3 py-6">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="aspect-square w-full rounded-2xl" />
+                    <Skeleton className="h-3 w-2/3 mx-auto" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-3">

@@ -172,8 +172,23 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-24">
-        <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+      <div className="w-full bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-xl rounded-xl border border-purple-500/30 overflow-hidden p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-32 rounded-md" />
+          <Skeleton className="h-6 w-16 rounded-md" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-8 h-8 rounded-lg" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-2 w-16" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-20 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
+        </div>
       </div>
     );
   }
