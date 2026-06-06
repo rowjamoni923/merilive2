@@ -164,7 +164,7 @@ const VirtualConversations: React.FC<{
     getItemKey: (i) => items[i].id,
   });
   return (
-    <div className="px-3 py-2" style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+    <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
       {virtualizer.getVirtualItems().map((vi) => (
         <div
           key={vi.key}
@@ -176,7 +176,6 @@ const VirtualConversations: React.FC<{
             left: 0,
             right: 0,
             transform: `translateY(${vi.start}px)`,
-            paddingBottom: 8,
           }}
         >
           <ConversationRow conv={items[vi.index]} onSelect={onSelect} />
@@ -185,6 +184,7 @@ const VirtualConversations: React.FC<{
     </div>
   );
 };
+
 
 const VirtualGroups: React.FC<{
   scrollRef: React.RefObject<HTMLElement>;
