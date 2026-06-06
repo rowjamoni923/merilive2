@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { Skeleton } from "@/components/Skeleton";
 
 interface Game {
   id: string;
@@ -314,14 +315,13 @@ export function GameSelectionModal({
             {/* Games Grid with 3D Cards */}
             <div className="px-3 pb-6 max-h-[60vh] overflow-y-auto overscroll-contain">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Loader2 className="w-10 h-10 text-purple-400" />
-                  </motion.div>
-                  <p className="text-white/60 mt-3 text-sm">Loading games...</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2">
+                      <Skeleton className="w-full aspect-square rounded-2xl" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  ))}
                 </div>
               ) : games.length === 0 ? (
                 <div className="text-center py-12">
