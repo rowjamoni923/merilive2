@@ -12,6 +12,7 @@ import "./i18n";
 import { initLocalizationEngine } from "./i18n/engine";
 initLocalizationEngine();
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
+import { installColdStartCapture } from "./utils/coldStartCapture";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 
@@ -90,9 +91,13 @@ if ('visualViewport' in window && window.visualViewport) {
 
 // Initialize native app features - non-blocking
 if (isNativeApp()) {
+  // Pkg434 Pass 3 — capture cold-start push tap / deep link BEFORE React mounts
+  // so the user lands on the intended chat/call/live screen instead of home.
+  installColdStartCapture();
+
   // Don't await - let it run in background
   initializeNativeApp().catch(console.error);
-  
+
   // domainFallback removed — app runs from local dist/.
   // No browser redirect. Everything stays inside the app.
 }
