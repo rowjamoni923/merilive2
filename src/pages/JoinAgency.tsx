@@ -12,6 +12,7 @@ import {
   Clock,
   RefreshCw
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -264,11 +265,7 @@ const JoinAgency = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton className="bg-background" rows={5} hero />;
   }
 
   // Show pending request status page

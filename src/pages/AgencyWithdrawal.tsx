@@ -17,6 +17,7 @@ import {
   ArrowDownCircle,
   Lock
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -2492,14 +2493,7 @@ const AgencyWithdrawal = () => {
   const hasPendingWithdrawal = withdrawals.some(w => w.status === 'pending');
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-info-50">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-600 mx-auto" />
-          <p className="mt-3 text-gray-600">Loading withdrawal...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton className="bg-gradient-to-br from-brand-50 via-background to-info-50" rows={5} hero />;
   }
 
   // Amount is now in local currency

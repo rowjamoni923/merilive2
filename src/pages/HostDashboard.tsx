@@ -16,6 +16,7 @@ import {
   Settings,
   Save
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
@@ -305,11 +306,7 @@ const HostDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSkeleton className="bg-background" rows={6} hero />;
   }
 
   return (

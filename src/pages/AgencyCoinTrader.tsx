@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -444,11 +445,7 @@ const AgencyCoinTrader = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton className="bg-background" rows={5} hero />;
   }
 
   const tradeCalc = calculateTrade();

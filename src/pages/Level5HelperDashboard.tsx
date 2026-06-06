@@ -8,6 +8,7 @@ import {
   Building2, User, Camera, Send, Eye, Trash2, FileText, Package, Copy,
   Reply, MessageCircle, ImagePlus, X
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1334,11 +1335,7 @@ const Level5HelperDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
-      </div>
-    );
+    return <PageSkeleton className="bg-[#F7F8FA]" rows={6} hero />;
   }
 
   return (
