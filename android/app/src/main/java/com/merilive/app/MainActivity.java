@@ -117,6 +117,11 @@ public class MainActivity extends BridgeActivity {
         // gated by `chatUINativeFlag` (localStorage 'chatui:native'='on').
         // Existing Chat.tsx React UI unchanged.
         registerPlugin(com.merilive.app.plugin.NativeChatUIPlugin.class);
+        // Pkg433 — NativeFeed (RecyclerView 2-col grid + Glide thumbnails
+        // for Home/Discover). Additive: no JS caller wires it by default;
+        // gated by `feedNativeFlag` (localStorage 'feed:native'='on').
+        // Existing Index.tsx / Discover.tsx React grids unchanged.
+        registerPlugin(com.merilive.app.plugin.NativeFeedPlugin.class);
 
 
 
