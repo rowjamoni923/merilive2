@@ -120,6 +120,8 @@ class LiveKitPlugin : Plugin() {
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
+        private const val SIGNAL_POLL_INTERVAL_MS = 2_500L
+
 
         // Step 29 — Picture-in-Picture bridge from MainActivity.
         // MainActivity overrides onUserLeaveHint / onPictureInPictureModeChanged
@@ -323,6 +325,8 @@ class LiveKitPlugin : Plugin() {
     private var statsIntervalMs: Long = STATS_DEFAULT_INTERVAL_MS
     private val qualityTable = mutableMapOf<String, String>() // sid → quality lowercase
     private var localSid: String = "local"
+    private var signalCollectorJob: Job? = null
+
 
     // --- Picture-in-Picture (Step 29) ----------------------------
     //

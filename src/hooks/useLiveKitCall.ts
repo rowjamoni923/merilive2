@@ -61,7 +61,9 @@ interface LiveKitCallState {
   isVideoEnabled: boolean;
   connectionState: RTCPeerConnectionState | 'new';
   isInPip: boolean;
+  networkQuality: 'excellent' | 'good' | 'poor' | 'lost' | 'unknown';
 }
+
 
 export function useLiveKitCall(
   callId: string | null,
@@ -80,7 +82,9 @@ export function useLiveKitCall(
     isVideoEnabled: true,
     connectionState: 'new',
     isInPip: false,
+    networkQuality: 'unknown',
   });
+
 
   const roomRef = useRef<Room | null>(null);
   // Pkg189: token refresh detach handle.
@@ -174,7 +178,13 @@ export function useLiveKitCall(
       if (deadRef.current) return;
       setState(p => ({ ...p, isInPip }));
     },
+    onSignalQuality: (quality) => {
+
+      if (deadRef.current) return;
+      setState(p => ({ ...p, networkQuality: quality as any }));
+    },
   });
+
 
   // Pause camera + mic when the app is backgrounded; restore on resume.
   // Releases the native camera handle to Android so the OS doesn't kill
@@ -267,7 +277,9 @@ export function useLiveKitCall(
       isVideoEnabled: true,
       connectionState: 'new',
       isInPip: false,
+      networkQuality: 'unknown',
     });
+
   }, []);
 
   const toggleAudio = useCallback(() => {
