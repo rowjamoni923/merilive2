@@ -408,7 +408,8 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                 onSelect={onSelectConversation}
               />
             ) : (
-              <div className="px-3 py-2 space-y-2">
+              <div className="py-1">
+
                 {filteredConversations.map((conv) => (
                   <ConversationRow key={conv.id} conv={conv} onSelect={onSelectConversation} />
                 ))}
