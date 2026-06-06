@@ -1,13 +1,7 @@
 /**
  * Pkg425 — JS bridge for native Android SVGA player.
- *
- * Falls through gracefully when:
- *   - running in web preview (Capacitor.isNativePlatform() === false)
- *   - running on iOS (plugin not yet registered for iOS)
- *   - native plugin not available in the installed APK (older build before Pkg425 rebuild)
- *
- * In all fallback cases, the web `SVGAPlayer.tsx` continues to work — there
- * is no degradation, only an upgrade for users on the new APK.
+ * 
+ * Extended in Pkg436 with disk caching and batch prefetching.
  */
 
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
@@ -16,6 +10,8 @@ export interface NativeSVGAPlugin {
   isAvailable(): Promise<{ available: boolean }>;
   play(opts: { url: string; loop?: boolean; fillScreen?: boolean }): Promise<{ ok: boolean }>;
   stop(): Promise<void>;
+  prefetch(opts: { url: string }): Promise<{ ok: boolean }>;
+  prefetchBatch(opts: { urls: string[] }): Promise<{ ok: boolean }>;
   addListener(
     event: 'svga:complete',
     cb: (data: { url: string }) => void,
