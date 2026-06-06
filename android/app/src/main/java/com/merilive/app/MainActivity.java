@@ -122,6 +122,12 @@ public class MainActivity extends BridgeActivity {
         // gated by `feedNativeFlag` (localStorage 'feed:native'='on').
         // Existing Index.tsx / Discover.tsx React grids unchanged.
         registerPlugin(com.merilive.app.plugin.NativeFeedPlugin.class);
+        // Pkg434 — NativeRouterShell (native top-bar + bottom-tab overlay
+        // on decorView). Additive: WebView still renders route content,
+        // React Router still drives nav. Gated by `routerShellNativeFlag`
+        // (localStorage 'routerShell:native'='on'). Default OFF — no JS
+        // caller opens it unless explicitly opted in.
+        registerPlugin(com.merilive.app.plugin.NativeRouterShellPlugin.class);
 
 
 
