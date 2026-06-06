@@ -290,6 +290,20 @@ const Discover = () => {
     return true;
   });
 
+  // Pkg428 Phase-9 — native Glide prefetch for first-screen room host avatars.
+  const nativePrefetchUrls = useMemo(
+    () =>
+      filteredRooms
+        .slice(0, 24)
+        .map((r) => {
+          const a = r.host?.avatar_url;
+          return a ? normalizeProfileMediaUrl(a) || a : null;
+        })
+        .filter((u): u is string => !!u),
+    [filteredRooms]
+  );
+  useNativeImagePrefetch(nativePrefetchUrls);
+
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
       case "video": return Monitor;
