@@ -128,6 +128,8 @@ public class MainActivity extends BridgeActivity {
         // (localStorage 'routerShell:native'='on'). Default OFF — no JS
         // caller opens it unless explicitly opted in.
         registerPlugin(com.merilive.app.plugin.NativeRouterShellPlugin.class);
+        registerPlugin(com.merilive.app.plugin.NativeGiftPanelPlugin.class);
+
 
 
 
