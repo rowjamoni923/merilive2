@@ -1273,7 +1273,7 @@ const App = () => {
                 <Route path="/live-feed" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamKeyWrapper /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/chat" element={<ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
+                <Route path="/chat" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute session={session}><PaymentSuccess /></ProtectedRoute>} />
