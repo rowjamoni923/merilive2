@@ -1,5 +1,5 @@
 // Amazon Rekognition Face Verification v3
-// CompareFaces (1:1) + SearchFacesByImage (duplicate detection)
+// CompareFaces (1:1) + SearchFacesByImage (duplicate detection) + DetectFaces (Gender check)
 // Auto-approves at >90% similarity, auto-bans duplicates
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -149,11 +149,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUser = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: claimsErr } = await supabaseUser.auth.getUser(token);
+    
+    // Get user from token
+    const { data: userData, error: claimsErr } = await supabaseAdmin.auth.getUser(token);
     if (claimsErr || !userData?.user?.id) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -161,6 +161,20 @@ Deno.serve(async (req) => {
       });
     }
     const userId = userData.user.id;
+
+    // Fetch user profile to check target gender
+    const { data: profile, error: profileErr } = await supabaseAdmin
+      .from('profiles')
+      .select('gender, display_name')
+      .eq('id', userId)
+      .single();
+
+    if (profileErr || !profile) {
+      return new Response(JSON.stringify({ error: "Profile not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Body
     const body = await req.json().catch(() => ({}));
@@ -185,7 +199,39 @@ Deno.serve(async (req) => {
     // Ensure collection exists
     await ensureCollection();
 
-    // ── Step 1: CompareFaces (1:1) ──
+    // ── Step 1: DetectFaces (Gender check) ──
+    const detectRes = await signRekognitionRequest("DetectFaces", {
+      Image: { Bytes: liveFaceB64 },
+      Attributes: ["GENDER"],
+    });
+
+    let detectedGender: string | null = null;
+    let genderConfidence = 0;
+
+    if (detectRes.ok) {
+      const detectData = await detectRes.json();
+      const faceDetails = detectData.FaceDetails ?? [];
+      if (faceDetails.length > 0) {
+        detectedGender = faceDetails[0].Gender?.Value ?? null;
+        genderConfidence = faceDetails[0].Gender?.Confidence ?? 0;
+      }
+    }
+
+    // Professional gender mismatch check
+    // If user is registered as female but detected as male (with high confidence)
+    if (profile.gender === 'female' && detectedGender === 'Male' && genderConfidence > 85) {
+      return new Response(
+        JSON.stringify({
+          isMatch: false,
+          confidence: 0,
+          error_code: "GENDER_MISMATCH",
+          error: "Gender mismatch detected. You are registered as female, but a male face was detected. If this is an error, please contact support.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // ── Step 2: CompareFaces (1:1) ──
     const compareRes = await signRekognitionRequest("CompareFaces", {
       SourceImage: { Bytes: liveFaceB64 },
       TargetImage: { Bytes: profilePhotoB64 },
@@ -201,7 +247,7 @@ Deno.serve(async (req) => {
           isMatch: false,
           confidence: 0,
           error_code: "REKOGNITION_ERROR",
-          error: errTxt,
+          error: "Face detection service is temporarily unavailable. Please try again later.",
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -216,6 +262,7 @@ Deno.serve(async (req) => {
           isMatch: false,
           confidence: 0,
           error_code: "NO_FACE_MATCH",
+          error: "Live face did not match the profile photo. Please ensure you are the same person as in the profile picture and try again with better lighting.",
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -224,8 +271,9 @@ Deno.serve(async (req) => {
     const confidence: number = matches[0].Similarity ?? 0;
     const isMatch = confidence >= SIMILARITY_THRESHOLD;
 
-    // ── Step 2: SearchFacesByImage (duplicate detection) ──
+    // ── Step 3: SearchFacesByImage (duplicate detection) ──
     let duplicateUserId: string | null = null;
+    let duplicateUserName: string | null = null;
     let rekognitionFaceId: string | null = null;
 
     const searchRes = await signRekognitionRequest("SearchFacesByImage", {
@@ -245,17 +293,20 @@ Deno.serve(async (req) => {
         rekognitionFaceId = matched.Face?.FaceId ?? null;
         if (externalId && externalId !== userId) {
           duplicateUserId = externalId;
+          // Fetch duplicate user's name
+          const { data: dupUser } = await supabaseAdmin
+            .from('profiles')
+            .select('display_name')
+            .eq('id', duplicateUserId)
+            .maybeSingle();
+          if (dupUser) {
+            duplicateUserName = dupUser.display_name;
+          }
         }
-      }
-    } else {
-      const t = await searchRes.text();
-      // InvalidParameterException = no face detected; safe to ignore
-      if (!t.includes("InvalidParameterException")) {
-        console.warn("[Rekognition SearchFacesByImage]:", t);
       }
     }
 
-    // ── Step 3: If approved & no duplicate, index face into collection ──
+    // ── Step 4: If approved & no duplicate, index face into collection ──
     if (isMatch && !duplicateUserId) {
       const indexRes = await signRekognitionRequest("IndexFaces", {
         CollectionId: REKOGNITION_COLLECTION,
@@ -271,14 +322,10 @@ Deno.serve(async (req) => {
         if (records.length > 0) {
           rekognitionFaceId = records[0].Face?.FaceId ?? rekognitionFaceId;
         }
-      } else {
-        const t = await indexRes.text();
-        console.warn("[Rekognition IndexFaces]:", t);
       }
     }
 
-    // ── Step 4: Persist via DB function ──
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // ── Step 5: Persist via DB function ──
     const { data: dbResult, error: dbErr } = await supabaseAdmin.rpc(
       "process_face_verification_v3",
       {
@@ -299,9 +346,23 @@ Deno.serve(async (req) => {
           isMatch,
           confidence,
           error_code: "DB_ERROR",
-          error: dbErr.message,
+          error: "Failed to save verification results. Please try again.",
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // If duplicate found, override response with professional message
+    if (duplicateUserId) {
+      return new Response(
+        JSON.stringify({
+          isMatch: false,
+          confidence,
+          error_code: "DUPLICATE_FACE",
+          duplicate_of: duplicateUserId,
+          error: `Multiple accounts detected. This face is already verified under the account: "${duplicateUserName || 'Another User'}". Please contact support if you believe this is an error.`,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -316,7 +377,7 @@ Deno.serve(async (req) => {
         isMatch: false,
         confidence: 0,
         error_code: "INTERNAL_ERROR",
-        error: err instanceof Error ? err.message : String(err),
+        error: "An unexpected error occurred during face verification. Please try again later.",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
