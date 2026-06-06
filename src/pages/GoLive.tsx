@@ -64,6 +64,8 @@ const GoLive = () => {
   const navigate = useNavigate();
   // Pkg443 Phase-3: keep host's screen awake on the pre-live setup screen.
   useScreenLock(true);
+  // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
+  useNativeAudioFocus({ enabled: true, intent: 'media' });
   const videoRef = useRef<HTMLVideoElement>(null);
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
