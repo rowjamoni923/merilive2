@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
