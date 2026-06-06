@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
@@ -173,9 +174,8 @@ export default function NotificationSettings() {
 
   if (loading) {
     return (
-      <div className="mobile-page bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PageSkeleton className="mobile-page flex flex-col bg-background" rows={6} />
+
     );
   }
 

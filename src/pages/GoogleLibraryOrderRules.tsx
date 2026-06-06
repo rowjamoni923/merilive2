@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, Gift, Users, MessageCircle, Radio, AlertTriangle, Headphones, Star, Flame, Trophy, Sparkles, Send, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/Skeleton";
 import BeansIcon from "@/components/common/BeansIcon";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -209,9 +210,17 @@ const GoogleLibraryOrderRules = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         <div className="max-w-lg mx-auto px-4 py-5 space-y-5">
           {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="w-10 h-10 border-[3px] border-purple-500/30 border-t-purple-600 rounded-full animate-spin" />
+            <div className="space-y-4 py-2" aria-busy="true">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 rounded-2xl bg-card border border-border space-y-2">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                </div>
+              ))}
             </div>
+
           ) : (
             <>
               {/* Hero Title */}
