@@ -339,10 +339,12 @@ const handler = async (req: Request): Promise<Response> => {
                     } : {
                       notification: {
                         sound: 'default',
-                        // Must match a real channel in NotificationHelper
-                        // ('default' did not exist → silent fallback).
-                        channel_id: 'merilive_default',
-                        notification_priority: 'PRIORITY_HIGH',
+                        // Pkg425 Phase-8 — route to type-specific channel so
+                        // killed-app FCM notifications inherit the correct
+                        // importance/sound/vibration. Channels are created in
+                        // NotificationHelper.createNotificationChannels.
+                        channel_id: pickAndroidChannel(type),
+                        notification_priority: channelPriority(type),
                         default_sound: true,
                         default_vibrate_timings: true,
                         visibility: 'PUBLIC',
