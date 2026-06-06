@@ -101,6 +101,12 @@ public class MainActivity extends BridgeActivity {
         // imageNativeFlag. Existing <img> path unchanged for everyone
         // else (web, iOS, older APKs, gated-off cohort).
         registerPlugin(com.merilive.app.plugin.NativeImageLoaderPlugin.class);
+        // Pkg430 — Native Storage (SQLiteOpenHelper key/value cache with TTL,
+        // namespace, batch ops, WAL). Additive: web/iOS/older APKs keep using
+        // localStorage; only opt-in callers using `useNativeStorage` /
+        // `nsGetJSON` hit this. No JS bundle reads from it by default.
+        registerPlugin(com.merilive.app.plugin.NativeStoragePlugin.class);
+
 
         super.onCreate(savedInstanceState);
 
