@@ -543,6 +543,34 @@ const Reels = () => {
     }
   };
 
+  // Pkg438 Phase C — double-tap to like + native heart-burst overlay.
+  // Pattern: schedule single-tap (togglePlay) on a 250ms delay; if a
+  // second tap arrives within that window, cancel the toggle and run
+  // the like + heart-burst. Matches Instagram/TikTok feel.
+  const tapStateRef = useRef<{ timer: number | null; lastAt: number }>({ timer: null, lastAt: 0 });
+  const handleVideoTap = (e: React.MouseEvent<HTMLElement>) => {
+    const now = Date.now();
+    const since = now - tapStateRef.current.lastAt;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (since < 280 && tapStateRef.current.timer != null) {
+      window.clearTimeout(tapStateRef.current.timer);
+      tapStateRef.current.timer = null;
+      tapStateRef.current.lastAt = 0;
+      const reel = reels[currentIndex];
+      if (reel && !reel.is_liked) void handleLike(reel.id);
+      if (isNativeHeartBurstFlagOn()) void tryHeartBurst(x, y, { count: 7, size: 72 });
+      return;
+    }
+    tapStateRef.current.lastAt = now;
+    tapStateRef.current.timer = window.setTimeout(() => {
+      tapStateRef.current.timer = null;
+      togglePlay();
+    }, 260);
+  };
+
+
   const toggleMute = () => {
     autoUnmutedRef.current = true;
     const next = !isMuted;
@@ -790,7 +818,7 @@ const Reels = () => {
                     playsInline
                     autoPlay
                     muted={isMuted}
-                    onClick={togglePlay}
+                    onClick={handleVideoTap}
                   />
                 )}
 
