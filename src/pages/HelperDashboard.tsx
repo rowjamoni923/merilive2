@@ -106,6 +106,7 @@ const HelperDashboard = () => {
   const [helperData, setHelperData] = useState<any>(helperCache);
   const [helperId, setHelperId] = useState<string | null>(null);
   const [loading, setLoading] = useState(!hadHelperCache);
+  const [showApplyForm, setShowApplyForm] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
