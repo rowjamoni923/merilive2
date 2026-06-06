@@ -2718,7 +2718,7 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm bg-card border border-border">
+                <div className="rounded-[18px] rounded-bl-[6px] px-4 py-2.5 bg-card border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
