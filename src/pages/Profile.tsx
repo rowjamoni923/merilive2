@@ -245,9 +245,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [pendingTransferType, setPendingTransferType] = useState<"user" | "agency" | "self" | null>(null);
 
   // Pkg425: refs so realtime push handler (closed over once in useEffect) can
-  // always see latest modal/tab state without re-subscribing.
+  // always see latest modal/tab state + helpers without re-subscribing.
   const showTransferModalRef = useRef(false);
   const transferTabRef = useRef<"user" | "agency" | "self" | "history">("user");
+  const loadTransferHistoryRef = useRef<() => Promise<void>>(async () => {});
+  const refreshTransferBalancesRef = useRef<() => Promise<void>>(async () => {});
+  const agencyIdRef = useRef<string | null>(null);
   useEffect(() => { showTransferModalRef.current = showTransferModal; }, [showTransferModal]);
   useEffect(() => { transferTabRef.current = transferTab; }, [transferTab]);
 
