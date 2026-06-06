@@ -2,7 +2,7 @@ import { useState, useEffect, Suspense, lazy } from "react";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { 
   ArrowLeft, 
   Crown, 
@@ -529,7 +529,57 @@ const Shop = () => {
     ? items 
     : items.filter(item => item.category === selectedCategory);
 
-  if (loading) return <LoadingSpinner fullScreen />;
+  if (loading) {
+    return (
+      <div
+        data-page="shop"
+        className="fixed inset-0 flex flex-col overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)',
+        }}
+      >
+        {/* Header skeleton */}
+        <div
+          className="sticky top-0 z-50 safe-area-top"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,251,242,0.92) 0%, rgba(245,239,223,0.92) 100%)',
+            borderBottom: '1px solid rgba(217,182,107,0.30)',
+            boxShadow: '0 4px 18px rgba(180,140,40,0.10)',
+            backdropFilter: 'blur(14px)',
+          }}
+        >
+          <div className="flex items-center justify-between px-4 py-3">
+            <SkeletonPrim className="h-9 w-9 rounded-full" />
+            <SkeletonPrim className="h-6 w-24 rounded" />
+            <SkeletonPrim className="h-9 w-28 rounded-full" />
+          </div>
+        </div>
+        {/* Category tabs skeleton */}
+        <div className="px-4 py-3">
+          <div className="flex gap-2 pb-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonPrim key={i} className="h-9 w-24 rounded-full" />
+            ))}
+          </div>
+        </div>
+        {/* Items grid skeleton */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-2" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-white border border-amber-100/60">
+                <SkeletonPrim className="aspect-square w-full rounded-none" />
+                <div className="px-3 pb-3 space-y-2 pt-2">
+                  <SkeletonPrim className="h-4 w-2/3 mx-auto" />
+                  <SkeletonPrim className="h-6 w-20 mx-auto rounded-full" />
+                  <SkeletonPrim className="h-8 w-full rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -518,8 +518,18 @@ const Leaderboard = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: isMobile ? `${safeAreaInsets.bottom + 16}px` : '16px' }}>
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <LoadingSpinner size="md" text="Loading rankings" />
+          <div className="px-3 pb-6 space-y-1.5 mt-2" aria-busy="true">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl p-3 bg-white" style={{ border: '1px solid rgba(15,23,42,0.08)', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' }}>
+                <SkeletonPrim className="w-7 h-4 rounded" />
+                <SkeletonPrim className="w-10 h-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonPrim className="h-4 w-1/3" />
+                  <SkeletonPrim className="h-3 w-1/2" />
+                </div>
+                <SkeletonPrim className="h-6 w-16 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : rankings.length === 0 ? (
           <div className="text-center py-20">
