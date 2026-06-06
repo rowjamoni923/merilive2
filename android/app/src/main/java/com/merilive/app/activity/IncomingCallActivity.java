@@ -121,7 +121,18 @@ public class IncomingCallActivity extends AppCompatActivity {
 
         startRinging();
 
-        // Auto-timeout after 30 seconds (industry standard - WhatsApp/Messenger parity).
+        // Phase 3 fix (A2/D2): honor admin-configured ring_timeout_seconds from
+        // the FCM payload instead of hardcoding 30s. Falls back to 30s when the
+        // extra is absent (old APK / non-FCM launch). Clamp to a sane range so a
+        // bad value can't lock the UI open.
+        long ringTimeoutMs = 30000L;
+        try {
+            String s = intent.getStringExtra("ring_timeout_seconds");
+            if (s != null && !s.isEmpty()) {
+                long parsed = Long.parseLong(s.trim());
+                if (parsed >= 10 && parsed <= 120) ringTimeoutMs = parsed * 1000L;
+            }
+        } catch (Exception ignored) {}
         timeoutHandler = new Handler(Looper.getMainLooper());
         timeoutRunnable = () -> {
             stopRinging();
@@ -129,7 +140,7 @@ public class IncomingCallActivity extends AppCompatActivity {
             cancelCallNotification();
             finish();
         };
-        timeoutHandler.postDelayed(timeoutRunnable, 30000);
+        timeoutHandler.postDelayed(timeoutRunnable, ringTimeoutMs);
 
         // Step 31 — listen for JS-initiated dismissals (caller cancelled,
         // answered on another device, etc) and close the activity.
@@ -140,7 +151,13 @@ public class IncomingCallActivity extends AppCompatActivity {
                 String otherId = ix.getStringExtra("call_id");
                 if (otherId != null && callId != null && !otherId.equals(callId)) return;
                 stopRinging();
-                dispatchAction("dismissed");
+                // Phase 3 fix (B6): if the user already accepted/declined we
+                // must NOT fire a second "dismissed" event into JS — it would
+                // run declineCall on an already-accepted call and immediately
+                // tear down the freshly connected room.
+                if (!actionDispatched) {
+                    dispatchAction("dismissed");
+                }
                 finish();
             }
         };
