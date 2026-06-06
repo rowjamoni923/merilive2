@@ -9,6 +9,12 @@ android {
     namespace 'com.merilive.app'
     compileSdk 34
 
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+
     defaultConfig {
         applicationId "com.merilive.app"
         minSdk 24
