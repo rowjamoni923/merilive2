@@ -179,6 +179,7 @@ export function useLiveKitCall(
       setState(p => ({ ...p, isInPip }));
     },
     onSignalQuality: (quality) => {
+
       if (deadRef.current) return;
       setState(p => ({ ...p, networkQuality: quality as any }));
     },

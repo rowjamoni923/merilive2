@@ -33,7 +33,10 @@ export interface NativeLiveKitEventHandlers {
   onVideoStall?: (state: 'stalled' | 'failed', isLocal: boolean, sid: string) => void;
   /** Activity entered or left PiP mode. */
   onPipChanged?: (isInPip: boolean) => void;
+  /** Signal/connection quality class for UI. */
+  onSignalQuality?: (quality: string) => void;
 }
+
 
 /**
  * @param active  Only register listeners when the native session is in use.
@@ -139,6 +142,13 @@ export function useNativeLiveKitEvents(
         });
         if (cancelled) { pipChanged.remove(); return; }
         subs.push(pipChanged);
+
+        const signalQuality = await NativeLiveKit.addListener('signal-quality', (e) => {
+          handlersRef.current.onSignalQuality?.(e.class);
+        });
+        if (cancelled) { signalQuality.remove(); return; }
+        subs.push(signalQuality);
+
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
       }
