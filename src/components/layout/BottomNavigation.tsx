@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
+
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
   icon: React.ElementType;
@@ -70,7 +72,19 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     return () => subscription.unsubscribe();
   }, []);
 
+  // 🚀 Native Badge Sync: Push unread counts to native bottom bar
+  useEffect(() => {
+    if (isNativeRouterShellAvailable() && unreadCounts.total >= 0) {
+      // Sync profile/me tab badge (total messages/notifs)
+      NativeRouterShell.setBadge({ tabId: 'profile', count: unreadCounts.total }).catch(() => {});
+      
+      // If we had more specific tabs in native shell, we'd sync them here
+      // NativeRouterShell.setBadge({ tabId: 'chat', count: unreadCounts.messages }).catch(() => {});
+    }
+  }, [unreadCounts.total]);
+
   const userProfile = realtimeProfile;
+
     
   const currentPath = location.pathname;
   const activeTab = externalActiveTab || currentPath;
