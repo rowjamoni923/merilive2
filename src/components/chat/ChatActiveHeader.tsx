@@ -51,26 +51,25 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
 
   return (
     <header
-      className="flex-shrink-0 safe-area-top profile-home-card"
-      style={{ zIndex: 10, position: "relative", borderRadius: 0, borderLeft: "none", borderRight: "none", borderTop: "none" }}
+      className="flex-shrink-0 safe-area-top bg-card border-b border-border/60"
+      style={{ zIndex: 10, position: "relative" }}
     >
-      <div className="flex items-center gap-3 px-3 py-2.5 h-14">
-        {/* Back Button — premium 3D glass orb */}
+      <div className="flex items-center gap-2 px-2 py-2 h-14">
+        {/* Back */}
         <button
           type="button"
-          className="relative flex items-center justify-center w-9 h-9 rounded-full bg-card/95 border border-border/70 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shrink-0 overflow-hidden"
-          style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
+          className="flex items-center justify-center w-10 h-10 rounded-full active:bg-muted transition-colors shrink-0"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onBack();
           }}
+          aria-label="Back"
         >
-          <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-          <ArrowLeft className="w-5 h-5 text-foreground relative" />
+          <ArrowLeft className="w-[22px] h-[22px] text-foreground" />
         </button>
 
-        {/* User Avatar with Premium Frame */}
+        {/* Avatar */}
         {!isGroup && selectedConversation?.other_user?.id ? (
           <div
             className="shrink-0 cursor-pointer"
@@ -85,8 +84,8 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
               name={chatName}
               level={userLevel}
               size="sm"
-              showAnimation={true}
-              showGlow={true}
+              showAnimation={false}
+              showGlow={false}
               isOnline={selectedConversation?.other_user?.is_online || false}
             />
           </div>
@@ -109,122 +108,110 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
           </div>
         )}
 
-        {/* User Info - Center */}
+        {/* Name + subtitle */}
         <div
-          className="flex-1 min-w-0 cursor-pointer"
+          className="flex-1 min-w-0 cursor-pointer ml-0.5"
           onClick={() => {
             const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
             if (userId) navigate(`/profile-detail/${userId}`);
           }}
         >
           <div className="flex items-center gap-1.5">
-            <h2 className="font-semibold text-foreground text-[15px] leading-tight truncate max-w-[150px]">
+            <h2 className="font-semibold text-foreground text-[16px] leading-tight truncate">
               {chatName}
             </h2>
-            {!isGroup && (
-              <div className="flex items-center gap-0.5 bg-gradient-gold text-accent-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
-                <Crown className="w-2.5 h-2.5" />
-                <span>Lv.{userLevel}</span>
-              </div>
+            {!isGroup && countryFlag && (
+              <span className="text-[12px] leading-none shrink-0">{countryFlag}</span>
             )}
+            {!isGroup && <LevelBadge level={userLevel} size="xs" />}
             {!isGroup && otherUserTrader.isTrader && (
               <TraderBadge level={otherUserTrader.traderLevel} size="xs" />
             )}
-            {!isGroup && countryFlag && (
-              <span className="text-[11px] leading-none">{countryFlag}</span>
-            )}
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5 min-h-[14px]">
+          <div className="min-h-[14px]">
             {!isGroup && isOtherTyping ? (
-              <span className="text-[11px] text-success-600 font-semibold flex items-center gap-1">
-                <span className="flex gap-0.5">
-                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "300ms" }} />
-                </span>
-                typing…
-              </span>
-            ) : !isGroup && (
+              <span className="text-[12px] text-emerald-600 font-medium">typing…</span>
+            ) : !isGroup ? (
               selectedConversation?.other_user?.is_online ? (
-                <span className="text-[11px] text-success-600 font-medium">online</span>
+                <span className="text-[12px] text-emerald-600 font-medium">online</span>
               ) : (
-                <span className="text-[11px] text-muted-foreground font-medium truncate">
+                <span className="text-[12px] text-muted-foreground truncate block">
                   last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
                 </span>
               )
-            )}
-            {isGroup && (
-              <span className="text-[11px] text-muted-foreground font-medium">{selectedGroup?.member_count || 0} members</span>
+            ) : (
+              <span className="text-[12px] text-muted-foreground">{selectedGroup?.member_count || 0} members</span>
             )}
           </div>
         </div>
 
-        {/* WhatsApp-style inline Video Call button (host + online only) */}
+        {/* Video call (host + online only) */}
         {!isGroup && selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
           <button
             type="button"
             onClick={() => {
               if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
             }}
-            className="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 overflow-hidden"
-            style={{
-              background: 'radial-gradient(120% 120% at 30% 20%, #bbf7d0 0%, #22c55e 45%, #14532d 100%)',
-              boxShadow: '0 6px 16px -6px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 5px rgba(0,0,0,0.3)'
-            }}
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:bg-muted transition-colors"
             aria-label="Video call"
           >
-            <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-            <VideoCallIcon className="w-[18px] h-[18px] text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+            <VideoCallIcon className="w-[22px] h-[22px] text-foreground" />
           </button>
         )}
 
-        {/* Group Settings Button */}
+        {/* Group settings */}
         {isGroup && (
           <button
             type="button"
-            className="relative w-9 h-9 rounded-full bg-card/95 border border-border/70 flex items-center justify-center shrink-0 z-20 overflow-hidden hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-            style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:bg-muted transition-colors"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setShowGroupSettings(true);
             }}
+            aria-label="Group settings"
           >
-            <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-            <Settings className="w-5 h-5 text-foreground pointer-events-none relative" />
+            <Settings className="w-[22px] h-[22px] text-foreground" />
           </button>
         )}
 
-        {/* Three Dot Menu for 1-on-1 chats - Block, Report, Profile */}
+        {/* 3-dot menu for 1:1 */}
         {!isGroup && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="relative w-9 h-9 rounded-full bg-card/95 border border-border/70 flex items-center justify-center shrink-0 z-20 overflow-hidden hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-                style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(15,23,42,0.08)" }}
+                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:bg-muted transition-colors"
+                aria-label="More"
               >
-                <div className="absolute inset-x-1 top-0.5 h-1.5 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
-                <MoreVertical className="w-5 h-5 text-foreground pointer-events-none relative" />
+                <MoreVertical className="w-[22px] h-[22px] text-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto"
+              className="bg-popover text-popover-foreground border border-border rounded-xl min-w-[200px] shadow-xl p-1"
             >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+
 
               <DropdownMenuItem
                 onClick={() => {
                   const otherId = selectedConversation?.other_user?.id;
                   if (otherId) navigate(`/profile-detail/${otherId}`);
                 }}
-                className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5"
               >
-                <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-primary" />
-                </div>
-                <span className="font-medium text-sm">View Profile</span>
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <span>View Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setTimeout(() => setShowReportDialog(true), 100);
+                }}
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5"
+              >
+                <ShieldAlert className="w-4 h-4 text-muted-foreground" />
+                <span>Report</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
@@ -241,26 +228,12 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                     toast.error("Failed to block user");
                   }
                 }}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="cursor-pointer py-2.5 px-3 rounded-lg text-[14px] gap-2.5 text-destructive focus:text-destructive"
               >
-                <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center">
-                  <X className="w-4 h-4 text-destructive" />
-                </div>
-                <span className="font-medium text-sm">Block User</span>
+                <X className="w-4 h-4" />
+                <span>Block User</span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setTimeout(() => setShowReportDialog(true), 100);
-                }}
-                className="text-warning-600 hover:text-warning-700 hover:bg-warning/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
-              >
-                <div className="w-8 h-8 rounded-lg bg-warning/15 border border-warning/20 flex items-center justify-center">
-                  <ShieldAlert className="w-4 h-4 text-warning-600" />
-                </div>
-                <span className="font-medium text-sm">Report</span>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
