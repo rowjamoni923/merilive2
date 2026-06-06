@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { subscribeToTables } from '@/hooks/useUniversalRealtime';
+// subscribeToTables import removed in Phase 3 B1 fix (duplicate listener purged).
 
 import { updateCachedBalance } from '@/hooks/useUserBalance';
 import { useToast } from '@/hooks/use-toast';
