@@ -1542,10 +1542,10 @@ const Chat = () => {
 
     const { data: replies } = await supabase
       .from('messages')
-      .select('id, content, sender_id')
+      .select('id, content, sender_id, message_type')
       .in('id', missingReplyIds);
 
-    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id, message_type: (r as any).message_type ?? null }]));
     setReplyMessages(prev => ({ ...prev, ...map }));
   }
 
