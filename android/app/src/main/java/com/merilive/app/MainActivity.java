@@ -106,6 +106,13 @@ public class MainActivity extends BridgeActivity {
         // localStorage; only opt-in callers using `useNativeStorage` /
         // `nsGetJSON` hit this. No JS bundle reads from it by default.
         registerPlugin(com.merilive.app.plugin.NativeStoragePlugin.class);
+        // Pkg431 — WebSocketBridge (OkHttp native socket). Additive transport
+        // for Supabase Realtime / Phoenix Channels — survives WebView doze on
+        // aggressive OEMs (Xiaomi/Vivo/Oppo). NOT wired into the Supabase
+        // client yet; gated by `socketNativeFlag` (default OFF) for a future
+        // Pkg integration. Existing WebView WebSocket path unchanged.
+        registerPlugin(com.merilive.app.plugin.WebSocketBridgePlugin.class);
+
 
 
         super.onCreate(savedInstanceState);

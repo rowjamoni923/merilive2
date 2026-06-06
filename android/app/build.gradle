@@ -119,6 +119,12 @@ dependencies {
     implementation "androidx.media3:media3-common:${media3Version}"
     implementation "androidx.media3:media3-database:${media3Version}"
 
+    // Pkg431 — explicit OkHttp pin for WebSocketBridgePlugin. media3 brings
+    // OkHttp transitively but pinning here keeps the WS API surface stable
+    // even if a future media3 bump drops the dep.
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.3')
     implementation 'com.google.firebase:firebase-messaging'
