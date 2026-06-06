@@ -379,7 +379,7 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="mobile-page bg-background">
+    <div data-page="search" className="mobile-page bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border safe-area-top">
         <div className="px-3 py-2.5 flex items-center gap-2">

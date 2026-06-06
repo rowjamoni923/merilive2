@@ -3555,7 +3555,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
+    <div data-page="chat" className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
       <ChatListView
         chatTab={chatTab}
         onTabChange={handleTabChange}

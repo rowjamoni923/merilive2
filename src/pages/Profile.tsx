@@ -2132,7 +2132,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
+    <div data-page="profile" className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
 
       {/* Back Button - Fixed at top, never scrolls away */}
       <div className="fixed top-2 left-3 z-10 safe-area-top">

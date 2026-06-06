@@ -865,7 +865,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="mobile-page bg-background">
+    <div data-page="settings" className="mobile-page bg-background">
       {/* Header */}
       <div
         className="mobile-header bg-card/95 backdrop-blur-xl"

@@ -444,7 +444,7 @@ const FollowingList = () => {
   );
 
   return (
-    <div className="mobile-page bg-gradient-to-b from-purple-50/40 via-background to-background dark:from-purple-950/20">
+    <div data-page="following" className="mobile-page bg-gradient-to-b from-purple-50/40 via-background to-background dark:from-purple-950/20">
       {/* Premium gradient header */}
       <header className="sticky top-0 z-40 safe-area-top">
         <div

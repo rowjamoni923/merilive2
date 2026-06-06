@@ -533,6 +533,7 @@ const Shop = () => {
 
   return (
     <div
+      data-page="shop"
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)',
