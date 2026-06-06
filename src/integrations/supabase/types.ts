@@ -19555,18 +19555,33 @@ export type Database = {
         }
         Returns: Json
       }
-      process_face_verification_v3: {
-        Args: {
-          p_confidence: number
-          p_duplicate_user_id?: string
-          p_face_rekognition_id: string
-          p_is_match: boolean
-          p_live_face_url?: string
-          p_profile_photo_url: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      process_face_verification_v3:
+        | {
+            Args: {
+              p_confidence: number
+              p_duplicate_user_id?: string
+              p_face_rekognition_id: string
+              p_is_match: boolean
+              p_live_face_url?: string
+              p_profile_photo_url: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_confidence: number
+              p_duplicate_user_id?: string
+              p_face_rekognition_id: string
+              p_gender_confidence?: number
+              p_gender_detected?: string
+              p_is_match: boolean
+              p_live_face_url?: string
+              p_profile_photo_url: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       process_game_bet: {
         Args: {
           p_bet_amount: number
