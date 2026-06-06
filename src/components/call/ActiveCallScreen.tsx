@@ -183,6 +183,7 @@ export function ActiveCallScreen({
     toggleAudio,
     toggleVideo,
     setSpeakerOn,
+    isInPip,
     cleanup,
   } = useLiveKitCall(isOpen ? callId : null, userId, isHost);
 
@@ -230,12 +231,9 @@ export function ActiveCallScreen({
 
   // Pkg207 — Auto-shrink to native Android PiP when user presses home
   // mid-call (WhatsApp / Google Meet parity). 9:16 for video calls, 1:1
-  // for audio-only. inPip flips true while in floating window — use it
+  // for audio-only. isInPip flips true while in floating window — use it
   // to collapse the heavy chat / gift / settings overlays below.
-  const { inPip: isInNativePip } = useNativeAndroidPip({
-    active: isOpen && callStatus === 'connected' && !callEnded,
-    aspect: '9:16',
-  });
+  const isInNativePip = isInPip;
 
 
 
@@ -713,10 +711,11 @@ export function ActiveCallScreen({
       </AnimatePresence>
 
       {/* ===== TOP BAR - Ultra Premium Glassmorphic ===== */}
-      <div 
-        className="absolute top-0 left-0 right-0 z-10 safe-area-top"
-        style={{ contain: 'layout' }}
-      >
+      {!isInNativePip && (
+        <div 
+          className="absolute top-0 left-0 right-0 z-10 safe-area-top"
+          style={{ contain: 'layout' }}
+        >
         <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Left - User info pill (3D glass) */}
           <div className="flex items-center gap-2">
@@ -853,7 +852,7 @@ export function ActiveCallScreen({
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ===== MAIN VIDEO VIEW ===== */}
       <div 
@@ -1011,7 +1010,7 @@ export function ActiveCallScreen({
       </div>
 
       {/* ===== INLINE CHAT MESSAGES (positioned above bottom controls) ===== */}
-      {chatMessages.length > 0 && (
+      {chatMessages.length > 0 && !isInNativePip && (
         <div
           ref={chatScrollRef}
           className="absolute bottom-[108px] sm:bottom-[116px] left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto"
@@ -1098,8 +1097,9 @@ export function ActiveCallScreen({
       </AnimatePresence>
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
-        <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
+      {!isInNativePip && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
+          <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Message input pill */}
