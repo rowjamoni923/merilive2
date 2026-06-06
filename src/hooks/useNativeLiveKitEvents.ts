@@ -31,6 +31,8 @@ export interface NativeLiveKitEventHandlers {
   onCameraState?: (state: 'started' | 'failed', reason: string, error?: string) => void;
   /** Per-track decoded-frame watchdog event. */
   onVideoStall?: (state: 'stalled' | 'failed', isLocal: boolean, sid: string) => void;
+  /** Activity entered or left PiP mode. */
+  onPipChanged?: (isInPip: boolean) => void;
 }
 
 /**
@@ -131,6 +133,12 @@ export function useNativeLiveKitEvents(
         });
         if (cancelled) { videoStall.remove(); return; }
         subs.push(videoStall);
+
+        const pipChanged = await NativeLiveKit.addListener('pip-changed', (e) => {
+          handlersRef.current.onPipChanged?.(e.isInPip);
+        });
+        if (cancelled) { pipChanged.remove(); return; }
+        subs.push(pipChanged);
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
       }
