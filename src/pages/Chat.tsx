@@ -18,6 +18,8 @@ import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
+import { useNativeChatUI } from "@/hooks/useNativeChatUI";
+import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
