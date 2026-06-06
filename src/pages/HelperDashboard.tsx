@@ -361,8 +361,14 @@ const HelperDashboard = () => {
         .single();
 
       if (!helper || !helper.is_verified || !helper.is_active) {
-        toast({ title: "Access Denied", description: helper && !helper.is_active ? "Your helper account has been deactivated by admin" : "You are not a verified diamond trader", variant: "destructive" });
-        navigate('/profile');
+        // Pkg432: instead of kicking the user back to /profile, render the L1 application
+        // form inline so they can apply right here and (on crypto auto-payment) be granted
+        // instantly. Admin deactivations still show the toast below.
+        if (helper && !helper.is_active) {
+          toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin.", variant: "destructive" });
+        }
+        setShowApplyForm(true);
+        setLoading(false);
         return;
       }
 
