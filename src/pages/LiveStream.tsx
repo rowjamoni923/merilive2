@@ -70,7 +70,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
+import { hapticFeedback } from "@/utils/nativeUtils";
 import { toast } from "@/utils/hybridToast";
+
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { usePKOpponentRoom } from "@/hooks/usePKOpponentRoom";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
