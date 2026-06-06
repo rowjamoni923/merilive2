@@ -3229,8 +3229,8 @@ const Chat = () => {
                     className="flex-1 h-9 border-0 bg-transparent px-1 text-[15px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
-                    onFocus={() => setShowEmojiPicker(false)}
                   />
+
                   <button
                     type="button"
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
