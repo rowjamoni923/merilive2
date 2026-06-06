@@ -9,6 +9,7 @@ import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
+import { useStreamQualityDirector } from "@/hooks/useStreamQualityDirector";
 import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
 import { useNativeImageInterceptor } from "@/hooks/useNativeImagePrefetch";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
@@ -58,6 +59,8 @@ const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null
   useHibernationCheck();
   // Pkg244: Android onTrimMemory → evict inactive RQ cache & SW caches under RAM pressure
   useMemoryPressureGuard();
+  // Pkg443 Phase-3: unified thermal+memory+network → 'stream:quality-hint' event
+  useStreamQualityDirector();
   // Pkg248: dynamic Conversation shortcuts + Direct Share (top 4 recent DMs)
   useConversationShortcuts();
   // Pkg428 / Developer Options: native Glide image interceptor (Android-only,
