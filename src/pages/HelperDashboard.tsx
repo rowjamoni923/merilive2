@@ -1028,6 +1028,52 @@ const HelperDashboard = () => {
     );
   }
 
+  // Pkg432: First-time / not-yet-verified users see the L1 application form inline.
+  // Crypto auto-payment grants the Trader Wallet instantly (see auto_grant_helper_from_crypto_payment).
+  if (showApplyForm) {
+    return (
+      <div
+        className="fixed inset-0 overflow-y-auto overscroll-contain bg-background"
+        style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}
+      >
+        <div className="px-4 pt-4 pb-2 safe-area-top flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-card border border-border flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-base text-foreground">Become a Trader</h1>
+            <p className="text-xs text-muted-foreground">Apply for Level 1 Helper to unlock your Trader Wallet</p>
+          </div>
+        </div>
+        <div className="px-4 pb-8">
+          <HelperApplicationForm
+            onSuccess={async () => {
+              setShowApplyForm(false);
+              setLoading(true);
+              // Re-fetch helper data — Pkg432 RPC will have created the topup_helpers row.
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: helper } = await supabase
+                  .from('topup_helpers').select('*').eq('user_id', user.id).single();
+                if (helper && helper.is_verified && helper.is_active) {
+                  setHelperData(helper);
+                  setHelperCache(helper);
+                  setHelperId(helper.id);
+                }
+              }
+              setLoading(false);
+            }}
+            onClose={() => navigate('/profile')}
+          />
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div
       className="fixed inset-0 overflow-y-auto overscroll-contain"
