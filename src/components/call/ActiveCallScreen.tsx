@@ -1187,7 +1187,8 @@ export function ActiveCallScreen({
             </motion.button>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       <GiftPanel
         isOpen={showGiftPanel}
