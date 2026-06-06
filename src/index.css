@@ -169,6 +169,22 @@ a[href]:active,
 .mb-safe { margin-bottom: var(--safe-bottom); }
 .min-h-safe-screen { min-height: calc(100vh - var(--safe-top) - var(--safe-bottom)); }
 
+/* Pkg434 Pass 2 — Keyboard-aware utilities.
+   --kb-h is set live by useKeyboardInsets (native + visualViewport).
+   Use on chat input bars, bottom sheets, FABs to lift above the keyboard.
+   Falls back to 0px when keyboard is closed. Combine with safe-area:
+     class="pb-kb pb-safe"   → bottom padding = keyboard OR home indicator. */
+:root { --kb-h: 0px; }
+.pb-kb { padding-bottom: var(--kb-h); }
+.mb-kb { margin-bottom: var(--kb-h); }
+.bottom-kb { bottom: var(--kb-h); }
+.pb-kb-safe { padding-bottom: calc(var(--kb-h) + var(--safe-bottom)); }
+.bottom-kb-safe { bottom: calc(var(--kb-h) + var(--safe-bottom)); }
+/* Smooth lift when keyboard opens/closes */
+.pb-kb, .mb-kb, .bottom-kb, .pb-kb-safe, .bottom-kb-safe {
+  transition: padding-bottom 180ms ease-out, margin-bottom 180ms ease-out, bottom 180ms ease-out;
+}
+
 input,
 select,
 textarea {
