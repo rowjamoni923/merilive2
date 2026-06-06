@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { Phone, PhoneOff, Radio, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 
 interface IncomingCallModalProps {
@@ -22,6 +23,9 @@ export function IncomingCallModal({
   onDecline,
 }: IncomingCallModalProps) {
   const { startRingtone, stopRingtone, playSound } = useSound();
+  // Pkg444 Phase-5: switch native audio mode to 'ringtone' while modal
+  // is open so the ringtone routes through the ringer stream/volume.
+  useNativeAudioFocus({ enabled: isOpen, intent: 'ringtone' });
   // Section#5 pass-2 (Bug F): in-flight guard so rapid double-tap can't
   // fire onAccept/onDecline twice and race CallProvider's accept/decline.
   const processingRef = useRef(false);

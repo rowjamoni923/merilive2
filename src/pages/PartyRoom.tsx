@@ -3,6 +3,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -179,6 +180,8 @@ const PartyRoom = () => {
   const { roomId } = useParams<{ roomId: string }>();
   // Pkg443 Phase-3: keep screen awake for the entire party-room session.
   useScreenLock(true);
+  // Pkg444 Phase-5: hold media audio focus for the whole party session.
+  useNativeAudioFocus({ enabled: true, intent: 'media' });
   const [room, setRoom] = useState<PartyRoom | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);

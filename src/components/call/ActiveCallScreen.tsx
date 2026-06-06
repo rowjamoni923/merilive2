@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
@@ -75,6 +76,9 @@ export function ActiveCallScreen({
 }: ActiveCallScreenProps) {
   // Pkg443 Phase-3: keep screen awake for the entire active call.
   useScreenLock(isOpen);
+  // Pkg444 Phase-5: own native audio focus + switch to in_communication
+  // mode so Spotify/YouTube auto-pause and the earpiece routes correctly.
+  useNativeAudioFocus({ enabled: isOpen, intent: 'call' });
   // Pkg416 — claim the single professional camera for private-call. If
   // face-verify holds the camera (verification family), this returns a
   // conflict error and we surface a friendly toast instead of starting

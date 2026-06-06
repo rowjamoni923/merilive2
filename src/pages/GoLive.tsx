@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { useScreenLock } from "@/hooks/useScreenLock";
+import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
@@ -63,6 +64,8 @@ const GoLive = () => {
   const navigate = useNavigate();
   // Pkg443 Phase-3: keep host's screen awake on the pre-live setup screen.
   useScreenLock(true);
+  // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
+  useNativeAudioFocus({ enabled: true, intent: 'media' });
   const videoRef = useRef<HTMLVideoElement>(null);
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
