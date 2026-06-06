@@ -32,17 +32,8 @@ export function RouteTransitionHost() {
       const body = document.body;
       body.classList.add("route-changing");
 
-      // Native-feel: jump to top on real page change (skip if hash anchor).
-      if (!location.hash) {
-        // Use rAF so the new page has painted at scroll(0) before transition.
-        requestAnimationFrame(() => {
-          try {
-            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-          } catch {
-            /* noop */
-          }
-        });
-      }
+      // Note: ScrollToTop already handles scroll reset on path change.
+      // We only own the transition class here.
 
       const t = window.setTimeout(() => {
         body.classList.remove("route-changing");

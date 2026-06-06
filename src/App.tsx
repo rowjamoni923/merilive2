@@ -1182,6 +1182,7 @@ const App = () => {
             <SonnerToaster />
             <BrowserRouter>
               <ScrollToTop />
+              <RouteTransitionHost />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
               {session && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
