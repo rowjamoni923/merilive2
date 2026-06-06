@@ -29,6 +29,9 @@ public class NotificationHelper {
     public static final String CHANNEL_LIVE = "merilive_live";
     public static final String CHANNEL_SYSTEM = "merilive_system";
     public static final String CHANNEL_DEFAULT = "merilive_default";
+    // Pkg425 Phase-8 — promo / marketing channel (silent-ish, low importance,
+    // user can mute it independently without losing chat/call alerts).
+    public static final String CHANNEL_PROMO = "merilive_promo";
 
     public static final int NOTIFICATION_CALL = 1001;
     public static final int NOTIFICATION_MESSAGE = 2001;
@@ -127,6 +130,18 @@ public class NotificationHelper {
         defChannel.setSound(defaultSound, audioAttrs);
         defChannel.enableVibration(true);
         manager.createNotificationChannel(defChannel);
+
+        // 7. PROMO — Pkg425 Phase-8. Marketing / re-engagement / event banners.
+        // LOW importance: no heads-up, quieter sound, user can mute without
+        // losing critical alerts (calls/messages/gifts).
+        NotificationChannel promoChannel = new NotificationChannel(
+            CHANNEL_PROMO, "Promotions & Events", NotificationManager.IMPORTANCE_LOW);
+        promoChannel.setDescription("Offers, events, campaigns, re-engagement");
+        promoChannel.setSound(defaultSound, audioAttrs);
+        promoChannel.enableVibration(false);
+        promoChannel.enableLights(false);
+        promoChannel.setShowBadge(false);
+        manager.createNotificationChannel(promoChannel);
     }
 
     /**

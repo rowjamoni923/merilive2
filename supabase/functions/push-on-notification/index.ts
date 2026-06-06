@@ -36,6 +36,30 @@ const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, st
   return output;
 };
 
+// Pkg425 Phase-8 — type → Android notification channel mapping. Channels
+// MUST exist in android/.../NotificationHelper.java.
+const pickAndroidChannel = (type?: string): string => {
+  const t = (type || "").toLowerCase();
+  if (t === "incoming_call" || t === "call" || t === "missed_call") return "merilive_calls";
+  if (t === "message" || t === "chat" || t === "dm" || t === "new_message") return "merilive_messages";
+  if (t === "gift" || t === "gift_received" || t === "reward") return "merilive_gifts";
+  if (t === "live_start" || t === "live" || t === "stream_started" || t === "follow") return "merilive_live";
+  if (t === "system" || t === "security" || t === "maintenance") return "merilive_system";
+  if (
+    t === "promo" || t === "promotion" || t === "campaign" || t === "event" ||
+    t === "marketing" || t === "reengagement" || t === "re_engagement" || t === "broadcast"
+  ) return "merilive_promo";
+  return "merilive_default";
+};
+const channelPriority = (type?: string): string => {
+  const ch = pickAndroidChannel(type);
+  if (ch === "merilive_calls") return "PRIORITY_MAX";
+  if (ch === "merilive_messages" || ch === "merilive_gifts") return "PRIORITY_HIGH";
+  if (ch === "merilive_system" || ch === "merilive_promo") return "PRIORITY_LOW";
+  return "PRIORITY_DEFAULT";
+};
+
+
 // Generate JWT for FCM V1 authentication
 async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -200,16 +224,14 @@ serve(async (req) => {
               android: {
                 priority: "HIGH",
                 notification: {
-                  // Must match an actual channel created in
-                  // NotificationHelper.createNotificationChannels.
-                  // "default_channel" did not exist → killed-app
-                  // notifications fell back to system default channel
-                  // (low importance, no sound on some OEMs).
-                  channel_id: "merilive_default",
+                  // Pkg425 Phase-8 — route to type-specific channel so
+                  // killed-app notifications inherit correct importance/
+                  // sound/vibration. Falls back to merilive_default.
+                  channel_id: pickAndroidChannel(notifType),
                   sound: "default",
                   default_vibrate_timings: true,
                   default_sound: true,
-                  notification_priority: "PRIORITY_HIGH",
+                  notification_priority: channelPriority(notifType),
                   visibility: "PUBLIC",
                   ...(imageUrl ? { image: String(imageUrl) } : {}),
                 },
