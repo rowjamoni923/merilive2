@@ -26,6 +26,7 @@ import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 interface Profile {
   id: string;
@@ -309,6 +310,20 @@ const Index = () => {
   // For any other tab/country, always reflect the live query so users see filter changes immediately.
   const isDefaultView = subTab === "popular" && selectedCountry === "all";
   const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
+
+  // Pkg428 Phase-9 — native Glide prefetch for first-screen avatars + live
+  // thumbnails. No-op on web/iOS or when flag is off. Drastically reduces
+  // image jank when killed-cold scroll begins on Android.
+  const nativePrefetchUrls = useMemo(
+    () =>
+      displayHosts
+        .slice(0, 24)
+        .flatMap((h) => [h.avatar_url, h.liveThumbnailUrl])
+        .map((u) => (u ? normalizeProfileMediaUrl(u) || u : null))
+        .filter((u): u is string => !!u),
+    [displayHosts]
+  );
+  useNativeImagePrefetch(nativePrefetchUrls);
 
   useEffect(() => {
     if (!hosts?.length) return;

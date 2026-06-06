@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
@@ -288,6 +289,20 @@ const Discover = () => {
     }
     return true;
   });
+
+  // Pkg428 Phase-9 — native Glide prefetch for first-screen room host avatars.
+  const nativePrefetchUrls = useMemo(
+    () =>
+      filteredRooms
+        .slice(0, 24)
+        .map((r) => {
+          const a = r.host?.avatar_url;
+          return a ? normalizeProfileMediaUrl(a) || a : null;
+        })
+        .filter((u): u is string => !!u),
+    [filteredRooms]
+  );
+  useNativeImagePrefetch(nativePrefetchUrls);
 
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
