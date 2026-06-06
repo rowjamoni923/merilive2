@@ -95,6 +95,15 @@ export function isNativeImageFlagEnabled(): boolean {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return false;
   }
+  // Developer Options dial (smtv923@gmail.com) — highest priority. When the
+  // dev toggles `nativeImageLoader` ON, we activate Pkg428 regardless of
+  // localStorage smoke-test override or remote rollout.
+  try {
+    // Lazy import avoids a circular dep at module init.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNativeFlag } = require('@/utils/nativeFlags') as typeof import('@/utils/nativeFlags');
+    if (getNativeFlag('nativeImageLoader')) return true;
+  } catch { /* nativeFlags unavailable — fall through */ }
   const override = getLocalNativeImageOverride();
   if (override !== null) return override;
   if (cachedRemoteEnabled === false) return false;
@@ -102,6 +111,7 @@ export function isNativeImageFlagEnabled(): boolean {
   if (cachedRemoteRolloutPercent == null) return false;
   return getStableBucket() < cachedRemoteRolloutPercent;
 }
+
 
 /** Interceptor (rewrites every <img> response). Requires base flag ON. */
 export function isImageInterceptorEnabled(): boolean {

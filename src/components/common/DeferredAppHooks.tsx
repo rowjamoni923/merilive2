@@ -10,6 +10,7 @@ import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
 import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
+import { useNativeImageInterceptor } from "@/hooks/useNativeImagePrefetch";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import FeedbackDialog from "@/components/common/FeedbackDialog";
 import { queryClient } from "@/lib/queryClient";
@@ -59,6 +60,10 @@ const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null
   useMemoryPressureGuard();
   // Pkg248: dynamic Conversation shortcuts + Direct Share (top 4 recent DMs)
   useConversationShortcuts();
+  // Pkg428 / Developer Options: native Glide image interceptor (Android-only,
+  // gated by `nativeImageLoader` flag in Developer Options screen). Reacts
+  // live to flag toggles — no rebuild needed to flip on/off.
+  useNativeImageInterceptor();
 
 
   if (isAdminRoute) return null;
