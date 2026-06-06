@@ -14,6 +14,13 @@ import { isNativeStorageAvailable } from '@/plugins/NativeStorage';
 
 export function isStorageNativeEnabled(): boolean {
   try {
+    // Developer Options dial — highest priority. Lets the dev force-on/off
+    // independent of the localStorage smoke-test toggle.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNativeFlag } = require('@/utils/nativeFlags') as typeof import('@/utils/nativeFlags');
+    if (getNativeFlag('nativeStorage')) return isNativeStorageAvailable();
+  } catch { /* noop */ }
+  try {
     const v = localStorage.getItem('storage:native');
     if (v === 'off') return false;
     if (v === 'on') return isNativeStorageAvailable();
