@@ -4391,3 +4391,59 @@ html.reduce-motion .backdrop-blur-3xl {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+/* =============================================================================
+   PKG434 Pass 9 — Native-feel tap-press feedback + Skeleton shimmer
+   ============================================================================= */
+
+/* Subtle scale + opacity dip on press — applied to common tappable selectors.
+   Uses :active so it fires on every pointerdown→release. transform-only =
+   GPU-cheap, no layout. Capped to direct tappables to avoid affecting
+   children inside scroll containers. */
+@media (hover: none) and (pointer: coarse) {
+  button:not(:disabled):active,
+  a:active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  [data-tap-press]:active {
+    transform: scale(0.97);
+    opacity: 0.88;
+    transition: transform 80ms ease-out, opacity 80ms ease-out;
+  }
+}
+
+/* Honor reduced-motion + low-end throttle */
+@media (prefers-reduced-motion: reduce) {
+  button:active, a:active, [role="button"]:active, [data-tap-press]:active {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+html.reduce-motion button:active,
+html.reduce-motion a:active,
+html.reduce-motion [role="button"]:active,
+html.reduce-motion [data-tap-press]:active {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* Skeleton shimmer — used by <Skeleton /> primitive */
+@keyframes pkg434-skel-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.pkg434-skel {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted) / 0.6) 0%,
+    hsl(var(--muted) / 0.9) 50%,
+    hsl(var(--muted) / 0.6) 100%
+  );
+  background-size: 200% 100%;
+  animation: pkg434-skel-shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.5rem;
+  will-change: background-position;
+}
+html.reduce-motion .pkg434-skel,
+@media (prefers-reduced-motion: reduce) {
+  .pkg434-skel { animation: none; }
+}
