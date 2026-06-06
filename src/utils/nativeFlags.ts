@@ -7,12 +7,20 @@ export type NativeFlagKey =
   | 'routerShellNative'
   | 'videoPrecache'
   | 'pipCall'
-  | 'giftPanelNative';
+  | 'giftPanelNative'
+  | 'nativeChatUI' // Legacy
+  | 'nativeFeed' // Legacy
+  | 'nativeImageLoader' // Legacy
+  | 'nativeReelsPlayer' // Legacy
+  | 'nativeRouterShell' // Legacy
+  | 'webSocketBridge' // Legacy
+  | 'nativeStorage'; // Legacy
 
 export interface NativeFlagMeta {
   key: NativeFlagKey;
   label: string;
   description: string;
+  hidden?: boolean;
 }
 
 export const NATIVE_FLAG_META: NativeFlagMeta[] = [
@@ -61,6 +69,14 @@ export const NATIVE_FLAG_META: NativeFlagMeta[] = [
     label: 'Native Gift Panel',
     description: 'Use Material BottomSheet for buttery smooth gift selecting.',
   },
+  // Legacy aliases to fix build errors in individual feature utils
+  { key: 'nativeChatUI', label: '', description: '', hidden: true },
+  { key: 'nativeFeed', label: '', description: '', hidden: true },
+  { key: 'nativeImageLoader', label: '', description: '', hidden: true },
+  { key: 'nativeReelsPlayer', label: '', description: '', hidden: true },
+  { key: 'nativeRouterShell', label: '', description: '', hidden: true },
+  { key: 'webSocketBridge', label: '', description: '', hidden: true },
+  { key: 'nativeStorage', label: '', description: '', hidden: true },
 ];
 
 export type NativeFlags = Record<NativeFlagKey, boolean>;
@@ -82,13 +98,15 @@ export const setNativeFlag = (key: NativeFlagKey, enabled: boolean): void => {
   } catch { /* noop */ }
 };
 
-export const getAllNativeFlags = (): NativeFlags => {
+export const getNativeFlags = (): NativeFlags => {
   const out: Partial<NativeFlags> = {};
   NATIVE_FLAG_META.forEach((m) => {
     out[m.key] = getNativeFlag(m.key);
   });
   return out as NativeFlags;
 };
+
+export const getAllNativeFlags = getNativeFlags;
 
 export const resetAllNativeFlags = (): void => {
   NATIVE_FLAG_META.forEach((m) => {
@@ -97,6 +115,7 @@ export const resetAllNativeFlags = (): void => {
 };
 
 export const subscribeNativeFlags = (cb: () => void): () => void => {
-  window.addEventListener('native-flags-changed', cb);
-  return () => window.removeEventListener('native-flags-changed', cb);
+  const handler = () => cb();
+  window.addEventListener('native-flags-changed', handler);
+  return () => window.removeEventListener('native-flags-changed', handler);
 };

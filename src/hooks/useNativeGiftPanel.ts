@@ -49,7 +49,7 @@ export const useNativeGiftPanel = (
           selectSub.remove();
           sendSub.remove();
           rechargeSub.remove();
-          NativeGiftPanel.close();
+          NativeGiftPanel.close().catch(() => {});
         };
       } catch (err) {
         console.error('Failed to open native gift panel:', err);
