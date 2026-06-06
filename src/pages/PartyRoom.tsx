@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
+import { useScreenLock } from "@/hooks/useScreenLock";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -176,6 +177,8 @@ interface ChatMessage {
 const PartyRoom = () => {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
+  // Pkg443 Phase-3: keep screen awake for the entire party-room session.
+  useScreenLock(true);
   const [room, setRoom] = useState<PartyRoom | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
