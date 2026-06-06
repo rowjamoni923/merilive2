@@ -1,8 +1,11 @@
+import type { CSSProperties } from "react";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 
 interface PageSkeletonProps {
   /** Optional gradient/background class applied to the outer shell. */
   className?: string;
+  /** Optional inline style on the outer shell (e.g. gradient backgrounds). */
+  style?: CSSProperties;
   /** Optional gradient header class. Defaults to a neutral muted bar. */
   headerClassName?: string;
   /** Number of list-row skeletons to render. */
@@ -19,13 +22,19 @@ interface PageSkeletonProps {
  */
 export function PageSkeleton({
   className = "fixed inset-0 flex flex-col bg-background overflow-hidden",
+  style,
   headerClassName = "bg-card border-b border-border",
   rows = 6,
   hero = true,
   tabs = false,
 }: PageSkeletonProps) {
   return (
-    <div className={className} aria-busy="true">
+    <div
+      className={`${className} fixed inset-0 flex flex-col overflow-hidden`}
+      style={style}
+      aria-busy="true"
+    >
+
       <div className={`flex-shrink-0 ${headerClassName}`}>
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top">
           <SkeletonPrim className="w-9 h-9 rounded-full bg-white/30" />
