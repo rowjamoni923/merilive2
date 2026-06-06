@@ -2733,7 +2733,12 @@ const FaceVerification = () => {
   }
 
   // Check if rejection is because female host tried to open user ID
-  const isContactSupportRequired = rejectionReason?.includes('Support Chat') || rejectionReason?.includes('contact us');
+  const isContactSupportRequired = rejectionReason?.includes('Support Chat') || rejectionReason?.includes('contact us') || rejectionReason?.includes('ID:');
+  
+  // Parse duplicate info if present in rejection reason
+  const duplicateMatch = rejectionReason?.match(/\[duplicate_info:(.*?)\]/);
+  const duplicateInfo = duplicateMatch ? JSON.parse(duplicateMatch[1]) : null;
+  const cleanRejectionReason = rejectionReason?.replace(/\[duplicate_info:.*?\]/, '').trim();
 
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
@@ -2758,34 +2763,57 @@ const FaceVerification = () => {
         <div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
-        <div className="flex flex-col items-center justify-center mt-12">
+        <div className="flex flex-col items-center justify-center mt-12 pb-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
-            className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-2xl shadow-red-500/20">
+            className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-6 shadow-2xl shadow-red-500/20">
             <XCircle className="w-14 h-14 text-white" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
-          {rejectionReason && (
-            <p className="text-red-700 bg-red-50 border border-red-200 rounded-xl mx-6 px-4 py-2 text-center mb-2 text-sm">Reason: {rejectionReason}</p>
+          
+          <div className="mx-6 mb-6">
+            <p className="text-red-700 bg-red-50 border border-red-200 rounded-2xl px-5 py-4 text-center text-sm font-medium leading-relaxed shadow-sm">
+              {cleanRejectionReason || "Your verification was rejected. Please ensure you are the same person as in your photos."}
+            </p>
+          </div>
+
+          {duplicateInfo && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mx-6 mb-8 p-5 bg-white border border-slate-200 rounded-3xl shadow-xl w-full max-w-sm"
+            >
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Existing Account Detected</p>
+              <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <Avatar className="w-16 h-16 border-2 border-white shadow-md">
+                  <AvatarImage src={duplicateInfo.avatar} />
+                  <AvatarFallback className="bg-slate-200 text-slate-400">
+                    <User className="w-8 h-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-900 font-bold truncate text-lg">{duplicateInfo.name}</p>
+                  <p className="text-slate-500 text-xs font-mono bg-slate-200/50 inline-block px-2 py-0.5 rounded-md mt-1">ID: {duplicateInfo.uid}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-start gap-2 text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p className="text-[11px] leading-relaxed font-medium">This face is already linked to the account above. Merilive allows only one account per person.</p>
+              </div>
+            </motion.div>
           )}
           
-          {isContactSupportRequired ? (
-            <>
-              <p className="text-slate-500 text-center px-6 mb-4">To resolve this issue, please contact our Support Team.</p>
-              <Button
-                className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl px-8 shadow-lg shadow-blue-500/20"
-                onClick={() => navigate('/settings/customer-service?mode=live_chat')}
-              >
-                💬 Support Chat
-              </Button>
-              <Button variant="ghost" className="mt-3 text-slate-500" onClick={() => navigate('/profile')}>
-                Back to Profile
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className="text-slate-500 text-center px-6 mb-4">Your previous verification was rejected. Please try again with a clear face photo/video.</p>
-              <Button
-                className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20"
+          <div className="flex flex-col gap-3 w-full max-w-[280px] px-6">
+            <Button
+              className="w-full bg-slate-900 text-white rounded-2xl py-6 font-bold shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
+              onClick={() => navigate('/settings/customer-service?mode=live_chat')}
+            >
+              💬 Contact Support Chat
+            </Button>
+            
+            {!duplicateInfo && (
+              <Button 
+                variant="outline" 
+                className="w-full border-slate-200 text-slate-600 rounded-2xl py-6 font-semibold bg-white active:scale-95 transition-transform"
                 onClick={async () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
@@ -2798,11 +2826,16 @@ const FaceVerification = () => {
               >
                 🔄 Try Again
               </Button>
-              <p className="text-slate-600 text-xs text-center mt-3 px-8">
-                Please ensure good lighting and remove any face coverings before retrying.
-              </p>
-            </>
-          )}
+            )}
+
+            <Button 
+              variant="ghost" 
+              className="w-full text-slate-400 font-medium hover:bg-slate-50 rounded-2xl py-6"
+              onClick={() => navigate('/profile')}
+            >
+              Back to Profile
+            </Button>
+          </div>
         </div>
         </div>
       </div>
