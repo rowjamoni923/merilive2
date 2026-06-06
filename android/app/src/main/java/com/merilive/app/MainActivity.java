@@ -95,6 +95,8 @@ public class MainActivity extends BridgeActivity {
         // Pkg438 — unified native gift + entry animation overlays.
         registerPlugin(com.merilive.app.plugin.NativeGiftAnimationPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeEntryAnimationPlugin.class);
+        // Pkg438 Phase C — animated heart sprites for Reels double-tap like.
+        registerPlugin(com.merilive.app.plugin.NativeHeartBurstPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeToastPlugin.class);
         registerPlugin(com.merilive.app.plugin.BatteryOptimizationPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativePerformanceOptimizerPlugin.class);
