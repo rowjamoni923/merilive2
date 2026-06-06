@@ -114,6 +114,8 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         String callerAvatar = data.containsKey("caller_avatar") ? data.get("caller_avatar") : "";
         String callType = data.containsKey("call_type") ? data.get("call_type") : "video";
         String callId = data.containsKey("call_id") ? data.get("call_id") : "";
+        String ringTimeoutSec = data.containsKey("ring_timeout_seconds")
+            ? data.get("ring_timeout_seconds") : "30";
 
         // Full-screen lock-screen activity.
         Intent fullScreenIntent = new Intent(this, IncomingCallActivity.class);
@@ -123,6 +125,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         fullScreenIntent.putExtra("caller_avatar", callerAvatar);
         fullScreenIntent.putExtra("call_type", callType);
         fullScreenIntent.putExtra("call_id", callId);
+        fullScreenIntent.putExtra("ring_timeout_seconds", ringTimeoutSec);
 
         PendingIntent fullScreenPI = PendingIntent.getActivity(
             this, callId.hashCode(), fullScreenIntent,
