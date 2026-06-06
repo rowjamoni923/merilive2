@@ -1144,9 +1144,9 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
-          // Automatic visibility uses the SAME balance shown on Profile:
+          // Pkg430: helper tab floor raised to 150,000 (1.5 lakh) — owner mandate.
           // Trader Wallet = topup_helpers.wallet_balance + get_agency_diamond_balance(user_id).
-          if (traderWallet < 50000) {
+          if (traderWallet < 150000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
             return false;
@@ -2783,15 +2783,15 @@ const Recharge = () => {
                             </button>
                           </div>
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
-                            Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
+                            Traders must hold ≥ 150,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
                           <div className="mt-1 text-[9px] font-mono text-emerald-700 bg-emerald-50/80 rounded px-1.5 py-0.5 inline-block">
-                            Filter: wallet ≥ 50,000 && wallet ≥ tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                            Filter: wallet ≥ 150,000 && wallet ≥ tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
                           </div>
                           {(helperDiag.samples.lowBalance.length > 0 || helperDiag.samples.tierMin.length > 0) && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.lowBalance.map((s, i) => {
-                                const need = 50000;
+                                const need = 150000;
                                 const short = Math.max(0, need - s.wallet);
                                 return (
                                   <div key={`lb-${i}`} className="text-[10px] font-mono text-emerald-800/90 bg-emerald-50 rounded px-1.5 py-0.5 inline-flex flex-wrap gap-x-2 mr-1">
@@ -2854,10 +2854,10 @@ const Recharge = () => {
                             </button>
                           </div>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
-                            {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
+                            {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 150k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
                           <div className="mt-1 text-[9px] font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 inline-block">
-                            Filters: country="{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true | base≥50,000 | tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                            Filters: country="{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true | base≥150,000 | tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
                           </div>
                           {isAdminViewer && (
                             <a
