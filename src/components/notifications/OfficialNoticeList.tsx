@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Megaphone, 

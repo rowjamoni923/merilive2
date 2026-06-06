@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/Skeleton";
 import { useNavigate } from "react-router-dom";
 import { Play, Eye, Heart, Trash2, MoreVertical, Coins, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
