@@ -1,34 +1,35 @@
 
 import fs from 'fs';
+const content = fs.readFileSync('src/components/call/ActiveCallScreen.tsx', 'utf8');
 
-const content = fs.readFileSync('src/pages/AgencyDashboard.tsx', 'utf-8');
-let depth = 0;
-const stack = [];
-const lines = content.split('\n');
+let stack = [];
+let lines = content.split('\n');
 
-lines.forEach((line, i) => {
-  const openMatches = line.match(/<([A-Z][a-zA-Z0-9]*|div|span|section|header|footer|ul|li|button|a|p|h[1-6]|Fragment|svg|path|label|input|textarea|select|option|Badge|Card|Tabs|Dialog)[^>]*[^/]>|<>/g) || [];
-  const closeMatches = line.match(/<\/([A-Z][a-zA-Z0-9]*|div|span|section|header|footer|ul|li|button|a|p|h[1-6]|Fragment|svg|path|label|input|textarea|select|option|Badge|Card|Tabs|Dialog)>|<\/>/g) || [];
-  
-  openMatches.forEach(tag => {
-    const tagName = tag.match(/<([A-Z][a-zA-Z0-9]*|div|span|section|header|footer|ul|li|button|a|p|h[1-6]|Fragment|svg|path|label|input|textarea|select|option|Badge|Card|Tabs|Dialog)/)?.[1] || 'Fragment';
-    stack.push({ name: tagName, line: i + 1 });
-    depth++;
-  });
-  
-  closeMatches.forEach(tag => {
-    const tagName = tag.match(/<\/([A-Z][a-zA-Z0-9]*|div|span|section|header|footer|ul|li|button|a|p|h[1-6]|Fragment|svg|path|label|input|textarea|select|option|Badge|Card|Tabs|Dialog)/)?.[1] || 'Fragment';
-    const last = stack.pop();
-    if (last && last.name !== tagName) {
-      console.log(`Mismatched tag at line ${i + 1}: expected ${last.name} (opened at ${last.line}), found ${tagName}`);
+for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    // Improved regex to handle self-closing tags better
+    let matches = line.matchAll(/<(div|motion\.div|AnimatePresence|BeautyFilterPanel|StickerOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame|LiveKitVideoPlayer|CaptionOverlay|NetworkQualityIndicator|ShieldCheck|BeansIcon|Lock|Mic|MicOff|Eye|EyeOff|Gift|Volume2|VolumeX|Maximize2|Minimize2|TrendingUp|SwitchCamera|MessageCircle|MoreVertical|Send|Sparkles|Smile|BrandedGiftIcon|PhoneOff|AvatarWithFrame|LiveKitVideoPlayer|PictureInPictureButton|AudioOnlyToggleButton|VideoQualityButton|NetworkQualityIndicator|CaptionOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame)([^>]*?)(\/?)>|<\/(div|motion\.div|AnimatePresence|BeautyFilterPanel|StickerOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame|LiveKitVideoPlayer|CaptionOverlay|NetworkQualityIndicator|ShieldCheck|BeansIcon|Lock|Mic|MicOff|Eye|EyeOff|Gift|Volume2|VolumeX|Maximize2|Minimize2|TrendingUp|SwitchCamera|MessageCircle|MoreVertical|Send|Sparkles|Smile|BrandedGiftIcon|PhoneOff|AvatarWithFrame|LiveKitVideoPlayer|PictureInPictureButton|AudioOnlyToggleButton|VideoQualityButton|NetworkQualityIndicator|CaptionOverlay|GiftPanel|FlyingGiftAnimation|AvatarWithFrame)>/g);
+
+    for (const match of matches) {
+        if (match[0].startsWith('</')) {
+            let closingTag = match[4];
+            if (stack.length === 0) {
+                console.log(`Error: Unexpected closing tag </${closingTag}> at line ${i + 1}`);
+            } else {
+                let opening = stack.pop();
+                if (opening.tag !== closingTag) {
+                    console.log(`Error: Mismatched tag. Expected </${opening.tag}> but found </${closingTag}> at line ${i + 1}. Opening tag was at line ${opening.line}`);
+                }
+            }
+        } else if (match[3] === '/') {
+            // Self-closing, ignore
+        } else {
+            stack.push({ tag: match[1], line: i + 1 });
+        }
     }
-    depth--;
-  });
-});
+}
 
-if (stack.length > 0) {
-  console.log('Unclosed tags:');
-  stack.forEach(s => console.log(`  ${s.name} at line ${s.line}`));
-} else {
-  console.log('All tags balanced');
+while (stack.length > 0) {
+    let opening = stack.pop();
+    console.log(`Error: Unclosed tag <${opening.tag}> at line ${opening.line}`);
 }
