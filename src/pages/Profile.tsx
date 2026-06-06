@@ -2814,27 +2814,27 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </div>
 
                   <div className="bg-white rounded-xl p-3 border border-amber-200 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-body text-sm">Recharge Source Balance</span>
-                      <span className="text-emerald-600 font-bold text-lg">
+                    <div className="flex justify-between items-center gap-2 min-w-0">
+                      <span className="text-body text-sm shrink-0">Recharge Source</span>
+                      <span className="text-emerald-600 font-bold text-base tabular-nums truncate text-right min-w-0">
                         {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                      <span className="text-body text-sm">Agency Balance</span>
-                      <span className="text-purple-600 font-semibold">
+                    <div className="flex justify-between items-center gap-2 min-w-0 pt-2 border-t border-amber-200">
+                      <span className="text-body text-sm shrink-0">Agency Balance</span>
+                      <span className="text-purple-600 font-semibold text-sm tabular-nums truncate text-right min-w-0">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-body text-sm">Trader Wallet</span>
-                      <span className="text-amber-600 font-semibold">
+                    <div className="flex justify-between items-center gap-2 min-w-0">
+                      <span className="text-body text-sm shrink-0">Trader Wallet</span>
+                      <span className="text-amber-600 font-semibold text-sm tabular-nums truncate text-right min-w-0">
                         {(traderWallet || 0).toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                      <span className="text-body text-sm">My Diamond Balance</span>
-                      <span className="text-cyan-600 font-bold text-lg">
+                    <div className="flex justify-between items-center gap-2 min-w-0 pt-2 border-t border-amber-200">
+                      <span className="text-body text-sm shrink-0">My Diamond Balance</span>
+                      <span className="text-cyan-600 font-bold text-base tabular-nums truncate text-right min-w-0">
                         {(profile?.coins || 0).toLocaleString()} 💎
                       </span>
                     </div>
