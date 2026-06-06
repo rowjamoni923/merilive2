@@ -223,11 +223,26 @@ img {
   animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   will-change: opacity, transform;
 }
-/* Pkg434 Pass 7 — auto-animate any element marked [data-page] during route changes,
-   driven by RouteTransitionHost toggling `.route-changing` on <body>. */
-body.route-changing [data-page] {
+/* Pkg434 Pass 7+13 — auto-animate [data-page] OR the primary <main> /
+   [data-page-root] wrapper during route changes. Pass 13 widens the selector
+   so every page gets the subtle fade-up without per-page opt-in. */
+body.route-changing [data-page],
+body.route-changing main,
+body.route-changing [data-page-root] {
   animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   will-change: opacity, transform;
+}
+html.reduce-motion body.route-changing [data-page],
+html.reduce-motion body.route-changing main,
+html.reduce-motion body.route-changing [data-page-root] {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.route-changing [data-page],
+  body.route-changing main,
+  body.route-changing [data-page-root] {
+    animation: none !important;
+  }
 }
 @keyframes pkg434-sheet-up {
   0%   { opacity: 0; transform: translate3d(0, 100%, 0); }
