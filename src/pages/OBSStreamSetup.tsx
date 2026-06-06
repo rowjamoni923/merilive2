@@ -181,9 +181,8 @@ export default function OBSStreamSetup() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
+      <PageSkeleton className="min-h-screen flex flex-col bg-background" rows={5} />
+
     );
   }
 
