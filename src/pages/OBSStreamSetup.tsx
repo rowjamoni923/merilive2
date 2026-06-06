@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { fetchLiveStreamIngress } from "@/lib/livekitIngress";
 import { toast } from "sonner";
 
