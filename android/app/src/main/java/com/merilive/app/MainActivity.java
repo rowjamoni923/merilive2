@@ -112,6 +112,11 @@ public class MainActivity extends BridgeActivity {
         // client yet; gated by `socketNativeFlag` (default OFF) for a future
         // Pkg integration. Existing WebView WebSocket path unchanged.
         registerPlugin(com.merilive.app.plugin.WebSocketBridgePlugin.class);
+        // Pkg432 — NativeChatUI (RecyclerView overlay for 1000+ message
+        // threads at 60fps). Additive: no JS caller wires it by default;
+        // gated by `chatUINativeFlag` (localStorage 'chatui:native'='on').
+        // Existing Chat.tsx React UI unchanged.
+        registerPlugin(com.merilive.app.plugin.NativeChatUIPlugin.class);
 
 
 
