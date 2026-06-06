@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -496,8 +497,19 @@ const Discover = () => {
         </div>
         
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="grid grid-cols-2 gap-3" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl overflow-hidden bg-card border border-border/60"
+              >
+                <SkeletonPrim className="w-full aspect-[3/4] rounded-none" />
+                <div className="p-3 space-y-2">
+                  <SkeletonPrim className="h-3.5 w-2/3" />
+                  <SkeletonPrim className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredRooms.length === 0 ? (
           <div
