@@ -34,7 +34,13 @@ export interface NativeReelsPlayerPlugin {
   seek(opts: { positionMs: number }): Promise<void>;
   stop(): Promise<void>;
   dispose(): Promise<void>;
-  prefetch(opts: { url: string }): Promise<{ ok: boolean }>;
+  prefetch(opts: { url: string; bytes?: number }): Promise<{ ok: boolean; url?: string }>;
+  prefetchBatch(opts: {
+    urls: string[];
+    bytesPerUrl?: number;
+  }): Promise<{ ok: boolean; queued: number }>;
+  cancelPrefetch(): Promise<{ ok: boolean }>;
+  cacheStats(): Promise<{ bytes: number; maxBytes: number }>;
   addListener(
     event: 'reel:ready' | 'reel:complete' | 'reel:error' | 'reel:playing',
     cb: (data: {
@@ -92,12 +98,55 @@ export async function tryNativeReelsPlay(opts: {
   }
 }
 
-export async function tryNativeReelsPrefetch(url: string): Promise<void> {
+export async function tryNativeReelsPrefetch(
+  url: string,
+  bytes?: number,
+): Promise<void> {
   if (!(await isNativeReelsPlayerAvailable())) return;
   try {
-    await NativeReelsPlayer.prefetch({ url });
+    await NativeReelsPlayer.prefetch({ url, bytes });
   } catch {
     /* warmup is best-effort */
+  }
+}
+
+/**
+ * Pkg435 — Queue a batch of upcoming reel URLs for background warming.
+ * Cancels any in-flight batch first (latest scroll position wins) and
+ * skips URLs that are already fully cached. Best-effort, no-throw.
+ */
+export async function tryNativeReelsPrefetchBatch(
+  urls: string[],
+  bytesPerUrl?: number,
+): Promise<{ ok: boolean; queued: number }> {
+  if (!urls?.length) return { ok: false, queued: 0 };
+  if (!(await isNativeReelsPlayerAvailable())) return { ok: false, queued: 0 };
+  try {
+    const res = await NativeReelsPlayer.prefetchBatch({ urls, bytesPerUrl });
+    return { ok: !!res?.ok, queued: Number(res?.queued ?? 0) };
+  } catch {
+    return { ok: false, queued: 0 };
+  }
+}
+
+export async function cancelNativeReelsPrefetch(): Promise<void> {
+  if (!(await isNativeReelsPlayerAvailable())) return;
+  try {
+    await NativeReelsPlayer.cancelPrefetch();
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function getNativeReelsCacheStats(): Promise<
+  { bytes: number; maxBytes: number } | null
+> {
+  if (!(await isNativeReelsPlayerAvailable())) return null;
+  try {
+    const res = await NativeReelsPlayer.cacheStats();
+    return { bytes: Number(res?.bytes ?? 0), maxBytes: Number(res?.maxBytes ?? 0) };
+  } catch {
+    return null;
   }
 }
 
