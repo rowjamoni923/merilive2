@@ -215,7 +215,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     created_at: string;
     direction: 'sent' | 'received';
     counterparty_name?: string;
-    kind?: 'transfer' | 'gift';
+    kind?: 'transfer' | 'gift' | 'helper_ledger' | 'agency_ledger' | 'trader_ledger';
     currency?: 'diamond' | 'bean';
   }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -239,10 +239,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     owner_name?: string | null;
     owner_uid?: string | null;
   } | null>(null);
-  
+
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingTransferType, setPendingTransferType] = useState<"user" | "agency" | "self" | null>(null);
+
+  // Pkg425: refs so realtime push handler (closed over once in useEffect) can
+  // always see latest modal/tab state without re-subscribing.
+  const showTransferModalRef = useRef(false);
+  const transferTabRef = useRef<"user" | "agency" | "self" | "history">("user");
+  useEffect(() => { showTransferModalRef.current = showTransferModal; }, [showTransferModal]);
+  useEffect(() => { transferTabRef.current = transferTab; }, [transferTab]);
+
 
   // Agency Beans Exchange modal state
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
