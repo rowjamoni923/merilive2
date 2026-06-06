@@ -224,4 +224,9 @@ class NativeSVGAPlugin : Plugin() {
         overlay = null
         svgaView = null
     }
+
+    override fun handleOnDestroy() {
+        try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        super.handleOnDestroy()
+    }
 }

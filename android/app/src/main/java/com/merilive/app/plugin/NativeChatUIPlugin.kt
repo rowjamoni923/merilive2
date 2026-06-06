@@ -57,69 +57,83 @@ class NativeChatUIPlugin : Plugin() {
         val isMine: Boolean
     )
 
+    private inline fun safe(call: PluginCall, block: () -> Unit) {
+        try { block() } catch (t: Throwable) { call.reject(t.message ?: "chat-ui error") }
+    }
+
     @PluginMethod
-    fun open(call: PluginCall) {
+    fun open(call: PluginCall) = safe(call) {
         currentUserId = call.getString("currentUserId")
         val title = call.getString("title", "Chat") ?: "Chat"
         activity.runOnUiThread {
-            ensureOverlay(title)
-            overlay?.visibility = View.VISIBLE
+            safe(call) {
+                ensureOverlay(title)
+                overlay?.visibility = View.VISIBLE
+            }
         }
         call.resolve()
     }
 
     @PluginMethod
-    fun close(call: PluginCall) {
+    fun close(call: PluginCall) = safe(call) {
         activity.runOnUiThread {
-            overlay?.visibility = View.GONE
+            safe(call) { overlay?.visibility = View.GONE }
         }
         call.resolve()
     }
 
     @PluginMethod
-    fun setMessages(call: PluginCall) {
+    fun setMessages(call: PluginCall) = safe(call) {
         val arr: JSArray = call.getArray("messages") ?: JSArray()
         val parsed = parseItems(arr)
         activity.runOnUiThread {
-            items.clear()
-            items.addAll(parsed)
-            adapter.notifyDataSetChanged()
-            recycler?.scrollToPosition(items.size - 1)
+            safe(call) {
+                items.clear()
+                items.addAll(parsed)
+                adapter.notifyDataSetChanged()
+                recycler?.scrollToPosition(items.size - 1)
+            }
         }
         call.resolve()
     }
 
     @PluginMethod
-    fun appendMessages(call: PluginCall) {
+    fun appendMessages(call: PluginCall) = safe(call) {
         val arr: JSArray = call.getArray("messages") ?: JSArray()
         val parsed = parseItems(arr)
         val stickBottom = call.getBoolean("stickBottom", true) ?: true
         activity.runOnUiThread {
-            val start = items.size
-            items.addAll(parsed)
-            adapter.notifyItemRangeInserted(start, parsed.size)
-            if (stickBottom) recycler?.smoothScrollToPosition(items.size - 1)
+            safe(call) {
+                val start = items.size
+                items.addAll(parsed)
+                adapter.notifyItemRangeInserted(start, parsed.size)
+                if (stickBottom) recycler?.smoothScrollToPosition(items.size - 1)
+            }
         }
         call.resolve()
     }
 
     @PluginMethod
-    fun prependMessages(call: PluginCall) {
+    fun prependMessages(call: PluginCall) = safe(call) {
         val arr: JSArray = call.getArray("messages") ?: JSArray()
         val parsed = parseItems(arr)
         activity.runOnUiThread {
-            items.addAll(0, parsed)
-            adapter.notifyItemRangeInserted(0, parsed.size)
+            safe(call) {
+                items.addAll(0, parsed)
+                adapter.notifyItemRangeInserted(0, parsed.size)
+            }
         }
         call.resolve()
     }
 
     @PluginMethod
-    fun clear(call: PluginCall) {
+    fun clear(call: PluginCall) = safe(call) {
         activity.runOnUiThread {
-            val n = items.size
-            items.clear()
-            adapter.notifyItemRangeRemoved(0, n)
+            safe(call) {
+                val n = items.size
+                items.clear()
+                adapter.notifyItemRangeRemoved(0, n)
+            }
         }
         call.resolve()
     }

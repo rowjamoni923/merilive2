@@ -306,6 +306,11 @@ class NativeStoragePlugin : Plugin() {
         }
     }
 
+    override fun handleOnDestroy() {
+        try { io.shutdown() } catch (_: Throwable) {}
+        super.handleOnDestroy()
+    }
+
     companion object {
         private const val DB_NAME = "merilive_native_storage.db"
         private const val DB_VERSION = 1

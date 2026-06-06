@@ -37,26 +37,37 @@ public class ShakeDetectorPlugin extends Plugin implements SensorEventListener {
 
     @PluginMethod
     public void start(PluginCall call) {
-        if (listening) { call.resolve(); return; }
-        Context ctx = getContext();
-        sensorManager = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager == null) { call.reject("no sensor service"); return; }
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (accelerometer == null) { call.reject("no accelerometer"); return; }
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        listening = true;
-        call.resolve();
+        try {
+            if (listening) { call.resolve(); return; }
+            Context ctx = getContext();
+            sensorManager = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
+            if (sensorManager == null) { call.reject("no sensor service"); return; }
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            if (accelerometer == null) { call.reject("no accelerometer"); return; }
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+            listening = true;
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "start failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
-        if (listening && sensorManager != null) {
-            sensorManager.unregisterListener(this);
-        }
+        try {
+            if (listening && sensorManager != null) sensorManager.unregisterListener(this);
+            listening = false;
+            spikeCount = 0;
+            firstSpikeAt = 0L;
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "stop failed" : t.getMessage()); }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        try {
+            if (sensorManager != null) sensorManager.unregisterListener(this);
+        } catch (Throwable ignored) {}
         listening = false;
-        spikeCount = 0;
-        firstSpikeAt = 0L;
-        call.resolve();
+        super.handleOnDestroy();
     }
 
     @Override

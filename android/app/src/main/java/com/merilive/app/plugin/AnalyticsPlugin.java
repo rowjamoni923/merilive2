@@ -36,73 +36,80 @@ public class AnalyticsPlugin extends Plugin {
 
     @PluginMethod
     public void logEvent(PluginCall call) {
-        String name = call.getString("name");
-        if (name == null || name.isEmpty()) {
-            call.reject("name required");
-            return;
-        }
-        Bundle bundle = new Bundle();
-        JSObject params = call.getObject("params", new JSObject());
-        if (params != null) {
-            Iterator<String> keys = params.keys();
-            while (keys.hasNext()) {
-                String k = keys.next();
-                Object v = params.opt(k);
-                if (v == null) continue;
-                if (v instanceof Number) {
-                    bundle.putDouble(k, ((Number) v).doubleValue());
-                } else if (v instanceof Boolean) {
-                    bundle.putBoolean(k, (Boolean) v);
-                } else {
-                    String s = String.valueOf(v);
-                    if (s.length() > 100) s = s.substring(0, 100);
-                    bundle.putString(k, s);
+        try {
+            String name = call.getString("name");
+            if (name == null || name.isEmpty()) { call.reject("name required"); return; }
+            Bundle bundle = new Bundle();
+            JSObject params = call.getObject("params", new JSObject());
+            if (params != null) {
+                Iterator<String> keys = params.keys();
+                while (keys.hasNext()) {
+                    String k = keys.next();
+                    Object v = params.opt(k);
+                    if (v == null) continue;
+                    if (v instanceof Number) bundle.putDouble(k, ((Number) v).doubleValue());
+                    else if (v instanceof Boolean) bundle.putBoolean(k, (Boolean) v);
+                    else {
+                        String s = String.valueOf(v);
+                        if (s.length() > 100) s = s.substring(0, 100);
+                        bundle.putString(k, s);
+                    }
                 }
             }
-        }
-        analytics.logEvent(name, bundle);
-        call.resolve();
+            if (analytics != null) analytics.logEvent(name, bundle);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "logEvent failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void setUserId(PluginCall call) {
-        String uid = call.getString("userId");
-        analytics.setUserId(uid);
-        if (uid != null) crashlytics.setUserId(uid);
-        call.resolve();
+        try {
+            String uid = call.getString("userId");
+            if (analytics != null) analytics.setUserId(uid);
+            if (uid != null && crashlytics != null) crashlytics.setUserId(uid);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "setUserId failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void setUserProperty(PluginCall call) {
-        String key = call.getString("key");
-        String value = call.getString("value");
-        if (key == null) { call.reject("key required"); return; }
-        analytics.setUserProperty(key, value);
-        if (value != null) crashlytics.setCustomKey(key, value);
-        call.resolve();
+        try {
+            String key = call.getString("key");
+            String value = call.getString("value");
+            if (key == null) { call.reject("key required"); return; }
+            if (analytics != null) analytics.setUserProperty(key, value);
+            if (value != null && crashlytics != null) crashlytics.setCustomKey(key, value);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "setUserProperty failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void log(PluginCall call) {
-        String msg = call.getString("message", "");
-        if (msg != null && !msg.isEmpty()) crashlytics.log(msg);
-        call.resolve();
+        try {
+            String msg = call.getString("message", "");
+            if (msg != null && !msg.isEmpty() && crashlytics != null) crashlytics.log(msg);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "log failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void recordError(PluginCall call) {
-        String msg = call.getString("message", "JS error");
-        String stack = call.getString("stack", "");
-        Throwable t = new RuntimeException(msg + (stack != null && !stack.isEmpty() ? "\n" + stack : ""));
-        crashlytics.recordException(t);
-        call.resolve();
+        try {
+            String msg = call.getString("message", "JS error");
+            String stack = call.getString("stack", "");
+            Throwable t = new RuntimeException(msg + (stack != null && !stack.isEmpty() ? "\n" + stack : ""));
+            if (crashlytics != null) crashlytics.recordException(t);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "recordError failed" : t.getMessage()); }
     }
 
     @PluginMethod
     public void setEnabled(PluginCall call) {
-        boolean enabled = Boolean.TRUE.equals(call.getBoolean("enabled", true));
-        analytics.setAnalyticsCollectionEnabled(enabled);
-        crashlytics.setCrashlyticsCollectionEnabled(enabled);
-        call.resolve();
+        try {
+            boolean enabled = Boolean.TRUE.equals(call.getBoolean("enabled", true));
+            if (analytics != null) analytics.setAnalyticsCollectionEnabled(enabled);
+            if (crashlytics != null) crashlytics.setCrashlyticsCollectionEnabled(enabled);
+            call.resolve();
+        } catch (Throwable t) { call.reject(t.getMessage() == null ? "setEnabled failed" : t.getMessage()); }
     }
 }
