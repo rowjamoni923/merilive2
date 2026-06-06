@@ -1214,11 +1214,6 @@ export function ActiveCallScreen({
           />
         ))}
       </AnimatePresence>
-    </div>
-  );
-
-  return createPortal(callUi, document.body);
-};
 
       {/* Beauty Filter Panel */}
       <BeautyFilterPanel
@@ -1234,4 +1229,4 @@ export function ActiveCallScreen({
   );
 
   return createPortal(callUi, document.body);
-}
+};
