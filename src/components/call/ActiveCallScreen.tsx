@@ -682,28 +682,16 @@ export function ActiveCallScreen({
         willChange: 'transform',
         width: '100vw',
         height: '100dvh',
-        // Pkg415: when native LiveKit TextureView is mounted behind the
-        // WebView, the gradient layer below already fades out via opacity;
-        // ensure this fixed root itself is transparent so the camera shows.
         background: isNativeMediaActive ? 'transparent' : undefined,
       }}
     >
-      {/* Background - lightweight solid gradient (transparent when native video is mounted behind WebView) */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
         style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
       />
 
-      {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
       {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
 
-      {/* Pkg189: Removed top utility buttons (PiP / Audio-only / Quality) per user request */}
-
-
-
-
-
-      {/* Privacy Warning Overlay */}
       <AnimatePresence>
         {showPrivacyWarning && (
           <motion.div
@@ -718,15 +706,13 @@ export function ActiveCallScreen({
         )}
       </AnimatePresence>
 
-      {/* ===== TOP BAR - Ultra Premium Glassmorphic ===== */}
       {!isInNativePip && (
         <div 
           className="absolute top-0 left-0 right-0 z-10 safe-area-top"
           style={{ contain: 'layout' }}
         >
           <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
-          {/* Left - User info pill (3D glass) */}
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
@@ -849,7 +835,7 @@ export function ActiveCallScreen({
                   ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
                   : 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(234,88,12,0.15) 100%)',
                 border: `1px solid ${isConnected ? 'rgba(110,231,183,0.5)' : 'rgba(252,211,77,0.5)'}`,
-                boxShadow: `0 6px 14px -6px ${isConnected ? 'rgba(16,185,129,0.45)' : 'rgba(245,158,11,0.45)'}, inset 0 1px 0 rgba(255,255,255,0.25)`,
+                boxShadow: isConnected ? '0 6px 14px -6px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' : '0 6px 14px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
               }}
             >
               <div className="flex items-end gap-[2px]">
@@ -1228,6 +1214,11 @@ export function ActiveCallScreen({
           />
         ))}
       </AnimatePresence>
+    </div>
+  );
+
+  return createPortal(callUi, document.body);
+};
 
       {/* Beauty Filter Panel */}
       <BeautyFilterPanel
