@@ -259,11 +259,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
-    const personalCoins = Number(resolvedDiamondBalance || 0);
+    // Trader transfer modal must mirror the Trader Wallet card exactly.
+    // Personal My Diamonds are shown separately and must not inflate the trader source balance.
     const agency = Number(agencyData?.diamond_balance || 0);
     const trader = Number(traderWallet || 0);
-    return agency + trader + personalCoins;
-  }, [agencyData, traderWallet, resolvedDiamondBalance]);
+    return agency + trader;
+  }, [agencyData, traderWallet]);
 
   const selfRechargeSourceBalance = useMemo(() => {
     const agency = Number(agencyData?.diamond_balance || 0);
@@ -534,7 +535,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       traderWallet: nextTraderWallet,
       agencyBalance: nextAgencyBalance,
       personalCoins,
-      total: nextTraderWallet + nextAgencyBalance + personalCoins,
+      total: nextTraderWallet + nextAgencyBalance,
       selfRechargeTotal: nextTraderWallet + nextAgencyBalance,
     };
   };
