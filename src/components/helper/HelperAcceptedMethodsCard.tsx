@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
+import Skeleton from "@/components/Skeleton";
 
 interface HelperAcceptedMethodsCardProps {
   helperId: string;
@@ -125,8 +126,14 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
         </p>
 
         {(loading || gatewaysLoading) ? (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-border">
+                <Skeleton className="w-9 h-9 rounded" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="w-5 h-5 rounded" />
+              </div>
+            ))}
           </div>
         ) : visibleGateways.length === 0 ? (
           <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-center">

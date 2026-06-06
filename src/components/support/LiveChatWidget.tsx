@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { isLiveChatOnline, getSupportHoursLocal } from "@/components/support/AISupportChat";
 import { Capacitor } from "@capacitor/core";
+import Skeleton from "@/components/Skeleton";
 
 interface LiveMessage {
   id: string;
@@ -294,8 +295,12 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       {/* Messages */}
       <ScrollArea className="flex-1 p-4">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className={cn("flex", i % 2 === 0 ? "justify-start" : "justify-end")}>
+                <Skeleton className={cn("h-10 rounded-2xl", i % 2 === 0 ? "w-2/3" : "w-1/2")} />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="space-y-3">

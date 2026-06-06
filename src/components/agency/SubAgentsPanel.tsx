@@ -12,6 +12,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { generateSubAgentLink, shareLink, copyToClipboard } from "@/utils/shareLinks";
+import Skeleton from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -236,8 +237,17 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
         {/* Sub-Agents List */}
         <ScrollArea className="flex-1 p-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
             </div>
           ) : subAgencies.length === 0 ? (
             <div className="text-center py-12">
