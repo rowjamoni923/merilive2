@@ -145,6 +145,11 @@ dependencies {
     // even if a future media3 bump drops the dep.
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
+    // Pkg438 — Airbnb Lottie for vector JSON animations (entry + gift fallback).
+    // Industry standard; same library used by Instagram, Airbnb, TikTok.
+    // Required by NativeLottiePlugin + NativeGiftAnimationPlugin Lottie route.
+    implementation 'com.airbnb.android:lottie:6.4.0'
+
     // Pkg440 — UCrop (image cropper) for avatar/cover/reels thumb
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
