@@ -684,7 +684,7 @@ const Reels = () => {
   const currentReel = reels[currentIndex];
 
   return (
-    <div className="fixed inset-0 bg-[#05050d] flex flex-col overflow-hidden">
+    <div data-page="reels" className="fixed inset-0 bg-[#05050d] flex flex-col overflow-hidden">
       {/* Header — Premium Midnight Indigo */}
       <div className="fixed top-0 left-0 right-0 z-50 safe-area-top pointer-events-none">
         <div className="px-4 pt-3 pb-12 flex items-center justify-between bg-gradient-to-b from-[#0a0a1a]/85 via-[#0a0a1a]/30 to-transparent">

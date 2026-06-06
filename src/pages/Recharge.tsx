@@ -2245,7 +2245,7 @@ const Recharge = () => {
   );
 
   return (
-    <div className="fixed inset-0 flex flex-col" style={{ background: 'linear-gradient(180deg, #2d1045 0%, #1a0a2e 30%, #0d0618 100%)' }}>
+    <div data-page="recharge" className="fixed inset-0 flex flex-col" style={{ background: 'linear-gradient(180deg, #2d1045 0%, #1a0a2e 30%, #0d0618 100%)' }}>
       {/* Premium Header */}
       <div className="relative overflow-hidden flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary" />

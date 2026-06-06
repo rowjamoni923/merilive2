@@ -687,7 +687,7 @@ const Index = () => {
 
   // Native mobile optimized render
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div data-page="home" className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Header */}
       <header
         className="shrink-0 bg-card/95 backdrop-blur-md border-b border-border"

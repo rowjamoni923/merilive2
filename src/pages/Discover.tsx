@@ -348,7 +348,7 @@ const Discover = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div data-page="discover" className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
       <div
         className="bg-gradient-primary pb-5 relative"
