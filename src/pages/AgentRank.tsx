@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
@@ -464,9 +465,19 @@ const AgentRank = () => {
         {/* Rest Rankings - Premium List */}
         <div className="px-4 pb-32 space-y-1.5">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+            <div className="space-y-2 py-2" aria-busy="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+              ))}
             </div>
+
           ) : restRankings.length === 0 && top3.length === 0 ? (
             <div className="text-center py-16">
               <Trophy className="w-14 h-14 mx-auto text-slate-300 mb-3" />
