@@ -223,6 +223,12 @@ img {
   animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   will-change: opacity, transform;
 }
+/* Pkg434 Pass 7 — auto-animate any element marked [data-page] during route changes,
+   driven by RouteTransitionHost toggling `.route-changing` on <body>. */
+body.route-changing [data-page] {
+  animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: opacity, transform;
+}
 @keyframes pkg434-sheet-up {
   0%   { opacity: 0; transform: translate3d(0, 100%, 0); }
   100% { opacity: 1; transform: translate3d(0, 0, 0); }
