@@ -172,6 +172,20 @@ const Reels = () => {
   useEffect(() => {
     currentUserIdRef.current = currentUserId;
   }, [currentUserId]);
+
+  // Pkg428 Phase-9 — native Glide prefetch for upcoming reel thumbnails +
+  // creator avatars (next 6). No-op on web/iOS or when flag off.
+  const nativePrefetchUrls = useMemo(() => {
+    const window = reels.slice(currentIndex, currentIndex + 6);
+    const urls: string[] = [];
+    for (const r of window) {
+      if (r.thumbnail_url) urls.push(r.thumbnail_url);
+      if (r.user?.avatar_url) urls.push(r.user.avatar_url);
+    }
+    return urls;
+  }, [reels, currentIndex]);
+  useNativeImagePrefetch(nativePrefetchUrls);
+
   
   // Flying gift animations
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift } = useFlyingGifts();
