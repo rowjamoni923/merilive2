@@ -1169,6 +1169,7 @@ const App = () => {
         </Suspense>
       )}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
+      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
