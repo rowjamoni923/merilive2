@@ -1,77 +1,109 @@
-## Goal
-Make VAP (MP4+alpha), SVGA, Lottie, WebP — all professional animation formats — work end-to-end across **Gifts**, **Entry Animations** (entry effects / entry banners / entry name bars / vehicle entrances), and **Shop items** (avatar frames / role frames / chat bubbles / party backgrounds). One unified upload system in admin panel, one unified player on the user side. Chamet / Bigo / MICO standard.
+# 9টা Incomplete Native Plugin — 100% Complete করার Roadmap
 
-## What we already have (re-use, don't rebuild)
-- `VAPPlayer.tsx` — VAP (MP4 + vapc.json) renderer with alpha support
-- `SVGAPlayer.tsx` + `SVGAPlayerWithAudio.tsx`
-- `UniversalAnimationPlayer.tsx` (auto-detect SVGA/Lottie/MP4/WebP/GIF) — used by gifts already
-- `UniversalFramePlayer.tsx` — used by frames/shop
-- `lucide` storage, `gift-media` / `gift-animations` buckets
-- Tables: `gifts`, `avatar_frames`, `role_frames`, `chat_bubbles`, `entry_effects`, `entry_banners`, `entry_name_bars`, `vehicle_entrances`, `shop_items`, `party_room_backgrounds`
+## সৎ Scope Assessment
 
-## What's missing (this is the work)
+| Plugin | বর্তমান % | কাজের পরিমাণ | একই session-এ সম্ভব? |
+|---|---|---|---|
+| NativeBillingSecurity | 30% (fake signature) | Play public key verify, ~150 লাইন | ✅ হ্যাঁ |
+| NativeAudioEngine | 40% (sessionId=0) | LiveKit/MediaRecorder থেকে session-id ব্রিজ | ✅ হ্যাঁ |
+| NativeSpeedOptimizer | 60% (broken cache delete) | recursive delete fix | ✅ হ্যাঁ |
+| NativeCrashReporter | 95% | already production-grade, no-op | ✅ verify only |
+| NativeVideoEngine | 10% (empty stub) | hardware H.264 encoder ব্রিজ OR delete | ⚠️ delete recommend |
+| DeepLinkHandler | 40% | intent filter parsing + route bridge | ✅ হ্যাঁ |
+| NativeMessageReply | 50% | FCM RemoteInput + reply RPC | ✅ হ্যাঁ |
+| **NativeFeedPlugin** | 30% (built, not wired) | Home feed RecyclerView wire-up | ❌ ২-৩ সপ্তাহ |
+| **NativeChatUIPlugin** | 40% (built, not wired) | Input/Avatar/Media/Reply/Typing/Realtime | ❌ ৩-৪ সপ্তাহ |
+| **NativeReelsPlayer overlay** | 80% | Gift/Like/Comment native overlay | ❌ ২-৩ সপ্তাহ |
 
-### 1. Database — single migration
-Add 2 columns to every animation-bearing table:
-- `animation_format` text — enum-like: `svga | vap | lottie | webp | png | gif | mp4`
-- `animation_config_url` text — for VAP only (`vapc.json` path)
+---
 
-Tables touched: `gifts`, `avatar_frames`, `role_frames`, `chat_bubbles`, `entry_effects`, `entry_banners`, `entry_name_bars`, `vehicle_entrances`, `shop_items`, `party_room_backgrounds`, `level_animations`.
+## Phase 1 — Pkg435: Critical Quick Wins (এই session)
 
-Add `CHECK` constraint that when `animation_format='vap'` then `animation_config_url IS NOT NULL`.
+এই ৬টা আজকে complete করব:
 
-Existing RLS / GRANT untouched.
+### 1. NativeBillingSecurity (Revenue Leak Fix)
+- Play Store license key (PUBLIC_KEY) signature verification
+- `Signature.getInstance("SHA1withRSA")` + Base64 decode
+- Lucky Patcher/Freedom detection patterns বাড়ানো
+- `getDeviceFingerprint` — deprecated `Build.SERIAL` সরানো (Android 8+ requires READ_PHONE_STATE)
+- Need: `PLAY_BILLING_PUBLIC_KEY` secret থেকে নিতে হবে
 
-### 2. Shared admin upload component
-New `src/components/admin/AnimationUploader.tsx`:
-- Format dropdown: SVGA / VAP / Lottie / WebP / PNG / GIF / MP4
-- Single file picker for normal formats
-- When VAP selected → second file picker for `vapc.json` (mandatory)
-- Live preview using `UniversalAnimationPlayer`
-- Size limits per format (VAP ≤ 8MB, SVGA ≤ 3MB, Lottie ≤ 500KB, WebP/PNG/GIF ≤ 2MB, MP4 ≤ 5MB)
-- Uploads to existing `gift-animations` bucket via existing storage flow
-- Returns `{ animation_url, animation_config_url, animation_format }` to parent
+### 2. NativeAudioEngine (Echo Cancellation)
+- `enableProfessionalAudio(sessionId: int)` — caller থেকে session-id নিবে
+- LiveKit Plugin থেকে AudioRecord.getAudioSessionId() bridge
+- `setAudioEffect` — AudioEffect framework দিয়ে Reverb/BassBoost/Equalizer
 
-### 3. Wire uploader into admin pages
-Drop the `AnimationUploader` into:
-- `AdminGifts` (gift create/edit modal)
-- `AdminEntryEffects` / `AdminEntryBanners` / `AdminEntryNameBars` / `AdminVehicleEntrances`
-- `AdminAvatarFrames` / `AdminRoleFrames` / `AdminChatBubbles`
-- `AdminShopItems` / `AdminPartyBackgrounds`
+### 3. NativeSpeedOptimizer
+- `clearNativeCache` recursive delete (cacheDir.delete() doesn't work on non-empty)
+- `trimMemory(TRIM_LEVEL)` method যোগ
+- Glide cache + WebView cache clear bridge
 
-Save the three returned fields. Existing fields/columns untouched.
+### 4. NativeCrashReporter
+- Already 95% — শুধু verify + add `setAttribute(key, value)` method
 
-### 4. Sender side — make every player VAP-aware
-- `UniversalAnimationPlayer`: when `format='vap'` route to `VAPPlayer` with `configUrl` prop
-- `UniversalFramePlayer`: same routing
-- `FullScreenGiftAnimation`, `FlyingGiftAnimation`, `EntranceAnimation`, `EntryBarAnimation`, `UnifiedEntryAnimation`, `VehicleEntranceAnimation`, `Shop.tsx`, frame previews — already use the universal players, so they inherit the fix automatically. We only patch the 2 universal players + verify the data prop is passed through.
+### 5. DeepLinkHandler
+- AndroidManifest.xml এ intent-filter (https://merilive.top, app://merilive)
+- `getInitialLink()` + `addListener('appUrlOpen')` proper Capacitor pattern
+- React Router-এ bridge
 
-### 5. VAPPlayer hardening
-Current `VAPPlayer.tsx` plays the MP4 but expects `configUrl`. Verify:
-- Accepts both inline config object and remote URL
-- Falls back gracefully (renders MP4 as-is) if config missing
-- GPU-accelerated, autoplay muted, loops controllable
-- Releases video element on unmount (memory leak protection for low-end Android — your 10k Play Store users)
+### 6. NativeMessageReply
+- FCM data payload থেকে RemoteInput.Builder
+- NotificationCompat.Action with RemoteInput
+- BroadcastReceiver intercepts reply → calls Supabase RPC via WorkManager
 
-### 6. APK rebuild?
-**No.** Everything is pure JS/TS/CSS + DB columns. No native plugin change, no Capacitor sync. Existing APK picks it up via Lovable hot-update on next app open.
+### 7. NativeVideoEngine
+- Stub delete OR hardware AVC encoder ব্রিজ
+- **Recommend**: Delete (LiveKit ইতিমধ্যে hardware encoder use করে)
 
-## What this does NOT do
-- Doesn't change pricing, RLS, or any gift/shop business logic
-- Doesn't touch LiveKit, camera, beauty, billing
-- Doesn't migrate existing rows — they keep working as-is (format defaults to auto-detect from URL extension, same as today)
+---
 
-## After deployment, designer workflow
-1. Open admin → any animation section (Gifts / Entry / Shop)
-2. Select format = VAP
-3. Upload `gift.mp4` + `gift_vapc.json` (designer exports both via Tencent's vap-tool)
-4. Preview plays inside the modal
-5. Save → instantly live on every user's app, no APK rebuild
+## Phase 2 — Pkg436: NativeFeedPlugin (পরের sprint, 1-2 সপ্তাহ)
 
-## Approve to proceed?
-If yes I'll execute in this order:
-1. DB migration (single file)
-2. `AnimationUploader.tsx` + tighten `VAPPlayer.tsx`
-3. Patch `UniversalAnimationPlayer` + `UniversalFramePlayer` routing
-4. Wire uploader into the ~10 admin pages (parallel edits)
-5. Type-check verify
+- Home feed RecyclerView with Glide image loading
+- Native pull-to-refresh + infinite scroll
+- Native chip filters (country/category)
+- Tap → bridge to React Router for detail page
+- React Index.tsx → `<NativeFeedView>` wrapper component
+- Fallback: web view if plugin unavailable
+
+---
+
+## Phase 3 — Pkg437: NativeChatUIPlugin Full Wire-up (পরের sprint, 3-4 সপ্তাহ)
+
+### Sub-tasks (Pkg437.1 — Pkg437.7):
+1. **NativeChatInput** — EditText + Send/Mic/Attach button native
+2. **Avatar loading** — Glide CircleCrop transform in adapter
+3. **Media messages** — image/video/voice ViewHolders (ExoPlayer thumbnail)
+4. **Reply/edit/delete** — long-press popup menu native
+5. **Typing/read receipt** — bottom-of-list animations
+6. **Realtime insert** — Supabase Realtime → adapter.notifyItemInserted with scroll-to-bottom
+7. **Conversation list** — separate RecyclerView for Chat list page
+8. Chat.tsx → `<NativeChatView>` wrapper
+
+---
+
+## Phase 4 — Pkg438: NativeReels Gift/Like Overlay (পরের sprint, 2-3 সপ্তাহ)
+
+- Native double-tap heart animation (no WebView)
+- Native gift panel overlay (re-use NativeGiftPanelPlugin)
+- Native like counter with floating numbers
+- Comment sheet stays WebView (acceptable)
+
+---
+
+## Risk Disclosure
+
+- প্রতিটা Phase 2-4 এর পর **নতুন APK rebuild + Play Store upload** দরকার
+- WebView/Native dual-path bugs বাড়বে (chat-এ message order mismatch, feed scroll position desync)
+- বর্তমান WebView Chat + Feed production-এ stable চলছে — Phase 3 risk highest
+- Phase 1 এর সব fix runtime safe, instant deploy
+
+---
+
+## আজকের decision চাই
+
+**Phase 1 (Pkg435) আজকে শুরু করব?** এটাতে ৬টা plugin properly complete হবে, ১টা delete হবে, **৭টা সমস্যা এক session-এ শেষ**।
+
+Phase 2/3/4 আলাদা package হিসেবে পরের session-এ — কারণ একসাথে শুরু করলে কোনোটাই 100% হবে না।
+
+আপনার approval পেলে এখনই Pkg435 শুরু করি।
