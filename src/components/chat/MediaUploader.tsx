@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Upload, FileImage, Film, Music } from "lucide-react";
+import { X, Upload, FileImage, Film, Music, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -7,10 +7,27 @@ import { toast } from "sonner";
 interface MediaUploaderProps {
   isOpen: boolean;
   onClose: () => void;
-  onMediaSelect: (url: string, type: 'image' | 'video' | 'audio') => void;
+  onMediaSelect: (url: string, type: 'image' | 'video' | 'audio' | 'document') => void;
   userId?: string | null;
   directGallery?: boolean;
 }
+
+const ALLOWED_TYPES = [
+  // Images
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
+  // Videos
+  'video/mp4', 'video/quicktime', 'video/webm', 'video/mov', 'video/avi', 'video/mkv',
+  // Audio
+  'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a', 'audio/webm',
+  // Documents
+  'application/pdf',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+];
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
 export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGallery = true }: MediaUploaderProps) => {
   const [uploading, setUploading] = useState(false);
@@ -25,6 +42,13 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
 
   if (!isOpen) return null;
 
+  const getFriendlyType = (mime: string) => {
+    if (mime.startsWith('image/')) return 'image';
+    if (mime.startsWith('video/')) return 'video';
+    if (mime.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -33,21 +57,19 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
     }
 
     // Validate file type
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-    const isAudio = file.type.startsWith('audio/');
-
-    if (!isImage && !isVideo && !isAudio) {
-      toast.error("Please select an image, video, or audio file");
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error(`"${file.name}" এই ফাইল টাইপটি অনুমোদিত নয়। অনুমোদিত ফাইল: ছবি (JPG, PNG, GIF, WEBP), ভিডিও (MP4, MOV, WEBM), অডিও (MP3, WAV, M4A), এবং ডকুমেন্ট (PDF, DOC, XLS, PPT, TXT)`);
       onClose();
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    // Validate file size (max 50MB for videos, 10MB for images, 20MB for audio)
-    const maxSize = isVideo ? 50 * 1024 * 1024 : isAudio ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error(`File too large. Max size: ${isVideo ? '50MB' : isAudio ? '20MB' : '10MB'}`);
+    // Validate file size (max 100MB)
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      toast.error(`ফাইলের সাইজ ${sizeMB}MB — সর্বোচ্চ অনুমোদিত সাইজ 100MB। ছোট একটি ফাইল নির্বাচন করুন।`);
       onClose();
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -79,13 +101,13 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
         throw uploadError;
       }
 
-      const mediaType = isImage ? 'image' : isVideo ? 'video' : 'audio';
+      const mediaType = getFriendlyType(file.type);
       onMediaSelect(filePath, mediaType);
       onClose();
-      toast.success("Media uploaded successfully!");
+      toast.success("ফাইল সফলভাবে আপলোড হয়েছে!");
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload media");
+      toast.error("ফাইল আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
       onClose();
     } finally {
       setUploading(false);
