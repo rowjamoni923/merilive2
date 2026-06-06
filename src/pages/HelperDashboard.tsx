@@ -5,6 +5,7 @@ import {
   ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle,
   Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1021,11 +1022,7 @@ const HelperDashboard = () => {
   const canManageCountryPaymentMethods = (helperData?.trader_level || 1) >= 5 && helperData?.payroll_enabled === true;
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <div className="animate-spin w-8 h-8 border-4 border-emerald-200 border-t-transparent rounded-full" />
-      </div>
-    );
+    return <PageSkeleton className="bg-[#F7F8FA]" rows={6} hero />;
   }
 
   // Pkg432: First-time / not-yet-verified users see the L1 application form inline.

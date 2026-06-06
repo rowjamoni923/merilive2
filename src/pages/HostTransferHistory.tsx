@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Gift, Phone, TrendingUp, Calendar, Clock, Building2, Loader2, Coins, DollarSign } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -144,11 +145,7 @@ const HostTransferHistory = () => {
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton className="bg-background" rows={6} hero={false} />;
   }
 
   return (

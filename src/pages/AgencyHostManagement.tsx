@@ -14,6 +14,7 @@ import {
   UserCheck,
   Bell
 } from "lucide-react";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -262,11 +263,7 @@ const AgencyHostManagement = () => {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton className="bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF]" rows={6} hero />;
   }
 
   return (
