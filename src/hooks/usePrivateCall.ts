@@ -1008,9 +1008,13 @@ export function usePrivateCall(userId: string | null) {
       // host is locked in_call. Settle the row server-side BEFORE resetting local
       // state so both sides get the realtime 'ended' event.
       try {
-        if (incomingCall?.callId) {
+        // Phase 3 fix (A1/C4): use the callId param — `incomingCall` state may
+        // be null on the native cold-start accept path, leaving the row stuck
+        // 'connected' forever and billing the caller against a dead call.
+        const cleanupCallId = callId || incomingCall?.callId;
+        if (cleanupCallId) {
           await supabase.rpc('end_private_call', {
-            _call_id: incomingCall.callId,
+            _call_id: cleanupCallId,
             _end_reason: 'connect_failed',
           });
         }
