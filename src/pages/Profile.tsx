@@ -943,7 +943,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions'],
+        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions', 'helper_transactions', 'coin_transfers', 'coin_trader_transfers', 'agency_diamond_transactions'],
         (table, event, payload) => {
           // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
