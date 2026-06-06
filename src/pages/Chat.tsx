@@ -2707,12 +2707,14 @@ const Chat = () => {
                         <DropdownMenuItem onClick={() => {
                           setReplyingTo({
                             messageId: msg.id,
-                            content: (msg.content || '').slice(0, 80),
+                            content: msg.content || '',
                             senderName: senderName,
-                            senderId: msg.sender_id
+                            senderId: msg.sender_id,
+                            messageType: msg.message_type,
                           });
                           toast.success("Replying to message");
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+
                           <MessageSquareReply className="w-4 h-4 text-primary" />
                           <span className="font-medium text-sm">Reply</span>
                         </DropdownMenuItem>
