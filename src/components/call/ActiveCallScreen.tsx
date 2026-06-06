@@ -766,7 +766,6 @@ export function ActiveCallScreen({
                 >
                   {connectionBadgeLabel}
                 </span>
-              </div>
             </div>
           </div>
 
