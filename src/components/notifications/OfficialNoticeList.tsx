@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Megaphone, 
@@ -209,8 +210,14 @@ export const OfficialNoticeList = () => {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="p-3 rounded-lg bg-card/50 space-y-2">
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+          </div>
+        ))}
       </div>
     );
   }

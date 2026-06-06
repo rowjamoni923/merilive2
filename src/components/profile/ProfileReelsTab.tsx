@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/Skeleton";
 import { useNavigate } from "react-router-dom";
 import { Play, Eye, Heart, Trash2, MoreVertical, Coins, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,11 +126,13 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
     navigate(`/reels?start=${reelId}`);
   };
 
-  // Don't show anything while loading
+  // Skeleton grid while loading
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-4">
-        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+      <div className="grid grid-cols-3 gap-1 p-1">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="aspect-[9/16] rounded-md" />
+        ))}
       </div>
     );
   }
