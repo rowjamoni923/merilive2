@@ -11,6 +11,7 @@ import { ViewerListItem, ApplicantListItem } from "./ViewerListItem";
 import { ViewerEmptyState } from "./ViewerEmptyState";
 import { useViewers } from "./useViewers";
 import type { ViewerPanelProps, Viewer, SeatApplicant } from "./types";
+import { Skeleton } from "@/components/Skeleton";
 
 /**
  * UnifiedViewerPanel
@@ -161,8 +162,17 @@ export const UnifiedViewerPanel = ({
             >
 
               {loading ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                <div className="space-y-2 p-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-2/3" />
+                        <Skeleton className="h-2.5 w-1/3" />
+                      </div>
+                      <Skeleton className="h-7 w-14 rounded-full" />
+                    </div>
+                  ))}
                 </div>
               ) : activeTab === 'audience' ? (
                 // Viewer List
