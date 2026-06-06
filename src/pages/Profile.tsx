@@ -1041,7 +1041,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             }
             // Refresh history if Trader Wallet modal is open on the History tab.
             if (showTransferModalRef.current && transferTabRef.current === 'history') {
-              void loadTransferHistory();
+              void loadTransferHistoryRef.current();
             }
           }
 
@@ -1058,16 +1058,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               || payload?.receiver_id === activeProfileId
               || payload?.counterparty_user_id === activeProfileId
               || payload?.owner_id === activeProfileId
-              // Agency-side rows: filter by agency owned by user
               || (table === 'agency_diamond_transactions'
-                  && agencyData?.id
-                  && payload?.agency_id === agencyData.id);
+                  && agencyIdRef.current
+                  && payload?.agency_id === agencyIdRef.current);
             if (!touchesUser) return;
-            // Refresh wallet balances so Trader Wallet card stays accurate.
-            void refreshTransferBalances().catch(() => {});
-            // Refresh history if modal is open on history tab.
+            void refreshTransferBalancesRef.current();
             if (showTransferModalRef.current && transferTabRef.current === 'history') {
-              void loadTransferHistory();
+              void loadTransferHistoryRef.current();
             }
           }
         }
