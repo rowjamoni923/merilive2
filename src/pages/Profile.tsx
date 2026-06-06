@@ -2963,8 +2963,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               Confirm Transfer
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3 pt-4">
-              <div className="bg-white rounded-xl p-4 border border-amber-200">
-                <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+              <div className="bg-white rounded-xl p-4 border border-amber-200 overflow-hidden">
+                <p className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 break-all tabular-nums leading-tight">
                   {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
                 </p>
               </div>
