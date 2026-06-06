@@ -300,7 +300,7 @@ export default function SwiftPayDepositModal({
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose, helperApplicationIntent]);
 
   useEffect(() => {
     if (step !== "pay" || !deposit?.topup_id) return;
