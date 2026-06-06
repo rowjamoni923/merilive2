@@ -4443,7 +4443,7 @@ html.reduce-motion [data-tap-press]:active {
   border-radius: 0.5rem;
   will-change: background-position;
 }
-html.reduce-motion .pkg434-skel,
+html.reduce-motion .pkg434-skel { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .pkg434-skel { animation: none; }
 }
