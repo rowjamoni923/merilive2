@@ -3207,73 +3207,64 @@ const Chat = () => {
               </>
             ) : (
               <>
-                {/* WhatsApp-style single pill — premium 3D glass */}
+                {/* WhatsApp-style flat composer pill */}
                 <div
                   className={cn(
-                    "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border/70 backdrop-blur-xl transition-colors",
-                    inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/70"
+                    "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-muted/60 border border-border/60 transition-colors",
+                    inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/60"
                   )}
-                  style={{ boxShadow: "inset 0 2px 4px rgba(15,23,42,0.12), inset 0 -1px 0 rgba(255,255,255,0.55), 0 4px 12px -8px rgba(15,23,42,0.2)" }}
                 >
-                  <motion.button
-                    whileHover={{ scale: 1.08, y: -1 }}
-                    whileTap={{ scale: 0.88 }}
+                  <button
+                    type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 hover:bg-muted transition-colors"
-                    style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)" }}
+                    className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center active:bg-muted transition-colors"
                     aria-label="Emoji"
                   >
-                    <Smile className="w-[20px] h-[20px] text-muted-foreground" />
-                  </motion.button>
+                    <Smile className="w-[22px] h-[22px] text-muted-foreground" />
+                  </button>
                   <Input
                     value={message}
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Message"
-                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[15px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
                     onFocus={() => setShowEmojiPicker(false)}
                   />
-                  <motion.button
-                    whileHover={{ scale: 1.08, y: -1 }}
-                    whileTap={{ scale: 0.88 }}
+                  <button
+                    type="button"
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 hover:bg-muted transition-colors"
-                    style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)" }}
+                    className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center active:bg-muted transition-colors"
                     aria-label="Gallery"
                   >
-                    <Camera className="w-[18px] h-[18px] text-muted-foreground" />
-                  </motion.button>
+                    <Camera className="w-[20px] h-[20px] text-muted-foreground" />
+                  </button>
                 </div>
 
-                {/* Right-side FAB — premium 3D orb */}
+                {/* Send / Mic FAB — flat WhatsApp-style */}
                 <motion.button
                   initial={false}
-                  whileHover={{ y: -2, scale: 1.06 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={message.trim() ? handleSend : handleVoiceRecord}
                   disabled={sending}
-                  className="relative shrink-0 w-11 h-11 rounded-full flex items-center justify-center overflow-hidden"
-                  style={{
-                    background: message.trim()
-                      ? 'radial-gradient(120% 120% at 30% 20%, #c7d2fe 0%, #6366f1 45%, #4338ca 100%)'
-                      : 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #ef4444 45%, #991b1b 100%)',
-                    boxShadow: message.trim()
-                      ? '0 10px 24px -8px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
-                      : '0 10px 24px -8px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.3)'
-                  }}
+                  className={cn(
+                    "shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-colors",
+                    message.trim()
+                      ? "bg-primary text-primary-foreground shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
+                      : "bg-primary text-primary-foreground shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
+                  )}
                   aria-label={message.trim() ? "Send" : "Record voice"}
                 >
-                  <div className="absolute inset-x-1.5 top-1 h-2 rounded-full bg-white/40 blur-[2px] pointer-events-none" />
                   {message.trim() ? (
-                    <Send className="w-5 h-5 text-white relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <Send className="w-[20px] h-[20px]" />
                   ) : (
-                    <img src={icon3dVoice} alt="Voice" width={512} height={512} loading="lazy" className="w-6 h-6 object-contain relative drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+                    <Mic className="w-[20px] h-[20px]" />
                   )}
                 </motion.button>
               </>
             )}
           </div>
+
           
           {/* Action Buttons Row — premium 3D orbs */}
           {!isGroup && (
