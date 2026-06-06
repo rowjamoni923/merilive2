@@ -77,6 +77,40 @@ export function applyVideoQualityToRoom(room: Room | null | undefined, choice: V
   }
 }
 
+/**
+ * Pkg443 — Apply a quality CAP to every remote video pub.
+ *
+ * Unlike `applyVideoQualityToRoom` (which mirrors the user's chosen layer),
+ * this lowers each publication to AT MOST `cap` while leaving lower
+ * subscriptions untouched. Used by the Quality-Hint auto-tuner to react
+ * to network/thermal pressure without overriding a user who already chose
+ * a lower layer manually.
+ */
+export function applyVideoQualityCapToRoom(
+  room: Room | null | undefined,
+  cap: VideoQuality,
+): void {
+  if (!room) return;
+  try {
+    room.remoteParticipants.forEach((p: RemoteParticipant) => {
+      p.trackPublications.forEach((pub: RemoteTrackPublication) => {
+        if (pub.kind !== "video") return;
+        try {
+          // VideoQuality enum: LOW=0, MEDIUM=1, HIGH=2 — lower the cap if needed.
+          const current = (pub.videoQuality as VideoQuality | undefined);
+          if (current === undefined || current > cap) {
+            pub.setVideoQuality?.(cap);
+          }
+        } catch {
+          // ignore
+        }
+      });
+    });
+  } catch {
+    // ignore
+  }
+}
+
 export const VIDEO_QUALITY_LABELS: Record<VideoQualityChoice, string> = {
   auto: "Auto",
   low: "240p",

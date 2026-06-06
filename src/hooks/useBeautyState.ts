@@ -35,6 +35,7 @@ import {
   setBeautyEnabled as setNativeBeautyEnabled,
   type ProBeautyLevels,
 } from '@/plugins/GPUPixelBeauty';
+import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 
 const ENABLED_KEY = 'pkg417.beauty.enabled.v1';
 
@@ -71,28 +72,46 @@ export function useBeautyState(): any {
   // Track last-applied so we can replay on track swap / foreground / re-mount.
   const lastLevelsRef = useRef<ProBeautyLevels>(initialLevels);
   const lastEnabledRef = useRef<boolean>(initialEnabled);
+  // Pkg443 (Phase 4): unified quality hint damper. We never persist the
+  // damped values — user's sliders stay intact, we just push a scaled copy
+  // into the engine while pressure lasts.
+  const qualityBucketRef = useRef<QualityBucket>(getQualityHint().bucket);
+
+  const dampLevels = useCallback((levels: ProBeautyLevels, bucket: QualityBucket): ProBeautyLevels => {
+    // Scale every slider (0..1 numeric) by a pressure factor.
+    let factor = 1;
+    if (bucket === 'critical') factor = 0;     // disable shaders entirely
+    else if (bucket === 'poor') factor = 0.4;
+    else if (bucket === 'fair') factor = 0.75;
+    if (factor === 1) return levels;
+    const out = { ...(levels as unknown as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(out)) {
+      if (typeof v === 'number') out[k] = Math.max(0, Math.min(1, v * factor));
+    }
+    return out as unknown as ProBeautyLevels;
+  }, []);
 
   // ---- Core driver: push (levels, enabled) into the native engine. ----
   const drive = useCallback(async (levels: ProBeautyLevels, enabled: boolean) => {
     if (!isNativeBeautyAvailable()) return;
     try {
       await ensureBeautyInit();
-      // Always push slider values (so the engine has fresh state even if
-      // currently bypassed — toggling back on is instant).
-      await applyProBeauty(levels);
-      await setNativeBeautyEnabled(enabled);
-      // Push to the LiveKit broadcast track (no-op if no track yet —
-      // re-applied on LocalTrackPublished).
+      const bucket = qualityBucketRef.current;
+      const effectiveLevels = dampLevels(levels, bucket);
+      // Under 'critical' we hard-disable the pipeline (saves GPU/thermal),
+      // even if the user has it enabled — restored when pressure clears.
+      const effectiveEnabled = enabled && bucket !== 'critical';
+      await applyProBeauty(effectiveLevels);
+      await setNativeBeautyEnabled(effectiveEnabled);
       if (isBroadcastBeautyEnabled()) {
-        await applyBroadcastBeauty(levels, enabled);
-      } else if (!enabled) {
-        // Always detach when fully off, regardless of flag.
-        await applyBroadcastBeauty(levels, false);
+        await applyBroadcastBeauty(effectiveLevels, effectiveEnabled);
+      } else if (!effectiveEnabled) {
+        await applyBroadcastBeauty(effectiveLevels, false);
       }
     } catch (err) {
       console.warn('[useBeautyState] drive failed:', err);
     }
-  }, []);
+  }, [dampLevels]);
 
   // Apply on mount and whenever levels/enabled change.
   useEffect(() => {
@@ -124,6 +143,19 @@ export function useBeautyState(): any {
       window.removeEventListener('beauty:reapply', replay);
       document.removeEventListener('visibilitychange', onVisible);
     };
+  }, [drive]);
+
+  // Pkg443 (Phase 4): re-drive when the unified quality hint changes so
+  // the damper engages/disengages live (thermal cool-down, network recovery,
+  // power-save toggle, etc.).
+  useEffect(() => {
+    if (!isNativeBeautyAvailable()) return;
+    const unsub = subscribeQualityHint((h) => {
+      if (h.bucket === qualityBucketRef.current) return;
+      qualityBucketRef.current = h.bucket;
+      void drive(lastLevelsRef.current, lastEnabledRef.current);
+    });
+    return () => { unsub(); };
   }, [drive]);
 
   const handleBeautyEnabledChange = useCallback((v: boolean) => {

@@ -31,9 +31,11 @@ import {
 import {
   VIDEO_QUALITY_CHANGED_EVENT,
   applyVideoQualityToRoom,
+  applyVideoQualityCapToRoom,
   getVideoQualityChoice,
   resolveVideoQuality,
 } from '@/lib/livekitVideoQuality';
+import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
@@ -1553,17 +1555,36 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   }, [isJoined]);
 
   // Pkg149: Adaptive video quality — sync ref + re-apply across every remote video pub.
+  // Pkg443 (Phase 4): also react to unified QualityHint (network + thermal + battery)
+  // and cap the simulcast layer when the device/connection is under pressure. The
+  // user's manual choice still wins when it's already lower than the auto-cap.
   useEffect(() => {
     if (!isJoined) return;
+    const bucketToCap = (b: QualityBucket): VideoQuality | null => {
+      switch (b) {
+        case 'critical':
+        case 'poor':      return VideoQuality.LOW;
+        case 'fair':      return VideoQuality.MEDIUM;
+        case 'good':
+        case 'excellent':
+        default:          return null;
+      }
+    };
     const apply = () => {
       const choice = getVideoQualityChoice();
       preferredVideoQualityRef.current = resolveVideoQuality(choice);
       applyVideoQualityToRoom(roomRef.current, choice);
+      const cap = bucketToCap(getQualityHint().bucket);
+      if (cap !== null) applyVideoQualityCapToRoom(roomRef.current, cap);
     };
     apply();
     const onChange = () => apply();
     window.addEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
-    return () => window.removeEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
+    const unsubHint = subscribeQualityHint(() => apply());
+    return () => {
+      window.removeEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
+      unsubHint();
+    };
   }, [isJoined]);
 
   // Pkg74: Bind streamId → Room for LiveKit-based stream_ended signaling.
