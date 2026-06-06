@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, X, Loader2 } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +142,7 @@ const MyPoster = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return <PageSkeleton rows={4} hero={false} />;
   }
 
   return (

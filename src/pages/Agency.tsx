@@ -19,7 +19,7 @@ import {
   Banknote
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
@@ -187,7 +187,13 @@ const Agency = () => {
 
   // Loading state — only on cold cache (Pkg420 zero-refresh)
   if (loading && commissionTiersSafe.length === 0) {
-    return <LoadingSpinner fullScreen size="lg" text="Loading Agency" />;
+    return (
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col bg-gradient-to-br from-brand-50 via-white to-info-50 overflow-hidden"
+        headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
+        tabs
+      />
+    );
   }
 
   // User doesn't have an approved agency - show Apply/Join options
