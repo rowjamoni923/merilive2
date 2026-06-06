@@ -58,7 +58,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
 
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error(`"${file.name}" এই ফাইল টাইপটি অনুমোদিত নয়। অনুমোদিত ফাইল: ছবি (JPG, PNG, GIF, WEBP), ভিডিও (MP4, MOV, WEBM), অডিও (MP3, WAV, M4A), এবং ডকুমেন্ট (PDF, DOC, XLS, PPT, TXT)`);
+      toast.error(`"${file.name}" — file type not allowed. Allowed: images (JPG, PNG, GIF, WEBP), videos (MP4, MOV, WEBM), audio (MP3, WAV, M4A), and documents (PDF, DOC, XLS, PPT, TXT).`);
       onClose();
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -67,7 +67,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
     // Validate file size (max 100MB)
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      toast.error(`ফাইলের সাইজ ${sizeMB}MB — সর্বোচ্চ অনুমোদিত সাইজ 100MB। ছোট একটি ফাইল নির্বাচন করুন।`);
+      toast.error(`File size is ${sizeMB}MB — maximum allowed is 100MB. Please choose a smaller file.`);
       onClose();
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -104,10 +104,10 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
       const mediaType = getFriendlyType(file.type);
       onMediaSelect(filePath, mediaType);
       onClose();
-      toast.success("ফাইল সফলভাবে আপলোড হয়েছে!");
+      toast.success("File uploaded successfully!");
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error("ফাইল আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
+      toast.error("File upload failed. Please try again.");
       onClose();
     } finally {
       setUploading(false);
