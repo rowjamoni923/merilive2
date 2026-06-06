@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { useScreenLock } from "@/hooks/useScreenLock";
 
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
@@ -169,6 +170,9 @@ const LiveStream = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  // Pkg443 Phase-3: keep screen on for the entire viewer/host session.
+  useScreenLock(true);
+  
   
   // isHost will be verified from database, not just from location state
   const [isHost, setIsHost] = useState(location.state?.isHost || false);

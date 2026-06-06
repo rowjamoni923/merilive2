@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
+import { useScreenLock } from "@/hooks/useScreenLock";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,6 +61,8 @@ const isApprovedLiveHost = (profile?: {
 
 const GoLive = () => {
   const navigate = useNavigate();
+  // Pkg443 Phase-3: keep host's screen awake on the pre-live setup screen.
+  useScreenLock(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);

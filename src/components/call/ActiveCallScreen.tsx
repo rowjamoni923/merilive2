@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
+import { useScreenLock } from "@/hooks/useScreenLock";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
@@ -72,6 +73,8 @@ export function ActiveCallScreen({
   onMediaConnected,
   isHost = false,
 }: ActiveCallScreenProps) {
+  // Pkg443 Phase-3: keep screen awake for the entire active call.
+  useScreenLock(isOpen);
   // Pkg416 — claim the single professional camera for private-call. If
   // face-verify holds the camera (verification family), this returns a
   // conflict error and we surface a friendly toast instead of starting
