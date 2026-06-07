@@ -1458,13 +1458,13 @@ const PartyRoom = () => {
             processedBroadcastJoinsRef.current.add(joinKey);
             const { data: prof } = await supabase
               .from('profiles_public')
-              .select('display_name, avatar_url, user_level')
+              .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
               .eq('id', uid)
               .maybeSingle();
             if (!isMountedRef.current) return;
             const userName = prof?.display_name || 'User';
             const userLevel = prof?.user_level || 1;
-            const userAvatar = prof?.avatar_url || undefined;
+            const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
             addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
             setJoinMessages(prev => [...prev.slice(-20), {
               id: `pg_join_${Date.now()}_${uid}`,
@@ -1475,6 +1475,29 @@ const PartyRoom = () => {
               type: 'join' as const,
               timestamp: new Date(),
             }]);
+            try {
+              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode } = await fetchUserEntryAnimations(
+                (prof as any)?.equipped_entrance_id,
+                (prof as any)?.equipped_entry_name_bar_id,
+                (prof as any)?.equipped_vehicle_id,
+                userLevel,
+                uid,
+              );
+              if (!isMountedRef.current) return;
+              addEntryAnimation({
+                userId: uid,
+                displayName: userName,
+                avatarUrl: userAvatar,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
+                rankCode: rankCode || undefined,
+              });
+            } catch (e) {
+              console.warn('[PartyRoom] participant fallback entry animation failed:', e);
+            }
           }, 1500);
           pendingJoinTimers.set(uid, timer);
         },
