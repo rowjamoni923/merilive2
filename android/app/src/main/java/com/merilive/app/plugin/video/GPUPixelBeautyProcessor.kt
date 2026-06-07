@@ -13,6 +13,7 @@ import livekit.org.webrtc.JavaI420Buffer
 import livekit.org.webrtc.VideoFrame
 import livekit.org.webrtc.VideoProcessor
 import livekit.org.webrtc.VideoSink
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -47,6 +48,7 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     @Volatile private var sink: VideoSink? = null
     private val busy = AtomicBoolean(false)
     private val initialized = AtomicBoolean(false)
+    private val disposed = AtomicBoolean(false)
 
     private val workerThread = HandlerThread("GPUPixelBeauty").apply { start() }
     private val worker = Handler(workerThread.looper)
@@ -59,6 +61,8 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     private var reshape: GPUPixelFilter? = null
     private var lipstick: GPUPixelFilter? = null
     private var blusher: GPUPixelFilter? = null
+
+    fun isReleased(): Boolean = disposed.get()
 
     // Live levels (0..1). Updated from JS via setLevels(...).
     @Volatile var smooth: Float = 0.6f
@@ -79,9 +83,11 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     private fun ensureGraph() {
+        if (disposed.get()) return
         if (initialized.get()) return
         try {
             GPUPixel.Init(context.applicationContext)
+            validateGpupixelResources()
             faceDetector = FaceDetector.Create()
             rawInput = GPUPixelSourceRawData.Create()
             rawOutput = GPUPixelSinkRawData.Create()
@@ -102,6 +108,31 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
             Log.i(TAG, "GPUPixel MarsFace 3D landmark graph ready")
         } catch (t: Throwable) {
             Log.e(TAG, "ensureGraph failed", t)
+        }
+    }
+
+    private fun validateGpupixelResources() {
+        val base = context.applicationContext.getExternalFilesDir(null) ?: return
+        val required = listOf(
+            "gpupixel/models/face_det.mars_model",
+            "gpupixel/models/face_align.mars_model",
+            "gpupixel/res/mouth.png",
+            "gpupixel/res/blusher.png",
+        )
+        val missing = required.filter { rel ->
+            val f = File(base, rel)
+            !f.exists() || f.length() <= 0L
+        }
+        if (missing.isEmpty()) return
+        missing.forEach { rel -> runCatching { File(base, rel).delete() } }
+        Log.w(TAG, "GPUPixel resources missing/corrupt: $missing — recopying bundled AI assets")
+        GPUPixel.copyResource(context.applicationContext)
+        val stillMissing = required.filter { rel ->
+            val f = File(base, rel)
+            !f.exists() || f.length() <= 0L
+        }
+        if (stillMissing.isNotEmpty()) {
+            Log.e(TAG, "GPUPixel AI resources still unavailable after recopy: $stillMissing")
         }
     }
 
@@ -144,12 +175,11 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     override fun onCapturerStopped() {
-        // Pkg-audit Tier2 fix: free the GPUPixel native graph + HandlerThread
-        // when the capturer stops. Without this, a track close / reconnect /
-        // re-publish leaks the worker thread + native EGL context and can
-        // eventually cause CAMERA_IN_USE on the next start.
-        Log.i(TAG, "onCapturerStopped — releasing GPUPixel processor")
-        release()
+        // Capturer stop is not final: LiveKit can restart the same track after
+        // camera switch/recovery. Release only the native graph; keep the
+        // worker thread alive so onCapturerStarted can rebuild AI filters.
+        Log.i(TAG, "onCapturerStopped — releasing GPUPixel graph")
+        worker.post { releaseGraphLocked() }
     }
 
     override fun onFrameCaptured(frame: VideoFrame) {
@@ -342,27 +372,32 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
         // the system past the ANR threshold on low-end devices while a 1080p
         // frame was mid-processing. Post cleanup to the worker and quit the
         // looper from inside the worker so no new work can be accepted after.
+        if (!disposed.compareAndSet(false, true)) return
         worker.post {
-            try {
-                rawInput?.RemoveAllSinks()
-                faceDetector?.destroy()
-                rawInput?.Destroy()
-                rawOutput?.Destroy()
-                beauty?.Destroy()
-                reshape?.Destroy()
-                lipstick?.Destroy()
-                blusher?.Destroy()
-            } catch (_: Throwable) {}
-            faceDetector = null
-            rawInput = null
-            rawOutput = null
-            beauty = null
-            reshape = null
-            lipstick = null
-            blusher = null
-            initialized.set(false)
-            busy.set(false)
+            releaseGraphLocked()
             workerThread.quitSafely()
         }
+    }
+
+    private fun releaseGraphLocked() {
+        try {
+            rawInput?.RemoveAllSinks()
+            faceDetector?.destroy()
+            rawInput?.Destroy()
+            rawOutput?.Destroy()
+            beauty?.Destroy()
+            reshape?.Destroy()
+            lipstick?.Destroy()
+            blusher?.Destroy()
+        } catch (_: Throwable) {}
+        faceDetector = null
+        rawInput = null
+        rawOutput = null
+        beauty = null
+        reshape = null
+        lipstick = null
+        blusher = null
+        initialized.set(false)
+        busy.set(false)
     }
 }

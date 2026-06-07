@@ -1405,6 +1405,7 @@ class LiveKitPlugin : Plugin() {
                     }
                 }
                 try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
+                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
                 currentTier = target
                 Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
 
@@ -4086,7 +4087,7 @@ class LiveKitPlugin : Plugin() {
     private var beautyProcessor: com.merilive.app.plugin.video.GPUPixelBeautyProcessor? = null
 
     private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
-        beautyProcessor?.let { return it }
+        beautyProcessor?.takeUnless { it.isReleased() }?.let { return it }
         val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
         beautyProcessor = proc
         return proc
