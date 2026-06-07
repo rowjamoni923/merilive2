@@ -42,15 +42,19 @@ import io.livekit.android.room.Room
 import io.livekit.android.room.participant.ConnectionQuality
 import io.livekit.android.room.participant.RemoteParticipant
 import io.livekit.android.room.participant.VideoTrackPublishOptions
+import io.livekit.android.room.participant.AudioTrackPublishDefaults
 import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.LocalVideoTrackOptions
+import io.livekit.android.room.track.LocalAudioTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.DataPublishReliability
 import io.livekit.android.room.track.VideoCaptureParameter
 import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoPreset169
 import io.livekit.android.room.track.VideoTrackPublishDefaults
+import io.livekit.android.AudioOptions
+import io.livekit.android.AudioType
 import io.livekit.android.e2ee.BaseKeyProvider
 import io.livekit.android.e2ee.E2EEOptions
 import io.livekit.android.room.participant.RemoteTrackPublication
@@ -279,6 +283,18 @@ class LiveKitPlugin : Plugin() {
         val callType: String,
         val e2eeOn: Boolean,
         val e2eeKey: String?,
+        // Phase F — professional audio profile.
+        //   "voice"     → 1:1 Private Call. Mono 32 kbps, full WebRTC AP3
+        //                 (AEC + NS + AGC + HPF + typing), hardware AEC/NS
+        //                 preferred, CallAudioType (earpiece-friendly, DTX on).
+        //   "broadcast" → Live / Party Room. Stereo-capable 64 kbps, AP3 on
+        //                 with HPF + AGC, hardware AEC/NS still on (mic still
+        //                 needs echo control vs phone speakers), RED on, DTX
+        //                 off (continuous bg ambience / music ducking).
+        //   "music"     → Karaoke / instrument. 128 kbps, AGC + NS + HPF +
+        //                 typing OFF (preserve dynamics), hardware AEC/NS
+        //                 OFF, stereo, MediaAudioType (no comm-mode squash).
+        val audioProfile: String,
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
@@ -434,11 +450,21 @@ class LiveKitPlugin : Plugin() {
         val e2eeOn = call.getBoolean("e2eeEnabled", false) ?: false
         val e2eeSharedKey = call.getString("e2eeKey", null)
 
+        // Phase F — professional audio profile (see ConnectArgs doc).
+        // Default to "voice" for 1:1 (no video w/ callType=Voice/Video Call)
+        // and "broadcast" for everything else (live / party room).
+        val audioProfileRaw = call.getString("audioProfile", null)
+        val audioProfile = when {
+            !audioProfileRaw.isNullOrBlank() -> audioProfileRaw.lowercase()
+            callType.contains("Call", ignoreCase = true) -> "voice"
+            else -> "broadcast"
+        }
+
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
-            callerName, callType, e2eeOn, e2eeSharedKey,
+            callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
         )
         hardReconnectAttempts = 0
 
@@ -548,6 +574,46 @@ class LiveKitPlugin : Plugin() {
             null
         }
 
+        // Phase F — Professional audio pipeline.
+        //
+        // The default LocalAudioTrackOptions() already enables AP3
+        // (AEC/NS/AGC/HPF/typing) but we *explicitly* spell it out per
+        // profile so the chain is auditable and "music" can disable
+        // dynamics processing without affecting other rooms.
+        val audioCapture: LocalAudioTrackOptions = when (args.audioProfile) {
+            "music" -> LocalAudioTrackOptions(
+                noiseSuppression = false,
+                echoCancellation = true,   // keep — phone speakers still echo
+                autoGainControl = false,   // preserve dynamics
+                highPassFilter = false,    // preserve sub-bass
+                typingNoiseDetection = false,
+            )
+            "broadcast" -> LocalAudioTrackOptions(
+                noiseSuppression = true,
+                echoCancellation = true,
+                autoGainControl = true,
+                highPassFilter = true,
+                typingNoiseDetection = false, // hosts often tap chat — don't mute them
+            )
+            else -> LocalAudioTrackOptions(
+                noiseSuppression = true,
+                echoCancellation = true,
+                autoGainControl = true,
+                highPassFilter = true,
+                typingNoiseDetection = true,
+            )
+        }
+
+        // Opus publish profile.
+        //   voice     → 32 kbps mono DTX-on RED-on   (lowest data, robust)
+        //   broadcast → 64 kbps RED-on DTX-off       (continuous mix, stereo-capable)
+        //   music     → 128 kbps RED-on DTX-off      (full-band stereo music)
+        val audioPublish: AudioTrackPublishDefaults = when (args.audioProfile) {
+            "music" -> AudioTrackPublishDefaults(audioBitrate = 128_000, dtx = false, red = true)
+            "broadcast" -> AudioTrackPublishDefaults(audioBitrate = 64_000, dtx = false, red = true)
+            else -> AudioTrackPublishDefaults(audioBitrate = 32_000, dtx = true, red = true)
+        }
+
         val roomOptions = RoomOptions(
             adaptiveStream = true,
             dynacast = true,
@@ -556,13 +622,42 @@ class LiveKitPlugin : Plugin() {
                 captureParams = captureParams
             ),
             videoTrackPublishDefaults = publishDefaults,
+            audioTrackCaptureDefaults = audioCapture,
+            audioTrackPublishDefaults = audioPublish,
             e2eeOptions = e2eeOptions,
+        )
+
+        // Phase F — JavaAudioDeviceModule customization. We force
+        // hardware AEC + NS when the chipset exposes them (saves CPU
+        // and gives better results than software AP3 alone on most
+        // Snapdragon / MTK devices). Also pin VOICE_COMMUNICATION
+        // for "voice" / "broadcast" (full duplex) and MIC for "music"
+        // (raw, no comm-mode dynamics).
+        val useMediaSrcForMusic = args.audioProfile == "music"
+        val audioOptions = AudioOptions(
+            audioOutputType = if (useMediaSrcForMusic) AudioType.MediaAudioType() else AudioType.CallAudioType(),
+            javaAudioDeviceModuleCustomizer = { builder ->
+                try {
+                    if (useMediaSrcForMusic) {
+                        builder.setAudioSource(android.media.MediaRecorder.AudioSource.MIC)
+                        builder.setUseHardwareAcousticEchoCanceler(false)
+                        builder.setUseHardwareNoiseSuppressor(false)
+                    } else {
+                        builder.setAudioSource(android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                        builder.setUseHardwareAcousticEchoCanceler(true)
+                        builder.setUseHardwareNoiseSuppressor(true)
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "audio device customizer: ${t.message}")
+                }
+                Unit
+            },
         )
 
         val newRoom = LiveKit.create(
             appContext = context.applicationContext,
             options = roomOptions,
-            overrides = LiveKitOverrides()
+            overrides = LiveKitOverrides(audioOptions = audioOptions),
         )
         room = newRoom
 
@@ -736,6 +831,35 @@ class LiveKitPlugin : Plugin() {
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("setMicrophoneEnabled failed: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Phase F — Switch the professional audio profile mid-session.
+     *
+     * Profiles: `"voice"` | `"broadcast"` | `"music"`. Because Opus
+     * publish bitrate + AEC/NS chain are pinned at room-create time,
+     * we rebuild the room (hard-reconnect) with the new profile. Mic
+     * intent is preserved; video resumes on the same camera lens.
+     *
+     * Safe to call repeatedly; a no-op if the profile is unchanged.
+     */
+    @PluginMethod
+    fun setAudioProfile(call: PluginCall) {
+        val profile = (call.getString("profile") ?: "").lowercase()
+        if (profile !in setOf("voice", "broadcast", "music")) {
+            call.reject("profile must be one of voice|broadcast|music"); return
+        }
+        val args = lastConnectArgs ?: return call.reject("Not connected")
+        if (args.audioProfile == profile) { call.resolve(); return }
+        lastConnectArgs = args.copy(audioProfile = profile)
+        scope.launch {
+            try {
+                connectInternal(lastConnectArgs!!, isReconnect = true)
+                val ret = JSObject(); ret.put("profile", profile); call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("setAudioProfile failed: ${e.message}")
             }
         }
     }

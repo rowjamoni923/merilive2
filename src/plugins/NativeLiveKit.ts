@@ -29,6 +29,18 @@ export interface ConnectOptions {
   e2eeEnabled?: boolean;
   /** Step 23 — AES-GCM shared key (both peers must derive the same value). */
   e2eeKey?: string;
+  /**
+   * Phase F — Professional audio profile applied at room create time.
+   *   "voice"     → 1:1 private call. 32 kbps mono, full AEC/NS/AGC/HPF,
+   *                 hardware echo/noise canceller, VOICE_COMMUNICATION mic.
+   *   "broadcast" → Live / Party Room. 64 kbps, AEC/NS/AGC/HPF on, typing
+   *                 detection OFF, hardware AEC/NS on.
+   *   "music"     → Karaoke / instruments. 128 kbps, NS/AGC/HPF OFF,
+   *                 hardware AEC/NS OFF, raw MIC source — preserves dynamics.
+   * Omit to let the plugin pick: callType containing "Call" → "voice",
+   * everything else → "broadcast".
+   */
+  audioProfile?: 'voice' | 'broadcast' | 'music';
 }
 
 export interface ParticipantEvent {
@@ -237,6 +249,13 @@ export interface NativeLiveKitPlugin {
   setProximityMonitoring(opts: { enabled: boolean }): Promise<{ proximity: boolean }>;
   /** "voice" = earpiece + proximity; "video" = speaker; "none"/"off"/"restore" = release. */
   setAudioMode(opts: { mode: 'voice' | 'video' | 'none' | 'off' | 'restore' }): Promise<{ mode: string }>;
+
+  /**
+   * Phase F — Switch the professional audio profile mid-session.
+   * Triggers a hard reconnect because Opus bitrate + AEC chain are
+   * pinned at room-create time. No-op when the profile is unchanged.
+   */
+  setAudioProfile(opts: { profile: 'voice' | 'broadcast' | 'music' }): Promise<{ profile: string }>;
 
   // --- Audio device routing (Step 13) --------------------------
   getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
