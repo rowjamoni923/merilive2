@@ -1602,7 +1602,26 @@ const LiveStream = () => {
         // LiveKit ParticipantDisconnected — translated locally on every client.
         activeViewerIdsRef.current.delete(p.userId);
         setViewerCount(prev => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(0, prev - 1));
-        setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== p.userId));
+        let leftViewer: { name?: string; user_level?: number; avatar_url?: string | null } | undefined;
+        setRecentViewerAvatars((prev) => {
+          leftViewer = prev.find((v: any) => v.id === p.userId);
+          return prev.filter((v: any) => v.id !== p.userId);
+        });
+        const leftName = leftViewer?.name || 'A viewer';
+        setMessages((prev) => {
+          const now = Date.now();
+          if (prev.some((m) => m.id.startsWith(`leave_${p.userId}_`) && now - Number(m.id.split('_').at(-1) || 0) < 5000)) return prev;
+          return [...prev, {
+            id: `leave_${p.userId}_${now}`,
+            user: leftName,
+            initial: leftName.charAt(0),
+            message: 'left the live room',
+            color: 'text-white/70',
+            userLevel: leftViewer?.user_level || 1,
+            userAvatar: leftViewer?.avatar_url || undefined,
+            type: 'leave',
+          }];
+        });
         return;
       }
 
@@ -1687,7 +1706,7 @@ const LiveStream = () => {
     return () => {
       window.removeEventListener('livekit-live-event', handleLiveEvent);
     };
-  }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation]);
+  }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation, addLiveJoinNotification]);
 
 
   // Zero-refresh policy: no gift reconciliation REST poll. LiveKit envelopes,
