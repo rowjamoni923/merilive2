@@ -110,6 +110,7 @@ object GiftAudioMixer {
                     for (mp in activePlayers) {
                         try { mp.stop() } catch (_: Throwable) {}
                         try { mp.release() } catch (_: Throwable) {}
+                        playerIntendedVol.remove(mp)
                     }
                     activePlayers.clear()
                 }
@@ -151,6 +152,7 @@ object GiftAudioMixer {
                 val oldest = activePlayers.removeAt(0)
                 try { oldest.stop() } catch (_: Throwable) {}
                 try { oldest.release() } catch (_: Throwable) {}
+                playerIntendedVol.remove(oldest)
             }
         }
         val mp = MediaPlayer()
@@ -162,24 +164,34 @@ object GiftAudioMixer {
                     .build()
             )
             mp.setVolume(volume, volume)
+            // Track intended volume BEFORE async ops so ducking always finds it.
+            playerIntendedVol[mp] = volume
             mp.setDataSource(file.absolutePath)
             mp.setOnPreparedListener { it.start() }
             mp.setOnCompletionListener {
                 synchronized(activePlayers) { activePlayers.remove(it) }
+                playerIntendedVol.remove(it)
                 try { it.release() } catch (_: Throwable) {}
                 applyDucking()
             }
             mp.setOnErrorListener { player, _, _ ->
                 synchronized(activePlayers) { activePlayers.remove(player) }
+                playerIntendedVol.remove(player)
                 try { player.release() } catch (_: Throwable) {}
                 true
             }
-            mp.prepareAsync()
+            // Pkg-audit fix: add to pool BEFORE prepareAsync() so an early-fire
+            // onError listener can't race past us and leave the player registered
+            // after release.
             synchronized(activePlayers) { activePlayers.add(mp) }
+            mp.prepareAsync()
         } catch (_: Throwable) {
+            synchronized(activePlayers) { activePlayers.remove(mp) }
+            playerIntendedVol.remove(mp)
             try { mp.release() } catch (_: Throwable) {}
         }
     }
+
 
     /**
      * Apply master ducking: when 2+ FX streams overlap, attenuate every
