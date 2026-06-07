@@ -131,15 +131,16 @@ const handler = async (req: Request): Promise<Response> => {
     // ──────────────────────────────────────────────────────────────────────────
 
     // De-dupe: skip if we already broadcast for this exact version code.
-    const dedupeKey = `app_update_v${versionRow.current_version_code || versionRow.current_version_name || versionRow.current_version}`;
+    const versionCodeKey = String(versionRow.current_version_code || 0);
     const { data: existingDispatch } = await supabase
-      .from("admin_broadcast")
+      .from("app_update_broadcast_log")
       .select("id")
-      .eq("title", dedupeKey)
+      .eq("version_code", versionCodeKey)
+      .eq("platform", versionRow.platform || "android")
       .maybeSingle();
 
     if (existingDispatch) {
-      console.log("[broadcast-app-update] Already broadcast for", dedupeKey);
+      console.log("[broadcast-app-update] Already broadcast for code", versionCodeKey);
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: "already_broadcast" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
