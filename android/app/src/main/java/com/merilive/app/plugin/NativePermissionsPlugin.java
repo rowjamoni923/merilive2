@@ -301,17 +301,20 @@ public class NativePermissionsPlugin extends Plugin {
         JSObject after = currentStatus();
         Log.i(TAG, "permissionsCallback fired. resultStatus=" + after.toString());
 
-        // Mark every permission we just asked about as "requested" so
-        // canRequest() can detect the permanent-deny state on the next check.
+        // Pkg-audit fix: mark ONLY the permissions that were actually part of
+        // this request. Marking unrelated permissions as "ever requested" made
+        // canRequestAgain() falsely report permanent denial on permissions whose
+        // system dialog was never shown to the user.
         android.content.SharedPreferences.Editor editor = getContext()
             .getSharedPreferences("meri_perm_state", android.content.Context.MODE_PRIVATE)
             .edit();
-        editor.putBoolean("requested_" + Manifest.permission.CAMERA, true);
-        editor.putBoolean("requested_" + Manifest.permission.RECORD_AUDIO, true);
-        editor.putBoolean("requested_" + Manifest.permission.ACCESS_FINE_LOCATION, true);
-        editor.putBoolean("requested_" + Manifest.permission.ACCESS_COARSE_LOCATION, true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            editor.putBoolean("requested_" + Manifest.permission.POST_NOTIFICATIONS, true);
+        java.util.Set<String> snapshot;
+        synchronized (pendingPermissions) {
+            snapshot = new java.util.HashSet<>(pendingPermissions);
+            pendingPermissions.clear();
+        }
+        for (String p : snapshot) {
+            editor.putBoolean("requested_" + p, true);
         }
         editor.apply();
 
