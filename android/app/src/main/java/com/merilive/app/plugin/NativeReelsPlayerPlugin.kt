@@ -426,15 +426,23 @@ class NativeReelsPlayerPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
+        try { cancelInFlight() } catch (_: Throwable) {}
+        try { prefetchExecutor.shutdownNow() } catch (_: Throwable) {}
         try {
-            cancelInFlight()
+            activity?.runOnUiThread {
+                try { player?.release() } catch (_: Throwable) {}
+                player = null
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                surface = null
+            }
         } catch (_: Throwable) {}
+        // Release the shared SimpleCache file handles + WAL.
         try {
-            prefetchExecutor.shutdownNow()
-        } catch (_: Throwable) {}
-        try {
-            player?.release()
-            player = null
+            synchronized(Companion) {
+                try { simpleCache?.release() } catch (_: Throwable) {}
+                simpleCache = null
+            }
         } catch (_: Throwable) {}
     }
 }
