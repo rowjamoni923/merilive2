@@ -99,6 +99,7 @@ Deno.serve(async (req) => {
       p_party_room_id: partyRoomId ?? null,
       p_call_id: callId ?? null,
       p_reel_id: reelId ?? null,
+      p_idempotency_key: idempotencyKey,
     })
 
     if (error) {
