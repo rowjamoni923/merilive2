@@ -1115,22 +1115,18 @@ const LiveStream = () => {
               
               console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
               
-              if (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl || rankCode) {
-                console.log('[LiveStream] 🚗 Self has equipped animation or rank:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
-                addEntryAnimation({
-                  userId: currentUserId,
-                  displayName: userName,
-                  avatarUrl,
-                  level: userLevel,
-                  entranceUrl: entranceAnimationUrl || undefined,
-                  entryNameBarUrl: entryNameBarUrl || undefined,
-                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
-                  soundUrl: entranceSoundUrl || undefined,
-                  rankCode: rankCode || undefined,
-                });
-              } else {
-                console.log('[LiveStream] ⚠️ No animation URL found for self');
-              }
+              console.log('[LiveStream] 🚗 Dispatching self entry/namebar:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
+              addEntryAnimation({
+                userId: currentUserId,
+                displayName: userName,
+                avatarUrl,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
+                rankCode: rankCode || undefined,
+              });
               
               // ⚡ Pkg82a: LiveKit-ONLY viewer_joined publish (replaces Supabase
               // `join_broadcast_${id}` broadcast). Fires after `stream_viewers`
