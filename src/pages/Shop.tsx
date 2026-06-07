@@ -147,9 +147,36 @@ const ShopItemCard = ({
   isFullWidth?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
-  
+  // Viewport gate — only mount heavy animation players for cards that are
+  // (or were) actually on screen. Without this, every shop item spins up a
+  // SVGA / VAP / Lottie / MP4 decoder at mount, which is the main reason
+  // animations "take forever to start" — the browser is decoding dozens of
+  // assets at once instead of just the few you can see.
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') { setInView(true); return; }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setInView(true);
+            io.disconnect(); // once visible, keep it mounted (no flicker on re-scroll)
+            return;
+          }
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div
+      ref={cardRef}
       onClick={onPreview}
       onPointerDown={() => {
         // Pre-warm asset + animation chunk so detail modal opens with zero delay
