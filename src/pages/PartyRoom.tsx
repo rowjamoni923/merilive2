@@ -63,6 +63,7 @@ import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySi
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage } from "@/lib/livekitChatSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
+import { hostKickParticipant, hostMuteParticipantAudio } from "@/lib/livekitModeration";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
 // UNIFIED ENTRY ANIMATION - Same architecture as Gift System
