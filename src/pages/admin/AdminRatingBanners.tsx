@@ -60,7 +60,7 @@ export default function AdminRatingBanners() {
     try {
       const ext = file.name.split(".").pop();
       const name = `rating-banner-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("banners").upload(name, file, { upsert: true });
+      const { error } = await supabase.storage.from("banners").upload(name, file, { upsert: true, cacheControl: '2592000' });
       if (error) throw error;
       const { data } = supabase.storage.from("banners").getPublicUrl(name);
       setForm(p => ({ ...p, image_url: data.publicUrl }));

@@ -66,7 +66,7 @@ const AdminPopupBanners = () => {
     try {
       const ext = file.name.split('.').pop();
       const fileName = `popup-banner-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
+      const { error } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true, cacheControl: '2592000' });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('banners').getPublicUrl(fileName);
       setFormData(prev => ({ ...prev, image_url: urlData.publicUrl }));

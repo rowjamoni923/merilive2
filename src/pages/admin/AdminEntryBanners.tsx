@@ -159,6 +159,7 @@ export default function AdminEntryBanners() {
           .from('animations')
           .upload(fileName, file, {
             contentType: contentType,
+            cacheControl: '2592000', // 30 days — entry effect assets are immutable
           });
 
         if (uploadError) throw uploadError;

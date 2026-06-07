@@ -407,7 +407,7 @@ const AdminPartyBackgrounds = () => {
       const { data, error } = await supabase.storage
         .from('party-backgrounds')
         .upload(filePath, file, {
-          cacheControl: '3600',
+          cacheControl: '2592000', // 30 days — party backgrounds are immutable
           upsert: false
         });
 
