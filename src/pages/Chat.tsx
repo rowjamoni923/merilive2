@@ -1559,6 +1559,28 @@ const Chat = () => {
     }
   }
 
+  const persistPlayedGiftMessageIds = useCallback(() => {
+    const userId = playedGiftStorageUserRef.current;
+    if (!userId) return;
+
+    try {
+      const ids = Array.from(playedGiftMessageIdsRef.current).slice(-MAX_PLAYED_GIFT_ANIMATION_IDS);
+      playedGiftMessageIdsRef.current = new Set(ids);
+      localStorage.setItem(`${PLAYED_GIFT_ANIMATION_STORAGE_PREFIX}${userId}`, JSON.stringify(ids));
+    } catch {
+      // Ignore storage failures; in-memory guard still prevents repeat playback in this session.
+    }
+  }, []);
+
+  const markGiftMessageAnimationPlayed = useCallback((messageId?: string | null): boolean => {
+    if (!messageId) return true;
+    if (playedGiftMessageIdsRef.current.has(messageId)) return false;
+
+    playedGiftMessageIdsRef.current.add(messageId);
+    persistPlayedGiftMessageIds();
+    return true;
+  }, [persistPlayedGiftMessageIds]);
+
   function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false, animationFormat?: string | null, animationConfigUrl?: string | null) {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
@@ -1577,6 +1599,19 @@ const Chat = () => {
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
   }
+
+  useEffect(() => {
+    if (!currentUserId || playedGiftStorageUserRef.current === currentUserId) return;
+
+    playedGiftStorageUserRef.current = currentUserId;
+    try {
+      const stored = localStorage.getItem(`${PLAYED_GIFT_ANIMATION_STORAGE_PREFIX}${currentUserId}`);
+      const ids = stored ? JSON.parse(stored) : [];
+      playedGiftMessageIdsRef.current = new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : []);
+    } catch {
+      playedGiftMessageIdsRef.current = new Set();
+    }
+  }, [currentUserId]);
 
   async function loadReplyMessages(replyIds: string[]) {
     const missingReplyIds = [...new Set(replyIds)].filter((id) => id && !replyMessages[id]);
