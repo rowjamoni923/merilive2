@@ -20,13 +20,14 @@ const isValidUrl = (url?: string): boolean => {
 };
 
 /**
- * Industry-standard threshold (Chamet / BIGO / MICO parity):
- * Levels 1–5 → NO flying name bar. The user only sees the static
- *   RoomWelcomeBanner at the bottom of the chat overlay.
- * Levels 6+  → Flying Name Bar with avatar + frame + name + level
- *   slides in from the right, with optional SVGA/GIF effect on top.
+ * Industry rule (Chamet / BIGO / MICO parity):
+ * Flying name bar is gated by ASSET OWNERSHIP, not by raw level.
+ * If the user has a valid `entryNameBarUrl` (configured via level privilege
+ * OR purchased from shop), the flying SVGA/GIF bar plays for its full
+ * intrinsic SVGA duration. Otherwise the user only gets the chat-row
+ * welcome message in the public chat overlay.
  */
-export const MIN_FLYING_NAMEBAR_LEVEL = 6;
+export const MIN_FLYING_NAMEBAR_LEVEL = 1;
 
 
 export interface NameBarAnimation {
