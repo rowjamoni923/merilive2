@@ -30,3 +30,27 @@ Audited every money-credit surface: Google Play IAP, SSLCommerz/AamarPay IPN, he
 - `credit_helper_wallet_from_swift_pay`, `swift-pay-poll-deposits` — crypto deposit pipeline
 - `agency_send_diamonds_to_user`, `agency_send_diamonds_to_agency` — agency transfer atomicity
 - `admin-verify-purchase` edge fn — manual purchase verification
+
+---
+
+## Round 2 — DONE 2026-06-07
+
+| # | Bug | Severity | Status |
+|---|---|---|---|
+| C1 | `apply_vip_recharge_bonus` had no idempotency — same `recharge_id` replay would double VIP/Noble bonus | HIGH (defense-in-depth) | ✅ Added partial unique index `uniq_vip_recharge_bonus_per_recharge` on `vip_recharge_bonus_log(user_id, recharge_id)` where recharge_id IS NOT NULL; function now inserts log row FIRST and returns `already_applied=true` on unique_violation |
+| C2 | `credit_helper_wallet_from_swift_pay` doesn't atomically set `swift_pay_topups.status='credited'` | MED (theoretical) | ⏭ Caller `swift-pay-poll-deposits` already sets `status='paid'` as idempotency anchor BEFORE calling RPC, and RPC has `FOR UPDATE` lock — race window closed in practice |
+| C3 | `agency_send_diamonds_to_user` uses random uuid as payment_reference (no idempotency on client retry) | MED | ⏭ Deferred — would require API change to accept `_idempotency_key` |
+| C4 | `agency_send_diamonds_to_agency` no ledger row | LOW | ⏭ Deferred — covered by `notifications` + `topup_helpers.total_sold` |
+
+## Verified clean
+- `claim_first_recharge_bonus_and_credit` — auth.uid()-bound, ignores client _user_id, server-side calc, unique index on `first_recharge_claims(user_id)` enforces one-shot.
+- `safe_credit_diamonds` — service/admin-gated, idempotent via `uniq_coin_tx_payment_ref_completed`, atomic, calls bonus pipeline.
+- `coin_trader_self_recharge`, `coin_trader_transfer_to_user`, `coin_trader_transfer_to_agency` — `auth.uid()` bound, `check_topup_trader_gate` enforces L1-L5 + payroll status.
+- `credit_helper_wallet_from_swift_pay` — service_role-only, FOR UPDATE on swift_pay_topups, already_credited check, target_type/helper_id validation.
+
+## Round 3 candidates (deferred)
+- `auto_credit_agency_commission`, `auto_credit_agency_commission_from_call`, `credit_sub_agent_commission` — commission pipelines
+- `bulk_credit_call_earnings` — admin bulk credit
+- `admin-verify-purchase` edge function — manual purchase verification
+- `agency_send_diamonds_to_user` idempotency_key API change
+- `coin_transactions` debit attribution for `complete_gateway_helper_topup` helper-side
