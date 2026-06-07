@@ -105,7 +105,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestCamera -> firing system dialog (alias=camera)");
+        markPending("camera");
         requestPermissionForAlias("camera", call, "permissionsCallback");
     }
 
@@ -116,7 +118,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestMicrophone -> firing system dialog (alias=microphone)");
+        markPending("microphone");
         requestPermissionForAlias("microphone", call, "permissionsCallback");
     }
 
@@ -129,7 +133,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestLocation -> firing system dialog (alias=location)");
+        markPending("location");
         requestPermissionForAlias("location", call, "permissionsCallback");
     }
 
@@ -143,7 +149,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestNotifications -> firing system dialog (alias=notifications)");
+        markPending("notifications");
         requestPermissionForAlias("notifications", call, "permissionsCallback");
     }
 
@@ -163,8 +171,10 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
 
         Log.i(TAG, "requestAll -> firing system dialog for aliases=" + aliases.toString());
+        markPending(aliases.toArray(new String[0]));
         requestPermissionForAliases(aliases.toArray(new String[0]), call, "permissionsCallback");
     }
 
