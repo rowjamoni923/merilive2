@@ -450,11 +450,21 @@ class LiveKitPlugin : Plugin() {
         val e2eeOn = call.getBoolean("e2eeEnabled", false) ?: false
         val e2eeSharedKey = call.getString("e2eeKey", null)
 
+        // Phase F — professional audio profile (see ConnectArgs doc).
+        // Default to "voice" for 1:1 (no video w/ callType=Voice/Video Call)
+        // and "broadcast" for everything else (live / party room).
+        val audioProfileRaw = call.getString("audioProfile", null)
+        val audioProfile = when {
+            !audioProfileRaw.isNullOrBlank() -> audioProfileRaw.lowercase()
+            callType.contains("Call", ignoreCase = true) -> "voice"
+            else -> "broadcast"
+        }
+
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
-            callerName, callType, e2eeOn, e2eeSharedKey,
+            callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
         )
         hardReconnectAttempts = 0
 
