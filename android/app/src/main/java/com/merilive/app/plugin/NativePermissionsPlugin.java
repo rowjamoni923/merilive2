@@ -36,8 +36,50 @@ public class NativePermissionsPlugin extends Plugin {
 
     private static final String TAG = "MeriPerm";
 
+    // Pkg-audit fix: track exactly which raw permissions were part of the
+    // CURRENT request, so the callback marks only those as "ever requested"
+    // (preventing canRequestAgain() from falsely reporting permanent denial
+    // on permissions whose dialog was never shown).
+    private final java.util.Set<String> pendingPermissions =
+        java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
     private boolean hasPermission(String permission) {
         return ContextCompat.checkSelfPermission(getContext(), permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private String[] permissionsForAlias(String alias) {
+        switch (alias) {
+            case "camera":        return new String[] { Manifest.permission.CAMERA };
+            case "microphone":    return new String[] { Manifest.permission.RECORD_AUDIO };
+            case "location":      return new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION };
+            case "notifications":
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    return new String[] { Manifest.permission.POST_NOTIFICATIONS };
+                return new String[0];
+            default: return new String[0];
+        }
+    }
+
+    private void markPending(String... aliases) {
+        pendingPermissions.clear();
+        for (String alias : aliases) {
+            for (String p : permissionsForAlias(alias)) pendingPermissions.add(p);
+        }
+    }
+
+    /**
+     * Reject the new call if a permission request is already in flight. Without
+     * this guard Capacitor's saveCall() silently overwrites the previous call
+     * object, leaving the first JS promise to hang forever.
+     */
+    private boolean rejectIfInFlight(PluginCall call) {
+        if (getSavedCall() != null) {
+            call.reject("permission_request_in_progress");
+            return true;
+        }
+        return false;
     }
 
     private JSObject currentStatus() {
