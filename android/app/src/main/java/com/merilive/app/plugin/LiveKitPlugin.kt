@@ -1124,6 +1124,19 @@ class LiveKitPlugin : Plugin() {
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
+                // Fix 4 — Surface validity check. If the renderer didn't make
+                // it into the window tree (Z-order race vs WebView, parent
+                // detached during reconnect), re-mount once. Without this the
+                // camera is technically streaming but the user sees black.
+                renderer.postDelayed({
+                    try {
+                        if (localRenderer === renderer && !renderer.isAttachedToWindow) {
+                            Log.w(TAG, "attachLocal: renderer not attached to window — re-mounting")
+                            (renderer.parent as? ViewGroup)?.removeView(renderer)
+                            mountBehindWebView(renderer)
+                        }
+                    } catch (_: Throwable) {}
+                }, 220L)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachLocal failed: ${e.message}")
