@@ -70,7 +70,11 @@ const isAuthLikeError = (error: unknown) => {
 };
 
 const invokeLiveKitToken = async (request: LiveKitTokenRequest, accessToken?: string) => {
-  const adminLinkToken = !accessToken ? getAdminLinkToken() : null;
+  // Pkg439: always forward admin link token when present so admin pages
+  // (e.g. AdminStreamViewer) connect as invisible monitors even when the
+  // operator is also signed-in as a regular Supabase user. Edge function
+  // gives admin token precedence and forces hidden/subscribe-only.
+  const adminLinkToken = getAdminLinkToken();
   const headers: Record<string, string> = {};
 
   if (accessToken) {
