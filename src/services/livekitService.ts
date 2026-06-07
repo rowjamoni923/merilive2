@@ -104,7 +104,7 @@ const invokeLiveKitToken = async (request: LiveKitTokenRequest, accessToken?: st
 };
 
 const getCacheKey = (request: LiveKitTokenRequest, accessToken?: string) => {
-  const tokenScope = accessToken ? accessToken.slice(-16) : 'anon';
+  const tokenScope = request.asAdmin ? 'admin' : (accessToken ? accessToken.slice(-16) : 'anon');
   const hiddenFlag = request.hidden ? ':hidden' : '';
   const partyPub =
     request.roomType === 'party' ? `:pp:${request.partyCanPublish !== false}` : '';
