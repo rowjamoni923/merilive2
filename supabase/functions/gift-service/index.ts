@@ -55,6 +55,8 @@ Deno.serve(async (req) => {
     const partyRoomId = body?.partyRoomId as string | undefined
     const callId = body?.callId as string | undefined
     const reelId = body?.reelId as string | undefined
+    const rawIdem = typeof body?.idempotencyKey === 'string' ? body.idempotencyKey.trim() : ''
+    const idempotencyKey = rawIdem.length > 0 && rawIdem.length <= 128 ? rawIdem : null
     const rawQuantity = Number(body?.quantity ?? 1)
     if (!Number.isInteger(rawQuantity) || rawQuantity < 1 || rawQuantity > 999) {
       return new Response(JSON.stringify({ error: 'Invalid gift quantity' }), {
