@@ -42,26 +42,31 @@ public class NativeSpeedOptimizerPlugin extends Plugin {
 
     @PluginMethod
     public void clearNativeCache(PluginCall call) {
-        long freed = 0;
-        try {
-            Context ctx = getContext();
-            freed += deleteRecursive(ctx.getCacheDir(), false);
+        // Pkg-audit Tier-13: recursive cache deletion is heavy I/O — on devices
+        // with multi-GB image/video caches this blocks the JS bridge thread
+        // long enough to ANR. Run on background executor and resolve when done.
+        final Context ctx = getContext();
+        getBridge().getExecutor().execute(() -> {
+            long freed = 0;
             try {
-                File code = ctx.getCodeCacheDir();
-                if (code != null) freed += deleteRecursive(code, false);
-            } catch (Throwable ignored) {}
-            try {
-                File ext = ctx.getExternalCacheDir();
-                if (ext != null) freed += deleteRecursive(ext, false);
-            } catch (Throwable ignored) {}
-        } catch (Throwable t) {
-            call.reject("clearNativeCache failed: " + t.getMessage());
-            return;
-        }
-        JSObject ret = new JSObject();
-        ret.put("freedBytes", freed);
-        ret.put("freedMB", freed / 1048576L);
-        call.resolve(ret);
+                freed += deleteRecursive(ctx.getCacheDir(), false);
+                try {
+                    File code = ctx.getCodeCacheDir();
+                    if (code != null) freed += deleteRecursive(code, false);
+                } catch (Throwable ignored) {}
+                try {
+                    File ext = ctx.getExternalCacheDir();
+                    if (ext != null) freed += deleteRecursive(ext, false);
+                } catch (Throwable ignored) {}
+            } catch (Throwable t) {
+                call.reject("clearNativeCache failed: " + t.getMessage());
+                return;
+            }
+            JSObject ret = new JSObject();
+            ret.put("freedBytes", freed);
+            ret.put("freedMB", freed / 1048576L);
+            call.resolve(ret);
+        });
     }
 
     @PluginMethod
