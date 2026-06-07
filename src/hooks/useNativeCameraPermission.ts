@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
-import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
+import { releaseAndroidWebViewCameraWhenStopped } from '@/lib/androidCameraHandoff';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -98,14 +98,16 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
       return { granted: false, error: 'Camera requires a secure (HTTPS) connection. Reload the site over HTTPS.' };
     }
     console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
+    const constraints: MediaStreamConstraints = {
+      video: { facingMode: 'user' },
+      audio: includeAudio
+    };
     const stream = await withTimeout(
-      claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' }, 
-        audio: includeAudio 
-      }), `permission-probe:${includeAudio ? 'av' : 'video'}`),
+      navigator.mediaDevices.getUserMedia(constraints),
       10000, // 10s timeout for native permission dialog
       'Camera permission request timed out'
     );
+    releaseAndroidWebViewCameraWhenStopped(stream, `permission-probe:${includeAudio ? 'av' : 'video'}`);
     
     const hasVideo = stream.getVideoTracks().some(t => t.readyState === 'live');
     const hasAudio = !includeAudio || stream.getAudioTracks().some(t => t.readyState === 'live');
@@ -169,10 +171,11 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     try {
       console.log(`[Camera] Attempt ${i + 1}/${constraintOptions.length}`);
       const stream = await withTimeout(
-        claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia(constraintOptions[i]), `camera-stream:${i + 1}`),
+        navigator.mediaDevices.getUserMedia(constraintOptions[i]),
         9000,
         'Camera stream request timed out',
       );
+      releaseAndroidWebViewCameraWhenStopped(stream, `camera-stream:${i + 1}`);
       const videoTracks = stream.getVideoTracks();
       const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
       if (!hasLiveVideo) {

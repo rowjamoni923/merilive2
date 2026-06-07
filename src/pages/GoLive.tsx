@@ -82,7 +82,7 @@ const GoLive = () => {
     streamRef.current = stream;
   }, [stream]);
   // Native camera permission hook
-  const { getCameraStream, requestCameraPermission, checkPermissionStatus } = useNativeCameraPermission();
+  const { getCameraStream } = useNativeCameraPermission();
   
   // Feature level check hook
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
@@ -431,7 +431,7 @@ const GoLive = () => {
     proCameraReadyRef.current = proCamera.ready;
     proCameraErrorRef.current = !!proCamera.error;
     if (proCamera.error) {
-      toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      toast.error('Camera is busy. Finish Face Verification and try again.');
       // Hard bail: leave GoLive so user can't sit on a stuck white screen.
       const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
       return () => clearTimeout(t);
@@ -481,48 +481,10 @@ const GoLive = () => {
         setIsLoading(false);
       }
 
-      // Pkg365: "Premium Auto-Start" camera behavior.
-      // Check if permission is ALREADY granted (cached) — only then auto-start
-      if (!useLiveKit && isMounted) {
-        const permissionState = await checkPermissionStatus();
-        
-        // On native, we are more aggressive: if we have a cache or if the state 
-        // is 'prompt', we try to auto-start. If it fails, only THEN we show the UI.
-        const shouldAttemptAutoStart = permissionState === 'granted' || (isNativeAndroid && permissionState === 'prompt');
-
-        if (shouldAttemptAutoStart) {
-          console.log('[GoLive] Attempting premium auto-start...');
-          try {
-            if (isNativeAndroid) {
-              const started = await startNativePreview();
-              if (isMounted) {
-                setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-                if (!started) {
-                  const fallbackStream = await getCameraStream(true);
-                  if (fallbackStream && isMounted) {
-                    setStream(fallbackStream);
-                    attachWebPreviewStream(fallbackStream);
-                  }
-                }
-              }
-            } else {
-              const mediaStream = await getCameraStream(true);
-              if (isMounted && mediaStream) {
-                setStream(mediaStream);
-                setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-                attachWebPreviewStream(mediaStream);
-              }
-            }
-          } catch (err: any) {
-            console.warn('[GoLive] Auto-start camera failed:', err?.message);
-            // Only show UI if auto-start truly fails (e.g. user denied)
-            if (isMounted) setShowPermissionPrompt(true);
-          }
-        } else {
-          // Explicitly denied or needs prompt on web
-          if (isMounted) setShowPermissionPrompt(true);
-        }
-      }
+        // Camera must start from a real tap/click. Auto-starting from mount can
+        // make browsers/WebViews ignore the later Allow action, so always show
+        // the explicit permission button here.
+        if (!useLiveKit && isMounted) setShowPermissionPrompt(true);
     };
     
     initializeGoLive();
@@ -546,7 +508,7 @@ const GoLive = () => {
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
-  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
+  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -571,51 +533,14 @@ const GoLive = () => {
     // Pkg418 hard gate: never start ANY camera path while ProCamera arbiter
     // says verification family holds the slot (or hasn't granted us yet).
     if (proCameraErrorRef.current || !proCameraReadyRef.current) {
-      toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      toast.error('Camera is busy. Finish Face Verification and try again.');
       return;
     }
     setShowPermissionPrompt(false);
 
-    // Pkg415: On Android we MUST try the native CameraX preview FIRST.
-    // Previously web getUserMedia ran unconditionally and held the camera
-    // handle — when LiveKit native then claimed Camera2 it failed with
-    // CAMERA_IN_USE → 2-second white screen. Native first, web only as
-    // a true fallback.
-    if (isNativeAndroid) {
-      try {
-        const started = await startNativePreview();
-        if (started) {
-          playSound('notification');
-          return;
-        }
-      } catch (err) {
-        console.warn('[GoLive] native preview threw, falling back to web:', err);
-      }
-
-      // Native failed — make sure CameraX released the camera before web tries.
-      try { await stopNativePreview(); } catch { /* noop */ }
-      await new Promise((r) => setTimeout(r, 400));
-
-      try {
-        const fallbackStream = await getCameraStream(true);
-        if (fallbackStream) {
-          setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-          setStream(fallbackStream);
-          setFacingMode('user');
-          attachWebPreviewStream(fallbackStream);
-          toast.info('Using standard camera (Beauty Studio unavailable)');
-          playSound('notification');
-          return;
-        }
-      } catch (e) {
-        console.error('[GoLive] web fallback also failed:', e);
-      }
-      setShowPermissionPrompt(true);
-      toast.error('Camera failed to start. Please check permissions in Settings.');
-      return;
-    }
-
-    // Web / iOS path — getUserMedia directly.
+    // Browser/Android WebView permission must be requested by the same user
+    // tap. Do not run native probes, timeout waits, or a second permission
+    // check before getUserMedia — that loses the browser gesture context.
     try {
       const mediaStream = await getCameraStream(true);
       if (!mediaStream) throw new Error('Failed to get camera stream');
@@ -631,205 +556,6 @@ const GoLive = () => {
       setShowPermissionPrompt(true);
       toast.error(error?.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
       return;
-    }
-    
-    // 1. Request Location Permission first
-    try {
-      console.log('[GoLive] Requesting location permission...');
-      
-      // First try IP-based location with multiple fallbacks (no permission needed)
-      let ipDetected = false;
-      
-      // Try ipapi.co first
-      try {
-        const ipLocationResponse = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
-        if (ipLocationResponse.ok) {
-          const ipData = await ipLocationResponse.json();
-          if (!ipData.error && ipData.country_code) {
-            const countryCode = ipData.country_code;
-            const flag = countryCode.toUpperCase().split("").map((c: string) => 
-              String.fromCodePoint(127397 + c.charCodeAt(0))
-            ).join("");
-            setUserLocation({ city: ipData.city || "", country: ipData.country_name || "", flag });
-            setPermissionsGranted(prev => ({ ...prev, location: true }));
-            ipDetected = true;
-            console.log('[GoLive] IP location detected (ipapi):', ipData.city, ipData.country_name);
-          }
-        }
-      } catch (e) { console.log('[GoLive] ipapi.co failed'); }
-
-      // Fallback: ipwho.is
-      if (!ipDetected) {
-        try {
-          const res = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(4000) });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && data.country_code) {
-              const flag = data.country_code.toUpperCase().split("").map((c: string) => 
-                String.fromCodePoint(127397 + c.charCodeAt(0))
-              ).join("");
-              setUserLocation({ city: data.city || "", country: data.country || "", flag });
-              setPermissionsGranted(prev => ({ ...prev, location: true }));
-              ipDetected = true;
-              console.log('[GoLive] IP location detected (ipwho.is):', data.city, data.country);
-            }
-          }
-        } catch (e) { console.log('[GoLive] ipwho.is failed'); }
-      }
-
-      // Fallback: freeipapi.com
-      if (!ipDetected) {
-        try {
-          const res = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(4000) });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.countryCode) {
-              const flag = data.countryCode.toUpperCase().split("").map((c: string) => 
-                String.fromCodePoint(127397 + c.charCodeAt(0))
-              ).join("");
-              setUserLocation({ city: data.cityName || "", country: data.countryName || "", flag });
-              setPermissionsGranted(prev => ({ ...prev, location: true }));
-              ipDetected = true;
-              console.log('[GoLive] IP location detected (freeipapi):', data.cityName, data.countryName);
-            }
-          }
-        } catch (e) { console.log('[GoLive] All IP APIs failed'); }
-      }
-      
-      // Also request browser geolocation permission
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            console.log('[GoLive] Browser geolocation granted');
-            setPermissionsGranted(prev => ({ ...prev, location: true }));
-            
-            // Get more accurate location
-            try {
-              const { latitude, longitude } = position.coords;
-              const geoResponse = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-              );
-              const geoData = await geoResponse.json();
-              
-              const countryCode = geoData.countryCode || "";
-              const flag = countryCode.toUpperCase().split("").map((c: string) => 
-                String.fromCodePoint(127397 + c.charCodeAt(0))
-              ).join("");
-              
-              setUserLocation({
-                city: geoData.city || geoData.locality || "",
-                country: geoData.countryName || "",
-                flag: flag,
-              });
-            } catch (e) {
-              console.log('[GoLive] Reverse geocoding failed:', e);
-            }
-          },
-          (error) => {
-            console.log('[GoLive] Browser geolocation denied or failed:', error.message);
-            // Still mark as "granted" if IP location worked
-          },
-          { timeout: 10000, enableHighAccuracy: false }
-        );
-      }
-    } catch (error) {
-      console.error('[GoLive] Location error:', error);
-      recordClientError({ label: "GoLive.flag", message: error instanceof Error ? error.message : String(error) });
-    }
-
-    // 2. Request Camera & Microphone Permission with native API first
-    try {
-      console.log('[GoLive] Requesting camera and microphone permissions via native API...');
-
-      if (isNativeAndroid) {
-        const started = await startNativePreview();
-        if (started) {
-          playSound('notification');
-          return;
-        }
-        // ═══ FALLBACK: Native failed → web camera ═══
-        console.warn('[GoLive] Native camera failed in permission flow, trying web fallback');
-        setNativePreviewActive(false);
-        try {
-          const fallbackStream = await getCameraStream(true);
-          if (fallbackStream) {
-            setStream(fallbackStream);
-            setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-            setShowPermissionPrompt(false);
-            attachWebPreviewStream(fallbackStream);
-            toast.info('Using standard camera (Beauty Studio unavailable)');
-            playSound('notification');
-            return;
-          }
-        } catch { /* fallthrough */ }
-        // Don't re-show permission prompt — permissions ARE granted, just camera failed
-        toast.error('Camera failed to start. Please restart the app.');
-        return;
-      }
-
-      // Request permission using native Capacitor API first
-      const permResult = await requestCameraPermission();
-      if (!permResult.granted) {
-        console.error('[GoLive] Native camera permission denied:', permResult.error);
-        recordClientError({ label: "GoLive.permResult", message: String(permResult.error ?? "unknown") });
-        toast.error(permResult.error || "Camera Access Failed - Please allow camera access in your device settings.");
-        return;
-      }
-
-      // Get camera stream with progressive fallback
-      const mediaStream = await getCameraStream(true);
-
-      if (!mediaStream) {
-        throw new Error('Failed to get camera stream');
-      }
-
-      console.log('[GoLive] Camera & Mic access granted, tracks:', mediaStream.getTracks().length);
-
-      setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-      setStream(mediaStream);
-      setFacingMode('user');
-
-      // Play success sound
-      playSound('notification');
-
-      attachWebPreviewStream(mediaStream);
-    } catch (error: any) {
-      console.error("[GoLive] Camera/Mic access error:", error.name, error.message);
-      recordClientError({ label: "GoLive.mediaStream", message: error.name instanceof Error ? error.name.message : String(error.name) });
-      toast.error(error.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
-    }
-  };
-
-  const startCamera = async () => {
-    try {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-
-      console.log('[GoLive] Requesting camera via native API...');
-
-      // Request permission using native API first
-      const permResult = await requestCameraPermission();
-      if (!permResult.granted) {
-        console.error('[GoLive] Camera permission denied');
-        recordClientError({ label: "GoLive.permResult", message: '[GoLive] Camera permission denied' });
-        return;
-      }
-
-      // Get camera stream with progressive fallback
-      const mediaStream = await getCameraStream(true);
-
-      if (!mediaStream) throw new Error('Camera access failed');
-
-      console.log('[GoLive] Camera access granted, tracks:', mediaStream.getTracks().length);
-
-      setStream(mediaStream);
-      setFacingMode('user');
-
-      attachWebPreviewStream(mediaStream);
-    } catch (error: any) {
-      console.error("[GoLive] Camera access error:", error);
-      recordClientError({ label: "GoLive.mediaStream", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -918,26 +644,10 @@ const GoLive = () => {
       return;
     }
 
-    if (isNativeAndroid && !nativePreviewActive) {
-      const started = await startNativePreview();
-      if (!started) {
-        // Fallback: try web camera instead of blocking Go Live
-        console.warn('[GoLive] Native camera failed on Go Live, trying web camera fallback');
-        try {
-          const fallbackStream = await getCameraStream(true);
-          if (fallbackStream) {
-            setStream(fallbackStream);
-            attachWebPreviewStream(fallbackStream);
-            setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-          } else {
-            toast.error('Camera failed to start. Please allow camera permission and retry.');
-            return;
-          }
-        } catch {
-          toast.error('Camera failed to start. Please allow camera permission and retry.');
-          return;
-        }
-      }
+    if (!streamRef.current?.getVideoTracks().some((track) => track.readyState === 'live')) {
+      setShowPermissionPrompt(true);
+      toast.error('Please allow camera and microphone first.');
+      return;
     }
 
     // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.

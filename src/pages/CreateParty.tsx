@@ -82,6 +82,7 @@ const CreateParty = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isEnablingMedia, setIsEnablingMedia] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [games, setGames] = useState<{id: string; name: string; emoji: string; color: string; logoUrl?: string}[]>([]);
@@ -100,7 +101,7 @@ const CreateParty = () => {
   const [requiredLevel, setRequiredLevel] = useState(0);
 
   // Native camera permission hook for proper Android handling
-  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  const { getCameraStream } = useNativeCameraPermission();
 
   // Seat configurations
   const seatConfig = {
@@ -170,7 +171,8 @@ const CreateParty = () => {
     const ALLOWED_CREATE_PARTY_GAMES = ['lucky_28', 'aviator', 'plinko', 'dragon_tiger', 'andar_bahar', 'crash'];
 
     const initParty = async () => {
-      // Run user fetch, games fetch, and camera start in parallel
+      // Run data loading only. Camera/mic must start from an explicit tap so
+      // browsers keep the permission request inside the user gesture.
       const [userData, gamesData] = await Promise.all([
         (async () => {
           const { data: { user } } = await supabase.auth.getUser();
@@ -189,8 +191,7 @@ const CreateParty = () => {
           .select('game_id, game_name, game_emoji, game_color, logo_url')
           .eq('is_active', true)
           .in('game_id', ALLOWED_CREATE_PARTY_GAMES)
-          .order('display_order', { ascending: true }),
-        startCameraInstant(mode !== "audio")
+          .order('display_order', { ascending: true })
       ]);
       
       if (!isMounted) return;
@@ -236,18 +237,24 @@ const CreateParty = () => {
     }
   }, [stream, isVideoEnabled, mode]);
 
-  // Handle mode changes - switch camera/audio
-  useEffect(() => {
-    if (stream) {
-      const hasVideo = stream.getVideoTracks().length > 0;
-      const needsVideo = mode === "video" || mode === "game";
-      
-      if (needsVideo !== hasVideo) {
-        stream.getTracks().forEach(track => track.stop());
-        startCameraInstant(needsVideo);
+  // Camera/audio switches are handled inside the tab click so browser
+  // permission stays tied to a user gesture.
+  const handleEnableMedia = async () => {
+    if (isEnablingMedia) return;
+    setIsEnablingMedia(true);
+    setCameraReady(false);
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        releaseAndroidWebViewCamera('create-party:enable-media-retry');
+        setStream(null);
       }
+      await startCameraInstant(mode !== "audio");
+    } finally {
+      setIsEnablingMedia(false);
     }
-  }, [mode]);
+  };
+
   const handleCreateParty = async () => {
     // Re-check level restriction before creating
     if (showLevelRestricted) {
@@ -258,6 +265,11 @@ const CreateParty = () => {
     if (mode === "game" && !selectedGame) {
       toast.error("Please select a game first");
       setShowGameSelection(true);
+      return;
+    }
+
+    if (!streamRef.current?.getTracks().some((track) => track.readyState === 'live')) {
+      toast.error(mode === "audio" ? "Please enable microphone first" : "Please enable camera and microphone first");
       return;
     }
 
@@ -349,10 +361,22 @@ const CreateParty = () => {
     navigate("/party-rooms");
   };
 
-  const handleModeChange = (newMode: PartyMode) => {
+  const handleModeChange = async (newMode: PartyMode) => {
+    const previousMode = mode;
     setMode(newMode);
     if (newMode === "game" && !selectedGame) {
       setShowGameSelection(true);
+    }
+    if (!streamRef.current) return;
+
+    const previousNeedsVideo = previousMode === "video" || previousMode === "game";
+    const nextNeedsVideo = newMode === "video" || newMode === "game";
+    if (previousNeedsVideo !== nextNeedsVideo) {
+      setCameraReady(false);
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      releaseAndroidWebViewCamera('create-party:mode-change');
+      setStream(null);
+      await startCameraInstant(nextNeedsVideo);
     }
   };
 
@@ -464,6 +488,8 @@ const CreateParty = () => {
       <Sofa className="w-6 h-6 text-purple-300/50" />
     </div>
   );
+
+  const mediaReady = !!stream?.getTracks().some((track) => track.readyState === 'live');
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden">
@@ -714,6 +740,18 @@ const CreateParty = () => {
 
       {/* Bottom Controls */}
       <div className="relative z-10 px-4 pb-6 safe-area-bottom space-y-4">
+        {!mediaReady && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleEnableMedia}
+            disabled={isEnablingMedia}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white/15 backdrop-blur-sm border border-amber-200/60 text-white font-bold disabled:opacity-60"
+          >
+            <ModeIcon className="w-5 h-5" />
+            <span>{isEnablingMedia ? "Starting..." : mode === "audio" ? "Enable Microphone" : "Enable Camera"}</span>
+          </motion.button>
+        )}
+
         {/* Action Row */}
         <div className="flex items-center justify-center gap-4">
           {/* Effects Button */}
@@ -758,7 +796,7 @@ const CreateParty = () => {
               <motion.button
                 key={item.id}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleModeChange(item.id as PartyMode)}
+                onClick={() => void handleModeChange(item.id as PartyMode)}
                 className="relative"
               >
                 <span className={cn(
