@@ -1496,11 +1496,14 @@ const LiveStream = () => {
         }
       } catch { /* ignore */ }
 
+      warmGiftForInstantPlay({
+        icon_url: data.giftIconUrl || null,
         animation_url: data.giftAnimationUrl || null,
         animation_format: data.giftAnimationFormat || null,
         animation_config_url: data.giftAnimationConfigUrl || null,
         sound_url: data.giftSoundUrl || null,
       } as any);
+
 
       addFlyingGift({
         senderId: data.senderId,
