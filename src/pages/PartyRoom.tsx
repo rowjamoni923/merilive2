@@ -1064,6 +1064,7 @@ const PartyRoom = () => {
         if (data.userId === myId) return; // self-join already shown optimistically
 
         const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
+        if (processedBroadcastJoinsRef.current.has(joinKey)) return;
         processedBroadcastJoinsRef.current.add(joinKey);
 
         console.log('[PartyRoom] 🟣 ⚡ Pkg80 livekit participant_joined:', data.userName);
@@ -1103,19 +1104,17 @@ const PartyRoom = () => {
         // join row exactly ONCE (was N−1 duplicates: one per receiver client).
         // F5 — Always trigger entry namebar for every viewer (gradient fallback
         // in useEntryAnimations when no equipped URL). Chamet-parity.
-        if (isMountedRef.current) {
-          addEntryAnimation({
-            userId: data.userId,
-            displayName: data.userName,
-            avatarUrl: data.userAvatar,
-            level: data.userLevel,
-            entranceUrl: data.entranceAnimationUrl || undefined,
-            entryNameBarUrl: data.entryNameBarUrl || undefined,
-            vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
-            soundUrl: data.entranceSoundUrl || undefined,
-            rankCode: data.rankCode || undefined,
-          });
-        }
+        addEntryAnimation({
+          userId: data.userId,
+          displayName: data.userName,
+          avatarUrl: data.userAvatar,
+          level: data.userLevel,
+          entranceUrl: data.entranceAnimationUrl || undefined,
+          entryNameBarUrl: data.entryNameBarUrl || undefined,
+          vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+          soundUrl: data.entranceSoundUrl || undefined,
+          rankCode: data.rankCode || undefined,
+        });
         return;
       }
 
