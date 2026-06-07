@@ -32,14 +32,21 @@ public class BatteryOptimizationPlugin extends Plugin {
     public void requestIgnoreBatteryOptimizations(PluginCall call) {
         Context context = getContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent();
             String packageName = context.getPackageName();
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
-                context.startActivity(intent);
-                call.resolve();
+                // Pkg-audit Tier-11 (High): startActivity from the Application
+                // context REQUIRES FLAG_ACTIVITY_NEW_TASK. Without it the call
+                // throws AndroidRuntimeException on launch.
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                try {
+                    context.startActivity(intent);
+                    call.resolve();
+                } catch (Throwable t) {
+                    call.reject("startActivity failed: " + t.getMessage());
+                }
             } else {
                 call.resolve();
             }
@@ -51,9 +58,9 @@ public class BatteryOptimizationPlugin extends Plugin {
     @PluginMethod
     public void openAutostartSettings(PluginCall call) {
         Context context = getContext();
-        String manufacturer = Build.MANUFACTURER.toLowerCase();
+        String manufacturer = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase();
         Intent intent = new Intent();
-        
+
         try {
             if (manufacturer.contains("xiaomi")) {
                 intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity");
@@ -70,9 +77,18 @@ public class BatteryOptimizationPlugin extends Plugin {
             context.startActivity(intent);
             call.resolve();
         } catch (Exception e) {
-            intent.setAction(Settings.ACTION_SETTINGS);
-            context.startActivity(intent);
-            call.resolve();
+            // Pkg-audit Tier-11 (Medium): the original catch built a NEW
+            // intent without NEW_TASK and tried again, which crashes
+            // (RuntimeException → uncaught). Build a fresh, properly-
+            // flagged fallback and swallow secondary failures.
+            try {
+                Intent fallback = new Intent(Settings.ACTION_SETTINGS);
+                fallback.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(fallback);
+                call.resolve();
+            } catch (Throwable t) {
+                call.reject("openAutostartSettings failed: " + t.getMessage());
+            }
         }
     }
 }
