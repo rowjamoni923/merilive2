@@ -22,9 +22,9 @@
     <link rel="dns-prefetch" href="https://fcm.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 
-    <!-- Critical Fonts - Preload to prevent Flash of Invisible Text -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&family=Cinzel:wght@600;700;800&display=swap">
+    <!-- Critical Fonts — non-blocking load (preload + media swap). System font renders instantly, custom font swaps in. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&family=Cinzel:wght@600;700;800&display=swap"></noscript>
 
     <!-- SEO and App Info -->
     <title>MeriLive - Professional Live Streaming & Virtual Gifting</title>
