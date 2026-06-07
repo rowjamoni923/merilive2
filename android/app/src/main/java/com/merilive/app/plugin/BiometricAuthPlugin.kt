@@ -20,6 +20,11 @@ import com.getcapacitor.annotation.CapacitorPlugin
 @CapacitorPlugin(name = "BiometricAuth")
 class BiometricAuthPlugin : Plugin() {
 
+    // Pkg-audit fix: track in-flight prompt so a second authenticate() can
+    // cancel the first instead of orphaning its PluginCall forever.
+    @Volatile private var activePrompt: BiometricPrompt? = null
+    @Volatile private var activeCall: PluginCall? = null
+
     @PluginMethod
     fun isAvailable(call: PluginCall) {
         val ctx = context
@@ -57,6 +62,15 @@ class BiometricAuthPlugin : Plugin() {
             return
         }
 
+        // Cancel any in-flight prompt and reject its (now-orphaned) call so the
+        // JS promise doesn't hang forever.
+        try { activePrompt?.cancelAuthentication() } catch (_: Throwable) {}
+        activeCall?.let { prev ->
+            try { prev.reject("cancelled_by_new_request") } catch (_: Throwable) {}
+        }
+        activePrompt = null
+        activeCall = call
+
         val title = call.getString("title") ?: "Unlock MeriLive"
         val subtitle = call.getString("subtitle") ?: ""
         val reason = call.getString("reason") ?: "Confirm your identity to continue"
@@ -68,6 +82,7 @@ class BiometricAuthPlugin : Plugin() {
                 val ret = JSObject()
                 ret.put("success", true)
                 call.resolve(ret)
+                if (activeCall === call) { activeCall = null; activePrompt = null }
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -76,6 +91,7 @@ class BiometricAuthPlugin : Plugin() {
                 ret.put("code", errorCode)
                 ret.put("message", errString.toString())
                 call.resolve(ret)
+                if (activeCall === call) { activeCall = null; activePrompt = null }
             }
 
             override fun onAuthenticationFailed() {
@@ -84,8 +100,16 @@ class BiometricAuthPlugin : Plugin() {
         }
 
         activity.runOnUiThread {
+            // Re-check inside the UI lambda: activity may have been destroyed
+            // between the outer null-check and this lambda executing.
+            if (activity.isDestroyed || activity.isFinishing) {
+                call.reject("activity_unavailable")
+                if (activeCall === call) { activeCall = null; activePrompt = null }
+                return@runOnUiThread
+            }
             try {
                 val prompt = BiometricPrompt(activity, executor, callback)
+                activePrompt = prompt
                 val builder = BiometricPrompt.PromptInfo.Builder()
                     .setTitle(title)
                     .setDescription(reason)
@@ -109,7 +133,16 @@ class BiometricAuthPlugin : Plugin() {
                 prompt.authenticate(builder.build())
             } catch (e: Exception) {
                 call.reject("prompt_failed", e)
+                if (activeCall === call) { activeCall = null; activePrompt = null }
             }
         }
+    }
+
+    override fun handleOnDestroy() {
+        try { activePrompt?.cancelAuthentication() } catch (_: Throwable) {}
+        activeCall?.let { try { it.reject("activity_destroyed") } catch (_: Throwable) {} }
+        activePrompt = null
+        activeCall = null
+        super.handleOnDestroy()
     }
 }

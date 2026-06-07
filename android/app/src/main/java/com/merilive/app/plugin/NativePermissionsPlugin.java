@@ -36,8 +36,50 @@ public class NativePermissionsPlugin extends Plugin {
 
     private static final String TAG = "MeriPerm";
 
+    // Pkg-audit fix: track exactly which raw permissions were part of the
+    // CURRENT request, so the callback marks only those as "ever requested"
+    // (preventing canRequestAgain() from falsely reporting permanent denial
+    // on permissions whose dialog was never shown).
+    private final java.util.Set<String> pendingPermissions =
+        java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
     private boolean hasPermission(String permission) {
         return ContextCompat.checkSelfPermission(getContext(), permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private String[] permissionsForAlias(String alias) {
+        switch (alias) {
+            case "camera":        return new String[] { Manifest.permission.CAMERA };
+            case "microphone":    return new String[] { Manifest.permission.RECORD_AUDIO };
+            case "location":      return new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION };
+            case "notifications":
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    return new String[] { Manifest.permission.POST_NOTIFICATIONS };
+                return new String[0];
+            default: return new String[0];
+        }
+    }
+
+    private void markPending(String... aliases) {
+        pendingPermissions.clear();
+        for (String alias : aliases) {
+            for (String p : permissionsForAlias(alias)) pendingPermissions.add(p);
+        }
+    }
+
+    /**
+     * Reject the new call if a permission request is already in flight. Without
+     * this guard Capacitor's saveCall() silently overwrites the previous call
+     * object, leaving the first JS promise to hang forever.
+     */
+    private boolean rejectIfInFlight(PluginCall call) {
+        if (getSavedCall() != null) {
+            call.reject("permission_request_in_progress");
+            return true;
+        }
+        return false;
     }
 
     private JSObject currentStatus() {
@@ -63,7 +105,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestCamera -> firing system dialog (alias=camera)");
+        markPending("camera");
         requestPermissionForAlias("camera", call, "permissionsCallback");
     }
 
@@ -74,7 +118,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestMicrophone -> firing system dialog (alias=microphone)");
+        markPending("microphone");
         requestPermissionForAlias("microphone", call, "permissionsCallback");
     }
 
@@ -87,7 +133,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestLocation -> firing system dialog (alias=location)");
+        markPending("location");
         requestPermissionForAlias("location", call, "permissionsCallback");
     }
 
@@ -101,7 +149,9 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
         Log.i(TAG, "requestNotifications -> firing system dialog (alias=notifications)");
+        markPending("notifications");
         requestPermissionForAlias("notifications", call, "permissionsCallback");
     }
 
@@ -121,8 +171,10 @@ public class NativePermissionsPlugin extends Plugin {
             call.resolve(currentStatus());
             return;
         }
+        if (rejectIfInFlight(call)) return;
 
         Log.i(TAG, "requestAll -> firing system dialog for aliases=" + aliases.toString());
+        markPending(aliases.toArray(new String[0]));
         requestPermissionForAliases(aliases.toArray(new String[0]), call, "permissionsCallback");
     }
 
@@ -249,17 +301,20 @@ public class NativePermissionsPlugin extends Plugin {
         JSObject after = currentStatus();
         Log.i(TAG, "permissionsCallback fired. resultStatus=" + after.toString());
 
-        // Mark every permission we just asked about as "requested" so
-        // canRequest() can detect the permanent-deny state on the next check.
+        // Pkg-audit fix: mark ONLY the permissions that were actually part of
+        // this request. Marking unrelated permissions as "ever requested" made
+        // canRequestAgain() falsely report permanent denial on permissions whose
+        // system dialog was never shown to the user.
         android.content.SharedPreferences.Editor editor = getContext()
             .getSharedPreferences("meri_perm_state", android.content.Context.MODE_PRIVATE)
             .edit();
-        editor.putBoolean("requested_" + Manifest.permission.CAMERA, true);
-        editor.putBoolean("requested_" + Manifest.permission.RECORD_AUDIO, true);
-        editor.putBoolean("requested_" + Manifest.permission.ACCESS_FINE_LOCATION, true);
-        editor.putBoolean("requested_" + Manifest.permission.ACCESS_COARSE_LOCATION, true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            editor.putBoolean("requested_" + Manifest.permission.POST_NOTIFICATIONS, true);
+        java.util.Set<String> snapshot;
+        synchronized (pendingPermissions) {
+            snapshot = new java.util.HashSet<>(pendingPermissions);
+            pendingPermissions.clear();
+        }
+        for (String p : snapshot) {
+            editor.putBoolean("requested_" + p, true);
         }
         editor.apply();
 

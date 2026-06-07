@@ -27,12 +27,18 @@ public class ScreenControlPlugin extends Plugin {
     @PluginMethod
     public void setKeepScreenOn(final PluginCall call) {
         final boolean on = Boolean.TRUE.equals(call.getBoolean("on", true));
-        runOnUi(() -> {
+        final android.app.Activity a = getActivity();
+        if (a == null) { call.reject("activity_unavailable"); return; }
+        a.runOnUiThread(() -> {
             try {
+                if (a.isDestroyed() || a.isFinishing()) {
+                    call.reject("activity_unavailable");
+                    return;
+                }
                 if (on) {
-                    getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 } else {
-                    getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    a.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
                 JSObject ret = new JSObject();
                 ret.put("on", on);
@@ -56,11 +62,17 @@ public class ScreenControlPlugin extends Plugin {
         } else {
             clamped = (float) Math.max(0.01, Math.min(1.0, level));
         }
-        runOnUi(() -> {
+        final android.app.Activity a = getActivity();
+        if (a == null) { call.reject("activity_unavailable"); return; }
+        a.runOnUiThread(() -> {
             try {
-                WindowManager.LayoutParams lp = getActivity().getWindow().getAttributes();
+                if (a.isDestroyed() || a.isFinishing()) {
+                    call.reject("activity_unavailable");
+                    return;
+                }
+                WindowManager.LayoutParams lp = a.getWindow().getAttributes();
                 lp.screenBrightness = clamped;
-                getActivity().getWindow().setAttributes(lp);
+                a.getWindow().setAttributes(lp);
                 JSObject ret = new JSObject();
                 ret.put("level", clamped);
                 call.resolve(ret);
@@ -72,9 +84,15 @@ public class ScreenControlPlugin extends Plugin {
 
     @PluginMethod
     public void getState(final PluginCall call) {
-        runOnUi(() -> {
+        final android.app.Activity a = getActivity();
+        if (a == null) { call.reject("activity_unavailable"); return; }
+        a.runOnUiThread(() -> {
             try {
-                WindowManager.LayoutParams lp = getActivity().getWindow().getAttributes();
+                if (a.isDestroyed() || a.isFinishing()) {
+                    call.reject("activity_unavailable");
+                    return;
+                }
+                WindowManager.LayoutParams lp = a.getWindow().getAttributes();
                 int flags = lp.flags;
                 JSObject ret = new JSObject();
                 ret.put("keepScreenOn", (flags & WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) != 0);
@@ -84,9 +102,5 @@ public class ScreenControlPlugin extends Plugin {
                 call.reject("getState failed: " + t.getMessage(), t);
             }
         });
-    }
-
-    private void runOnUi(Runnable r) {
-        getActivity().runOnUiThread(r);
     }
 }
