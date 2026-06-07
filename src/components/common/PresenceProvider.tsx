@@ -221,8 +221,34 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('[Presence] Starting presence tracking for:', userId);
 
     // Set online immediately
-    setOnlineStatus(userId);
-    
+    await setOnlineStatus(userId);
+
+    // Phase-3 C7: after coming back online, check for missed calls that are
+    // still pending/ringing within the timeout window and re-fire the incoming
+    // call notification so the modal pops up instantly.
+    try {
+      const { data: missedCalls } = await supabase
+        .from('private_calls')
+        .select('id, caller_id, created_at, status')
+        .eq('host_id', userId)
+        .in('status', ['pending', 'ringing'])
+        .gt('created_at', new Date(Date.now() - 120_000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (missedCalls && missedCalls.length > 0) {
+        const call = missedCalls[0];
+        window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+          detail: {
+            type: 'incoming_call',
+            data: { call_id: call.id, caller_id: call.caller_id },
+          },
+        }));
+        console.log('[Presence] 🔔 Re-ringing missed call:', call.id);
+      }
+    } catch {
+      /* ignore — non-critical re-ring path */
+    }
+
     // Run cleanup
     runCleanupIfDue();
     const cleanupInterval = setInterval(() => runCleanupIfDue(), CLEANUP_COOLDOWN_MS);
