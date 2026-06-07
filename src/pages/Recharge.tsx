@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe, ExternalLink } from "lucide-react";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
+const SwiftPayDepositModal = lazy(() => import("@/components/recharge/SwiftPayDepositModal"));
 
 interface PaymentGateway {
   id: string;
@@ -3983,21 +3983,25 @@ const Recharge = () => {
         </DialogContent>
       </Dialog>
 
-      <SwiftPayDepositModal
-        open={showSwiftPayModal}
-        onOpenChange={(v) => {
-          setShowSwiftPayModal(v);
-          if (!v) setMericashInitialPackageId(null);
-        }}
-        initialPackageId={mericashInitialPackageId}
-        packages={packages.map((p: any) => ({
-          id: p.id,
-          coins: p.coins,
-          bonus_percentage: p.bonus_percentage,
-          price_usd: Number(p.price ?? p.price_usd ?? 0),
-          name: p.name,
-        }))}
-      />
+      {showSwiftPayModal && (
+        <Suspense fallback={null}>
+          <SwiftPayDepositModal
+            open={showSwiftPayModal}
+            onOpenChange={(v) => {
+              setShowSwiftPayModal(v);
+              if (!v) setMericashInitialPackageId(null);
+            }}
+            initialPackageId={mericashInitialPackageId}
+            packages={packages.map((p: any) => ({
+              id: p.id,
+              coins: p.coins,
+              bonus_percentage: p.bonus_percentage,
+              price_usd: Number(p.price ?? p.price_usd ?? 0),
+              name: p.name,
+            }))}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
