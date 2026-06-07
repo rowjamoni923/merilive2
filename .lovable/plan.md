@@ -57,15 +57,27 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 
 ### Business Logic (user-confirmed — locked rules)
 
-1. **Viewer call payment flow:**
-   - Viewer diamonds deducted per-min = admin's `call_price_settings` row
-   - Host bean credit per-min = admin's `call_price_settings` row (admin can set independent rate; spread = company VAT)
-2. **Agency commission flow (user-confirmed):**
-   - Company already takes VAT (e.g., admin sets host=50%, company=50% — that's the company's earnings)
-   - Agency commission (small %, e.g. 2-3%, admin-set) is calculated as % of host's earned beans
-   - **Paid FROM company's share, NOT cutting host further** — host always gets the admin-set %
-   - Sub-agency cut from agency cut (admin-set), agency owner takes the rest
-3. **Why this works:** Company keeps majority of VAT; agency gets recruitment incentive; host's payout never reduced by agency presence (industry standard, host-friendly).
+**ALL financial systems** (gifts, calls, recharges, agency, sub-agency, host earnings, hourly bonus, withdrawals) = admin panel-controlled. Zero hardcoded values.
+
+1. **Viewer payment flow (gift OR call):**
+   - Diamond cost per item / per-min = admin's `gifts` row or `call_price_settings` row
+   - Host bean payout % = admin-set; host always receives that exact %
+   - Company keeps the rest as VAT — agency/sub-agency commissions paid FROM this VAT pool, never from host
+
+2. **Agency commission (level 1):**
+   - Direct agency owner gets admin-set % (e.g. 2-3%) of host's earned beans for every host under them
+   - Rate per agency level from `agency_level_tiers.agency_commission_percent`
+
+3. **Sub-agency cascading commission — LEVEL-GATED (CRITICAL, user-locked):**
+   - Sub-agent gets the SAME structure on hosts they directly recruit
+   - **Upper agent gets override % (admin-set, e.g. 2%) on the host earnings of sub-agents below them — ONLY IF `upper.agency_level > sub.agency_level` (strictly greater)**
+   - Same-level → upper gets ZERO
+   - Higher-level sub → upper gets ZERO (upward override blocked)
+   - Example: Owner L5 → SubA L3 → SubA recruits 10 sub-sub-agents: 5 at L3 (= SubA), 5 at L2 (< SubA). SubA earns override on the 5 at L2 only. Owner earns override on ALL below L5.
+
+4. **Implementation:** DB function `calculate_agency_cascade_commission(host_earning_event)` walks agency tree upward; for each ancestor compares `ancestor.agency_level > recipient.agency_level`; credits only when strictly greater; rate from `agency_level_tiers.upper_override_percent`.
+
+5. **Why this works:** Company keeps majority of VAT; agency/sub-agency get recruitment incentive but level-gated to prevent same-tier exploitation; host's payout never reduced by agency presence. Industry-standard MLM structure used by Bigo/Chamet/PoPo.
 
 ### Critical insights for our app
 
