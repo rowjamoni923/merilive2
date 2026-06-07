@@ -145,6 +145,14 @@ class NativeLottiePlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        try {
+            activity?.runOnUiThread {
+                try { lottieView?.cancelAnimation() } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                lottieView = null
+            }
+        } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }
