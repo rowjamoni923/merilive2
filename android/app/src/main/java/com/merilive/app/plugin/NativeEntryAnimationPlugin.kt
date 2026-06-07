@@ -87,6 +87,11 @@ class NativeEntryAnimationPlugin : Plugin() {
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private var activeWatchdog: Runnable? = null
+    // Pkg-audit fix: secondary deferred runnable for image slide-out — must be
+    // cancellable on finishActive so it doesn't fire 4.5s post-cancel with a
+    // stale view reference.
+    private var activeDeferred: Runnable? = null
+
 
     // ─── Public API ─────────────────────────────────────────────────────────
 
@@ -249,6 +254,9 @@ class NativeEntryAnimationPlugin : Plugin() {
         val job = activeJob
         activeWatchdog?.let { mainHandler.removeCallbacks(it) }
         activeWatchdog = null
+        activeDeferred?.let { mainHandler.removeCallbacks(it) }
+        activeDeferred = null
+
         try { activeAnim?.stopPlay() } catch (_: Throwable) {}
         try { activeLottie?.cancelAnimation() } catch (_: Throwable) {}
         activeView?.let { v ->
