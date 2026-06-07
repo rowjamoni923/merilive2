@@ -197,7 +197,8 @@ class NativeVAPPlugin : Plugin() {
                 tmp.delete()
             }
         } finally {
-            conn.disconnect()
+            try { conn.disconnect() } catch (_: Throwable) {}
+            try { if (tmp.exists() && !target.exists()) tmp.delete() } catch (_: Throwable) {}
         }
         downloadCache[url] = target
         return target
@@ -239,6 +240,14 @@ class NativeVAPPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        try {
+            activity?.runOnUiThread {
+                try { animView?.stopPlay() } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                animView = null
+            }
+        } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }

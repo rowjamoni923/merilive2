@@ -1,5 +1,6 @@
 package com.merilive.app.plugin;
 
+import android.app.Activity;
 import android.os.Build;
 import android.view.Display;
 import android.view.Window;
@@ -35,7 +36,9 @@ public class AdaptiveRefreshPlugin extends Plugin {
     public void getInfo(PluginCall call) {
         com.getcapacitor.JSObject ret = new com.getcapacitor.JSObject();
         try {
-            Display d = getActivity().getWindowManager().getDefaultDisplay();
+            Activity act = getActivity();
+            if (act == null) { call.reject("no activity"); return; }
+            Display d = act.getWindowManager().getDefaultDisplay();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Display.Mode active = d.getMode();
                 Display.Mode[] modes = d.getSupportedModes();
@@ -63,13 +66,16 @@ public class AdaptiveRefreshPlugin extends Plugin {
 
     @PluginMethod
     public void boostMax(PluginCall call) {
-        getActivity().runOnUiThread(() -> {
+        final Activity act = getActivity();
+        if (act == null) { call.reject("no activity"); return; }
+        act.runOnUiThread(() -> {
             try {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                     call.resolve();
                     return;
                 }
-                Window window = getActivity().getWindow();
+                Window window = act.getWindow();
+                if (window == null) { call.reject("no window"); return; }
                 Display d = window.getWindowManager().getDefaultDisplay();
                 Display.Mode active = d.getMode();
                 Display.Mode best = active;
@@ -94,9 +100,12 @@ public class AdaptiveRefreshPlugin extends Plugin {
 
     @PluginMethod
     public void release(PluginCall call) {
-        getActivity().runOnUiThread(() -> {
+        final Activity act = getActivity();
+        if (act == null) { call.reject("no activity"); return; }
+        act.runOnUiThread(() -> {
             try {
-                Window window = getActivity().getWindow();
+                Window window = act.getWindow();
+                if (window == null) { call.reject("no window"); return; }
                 WindowManager.LayoutParams lp = window.getAttributes();
                 lp.preferredDisplayModeId = 0;
                 window.setAttributes(lp);

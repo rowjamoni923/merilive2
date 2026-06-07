@@ -73,8 +73,9 @@ class NativeImageLoaderPlugin : Plugin() {
         ioPool.execute {
             var ok = 0
             for (u in urls) {
+                var ft: FutureTarget<java.io.File>? = null
                 try {
-                    val ft: FutureTarget<java.io.File> = Glide.with(context.applicationContext)
+                    ft = Glide.with(context.applicationContext)
                         .downloadOnly()
                         .load(u)
                         .submit()
@@ -82,6 +83,10 @@ class NativeImageLoaderPlugin : Plugin() {
                     ok++
                 } catch (_: Throwable) {
                     /* swallow — prefetch is best-effort */
+                } finally {
+                    if (ft != null) {
+                        try { Glide.with(context.applicationContext).clear(ft) } catch (_: Throwable) {}
+                    }
                 }
             }
             val res = JSObject()
@@ -235,6 +240,23 @@ class NativeImageLoaderPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        // Restore the original WebViewClient so the destroyed plugin isn't
+        // pinned in memory by the WebView's reference to our anonymous client.
+        try {
+            if (interceptorInstalled) {
+                activity?.runOnUiThread {
+                    try {
+                        val wv = bridge?.webView
+                        val prev = originalClient
+                        if (wv != null && prev != null) {
+                            wv.webViewClient = prev
+                        }
+                    } catch (_: Throwable) {}
+                    interceptorInstalled = false
+                    originalClient = null
+                }
+            }
+        } catch (_: Throwable) {}
         try { ioPool.shutdownNow() } catch (_: Throwable) {}
         super.handleOnDestroy()
     }

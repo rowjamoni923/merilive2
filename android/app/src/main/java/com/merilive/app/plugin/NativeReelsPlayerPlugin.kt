@@ -210,6 +210,7 @@ class NativeReelsPlayerPlugin : Plugin() {
                 player?.release()
                 player = null
                 hideOverlay()
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
                 surface = null
                 overlay = null
                 currentUrl = null
@@ -288,9 +289,10 @@ class NativeReelsPlayerPlugin : Plugin() {
     }
 
     private fun warmCache(url: String, maxBytes: Long): Boolean {
+        var dataSource: androidx.media3.datasource.DataSource? = null
         return try {
             val cancelFlag = AtomicBoolean(false)
-            val dataSource = CacheDataSource.Factory()
+            dataSource = CacheDataSource.Factory()
                 .setCache(cache(context))
                 .setUpstreamDataSourceFactory(
                     DefaultHttpDataSource.Factory()
@@ -315,6 +317,8 @@ class NativeReelsPlayerPlugin : Plugin() {
             false
         } catch (_: Throwable) {
             false
+        } finally {
+            try { dataSource?.close() } catch (_: Throwable) {}
         }
     }
 
@@ -422,15 +426,23 @@ class NativeReelsPlayerPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
+        try { cancelInFlight() } catch (_: Throwable) {}
+        try { prefetchExecutor.shutdownNow() } catch (_: Throwable) {}
         try {
-            cancelInFlight()
+            activity?.runOnUiThread {
+                try { player?.release() } catch (_: Throwable) {}
+                player = null
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                surface = null
+            }
         } catch (_: Throwable) {}
+        // Release the shared SimpleCache file handles + WAL.
         try {
-            prefetchExecutor.shutdownNow()
-        } catch (_: Throwable) {}
-        try {
-            player?.release()
-            player = null
+            synchronized(Companion) {
+                try { simpleCache?.release() } catch (_: Throwable) {}
+                simpleCache = null
+            }
         } catch (_: Throwable) {}
     }
 }

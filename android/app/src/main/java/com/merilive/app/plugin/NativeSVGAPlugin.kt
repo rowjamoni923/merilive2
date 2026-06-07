@@ -63,9 +63,16 @@ class NativeSVGAPlugin : Plugin() {
             }
 
             activity.runOnUiThread {
+                var streamClosed = false
+                val inputStream = try { localFile.inputStream() } catch (t: Throwable) {
+                    call.reject("svga open failed: ${t.message}")
+                    return@runOnUiThread
+                }
                 try {
                     ensureOverlay(fillScreen)
                     val sv = svgaView ?: run {
+                        try { inputStream.close() } catch (_: Throwable) {}
+                        streamClosed = true
                         call.reject("overlay init failed")
                         return@runOnUiThread
                     }
@@ -73,13 +80,11 @@ class NativeSVGAPlugin : Plugin() {
                     sv.clearsAfterStop = true
 
                     val parser = SVGAParser.shareParser().apply { init(context) }
-                    
-                    // Use file input if possible for instant loading from disk
-                    val inputStream = localFile.inputStream()
+
                     parser.decodeFromInputStream(inputStream, localFile.absolutePath, object : SVGAParser.ParseCompletion {
                         override fun onComplete(videoItem: SVGAVideoEntity) {
                             try {
-                                inputStream.close()
+                                try { inputStream.close() } catch (_: Throwable) {}
                                 sv.setVideoItem(videoItem)
                                 sv.setCallback(object : SVGACallback {
                                     override fun onPause() {}
@@ -104,6 +109,7 @@ class NativeSVGAPlugin : Plugin() {
                         }
                     }, true)
                 } catch (t: Throwable) {
+                    if (!streamClosed) try { inputStream.close() } catch (_: Throwable) {}
                     call.reject("svga setup failed: ${t.message}")
                 }
             }
@@ -184,9 +190,11 @@ class NativeSVGAPlugin : Plugin() {
                 tmp.delete()
             }
         } finally {
-            conn.disconnect()
+            try { conn.disconnect() } catch (_: Throwable) {}
+            // Clean up orphan .tmp left behind by interruption or copy failure.
+            try { if (tmp.exists() && !target.exists()) tmp.delete() } catch (_: Throwable) {}
         }
-        
+
         downloadCache[url] = target
         return target
     }
@@ -227,6 +235,14 @@ class NativeSVGAPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        try {
+            activity?.runOnUiThread {
+                try { svgaView?.stopAnimation(true) } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                svgaView = null
+            }
+        } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }
