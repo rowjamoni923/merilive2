@@ -190,6 +190,9 @@ const getGiftAnimationSignature = (content: string, senderId?: string | null): s
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
 };
 
+const PLAYED_GIFT_ANIMATION_STORAGE_PREFIX = 'merilive:chat-played-gift-animations:v1:';
+const MAX_PLAYED_GIFT_ANIMATION_IDS = 300;
+
 // Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
@@ -367,6 +370,8 @@ const Chat = () => {
   const directMessageChannelRef = useRef<any>(null);
   const receiptChannelRef = useRef<any>(null);
   const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
+  const playedGiftMessageIdsRef = useRef<Set<string>>(new Set());
+  const playedGiftStorageUserRef = useRef<string | null>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -1554,6 +1559,28 @@ const Chat = () => {
     }
   }
 
+  const persistPlayedGiftMessageIds = useCallback(() => {
+    const userId = playedGiftStorageUserRef.current;
+    if (!userId) return;
+
+    try {
+      const ids = Array.from(playedGiftMessageIdsRef.current).slice(-MAX_PLAYED_GIFT_ANIMATION_IDS);
+      playedGiftMessageIdsRef.current = new Set(ids);
+      localStorage.setItem(`${PLAYED_GIFT_ANIMATION_STORAGE_PREFIX}${userId}`, JSON.stringify(ids));
+    } catch {
+      // Ignore storage failures; in-memory guard still prevents repeat playback in this session.
+    }
+  }, []);
+
+  const markGiftMessageAnimationPlayed = useCallback((messageId?: string | null): boolean => {
+    if (!messageId) return true;
+    if (playedGiftMessageIdsRef.current.has(messageId)) return false;
+
+    playedGiftMessageIdsRef.current.add(messageId);
+    persistPlayedGiftMessageIds();
+    return true;
+  }, [persistPlayedGiftMessageIds]);
+
   function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false, animationFormat?: string | null, animationConfigUrl?: string | null) {
     const signature = getGiftAnimationSignature(content, senderId);
     const now = Date.now();
@@ -1572,6 +1599,19 @@ const Chat = () => {
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
   }
+
+  useEffect(() => {
+    if (!currentUserId || playedGiftStorageUserRef.current === currentUserId) return;
+
+    playedGiftStorageUserRef.current = currentUserId;
+    try {
+      const stored = localStorage.getItem(`${PLAYED_GIFT_ANIMATION_STORAGE_PREFIX}${currentUserId}`);
+      const ids = stored ? JSON.parse(stored) : [];
+      playedGiftMessageIdsRef.current = new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : []);
+    } catch {
+      playedGiftMessageIdsRef.current = new Set();
+    }
+  }, [currentUserId]);
 
   async function loadReplyMessages(replyIds: string[]) {
     const missingReplyIds = [...new Set(replyIds)].filter((id) => id && !replyMessages[id]);
@@ -1625,7 +1665,9 @@ const Chat = () => {
     }
 
     if (newMessage.message_type === 'gift') {
-      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+      if (markGiftMessageAnimationPlayed(newMessage.id)) {
+        playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+      }
     } else {
       playSoundDebounced('message');
     }
@@ -1733,7 +1775,7 @@ const Chat = () => {
         // Pkg-fix: If there's an unread gift, trigger the most recent one's animation
         // so the receiver sees it when entering the chat (as requested by user).
         const latestUnreadGift = [...unreadMsgs].reverse().find(m => m.message_type === 'gift');
-        if (latestUnreadGift) {
+        if (latestUnreadGift && markGiftMessageAnimationPlayed(latestUnreadGift.id)) {
           console.log('[Chat] 🎁 Replaying unread gift animation for receiver');
           playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
         }
