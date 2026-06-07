@@ -135,11 +135,16 @@ public class ConversationShortcutsPlugin extends Plugin {
             int x = (bmp.getWidth() - size) / 2;
             int y = (bmp.getHeight() - size) / 2;
             Bitmap square = Bitmap.createBitmap(bmp, x, y, size, size);
+            if (square != bmp) { try { bmp.recycle(); } catch (Throwable ignored) {} }
             Bitmap scaled = Bitmap.createScaledBitmap(square, 96, 96, true);
+            if (scaled != square) { try { square.recycle(); } catch (Throwable ignored) {} }
+            IconCompat icon;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                return IconCompat.createWithAdaptiveBitmap(scaled);
+                icon = IconCompat.createWithAdaptiveBitmap(scaled);
+            } else {
+                icon = IconCompat.createWithBitmap(scaled);
             }
-            return IconCompat.createWithBitmap(scaled);
+            return icon;
         } catch (Throwable t) { return null; }
     }
 }
