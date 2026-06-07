@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, memo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
-import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
+const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPromoBanners").then(m => ({ default: m.FullScreenPromoBanners })));
 import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 import { useCall } from "@/components/call/CallProvider";
-import { NotificationList } from "@/components/notifications/NotificationList";
+const NotificationList = lazy(() => import("@/components/notifications/NotificationList").then(m => ({ default: m.NotificationList })));
 import AvatarWithFrame, { preloadFrames } from "@/components/common/AvatarWithFrame";
 import { getCountryByCode } from "@/data/countryCodes";
 import { LevelBadge } from "@/components/common/LevelBadge";
@@ -433,7 +433,7 @@ const Index = () => {
     navigate(path);
   };
 
-  const handleUserClick = (userId: string, isLive: boolean, liveStreamId?: string) => {
+  const handleUserClick = useCallback((userId: string, isLive: boolean, liveStreamId?: string) => {
     if (isLive && liveStreamId) {
       import("@/pages/LiveStream").catch(() => {});
       warmLiveKitToken(`live_${liveStreamId}`, "viewer_stream").catch(() => {});
@@ -442,7 +442,7 @@ const Index = () => {
       // Navigate to profile detail page for non-live users
       navigate(`/profile-detail/${userId}`);
     }
-  };
+  }, [navigate]);
 
   // Pkg436 Phase-2 — mirror displayHosts to native RecyclerView grid (Android only,
   // flag-gated). Tap → same handleUserClick route. React grid below stays rendered;
@@ -492,8 +492,11 @@ const Index = () => {
     await startCall(userId);
   };
 
-  // Render user card - PREMIUM UPGRADED DESIGN (Memoized for performance)
-  const UserCard = memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }; index: number }) => {
+  // Render user card - PREMIUM UPGRADED DESIGN.
+  // Wrapped in useMemo so memo() actually works: the component identity stays
+  // stable across parent re-renders (search input typing, tab indicators, etc.)
+  // and only re-renders when user/index props change.
+  const UserCard = useMemo(() => memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }; index: number }) => {
     const isFemaleHost = user.is_host && (user.gender === 'female' || user.gender === 'Female');
     const displayLevel = isFemaleHost 
       ? (user.host_level ?? 0)
@@ -709,7 +712,7 @@ const Index = () => {
         </div>
       </div>
     );
-  });
+  }), [handleUserClick, currentUserId, startCall]);
 
   const getEmptyMessage = () => {
     switch (subTab) {
@@ -866,7 +869,9 @@ const Index = () => {
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Full-Screen Promo Banners on Entry */}
-      <FullScreenPromoBanners />
+      <Suspense fallback={null}>
+        <FullScreenPromoBanners />
+      </Suspense>
 
       {/* Notification Sheet */}
       <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
@@ -874,10 +879,14 @@ const Index = () => {
           <SheetHeader className="sr-only">
             <SheetTitle>Notifications</SheetTitle>
           </SheetHeader>
-          <NotificationList 
-            onClose={() => setShowNotifications(false)} 
-            compact={false}
-          />
+          {showNotifications && (
+            <Suspense fallback={null}>
+              <NotificationList 
+                onClose={() => setShowNotifications(false)} 
+                compact={false}
+              />
+            </Suspense>
+          )}
         </SheetContent>
       </Sheet>
     </div>
