@@ -87,27 +87,29 @@ Deno.serve(async (req) => {
       return json(400, { error: "invalid_room_type" });
     }
 
-    // ---- Auth: Supabase JWT preferred; admin token fallback for viewer/hidden ----
+    // ---- Auth: admin token takes precedence for hidden monitoring ----
+    // Admins may also be signed-in as a regular user; admin role grants
+    // hidden, subscribe-only access to ANY room without polluting viewer_count.
     let identity: string | null = null;
     let isAdmin = false;
 
-    const auth = req.headers.get("Authorization") ?? "";
-    if (auth.startsWith("Bearer ")) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        global: { headers: { Authorization: auth } },
-      });
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id) identity = user.id;
+    const adminToken = req.headers.get("x-admin-access-token") ?? "";
+    if (adminToken) {
+      const v = await validateAdminToken(adminToken);
+      if (v.ok) {
+        isAdmin = true;
+        identity = `admin-${v.role ?? "viewer"}-${crypto.randomUUID().slice(0, 8)}`;
+      }
     }
 
-    if (!identity) {
-      const adminToken = req.headers.get("x-admin-access-token") ?? "";
-      if (adminToken) {
-        const v = await validateAdminToken(adminToken);
-        if (v.ok) {
-          isAdmin = true;
-          identity = `admin-${v.role ?? "viewer"}-${crypto.randomUUID().slice(0, 8)}`;
-        }
+    if (!isAdmin) {
+      const auth = req.headers.get("Authorization") ?? "";
+      if (auth.startsWith("Bearer ")) {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: auth } },
+        });
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) identity = user.id;
       }
     }
 
