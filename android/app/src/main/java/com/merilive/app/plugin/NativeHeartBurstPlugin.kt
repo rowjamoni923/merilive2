@@ -42,6 +42,7 @@ class NativeHeartBurstPlugin : Plugin() {
     private val pool = ArrayDeque<TextView>()
     private val MAX_POOL = 16
     private val HEART_GLYPHS = arrayOf("❤", "♥", "💖", "💕", "💘")
+    private val activeAnimators = CopyOnWriteArrayList<AnimatorSet>()
 
     @PluginMethod
     fun isAvailable(call: PluginCall) {
