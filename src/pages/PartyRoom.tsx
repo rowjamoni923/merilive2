@@ -1899,6 +1899,22 @@ const PartyRoom = () => {
 
       console.log('[PartyRoom] ✅ Seat assigned to user:', request.requester_id, 'at position:', request.seat_position);
 
+      // Bug-fix #2 (party-publish hole): server-side promote to publisher.
+      // The livekit-token edge function now issues canPublish=false to non-
+      // seat audience, so we must promote them in-place the moment the host
+      // approves a seat. promoteToSpeaker calls livekit-update-permission
+      // which mutates ParticipantPermission server-side — no reconnect,
+      // INSTANT mic/camera availability on the requester's SDK.
+      try {
+        const promo = await promoteToSpeaker(`party_${roomId}`, request.requester_id, 'seat_approved');
+        if (!promo.success) {
+          console.warn('[PartyRoom] promoteToSpeaker failed:', promo.error);
+        }
+      } catch (e) {
+        console.warn('[PartyRoom] promoteToSpeaker threw:', e);
+      }
+
+
       // STEP 2: Update the request status to approved
       const { error: updateError } = await supabase
         .from('seat_requests')
