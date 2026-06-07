@@ -273,7 +273,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.onwaiting = null;
       el.onstalled = null;
     };
-  }, [videoTrack]);
+  }, [trackKey]);
 
   // Pkg-audit#2: separate effect to apply mute changes WITHOUT re-attaching the track.
   useEffect(() => {
