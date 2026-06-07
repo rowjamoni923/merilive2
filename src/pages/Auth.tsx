@@ -21,7 +21,10 @@ import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
 import { getPersistentDeviceId, getDeviceIdSync } from "@/utils/persistentDeviceId";
 import { getSessionFromNative } from "@/utils/nativeSessionStorage";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
-import { detectCountryViaIP, getCountryFlag, countryNamesEnglish } from "@/hooks/useGeolocation";
+// Geolocation helpers are loaded lazily — they're a 600+ line module with
+// country/IP detection that's only needed AFTER the user submits, so we keep
+// them out of the initial Auth bundle for a faster first paint.
+const loadGeolocation = () => import("@/hooks/useGeolocation");
 import { COUNTRY_CODES } from "@/data/countryCodes";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { recordClientError } from "@/utils/clientErrorLog";
