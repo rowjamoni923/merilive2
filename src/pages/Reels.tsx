@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
