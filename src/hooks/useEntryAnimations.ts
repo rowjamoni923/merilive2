@@ -20,13 +20,14 @@ const isValidUrl = (url?: string): boolean => {
 };
 
 /**
- * Industry-standard threshold (Chamet / BIGO / MICO parity):
- * Levels 1–5 → NO flying name bar. The user only sees the static
- *   RoomWelcomeBanner at the bottom of the chat overlay.
- * Levels 6+  → Flying Name Bar with avatar + frame + name + level
- *   slides in from the right, with optional SVGA/GIF effect on top.
+ * Industry rule (Chamet / BIGO / MICO parity):
+ * Flying name bar is gated by ASSET OWNERSHIP, not by raw level.
+ * If the user has a valid `entryNameBarUrl` (configured via level privilege
+ * OR purchased from shop), the flying SVGA/GIF bar plays for its full
+ * intrinsic SVGA duration. Otherwise the user only gets the chat-row
+ * welcome message in the public chat overlay.
  */
-export const MIN_FLYING_NAMEBAR_LEVEL = 6;
+export const MIN_FLYING_NAMEBAR_LEVEL = 1;
 
 
 export interface NameBarAnimation {
@@ -141,12 +142,15 @@ export function useEntryAnimations() {
     }
     
     // === ENTRY NAME BAR (Compact sliding banner) ===
-    // Industry-standard gate: ONLY level 6+ users get the flying name bar.
-    // Levels 1–5 see only the static RoomWelcomeBanner at the bottom.
+    // Industry rule (Chamet/BIGO): show the flying bar ONLY when the user
+    // actually owns a flying name-bar asset (level privilege OR shop purchase).
+    // Level alone is irrelevant — a Lv2 user who bought one MUST see it,
+    // and a Lv8 user without any equipped/owned asset MUST NOT see a fake bar.
     const userLevel = Number(params.level) || 1;
-    if (userLevel < MIN_FLYING_NAMEBAR_LEVEL) {
+    const hasOwnedNameBar = isValidUrl(params.entryNameBarUrl);
+    if (!hasOwnedNameBar) {
       console.log(
-        `[useEntryAnimations] 🚫 NameBar skipped — level ${userLevel} < ${MIN_FLYING_NAMEBAR_LEVEL} for:`,
+        '[useEntryAnimations] 🚫 NameBar skipped — no owned/configured asset for:',
         params.displayName,
       );
     } else {
@@ -156,11 +160,10 @@ export function useEntryAnimations() {
         displayName: params.displayName,
         avatarUrl: params.avatarUrl,
         level: userLevel,
-        animationUrl: isValidUrl(params.entryNameBarUrl) ? params.entryNameBarUrl : undefined,
+        animationUrl: params.entryNameBarUrl,
       };
 
-      console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR banner for:', params.displayName,
-        newNameBar.animationUrl ? '(with animation)' : '(gradient fallback)');
+      console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR (owned asset) for:', params.displayName);
 
       setNameBarAnimations(prev => {
         if (prev.some(e => e.userId === params.userId)) {
