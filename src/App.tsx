@@ -217,6 +217,7 @@ const GamesHub = lazy(lazyRetry(() => import("./pages/games/GamesHub")));
 const RoulettePage = lazy(lazyRetry(() => import("./pages/games/RoulettePage")));
 const FerrisWheelPage = lazy(lazyRetry(() => import("./pages/games/FerrisWheelPage")));
 const TeenPattiPage = lazy(lazyRetry(() => import("./pages/games/TeenPattiPage")));
+const LuckyWheelTestPage = lazy(lazyRetry(() => import("./pages/games/LuckyWheelTestPage")));
 
 // Admin Pages - All lazy loaded (with chunk-failure retry)
 const AdminBlueprint = lazy(lazyRetry(() => import("./pages/admin/AdminBlueprint")));
@@ -1389,6 +1390,7 @@ const App = () => {
                 <Route path="/games/roulette" element={<ProtectedRoute session={session}><RoulettePage /></ProtectedRoute>} />
                 <Route path="/games/ferris-wheel" element={<ProtectedRoute session={session}><FerrisWheelPage /></ProtectedRoute>} />
                 <Route path="/games/teen-patti" element={<ProtectedRoute session={session}><TeenPattiPage /></ProtectedRoute>} />
+                <Route path="/games/lucky-wheel-test" element={<ProtectedRoute session={session}><LuckyWheelTestPage /></ProtectedRoute>} />
                 
                 {/* Admin Panel - Protected by AdminAccessGuard */}
                 {/* Shows blog page to unauthorized users, admin panel to authorized */}
