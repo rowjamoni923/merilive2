@@ -23,8 +23,9 @@ import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData } from "@/features/shared/gifting";
-import { LiveGameSelector } from "@/components/games/LiveGameSelector";
+import type { GiftData } from "@/features/shared/gifting";
+const GiftPanel = lazy(() => import("@/components/live/GiftPanel").then(m => ({ default: m.GiftPanel })));
+const LiveGameSelector = lazy(() => import("@/components/games/LiveGameSelector").then(m => ({ default: m.LiveGameSelector })));
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
