@@ -56,6 +56,11 @@ import {
 // Pkg81b: fetchUserEntryAnimations no longer needed — Pkg80 LiveKit envelope
 // carries pre-resolved entrance/entry-name-bar/vehicle URLs from the sender.
 import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
+import {
+  createJoinMessageCoalescer,
+  formatJoinMessage,
+  type JoinCoalescer,
+} from "@/utils/joinMessageCoalescer";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 // Pkg81c: LiveKit-only in-room chat (replaces `party-chat-${roomId}` Supabase channel).
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
@@ -1093,45 +1098,94 @@ export function UnifiedPartyRoom({
   // joinMessages prop comes from PartyRoom.tsx realtime subscription
   // NOTE: Flying banner is NOW triggered by direct participant subscription above
   // This handler ONLY adds join messages to chat - NO flying banner trigger (prevents duplicates)
+  //
+  // Pkg438 Phase B3: when N viewers join within a 500ms burst (e.g. a link
+  // share spike), collapse the chat-side rows into a single
+  // "Alice and 7 others joined" row. Premium Entry / Vehicle / Flying Name
+  // Bar animations still play 1:1 — only the chat row is coalesced.
+  const joinCoalescerRef = useRef<JoinCoalescer | null>(null);
+  useEffect(() => {
+    const coalescer = createJoinMessageCoalescer({
+      windowMs: 500,
+      selfUserId: currentUserId ?? null,
+      onEmit: (out) => {
+        const joinChatMsg: RoomChatMessage = {
+          id: `join-${out.id}`,
+          userId: out.primary.userId,
+          user: out.primary.userName,
+          initial: out.primary.userName.charAt(0).toUpperCase(),
+          message: formatJoinMessage(out),
+          color: 'emerald',
+          userLevel: out.primary.userLevel,
+          userAvatar: out.primary.avatarUrl,
+          isHost: false,
+          isNewUser: false,
+          type: 'join',
+        };
+        setPremiumMessages(prev => {
+          if (prev.some(m => m.id === joinChatMsg.id)) return prev;
+          return [...prev.slice(-100), joinChatMsg];
+        });
+      },
+    });
+    joinCoalescerRef.current = coalescer;
+    return () => {
+      coalescer.flush();
+      coalescer.dispose();
+      joinCoalescerRef.current = null;
+    };
+  }, [currentUserId]);
+
   useEffect(() => {
     if (!joinMessages || joinMessages.length === 0) return;
-    
+
     joinMessages.forEach(jm => {
       // Skip if already processed
       if (processedJoinsRef.current.has(jm.id)) return;
       processedJoinsRef.current.add(jm.id);
-      
-      // NOTE: Flying banner is handled by direct participant subscription
-      // This only adds chat message to prevent duplicate banners
+
+      // Flying banner / entry animation: handled by direct participant
+      // subscription (above) — keep 1:1, never coalesce.
       addJoinNotification({
         userId: jm.userId,
         userName: jm.userName,
         userLevel: jm.userLevel,
         userAvatar: jm.avatarUrl,
       });
-      
-      // Add to chat as a join message (SINGLE ADD - no duplicates)
-      const joinChatMsg: RoomChatMessage = {
-        id: `join-${jm.id}`,
-        userId: jm.userId,
-        user: jm.userName,
-        initial: jm.userName.charAt(0).toUpperCase(),
-        message: jm.type === 'join' ? 'joined the room ✨' : 'left the room',
-        color: 'emerald',
-        userLevel: jm.userLevel,
-        userAvatar: jm.avatarUrl,
-        isHost: false,
-        isNewUser: false,
-        type: 'join'
-      };
-      
-      setPremiumMessages(prev => {
-        // Don't add duplicate join messages
-        if (prev.some(m => m.id === joinChatMsg.id)) return prev;
-        return [...prev.slice(-100), joinChatMsg];
-      });
+
+      if (jm.type === 'join') {
+        // Push into burst-coalescer; it will emit either a single
+        // "joined ✨" row or a coalesced "and N others joined ✨" row.
+        joinCoalescerRef.current?.push({
+          id: jm.id,
+          userId: jm.userId,
+          userName: jm.userName,
+          userLevel: jm.userLevel,
+          avatarUrl: jm.avatarUrl,
+        });
+      } else {
+        // Leave messages stay 1:1 (rare + low signal to coalesce).
+        const leaveChatMsg: RoomChatMessage = {
+          id: `join-${jm.id}`,
+          userId: jm.userId,
+          user: jm.userName,
+          initial: jm.userName.charAt(0).toUpperCase(),
+          message: 'left the room',
+          color: 'emerald',
+          userLevel: jm.userLevel,
+          userAvatar: jm.avatarUrl,
+          isHost: false,
+          isNewUser: false,
+          type: 'join',
+        };
+        setPremiumMessages(prev => {
+          if (prev.some(m => m.id === leaveChatMsg.id)) return prev;
+          return [...prev.slice(-100), leaveChatMsg];
+        });
+      }
     });
   }, [joinMessages, addJoinNotification]);
+
   
   // ==================== ROOM CLOSED DETECTION ====================
 
