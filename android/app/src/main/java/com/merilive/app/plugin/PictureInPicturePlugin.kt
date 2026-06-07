@@ -67,6 +67,14 @@ class PictureInPicturePlugin : Plugin() {
         }
         val act = activity
         if (act == null) { call.reject("no_activity"); return }
+        // Pkg-audit Tier-13: enterPictureInPictureMode throws IllegalStateException
+        // if the activity is finishing or already destroyed (rapid rotation /
+        // back-press race). Guard explicitly so the call returns a clean
+        // {entered:false} instead of rejecting with a confusing stack.
+        if (act.isFinishing || act.isDestroyed) {
+            val ret = JSObject(); ret.put("entered", false); ret.put("reason", "activity_unavailable")
+            call.resolve(ret); return
+        }
         val ax = clampRatio(call.getInt("aspectX", 16) ?: 16)
         val ay = clampRatio(call.getInt("aspectY", 9) ?: 9)
         try {
