@@ -1361,6 +1361,12 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 }
 
 @layer utilities {
+  /* Chat message rows: skip rendering off-screen rows (huge scroll win on long threads). */
+  .chat-msg-row {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 56px;
+  }
+
   /* Premium Gradients */
   .gradient-primary {
     background: var(--gradient-primary);
