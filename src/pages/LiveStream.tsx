@@ -439,6 +439,13 @@ const LiveStream = () => {
   // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
   const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Pkg-audit MEDIUM: dedup map for LiveKit gift fast-path vs Postgres gift_transactions
+  // safety-net. Key = `${sender_id}|${gift_id}|${quantity}`, value = Date.now().
+  // If LiveKit marked within 5s, safety-net skips. Otherwise safety-net tops up
+  // host bean counter so gifts from network-troubled viewers are never lost.
+  const recentGiftDedupRef = useRef<Map<string, number>>(new Map());
+  const seenGiftTxnIdsRef = useRef<Set<string>>(new Set());
+
 
   useEffect(() => {
     activeViewerIdsRef.current = new Set();
@@ -1366,10 +1373,37 @@ const LiveStream = () => {
           }
         }
 
-        // 3. Gift transactions (backup)
+        // 3. Gift transactions safety-net (Pkg-audit MEDIUM fix)
+        // Host bean counter previously updated ONLY via LiveKit DataPacket.
+        // If a viewer's LiveKit session lost the WS or background-dropped,
+        // the gift was written to DB but never counted on host UI until refresh.
+        // Now: if no LiveKit fast-path mark within 5s, apply receiver_beans here.
         if (table === 'gift_transactions' && row.stream_id === id && event === 'INSERT') {
-          console.log('[LiveStream] Gift transaction detected via Realtime:', row);
+          if (!row?.id || seenGiftTxnIdsRef.current.has(row.id)) return;
+          seenGiftTxnIdsRef.current.add(row.id);
+          // Cap set size to avoid unbounded growth
+          if (seenGiftTxnIdsRef.current.size > 500) {
+            const first = seenGiftTxnIdsRef.current.values().next().value;
+            if (first) seenGiftTxnIdsRef.current.delete(first);
+          }
+          const dedupKey = `${row.sender_id}|${row.gift_id}|${row.quantity ?? 1}`;
+          const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
+          if (Date.now() - lkMark < 5000) return; // LiveKit fast-path already applied
+          // Safety-net apply: top up host bean counter
+          const giftAmount = Number(row.receiver_beans ?? row.total_coins ?? 0);
+          if (giftAmount > 0 && row.receiver_id === currentUserId) {
+            setTotalBeans(prev => prev + giftAmount);
+            if (isHost) {
+              try {
+                window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                  detail: { userId: currentUserId, beansDelta: giftAmount },
+                }));
+              } catch { /* ignore */ }
+            }
+          }
+          console.log('[LiveStream] Gift safety-net applied (LK missed):', row.id, '+', giftAmount);
         }
+
       }
     );
 
@@ -1449,6 +1483,19 @@ const LiveStream = () => {
       if (data.senderId === currentUserId) return;
 
       console.log('[LiveStream] ⚡ Pkg76 livekit-gift-sent received:', data.giftName, 'from', data.senderName);
+      // Pkg-audit MEDIUM: mark dedup so Postgres gift safety-net skips this gift
+      try {
+        const k = `${data.senderId}|${data.giftId || ''}|${data.count || 1}`;
+        recentGiftDedupRef.current.set(k, Date.now());
+        // GC old entries
+        if (recentGiftDedupRef.current.size > 200) {
+          const cutoff = Date.now() - 10000;
+          for (const [key, ts] of recentGiftDedupRef.current) {
+            if (ts < cutoff) recentGiftDedupRef.current.delete(key);
+          }
+        }
+      } catch { /* ignore */ }
+
       warmGiftForInstantPlay({
         icon_url: data.giftIconUrl || null,
         animation_url: data.giftAnimationUrl || null,
@@ -1456,6 +1503,7 @@ const LiveStream = () => {
         animation_config_url: data.giftAnimationConfigUrl || null,
         sound_url: data.giftSoundUrl || null,
       } as any);
+
 
       addFlyingGift({
         senderId: data.senderId,

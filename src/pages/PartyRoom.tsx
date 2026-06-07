@@ -393,6 +393,10 @@ const PartyRoom = () => {
   
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
+  // Pkg-audit MEDIUM: gift safety-net dedup vs LiveKit fast-path
+  const recentGiftDedupRef = useRef<Map<string, number>>(new Map());
+  const seenGiftTxnIdsRef = useRef<Set<string>>(new Set());
+
   const joinedRoomKeyRef = useRef<string | null>(null);
   const explicitLeaveRef = useRef(false);
   const [mediaReady, setMediaReady] = useState(false);
@@ -611,16 +615,58 @@ const PartyRoom = () => {
     // Initial fetch
     fetchTotalBeans();
 
-    // Pkg81: `party-beans-${roomId}` Supabase Realtime channel DELETED.
-    // Beans counter realtime now arrives purely via Pkg76 LiveKit
-    // `livekit-gift-sent` DataPacket — the handler further below already
-    // bumps `setTotalRoomBeans` + `setParticipantBeans` from the same
-    // envelope. Late-join state = the initial `fetchTotalBeans()` above.
-    // Net result: every active party room saves 1 Realtime channel + 1
-    // gift_transactions postgres_changes subscription. ZERO functional
-    // regression — the LiveKit path was already the primary; this just
-    // removes the redundant fallback.
+    // Pkg-audit MEDIUM: gift_transactions safety-net subscription.
+    // LiveKit DataPacket is the primary instant path. But if a sender's WS
+    // dropped or background-throttled, their gift was written to DB but
+    // never counted on receiver UI until refresh. This realtime channel
+    // tops up totals from any INSERT that LiveKit dedup didn't already mark
+    // within 5s. ZERO double-count: dedup key = sender|gift|qty.
+    const giftSafetyChannel = supabase
+      .channel(`party-gifts-safety-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'gift_transactions', filter: `party_room_id=eq.${roomId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row?.id || seenGiftTxnIdsRef.current.has(row.id)) return;
+          seenGiftTxnIdsRef.current.add(row.id);
+          if (seenGiftTxnIdsRef.current.size > 500) {
+            const first = seenGiftTxnIdsRef.current.values().next().value;
+            if (first) seenGiftTxnIdsRef.current.delete(first);
+          }
+          const dedupKey = `${row.sender_id}|${row.gift_id}|${row.quantity ?? 1}`;
+          const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
+          if (Date.now() - lkMark < 5000) return; // LiveKit fast-path won
+          // Safety-net apply
+          const beans = Number(row.receiver_beans ?? Math.floor((row.coin_amount || 0) * hostCommissionPercentRef.current / 100));
+          const coins = Number(row.total_coins ?? row.coin_amount ?? 0);
+          if (beans > 0) {
+            setTotalRoomBeans(prev => prev + beans);
+            const cuid = currentUserRef.current?.id;
+            if (row.receiver_id === cuid) {
+              try {
+                window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                  detail: { userId: cuid, beansDelta: beans },
+                }));
+              } catch { /* ignore */ }
+            }
+          }
+          if (row.sender_id && coins > 0) {
+            setParticipantBeans(prev => ({
+              ...prev,
+              [row.sender_id]: (prev[row.sender_id] || 0) + coins,
+            }));
+          }
+          console.log('[PartyRoom] Gift safety-net applied (LK missed):', row.id, '+', beans);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(giftSafetyChannel); } catch { /* ignore */ }
+    };
   }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
+
 
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
@@ -933,6 +979,17 @@ const PartyRoom = () => {
       if (giftData.senderId === cuid) return;
 
       console.log('[PartyRoom] 🟣 ⚡ Pkg76 livekit-gift-sent received:', giftData.giftName);
+      // Pkg-audit MEDIUM: mark dedup so Postgres safety-net skips this gift
+      try {
+        const k = `${giftData.senderId}|${giftData.giftId || ''}|${giftData.count || 1}`;
+        recentGiftDedupRef.current.set(k, Date.now());
+        if (recentGiftDedupRef.current.size > 200) {
+          const cutoff = Date.now() - 10000;
+          for (const [key, ts] of recentGiftDedupRef.current) {
+            if (ts < cutoff) recentGiftDedupRef.current.delete(key);
+          }
+        }
+      } catch { /* ignore */ }
       warmGiftForInstantPlay({
         icon_url: giftData.giftIconUrl || null,
         animation_url: giftData.giftAnimationUrl || null,
@@ -1346,7 +1403,27 @@ const PartyRoom = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
         (payload: any) => {
+          // Pkg-audit MEDIUM: INSTANT participant count update.
+          // Don't wait 250ms debounce + REST fetch — patch state from payload
+          // first so viewerCount={participants.length} updates immediately.
+          // Debounced refetch still runs to hydrate full profile fields.
+          try {
+            const newRow = payload.new || {};
+            const oldRow = payload.old || {};
+            if (payload.eventType === 'INSERT' && newRow.user_id && !newRow.left_at) {
+              setParticipants(prev => prev.some(p => p.user_id === newRow.user_id)
+                ? prev
+                : [...prev, { ...newRow } as Participant]);
+            } else if (payload.eventType === 'DELETE' && oldRow.user_id) {
+              setParticipants(prev => prev.filter(p => p.user_id !== oldRow.user_id));
+            } else if (payload.eventType === 'UPDATE' && newRow.user_id) {
+              if (newRow.left_at) {
+                setParticipants(prev => prev.filter(p => p.user_id !== newRow.user_id));
+              }
+            }
+          } catch { /* ignore */ }
           scheduleRefetch();
+
           // Pkg383 safety-net: welcome popup + join chat from Postgres INSERT
           // when LiveKit participant_joined fanout is missed.
           if (payload.eventType !== 'INSERT') return;
