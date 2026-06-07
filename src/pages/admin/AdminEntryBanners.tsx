@@ -278,10 +278,10 @@ export default function AdminEntryBanners() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Zap className="w-7 h-7 text-yellow-400" />
-            Entry Banners
+            Premium Entry Effects
           </h1>
           <p className="text-white/60 mt-1">
-            Manage room entrance animations for VIP users
+            Heavy VIP entrance animations (car, dragon, phoenix, etc.) — unlocked by VIP/Noble tier
           </p>
         </div>
         <Button
@@ -289,7 +289,7 @@ export default function AdminEntryBanners() {
           className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Banner
+          Add Effect
         </Button>
       </div>
 
