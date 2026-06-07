@@ -1664,8 +1664,10 @@ const Chat = () => {
       });
     }
 
-    if (newMessage.message_type === 'gift' && markGiftMessageAnimationPlayed(newMessage.id)) {
-      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+    if (newMessage.message_type === 'gift') {
+      if (markGiftMessageAnimationPlayed(newMessage.id)) {
+        playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
+      }
     } else {
       playSoundDebounced('message');
     }
