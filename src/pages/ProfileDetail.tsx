@@ -1342,7 +1342,7 @@ const ProfileDetail = () => {
 
           {/* Action Buttons - Only for OTHER users' profiles */}
           {!isOwnProfile && (
-            <div className={`grid ${profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
+            <div className={`grid ${canStartProfileCall ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/chat?user=${userId}`)}
@@ -1356,7 +1356,7 @@ const ProfileDetail = () => {
                 <span>Message</span>
               </motion.button>
 
-              {profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) && (
+              {canStartProfileCall && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCallClick}
