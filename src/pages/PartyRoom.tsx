@@ -2069,6 +2069,17 @@ const PartyRoom = () => {
         }
       }
 
+      // Phase-A fix: also unpublish the user's LiveKit tracks via the
+      // moderation edge function. Without this the "kicked" user remains
+      // visible/audible in the room until they manually close the tab.
+      try {
+        const lkRoomName = `party_${roomId}`;
+        const res = await hostKickParticipant({ roomName: lkRoomName, identity: userId, reason: 'host_kick' });
+        if (!res.success) console.warn('[PartyRoom] LiveKit kick failed:', res.error);
+      } catch (e) {
+        console.warn('[PartyRoom] LiveKit kick threw:', e);
+      }
+
       // Remove user from seat AND room
       await supabase
         .from('party_room_participants')
@@ -2103,9 +2114,20 @@ const PartyRoom = () => {
 
   // Mute user (for admins/hosts)
   const muteUser = async (userId: string) => {
-    if (!canManageUsers) return;
-    // Would send a signal via WebRTC or database to mute
-    toast.success("User muted");
+    if (!canManageUsers || !roomId) return;
+    try {
+      const lkRoomName = `party_${roomId}`;
+      const res = await hostMuteParticipantAudio({ roomName: lkRoomName, identity: userId, reason: 'host_mute' });
+      if (res.success) {
+        toast.success("User muted");
+      } else {
+        console.warn('[PartyRoom] LiveKit mute failed:', res.error);
+        toast.error("Failed to mute user");
+      }
+    } catch (e) {
+      console.error('[PartyRoom] muteUser error:', e);
+      toast.error("Failed to mute user");
+    }
     setSelectedParticipant(null);
   };
 
