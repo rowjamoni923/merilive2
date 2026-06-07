@@ -63,6 +63,18 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   // black flash + stall-watchdog reset on every viewer mute click).
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
+  // Stable-identity ref: parent re-renders can pass a NEW Track wrapper for
+  // the SAME underlying mediaStreamTrack (e.g. when LiveKit publication
+  // metadata updates). Gating the attach effect on the underlying media id
+  // prevents needless detach/re-attach (which is the 5-10s "camera blank"
+  // bug reported on Live/Party/Private — surface goes blank because cleanup
+  // ran `detach(el)` even though the very next attach is the same track).
+  const videoTrackRef = useRef(videoTrack);
+  videoTrackRef.current = videoTrack;
+  const trackKey =
+    videoTrack?.mediaStreamTrack?.id ||
+    (videoTrack as unknown as { sid?: string })?.sid ||
+    null;
 
   // Hide video element until first real frame arrives — prevents native play-icon flash
   // without painting any visible color (no black overlay, container stays transparent).
@@ -86,6 +98,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   useEffect(() => {
     const el = videoRef.current;
+    const videoTrack = videoTrackRef.current;
     if (!el || !videoTrack) return;
 
     const mediaTrack = videoTrack.mediaStreamTrack;
@@ -260,7 +273,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.onwaiting = null;
       el.onstalled = null;
     };
-  }, [videoTrack]);
+  }, [trackKey]);
 
   // Pkg-audit#2: separate effect to apply mute changes WITHOUT re-attaching the track.
   useEffect(() => {
