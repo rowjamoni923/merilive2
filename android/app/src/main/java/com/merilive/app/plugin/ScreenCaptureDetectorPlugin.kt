@@ -72,5 +72,6 @@ class ScreenCaptureDetectorPlugin : Plugin() {
         } catch (_: Exception) {}
         registered = false
         callback = null
+        super.handleOnDestroy()
     }
 }
