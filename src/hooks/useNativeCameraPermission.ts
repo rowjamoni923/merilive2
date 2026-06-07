@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
-import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCameraWhenStopped } from '@/lib/androidCameraHandoff';
+import { releaseAndroidWebViewCameraWhenStopped } from '@/lib/androidCameraHandoff';
 
 interface CameraPermissionResult {
   granted: boolean;
