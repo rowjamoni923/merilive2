@@ -1780,12 +1780,15 @@ const Chat = () => {
           playGiftAnimationFromContent(latestUnreadGift.content || '', latestUnreadGift.sender_id, true);
         }
 
-        await supabase
-          .from('messages')
-          .update({ is_read: true })
-          .in('id', unreadIds);
+        // Use RPC because RLS only allows the sender to UPDATE messages.
+        // The receiver must mark-read via SECURITY DEFINER function.
+        const { data: updatedCount } = await supabase.rpc('mark_messages_read', {
+          p_message_ids: unreadIds,
+        });
 
-        emitGlobalUnreadRefresh({ messagesDecrement: unreadIds.length });
+        emitGlobalUnreadRefresh({
+          messagesDecrement: typeof updatedCount === 'number' ? updatedCount : unreadIds.length,
+        });
       }
     }
   };
