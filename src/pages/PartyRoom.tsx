@@ -1696,15 +1696,7 @@ const PartyRoom = () => {
         console.log('[PartyRoom] Host leaving - closing room with is_active: false');
         const closedAt = new Date().toISOString();
 
-        // Pkg78: Supabase `party-room-close-${roomId}` broadcast REMOVED.
-        // LiveKit publishPartyClosed is the sole instant fanout path.
-
-        // Pkg75 audit fix: AWAIT publishPartyClosed BEFORE the LiveKit Room
-        // can be disconnected by the unmount cleanup. Previously fire-and-forget,
-        // which meant `publishData(reliable)` could be queued but never flushed
-        // when cleanupWebRTC ran right after leaveRoom — viewers then had to
-        // wait for the 20s safety poll. Awaiting (~<50ms) guarantees the
-        // packet leaves the host's Room while it is still `connected`.
+        // 1) Fanout party_closed FIRST while still connected to LiveKit.
         await publishPartyClosed(roomId, {
           hostId: currentUser.id,
           closedAt,
@@ -1713,7 +1705,11 @@ const PartyRoom = () => {
           return false;
         });
 
-        // Then mark room as inactive in database
+        // 2) Release camera/mic immediately so host hardware is freed and
+        // any next media app gets audio focus back. DB writes follow.
+        try { cleanupWebRTC(); } catch (e) { console.warn('[PartyRoom] cleanupWebRTC failed:', e); }
+
+        // 3) Mark room inactive in database
         const { error: updateError } = await supabase
           .from('party_rooms')
           .update({ is_active: false, ended_at: closedAt })
@@ -1735,7 +1731,8 @@ const PartyRoom = () => {
         
         // Pkg78: closeChannel removed; no cleanup needed.
       } else {
-        // Regular participant leaving
+        // Regular participant leaving — release local mic/cam first.
+        try { cleanupWebRTC(); } catch (e) { console.warn('[PartyRoom] cleanupWebRTC failed:', e); }
         await supabase
           .from('party_room_participants')
           .update({ left_at: new Date().toISOString(), seat_number: null })

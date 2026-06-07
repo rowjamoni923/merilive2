@@ -2269,9 +2269,7 @@ const LiveStream = () => {
 
     try {
       if (id && streamData?.host_id) {
-        // Signal FIRST while the host is still connected to LiveKit. If we wait
-        // for DB/stat queries first, the host can disconnect before reliable
-        // DataPacket flushes and viewers stay on a blank live screen.
+        // 1) Fanout stream_ended to viewers FIRST while still connected to LiveKit.
         const hostName = hostInfo?.name || 'Host';
         try {
           const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
@@ -2282,59 +2280,48 @@ const LiveStream = () => {
         } catch (e) {
           console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
         }
-        console.log('[LiveStream] ⚡ stream_ended sent before DB end flow');
+        console.log('[LiveStream] ⚡ stream_ended sent — releasing camera/mic NOW');
 
-        // SESSION-SPECIFIC: Get gift earnings only for THIS stream session
-        const { data: sessionGifts } = await supabase
-          .from("gift_transactions")
-          .select("coin_amount")
-          .eq("stream_id", id)
-          .eq("receiver_id", streamData.host_id);
+        // 2) Release camera/mic IMMEDIATELY so the host's hardware is freed and
+        // any subsequent video playback gets audio focus back. Stat queries +
+        // end_live_stream RPC run AFTER, off the critical path.
+        try { await leaveChannel(); } catch (e) { console.warn('[LiveStream] leaveChannel failed:', e); }
 
-        if (sessionGifts && sessionGifts.length > 0) {
-          // Sum all coin_amount for this session
-          const totalCoins = sessionGifts.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
+        // 3) Background: gather session stats + DB end flow.
+        try {
+          const { data: sessionGifts } = await supabase
+            .from("gift_transactions")
+            .select("coin_amount")
+            .eq("stream_id", id)
+            .eq("receiver_id", streamData.host_id);
 
-          // ✅ USE REAL-TIME adminGiftCommission from state (already synced with Admin Panel)
-          // No need to fetch again - using the live value from real-time subscription
-          const hostPercent = adminGiftCommission;
+          if (sessionGifts && sessionGifts.length > 0) {
+            const totalCoins = sessionGifts.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
+            const hostPercent = adminGiftCommission;
+            giftEarnings = Math.floor((totalCoins * hostPercent) / 100);
+          }
 
-          console.log('[LiveStream] Using real-time gift commission for earnings:', hostPercent);
+          const { data: viewers } = await supabase
+            .from("stream_viewers")
+            .select("viewer_id")
+            .eq("stream_id", id);
+          if (viewers) audiences = viewers.length;
 
-          // Calculate host's actual earnings after commission
-          giftEarnings = Math.floor((totalCoins * hostPercent) / 100);
+          const { data: endResult, error: endError } = await supabase.rpc('end_live_stream', {
+            p_stream_id: id,
+          });
+
+          if (endError) {
+            console.error('[LiveStream] end_live_stream RPC failed:', endError);
+            recordClientError({ label: 'LiveStream.end_live_stream', message: endError.message });
+          } else if (endResult && typeof endResult === 'object') {
+            const result = endResult as any;
+            audiences = Number(result.audience_count ?? audiences) || audiences;
+            giftEarnings = Number(result.beans_earned ?? giftEarnings) || giftEarnings;
+          }
+        } catch (statsErr) {
+          console.warn('[LiveStream] Stats/end-RPC failed (camera already released):', statsErr);
         }
-
-        // Call earnings for this session (if any)
-        // For now, use the real-time totalBeans as a fallback
-        // In future, implement session-specific call tracking
-
-        // Get unique viewers count
-        const { data: viewers } = await supabase
-          .from("stream_viewers")
-          .select("viewer_id")
-          .eq("stream_id", id);
-
-        if (viewers) {
-          audiences = viewers.length;
-        }
-
-        // Server-side end flow is the source of truth: marks stream ended,
-        // closes active stream_viewers rows, resets viewer_count, and returns
-        // exact session stats. No Supabase Realtime channel is used here.
-        const { data: endResult, error: endError } = await supabase.rpc('end_live_stream', {
-          p_stream_id: id,
-        });
-
-        if (endError) {
-          console.error('[LiveStream] end_live_stream RPC failed:', endError);
-          recordClientError({ label: 'LiveStream.end_live_stream', message: endError.message });
-        } else if (endResult && typeof endResult === 'object') {
-          const result = endResult as any;
-          audiences = Number(result.audience_count ?? audiences) || audiences;
-          giftEarnings = Number(result.beans_earned ?? giftEarnings) || giftEarnings;
-        }
-
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
@@ -2344,17 +2331,11 @@ const LiveStream = () => {
     const stats: LiveEndStats = {
       duration: calculateDuration(),
       audiences,
-      giftEarnings, // SESSION-SPECIFIC: Only gifts from THIS live stream
-      callEarnings, // Call earnings (placeholder for future)
+      giftEarnings,
+      callEarnings,
     };
     setLiveEndStats(stats);
-
-    // Note: live_minutes are now tracked periodically every 60s via useEffect below
-    try {
-      await leaveChannel();
-    } finally {
-      setShowLiveEndSummary(true);
-    }
+    setShowLiveEndSummary(true);
   };
 
   const handleCloseSummary = () => {
