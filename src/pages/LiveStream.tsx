@@ -2734,7 +2734,7 @@ const LiveStream = () => {
   // Host-only options: Beauty + Mic toggle + PK Battle (all moved off bottom
   // bar). Beauty uses its own Sparkles icon (was rendering blank before).
   const hostOnlyOptions = [
-    { id: "mic", name: isHostMicMuted ? "Unmute" : "Mute", iconName: (isHostMicMuted ? "MicOff" : "Mic") as const, color: isHostMicMuted ? "from-red-400 to-rose-600" : "from-cyan-400 to-teal-500", shadowColor: "shadow-cyan-500/40", action: () => { setShowMoreOptions(false); const next = !isHostMicMuted; setIsHostMicMuted(next); toggleAudio(!next); } },
+    { id: "mic", name: isHostMicMuted ? "Unmute" : "Mute", iconName: (isHostMicMuted ? "MicOff" as const : "Mic" as const), color: isHostMicMuted ? "from-red-400 to-rose-600" : "from-cyan-400 to-teal-500", shadowColor: "shadow-cyan-500/40", action: () => { setShowMoreOptions(false); const next = !isHostMicMuted; setIsHostMicMuted(next); toggleAudio(!next); } },
     { id: "pk", name: "PK Battle", iconName: "Swords" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => { setShowMoreOptions(false); handleOpenPKPanel(); } },
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
   ];
