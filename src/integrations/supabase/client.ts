@@ -89,6 +89,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       }).then(async (resp) => {
         if (!adminToken || resp.ok || resp.status === 304) return resp;
         if (!requestUrl.includes('/rest/v1/') && !requestUrl.includes('/functions/v1/')) return resp;
+        // Error telemetry must never create a user-visible admin toast loop.
+        // If the telemetry endpoint itself is denied/slow, keep the original
+        // failure silent; the admin panel must remain usable.
+        if (requestUrl.includes('/rest/v1/system_error_logs')) return resp;
         let bodyText = '';
         try { bodyText = await resp.clone().text(); } catch {}
         let message = bodyText;
