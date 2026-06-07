@@ -68,24 +68,27 @@ public class DocumentPickerPlugin extends Plugin {
             return;
         }
         boolean readContent = Boolean.TRUE.equals(call.getData().getBoolean("readContent"));
-
         Intent data = result.getData();
-        JSArray files = new JSArray();
         ContentResolver cr = getContext().getContentResolver();
 
+        // Collect URIs on caller thread (cheap), then move I/O off main thread to avoid ANR.
+        final java.util.List<Uri> uris = new java.util.ArrayList<>();
         if (data.getClipData() != null) {
             for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                Uri uri = data.getClipData().getItemAt(i).getUri();
-                files.put(describe(uri, cr, readContent));
+                uris.add(data.getClipData().getItemAt(i).getUri());
             }
         } else if (data.getData() != null) {
-            files.put(describe(data.getData(), cr, readContent));
+            uris.add(data.getData());
         }
 
-        JSObject o = new JSObject();
-        o.put("files", files);
-        o.put("cancelled", false);
-        call.resolve(o);
+        new Thread(() -> {
+            JSArray files = new JSArray();
+            for (Uri uri : uris) files.put(describe(uri, cr, readContent));
+            JSObject o = new JSObject();
+            o.put("files", files);
+            o.put("cancelled", false);
+            call.resolve(o);
+        }, "DocumentPicker-IO").start();
     }
 
     private JSObject describe(Uri uri, ContentResolver cr, boolean readContent) {
