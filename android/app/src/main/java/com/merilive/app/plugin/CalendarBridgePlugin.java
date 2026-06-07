@@ -57,12 +57,12 @@ public class CalendarBridgePlugin extends Plugin {
                 .putExtra(CalendarContract.Reminders.MINUTES, reminderMinutes != null ? reminderMinutes : 15)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-            if (intent.resolveActivity(getContext().getPackageManager()) == null) {
+            try {
+                getContext().startActivity(intent);
+            } catch (android.content.ActivityNotFoundException e) {
                 call.reject("No calendar app installed");
                 return;
             }
-
-            getContext().startActivity(intent);
             JSObject ret = new JSObject();
             ret.put("launched", true);
             call.resolve(ret);
