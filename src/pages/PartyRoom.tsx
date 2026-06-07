@@ -832,17 +832,34 @@ const PartyRoom = () => {
       (table, event, payload) => {
         const row = payload as any;
         if (row?.room_id !== roomId) return;
-        
+
         console.log(`[SeatRequest Realtime] ${event} detected for room ${roomId}`);
-        
+
         // Pkg361 ZERO-REFRESH: Instant seat list update
         // With REPLICA IDENTITY FULL, we always have room_id even on DELETE/UPDATE.
         void fetchSeatRequests();
-        
-        // If someone just requested a seat, play a sound for the host
-        if (event === 'INSERT' && isHost) {
+
+        // F4 — If someone just requested a seat, host gets a real name toast
+        // (Realtime payload has NO requester_name column → fetch profile).
+        if (event === 'INSERT' && isHost && row.status === 'pending') {
           playSound('notification');
-          toast.info(`${row.requester_name || 'Someone'} requested a seat`);
+          const requesterId = row.requester_id || row.user_id;
+          const seatPos = row.seat_position ?? row.seat_number;
+          (async () => {
+            let name = 'A viewer';
+            if (requesterId) {
+              const { data: prof } = await supabase
+                .from('profiles_public')
+                .select('display_name')
+                .eq('id', requesterId)
+                .maybeSingle();
+              if (prof?.display_name) name = prof.display_name;
+            }
+            const seatLabel = typeof seatPos === 'number' ? ` Seat ${seatPos + 1}` : ' a seat';
+            toast.info(`${name} requested${seatLabel}`);
+          })().catch(() => {
+            toast.info('Someone requested a seat');
+          });
         }
       }
     );
@@ -1010,13 +1027,12 @@ const PartyRoom = () => {
           type: 'join' as const,
           timestamp: new Date(),
         }]);
-        void supabase.from('party_room_messages').insert({
-          room_id: roomId,
-          user_id: data.userId,
-          content: 'joined the room ✨',
-          message_type: 'join',
-        });
-        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl || data.rankCode) && isMountedRef.current) {
+        // F2 — Client-side `party_room_messages` insert REMOVED.
+        // DB trigger `trg_party_participants_announce_join` now writes the
+        // join row exactly ONCE (was N−1 duplicates: one per receiver client).
+        // F5 — Always trigger entry namebar for every viewer (gradient fallback
+        // in useEntryAnimations when no equipped URL). Chamet-parity.
+        if (isMountedRef.current) {
           addEntryAnimation({
             userId: data.userId,
             displayName: data.userName,
