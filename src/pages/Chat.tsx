@@ -2442,7 +2442,7 @@ const Chat = () => {
                   )}
                   <div
                     id={`msg-${msg.id}`}
-                    className={cn("flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
+                    className={cn("chat-msg-row flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
                   >
                     <div className={cn("flex gap-2 max-w-[78%]", isMine && "flex-row-reverse")}>
                     {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
