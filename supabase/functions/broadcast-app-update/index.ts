@@ -303,10 +303,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Record de-dupe key.
-    await supabase.from("admin_broadcast").insert({
-      title: dedupeKey,
-      message: `Auto-broadcast: v${version} update push sent to ${okCount} devices`,
-    }).select().maybeSingle();
+    await supabase.from("app_update_broadcast_log").insert({
+      version_code: versionCodeKey,
+      version_name: version,
+      platform: versionRow.platform || "android",
+      devices_targeted: deviceTokens.length,
+      devices_delivered: okCount,
+    });
 
     console.log(`[broadcast-app-update] Done. ok=${okCount} fail=${failCount} invalidated=${invalidTokens.length}`);
 
