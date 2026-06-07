@@ -494,6 +494,11 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Throwable) { false }
     }
 
+    @PluginMethod
+    fun connect(call: PluginCall) {
+        if (getPermissionState("camera") != PermissionState.GRANTED ||
+            getPermissionState("microphone") != PermissionState.GRANTED
+        ) {
             requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permsCallback")
             return
         }
