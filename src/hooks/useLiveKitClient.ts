@@ -423,6 +423,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // stream immediately. Otherwise WebView's getUserMedia holds the
         // hardware handle and Native Camera2 fails to start (black screen).
         clearPreparedHostPreviewStream({ stopTracks: true });
+        try { config.preloadedVideoTrack?.stop(); } catch { /* noop */ }
+        try { config.preloadedAudioTrack?.stop(); } catch { /* noop */ }
         await releaseAndroidWebViewCameraNow('live:native-before-connect');
         await new Promise((resolve) => setTimeout(resolve, 900));
 
