@@ -114,8 +114,8 @@ class NativeHeartBurstPlugin : Plugin() {
         }
     }
 
-    private fun acquireHeart(): TextView {
-        val act = activity!!
+    private fun acquireHeart(): TextView? {
+        val act = activity ?: return null
         val tv = pool.pollFirst() ?: TextView(act).apply {
             includeFontPadding = false
             setTextColor(Color.parseColor("#FF3B6B"))
