@@ -555,38 +555,39 @@ const ProfileDetail = () => {
     const onOwnBeans = () => {
       if (currentUser?.id && targetId === currentUser.id) void fetchData(true);
     };
-    // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
-    const refetchLiveStatus = async () => {
+    // Realtime presence subscription (replaces polling — Core rule: no polling in place of realtime).
+    const refetchPresenceStatus = async () => {
       try {
-        const { data } = await supabase
-          .from('live_streams')
-          .select('id, title, viewer_count, is_active')
-          .eq('host_id', targetId)
-          .eq('is_active', true)
-          .maybeSingle();
-        if (data) {
-          setActiveLiveStream({ id: data.id, title: data.title || '', viewer_count: data.viewer_count || 0 });
+        const { data } = await supabase.rpc('get_public_profile_presence_v1' as any, { p_user_id: targetId });
+        const presence = Array.isArray(data) ? (data[0] as any) : (data as any);
+        if (presence?.is_live && presence.live_stream_id) {
+          setActiveLiveStream({ id: presence.live_stream_id, title: presence.live_title || '', viewer_count: presence.live_viewer_count || 0 });
         } else {
           setActiveLiveStream(null);
         }
+        setActivePartyRoom(presence?.is_party && presence.party_room_id
+          ? { id: presence.party_room_id, name: presence.party_room_name || 'Party Room' }
+          : null);
+        setIsPresenceBusy(Boolean(presence?.is_busy));
+        setIsPresenceOnline(Boolean(presence?.is_online));
       } catch { /* noop */ }
     };
-    const unsubscribeLive = subscribeToTables(
-      `profile-detail-live-${targetId}`,
-      ['live_streams'],
+    const unsubscribePresence = subscribeToTables(
+      `profile-detail-presence-${targetId}`,
+      ['live_streams', 'party_rooms', 'private_calls', 'profiles'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as { host_id?: string } | undefined;
-        if (row?.host_id === targetId) void refetchLiveStatus();
+        const row = (payload?.new ?? payload?.old) as { host_id?: string; id?: string } | undefined;
+        if (row?.host_id === targetId || row?.id === targetId) void refetchPresenceStatus();
       }
     );
-    void refetchLiveStatus();
+    void refetchPresenceStatus();
 
     window.addEventListener('app-sync', onAppSync as EventListener);
     window.addEventListener('own-beans-updated', onOwnBeans);
     return () => {
       window.removeEventListener('app-sync', onAppSync as EventListener);
       window.removeEventListener('own-beans-updated', onOwnBeans);
-      unsubscribeLive();
+      unsubscribePresence();
     };
   }, [userId, currentUser?.id, fetchData]);
 
