@@ -137,7 +137,10 @@ public class NotificationHelper {
         NotificationChannel promoChannel = new NotificationChannel(
             CHANNEL_PROMO, "Promotions & Events", NotificationManager.IMPORTANCE_LOW);
         promoChannel.setDescription("Offers, events, campaigns, re-engagement");
-        promoChannel.setSound(defaultSound, audioAttrs);
+        // Pkg-audit Tier-3: IMPORTANCE_LOW channels are silenced unconditionally
+        // by the OS — setSound() on them is a no-op that misleads readers.
+        // Explicit null documents the intent and avoids confusion.
+        promoChannel.setSound(null, null);
         promoChannel.enableVibration(false);
         promoChannel.enableLights(false);
         promoChannel.setShowBadge(false);
@@ -365,6 +368,24 @@ public class NotificationHelper {
         try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_GIFT, builder.build());
         } catch (SecurityException ignored) {}
+
+        // Pkg-audit Tier-3: post a matching group summary. Without it, grouped
+        // notifications using setGroup(GROUP_GIFTS) are silently suppressed on
+        // Android 7+ when more than one is active — users would simply never see
+        // back-to-back gift notifications.
+        NotificationCompat.Builder giftSummary = new NotificationCompat.Builder(context, CHANNEL_GIFTS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
+            .setContentTitle("New gifts")
+            .setContentText(senderName + " sent you " + giftName)
+            .setGroup(GROUP_GIFTS)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+            .setContentIntent(pendingIntent);
+        try {
+            NotificationManagerCompat.from(context).notify(SUMMARY_GIFTS, giftSummary.build());
+        } catch (SecurityException ignored) {}
     }
 
     /**
@@ -431,6 +452,23 @@ public class NotificationHelper {
 
         try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_LIVE, builder.build());
+        } catch (SecurityException ignored) {}
+
+        // Pkg-audit Tier-3: matching group summary for GROUP_LIVE (same
+        // rationale as GROUP_GIFTS — grouped notifications without a summary
+        // are suppressed by the system on Android 7+).
+        NotificationCompat.Builder liveSummary = new NotificationCompat.Builder(context, CHANNEL_LIVE)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
+            .setContentTitle("Live now")
+            .setContentText(hostName + " is live")
+            .setGroup(GROUP_LIVE)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+            .setContentIntent(pendingIntent);
+        try {
+            NotificationManagerCompat.from(context).notify(SUMMARY_LIVE, liveSummary.build());
         } catch (SecurityException ignored) {}
     }
 

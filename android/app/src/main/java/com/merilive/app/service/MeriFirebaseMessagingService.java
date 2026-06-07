@@ -67,6 +67,9 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
         if (type == null) type = "default";
 
+        // Pkg-audit Tier-3: track whether the switch already rendered something
+        // so the notification-payload fallback below never double-fires.
+        boolean handledBySwitch = true;
         switch (type) {
             case "incoming_call":
                 handleIncomingCall(data);
@@ -81,17 +84,22 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
                 handleLiveStart(data);
                 break;
             default:
-                handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
+                // Only render a generic default-channel banner when the data
+                // payload carries its own title; otherwise let the notification-
+                // payload fallback below handle it (prevents the double-fire
+                // where the default branch posts "MeriLive" + an empty body and
+                // the fallback then posts the real notification.title moments
+                // later).
+                if (data.containsKey("title")) {
+                    handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
+                } else {
+                    handledBySwitch = false;
+                }
                 break;
         }
 
         // FCM notification-payload fallback (only when our data switch didn't already render).
-        if (remoteMessage.getNotification() != null
-                && !"incoming_call".equals(type)
-                && !"message".equals(type)
-                && !"gift".equals(type)
-                && !"live_start".equals(type)
-                && !data.containsKey("title")) {
+        if (!handledBySwitch && remoteMessage.getNotification() != null) {
             String nTitle = remoteMessage.getNotification().getTitle();
             String nBody = remoteMessage.getNotification().getBody();
             if (nTitle != null) {
@@ -164,6 +172,14 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             avatar = loadBitmapFromUrl(callerAvatar);
         }
 
+        // Pkg-audit Tier-3: honour server-supplied ring_timeout_seconds instead
+        // of hardcoded 30s. Clamp to [10s, 120s] to defend against bad payloads.
+        long timeoutMs = 30_000L;
+        try {
+            long parsed = Long.parseLong(ringTimeoutSec.trim());
+            if (parsed >= 10) timeoutMs = Math.min(parsed, 120L) * 1000L;
+        } catch (NumberFormatException ignored) {}
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
@@ -178,7 +194,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setWhen(System.currentTimeMillis())
             .setFullScreenIntent(fullScreenPI, true)
             .setContentIntent(fullScreenPI)
-            .setTimeoutAfter(30000)
+            .setTimeoutAfter(timeoutMs)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
 
@@ -252,10 +268,17 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
 
     private void handleGeneral(String title, String body, String channelId, String imageUrl, String iconEmoji) {
+        // Pkg-audit Tier-3: compute the unique notification id FIRST and reuse it
+        // as the PendingIntent request code. Previously the request code was
+        // hardcoded 0 + FLAG_UPDATE_CURRENT, so every general notification
+        // overwrote the extras of all prior ones (tapping a newer "live_start"
+        // banner could open MainActivity with stale "gift" extras).
+        int notifId = (int) (System.currentTimeMillis() % 100000);
+
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(
-            this, 0, intent,
+            this, notifId, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // Prefix title with emoji for premium feel (Recharge Mega → 💎 Recharge Mega)
@@ -291,7 +314,6 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
         }
 
-        int notifId = (int) (System.currentTimeMillis() % 100000);
         try {
             NotificationManagerCompat.from(this).notify(notifId, builder.build());
         } catch (SecurityException ignored) {
@@ -346,19 +368,27 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private Bitmap loadBitmapFromUrl(String urlString) {
+        // Pkg-audit Tier-3: always release stream + connection in finally —
+        // burst push delivery (e.g. gift storms) was leaking file descriptors
+        // and sockets until SocketException: Too many open files.
+        HttpURLConnection conn = null;
+        InputStream input = null;
         try {
             URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setInstanceFollowRedirects(true);
             conn.setDoInput(true);
             conn.setConnectTimeout(8000);
             conn.setReadTimeout(8000);
             conn.connect();
-            InputStream input = conn.getInputStream();
+            input = conn.getInputStream();
             return BitmapFactory.decodeStream(input);
         } catch (Exception e) {
             Log.w(TAG, "loadBitmapFromUrl failed: " + e.getMessage());
             return null;
+        } finally {
+            try { if (input != null) input.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
         }
     }
 }

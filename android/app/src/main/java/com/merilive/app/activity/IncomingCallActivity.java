@@ -76,6 +76,12 @@ public class IncomingCallActivity extends AppCompatActivity {
         callerName = intent.getStringExtra("caller_name");
         callerAvatar = intent.getStringExtra("caller_avatar");
         callType = intent.getStringExtra("call_type");
+        // Pkg-audit Tier-3: a null callId previously short-circuited the
+        // ACTION_END_INCOMING_UI broadcast guard (other-id mismatch became
+        // false, falling through to finish()), so any unrelated end-broadcast
+        // could dismiss this activity. Coerce to "" + tighten the guard below.
+        if (callId == null) callId = "";
+        if (callerId == null) callerId = "";
         if (callerName == null) callerName = "Unknown Caller";
         if (callType == null) callType = "video";
 
@@ -159,7 +165,11 @@ public class IncomingCallActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent ix) {
                 if (!ACTION_END_INCOMING_UI.equals(ix.getAction())) return;
                 String otherId = ix.getStringExtra("call_id");
-                if (otherId != null && callId != null && !otherId.equals(callId)) return;
+                // Pkg-audit Tier-3: tightened guard — only ignore when we
+                // KNOW this broadcast targets a different active call.
+                if (callId != null && !callId.isEmpty()
+                        && otherId != null && !otherId.isEmpty()
+                        && !otherId.equals(callId)) return;
                 stopRinging();
                 // Phase 3 fix (B6): if the user already accepted/declined we
                 // must NOT fire a second "dismissed" event into JS — it would
@@ -184,10 +194,39 @@ public class IncomingCallActivity extends AppCompatActivity {
     }
 
     private void dispatchAction(String action) {
-        if (actionDispatched && !"dismissed".equals(action) && !"presented".equals(action)) return;
-        actionDispatched = true;
+        // Pkg-audit Tier-3: previously "dismissed" was allowed through even
+        // after a terminal action was dispatched, which let the BT-headset
+        // reject path emit BOTH "decline" (from MeriConnection.onReject) and
+        // a follow-up "dismissed" via the end broadcast. Block every non-
+        // "presented" action once any terminal action was dispatched.
+        if (actionDispatched && !"presented".equals(action)) return;
+        if (!"presented".equals(action)) actionDispatched = true;
         NativeCallPlugin.dispatch(getApplicationContext(),
             callId, callerId, callerName, callType, action);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent == null) return;
+        setIntent(intent);
+        // Pkg-audit Tier-3: when the activity is reused (singleTop / singleTask)
+        // for a new incoming call, re-read the extras and reset actionDispatched
+        // — otherwise the previous call's terminal flag silently swallows the
+        // new call's Accept / Decline taps.
+        String nid = intent.getStringExtra("call_id");
+        if (nid != null && !nid.isEmpty() && !nid.equals(callId)) {
+            callId = nid;
+            String cid = intent.getStringExtra("caller_id");
+            if (cid != null) callerId = cid;
+            String cn = intent.getStringExtra("caller_name");
+            if (cn != null && !cn.isEmpty()) callerName = cn;
+            String ca = intent.getStringExtra("caller_avatar");
+            if (ca != null) callerAvatar = ca;
+            String ct = intent.getStringExtra("call_type");
+            if (ct != null && !ct.isEmpty()) callType = ct;
+            actionDispatched = false;
+        }
     }
 
     private void cancelCallNotification() {

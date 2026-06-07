@@ -17,8 +17,12 @@ import com.merilive.app.util.NotificationHelper;
  */
 public class CallActionReceiver extends BroadcastReceiver {
 
-    public static final String ACTION_ACCEPT = "ACCEPT_CALL";
-    public static final String ACTION_DECLINE = "DECLINE_CALL";
+    // Pkg-audit Tier-3: package-qualified action strings prevent intra-process
+    // collisions with libraries/modules that may broadcast bare "ACCEPT_CALL"
+    // intents. All references go through these constants, so changing the
+    // values is sufficient.
+    public static final String ACTION_ACCEPT = "com.merilive.app.ACCEPT_CALL";
+    public static final String ACTION_DECLINE = "com.merilive.app.DECLINE_CALL";
 
     @Override
     public void onReceive(Context context, Intent intent) {

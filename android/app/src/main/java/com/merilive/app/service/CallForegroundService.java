@@ -41,11 +41,6 @@ public class CallForegroundService extends Service {
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
     private static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
-    private String currentCallId = "";
-    private String currentCallerId = "";
-    private String currentCallerName = "";
-    private String currentCallType = "";
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
@@ -64,11 +59,6 @@ public class CallForegroundService extends Service {
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
 
-        currentCallId = callId;
-        currentCallerId = callerId;
-        currentCallerName = callerName;
-        currentCallType = callType;
-
         Notification notification = buildNotification(callerName, callType, callId, callerId, null);
 
         // Pkg229 — typed startForeground required since API 29 for camera/mic FGS
@@ -85,14 +75,21 @@ public class CallForegroundService extends Service {
 
         // Async-load avatar then re-issue the same notification id so the
         // ongoing call heads-up upgrades to the avatar-rich CallStyle render.
+        // Pkg-audit Tier-3: capture all four call fields into FINAL locals so
+        // the background thread can never read newer values written by a
+        // concurrent onStartCommand for a different call (data race).
         if (callerAvatar != null && !callerAvatar.isEmpty()) {
             final String avatarUrl = callerAvatar;
+            final String snapName = callerName;
+            final String snapType = callType;
+            final String snapCallId = callId;
+            final String snapCallerId = callerId;
             new Thread(() -> {
                 Bitmap bmp = loadBitmapFromUrl(avatarUrl);
                 if (bmp == null) return;
                 try {
                     Notification withAvatar = buildNotification(
-                        currentCallerName, currentCallType, currentCallId, currentCallerId, bmp);
+                        snapName, snapType, snapCallId, snapCallerId, bmp);
                     NotificationManagerCompat.from(getApplicationContext())
                         .notify(FOREGROUND_NOTIFICATION_ID, withAvatar);
                 } catch (Throwable t) {
@@ -159,19 +156,27 @@ public class CallForegroundService extends Service {
     }
 
     private Bitmap loadBitmapFromUrl(String urlString) {
+        // Pkg-audit Tier-3: always close InputStream + disconnect HttpURLConnection,
+        // otherwise burst call-notification updates leak file descriptors and
+        // sockets until SocketException: Too many open files.
+        HttpURLConnection conn = null;
+        InputStream input = null;
         try {
             URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setInstanceFollowRedirects(true);
             conn.setDoInput(true);
             conn.setConnectTimeout(8000);
             conn.setReadTimeout(8000);
             conn.connect();
-            InputStream input = conn.getInputStream();
+            input = conn.getInputStream();
             return BitmapFactory.decodeStream(input);
         } catch (Exception e) {
             Log.w(TAG, "loadBitmapFromUrl failed: " + e.getMessage());
             return null;
+        } finally {
+            try { if (input != null) input.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
         }
     }
 
