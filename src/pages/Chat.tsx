@@ -66,8 +66,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { NotificationList } from "@/components/notifications/NotificationList";
-import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import { messageOutbox, type OutboxItem } from "@/lib/messageOutbox";
 import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
