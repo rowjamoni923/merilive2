@@ -560,6 +560,8 @@ class NativeGiftAnimationPlugin : Plugin() {
         // a job that was actually externally cancelled / cleared / errored.
         slot.finished.set(true)
         mainHandler.removeCallbacks(slot.watchdog)
+        slot.deferredFinish?.let { mainHandler.removeCallbacks(it) }
+        slot.deferredFinish = null
         try { slot.animView?.stopPlay() } catch (_: Throwable) {}
         try { slot.svgaView?.stopAnimation(true) } catch (_: Throwable) {}
         try { slot.lottieView?.cancelAnimation() } catch (_: Throwable) {}
