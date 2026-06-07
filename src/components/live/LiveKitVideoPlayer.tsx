@@ -98,6 +98,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   useEffect(() => {
     const el = videoRef.current;
+    const videoTrack = videoTrackRef.current;
     if (!el || !videoTrack) return;
 
     const mediaTrack = videoTrack.mediaStreamTrack;
