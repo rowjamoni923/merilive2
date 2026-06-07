@@ -835,6 +835,35 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * Phase F — Switch the professional audio profile mid-session.
+     *
+     * Profiles: `"voice"` | `"broadcast"` | `"music"`. Because Opus
+     * publish bitrate + AEC/NS chain are pinned at room-create time,
+     * we rebuild the room (hard-reconnect) with the new profile. Mic
+     * intent is preserved; video resumes on the same camera lens.
+     *
+     * Safe to call repeatedly; a no-op if the profile is unchanged.
+     */
+    @PluginMethod
+    fun setAudioProfile(call: PluginCall) {
+        val profile = (call.getString("profile") ?: "").lowercase()
+        if (profile !in setOf("voice", "broadcast", "music")) {
+            call.reject("profile must be one of voice|broadcast|music"); return
+        }
+        val args = lastConnectArgs ?: return call.reject("Not connected")
+        if (args.audioProfile == profile) { call.resolve(); return }
+        lastConnectArgs = args.copy(audioProfile = profile)
+        scope.launch {
+            try {
+                connectInternal(lastConnectArgs!!, isReconnect = true)
+                val ret = JSObject(); ret.put("profile", profile); call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("setAudioProfile failed: ${e.message}")
+            }
+        }
+    }
+
     @PluginMethod
     fun setCameraEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", true) ?: true
