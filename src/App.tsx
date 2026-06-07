@@ -1187,9 +1187,9 @@ const App = () => {
               <RouteTransitionHost />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
-              {session && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
-              {!isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
-              {!isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
+              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
