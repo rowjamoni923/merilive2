@@ -12,7 +12,7 @@
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 import { getNativeLiveKitKillSwitch } from '@/lib/nativeLiveKitKillSwitch';
 
-export type NativeLiveKitFeature = 'live-broadcast' | 'private-call';
+export type NativeLiveKitFeature = 'live-broadcast' | 'private-call' | 'party-room';
 
 interface GateInput {
   feature: NativeLiveKitFeature;
