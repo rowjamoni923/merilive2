@@ -284,7 +284,12 @@ export const useNotifications = () => {
     console.log('Subscribing to notifications for user:', currentUserId);
 
     const channels: any[] = [];
-    const uniqueSuffix = Date.now();
+    // Use a truly unique suffix per effect run. StrictMode (and rapid
+    // currentUserId changes) can fire the effect twice within the same
+    // millisecond — Date.now() alone collides and `supabase.channel(name)`
+    // returns the already-subscribed channel, which then throws
+    // "cannot add postgres_changes callbacks after subscribe()".
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
     // Regular notifications channel
     const regularChannel = supabase
