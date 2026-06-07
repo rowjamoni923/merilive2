@@ -197,7 +197,8 @@ class NativeVAPPlugin : Plugin() {
                 tmp.delete()
             }
         } finally {
-            conn.disconnect()
+            try { conn.disconnect() } catch (_: Throwable) {}
+            try { if (tmp.exists() && !target.exists()) tmp.delete() } catch (_: Throwable) {}
         }
         downloadCache[url] = target
         return target
