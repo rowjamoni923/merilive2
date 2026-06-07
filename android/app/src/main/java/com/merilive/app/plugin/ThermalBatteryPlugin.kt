@@ -122,7 +122,14 @@ class ThermalBatteryPlugin : Plugin() {
                 try { notifyListeners("batteryChange", batterySnapshot(i)) } catch (_: Throwable) {}
             }
         }
-        context.registerReceiver(r, filter)
+        // Pkg-audit Tier-13: API 33+ enforces explicit export flag on
+        // context-registered receivers (targetSdk 34). System-broadcast only,
+        // so RECEIVER_NOT_EXPORTED is correct — without it, SecurityException
+        // at registration kills the battery snapshot path entirely.
+        androidx.core.content.ContextCompat.registerReceiver(
+            context, r, filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         batteryReceiver = r
     }
 
