@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { detectPhoneNumber } from '@/utils/phoneNumberDetector';
 import { useToast } from '@/hooks/use-toast';
