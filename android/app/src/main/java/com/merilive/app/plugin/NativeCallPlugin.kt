@@ -48,8 +48,15 @@ class NativeCallPlugin : Plugin() {
         // Pending actions queued before JS attaches a listener (cold-start).
         private val pending = ConcurrentLinkedQueue<JSONObject>()
 
+        // Pkg-audit fix: real dedup state for acknowledgeAction(). FCM
+        // duplicate delivery (two pushes for same call) previously slipped
+        // through because acknowledgeAction was a no-op.
+        private val ackedActions = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        private const val ACK_TTL_MS = 10 * 60 * 1000L // 10 minutes
+
         @Volatile
         private var INSTANCE: NativeCallPlugin? = null
+
 
         @JvmStatic
         fun dispatch(
@@ -60,8 +67,28 @@ class NativeCallPlugin : Plugin() {
             callType: String?,
             action: String,
         ) {
+            // Pkg-audit fix: real dedup — FCM can deliver the same intent twice
+            // (notification action + activity button race, retry on poor net).
+            // Drop if we've already acked this (callId,action) pair recently.
+            val cid = callId ?: ""
+            if (cid.isNotEmpty() && action.isNotEmpty()) {
+                val now = System.currentTimeMillis()
+                // Opportunistic eviction of stale entries.
+                val it = ackedActions.entries.iterator()
+                while (it.hasNext()) {
+                    val e = it.next()
+                    if (now - e.value > ACK_TTL_MS) it.remove()
+                }
+                val key = "$cid:$action"
+                val prev = ackedActions.putIfAbsent(key, now)
+                if (prev != null) {
+                    // Duplicate within TTL — collapse silently.
+                    return
+                }
+            }
+
             val payload = JSONObject().apply {
-                put("callId", callId ?: "")
+                put("callId", cid)
                 put("callerId", callerId ?: "")
                 put("callerName", callerName ?: "")
                 put("callType", callType ?: "video")
@@ -69,11 +96,8 @@ class NativeCallPlugin : Plugin() {
                 put("ts", System.currentTimeMillis())
             }
 
-            // Pkg-audit fix: previously the payload was always appended to
-            // `pending` AND delivered live → on next cold-start drain JS would
-            // replay every already-handled action (esp. `accept`) and tear down
-            // the freshly-connected room. Only queue when no live listener
-            // exists OR live delivery failed.
+            // Only queue when no live listener exists OR live delivery failed —
+            // never both (would replay accepted actions on cold-start drain).
             val plugin = INSTANCE
             if (plugin != null) {
                 try {
@@ -86,6 +110,7 @@ class NativeCallPlugin : Plugin() {
             pending.offer(payload)
             trim()
         }
+
 
 
         /** Cap the queue so we don't OOM if many calls fire while app is dead. */
@@ -150,10 +175,18 @@ class NativeCallPlugin : Plugin() {
      */
     @PluginMethod
     fun acknowledgeAction(call: PluginCall) {
+        // Pkg-audit fix: actually record the ack so a subsequent dispatch with
+        // the same (callId,action) is dropped at the source (see dispatch()).
+        val callId = call.getString("callId") ?: ""
+        val action = call.getString("action") ?: ""
+        if (callId.isNotEmpty() && action.isNotEmpty()) {
+            ackedActions["$callId:$action"] = System.currentTimeMillis()
+        }
         val ret = JSObject()
         ret.put("ack", true)
         call.resolve(ret)
     }
+
 
     /**
      * Dismiss the heads-up call notification + finish any visible

@@ -70,7 +70,10 @@ class NativeEntryAnimationPlugin : Plugin() {
         if (byPri != 0) byPri else a.enqueuedAt.compareTo(b.enqueuedAt)
     }
     private val jobsLock = Any()
-    private var activeJob: Job? = null
+    // Pkg-audit fix: written on main thread, read on plugin/binder thread
+    // (cancel()). Without @Volatile a stale null could miss an active cancel.
+    @Volatile private var activeJob: Job? = null
+
     private var activeView: View? = null
     private var activeAnim: AnimView? = null
     private var activeLottie: LottieAnimationView? = null
@@ -208,29 +211,38 @@ class NativeEntryAnimationPlugin : Plugin() {
         val wd = Runnable { finishActive("timeout") }
         activeWatchdog = wd
         mainHandler.postDelayed(wd, job.timeoutMs)
+        // Pkg-audit fix: capture the job we started so a late download-failure
+        // doesn't tear down a different (innocent) job that started meanwhile.
+        val capturedJob = job
         downloadExecutor.execute {
-            val file = try { resolveLocalFile(job.url) } catch (_: Throwable) { null }
+            val file = try { resolveLocalFile(capturedJob.url) } catch (_: Throwable) { null }
             if (file == null) {
-                activity.runOnUiThread { finishActive("download failed") }; return@execute
+                activity.runOnUiThread {
+                    if (activeJob?.id != capturedJob.id) return@runOnUiThread
+                    finishActive("download failed")
+                }
+                return@execute
             }
             activity.runOnUiThread {
                 if (activeFinished.get()) return@runOnUiThread
+                if (activeJob?.id != capturedJob.id) return@runOnUiThread
                 try {
-                    when (job.type) {
-                        "vap"    -> renderVAP(job, file)
-                        "lottie" -> renderLottie(job, file)
-                        "image"  -> renderImage(job, file)
-                        else     -> renderImage(job, file)
+                    when (capturedJob.type) {
+                        "vap"    -> renderVAP(capturedJob, file)
+                        "lottie" -> renderLottie(capturedJob, file)
+                        "image"  -> renderImage(capturedJob, file)
+                        else     -> renderImage(capturedJob, file)
                     }
-                    GiftAudioMixer.play(job.soundUrl, 0.85f)
+                    GiftAudioMixer.play(capturedJob.soundUrl, 0.85f)
                     emit("entry:start", JSObject()
-                        .put("id", job.id).put("url", job.url).put("type", job.type))
+                        .put("id", capturedJob.id).put("url", capturedJob.url).put("type", capturedJob.type))
                 } catch (t: Throwable) {
                     finishActive("render: ${t.message}")
                 }
             }
         }
     }
+
 
     private fun finishActive(reason: String) {
         if (!activeFinished.compareAndSet(false, true)) return

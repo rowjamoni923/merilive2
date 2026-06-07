@@ -130,9 +130,14 @@ public class IncomingCallActivity extends AppCompatActivity {
             String s = intent.getStringExtra("ring_timeout_seconds");
             if (s != null && !s.isEmpty()) {
                 long parsed = Long.parseLong(s.trim());
-                if (parsed >= 10 && parsed <= 120) ringTimeoutMs = parsed * 1000L;
+                // Pkg-audit fix: previously a value > 120 silently fell to the
+                // 30s default. Clamp instead so admin intent is honored.
+                if (parsed >= 10) {
+                    ringTimeoutMs = Math.min(parsed, 120L) * 1000L;
+                }
             }
         } catch (Exception ignored) {}
+
         timeoutHandler = new Handler(Looper.getMainLooper());
         timeoutRunnable = () -> {
             stopRinging();

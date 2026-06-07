@@ -232,17 +232,22 @@ class LiveKitPlugin : Plugin() {
     //   • > STALL_HARD_MS (12 s) and recovery already attempted twice →
     //     emit "video-stall-failed" so JS can show a banner / fall back.
     // Counters reset on every successful frame and on attach/detach.
-    private data class StallEntry(
-        var lastFrameMs: Long,
-        var attempts: Int,
-        var lastAttemptMs: Long,
+    // Pkg-audit fix: lastFrameMs/frameCount/attempts are written from the
+    // WebRTC decoding thread (onFrame) and read from Dispatchers.Main (stall
+    // watchdog). Without @Volatile, weak-memory devices can return stale fps
+    // reads, miss stalls, or corrupt the retry counter. data class fields
+    // can't carry @Volatile, so we converted to a regular class.
+    private class StallEntry(
+        @Volatile var lastFrameMs: Long,
+        @Volatile var attempts: Int,
+        @Volatile var lastAttemptMs: Long,
         val isLocal: Boolean,
-        val sid: String, // participant sid; "local" for our own preview
-        // Step 28 — running frame counter (monotonic) used to derive fps.
-        var frameCount: Long = 0L,
-        var lastSampleFrameCount: Long = 0L,
-        var lastSampleMs: Long = 0L,
+        val sid: String,
+        @Volatile var frameCount: Long = 0L,
+        @Volatile var lastSampleFrameCount: Long = 0L,
+        @Volatile var lastSampleMs: Long = 0L,
     )
+
     private val stallTable = mutableMapOf<String, StallEntry>()
     private val stallSinks = mutableMapOf<String, VideoSink>()
     private var stallWatchdogJob: Job? = null
@@ -2364,12 +2369,16 @@ class LiveKitPlugin : Plugin() {
                     .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
+                // Pkg-audit fix: VoIP must own audio focus EXCLUSIVELY. The old
+                // GAIN_TRANSIENT_MAY_DUCK let music/podcasts/assistants duck the
+                // call mid-sentence. Use GAIN (permanent, exclusive) and disable
+                // setWillPauseWhenDucked since the SDK handles transient PSTN loss.
                 val req = android.media.AudioFocusRequest.Builder(
-                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+                        AudioManager.AUDIOFOCUS_GAIN
                     )
                     .setAudioAttributes(attrs)
                     .setAcceptsDelayedFocusGain(true)
-                    .setWillPauseWhenDucked(true)
+                    .setWillPauseWhenDucked(false)
                     .setOnAudioFocusChangeListener(listener)
                     .build()
                 audioFocusRequest = req
@@ -2379,9 +2388,10 @@ class LiveKitPlugin : Plugin() {
                 am.requestAudioFocus(
                     listener,
                     AudioManager.STREAM_VOICE_CALL,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+                    AudioManager.AUDIOFOCUS_GAIN
                 )
             }
+
             hasAudioFocus = granted == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             if (!hasAudioFocus) {
                 Log.w(TAG, "requestAudioFocus not granted (=$granted) — continuing anyway")
@@ -2585,7 +2595,14 @@ class LiveKitPlugin : Plugin() {
     private fun setProximityMonitoringInternal(on: Boolean) {
         try {
             if (on) {
-                if (proximityWakeLock?.isHeld == true) return
+                // Pkg-audit fix: always release any existing lock BEFORE
+                // acquiring a new one. The previous "return if held" path leaked
+                // the WakeLock when reconnect re-entered with a different
+                // audio/video mode, leaving the screen permanently dark.
+                proximityWakeLock?.let {
+                    try { if (it.isHeld) it.release() } catch (_: Exception) {}
+                }
+                proximityWakeLock = null
                 val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
                 if (!pm.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) return
                 val wl = pm.newWakeLock(
@@ -2603,6 +2620,7 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "setProximityMonitoringInternal($on) failed: ${e.message}")
         }
     }
+
 
     // ------------------------------------------------------------
     // Audio device routing internals (Step 13)

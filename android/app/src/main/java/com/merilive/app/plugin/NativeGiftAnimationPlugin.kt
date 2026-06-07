@@ -523,6 +523,11 @@ class NativeGiftAnimationPlugin : Plugin() {
     }
 
     private fun tearDown(slot: Slot) {
+        // Pkg-audit fix: mark finished BEFORE cancelling animators. Lottie's
+        // cancelAnimation() synchronously fires onAnimationCancel which would
+        // otherwise call finishOk() and emit a false "gift:complete" event for
+        // a job that was actually externally cancelled / cleared / errored.
+        slot.finished.set(true)
         mainHandler.removeCallbacks(slot.watchdog)
         try { slot.animView?.stopPlay() } catch (_: Throwable) {}
         try { slot.svgaView?.stopAnimation(true) } catch (_: Throwable) {}
@@ -538,6 +543,7 @@ class NativeGiftAnimationPlugin : Plugin() {
         slot.rootView = null
         activeJobIds.remove(slot.job.id)
     }
+
 
     // ─── Helpers ────────────────────────────────────────────────────────────
 
