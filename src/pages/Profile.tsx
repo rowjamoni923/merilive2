@@ -3478,28 +3478,30 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       </Dialog>
 
        {/* User Beans Exchange Modal - For regular users only */}
-       <UserBeansExchangeModal
-         open={showUserBeansExchangeModal}
-         onOpenChange={setShowUserBeansExchangeModal}
-         currentBeans={beans}
-         userId={currentUser?.id || ""}
-          onExchangeComplete={() => {
-            // Refresh balance without page reload
-            refetchBalance();
-            // Re-fetch profile data inline
-            const targetId = currentUser?.id;
-            if (targetId) {
-              supabase.from("profiles").select("beans, coins").eq("id", targetId).maybeSingle().then(({ data }) => {
-                if (data) {
-                  setBeans(data.beans || 0);
-                  if (data.coins !== undefined) {
-                    updateCachedBalance(data.coins);
-                  }
-                }
-              });
-            }
-          }}
-       />
+       {showUserBeansExchangeModal && (
+         <Suspense fallback={null}>
+           <UserBeansExchangeModal
+             open={showUserBeansExchangeModal}
+             onOpenChange={setShowUserBeansExchangeModal}
+             currentBeans={beans}
+             userId={currentUser?.id || ""}
+             onExchangeComplete={() => {
+               refetchBalance();
+               const targetId = currentUser?.id;
+               if (targetId) {
+                 supabase.from("profiles").select("beans, coins").eq("id", targetId).maybeSingle().then(({ data }) => {
+                   if (data) {
+                     setBeans(data.beans || 0);
+                     if (data.coins !== undefined) {
+                       updateCachedBalance(data.coins);
+                     }
+                   }
+                 });
+               }
+             }}
+           />
+         </Suspense>
+       )}
     </div>
   );
 };
