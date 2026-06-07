@@ -53,6 +53,16 @@ public class CallActionReceiver extends BroadcastReceiver {
 
         if (ACTION_DECLINE.equals(action)) {
             NativeCallPlugin.dispatch(context, callId, callerId, callerName, callType, "decline");
+            // Pkg-audit Tier-12 (High): also tell Telecom this call ended.
+            // Without this the self-managed Connection object stays in the
+            // ConnectionService map forever — the system call log shows the
+            // call as ringing indefinitely AND the BT End button is no-op
+            // on the next call because audio focus is stuck.
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    com.merilive.app.telecom.TelecomBridge.reportEnded(callId, false);
+                }
+            } catch (Throwable ignored) {}
             // Decline does NOT need the call foreground service.
             try {
                 Intent stop = new Intent(context, CallForegroundService.class);
@@ -61,6 +71,15 @@ public class CallActionReceiver extends BroadcastReceiver {
             } catch (Exception ignored) {}
         } else if (ACTION_ACCEPT.equals(action)) {
             NativeCallPlugin.dispatch(context, callId, callerId, callerName, callType, "accept");
+            // Pkg-audit Tier-12 (High): promote the Telecom Connection to
+            // ACTIVE so audio routes correctly (BT > wired > speaker) and
+            // the system call log records this as a connected call instead
+            // of a missed ring. Safe no-op when no Connection exists yet.
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    com.merilive.app.telecom.TelecomBridge.reportConnected(callId);
+                }
+            } catch (Throwable ignored) {}
 
             // Pkg203 — start the call foreground service IMMEDIATELY so Android
             // keeps the process alive while JS boots + connects to LiveKit. Without
