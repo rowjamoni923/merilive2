@@ -87,6 +87,11 @@ class NativeEntryAnimationPlugin : Plugin() {
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private var activeWatchdog: Runnable? = null
+    // Pkg-audit fix: secondary deferred runnable for image slide-out — must be
+    // cancellable on finishActive so it doesn't fire 4.5s post-cancel with a
+    // stale view reference.
+    private var activeDeferred: Runnable? = null
+
 
     // ─── Public API ─────────────────────────────────────────────────────────
 
@@ -249,6 +254,9 @@ class NativeEntryAnimationPlugin : Plugin() {
         val job = activeJob
         activeWatchdog?.let { mainHandler.removeCallbacks(it) }
         activeWatchdog = null
+        activeDeferred?.let { mainHandler.removeCallbacks(it) }
+        activeDeferred = null
+
         try { activeAnim?.stopPlay() } catch (_: Throwable) {}
         try { activeLottie?.cancelAnimation() } catch (_: Throwable) {}
         activeView?.let { v ->
@@ -329,7 +337,10 @@ class NativeEntryAnimationPlugin : Plugin() {
             .alpha(1f).translationX(0f)
             .setInterpolator(DecelerateInterpolator())
             .setDuration(SLIDE_DURATION_MS).start()
-        mainHandler.postDelayed({
+        // Pkg-audit fix: track this deferred slide-out so finishActive can
+        // cancel it on early cancel/timeout instead of leaking a 4.5s reference
+        // to the (potentially detached) ImageView.
+        val deferred = Runnable {
             iv.animate()
                 .alpha(0f)
                 .translationX(if (job.anchor == "top") iv.resources.displayMetrics.widthPixels.toFloat()
@@ -338,8 +349,11 @@ class NativeEntryAnimationPlugin : Plugin() {
                 .setDuration(SLIDE_DURATION_MS)
                 .withEndAction { finishActive("complete") }
                 .start()
-        }, IMAGE_DURATION_MS)
+        }
+        activeDeferred = deferred
+        mainHandler.postDelayed(deferred, IMAGE_DURATION_MS)
     }
+
 
     private fun makeLp(anchor: String): FrameLayout.LayoutParams =
         FrameLayout.LayoutParams(

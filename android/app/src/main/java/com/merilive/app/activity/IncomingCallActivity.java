@@ -93,9 +93,14 @@ public class IncomingCallActivity extends AppCompatActivity {
             io.execute(() -> {
                 final Bitmap bmp = loadBitmapFromUrl(callerAvatar);
                 if (bmp == null) return;
-                runOnUiThread(() -> ivAvatar.setImageBitmap(bmp));
+                // Pkg-audit fix: don't post to a destroyed activity.
+                runOnUiThread(() -> {
+                    if (isDestroyed() || isFinishing()) return;
+                    ivAvatar.setImageBitmap(bmp);
+                });
             });
         }
+
 
         btnAccept.setOnClickListener(v -> {
             stopRinging();
@@ -244,6 +249,7 @@ public class IncomingCallActivity extends AppCompatActivity {
 
     private Bitmap loadBitmapFromUrl(String urlString) {
         HttpURLConnection conn = null;
+        InputStream input = null;
         try {
             URL url = new URL(urlString);
             conn = (HttpURLConnection) url.openConnection();
@@ -251,14 +257,18 @@ public class IncomingCallActivity extends AppCompatActivity {
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
             conn.connect();
-            InputStream input = conn.getInputStream();
+            input = conn.getInputStream();
             return BitmapFactory.decodeStream(input);
         } catch (Exception e) {
             return null;
         } finally {
+            // Pkg-audit fix: explicitly close the stream (disconnect() only
+            // tears down the TCP socket — InputStream object stays open).
+            try { if (input != null) input.close(); } catch (Exception ignored) {}
             try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
         }
     }
+
 
     @Override
     protected void onDestroy() {

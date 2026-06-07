@@ -125,8 +125,13 @@ class NativeCallPlugin : Plugin() {
     override fun load() {
         super.load()
         INSTANCE = this
-        flushPending()
+        // Pkg-audit fix: do NOT auto-flush on load() — Capacitor's retain
+        // buffer only holds events until ANY listener attaches (for any event
+        // name), so flushing here can be consumed by an unrelated listener and
+        // lost. Keep events in `pending`; JS drains them explicitly via
+        // getLastAction() once usePrivateCall has mounted its listener.
     }
+
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
