@@ -250,19 +250,24 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       transaction_id: result.transactionId,
       coins_spent: result.coinsSpent,
       beans_earned: result.hostReceived,
-      host_percent: result.hostPercent
+      host_percent: result.hostPercent,
+      diamond_bonus: result.diamondBonus,
+      is_lucky: result.isLucky,
     });
 
     // Pkg85: Instant My Diamond update for sender.
+    // newBalance from RPC already reflects (initial - spent + luckyBonus).
     if (typeof result.newBalance === 'number' && Number.isFinite(result.newBalance)) {
       try {
         updateCachedBalance(Math.max(0, result.newBalance));
       } catch {}
     } else if (result.coinsSpent && result.coinsSpent > 0) {
       try {
-        updateCachedBalance(Math.max(0, getCachedBalance() - result.coinsSpent));
+        const net = getCachedBalance() - result.coinsSpent + (result.diamondBonus || 0);
+        updateCachedBalance(Math.max(0, net));
       } catch {}
     }
+
 
     // Safety net: if optimistic publish did NOT actually fire (LiveKit disabled,
     // room not connected yet, kill-switch off), re-publish now with the verified
