@@ -270,6 +270,16 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       } catch {}
     }
 
+    // 🎰 LUCKY GIFT WIN — show celebratory toast to sender with bonus amount.
+    // Per spec: "she sees +N diamond bonus instantly added to My Diamond".
+    if (result.isLucky && (result.diamondBonus || 0) > 0) {
+      try {
+        toast.success(`🎉 Lucky Win! +${result.diamondBonus} 💎`, {
+          description: 'Bonus diamonds added to your wallet',
+          duration: 4000,
+        });
+      } catch {}
+    }
 
     // Safety net: if optimistic publish did NOT actually fire (LiveKit disabled,
     // room not connected yet, kill-switch off), re-publish now with the verified
@@ -308,11 +318,13 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftCoins: gift?.coins || 0,
             totalCoins: result.coinsSpent || 0,
             receiverBeans: result.hostReceived || 0,
+            luckyBonus: result.diamondBonus || 0,
             timestamp: Date.now(),
           }).catch((err) => console.warn('[Pkg76] fallback publishGiftSent failed:', err));
         } catch (err) {
           console.warn('[GiftingService] fallback broadcast failed (non-fatal):', err);
         }
+
       })();
     }
 
