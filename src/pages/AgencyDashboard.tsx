@@ -2052,14 +2052,16 @@ const AgencyDashboard = () => {
             </>
           ) : (
             // Not Applied Yet - Show Application Form using the dedicated component
-            <HelperApplicationForm 
-              agencyId={agency?.id}
-              onSuccess={() => {
-                setShowHelperDialog(false);
-                setHelperPendingApplication(true);
-              }}
-              onClose={() => setShowHelperDialog(false)}
-            />
+            <Suspense fallback={null}>
+              <HelperApplicationForm 
+                agencyId={agency?.id}
+                onSuccess={() => {
+                  setShowHelperDialog(false);
+                  setHelperPendingApplication(true);
+                }}
+                onClose={() => setShowHelperDialog(false)}
+              />
+            </Suspense>
           )}
 
           <Button 
