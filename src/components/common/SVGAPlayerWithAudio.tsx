@@ -15,10 +15,7 @@ import {
   circularizeAvatar,
   applyDynamicImage,
   applyDynamicText,
-  AVATAR_KEY_ALIASES,
-  FRAME_KEY_ALIASES,
-  NAME_KEY_ALIASES,
-  LEVEL_KEY_ALIASES,
+  discoverSlots,
   type SVGAText,
 } from '@/utils/svgaDynamicAssets';
 
@@ -181,25 +178,30 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
         player.setVideoItem(videoItemToUse);
 
-        // Chamet/BIGO-style dynamic compositing: inject the user's avatar /
-        // frame / name / level INTO the SVGA timeline BEFORE startAnimation
-        // so they move with the animation instead of sitting as a static
-        // HTML overlay on top. No-op when the SVGA template doesn't define
-        // the matching ImageKeys.
+        // Chamet/BIGO-style dynamic compositing — works with ANY admin-
+        // uploaded SVGA. We auto-discover slot keys from the parsed
+        // videoItem (case-insensitive substring + CJK aliases), then
+        // inject avatar/frame/name/level BEFORE startAnimation so they
+        // move per-frame inside the timeline.
+        const slots = discoverSlots(videoItem);
+        if (isAnimationDebugEnabled()) {
+          console.log('[SVGAPlayerWithAudio] 🎯 Discovered SVGA slots', {
+            src: fileTag, avatar: slots.avatar, frame: slots.frame,
+            name: slots.name, level: slots.level, totalKeys: slots.all.length,
+          });
+        }
         if (dynamicAvatarUrl) {
           try {
             const circular = await circularizeAvatar(dynamicAvatarUrl, 192);
             if (!mountedRef.current) return;
-            applyDynamicImage(player, circular, AVATAR_KEY_ALIASES);
+            applyDynamicImage(player, circular, 'avatar', slots);
           } catch {
-            applyDynamicImage(player, dynamicAvatarUrl, AVATAR_KEY_ALIASES);
+            applyDynamicImage(player, dynamicAvatarUrl, 'avatar', slots);
           }
         }
-        if (dynamicFrameUrl) {
-          applyDynamicImage(player, dynamicFrameUrl, FRAME_KEY_ALIASES);
-        }
-        if (dynamicName) applyDynamicText(player, dynamicName, NAME_KEY_ALIASES);
-        if (dynamicLevel) applyDynamicText(player, dynamicLevel, LEVEL_KEY_ALIASES);
+        if (dynamicFrameUrl) applyDynamicImage(player, dynamicFrameUrl, 'frame', slots);
+        if (dynamicName) applyDynamicText(player, dynamicName, 'name', slots);
+        if (dynamicLevel) applyDynamicText(player, dynamicLevel, 'level', slots);
 
         setLoading(false);
         onLoadRef.current?.();
