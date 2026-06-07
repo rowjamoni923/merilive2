@@ -4086,7 +4086,7 @@ class LiveKitPlugin : Plugin() {
     private var beautyProcessor: com.merilive.app.plugin.video.GPUPixelBeautyProcessor? = null
 
     private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
-        beautyProcessor?.let { return it }
+        beautyProcessor?.takeUnless { it.isReleased() }?.let { return it }
         val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
         beautyProcessor = proc
         return proc

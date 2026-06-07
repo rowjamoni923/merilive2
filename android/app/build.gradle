@@ -46,7 +46,9 @@ android {
         abi {
             enable true
             reset()
-            include "armeabi-v7a", "arm64-v8a", "x86_64"
+            // GPUPixel AAR ships native libs only for ARM. Do not publish an
+            // x86_64 split that would boot without libgpupixel/libmars-face-kit.
+            include "armeabi-v7a", "arm64-v8a"
             universalApk false
         }
     }

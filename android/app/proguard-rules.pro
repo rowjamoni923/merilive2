@@ -5,6 +5,8 @@
 -keep class io.livekit.** { *; }
 -keep class com.tencent.qgame.vap.** { *; }
 -keep class com.github.yyued.svga.** { *; }
+-keep class com.pixpark.gpupixel.** { *; }
+-keepclasseswithmembernames class com.pixpark.gpupixel.** { native <methods>; }
 
 # Optimization for size
 -repackageclasses ''
