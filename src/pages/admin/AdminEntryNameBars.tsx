@@ -363,17 +363,17 @@ const AdminEntryNameBars = () => {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-yellow-400" />
-            Entry Name Bars
+            Flying Name Bars
           </h1>
           <p className="text-gray-400 mt-1">
-            Manage flying SVGA name bars that appear when users enter rooms
+            Small slide-in strip (avatar + frame + level + name) shown when a user enters a live room or party
           </p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="bg-purple-600 hover:bg-purple-700" onClick={resetForm}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Name Bar
+              Add Flying Name Bar
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-slate-900 border-purple-500/20 w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
