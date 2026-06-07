@@ -937,6 +937,17 @@ const PartyRoom = () => {
       if (giftData.senderId === cuid) return;
 
       console.log('[PartyRoom] 🟣 ⚡ Pkg76 livekit-gift-sent received:', giftData.giftName);
+      // Pkg-audit MEDIUM: mark dedup so Postgres safety-net skips this gift
+      try {
+        const k = `${giftData.senderId}|${giftData.giftId || ''}|${giftData.count || 1}`;
+        recentGiftDedupRef.current.set(k, Date.now());
+        if (recentGiftDedupRef.current.size > 200) {
+          const cutoff = Date.now() - 10000;
+          for (const [key, ts] of recentGiftDedupRef.current) {
+            if (ts < cutoff) recentGiftDedupRef.current.delete(key);
+          }
+        }
+      } catch { /* ignore */ }
       warmGiftForInstantPlay({
         icon_url: giftData.giftIconUrl || null,
         animation_url: giftData.giftAnimationUrl || null,
