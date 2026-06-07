@@ -2280,7 +2280,22 @@ const LiveStream = () => {
         } catch (e) {
           console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
         }
-        console.log('[LiveStream] ⚡ stream_ended sent — releasing camera/mic NOW');
+        console.log('[LiveStream] ⚡ stream_ended sent — closing DB row + releasing camera/mic NOW');
+
+        // Close the authoritative DB row BEFORE local media teardown/stat work so
+        // Home/Live lists receive the inactive realtime event immediately. The
+        // detailed end_live_stream RPC below is kept for earnings/summary and is
+        // idempotent after this fast close.
+        try {
+          const { data: fastClose, error: fastCloseError } = await supabase.rpc('close_live_stream_now' as any, {
+            p_stream_id: id,
+          });
+          if (fastCloseError || (fastClose as any)?.success === false) {
+            console.error('[LiveStream] close_live_stream_now failed:', fastCloseError || fastClose);
+          }
+        } catch (e) {
+          console.error('[LiveStream] close_live_stream_now exception:', e);
+        }
 
         // 2) Release camera/mic IMMEDIATELY so the host's hardware is freed and
         // any subsequent video playback gets audio focus back. Stat queries +

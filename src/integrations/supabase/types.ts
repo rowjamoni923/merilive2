@@ -18585,6 +18585,7 @@ export type Database = {
       cleanup_stale_party_rooms: { Args: never; Returns: number }
       cleanup_stale_stream_viewers: { Args: never; Returns: Json }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
+      close_live_stream_now: { Args: { p_stream_id: string }; Returns: Json }
       coin_trader_self_recharge: { Args: { amount: number }; Returns: Json }
       coin_trader_transfer_to_agency: {
         Args: { amount: number; target_agency_id: string }
