@@ -68,17 +68,25 @@ class NativeCallPlugin : Plugin() {
                 put("action", action)
                 put("ts", System.currentTimeMillis())
             }
-            pending.offer(payload)
-            trim()
 
+            // Pkg-audit fix: previously the payload was always appended to
+            // `pending` AND delivered live → on next cold-start drain JS would
+            // replay every already-handled action (esp. `accept`) and tear down
+            // the freshly-connected room. Only queue when no live listener
+            // exists OR live delivery failed.
             val plugin = INSTANCE
             if (plugin != null) {
                 try {
                     plugin.notifyListeners("call-action", JSObject.fromJSONObject(payload), true)
                     return
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                    // fall through to queue as safety net
+                }
             }
+            pending.offer(payload)
+            trim()
         }
+
 
         /** Cap the queue so we don't OOM if many calls fire while app is dead. */
         private const val MAX_PENDING = 32
