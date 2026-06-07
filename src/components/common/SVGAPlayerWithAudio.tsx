@@ -180,6 +180,27 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         );
 
         player.setVideoItem(videoItemToUse);
+
+        // Chamet/BIGO-style dynamic compositing: inject the user's avatar /
+        // frame / name / level INTO the SVGA timeline BEFORE startAnimation
+        // so they move with the animation instead of sitting as a static
+        // HTML overlay on top. No-op when the SVGA template doesn't define
+        // the matching ImageKeys.
+        if (dynamicAvatarUrl) {
+          try {
+            const circular = await circularizeAvatar(dynamicAvatarUrl, 192);
+            if (!mountedRef.current) return;
+            applyDynamicImage(player, circular, AVATAR_KEY_ALIASES);
+          } catch {
+            applyDynamicImage(player, dynamicAvatarUrl, AVATAR_KEY_ALIASES);
+          }
+        }
+        if (dynamicFrameUrl) {
+          applyDynamicImage(player, dynamicFrameUrl, FRAME_KEY_ALIASES);
+        }
+        if (dynamicName) applyDynamicText(player, dynamicName, NAME_KEY_ALIASES);
+        if (dynamicLevel) applyDynamicText(player, dynamicLevel, LEVEL_KEY_ALIASES);
+
         setLoading(false);
         onLoadRef.current?.();
 
