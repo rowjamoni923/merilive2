@@ -19577,11 +19577,16 @@ export type Database = {
         Args: { p_call_id: string; p_channel?: string; p_device_info?: Json }
         Returns: Json
       }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: number
+      }
       mark_live_stream_live: { Args: { p_stream_id: string }; Returns: Json }
       mark_messages_delivered: {
         Args: { p_conversation_id: string; p_recipient_id: string }
         Returns: number
       }
+      mark_messages_read: { Args: { p_message_ids: string[] }; Returns: number }
       mark_noble_reminder_sent: {
         Args: { _reminder_type: string; _subscription_id: string }
         Returns: undefined
