@@ -1,5 +1,6 @@
 package com.merilive.app.plugin;
 
+import android.app.Activity;
 import android.os.Build;
 import android.view.Display;
 import android.view.Window;
