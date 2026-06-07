@@ -1009,27 +1009,47 @@ const Chat = () => {
   //    older messages without being yanked away).
   const lastScrollConvIdRef = useRef<string | null>(null);
   const wasNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
   useLayoutEffect(() => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
     if (!container || !end) return;
     const convId = selectedConversation?.id || selectedGroup?.id || null;
     const isNewConversation = lastScrollConvIdRef.current !== convId;
+    const currentLen = (selectedGroup ? groupMessages.length : messages.length);
     // Distance from bottom in px BEFORE the new render-induced layout shift
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     const wasNearBottom = wasNearBottomRef.current || distanceFromBottom < 120;
 
     if (isNewConversation) {
-      // Instant jump – never animate the whole history on open.
+      // Conversation switch — reset tracking and reset the windowed slice.
       lastScrollConvIdRef.current = convId;
-      // Reset windowed view to the most-recent slice for the freshly opened thread.
+      initialScrollDoneRef.current = false;
       setVisibleMessageCount(MESSAGES_PAGE_SIZE);
-      container.scrollTop = container.scrollHeight;
-      requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
-      setTimeout(() => { container.scrollTop = container.scrollHeight; }, 80);
       wasNearBottomRef.current = true;
+    }
+
+    // Keep slamming to the bottom (no animation) until the first real batch of
+    // messages has rendered for this conversation. This handles the case where
+    // useLayoutEffect runs while messages are still loading async, which would
+    // otherwise leave the view stuck at the top (WhatsApp/imo always open at
+    // the latest message).
+    if (!initialScrollDoneRef.current) {
+      container.scrollTop = container.scrollHeight;
+      requestAnimationFrame(() => {
+        if (!chatScrollRef.current) return;
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      });
+      setTimeout(() => {
+        if (!chatScrollRef.current) return;
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }, 80);
+      if (currentLen > 0) {
+        initialScrollDoneRef.current = true;
+      }
       return;
     }
+
     if (wasNearBottom) {
       requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
