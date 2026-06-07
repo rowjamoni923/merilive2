@@ -91,11 +91,14 @@ WelcomeMessage.displayName = 'WelcomeMessage';
 // ============= SINGLE JOIN NOTIFICATION (Bigo/Chamet Professional Style) =============
 interface JoinNotificationItemProps {
   notification: JoinNotification;
+  /** Room context to render proper welcome wording (live vs party). */
+  roomKind?: 'live' | 'party';
 }
 
-const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) => {
+const JoinNotificationItem = memo(({ notification, roomKind = 'live' }: JoinNotificationItemProps) => {
   const level = ensureValidLevel(notification.userLevel);
-  
+  const welcomeText = roomKind === 'party' ? 'entered the party room' : 'entered the live room';
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -150 }}
@@ -137,20 +140,22 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
       </div>
 
       {/* Username - Premium with glow */}
-      <span className="text-white font-bold text-xs md:text-sm truncate max-w-[100px] md:max-w-[150px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+      <span className="text-white font-bold text-xs md:text-sm truncate max-w-[120px] md:max-w-[160px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
         {notification.userName}
       </span>
 
-      {/* Sparkle + "joined the room" */}
-      <div className="flex items-center gap-0.5 text-white/95">
-        <motion.span 
+      {/* Welcome wording — Chamet/BIGO standard */}
+      <div className="flex items-center gap-1 text-white/95">
+        <span className="text-[10px] md:text-xs font-medium italic whitespace-nowrap">
+          {welcomeText}
+        </span>
+        <motion.span
           className="text-sm md:text-base"
           animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 0.6, repeat: 2 }}
         >
           ✨
         </motion.span>
-        <span className="text-[10px] md:text-xs font-medium italic">joined</span>
       </div>
     </motion.div>
   );
