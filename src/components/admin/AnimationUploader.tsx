@@ -164,6 +164,7 @@ export const AnimationUploader: React.FC<Props> = ({
       const uploadPromise = supabase.storage.from(bucket).upload(fileName, file, {
         upsert: true,
         contentType: file.type || 'application/octet-stream',
+        cacheControl: '2592000', // 30 days — animation assets are immutable
       });
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Upload timed out after 90s — check network and retry.')), 90_000)

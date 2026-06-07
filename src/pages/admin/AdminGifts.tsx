@@ -422,6 +422,7 @@ export default function AdminGifts() {
           .upload(fileName, file, {
             upsert: true,
             contentType: file.type || 'application/octet-stream',
+            cacheControl: '2592000', // 30 days — gift assets are immutable
           });
         setUploadProgress(90);
 

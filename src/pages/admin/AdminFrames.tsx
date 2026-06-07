@@ -229,7 +229,7 @@ const AdminFrames = () => {
         const uploadPromise = supabase.storage
           .from('frames')
           .upload(uniqueName, fileToUpload, {
-            cacheControl: '3600',
+            cacheControl: '2592000', // 30 days — frame assets are immutable
             upsert: false,
             contentType: contentType,
           });

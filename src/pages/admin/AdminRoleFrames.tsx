@@ -173,7 +173,7 @@ const AdminRoleFrames = () => {
         
         const { error: uploadError } = await supabase.storage
           .from('animations')
-          .upload(fileName, file, { upsert: true });
+          .upload(fileName, file, { upsert: true, cacheControl: '2592000' });
 
         if (uploadError) throw uploadError;
 

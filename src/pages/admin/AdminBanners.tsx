@@ -155,7 +155,7 @@ export default function AdminBanners() {
 
       const { error: uploadError } = await supabase.storage
         .from("level-assets")
-        .upload(filePath, file);
+        .upload(filePath, file, { cacheControl: '2592000' });
 
       if (uploadError) throw uploadError;
 
