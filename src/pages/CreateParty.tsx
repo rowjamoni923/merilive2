@@ -740,6 +740,18 @@ const CreateParty = () => {
 
       {/* Bottom Controls */}
       <div className="relative z-10 px-4 pb-6 safe-area-bottom space-y-4">
+        {!mediaReady && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleEnableMedia}
+            disabled={isEnablingMedia}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white/15 backdrop-blur-sm border border-amber-200/60 text-white font-bold disabled:opacity-60"
+          >
+            <ModeIcon className="w-5 h-5" />
+            <span>{isEnablingMedia ? "Starting..." : mode === "audio" ? "Enable Microphone" : "Enable Camera"}</span>
+          </motion.button>
+        )}
+
         {/* Action Row */}
         <div className="flex items-center justify-center gap-4">
           {/* Effects Button */}
@@ -784,7 +796,7 @@ const CreateParty = () => {
               <motion.button
                 key={item.id}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleModeChange(item.id as PartyMode)}
+                onClick={() => void handleModeChange(item.id as PartyMode)}
                 className="relative"
               >
                 <span className={cn(
