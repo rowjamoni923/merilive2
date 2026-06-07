@@ -436,7 +436,12 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 connectInternal(lastConnectArgs!!, isReconnect = false)
-                val newRoom = room!!
+                // Pkg-audit fix: a concurrent disconnect() could null `room`
+                // during the suspend in connectInternal — never force-unwrap.
+                val newRoom = room ?: run {
+                    call.reject("LiveKit connect cancelled (disconnected during connect)")
+                    return@launch
+                }
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -450,6 +455,7 @@ class LiveKitPlugin : Plugin() {
                 call.reject("LiveKit connect failed: ${e.message}")
             }
         }
+
     }
 
     /**
@@ -554,6 +560,23 @@ class LiveKitPlugin : Plugin() {
         attachEventListeners(newRoom)
 
         newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
+
+        // Pkg-audit fix: canPublish=false guard on NATIVE path (web path
+        // already has this in useLiveKitCall.ts). A token that denies publish
+        // would silently succeed connect with no media — peer sees a one-way
+        // black face. Throw so the caller can refresh the token + reconnect.
+        try {
+            val perms = newRoom.localParticipant.permissions
+            if (perms != null && !perms.canPublish) {
+                Log.e(TAG, "canPublish=false on native — refusing to publish silently")
+                try {
+                    notifyListeners("publishDenied", JSObject().put("canPublish", false))
+                } catch (_: Exception) {}
+                throw IllegalStateException("Token denied publish (canPublish=false)")
+            }
+        } catch (e: IllegalStateException) { throw e }
+          catch (_: Throwable) { /* permissions read failed — proceed best-effort */ }
+
 
         // Publish local tracks.
         newRoom.localParticipant.setMicrophoneEnabled(args.audio)
@@ -1599,10 +1622,19 @@ class LiveKitPlugin : Plugin() {
             unregisterNetworkCallback()
             lastConnectArgs = null
             val pre = room
-            if (pre != null) runBlocking {
-                try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
-                try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+            if (pre != null) {
+                // Pkg-audit fix: `runBlocking` on the main thread deadlocked here
+                // because setCameraEnabled/setMicrophoneEnabled internally hop to
+                // Dispatchers.Main (which we were blocking). Fire-and-forget on
+                // a detached IO scope so the main thread is never blocked and
+                // the foreground service/audio focus are released promptly.
+                CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                    try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    try { pre.disconnect() } catch (_: Exception) {}
+                }
             }
+
             try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
             try { room?.disconnect() } catch (_: Exception) {}
