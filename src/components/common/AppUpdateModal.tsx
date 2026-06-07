@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Sparkles, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import updateBanner3D from '@/assets/update-banner-3d.jpg';
 
 interface AppUpdateModalProps {
   isOpen: boolean;
@@ -58,46 +59,30 @@ const AppUpdateModal = ({
             </button>
           )}
 
-          {/* Content */}
-          <div className="relative p-6 pt-8">
-            {/* Icon */}
-            <div className="flex justify-center mb-6">
-              <motion.div
-                animate={{ 
-                  y: [0, -8, 0],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }}
-                className="relative"
-              >
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg ${
-                  forceUpdate 
-                    ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-red-500/30' 
-                    : 'bg-gradient-to-br from-primary to-accent shadow-primary/30'
-                }`}>
-                  {forceUpdate ? (
-                    <AlertTriangle className="w-10 h-10 text-white" />
-                  ) : (
-                    <Rocket className="w-10 h-10 text-primary-foreground" />
-                  )}
-                </div>
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="absolute -top-1 -right-1"
-                >
-                  <Sparkles className="w-6 h-6 text-yellow-400" />
-                </motion.div>
-              </motion.div>
-            </div>
+          {/* 3D Hero Banner */}
+          <div className="relative w-full aspect-square overflow-hidden">
+            <img
+              src={updateBanner3D}
+              alt="Update Available - New Version Live on Play Store"
+              className="w-full h-full object-cover"
+              width={1024}
+              height={1024}
+            />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], rotate: [0, 15, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute top-3 left-3"
+            >
+              <Sparkles className="w-6 h-6 text-yellow-400 drop-shadow-lg" />
+            </motion.div>
+          </div>
 
+          {/* Content */}
+          <div className="relative p-6 pt-2">
             {/* Title */}
             <h2 className="text-xl font-bold text-center text-foreground mb-2">
-              {forceUpdate ? '⚠️ Important Update!' : 'New Update Available! 🎉'}
+              {forceUpdate ? 'Important Update Required' : 'New Update Available!'}
             </h2>
             <p className="text-sm text-muted-foreground text-center mb-4">
               {updateMessage || 'A new version is available on Play Store'}
