@@ -79,7 +79,10 @@ class NativeEntryAnimationPlugin : Plugin() {
     private val downloadCache = ConcurrentHashMap<String, File>()
     private val downloadExecutor = Executors.newFixedThreadPool(2)
     private var root: FrameLayout? = null
-    private val mainHandler get() = android.os.Handler(android.os.Looper.getMainLooper())
+    // Single shared Handler — MUST be a property, not a getter. A new Handler
+    // per access makes removeCallbacks() target the wrong instance.
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
     private var activeWatchdog: Runnable? = null
 
     // ─── Public API ─────────────────────────────────────────────────────────
