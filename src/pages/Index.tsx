@@ -56,6 +56,9 @@ interface Profile {
   liveStreamId?: string;
   viewerCount?: number;
   liveThumbnailUrl?: string | null;
+  liveStartedAt?: string | null;
+  activePartyRoomId?: string | null;
+  is_in_party?: boolean | null;
   actuallyBusy?: boolean;
 }
 
@@ -218,21 +221,10 @@ const Index = () => {
     refetchOnMount: false, // Don't refetch on every mount if we have data
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      // ⚡ PARALLEL FETCH: All independent queries at once
-      const liveStreamsRes = await supabase
-        .from("live_streams")
-        .select("id, host_id, title, viewer_count, thumbnail_url, started_at")
-        .eq("is_active", true);
-
-      const liveStreamMap = new Map(liveStreamsRes.data?.map(s => [s.host_id, s]) || []);
-      const liveHostIds = Array.from(liveStreamMap.keys());
-
-      if (subTab === "live" && liveHostIds.length === 0) return [];
-
       // Fetch public-safe host rows through SECURITY DEFINER RPC.
       // profiles_public is security_invoker, so normal users cannot see other
       // users' base profile rows after public SELECT was correctly removed.
-      const profilesRes = await supabase.rpc('get_public_home_hosts_v1' as any, {
+      const profilesRes = await supabase.rpc('get_public_home_hosts_v2' as any, {
         p_selected_country: selectedCountry,
         p_sub_tab: subTab,
         p_current_user_id: currentUserId,
@@ -244,19 +236,21 @@ const Index = () => {
 
       // Map results
       const hostsWithStatus = profiles.map(profile => {
-        const streamData = liveStreamMap.get(profile.id);
-        // Busy/callable status is server-derived by get_public_home_hosts_v1.
+        // Busy/callable/live/party status is server-derived by get_public_home_hosts_v2.
         // Do not query private_calls from the home page: its RLS is participant-only.
         const isActuallyBusy = !!profile.is_in_call;
         return {
           ...profile,
           is_in_call: isActuallyBusy,
           actuallyBusy: isActuallyBusy,
-          isLive: liveStreamMap.has(profile.id),
-          liveStreamId: streamData?.id,
-          viewerCount: streamData?.viewer_count || 0,
-          liveThumbnailUrl: streamData?.thumbnail_url || null,
-          startedAt: streamData?.started_at || new Date().toISOString(),
+          isLive: !!profile.live_stream_id,
+          liveStreamId: profile.live_stream_id || undefined,
+          viewerCount: profile.live_viewer_count || 0,
+          liveThumbnailUrl: profile.live_thumbnail_url || null,
+          liveStartedAt: profile.live_started_at || null,
+          activePartyRoomId: profile.active_party_room_id || null,
+          is_in_party: profile.is_in_party || false,
+          startedAt: profile.live_started_at || new Date().toISOString(),
         };
       });
 

@@ -19261,6 +19261,42 @@ export type Database = {
           username: string
         }[]
       }
+      get_public_home_hosts_v2: {
+        Args: {
+          p_current_user_id?: string
+          p_selected_country?: string
+          p_sub_tab?: string
+        }
+        Returns: {
+          active_party_room_id: string
+          avatar_url: string
+          bio: string
+          call_rate_per_minute: number
+          country_code: string
+          country_flag: string
+          created_at: string
+          display_name: string
+          frame_id: string
+          gender: string
+          host_availability: string
+          host_level: number
+          host_status: string
+          id: string
+          is_face_verified: boolean
+          is_host: boolean
+          is_in_call: boolean
+          is_in_party: boolean
+          is_online: boolean
+          is_verified: boolean
+          last_seen_at: string
+          live_started_at: string
+          live_stream_id: string
+          live_thumbnail_url: string
+          live_viewer_count: number
+          user_level: number
+          username: string
+        }[]
+      }
       get_public_host_countries_v1: {
         Args: never
         Returns: {
@@ -19278,6 +19314,21 @@ export type Database = {
           logo_url: string
           name: string
           total_hosts: number
+        }[]
+      }
+      get_public_profile_presence_v1: {
+        Args: { p_user_id: string }
+        Returns: {
+          is_busy: boolean
+          is_live: boolean
+          is_online: boolean
+          is_party: boolean
+          live_stream_id: string
+          live_title: string
+          live_viewer_count: number
+          party_room_id: string
+          party_room_name: string
+          user_id: string
         }[]
       }
       get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }

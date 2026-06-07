@@ -220,6 +220,9 @@ const ProfileDetail = () => {
 
   // Live stream state
   const [activeLiveStream, setActiveLiveStream] = useState<{ id: string; title: string; viewer_count: number } | null>(null);
+  const [activePartyRoom, setActivePartyRoom] = useState<{ id: string; name: string } | null>(null);
+  const [isPresenceBusy, setIsPresenceBusy] = useState(false);
+  const [isPresenceOnline, setIsPresenceOnline] = useState(!!profileCache?.is_online);
   // Trader status
   const [isTrader, setIsTrader] = useState(false);
   const [traderLevel, setTraderLevel] = useState(0);
@@ -320,6 +323,7 @@ const ProfileDetail = () => {
       followersResult,
       followingResult,
       liveStreamResult,
+      profilePresenceResult,
       traderResult,
     ] = await Promise.all([
       // Current user's diamond balance
@@ -342,6 +346,8 @@ const ProfileDetail = () => {
       supabase.from("followers").select("*", { count: "exact", head: true }).eq("follower_id", targetId),
       // Active live stream
       supabase.from("live_streams").select("id, title, viewer_count").eq("host_id", targetId).eq("is_active", true).maybeSingle(),
+      // Public-safe realtime presence summary: live / party / private-call busy / online
+      supabase.rpc('get_public_profile_presence_v1' as any, { p_user_id: targetId }),
       // Trader/Helper status
       supabase.from("topup_helpers").select("id, trader_level, payroll_enabled").eq("user_id", targetId).eq("is_active", true).eq("is_verified", true).maybeSingle(),
     ]);
@@ -389,8 +395,25 @@ const ProfileDetail = () => {
     setFollowersCount(followersResult?.count || 0);
     setFollowingCount(followingResult?.count || 0);
     
-    // Set active live stream
-    setActiveLiveStream(liveStreamResult?.data as any || null);
+    // Set active presence from SECURITY DEFINER RPC so profile details show
+    // Live / Party / Busy / Online from authoritative active rows, not stale flags.
+    const presenceData = Array.isArray(profilePresenceResult?.data)
+      ? (profilePresenceResult.data[0] as any)
+      : (profilePresenceResult?.data as any);
+    if (presenceData?.is_live && presenceData.live_stream_id) {
+      setActiveLiveStream({
+        id: presenceData.live_stream_id,
+        title: presenceData.live_title || '',
+        viewer_count: presenceData.live_viewer_count || 0,
+      });
+    } else {
+      setActiveLiveStream(liveStreamResult?.data as any || null);
+    }
+    setActivePartyRoom(presenceData?.is_party && presenceData.party_room_id
+      ? { id: presenceData.party_room_id, name: presenceData.party_room_name || 'Party Room' }
+      : null);
+    setIsPresenceBusy(Boolean(presenceData?.is_busy ?? profileData?.is_in_call));
+    setIsPresenceOnline(Boolean(presenceData?.is_online ?? profileData?.is_online));
 
     // Set trader status
     if (traderResult?.data) {
@@ -532,38 +555,39 @@ const ProfileDetail = () => {
     const onOwnBeans = () => {
       if (currentUser?.id && targetId === currentUser.id) void fetchData(true);
     };
-    // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
-    const refetchLiveStatus = async () => {
+    // Realtime presence subscription (replaces polling — Core rule: no polling in place of realtime).
+    const refetchPresenceStatus = async () => {
       try {
-        const { data } = await supabase
-          .from('live_streams')
-          .select('id, title, viewer_count, is_active')
-          .eq('host_id', targetId)
-          .eq('is_active', true)
-          .maybeSingle();
-        if (data) {
-          setActiveLiveStream({ id: data.id, title: data.title || '', viewer_count: data.viewer_count || 0 });
+        const { data } = await supabase.rpc('get_public_profile_presence_v1' as any, { p_user_id: targetId });
+        const presence = Array.isArray(data) ? (data[0] as any) : (data as any);
+        if (presence?.is_live && presence.live_stream_id) {
+          setActiveLiveStream({ id: presence.live_stream_id, title: presence.live_title || '', viewer_count: presence.live_viewer_count || 0 });
         } else {
           setActiveLiveStream(null);
         }
+        setActivePartyRoom(presence?.is_party && presence.party_room_id
+          ? { id: presence.party_room_id, name: presence.party_room_name || 'Party Room' }
+          : null);
+        setIsPresenceBusy(Boolean(presence?.is_busy));
+        setIsPresenceOnline(Boolean(presence?.is_online));
       } catch { /* noop */ }
     };
-    const unsubscribeLive = subscribeToTables(
-      `profile-detail-live-${targetId}`,
-      ['live_streams'],
+    const unsubscribePresence = subscribeToTables(
+      `profile-detail-presence-${targetId}`,
+      ['live_streams', 'party_rooms', 'party_room_participants', 'private_calls', 'profiles'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as { host_id?: string } | undefined;
-        if (row?.host_id === targetId) void refetchLiveStatus();
+        const row = (payload?.new ?? payload?.old) as { host_id?: string; caller_id?: string; user_id?: string; id?: string } | undefined;
+        if (row?.host_id === targetId || row?.caller_id === targetId || row?.user_id === targetId || row?.id === targetId) void refetchPresenceStatus();
       }
     );
-    void refetchLiveStatus();
+    void refetchPresenceStatus();
 
     window.addEventListener('app-sync', onAppSync as EventListener);
     window.addEventListener('own-beans-updated', onOwnBeans);
     return () => {
       window.removeEventListener('app-sync', onAppSync as EventListener);
       window.removeEventListener('own-beans-updated', onOwnBeans);
-      unsubscribeLive();
+      unsubscribePresence();
     };
   }, [userId, currentUser?.id, fetchData]);
 
@@ -754,6 +778,13 @@ const ProfileDetail = () => {
     : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
   const level = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
   const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
+  const isProfileLive = !!activeLiveStream;
+  const isProfileInParty = !!activePartyRoom;
+  const canStartProfileCall = isPresenceOnline
+    && !isProfileLive
+    && !isProfileInParty
+    && !isPresenceBusy
+    && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host);
 
   return (
     <div 
@@ -914,6 +945,24 @@ const ProfileDetail = () => {
  <ChevronRight className="w-3.5 h-3.5 text-slate-700/70" />
             </motion.button>
           )}
+          {!isOwnProfile && !activeLiveStream && activePartyRoom && (
+            <motion.button
+              initial={{ opacity: 0, y: -10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/party/${activePartyRoom.id}`)}
+              className="absolute top-16 right-4 safe-area-top flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(168,85,247,0.86), rgba(124,58,237,0.92))',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 8px 25px rgba(124,58,237,0.35)',
+              }}
+            >
+              <Users className="w-3.5 h-3.5 text-slate-900" />
+              <span className="text-slate-900 text-xs font-bold">PARTY</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-700/70" />
+            </motion.button>
+          )}
         </div>
       </div>
 
@@ -990,18 +1039,23 @@ const ProfileDetail = () => {
                 </Badge>
                 {/* Previous level is now merged into main level display via useRealtimeLevel */}
                 
-                {/* Status: Live > Busy (in call) > Online */}
-                {activeLiveStream ? (
+                {/* Status: Live > Party > Busy > Online */}
+                {isProfileLive ? (
  <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1" />
                     🔴 Live
                   </Badge>
-                ) : profile.is_in_call ? (
+                ) : isProfileInParty ? (
+ <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 text-[10px] shadow-lg shadow-violet-500/25 px-2 py-0.5">
+                    <Users className="w-3 h-3 mr-1" />
+                    Party
+                  </Badge>
+                ) : isPresenceBusy ? (
  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-amber-500/20 px-2 py-0.5">
                     <Phone className="w-3 h-3 mr-1" />
                     Busy
                   </Badge>
-                ) : profile.is_online ? (
+                ) : isPresenceOnline ? (
  <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
                     Online
@@ -1288,7 +1342,7 @@ const ProfileDetail = () => {
 
           {/* Action Buttons - Only for OTHER users' profiles */}
           {!isOwnProfile && (
-            <div className={`grid ${profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
+            <div className={`grid ${canStartProfileCall ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/chat?user=${userId}`)}
@@ -1302,7 +1356,7 @@ const ProfileDetail = () => {
                 <span>Message</span>
               </motion.button>
 
-              {profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) && (
+              {canStartProfileCall && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCallClick}
