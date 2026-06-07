@@ -778,6 +778,13 @@ const ProfileDetail = () => {
     : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
   const level = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
   const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
+  const isProfileLive = !!activeLiveStream;
+  const isProfileInParty = !!activePartyRoom;
+  const canStartProfileCall = isPresenceOnline
+    && !isProfileLive
+    && !isProfileInParty
+    && !isPresenceBusy
+    && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host);
 
   return (
     <div 
@@ -936,6 +943,24 @@ const ProfileDetail = () => {
  <span className="text-slate-900 text-xs font-bold">LIVE</span>
  <span className="text-slate-700/70 text-[10px]">👁 {activeLiveStream.viewer_count || 0}</span>
  <ChevronRight className="w-3.5 h-3.5 text-slate-700/70" />
+            </motion.button>
+          )}
+          {!isOwnProfile && !activeLiveStream && activePartyRoom && (
+            <motion.button
+              initial={{ opacity: 0, y: -10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/party/${activePartyRoom.id}`)}
+              className="absolute top-16 right-4 safe-area-top flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(168,85,247,0.86), rgba(124,58,237,0.92))',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 8px 25px rgba(124,58,237,0.35)',
+              }}
+            >
+              <Users className="w-3.5 h-3.5 text-slate-900" />
+              <span className="text-slate-900 text-xs font-bold">PARTY</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-700/70" />
             </motion.button>
           )}
         </div>
