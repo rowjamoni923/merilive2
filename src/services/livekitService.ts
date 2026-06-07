@@ -72,14 +72,14 @@ const isAuthLikeError = (error: unknown) => {
 };
 
 const invokeLiveKitToken = async (request: LiveKitTokenRequest, accessToken?: string) => {
-  // Pkg439: always forward admin link token when present so admin pages
-  // (e.g. AdminStreamViewer) connect as invisible monitors even when the
-  // operator is also signed-in as a regular Supabase user. Edge function
-  // gives admin token precedence and forces hidden/subscribe-only.
-  const adminLinkToken = getAdminLinkToken();
+  // Pkg439: admin-context calls (AdminStreamViewer) explicitly opt-in via
+  // asAdmin=true so they get an invisible monitor token via the admin link
+  // token header. Regular user calls keep their normal Supabase JWT path
+  // even if the operator happens to also have an admin session.
+  const adminLinkToken = request.asAdmin ? getAdminLinkToken() : (!accessToken ? getAdminLinkToken() : null);
   const headers: Record<string, string> = {};
 
-  if (accessToken) {
+  if (accessToken && !request.asAdmin) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
