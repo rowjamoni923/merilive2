@@ -1207,7 +1207,6 @@ const PartyRoom = () => {
     window.addEventListener('livekit-party-event', handleLiveKitPartyEvent);
 
     return () => {
-      isMountedRef.current = false;
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
@@ -1526,7 +1525,7 @@ const PartyRoom = () => {
       try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
       try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
-  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification]);
+  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification, addEntryAnimation]);
 
 
 
