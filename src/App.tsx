@@ -757,8 +757,7 @@ const App = () => {
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
-      cancelIdle(giftAssetIdleId);
-      cancelIdle(framesIdleId);
+      cancelIdle(batteryIdleId);
       cancelIdle(batteryIdleId);
     };
 
