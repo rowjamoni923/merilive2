@@ -655,6 +655,12 @@ const App = () => {
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
+  useEffect(() => {
+    if (!isAdminRoute || !loading) return;
+    const timer = window.setTimeout(() => setLoading(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [isAdminRoute, loading]);
+
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
     if (isStandalonePublicLocation()) return;
