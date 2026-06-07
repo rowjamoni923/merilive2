@@ -223,6 +223,18 @@ const EntryAnimationFrame: React.FC<EntryAnimationFrameProps> = ({
             onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
             triggerKey={triggerKey}
+            dynamicAvatarUrl={dynamicAvatarUrl}
+            dynamicFrameUrl={dynamicFrameUrl}
+            dynamicName={
+              dynamicUserName
+                ? { text: dynamicUserName, size: '28px', color: '#ffffff' }
+                : null
+            }
+            dynamicLevel={
+              dynamicUserLevel
+                ? { text: `Lv.${dynamicUserLevel}`, size: '22px', color: '#ffe27a' }
+                : null
+            }
           />
         </Suspense>
       </div>
