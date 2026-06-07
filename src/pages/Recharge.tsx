@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
+const SwiftPayDepositModal = lazy(() => import("@/components/recharge/SwiftPayDepositModal"));
 
 interface PaymentGateway {
   id: string;
