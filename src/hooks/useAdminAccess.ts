@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { useEffect, useState } from "react";
 import { getAdminSession, type AdminSession } from "@/utils/adminSession";
@@ -28,21 +28,27 @@ interface AccessibleSection {
  */
 export const useAdminAccess = () => {
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession());
+  const queryClient = useQueryClient();
 
   // Re-read session on storage events (cross-tab)
   useEffect(() => {
     const handler = () => setSession(getAdminSession());
     if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handler);
-      window.addEventListener('admin-session-change', handler);
+      const resetHandler = () => {
+        queryClient.removeQueries({ queryKey: ['verified-admin-id'] });
+        queryClient.removeQueries({ queryKey: ['admin-user'] });
+        queryClient.removeQueries({ queryKey: ['admin-accessible-sections'] });
+        handler();
+      };
+      window.addEventListener('storage', resetHandler);
+      window.addEventListener('admin-session-change', resetHandler);
+      return () => {
+        window.removeEventListener('storage', resetHandler);
+        window.removeEventListener('admin-session-change', resetHandler);
+      };
     }
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('storage', handler);
-        window.removeEventListener('admin-session-change', handler);
-      }
-    };
-  }, []);
+    return undefined;
+  }, [queryClient]);
 
   const adminId = session?.admin_id ?? null;
 
