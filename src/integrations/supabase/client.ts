@@ -4,6 +4,7 @@ import type { Database } from './types';
 import { supabaseAuthStorage } from './nativeStorage';
 import { clearInstantRestCache, fetchWithInstantRestCache, installInstantRestCacheInvalidation } from '@/utils/instantRestCache';
 import { getAdminSessionToken } from '@/utils/adminSession';
+import { recordAdminError } from '@/utils/adminErrorLog';
 import { NativeWebSocket } from '@/plugins/WebSocketBridge';
 import { isSocketNativeEnabled } from '@/utils/socketNativeFlag';
 
@@ -66,8 +67,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       // RPCs see `current_admin_id_from_header() = NULL` and fail with P0001
       // "unauthorized" across the entire admin panel. Header is harmless for
       // non-admin endpoints (ignored server-side) and absent when no admin session.
+      let adminToken: string | null = null;
       try {
-        const adminToken = getAdminSessionToken();
+        adminToken = getAdminSessionToken();
         if (adminToken) {
           const opts: RequestInit = init ? { ...init } : {};
           const headers = new Headers(opts.headers || {});
@@ -77,12 +79,35 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
         }
       } catch {}
 
+      const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       return fetchWithInstantRestCache(input, init, {
         namespace: 'app',
         ttlMs: 45_000,
         staleWhileRevalidateMs: 5 * 60_000,
         maxEntries: 220,
         skipUrl: (url) => url.includes('/rest/v1/rpc/') || url.includes('/rest/v1/notifications'),
+      }).then(async (resp) => {
+        if (!adminToken || resp.ok || resp.status === 304) return resp;
+        if (!requestUrl.includes('/rest/v1/') && !requestUrl.includes('/functions/v1/')) return resp;
+        let bodyText = '';
+        try { bodyText = await resp.clone().text(); } catch {}
+        let message = bodyText;
+        try {
+          const j = JSON.parse(bodyText);
+          message = j.message || j.error || j.msg || bodyText;
+        } catch {}
+        const isRpc = requestUrl.includes('/rest/v1/rpc/');
+        const isEdge = requestUrl.includes('/functions/v1/');
+        const path = requestUrl.replace(SUPABASE_URL, '').split('?')[0];
+        recordAdminError({
+          kind: isRpc ? 'rpc' : isEdge ? 'edge' : 'rest',
+          label: `${method} ${path}`,
+          status: resp.status,
+          message: String(message || `Request failed with status ${resp.status}`).slice(0, 300),
+          detail: bodyText.slice(0, 1000),
+          url: requestUrl,
+        });
+        return resp;
       });
     },
     headers: {
