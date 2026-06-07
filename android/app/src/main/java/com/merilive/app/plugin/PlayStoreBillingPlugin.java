@@ -17,13 +17,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     private static final String TAG = "PlayStoreBilling";
     private BillingClient billingClient;
-    private PluginCall pendingCall;
-    private String pendingProductId;
-    private boolean isConnecting = false;
-    private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
-    private final List<ReadyAction> readyQueue = new ArrayList<>();
+    private volatile PluginCall pendingCall;
+    private volatile String pendingProductId;
+    private volatile boolean isConnecting = false;
+    private final List<PluginCall> pendingInitializeCalls = java.util.Collections.synchronizedList(new ArrayList<>());
+    private final List<ReadyAction> readyQueue = java.util.Collections.synchronizedList(new ArrayList<>());
     // Tokens we've already broadcast so we don't double-fire purchaseCompleted
-    private final Set<String> broadcastedTokens = new HashSet<>();
+    private final Set<String> broadcastedTokens = java.util.Collections.synchronizedSet(new HashSet<>());
 
     private static class ReadyAction {
         final PluginCall call;
@@ -98,6 +98,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
             public void onBillingServiceDisconnected() {
                 isConnecting = false;
                 Log.w(TAG, "Billing service disconnected");
+                rejectReadyQueue("Billing service disconnected", "BILLING_DISCONNECTED");
+                rejectAllInitialize("Billing service disconnected", "BILLING_DISCONNECTED");
             }
         });
     }

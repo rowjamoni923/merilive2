@@ -51,16 +51,17 @@ public class PhotoPickerPlugin extends Plugin {
             new ActivityResultContracts.PickVisualMedia(),
             uri -> {
                 PluginCall call = pendingCall;
-                pendingCall = null;
                 if (call == null) return;
-                if (uri == null) { call.resolve(); return; }
-                JSObject obj = readToJson(uri);
-                if (obj == null) { call.reject("read failed"); return; }
-                
+                if (uri == null) { pendingCall = null; call.resolve(); return; }
+
                 boolean crop = Boolean.TRUE.equals(call.getBoolean("crop", false));
                 if (crop) {
+                    // Keep pendingCall set for cropLauncher; do NOT null it here.
                     launchCrop(uri);
                 } else {
+                    pendingCall = null;
+                    JSObject obj = readToJson(uri);
+                    if (obj == null) { call.reject("read failed"); return; }
                     call.resolve(obj);
                 }
             }
@@ -210,6 +211,16 @@ public class PhotoPickerPlugin extends Plugin {
             return obj;
         } catch (Exception e) {
             return null;
-        }
     }
+
+    @Override
+    protected void handleOnDestroy() {
+        PluginCall c = pendingCall;
+        pendingCall = null;
+        if (c != null) {
+            try { c.reject("picker cancelled", "ACTIVITY_DESTROYED"); } catch (Throwable ignored) {}
+        }
+        super.handleOnDestroy();
+    }
+}
 }
