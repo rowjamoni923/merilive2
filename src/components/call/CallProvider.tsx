@@ -209,6 +209,13 @@ export function CallProvider({ children }: CallProviderProps) {
     if (incomingCall && !callEndedRef.current) {
       acceptingRef.current = true;
       try {
+        // Phase-3 C4: BEFORE accepting, force-disconnect any active LiveKit
+        // room (live stream / party room) so mic/camera are released and the
+        // private call can take over cleanly.  This prevents audio mixing when
+        // a host accepts a call while still connected to a broadcast room.
+        const { disconnectAllRegisteredRooms } = await import('@/lib/livekitStreams');
+        disconnectAllRegisteredRooms();
+
         // Pkg35: If the host is currently broadcasting a live stream, end it
         // automatically so the private call can take over cleanly.
         if (userId) {
