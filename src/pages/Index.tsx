@@ -236,7 +236,7 @@ const Index = () => {
 
       // Map results
       const hostsWithStatus = profiles.map(profile => {
-        // Busy/callable status is server-derived by get_public_home_hosts_v1.
+        // Busy/callable/live/party status is server-derived by get_public_home_hosts_v2.
         // Do not query private_calls from the home page: its RLS is participant-only.
         const isActuallyBusy = !!profile.is_in_call;
         return {
