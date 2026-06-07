@@ -72,12 +72,16 @@ public class VibrationPlugin extends Plugin {
         try {
             for (int i = 0; i < arr.length(); i++) pat[i] = arr.getLong(i);
         } catch (Exception e) { call.reject("invalid pattern"); return; }
+        int repeatIdx = repeat != null ? repeat : -1;
+        if (repeatIdx != -1 && (repeatIdx < 0 || repeatIdx >= pat.length)) {
+            call.reject("repeat index out of range"); return;
+        }
         Vibrator v = getVibrator();
         if (v == null || !v.hasVibrator()) { call.resolve(); return; }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createWaveform(pat, repeat));
+            v.vibrate(VibrationEffect.createWaveform(pat, repeatIdx));
         } else {
-            v.vibrate(pat, repeat);
+            v.vibrate(pat, repeatIdx);
         }
         call.resolve();
     }

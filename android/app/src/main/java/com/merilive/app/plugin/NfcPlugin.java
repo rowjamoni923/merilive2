@@ -66,8 +66,8 @@ public class NfcPlugin extends Plugin {
         Intent intent = new Intent(getContext(), getActivity().getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                ? PendingIntent.FLAG_MUTABLE
-                : 1; // FLAG_UPDATE_CURRENT
+                ? (PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                : PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, flags);
 
         nfcAdapter.enableForegroundDispatch(getActivity(), pi, null, null);
@@ -125,8 +125,8 @@ public class NfcPlugin extends Plugin {
         Intent intent = new Intent(getContext(), getActivity().getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                ? PendingIntent.FLAG_MUTABLE
-                : 1;
+                ? (PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                : PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, flags);
         nfcAdapter.enableForegroundDispatch(getActivity(), pi, null, null);
         isReading = true;
@@ -217,8 +217,8 @@ public class NfcPlugin extends Plugin {
             Intent intent = new Intent(getContext(), getActivity().getClass())
                     .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                    ? PendingIntent.FLAG_MUTABLE
-                    : 1;
+                    ? (PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                    : PendingIntent.FLAG_UPDATE_CURRENT;
             PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, flags);
             nfcAdapter.enableForegroundDispatch(getActivity(), pi, null, null);
         }
@@ -289,8 +289,8 @@ public class NfcPlugin extends Plugin {
     private String parseTextRecord(byte[] payload) {
         if (payload.length == 0) return "";
         byte statusByte = payload[0];
-        boolean isUtf16 = ((statusByte & 0x80) != 1);
-        int languageCodeLength = statusByte & 1;
+        boolean isUtf16 = ((statusByte & 0x80) != 0);
+        int languageCodeLength = statusByte & 0x3F;
         String text = new String(payload, 1 + languageCodeLength,
                 payload.length - 1 - languageCodeLength,
                 isUtf16 ? StandardCharsets.UTF_16 : StandardCharsets.UTF_8);
@@ -313,22 +313,28 @@ public class NfcPlugin extends Plugin {
         try {
             Ndef ndef = Ndef.get(tag);
             if (ndef != null) {
-                ndef.connect();
-                if (ndef.isWritable()) {
-                    ndef.writeNdefMessage(msg);
-                    ndef.close();
-                    result.put("success", true);
-                } else {
-                    result.put("success", false);
-                    result.put("error", "Tag is read-only");
+                try {
+                    ndef.connect();
+                    if (ndef.isWritable()) {
+                        ndef.writeNdefMessage(msg);
+                        result.put("success", true);
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Tag is read-only");
+                    }
+                } finally {
+                    try { ndef.close(); } catch (Exception ignored) {}
                 }
             } else {
                 NdefFormatable formatable = NdefFormatable.get(tag);
                 if (formatable != null) {
-                    formatable.connect();
-                    formatable.format(msg);
-                    formatable.close();
-                    result.put("success", true);
+                    try {
+                        formatable.connect();
+                        formatable.format(msg);
+                        result.put("success", true);
+                    } finally {
+                        try { formatable.close(); } catch (Exception ignored) {}
+                    }
                 } else {
                     result.put("success", false);
                     result.put("error", "Tag does not support NDEF");
@@ -342,6 +348,17 @@ public class NfcPlugin extends Plugin {
         pendingWritePayload = null;
         pendingWriteType = null;
         notifyListeners("nfcWriteResult", result, true);
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (nfcAdapter != null && isReading) {
+            try { nfcAdapter.disableForegroundDispatch(getActivity()); } catch (Throwable ignored) {}
+            isReading = false;
+        }
+        pendingWritePayload = null;
+        pendingWriteType = null;
+        super.handleOnDestroy();
     }
 
     private JSObject buildTagResult(Tag tag, NdefMessage msg, String error) {

@@ -53,7 +53,6 @@ public class AudioRecorderPlugin extends Plugin {
     private long pausedAccumMs;
     private long pauseStartedMs;
     private boolean isPaused;
-    private PluginCall pendingStartCall;
     private java.util.Timer amplitudeTimer;
 
 
@@ -64,7 +63,6 @@ public class AudioRecorderPlugin extends Plugin {
             return;
         }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
-            pendingStartCall = call;
             requestPermissionForAlias("microphone", call, "micPermCallback");
             return;
         }
@@ -168,6 +166,7 @@ public class AudioRecorderPlugin extends Plugin {
         if (recorder == null) { call.reject("not_recording"); return; }
         boolean wantBase64 = call.getBoolean("includeBase64", false);
         try {
+            stopAmplitudeTimer();
             try { recorder.stop(); } catch (RuntimeException ignored) {
                 // stop() throws if started==stopped without any data; treat as cancel
                 cleanup();
@@ -191,7 +190,11 @@ public class AudioRecorderPlugin extends Plugin {
             if (wantBase64 && outputFile.length() <= 25 * 1024 * 1024) {
                 byte[] bytes = new byte[(int) outputFile.length()];
                 try (FileInputStream fis = new FileInputStream(outputFile)) {
-                    fis.read(bytes);
+                    int offset = 0, remaining = bytes.length, n;
+                    while (remaining > 0 && (n = fis.read(bytes, offset, remaining)) != -1) {
+                        offset += n;
+                        remaining -= n;
+                    }
                 }
                 ret.put("base64", Base64.encodeToString(bytes, Base64.NO_WRAP));
             }

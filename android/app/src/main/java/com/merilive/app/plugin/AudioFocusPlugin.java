@@ -53,13 +53,20 @@ public class AudioFocusPlugin extends Plugin {
 
         AudioManager.OnAudioFocusChangeListener listener = this::emitFocusChange;
 
+        int focusGain = "media".equals(usage)
+            ? AudioManager.AUDIOFOCUS_GAIN
+            : AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
+        int legacyStream = "media".equals(usage)
+            ? AudioManager.STREAM_MUSIC
+            : AudioManager.STREAM_VOICE_CALL;
+
         int result;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioAttributes attrs = new AudioAttributes.Builder()
                 .setUsage(audioUsage)
                 .setContentType(contentType)
                 .build();
-            focusReq = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            focusReq = new AudioFocusRequest.Builder(focusGain)
                 .setAudioAttributes(attrs)
                 .setAcceptsDelayedFocusGain(true)
                 .setWillPauseWhenDucked(false)
@@ -71,8 +78,8 @@ public class AudioFocusPlugin extends Plugin {
             //noinspection deprecation
             result = am.requestAudioFocus(
                 legacyListener,
-                AudioManager.STREAM_VOICE_CALL,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                legacyStream,
+                focusGain
             );
         }
 

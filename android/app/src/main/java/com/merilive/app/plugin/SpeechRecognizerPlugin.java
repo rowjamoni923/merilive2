@@ -192,8 +192,10 @@ public class SpeechRecognizerPlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) {}
             try { recognizer.destroy(); } catch (Exception ignored) {}
             recognizer = null;
         }
+        super.handleOnDestroy();
     }
 }

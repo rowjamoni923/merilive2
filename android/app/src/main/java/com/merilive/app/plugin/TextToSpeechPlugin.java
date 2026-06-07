@@ -40,7 +40,12 @@ public class TextToSpeechPlugin extends Plugin {
                         notifyListeners("done", o);
                     }
                     @Override public void onError(String id) {
-                        JSObject o = new JSObject(); o.put("id", id);
+                        onError(id, android.speech.tts.TextToSpeech.ERROR);
+                    }
+                    @Override public void onError(String id, int errorCode) {
+                        JSObject o = new JSObject();
+                        o.put("id", id);
+                        o.put("errorCode", errorCode);
                         notifyListeners("error", o);
                     }
                 });
@@ -107,5 +112,6 @@ public class TextToSpeechPlugin extends Plugin {
             try { tts.stop(); tts.shutdown(); } catch (Exception ignored) {}
             tts = null;
         }
+        super.handleOnDestroy();
     }
 }
