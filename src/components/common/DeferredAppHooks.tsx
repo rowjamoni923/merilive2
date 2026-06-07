@@ -18,23 +18,16 @@ import FeedbackDialog from "@/components/common/FeedbackDialog";
 import { queryClient } from "@/lib/queryClient";
 
 /**
- * Pkg91: GLOBAL `notifications` realtime subscription mount.
+ * Pkg91 / Phase-3 C1: the GLOBAL `notifications` realtime subscription
+ * mount lives in CallProvider now (so it loads WITHOUT Suspense and runs
+ * even on public pages where DeferredAppHooks is gated off). This used
+ * to live here, but the Suspense window left a small dead period where
+ * `incoming_call` notification rows arrived but no listener was active.
  * Side-effect only — return value ignored. Bridges:
- *  - `app_sync` rows → `window 'app-sync'` (drives instant My Beans / My
- *    Diamond / orders / parcels / etc. on every route — Profile, Tasks,
- *    Recharge, LiveStream, PartyRoom, Games, Reels, Withdraw, …)
+ *  - `app_sync` rows → `window 'app-sync'`
  *  - `incoming_call` → `window 'incoming-call-notification'` (Pkg84)
  *  - `pk_*` → `window 'pk-notification'` (Pkg82d)
- * Previously useNotifications() was only mounted by Chat / Home / Header
- * bell, so users on any other route saw stale balances/orders until they
- * manually refreshed or switched routes. This component is gated on
- * non-admin routes only and lives at a stable position in the tree so its
- * hook order never shifts.
  */
-const GlobalNotificationsMount = () => {
-  useNotifications();
-  return null;
-};
 
 /**
  * Deferred hooks bridge - lazy loaded after first paint
