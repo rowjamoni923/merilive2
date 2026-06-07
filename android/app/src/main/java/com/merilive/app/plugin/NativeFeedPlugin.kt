@@ -37,9 +37,24 @@ class NativeFeedPlugin : Plugin() {
 
     private var overlay: FrameLayout? = null
     private var recycler: RecyclerView? = null
+    private var scrollListener: RecyclerView.OnScrollListener? = null
     private val items = mutableListOf<FeedCard>()
     private val adapter = FeedAdapter(items) { id ->
         notifyListeners("feed:tap", JSObject().apply { put("id", id) })
+    }
+
+    override fun handleOnDestroy() {
+        try {
+            activity?.runOnUiThread {
+                try { scrollListener?.let { recycler?.removeOnScrollListener(it) } } catch (_: Throwable) {}
+                try { recycler?.adapter = null } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                recycler = null
+                scrollListener = null
+            }
+        } catch (_: Throwable) {}
+        super.handleOnDestroy()
     }
 
     data class FeedCard(
