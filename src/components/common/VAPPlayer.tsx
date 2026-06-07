@@ -379,12 +379,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
     
-    // Pkg423: VAP must play for EXACTLY its native duration. The safety
-    // timer only exists as a last-resort backstop in case `onEnded` never
-    // fires (rare buffer stall). Padding tightened from +1000ms → +150ms so
-    // there is no perceivable "extra second" after the visual ends, and the
-    // noisy warn log is dropped (it fires in normal conditions on slow GPUs
-    // and creates the impression that something is broken when it isn't).
+    // VAP plays for EXACTLY its native duration — not one millisecond more,
+    // not one millisecond less. `onEnded` is the primary completion signal;
+    // this timer is a last-resort backstop pinned to the asset's intrinsic
+    // duration so a buffer stall can never make the overlay outlast the asset.
     if (!loop && video.duration > 0 && Number.isFinite(video.duration)) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       completionTimerRef.current = setTimeout(() => {
@@ -392,7 +390,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, Math.max(300, video.duration * 1000 + 150));
+      }, Math.round(video.duration * 1000));
     }
 
 
