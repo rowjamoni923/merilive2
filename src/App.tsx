@@ -99,20 +99,36 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  
-  // Pkg: ULTRA-AGGRESSIVE preloading for "Zero-Second" navigation.
-  // Instead of waiting for timeouts, we start importing immediately.
-  // The browser handles the priority.
-  CORE_PAGE_IMPORTERS.forEach((fn) => {
-    // Fire-and-forget, browser handles concurrency
-    fn().catch(() => {});
-  });
+
+  // Stagger imports across idle frames so they NEVER compete with the
+  // first paint or first user interaction. Each importer fires one
+  // requestIdleCallback later — browser keeps main thread free.
+  const fire = (i: number) => {
+    if (i >= CORE_PAGE_IMPORTERS.length) return;
+    CORE_PAGE_IMPORTERS[i]().catch(() => {});
+    const next = () => fire(i + 1);
+    if (typeof (window as any).requestIdleCallback === 'function') {
+      (window as any).requestIdleCallback(next, { timeout: 2000 });
+    } else {
+      setTimeout(next, 150);
+    }
+  };
+  fire(0);
 }
 
-// Pkg: Fire preload at module-evaluation time (ASAP).
+// Defer until AFTER first paint + idle window. Previous "ASAP at module
+// eval" fired 9 chunk requests before the user even saw the splash,
+// stealing bandwidth from Index.tsx and its CSS.
 if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
-  // Use a microtask to avoid blocking the main bundle execution
-  Promise.resolve().then(preloadCoreRoutes);
+  const schedule = () => {
+    if (typeof (window as any).requestIdleCallback === 'function') {
+      (window as any).requestIdleCallback(preloadCoreRoutes, { timeout: 3000 });
+    } else {
+      setTimeout(preloadCoreRoutes, 1500);
+    }
+  };
+  if (document.readyState === 'complete') schedule();
+  else window.addEventListener('load', schedule, { once: true });
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
