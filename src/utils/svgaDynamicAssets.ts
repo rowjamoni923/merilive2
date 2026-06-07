@@ -1,27 +1,31 @@
 /**
- * Helpers for compositing user avatar + name + level INSIDE an SVGA
- * animation via the SVGAPlayer-Web setImage / setText API.
+ * Auto-compositing helpers for SVGA flying name-bar / entry templates.
  *
- * Industry pattern (Chamet / BIGO / MICO / TikTok-Live):
- * - SVGA designer authors the .svga template with placeholder ImageKeys.
- * - Client calls `player.setImage(url, 'avatar')` and `player.setText(...)`
- *   BEFORE `player.startAnimation()`.
- * - SVGA player then composites them per-frame INSIDE the timeline — the
- *   avatar moves / scales / rotates exactly with the animation.
+ * Industry parity (Chamet / BIGO / MICO / TikTok-Live):
+ * - SVGA designer authors the .svga with placeholder ImageKeys (avatar,
+ *   frame, name, level, or any localized / custom equivalent).
+ * - Client injects the live user's avatar / frame / name / level into
+ *   those slots BEFORE startAnimation so they move per-frame inside the
+ *   timeline (NOT a static HTML overlay).
  *
- * Why not pass the raw avatar URL?
- * Most SVGA flying name-bar templates use a SQUARE slot for the avatar.
- * If we pass a square photo it shows as a square. Professional apps
- * pre-rasterize the avatar to a circular PNG (matching the frame ring)
- * before injecting. This helper does exactly that.
+ * Goal of this module: "Admin uploads ANY SVGA → it just works."
+ *   We DO NOT require the designer to use one specific key name. We scan
+ *   the actual videoItem's image map at runtime and match keys by
+ *   pattern (alias list + case-insensitive substring + CJK equivalents).
+ *   Anything we can't classify is left untouched.
  */
 
 const CACHE = new Map<string, string>();
 
+/* -------------------------------------------------------------------------- */
+/*  Avatar circularization                                                    */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Rasterize an image URL into a circular PNG dataURL of `size` px.
- * Returns the dataURL (or the original URL on failure so SVGA still gets
- * *something* to render).
+ * Professional apps composite a circular avatar into the frame slot —
+ * passing a raw square photo produces a square avatar inside a round
+ * frame. Falls back to the original URL on any failure.
  */
 export async function circularizeAvatar(
   url: string,
@@ -40,14 +44,12 @@ export async function circularizeAvatar(
     const ctx = canvas.getContext('2d');
     if (!ctx) return url;
 
-    // Circular clip
     ctx.save();
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
 
-    // Cover-style draw (no distortion)
     const ratio = Math.max(size / img.width, size / img.height);
     const w = img.width * ratio;
     const h = img.height * ratio;
@@ -74,46 +76,99 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Slot classification                                                       */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Industry-standard ImageKey aliases used by Chinese live-streaming SVGA
- * templates. We `setImage` for every alias so the same code works across
- * templates from different designers without per-asset metadata.
+ * Keyword groups for each slot type. We match an SVGA image-key against
+ * these by lowercasing both sides and asking "does the key contain any
+ * of these substrings?". This catches `avatar`, `Avatar`, `userAvatar`,
+ * `user_avatar_1`, `头像`, `touxiang`, etc. without per-designer config.
  */
-export const AVATAR_KEY_ALIASES = [
-  'avatar', 'head', 'pic', 'photo', 'user_avatar', 'userAvatar',
-  '头像', '用户头像', 'touxiang',
+const AVATAR_KEYWORDS = [
+  'avatar', 'head', 'photo', 'pic', 'portrait', 'user_img', 'userimg',
+  '头像', '用户头像', 'touxiang', 'tx',
+];
+const FRAME_KEYWORDS = [
+  'frame', 'border', 'ring', 'kuang', '头像框', 'avatarframe', 'avatar_frame',
+];
+const NAME_KEYWORDS = [
+  'name', 'nick', 'username', 'user_name', '昵称', '用户名', 'nicheng',
+];
+const LEVEL_KEYWORDS = [
+  'level', 'lv', 'grade', 'rank', '等级', 'dengji',
 ];
 
-export const FRAME_KEY_ALIASES = [
-  'frame', 'avatar_frame', 'avatarFrame', '头像框', 'kuang',
-];
+export type SlotKind = 'avatar' | 'frame' | 'name' | 'level';
 
-export const NAME_KEY_ALIASES = [
-  'name', 'nickname', 'username', 'user_name', 'userName',
-  '昵称', '用户名', 'nicheng',
-];
-
-export const LEVEL_KEY_ALIASES = [
-  'level', 'lv', 'user_level', 'userLevel', '等级', 'dengji',
-];
+function matchKeyword(key: string, keywords: string[]): boolean {
+  const k = key.toLowerCase();
+  return keywords.some(w => k.includes(w.toLowerCase()));
+}
 
 /**
- * Apply dynamic images to an SVGA player, trying every key alias so the
- * same call works regardless of how the designer named the slot.
- * Safe no-op when the key isn't present in the SVGA file.
+ * Classify a single SVGA image-key into a slot kind, or `null` if it
+ * doesn't look like a user-data slot (background art, particles, etc.).
+ * Priority order matters: `frame` BEFORE `avatar` so `avatar_frame` is
+ * classified as a frame, not an avatar.
+ */
+export function classifySlotKey(key: string): SlotKind | null {
+  if (!key) return null;
+  if (matchKeyword(key, FRAME_KEYWORDS)) return 'frame';
+  if (matchKeyword(key, AVATAR_KEYWORDS)) return 'avatar';
+  if (matchKeyword(key, LEVEL_KEYWORDS)) return 'level';
+  if (matchKeyword(key, NAME_KEYWORDS)) return 'name';
+  return null;
+}
+
+/**
+ * Scan a parsed SVGA `videoItem` and return the set of keys per slot.
+ * SVGA-Player-Web exposes images as `videoItem.images` (a map of
+ * `key -> base64 / Uint8Array`). We classify each key once and group.
+ */
+export interface DiscoveredSlots {
+  avatar: string[];
+  frame: string[];
+  name: string[];
+  level: string[];
+  all: string[];
+}
+
+export function discoverSlots(videoItem: any): DiscoveredSlots {
+  const out: DiscoveredSlots = { avatar: [], frame: [], name: [], level: [], all: [] };
+  const images = videoItem?.images;
+  if (!images || typeof images !== 'object') return out;
+  for (const key of Object.keys(images)) {
+    out.all.push(key);
+    const kind = classifySlotKey(key);
+    if (kind) out[kind].push(key);
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Injection                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Inject an image URL into every key the player exposes that matches the
+ * given slot kind. If `discovered` is provided we use the runtime-scanned
+ * key list (preferred — works with ANY admin-uploaded SVGA). Otherwise we
+ * fall back to a generic alias list (covers common templates).
  */
 export function applyDynamicImage(
   player: any,
   url: string | undefined | null,
-  aliases: string[],
+  kind: SlotKind,
+  discovered?: DiscoveredSlots,
 ): void {
   if (!player || !url) return;
-  for (const key of aliases) {
-    try {
-      player.setImage(url, key);
-    } catch {
-      /* ignore — key not in template */
-    }
+  const keys = discovered?.[kind]?.length
+    ? discovered[kind]
+    : FALLBACK_KEYS[kind];
+  for (const key of keys) {
+    try { player.setImage(url, key); } catch { /* slot not present — ignore */ }
   }
 }
 
@@ -128,7 +183,8 @@ export interface SVGAText {
 export function applyDynamicText(
   player: any,
   text: SVGAText | undefined | null,
-  aliases: string[],
+  kind: 'name' | 'level',
+  discovered?: DiscoveredSlots,
 ): void {
   if (!player || !text?.text) return;
   const payload = {
@@ -138,11 +194,40 @@ export function applyDynamicText(
     color: text.color ?? '#ffffff',
     offset: text.offset ?? { x: 0, y: 0 },
   };
-  for (const key of aliases) {
-    try {
-      player.setText(payload, key);
-    } catch {
-      /* ignore — key not in template */
-    }
+  const keys = discovered?.[kind]?.length
+    ? discovered[kind]
+    : FALLBACK_KEYS[kind];
+  for (const key of keys) {
+    try { player.setText(payload, key); } catch { /* ignore */ }
   }
 }
+
+/**
+ * Generic alias list — used only when runtime discovery returned nothing
+ * for a slot (e.g. designer used an unusual key OR videoItem.images isn't
+ * iterable in the current SVGA build).
+ */
+const FALLBACK_KEYS: Record<SlotKind, string[]> = {
+  avatar: [
+    'avatar', 'Avatar', 'head', 'photo', 'pic', 'user_avatar', 'userAvatar',
+    '头像', '用户头像', 'touxiang',
+  ],
+  frame: [
+    'frame', 'Frame', 'avatar_frame', 'avatarFrame', '头像框', 'kuang',
+  ],
+  name: [
+    'name', 'Name', 'nickname', 'nickName', 'username', 'userName',
+    '昵称', '用户名', 'nicheng',
+  ],
+  level: [
+    'level', 'Level', 'lv', 'Lv', 'user_level', 'userLevel', '等级', 'dengji',
+  ],
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Back-compat exports (kept so existing imports compile)                    */
+/* -------------------------------------------------------------------------- */
+export const AVATAR_KEY_ALIASES = FALLBACK_KEYS.avatar;
+export const FRAME_KEY_ALIASES = FALLBACK_KEYS.frame;
+export const NAME_KEY_ALIASES = FALLBACK_KEYS.name;
+export const LEVEL_KEY_ALIASES = FALLBACK_KEYS.level;
