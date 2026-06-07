@@ -801,6 +801,10 @@ class LiveKitPlugin : Plugin() {
                 data.put("attempt", attempt + 1)
                 data.put("reason", reason)
                 notifyListeners("camera-state", data)
+                // Phase-E: camera was (re)published — re-attach beauty
+                // processor to the fresh LocalVideoTrack so beauty survives
+                // reconnects, resolution flips, and recovery cycles.
+                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
                 return true
             } catch (e: Throwable) {
                 lastError = e
@@ -4118,6 +4122,38 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Exception) {}
     }
 
+    // Phase-E fix: remember the last beauty levels + enable state so we can
+    // re-attach the processor automatically when the camera track is
+    // re-published (camera recovery, resolution switch, reconnect). Without
+    // this, beauty silently turned off after any track swap and the host had
+    // to toggle the panel manually to get it back.
+    @Volatile private var beautyBroadcastEnabled: Boolean = false
+    @Volatile private var lastBeautySmooth: Float = 0.6f
+    @Volatile private var lastBeautyWhite: Float = 0.4f
+    @Volatile private var lastBeautyThinFace: Float = 0.3f
+    @Volatile private var lastBeautyBigEye: Float = 0.3f
+    @Volatile private var lastBeautyLipstick: Float = 0f
+    @Volatile private var lastBeautyBlusher: Float = 0f
+
+    /**
+     * Phase-E: call this from camera-publish completion / track-republish
+     * paths so the broadcast beauty processor survives recovery. Safe no-op
+     * when beauty was never enabled or has been explicitly disabled.
+     */
+    internal fun reattachBeautyIfEnabled() {
+        if (!beautyBroadcastEnabled) return
+        try {
+            val proc = ensureBeautyProcessor()
+            proc.setLevels(
+                lastBeautySmooth, lastBeautyWhite, lastBeautyThinFace,
+                lastBeautyBigEye, lastBeautyLipstick, lastBeautyBlusher,
+            )
+            attachBeautyProcessor()
+        } catch (e: Exception) {
+            Log.w(TAG, "[Pkg201] reattachBeautyIfEnabled failed: ${e.message}")
+        }
+    }
+
     @PluginMethod
     fun setBeautyBroadcast(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
@@ -4132,7 +4168,16 @@ class LiveKitPlugin : Plugin() {
                 val proc = ensureBeautyProcessor()
                 proc.setLevels(smooth, white, thinFace, bigEye, lipstick, blusher)
                 attachBeautyProcessor()
+                // Phase-E: remember state for auto re-attach on track recovery.
+                lastBeautySmooth = smooth
+                lastBeautyWhite = white
+                lastBeautyThinFace = thinFace
+                lastBeautyBigEye = bigEye
+                lastBeautyLipstick = lipstick
+                lastBeautyBlusher = blusher
+                beautyBroadcastEnabled = true
             } else {
+                beautyBroadcastEnabled = false
                 detachBeautyProcessor()
                 beautyProcessor?.release()
                 beautyProcessor = null
