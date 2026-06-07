@@ -101,7 +101,7 @@ const CreateParty = () => {
   const [requiredLevel, setRequiredLevel] = useState(0);
 
   // Native camera permission hook for proper Android handling
-  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  const { getCameraStream } = useNativeCameraPermission();
 
   // Seat configurations
   const seatConfig = {
