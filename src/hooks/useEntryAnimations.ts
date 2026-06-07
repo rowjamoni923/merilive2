@@ -140,26 +140,37 @@ export function useEntryAnimations() {
       });
     }
     
-    // === ENTRY NAME BAR (Compact sliding banner) - ALWAYS shown ===
-    const newNameBar: NameBarAnimation = {
-      id: `namebar_${Date.now()}_${params.userId}`,
-      userId: params.userId,
-      displayName: params.displayName,
-      avatarUrl: params.avatarUrl,
-      level: params.level,
-      animationUrl: isValidUrl(params.entryNameBarUrl) ? params.entryNameBarUrl : undefined,
-    };
-    
-    console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR banner for:', params.displayName, 
-      newNameBar.animationUrl ? '(with animation)' : '(gradient fallback)');
-    
-    setNameBarAnimations(prev => {
-      if (prev.some(e => e.userId === params.userId)) {
-        console.log('[useEntryAnimations] ⏭️ NameBar already queued for user:', params.displayName);
-        return prev;
-      }
-      return [...prev, newNameBar];
-    });
+    // === ENTRY NAME BAR (Compact sliding banner) ===
+    // Industry-standard gate: ONLY level 6+ users get the flying name bar.
+    // Levels 1–5 see only the static RoomWelcomeBanner at the bottom.
+    const userLevel = Number(params.level) || 1;
+    if (userLevel < MIN_FLYING_NAMEBAR_LEVEL) {
+      console.log(
+        `[useEntryAnimations] 🚫 NameBar skipped — level ${userLevel} < ${MIN_FLYING_NAMEBAR_LEVEL} for:`,
+        params.displayName,
+      );
+    } else {
+      const newNameBar: NameBarAnimation = {
+        id: `namebar_${Date.now()}_${params.userId}`,
+        userId: params.userId,
+        displayName: params.displayName,
+        avatarUrl: params.avatarUrl,
+        level: userLevel,
+        animationUrl: isValidUrl(params.entryNameBarUrl) ? params.entryNameBarUrl : undefined,
+      };
+
+      console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR banner for:', params.displayName,
+        newNameBar.animationUrl ? '(with animation)' : '(gradient fallback)');
+
+      setNameBarAnimations(prev => {
+        if (prev.some(e => e.userId === params.userId)) {
+          console.log('[useEntryAnimations] ⏭️ NameBar already queued for user:', params.displayName);
+          return prev;
+        }
+        return [...prev, newNameBar];
+      });
+    }
+
     
     // Log if no full-screen animation
     if (!fullScreenUrl) {
