@@ -123,6 +123,8 @@ Deno.serve(async (req) => {
     const coinsSpent = Number(result.coins_spent ?? result.total_cost ?? 0)
     const hostReceived = Number(result.beans_earned ?? result.beans_received ?? 0)
     const newBalance = result.new_balance ?? result.new_sender_balance ?? null
+    const diamondBonus = Number(result.diamond_bonus ?? 0)
+    const isLucky = Boolean(result.is_lucky ?? false)
 
     return new Response(
       JSON.stringify({
@@ -133,12 +135,15 @@ Deno.serve(async (req) => {
         hostReceived,
         hostPercent: result.host_percent,
         newBalance,
+        diamondBonus,
+        isLucky,
       }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error?.message || 'Unknown error' }), {
       status: 500,
