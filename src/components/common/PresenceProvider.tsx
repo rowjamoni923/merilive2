@@ -128,7 +128,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         // Check if host was manually offline — regular users always go online
         if (localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true' || !profile?.is_host) {
-          void (async () => { try { await supabase.rpc('update_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
+          void (async () => { try { await supabase.rpc('sync_host_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
         }
 
         // Register FCM push notification token
