@@ -1351,8 +1351,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       remoteAudioTrackKeysRef.current.clear();
 
       // 🛰️ Native publish path teardown.
+      // Fix 6 — race native disconnect with a 3s timeout. The plugin's
+      // `disconnect()` waits on a busy-flag (waitForIdle) and an OEM grace,
+      // both of which can stall behind a stuck reconnect. We must not let the
+      // user's next join attempt block forever on this teardown.
       if (usingNativeRef.current) {
-        try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+        try {
+          await Promise.race([
+            nativeLiveKitController.disconnect(),
+            new Promise((resolve) => setTimeout(resolve, 3000)),
+          ]);
+        } catch { /* noop */ }
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
