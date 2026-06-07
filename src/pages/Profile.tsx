@@ -1,5 +1,5 @@
 // Profile Page - Main user profile view
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { PageSkeleton } from "@/components/common/PageSkeleton";
