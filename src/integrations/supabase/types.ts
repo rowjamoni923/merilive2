@@ -19425,6 +19425,10 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_dm_blocked: {
+        Args: { _conversation_id: string; _sender: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id?: string }
         Returns: boolean
@@ -20038,6 +20042,7 @@ export type Database = {
         Args: { _new_status: string; _order_id: string; _reason?: string }
         Returns: Json
       }
+      users_have_block: { Args: { _a: string; _b: string }; Returns: boolean }
       validate_admin_access_token: { Args: { _token: string }; Returns: Json }
       validate_session_integrity: {
         Args: {
