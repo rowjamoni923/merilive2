@@ -109,6 +109,7 @@ import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface PartyRoom {
   id: string;
@@ -813,12 +814,23 @@ const PartyRoom = () => {
         const { data: hostProfile } = hostId
           ? await supabase
               .from('profiles_public')
-              .select('id, display_name, avatar_url, host_level, user_level, country_code, country_flag, frame_id')
+              .select('id, display_name, avatar_url, host_level, user_level, country_code, country_flag, frame_id, equipped_frame_id')
               .eq('id', hostId)
               .maybeSingle()
           : { data: null };
 
-        setRoom({ ...(roomData.data as any), host: hostProfile || null } as PartyRoom);
+        const hostFallback = hostId && userData?.id === hostId ? userData.profile : null;
+        const resolvedHost = hostProfile || hostFallback;
+        setRoom({
+          ...(roomData.data as any),
+          host: resolvedHost ? {
+            ...resolvedHost,
+            id: hostId,
+            display_name: resolvedHost.display_name || 'Host',
+            avatar_url: normalizeProfileMediaUrl(resolvedHost.avatar_url) || resolvedHost.avatar_url || null,
+            frame_id: (resolvedHost as any).equipped_frame_id || (resolvedHost as any).frame_id || null,
+          } : null,
+        } as PartyRoom);
         
         // Fetch participants and seat requests in parallel
         await Promise.all([fetchParticipants(), fetchSeatRequests()]);
