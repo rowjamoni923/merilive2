@@ -51,18 +51,18 @@ const AdminEntryEffects = () => {
             <PartyPopper className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[hsl(var(--admin-text))]">Entry Effects System</h1>
-            <p className="text-sm text-[hsl(var(--admin-text-secondary))]">Luxury control for room entrance animations</p>
+            <h1 className="text-2xl font-bold text-[hsl(var(--admin-text))]">Entrance Effects</h1>
+            <p className="text-sm text-[hsl(var(--admin-text-secondary))]">Manage room entrance animations, flying name bars and vehicle entrances</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <AdminLuxuryStatCard icon={Zap} label="Entry Banners" value={stats.banners} tone="gold" />
-        <AdminLuxuryStatCard icon={Sparkles} label="Entry Bars" value={stats.bars} tone="accent" />
-        <AdminLuxuryStatCard icon={Type} label="Name Bars" value={stats.nameBars} tone="royal" />
-        <AdminLuxuryStatCard icon={Car} label="Vehicles" value={stats.vehicles} tone="soft" />
+        <AdminLuxuryStatCard icon={Zap} label="Premium Entry Effects" value={stats.banners} tone="gold" />
+        <AdminLuxuryStatCard icon={Sparkles} label="Standard Entry Effects" value={stats.bars} tone="accent" />
+        <AdminLuxuryStatCard icon={Type} label="Flying Name Bars" value={stats.nameBars} tone="royal" />
+        <AdminLuxuryStatCard icon={Car} label="Vehicle Entrances" value={stats.vehicles} tone="soft" />
       </div>
 
       {/* Main Tabs */}
@@ -70,19 +70,19 @@ const AdminEntryEffects = () => {
         <TabsList className="grid h-auto w-full grid-cols-4 gap-1 border border-[hsl(var(--admin-border-light)/0.7)] bg-[hsl(var(--admin-card)/0.68)] p-1">
           <TabsTrigger value="banners" className={tabTriggerClass}>
             <Zap className="mr-1 h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Entry</span> Banners
+            <span className="hidden sm:inline">Premium</span> Effects
           </TabsTrigger>
           <TabsTrigger value="bars" className={tabTriggerClass}>
             <Sparkles className="mr-1 h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Entry</span> Bars
+            <span className="hidden sm:inline">Standard</span> Effects
           </TabsTrigger>
           <TabsTrigger value="names" className={tabTriggerClass}>
             <Type className="mr-1 h-4 w-4 sm:mr-2" />
-            Name Bars
+            <span className="hidden sm:inline">Flying</span> Name Bars
           </TabsTrigger>
           <TabsTrigger value="vehicles" className={tabTriggerClass}>
             <Car className="mr-1 h-4 w-4 sm:mr-2" />
-            Vehicles
+            Vehicle <span className="hidden sm:inline">Entrances</span>
           </TabsTrigger>
         </TabsList>
 
