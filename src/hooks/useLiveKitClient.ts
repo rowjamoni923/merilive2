@@ -1398,7 +1398,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
   }, []);
 
-  // Beauty effects (CSS-based, same as before)
+  // Beauty effects — CSS path PERMANENTLY REMOVED (user request, 2026-06-07).
+  // The only real beauty engine is now the native GPUPixel pipeline
+  // (3D MarsFace landmarks + skin smoothing + whitening + thin-face +
+  // big-eye + lipstick + blusher). It is wired into the outgoing LiveKit
+  // broadcast track by `applyBroadcastBeauty()` → `NativeLiveKit.setBeautyBroadcast`,
+  // and the local preview shows the processed track directly. The old CSS
+  // blur/brightness filter was just blur — no 3D face beauty — and looked
+  // ugly. It is gone on every platform; web preview is a visual no-op for
+  // beauty, matching Chamet/Bigo behaviour.
   const applyBeautyEffect = useCallback((settings: BeautySettings) => {
     setBeautySettings(settings);
     setBeautyEnabled(true);
@@ -1408,48 +1416,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     setBeautyEnabled(false);
   }, []);
 
-  const getBeautyFilterCSS = useCallback(() => {
-    if (!beautyEnabled) return '';
-    // Pkg413 — On native Android the professional GPUPixel engine already
-    // processes the outgoing broadcast track (3D MarsFace landmarks, skin
-    // smoothing, whitening, thin-face, big-eye, lipstick, blusher). The
-    // LiveKit local preview shows that processed track directly. Painting
-    // an additional CSS blur/brightness on top double-processes the frames
-    // and is exactly what the user has been reporting as "old bad blur".
-    // Skip the CSS path entirely when GPUPixel is the source of truth.
-    try {
-      // Capacitor is already imported across the app; safe to read here.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cap: any = (globalThis as any).Capacitor;
-      if (cap && typeof cap.getPlatform === 'function' && cap.getPlatform() === 'android') {
-        return '';
-      }
-    } catch { /* not in Capacitor env, fall through */ }
-    const { smoothness, whitening, redness, sharpness, glow = 0, warmth = 0, eyeBright = 0, skinTone = 50 } = beautySettings;
-    const filters: string[] = [];
-    // Combined brightness from whitening + glow + eyeBright + smoothness
-    const brightBoost = (whitening * 0.004) + (glow * 0.003) + (eyeBright * 0.001) + (smoothness * 0.001);
-    const brightness = 1 + brightBoost;
-    if (brightness > 1.001) filters.push(`brightness(${Math.min(brightness, 1.45).toFixed(3)})`);
-    // Contrast: sharpness boosts, smoothness + whitening reduce
-    const contrastVal = 1 + (sharpness * 0.004) - (smoothness * 0.002) - (whitening * 0.001);
-    if (Math.abs(contrastVal - 1) > 0.005) filters.push(`contrast(${Math.min(Math.max(contrastVal, 0.82), 1.30).toFixed(3)})`);
-    // Saturation: redness + warmth boost, whitening reduces
-    const satVal = 1 + (redness * 0.004) + (warmth * 0.003) - (whitening * 0.002);
-    if (Math.abs(satVal - 1) > 0.005) filters.push(`saturate(${Math.min(Math.max(satVal, 0.75), 1.50).toFixed(3)})`);
-    // Sepia for warmth
-    const skinWarmth = Math.max(0, (skinTone - 50)) / 50;
-    const sepiaVal = (warmth * 0.002) + (skinWarmth * 0.08);
-    if (sepiaVal > 0.01) filters.push(`sepia(${Math.min(sepiaVal, 0.30).toFixed(3)})`);
-    // Hue rotation for cool/warm tone
-    const skinCoolness = Math.max(0, (50 - skinTone)) / 50;
-    const hueShift = (skinCoolness * -8) + (redness * 0.05);
-    if (Math.abs(hueShift) > 0.5) filters.push(`hue-rotate(${hueShift.toFixed(1)}deg)`);
-    // Subtle blur for skin smoothing
-    const blurVal = smoothness * 0.006;
-    if (blurVal > 0.05) filters.push(`blur(${Math.min(blurVal, 0.6).toFixed(2)}px)`);
-    return filters.join(' ');
-  }, [beautyEnabled, beautySettings]);
+  const getBeautyFilterCSS = useCallback(() => '', []);
 
   // Co-host stubs (same API)
   const requestCoHost = useCallback(async (userName: string) => {
