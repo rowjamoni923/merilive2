@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Sparkles, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import updateBanner3D from '@/assets/update-banner-3d.jpg';
 
 interface AppUpdateModalProps {
   isOpen: boolean;
