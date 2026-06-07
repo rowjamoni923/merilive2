@@ -82,6 +82,7 @@ const CreateParty = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isEnablingMedia, setIsEnablingMedia] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [games, setGames] = useState<{id: string; name: string; emoji: string; color: string; logoUrl?: string}[]>([]);
@@ -239,13 +240,19 @@ const CreateParty = () => {
   // Camera/audio switches are handled inside the tab click so browser
   // permission stays tied to a user gesture.
   const handleEnableMedia = async () => {
+    if (isEnablingMedia) return;
+    setIsEnablingMedia(true);
     setCameraReady(false);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      releaseAndroidWebViewCamera('create-party:enable-media-retry');
-      setStream(null);
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        releaseAndroidWebViewCamera('create-party:enable-media-retry');
+        setStream(null);
+      }
+      await startCameraInstant(mode !== "audio");
+    } finally {
+      setIsEnablingMedia(false);
     }
-    await startCameraInstant(mode !== "audio");
   };
 
   const handleCreateParty = async () => {
@@ -481,6 +488,8 @@ const CreateParty = () => {
       <Sofa className="w-6 h-6 text-purple-300/50" />
     </div>
   );
+
+  const mediaReady = !!stream?.getTracks().some((track) => track.readyState === 'live');
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden">
