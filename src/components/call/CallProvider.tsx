@@ -320,8 +320,24 @@ export function CallProvider({ children }: CallProviderProps) {
       if (event.action === 'decline' || event.action === 'timeout') {
         await declineCall(event.callId, event.action === 'timeout' ? 'timeout' : 'declined');
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+        return;
       }
-    };
+
+      // Phase-A fix: BT End button / Telecom `onDisconnect` on an ALREADY-active
+      // call dispatches `ended` (see MeriConnection.kt). Previously this action
+      // was unhandled → zombie call: billing timer + LiveKit room kept running
+      // even though hardware/system tore down the audio. Treat `ended` as a
+      // remote/system hangup so JS runs full teardown.
+      if (event.action === 'ended') {
+        try {
+          await endCall();
+        } catch (e) {
+          console.warn('[CallProvider] endCall on native "ended" failed:', e);
+        }
+        await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+        return;
+      }
+
 
     let listener: { remove: () => Promise<void> } | null = null;
     void NativeCall.addListener('call-action', handleNativeAction).then((h) => {
