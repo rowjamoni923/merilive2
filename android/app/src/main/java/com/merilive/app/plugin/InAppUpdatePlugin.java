@@ -37,7 +37,7 @@ public class InAppUpdatePlugin extends Plugin {
     private static final int REQ_IMMEDIATE = 17362;
 
     private AppUpdateManager manager;
-    private AppUpdateInfo lastInfo;
+    private volatile AppUpdateInfo lastInfo;
 
     private final InstallStateUpdatedListener listener = (InstallState state) -> {
         JSObject ev = new JSObject();
