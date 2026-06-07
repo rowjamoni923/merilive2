@@ -1166,7 +1166,25 @@ const PartyRoom = () => {
       if (payload.type === 'participant_left') {
         const userId = (payload as any).userId;
         console.log('[PartyRoom] 🟣 ⚡ Pkg81b livekit participant_left:', userId);
-        if (userId) setParticipants(prev => prev.filter(p => p.user_id !== userId));
+        if (userId) {
+          let leftParticipant: Participant | undefined;
+          setParticipants(prev => {
+            leftParticipant = prev.find(p => p.user_id === userId);
+            return prev.filter(p => p.user_id !== userId);
+          });
+          const userName = leftParticipant?.user?.display_name || 'A viewer';
+          const userLevel = leftParticipant?.user?.user_level || 1;
+          const userAvatar = normalizeProfileMediaUrl(leftParticipant?.user?.avatar_url) || leftParticipant?.user?.avatar_url || undefined;
+          setJoinMessages(prev => [...prev.slice(-20), {
+            id: `lk_leave_${Date.now()}_${userId}`,
+            userId,
+            userName,
+            userLevel,
+            avatarUrl: userAvatar,
+            type: 'leave' as const,
+            timestamp: new Date(),
+          }]);
+        }
         fetchParticipants();
         return;
       }
