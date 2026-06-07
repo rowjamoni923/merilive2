@@ -39,7 +39,7 @@ import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoo
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -274,6 +274,7 @@ export function useLiveKitCall(
       const cid = callIdRef.current;
       if (cid) clearPreparedCallMediaStream(cid, { stopTracks: true });
     } catch {}
+    void releaseAndroidWebViewCameraNow('livekit-call:cleanup-force');
     remoteAudioKeysRef.current.forEach(detachLiveKitRemoteAudio);
     remoteAudioKeysRef.current.clear();
 

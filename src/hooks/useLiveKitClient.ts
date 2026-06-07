@@ -1375,6 +1375,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         roomRef.current.disconnect(true);
         roomRef.current = null;
       }
+      await releaseAndroidWebViewCameraNow('livekit:leaveChannel-force');
 
       setLocalVideoTrack(null);
       setLocalAudioTrack(null);

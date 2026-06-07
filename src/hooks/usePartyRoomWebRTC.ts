@@ -41,7 +41,7 @@ import {
 } from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -209,6 +209,7 @@ export function usePartyRoomWebRTC(
 
     destroyBeautyProcessor();
     releaseWebViewCameraIfAndroid();
+    void releaseAndroidWebViewCameraNow('party-room:cleanup-force');
     detachAllAudio();
     peerStreamsRef.current.clear();
 
