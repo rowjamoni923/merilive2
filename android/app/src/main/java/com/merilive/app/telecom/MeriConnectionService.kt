@@ -82,9 +82,12 @@ class MeriConnectionService : ConnectionService() {
                 TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
-            connectionCapabilities = (Connection.CAPABILITY_HOLD
-                or Connection.CAPABILITY_SUPPORT_HOLD
-                or Connection.CAPABILITY_MUTE)
+            // Pkg-audit Tier-3: self-managed connections must NOT advertise
+            // CAPABILITY_HOLD / CAPABILITY_SUPPORT_HOLD — Telecom rejects
+            // those caps for PROPERTY_SELF_MANAGED on strict AOSP devices
+            // (API 28+) with SecurityException. Only CAPABILITY_MUTE is
+            // safe here. We don't expose hold to JS anyway.
+            connectionCapabilities = Connection.CAPABILITY_MUTE
         }
         if (callId.isNotEmpty()) put(callId, conn)
         return conn
@@ -145,8 +148,12 @@ class MeriConnection(
     }
 
     override fun onAnswer(videoState: Int) {
+        // Pkg-audit Tier-3: do NOT call onAnswer() (which calls super.onAnswer())
+        // — that would invoke the framework super twice on the same Connection
+        // and cycles the Telecom state machine on some OEMs. Inline the work.
         super.onAnswer(videoState)
-        onAnswer()
+        setActive()
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "accept")
     }
 
     override fun onReject() {
@@ -166,7 +173,12 @@ class MeriConnection(
         setDisconnected(DisconnectCause(DisconnectCause.LOCAL))
         destroy()
         MeriConnectionService.remove(callId)
-        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "decline")
+        // Pkg-audit Tier-3: this fires when the user hangs up an ALREADY-active
+        // call (e.g. BT End button mid-call). Dispatching "decline" here would
+        // re-run the reject-path in JS on a connected call. Use "ended" so JS
+        // can route to the active-call teardown path instead. JS receives the
+        // event via NativeCallPlugin and falls through to its terminal cleanup.
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "ended")
     }
 
     override fun onAbort() {
