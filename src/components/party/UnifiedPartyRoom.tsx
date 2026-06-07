@@ -56,6 +56,11 @@ import {
 // Pkg81b: fetchUserEntryAnimations no longer needed — Pkg80 LiveKit envelope
 // carries pre-resolved entrance/entry-name-bar/vehicle URLs from the sender.
 import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
+import {
+  createJoinMessageCoalescer,
+  formatJoinMessage,
+  type JoinCoalescer,
+} from "@/utils/joinMessageCoalescer";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 // Pkg81c: LiveKit-only in-room chat (replaces `party-chat-${roomId}` Supabase channel).
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
