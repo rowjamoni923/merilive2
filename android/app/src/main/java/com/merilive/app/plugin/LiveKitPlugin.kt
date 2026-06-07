@@ -283,6 +283,18 @@ class LiveKitPlugin : Plugin() {
         val callType: String,
         val e2eeOn: Boolean,
         val e2eeKey: String?,
+        // Phase F — professional audio profile.
+        //   "voice"     → 1:1 Private Call. Mono 32 kbps, full WebRTC AP3
+        //                 (AEC + NS + AGC + HPF + typing), hardware AEC/NS
+        //                 preferred, CallAudioType (earpiece-friendly, DTX on).
+        //   "broadcast" → Live / Party Room. Stereo-capable 64 kbps, AP3 on
+        //                 with HPF + AGC, hardware AEC/NS still on (mic still
+        //                 needs echo control vs phone speakers), RED on, DTX
+        //                 off (continuous bg ambience / music ducking).
+        //   "music"     → Karaoke / instrument. 128 kbps, AGC + NS + HPF +
+        //                 typing OFF (preserve dynamics), hardware AEC/NS
+        //                 OFF, stereo, MediaAudioType (no comm-mode squash).
+        val audioProfile: String,
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
