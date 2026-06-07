@@ -3809,6 +3809,10 @@ const LiveStream = () => {
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
+                      Sparkles: <Sparkles className="w-6 h-6" strokeWidth={1.8} />,
+                      Heart: <Heart className="w-6 h-6 fill-current" strokeWidth={1.8} />,
+                      Mic: <Mic className="w-6 h-6" strokeWidth={1.8} />,
+                      MicOff: <MicOff className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
 
