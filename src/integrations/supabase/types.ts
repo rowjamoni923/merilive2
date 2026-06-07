@@ -2199,6 +2199,36 @@ export type Database = {
         }
         Relationships: []
       }
+      app_update_broadcast_log: {
+        Row: {
+          broadcast_at: string
+          devices_delivered: number
+          devices_targeted: number
+          id: string
+          platform: string
+          version_code: string
+          version_name: string | null
+        }
+        Insert: {
+          broadcast_at?: string
+          devices_delivered?: number
+          devices_targeted?: number
+          id?: string
+          platform?: string
+          version_code: string
+          version_name?: string | null
+        }
+        Update: {
+          broadcast_at?: string
+          devices_delivered?: number
+          devices_targeted?: number
+          id?: string
+          platform?: string
+          version_code?: string
+          version_name?: string | null
+        }
+        Relationships: []
+      }
       app_version_settings: {
         Row: {
           changelog: string | null
