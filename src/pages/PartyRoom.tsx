@@ -339,6 +339,12 @@ const PartyRoom = () => {
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   // Track recently processed requests to prevent duplicates
   const recentlyProcessedRequestsRef = useRef<Set<string>>(new Set());
   // Join messages for chat display
