@@ -9,11 +9,14 @@
  * Storage: localStorage key `merilive:nativeEntryAnim`. Values: 'on' | 'off'.
  */
 const KEY = 'merilive:nativeEntryAnim';
+// Developer Options writes to the unified `native-flag:` prefix; honor both.
+const DEV_KEY = 'native-flag:nativeEntryAnim';
 
 export function isNativeEntryAnimFlagOn(): boolean {
   try {
-    return typeof localStorage !== 'undefined' &&
-      localStorage.getItem(KEY) === 'on';
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem(KEY) === 'on' ||
+      localStorage.getItem(DEV_KEY) === 'on';
   } catch {
     return false;
   }

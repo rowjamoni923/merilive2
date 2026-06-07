@@ -9,11 +9,14 @@
  * Reading is sync — safe to call during render.
  */
 const KEY = 'merilive:nativeGiftAnim';
+// Developer Options writes to the unified `native-flag:` prefix; honor both.
+const DEV_KEY = 'native-flag:nativeGiftAnim';
 
 export function isNativeGiftAnimFlagOn(): boolean {
   try {
-    return typeof localStorage !== 'undefined' &&
-      localStorage.getItem(KEY) === 'on';
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem(KEY) === 'on' ||
+      localStorage.getItem(DEV_KEY) === 'on';
   } catch {
     return false;
   }
