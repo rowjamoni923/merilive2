@@ -9,6 +9,8 @@ export type NativeFlagKey =
   | 'pipCall'
   | 'giftPanelNative'
   | 'voiceNative'
+  | 'nativeGiftAnim'
+  | 'nativeEntryAnim'
   | 'nativeChatUI' // Legacy
 
   | 'nativeFeed' // Legacy
