@@ -19,6 +19,8 @@ import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 import { getVapCompositeHint, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 import { warmGiftForInstantPlay } from '@/utils/instantGiftWarmup';
+import { toast } from 'sonner';
+
 
 export interface GiftItem {
   id: string;
