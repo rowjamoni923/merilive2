@@ -236,18 +236,8 @@ const CreateParty = () => {
     }
   }, [stream, isVideoEnabled, mode]);
 
-  // Handle mode changes - switch camera/audio
-  useEffect(() => {
-    if (stream) {
-      const hasVideo = stream.getVideoTracks().length > 0;
-      const needsVideo = mode === "video" || mode === "game";
-      
-      if (needsVideo !== hasVideo) {
-        stream.getTracks().forEach(track => track.stop());
-        startCameraInstant(needsVideo);
-      }
-    }
-  }, [mode]);
+  // Camera/audio switches are handled inside the tab click so browser
+  // permission stays tied to a user gesture.
   const handleEnableMedia = async () => {
     setCameraReady(false);
     if (streamRef.current) {
@@ -364,10 +354,22 @@ const CreateParty = () => {
     navigate("/party-rooms");
   };
 
-  const handleModeChange = (newMode: PartyMode) => {
+  const handleModeChange = async (newMode: PartyMode) => {
+    const previousMode = mode;
     setMode(newMode);
     if (newMode === "game" && !selectedGame) {
       setShowGameSelection(true);
+    }
+    if (!streamRef.current) return;
+
+    const previousNeedsVideo = previousMode === "video" || previousMode === "game";
+    const nextNeedsVideo = newMode === "video" || newMode === "game";
+    if (previousNeedsVideo !== nextNeedsVideo) {
+      setCameraReady(false);
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      releaseAndroidWebViewCamera('create-party:mode-change');
+      setStream(null);
+      await startCameraInstant(nextNeedsVideo);
     }
   };
 
