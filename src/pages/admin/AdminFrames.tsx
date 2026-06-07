@@ -225,13 +225,18 @@ const AdminFrames = () => {
         };
         const contentType = extensionToMimeType[finalExtension || ''] || 'application/octet-stream';
         
-        const { data, error } = await supabase.storage
+        // Hard 90s timeout so the upload spinner never gets stuck.
+        const uploadPromise = supabase.storage
           .from('frames')
           .upload(uniqueName, fileToUpload, {
             cacheControl: '3600',
             upsert: false,
             contentType: contentType,
           });
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Upload timed out after 90s — check network and retry.')), 90_000)
+        );
+        const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as Awaited<typeof uploadPromise>;
 
         if (error) throw error;
 
