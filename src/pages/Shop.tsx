@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
