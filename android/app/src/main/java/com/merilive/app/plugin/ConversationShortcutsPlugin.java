@@ -89,8 +89,8 @@ public class ConversationShortcutsPlugin extends Plugin {
 
             ShortcutManagerCompat.removeAllDynamicShortcuts(ctx);
             if (!shortcuts.isEmpty()) {
-                ShortcutManagerCompat.setDynamicShortcuts(ctx, shortcuts);
-                // Report usage so Android ranks them in Direct Share
+                // pushDynamicShortcut adds to dynamic list AND reports usage for Direct Share ranking.
+                // Do NOT call setDynamicShortcuts first — that causes duplicates on API 29+.
                 for (ShortcutInfoCompat s : shortcuts) {
                     ShortcutManagerCompat.pushDynamicShortcut(ctx, s);
                 }
