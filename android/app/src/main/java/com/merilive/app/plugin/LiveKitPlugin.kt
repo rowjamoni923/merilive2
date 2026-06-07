@@ -574,6 +574,46 @@ class LiveKitPlugin : Plugin() {
             null
         }
 
+        // Phase F — Professional audio pipeline.
+        //
+        // The default LocalAudioTrackOptions() already enables AP3
+        // (AEC/NS/AGC/HPF/typing) but we *explicitly* spell it out per
+        // profile so the chain is auditable and "music" can disable
+        // dynamics processing without affecting other rooms.
+        val audioCapture: LocalAudioTrackOptions = when (args.audioProfile) {
+            "music" -> LocalAudioTrackOptions(
+                noiseSuppression = false,
+                echoCancellation = true,   // keep — phone speakers still echo
+                autoGainControl = false,   // preserve dynamics
+                highPassFilter = false,    // preserve sub-bass
+                typingNoiseDetection = false,
+            )
+            "broadcast" -> LocalAudioTrackOptions(
+                noiseSuppression = true,
+                echoCancellation = true,
+                autoGainControl = true,
+                highPassFilter = true,
+                typingNoiseDetection = false, // hosts often tap chat — don't mute them
+            )
+            else -> LocalAudioTrackOptions(
+                noiseSuppression = true,
+                echoCancellation = true,
+                autoGainControl = true,
+                highPassFilter = true,
+                typingNoiseDetection = true,
+            )
+        }
+
+        // Opus publish profile.
+        //   voice     → 32 kbps mono DTX-on RED-on   (lowest data, robust)
+        //   broadcast → 64 kbps RED-on DTX-off       (continuous mix, stereo-capable)
+        //   music     → 128 kbps RED-on DTX-off      (full-band stereo music)
+        val audioPublish: AudioTrackPublishDefaults = when (args.audioProfile) {
+            "music" -> AudioTrackPublishDefaults(audioBitrate = 128_000, dtx = false, red = true)
+            "broadcast" -> AudioTrackPublishDefaults(audioBitrate = 64_000, dtx = false, red = true)
+            else -> AudioTrackPublishDefaults(audioBitrate = 32_000, dtx = true, red = true)
+        }
+
         val roomOptions = RoomOptions(
             adaptiveStream = true,
             dynacast = true,
@@ -582,13 +622,42 @@ class LiveKitPlugin : Plugin() {
                 captureParams = captureParams
             ),
             videoTrackPublishDefaults = publishDefaults,
+            audioTrackCaptureDefaults = audioCapture,
+            audioTrackPublishDefaults = audioPublish,
             e2eeOptions = e2eeOptions,
+        )
+
+        // Phase F — JavaAudioDeviceModule customization. We force
+        // hardware AEC + NS when the chipset exposes them (saves CPU
+        // and gives better results than software AP3 alone on most
+        // Snapdragon / MTK devices). Also pin VOICE_COMMUNICATION
+        // for "voice" / "broadcast" (full duplex) and MIC for "music"
+        // (raw, no comm-mode dynamics).
+        val useMediaSrcForMusic = args.audioProfile == "music"
+        val audioOptions = AudioOptions(
+            audioOutputType = if (useMediaSrcForMusic) AudioType.MediaAudioType() else AudioType.CallAudioType(),
+            javaAudioDeviceModuleCustomizer = { builder ->
+                try {
+                    if (useMediaSrcForMusic) {
+                        builder.setAudioSource(android.media.MediaRecorder.AudioSource.MIC)
+                        builder.setUseHardwareAcousticEchoCanceler(false)
+                        builder.setUseHardwareNoiseSuppressor(false)
+                    } else {
+                        builder.setAudioSource(android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                        builder.setUseHardwareAcousticEchoCanceler(true)
+                        builder.setUseHardwareNoiseSuppressor(true)
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "audio device customizer: ${t.message}")
+                }
+                Unit
+            },
         )
 
         val newRoom = LiveKit.create(
             appContext = context.applicationContext,
             options = roomOptions,
-            overrides = LiveKitOverrides()
+            overrides = LiveKitOverrides(audioOptions = audioOptions),
         )
         room = newRoom
 
