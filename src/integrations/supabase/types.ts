@@ -18570,7 +18570,7 @@ export type Database = {
       }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
       cleanup_expired_otps: { Args: never; Returns: undefined }
-      cleanup_expired_recordings: { Args: never; Returns: undefined }
+      cleanup_expired_recordings: { Args: never; Returns: number }
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       cleanup_login_attempts: { Args: never; Returns: undefined }
