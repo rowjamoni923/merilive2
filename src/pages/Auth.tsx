@@ -746,8 +746,9 @@ const Auth = () => {
       }
 
       // Fallback to client-side only if server-side fails
+      const geo = await loadGeolocation();
       if (!countryCode) {
-        const ipResult = await detectCountryViaIP();
+        const ipResult = await geo.detectCountryViaIP();
         if (!ipResult) {
           console.log('[Auth] ALL detection methods failed - country will be null');
           return;
@@ -759,8 +760,8 @@ const Auth = () => {
         console.log('[Auth] Client-side fallback detection:', countryCode);
       }
 
-      const countryFlag = getCountryFlag(countryCode);
-      const countryName = countryNamesEnglish[countryCode] || "Unknown";
+      const countryFlag = geo.getCountryFlag(countryCode);
+      const countryName = geo.countryNamesEnglish[countryCode] || "Unknown";
 
       const deviceInfo = {
         userAgent: navigator.userAgent,
