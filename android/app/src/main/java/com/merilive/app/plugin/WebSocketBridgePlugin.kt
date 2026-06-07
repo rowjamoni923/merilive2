@@ -51,7 +51,12 @@ class WebSocketBridgePlugin : Plugin() {
     // pingInterval keeps NAT mappings alive on cellular (most carriers
     // recycle UDP/TCP NAT entries after 60-180s of silence; we send a
     // protocol ping every 25s which is well under that floor).
-    private val http: OkHttpClient by lazy {
+    // Pkg-audit Tier-4: expose the `lazy` delegate so handleOnDestroy can
+    // detect whether the OkHttpClient was ever materialized and shut its
+    // dispatcher thread pool + connection pool down. Without this, the
+    // dispatcher's cached ExecutorService threads survive activity destroy
+    // and leak across hot-reload / activity recreation.
+    private val httpDelegate = lazy {
         OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS) // never time out a long-lived socket
@@ -60,6 +65,7 @@ class WebSocketBridgePlugin : Plugin() {
             .retryOnConnectionFailure(true)
             .build()
     }
+    private val http: OkHttpClient by httpDelegate
 
     // ---------------- JS API ----------------
 
@@ -141,6 +147,14 @@ class WebSocketBridgePlugin : Plugin() {
             try { ws.close(1001, "activity_destroyed") } catch (_: Throwable) {}
         }
         sockets.clear()
+        // Pkg-audit Tier-4: release OkHttp dispatcher threads + connection pool
+        // so they don't outlive the activity. Only touch the client if it was
+        // actually materialized — otherwise we'd needlessly construct + tear
+        // down a client just to free nothing.
+        if (httpDelegate.isInitialized()) {
+            try { http.dispatcher.executorService.shutdown() } catch (_: Throwable) {}
+            try { http.connectionPool.evictAll() } catch (_: Throwable) {}
+        }
         super.handleOnDestroy()
     }
 

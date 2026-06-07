@@ -249,7 +249,11 @@ class LiveKitPlugin : Plugin() {
     )
 
     private val stallTable = mutableMapOf<String, StallEntry>()
-    private val stallSinks = mutableMapOf<String, VideoSink>()
+    // Pkg-audit Tier-4: store the owning track alongside each VideoSink so
+    // clearStallSinks can call removeRenderer() — without that, sinks remain
+    // registered on still-live tracks and keep firing onFrame against a
+    // dropped stall table (wasted CPU on the decode thread).
+    private val stallSinks = mutableMapOf<String, Pair<VideoSink, io.livekit.android.room.track.VideoTrack>>()
     private var stallWatchdogJob: Job? = null
     private var stallWatchdogEnabled: Boolean = true
 
@@ -1627,6 +1631,12 @@ class LiveKitPlugin : Plugin() {
             unregisterNetworkCallback()
             lastConnectArgs = null
             val pre = room
+            // Pkg-audit Tier-4: null the reference IMMEDIATELY so the
+            // sync-disconnect line below (now removed) plus any concurrent
+            // callback path can never invoke disconnect() a second time on
+            // the same Room object. The async IO scope below owns the only
+            // remaining reference and disconnects exactly once.
+            room = null
             if (pre != null) {
                 // Pkg-audit fix: `runBlocking` on the main thread deadlocked here
                 // because setCameraEnabled/setMicrophoneEnabled internally hop to
@@ -1642,8 +1652,9 @@ class LiveKitPlugin : Plugin() {
 
             try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
-            try { room?.disconnect() } catch (_: Exception) {}
-            room = null
+            // Pkg-audit Tier-4: removed the redundant sync `room?.disconnect()`
+            // — Room.disconnect() is not safe to call twice concurrently on the
+            // same instance; the IO scope above now owns the single call.
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
@@ -1732,6 +1743,12 @@ class LiveKitPlugin : Plugin() {
         }
         hardReconnectInProgress = true
         scope.launch {
+            // Pkg-audit Tier-4: track whether we scheduled a retry so the
+            // finally block doesn't clobber the gate the recursive call just
+            // re-armed. Previously: catch sets false → schedule sets true →
+            // finally sets false (gate lost), allowing a concurrent net event
+            // to launch a second hard-reconnect coroutine.
+            var willRetry = false
             try {
                 // Exponential backoff — 3 s, 6 s, 12 s.
                 val backoffMs = 3_000L * (1L shl hardReconnectAttempts)
@@ -1746,12 +1763,14 @@ class LiveKitPlugin : Plugin() {
                 data.put("attempt", hardReconnectAttempts)
                 data.put("error", e.message ?: e.javaClass.simpleName)
                 notifyListeners("connection-state", data)
-                // Schedule the next attempt (re-enters the gate above).
+                willRetry = true
+            } finally {
+                if (!willRetry) hardReconnectInProgress = false
+            }
+            if (willRetry) {
+                // Open the gate exactly once, then re-enter via the gate above.
                 hardReconnectInProgress = false
                 scheduleHardReconnect("retry")
-                return@launch
-            } finally {
-                hardReconnectInProgress = false
             }
         }
     }
@@ -1950,7 +1969,9 @@ class LiveKitPlugin : Plugin() {
     ) {
         if (!stallWatchdogEnabled) return
         // Detach an old sink first so reattaches don't double-count.
-        stallSinks.remove(key)?.let { try { track.removeRenderer(it) } catch (_: Exception) {} }
+        stallSinks.remove(key)?.let { (oldSink, oldTrack) ->
+            try { oldTrack.removeRenderer(oldSink) } catch (_: Exception) {}
+        }
         val sink = object : VideoSink {
             override fun onFrame(frame: VideoFrame?) {
                 val entry = stallTable[key] ?: return
@@ -1959,7 +1980,7 @@ class LiveKitPlugin : Plugin() {
                 if (entry.attempts > 0) entry.attempts = 0
             }
         }
-        stallSinks[key] = sink
+        stallSinks[key] = sink to track
         try { track.addRenderer(sink) } catch (e: Exception) {
             Log.w(TAG, "installStallSink addRenderer failed: ${e.message}")
             stallSinks.remove(key); return
@@ -1974,9 +1995,12 @@ class LiveKitPlugin : Plugin() {
     }
 
     private fun clearStallSinks() {
-        // We don't have the original tracks here (they may already be
-        // released by the SDK), so just drop our references — the WebRTC
-        // VideoSinks become unreachable and GC reclaims them.
+        // Pkg-audit Tier-4: explicitly removeRenderer() so live tracks stop
+        // dispatching onFrame into orphaned sinks. Tracks the SDK has already
+        // released will throw — swallow silently.
+        stallSinks.values.forEach { (sink, track) ->
+            try { track.removeRenderer(sink) } catch (_: Exception) {}
+        }
         stallSinks.clear()
         stallTable.clear()
     }
@@ -3696,15 +3720,16 @@ class LiveKitPlugin : Plugin() {
     }
 
     private fun applyMicGate(open: Boolean) {
-        // Flip the SDK-level mic flag — fast path, no republish.
-        try {
-            scope.launch {
-                room?.localParticipant?.setMicrophoneEnabled(open)
-            }
-        } catch (_: Exception) {}
-        // Belt-and-braces: also flip the track's enabled flag so any
-        // SDK that ignores the high-level setter still goes silent.
-        try { localAudioTrack()?.enabled = open } catch (_: Exception) {}
+        // Pkg-audit Tier-4: previously also flipped localAudioTrack().enabled
+        // directly on the caller thread while a coroutine concurrently ran
+        // setMicrophoneEnabled() — those two writes to the underlying WebRTC
+        // audio track racing across threads is UB at the JNI layer. The SDK
+        // call alone is sufficient; the "belt-and-braces" direct flip was
+        // causing intermittent mic-stuck-open after rapid PTT toggles.
+        scope.launch {
+            try { room?.localParticipant?.setMicrophoneEnabled(open) }
+            catch (_: Exception) {}
+        }
     }
 
     private fun emitPttState(reason: String) {

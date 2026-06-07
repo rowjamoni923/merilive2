@@ -13,9 +13,9 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Pkg435 — Real per-session audio effects.
@@ -43,7 +43,12 @@ public class NativeAudioEnginePlugin extends Plugin {
         Equalizer eq;
     }
 
-    private final Map<Integer, SessionFx> sessions = new HashMap<>();
+    // Pkg-audit Tier-4: Capacitor dispatches @PluginMethod calls on a pool of
+    // background threads. A plain HashMap here would race between concurrent
+    // enableProfessionalAudio / setAudioEffect / releaseSession invocations,
+    // causing ConcurrentModificationException, lost SessionFx entries, and
+    // leaked AudioEffect natives. ConcurrentHashMap + computeIfAbsent below.
+    private final Map<Integer, SessionFx> sessions = new ConcurrentHashMap<>();
 
     @PluginMethod
     public void enableProfessionalAudio(PluginCall call) {
@@ -54,8 +59,8 @@ public class NativeAudioEnginePlugin extends Plugin {
         boolean noiseSupported = NoiseSuppressor.isAvailable();
         boolean gainSupported = AutomaticGainControl.isAvailable();
 
-        SessionFx fx = sessions.get(sid);
-        if (fx == null) { fx = new SessionFx(); sessions.put(sid, fx); }
+        // Atomic get-or-create — see ConcurrentHashMap note above.
+        SessionFx fx = sessions.computeIfAbsent(sid, k -> new SessionFx());
 
         try {
             if (echoSupported && fx.aec == null) {
@@ -91,8 +96,7 @@ public class NativeAudioEnginePlugin extends Plugin {
         int level = call.getInt("level", 50); // 0..100
         if (level < 0) level = 0; if (level > 100) level = 100;
 
-        SessionFx fx = sessions.get(sid);
-        if (fx == null) { fx = new SessionFx(); sessions.put(sid, fx); }
+        SessionFx fx = sessions.computeIfAbsent(sid, k -> new SessionFx());
 
         try {
             String t = type == null ? "normal" : type.toLowerCase(Locale.US);

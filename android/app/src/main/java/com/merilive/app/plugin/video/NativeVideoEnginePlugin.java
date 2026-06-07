@@ -66,16 +66,16 @@ public class NativeVideoEnginePlugin extends Plugin {
         if (brightness < -100) brightness = -100; if (brightness > 100) brightness = 100;
         if (saturation < 0) saturation = 0; if (saturation > 200) saturation = 200;
 
+        Bitmap src = null;
+        Bitmap mut = null;
         try {
             // strip data: prefix if present
             int comma = b64.indexOf(',');
             if (comma > 0 && comma < 64) b64 = b64.substring(comma + 1);
             byte[] raw = Base64.decode(b64, Base64.DEFAULT);
-            Bitmap src = BitmapFactory.decodeByteArray(raw, 0, raw.length);
+            src = BitmapFactory.decodeByteArray(raw, 0, raw.length);
             if (src == null) { call.reject("decode failed"); return; }
-            Bitmap mut = src.isMutable()
-                    ? src
-                    : src.copy(Bitmap.Config.ARGB_8888, true);
+            mut = src.isMutable() ? src : src.copy(Bitmap.Config.ARGB_8888, true);
             if (mut == null) { call.reject("mutable copy failed"); return; }
 
             int rc = processFrameNative(mut, brightness, saturation);
@@ -90,11 +90,15 @@ public class NativeVideoEnginePlugin extends Plugin {
             ret.put("width", mut.getWidth());
             ret.put("height", mut.getHeight());
             call.resolve(ret);
-
-            if (mut != src) mut.recycle();
-            if (!src.isRecycled()) src.recycle();
         } catch (Throwable t) {
             call.reject("processFrame failed: " + (t.getMessage() == null ? "unknown" : t.getMessage()));
+        } finally {
+            // Pkg-audit Tier-4: ALL paths must release the native Bitmap heap,
+            // not just the happy path. Previously the early `return` after a
+            // non-zero processFrameNative result, and the catch branch, both
+            // skipped recycle() → leaked the source Bitmap on every error.
+            try { if (mut != null && mut != src && !mut.isRecycled()) mut.recycle(); } catch (Throwable ignored) {}
+            try { if (src != null && !src.isRecycled()) src.recycle(); } catch (Throwable ignored) {}
         }
     }
 }
