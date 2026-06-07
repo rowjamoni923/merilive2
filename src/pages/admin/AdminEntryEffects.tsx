@@ -70,19 +70,19 @@ const AdminEntryEffects = () => {
         <TabsList className="grid h-auto w-full grid-cols-4 gap-1 border border-[hsl(var(--admin-border-light)/0.7)] bg-[hsl(var(--admin-card)/0.68)] p-1">
           <TabsTrigger value="banners" className={tabTriggerClass}>
             <Zap className="mr-1 h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Entry</span> Banners
+            <span className="hidden sm:inline">Premium</span> Effects
           </TabsTrigger>
           <TabsTrigger value="bars" className={tabTriggerClass}>
             <Sparkles className="mr-1 h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Entry</span> Bars
+            <span className="hidden sm:inline">Standard</span> Effects
           </TabsTrigger>
           <TabsTrigger value="names" className={tabTriggerClass}>
             <Type className="mr-1 h-4 w-4 sm:mr-2" />
-            Name Bars
+            <span className="hidden sm:inline">Flying</span> Name Bars
           </TabsTrigger>
           <TabsTrigger value="vehicles" className={tabTriggerClass}>
             <Car className="mr-1 h-4 w-4 sm:mr-2" />
-            Vehicles
+            Vehicle <span className="hidden sm:inline">Entrances</span>
           </TabsTrigger>
         </TabsList>
 
