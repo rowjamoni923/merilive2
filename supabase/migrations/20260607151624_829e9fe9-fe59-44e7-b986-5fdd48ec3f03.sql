@@ -1,0 +1,1 @@
+ALTER TABLE public.entry_name_bars ALTER COLUMN image_url DROP NOT NULL;
