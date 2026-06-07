@@ -3534,37 +3534,47 @@ const Chat = () => {
           </Dialog>
           
           {/* Gift Panel - Same as Live/Party Room */}
-          <GiftPanel
-            isOpen={showGiftPanel}
-            onClose={() => setShowGiftPanel(false)}
-            onSendGift={handleSendGift}
-            userCoins={userCoins}
-          />
+          {showGiftPanel && (
+            <Suspense fallback={null}>
+              <GiftPanel
+                isOpen={showGiftPanel}
+                onClose={() => setShowGiftPanel(false)}
+                onSendGift={handleSendGift}
+                userCoins={userCoins}
+              />
+            </Suspense>
+          )}
           
           {/* Game Panel - Same as Live/Party Room */}
-          <LiveGameSelector
-            isOpen={showGamePanel}
-            onClose={() => setShowGamePanel(false)}
-            onOpenGifts={() => setShowGiftPanel(true)}
-          />
+          {showGamePanel && (
+            <Suspense fallback={null}>
+              <LiveGameSelector
+                isOpen={showGamePanel}
+                onClose={() => setShowGamePanel(false)}
+                onOpenGifts={() => setShowGiftPanel(true)}
+              />
+            </Suspense>
+          )}
 
           {/* Gift Emoji Animation */}
           <AnimatePresence>
             {showGiftAnimation && animatingGiftEmoji && (
-              <GiftEmojiAnimation
-                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
-                emoji={animatingGiftEmoji}
-                animationFormat={animatingGiftFormat}
-                animationConfigUrl={animatingGiftConfigUrl}
-                soundUrl={animatingGiftSound || undefined}
-                onComplete={() => {
-                  setShowGiftAnimation(false);
-                  setAnimatingGiftEmoji("");
-                  setAnimatingGiftFormat(null);
-                  setAnimatingGiftConfigUrl(null);
-                  setAnimatingGiftSound(null);
-                }}
-              />
+              <Suspense fallback={null}>
+                <GiftEmojiAnimation
+                  key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
+                  emoji={animatingGiftEmoji}
+                  animationFormat={animatingGiftFormat}
+                  animationConfigUrl={animatingGiftConfigUrl}
+                  soundUrl={animatingGiftSound || undefined}
+                  onComplete={() => {
+                    setShowGiftAnimation(false);
+                    setAnimatingGiftEmoji("");
+                    setAnimatingGiftFormat(null);
+                    setAnimatingGiftConfigUrl(null);
+                    setAnimatingGiftSound(null);
+                  }}
+                />
+              </Suspense>
             )}
           </AnimatePresence>
 
