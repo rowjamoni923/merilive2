@@ -42,6 +42,10 @@ object GiftAudioMixer {
     private val poolIds = ConcurrentHashMap<String, Int>()         // url → soundId
     private val activePoolStreams = mutableSetOf<Int>()            // stream ids
     private val activePlayers = mutableListOf<MediaPlayer>()
+    // Pkg-audit fix: SoundPool.setOnLoadCompleteListener is a GLOBAL setter;
+    // concurrent loads previously overwrote each other and silently dropped sounds.
+    // Track pending (soundId → desired volume) and dispatch from ONE persistent listener.
+    private val pendingPoolPlays = ConcurrentHashMap<Int, Float>()
     private val downloadExecutor = Executors.newFixedThreadPool(2)
     private val downloadCache = ConcurrentHashMap<String, File>()
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -58,8 +62,14 @@ object GiftAudioMixer {
             .setMaxStreams(MAX_SOUNDPOOL_STREAMS)
             .setAudioAttributes(attrs)
             .build()
+        // ONE persistent listener for the life of the SoundPool.
+        soundPool.setOnLoadCompleteListener { _, soundId, status ->
+            val vol = pendingPoolPlays.remove(soundId) ?: return@setOnLoadCompleteListener
+            if (status == 0) startSoundPool(soundId, vol)
+        }
         initialized = true
     }
+
 
     /**
      * Best-effort play. Returns immediately; honors muted device volume
@@ -115,12 +125,11 @@ object GiftAudioMixer {
         }
         val newId = soundPool.load(file.absolutePath, 1)
         poolIds[url] = newId
-        soundPool.setOnLoadCompleteListener { _, soundId, status ->
-            if (status == 0 && soundId == newId) {
-                startSoundPool(soundId, volume)
-            }
-        }
+        // Register desired volume; persistent listener in ensureInit() handles
+        // dispatch. Concurrent loads no longer overwrite each other.
+        pendingPoolPlays[newId] = volume
     }
+
 
     private fun startSoundPool(soundId: Int, volume: Float) {
         try {

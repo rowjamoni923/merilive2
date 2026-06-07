@@ -175,8 +175,13 @@ class NativeGiftAnimationPlugin : Plugin() {
         synchronized(jobsLock) {
             if (jobs.size >= MAX_QUEUE_SIZE) {
                 // Drop lowest-priority job to make room — never block enqueue.
-                val lowest = jobs.maxWithOrNull(jobs.comparator().reversed())
-                if (lowest != null && (lowest.priority < priority || lowest.coins < coins)) {
+                // PriorityQueue head = smallest per comparator (highest priority);
+                // tail = largest per comparator (lowest priority). maxWithOrNull
+                // with the queue's own comparator returns that lowest-priority element.
+                val lowest = jobs.maxWithOrNull(jobs.comparator())
+                // Evict only if the incoming job ranks BETTER than the lowest
+                // current job per the SAME comparator (composite pri+coins+ts).
+                if (lowest != null && jobs.comparator().compare(lowest, job) > 0) {
                     jobs.remove(lowest)
                     emit("gift:error", JSObject()
                         .put("id", lowest.id)
@@ -187,6 +192,7 @@ class NativeGiftAnimationPlugin : Plugin() {
             }
             jobs.add(job)
         }
+
         emit("gift:queued", JSObject().put("id", id).put("queueSize", queueSize()))
         activity.runOnUiThread { pump() }
         call.resolve(JSObject().put("id", id).put("queued", true))
@@ -298,7 +304,7 @@ class NativeGiftAnimationPlugin : Plugin() {
         val slot = Slot(job)
         activeJobIds[job.id] = slot
         // Schedule timeout watchdog up front; cancelled on natural complete.
-        mainHandler().postDelayed(slot.watchdog, job.timeoutMs)
+        mainHandler.postDelayed(slot.watchdog, job.timeoutMs)
 
         // Resolve file off the UI thread, then play on UI thread.
         downloadExecutor.execute {
@@ -485,7 +491,7 @@ class NativeGiftAnimationPlugin : Plugin() {
             iv.setImageURI(Uri.fromFile(file))
         } catch (_: Throwable) {}
         // Static image — finish after a short reveal so the queue keeps flowing.
-        mainHandler().postDelayed({ finishOk(slot) }, 2_500)
+        mainHandler.postDelayed({ finishOk(slot) }, 2_500)
     }
 
     // ─── View tree ──────────────────────────────────────────────────────────
@@ -517,7 +523,7 @@ class NativeGiftAnimationPlugin : Plugin() {
     }
 
     private fun tearDown(slot: Slot) {
-        mainHandler().removeCallbacks(slot.watchdog)
+        mainHandler.removeCallbacks(slot.watchdog)
         try { slot.animView?.stopPlay() } catch (_: Throwable) {}
         try { slot.svgaView?.stopAnimation(true) } catch (_: Throwable) {}
         try { slot.lottieView?.cancelAnimation() } catch (_: Throwable) {}
@@ -557,8 +563,11 @@ class NativeGiftAnimationPlugin : Plugin() {
         }
     }
 
-    private fun mainHandler(): android.os.Handler =
-        android.os.Handler(android.os.Looper.getMainLooper())
+    // Single shared Handler — MUST be a property, not a function. A new
+    // Handler per call would make removeCallbacks() target the wrong
+    // instance, leaking watchdogs and firing false timeouts.
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
 
     private fun cacheBytes(): Long {
         var total = 0L
