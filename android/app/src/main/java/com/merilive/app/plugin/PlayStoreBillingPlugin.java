@@ -98,6 +98,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
             public void onBillingServiceDisconnected() {
                 isConnecting = false;
                 Log.w(TAG, "Billing service disconnected");
+                rejectReadyQueue("Billing service disconnected", "BILLING_DISCONNECTED");
+                rejectAllInitialize("Billing service disconnected", "BILLING_DISCONNECTED");
             }
         });
     }
