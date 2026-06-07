@@ -193,19 +193,34 @@ const EntryNameBarAnimationInner = memo(({
                   hasAnimation ? "gap-3 px-4" : "gap-2 px-3"
                 )}
               >
-                <Avatar className={cn(
-                  "flex-shrink-0 ring-2 ring-white/60 shadow-lg",
-                  hasAnimation ? "w-12 h-12" : "w-9 h-9"
-                )}>
-                  <AvatarImage 
-                    src={avatarUrl || getDisplayAvatar(userName)}
-                    alt={userName}
-                    className="object-cover"
+                {userId ? (
+                  <FramedAvatarWithPrivileges
+                    userId={userId}
+                    src={avatarUrl}
+                    name={userName}
+                    level={level}
+                    size={hasAnimation ? "md" : "sm"}
+                    showFrame
+                    showGlow={false}
+                    showAnimation={false}
+                    className="flex-shrink-0"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-xs font-bold">
-                    {userName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                ) : (
+                  <Avatar className={cn(
+                    "flex-shrink-0 ring-2 ring-white/60 shadow-lg",
+                    hasAnimation ? "w-12 h-12" : "w-9 h-9"
+                  )}>
+                    <AvatarImage
+                      src={avatarUrl || getDisplayAvatar(userName)}
+                      alt={userName}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-xs font-bold">
+                      {userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+
 
                 <div className="flex flex-col justify-center min-w-0">
                   <div className="flex items-center gap-2">
