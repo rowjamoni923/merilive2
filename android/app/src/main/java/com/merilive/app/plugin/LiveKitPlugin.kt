@@ -560,6 +560,7 @@ class LiveKitPlugin : Plugin() {
                 Log.e(TAG, "connect failed", e)
                 try { room?.disconnect() } catch (_: Exception) {}
                 releaseRoomResources(room, "connect-failed")
+                try { com.meritlive_unbind_safe(room, "connect-failed") } catch (_: Throwable) {}
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
@@ -746,6 +747,21 @@ class LiveKitPlugin : Plugin() {
         attachEventListeners(newRoom)
 
         newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
+
+        // Phase 1A — publish to Application-scope observer so future
+        // callers (re-entry to live/call screen) can detect an active
+        // session without going through Capacitor plugin lifecycle.
+        try {
+            com.merilive.app.rtc.RtcEngineManager.bind(
+                newRoom,
+                com.merilive.app.rtc.RtcEngineManager.ConnectSummary(
+                    url = args.url,
+                    callType = args.callType,
+                    audioProfile = args.audioProfile,
+                    e2eeEnabled = args.e2eeOn,
+                ),
+            )
+        } catch (t: Throwable) { Log.w(TAG, "RtcEngineManager.bind failed (non-fatal): ${t.message}") }
 
         // Pkg-audit fix: canPublish=false guard on NATIVE path (web path
         // already has this in useLiveKitCall.ts). A token that denies publish
