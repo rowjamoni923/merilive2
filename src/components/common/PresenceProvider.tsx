@@ -86,7 +86,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     lastOnlineSet.current = now;
 
     try {
-      await supabase.rpc('update_online_status', { p_user_id: uid, p_is_online: true });
+      await supabase.rpc('sync_host_online_status', { p_user_id: uid, p_is_online: true });
       console.log('[Presence] 🟢 Set ONLINE for:', uid);
     } catch (e) {
       console.error('[Presence] Failed to set online:', e);
