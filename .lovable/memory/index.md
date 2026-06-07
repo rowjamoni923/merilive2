@@ -6,12 +6,14 @@ Chamet-class live streaming app. NEVER use polling/visibility-refresh in place o
 **🚫 WEB GIFT animation components remain FORBIDDEN** (FullScreenGiftAnimation, FlyingGiftAnimation, GiftEmojiAnimation, VAPPlayer, gift sound, gift panel, public-gift-media). Gift = Android-native only (Pkg438). **✅ WEB ENTRY animation components UNBLOCKED 2026-06-07** — UnifiedEntryAnimation, EntryBarAnimation, useEntryAnimations, flying name, welcome chat message are now permitted (silent on web). See mem://constraints/never-touch-gift-entry-animations.
 **🌐 ENGLISH-ONLY UI STRINGS** — All toasts/labels/messages/errors in app code MUST be English, never Bangla. National app. Reply to user in Bangla in chat but never in code. See mem://preferences/english-only-ui-strings.
 **📋 MIGRATION PLAN MANDATORY** — Before ANY live/call/party/RTC/camera/animation task, READ `.lovable/plan.md` first, locate the phase, follow listed files only, then tick `[x]` when done. No plan-skip allowed. See mem://preferences/follow-migration-plan.
-**📱 ANDROID-FIRST** — 99% users are Android. Native Android = primary, web = silent fallback. Never let web limitations dictate Android architecture. See mem://preferences/android-first.
+**📱 ANDROID-ONLY FOREVER** — 99% users Android. Web is NOT a delivery target, only preview/dev. All RTC/animation/payment/camera SDKs must be Android-native (livekit-android, native VAP, Camera2, FCM, Play Billing). NEVER propose web-first or "JS-now, native-later" for live/call/party/billing. See mem://preferences/android-only-forever.
+**💰 ALL RATES ADMIN-CONFIGURABLE** — Call price, platform cut, agency %, sub-agency %, bonus tiers, grace seconds — ALL read from admin-controlled DB tables (`agency_policy_settings`, `app_settings`, `call_price_settings`, `host_levels` etc.). NEVER hardcode 35%/65%/2%/70-coins. Agency commission = small % of host earnings paid from company's cut (NOT cutting host further). See mem://preferences/admin-configurable-rates.
 **🔍 GOOGLE-RESEARCH-BEFORE-FIX** — For any non-trivial live/call/party/RTC/billing/animation work, research Bigo/Chamet/StreamKar/PoPo/CrushLive/HiClub/Wejoy industry standard FIRST, then code. See mem://preferences/google-research-before-fix.
 
 ## Memories
 - [Follow migration plan](mem://preferences/follow-migration-plan) — MANDATORY: read `.lovable/plan.md` before any live/call/party/RTC/camera/animation work; tick `[x]` on completion.
-- [Android-first mindset](mem://preferences/android-first) — Native Android primary, web secondary; never compromise Android UX for web constraints.
+- [Android-only forever](mem://preferences/android-only-forever) — Hard rule: native Android SDK for every RTC/animation/payment/camera path. Web = preview only, NOT a target platform.
+- [Admin-configurable rates](mem://preferences/admin-configurable-rates) — All percentages/rates from DB config tables, never hardcoded. Agency commission paid from company cut, not from host.
 - [Google research before fix](mem://preferences/google-research-before-fix) — Spawn research subagent / websearch on pro apps before non-trivial RTC/billing/animation code.
 - [Owner test account](mem://preferences/test-account.md) — Always-available preview login (smdollarex923@gmail.com) for end-to-end self-testing.
 - [Phase 3 Private Call audit](mem://features/phase3-private-call-audit) — DONE 2026-06-06.

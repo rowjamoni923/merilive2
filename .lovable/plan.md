@@ -3,7 +3,9 @@
 
 > **🔴 AGENT MANDATORY RULE:** এই file টা **প্রতিবার** live/call/party/RTC/camera/animation/billing/wallet/agency-related কাজ শুরুর আগে পড়তে হবে। কাজ complete হলে relevant checkbox-এ `[x]` mark দিতে হবে। কখনো plan skip করে কাজ করা যাবে না। Non-trivial fix হলে আগে Google research (subagent/websearch) করতে হবে — mem://preferences/google-research-before-fix।
 
-> **📱 ANDROID-FIRST:** 99% user Android। সব design Native Android primary, Web silent fallback only। মাথা থেকে "web-first" thinking permanent ban।
+> **📱 ANDROID-ONLY FOREVER:** 99% user Android। Web is NOT a delivery target — preview/dev only। সব RTC/animation/camera/payment SDK Android-native (livekit-android, VAP, Camera2, FCM, Play Billing)। "web-first" / "JS now, native later" — permanent ban। See mem://preferences/android-only-forever।
+
+> **💰 ALL RATES ADMIN-CONFIGURABLE:** Call price, platform cut, agency %, sub-agency %, bonus tiers — সব admin panel DB table থেকে read হবে। কোনো percentage hardcoded না। Agency commission = host এর earned beans এর small % (admin-set), company-র cut থেকে paid — host কে আরো কাটা হবে না। See mem://preferences/admin-configurable-rates।
 
 ---
 
@@ -25,40 +27,53 @@
 
 Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppolive.net, livehosting.xyz, Scribd policy PDFs (2025-2026)।
 
-### Industry Standard Defaults (locked references)
+### Industry Standard Defaults (REFERENCE ONLY — actual values from admin panel)
 
-| Rule | Bigo | Chamet | PoPo | StreamKar | **OurApp Target** |
-|------|------|--------|------|-----------|-------------------|
-| Per-min call billing | Per-min advance | 70 coins/min fixed | hourly model | not public | **Per-min advance** |
-| Min charge | 1 full minute | 1 full minute | n/a | n/a | **1 full minute** |
-| Connect grace | not published | 0s | n/a | n/a | **8 seconds** |
-| Reconnect window | ~30s | none | n/a | n/a | **15 seconds** |
-| Low-balance warn | ~30s before end | none | n/a | n/a | **2 min remaining** |
-| Pre-call balance check | manual | manual | n/a | n/a | **Block if <3 min** |
-| Platform cut (gift) | 20-50% | 40% | 30% | not disclosed | **35%** |
-| Platform cut (call) | 50% | 40% | n/a | n/a | **35%** |
-| Withdrawal min | $31.90 | $10 | $10 | not public | **$5** |
-| Withdrawal freq | weekly | weekly Thu 06:00 UTC+8 | weekly Sun cutoff | monthly | **Weekly Thursday** |
-| Bean hold period | 48h | weekly batch | weekly batch | monthly | **48 hours** |
-| KYC required | ID | 3-tier liveness | 1080p face | PAN+Aadhaar | **NID + liveness** |
-| Age gate | 18+ | 18+ | 18+ | 18+ | **18+ strict** |
-| Multi-guest seats | 12 | n/a | n/a | yes | **8 (expand to 12)** |
-| PK duration | 10 min | yes | yes | yes | **10 min** |
-| Recording private call | NO | NO | NO | NO | **NO (FLAG_SECURE)** |
-| Hourly stream bonus | tiered salary | online bonus | 11 tiers 2K-70K coins/hr | gems target | **6 tiers, 500-5K Petals/hr** |
-| Min hours for bonus | 30h/15days | implied | 4h/week | 40h/15days | **30h across 15 days** |
-| Face detection in call | yes (AI) | yes | mandatory >1hr | not disclosed | **yes, warn 90s, end 3min** |
-| Agency commission | tier | 5-30% (9-tier) | 4-20% (D-S) | deposit-based | **5-25% (6-tier), from platform cut** |
+> ⚠️ এই table শুধু **research reference** — আমাদের app-এ এই কোনো number hardcoded থাকবে না। সব value admin panel-এর config table-এ seed হবে এবং admin চাইলে যেকোনো সময় change করতে পারবে। See mem://preferences/admin-configurable-rates।
+
+| Rule | Bigo | Chamet | PoPo | StreamKar | **OurApp Default Seed (admin-editable)** |
+|------|------|--------|------|-----------|-------------------------------------------|
+| Per-min call billing | Per-min advance | 70 coins/min fixed | hourly model | not public | **Per-min advance, rate from `call_price_settings`** |
+| Min charge | 1 full minute | 1 full minute | n/a | n/a | **Configurable in `app_settings.min_call_minutes`** |
+| Connect grace | not published | 0s | n/a | n/a | **Configurable in `app_settings.call_connect_grace_seconds` (seed 8)** |
+| Reconnect window | ~30s | none | n/a | n/a | **Configurable in `app_settings.call_reconnect_window_seconds` (seed 15)** |
+| Low-balance warn | ~30s before end | none | n/a | n/a | **Configurable in `app_settings.low_balance_warn_minutes` (seed 2)** |
+| Pre-call balance check | manual | manual | n/a | n/a | **Configurable in `app_settings.min_balance_minutes_to_start` (seed 3)** |
+| Platform cut (gift) | 20-50% | 40% | 30% | not disclosed | **`agency_policy_settings.platform_gift_cut_percent` — admin-set** |
+| Platform cut (call) | 50% | 40% | n/a | n/a | **`agency_policy_settings.platform_call_cut_percent` — admin-set** |
+| Withdrawal min | $31.90 | $10 | $10 | not public | **`app_settings.min_withdrawal_usd` — admin-set** |
+| Withdrawal freq | weekly | weekly Thu 06:00 UTC+8 | weekly Sun cutoff | monthly | **`app_settings.withdrawal_schedule` — admin-set** |
+| Bean hold period | 48h | weekly batch | weekly batch | monthly | **`app_settings.bean_hold_hours` — admin-set** |
+| KYC required | ID | 3-tier liveness | 1080p face | PAN+Aadhaar | **NID + liveness, tiers from `user_kyc` config** |
+| Age gate | 18+ | 18+ | 18+ | 18+ | **`app_settings.min_age` — admin-set** |
+| Multi-guest seats | 12 | n/a | n/a | yes | **`party_rooms.max_seats` per room — admin-set, seed 8** |
+| PK duration | 10 min | yes | yes | yes | **`pk_battles.duration_minutes` — admin-set, seed 10** |
+| Recording private call | NO | NO | NO | NO | **NO (FLAG_SECURE) — hard-coded for legal** |
+| Hourly stream bonus | tiered salary | online bonus | 11 tiers 2K-70K coins/hr | gems target | **Tiers from `new_host_live_bonus_settings` table — admin-set** |
+| Min hours for bonus | 30h/15days | implied | 4h/week | 40h/15days | **`new_host_live_bonus_settings.min_hours_threshold` — admin-set** |
+| Face detection in call | yes (AI) | yes | mandatory >1hr | not disclosed | **`app_settings.face_warn_seconds` / `face_end_seconds` — admin-set** |
+| Agency commission | tier | 5-30% (9-tier) | 4-20% (D-S) | deposit-based | **From `agency_level_tiers` table — admin-set per tier, % of host earnings, paid from company cut** |
+| Sub-agency commission | tier | yes | yes | yes | **From `sub_agent_commissions` / `agency_level_tiers` — admin-set, paid from agency cut** |
+
+### Business Logic (user-confirmed — locked rules)
+
+1. **Viewer call payment flow:**
+   - Viewer diamonds deducted per-min = admin's `call_price_settings` row
+   - Host bean credit per-min = admin's `call_price_settings` row (admin can set independent rate; spread = company VAT)
+2. **Agency commission flow (user-confirmed):**
+   - Company already takes VAT (e.g., admin sets host=50%, company=50% — that's the company's earnings)
+   - Agency commission (small %, e.g. 2-3%, admin-set) is calculated as % of host's earned beans
+   - **Paid FROM company's share, NOT cutting host further** — host always gets the admin-set %
+   - Sub-agency cut from agency cut (admin-set), agency owner takes the rest
+3. **Why this works:** Company keeps majority of VAT; agency gets recruitment incentive; host's payout never reduced by agency presence (industry standard, host-friendly).
 
 ### Critical insights for our app
 
-1. **PoPo's agency model = host-friendly:** Commission comes from platform's 30% cut, NOT from host's 70%. We should copy this (Chamet takes from host's share → toxic to hosts).
-2. **Chamet = 70 coins/min flat viewer-side, host-set host-side:** Hides spread. We can use this dual-pricing model.
-3. **Bigo's 48h hold + bean freeze on fraud:** Industry standard for chargeback protection. Mandatory.
-4. **Bigo SSS host = $23K/month with 50h streaming:** Aspirational tier shows the ceiling.
-5. **PoPo's explicit 11-tier hourly bonus table** = most transparent, easiest to copy.
-6. **Server-side timer is mandatory** (not client-reported) — prevents fake duration fraud.
-7. **No server-side call recording** — universal industry practice for privacy/liability.
+1. **PoPo's agency model = host-friendly:** Commission from platform's cut, NOT from host's. ✅ We're already doing this per user rule above.
+2. **Bigo's 48h hold + bean freeze on fraud:** Industry standard for chargeback protection — implement as admin-configurable hold period.
+3. **Server-side timer is mandatory** (not client-reported) — prevents fake duration fraud.
+4. **No server-side call recording** — universal industry practice for privacy/liability.
+5. **Every config value via admin panel** — never code-locked.
 
 ---
 
