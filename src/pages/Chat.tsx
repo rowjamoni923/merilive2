@@ -70,7 +70,7 @@ import { messageOutbox, type OutboxItem } from "@/lib/messageOutbox";
 import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
-import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
+const GiftEmojiAnimation = lazy(() => import("@/components/chat/GiftEmojiAnimation").then(m => ({ default: m.GiftEmojiAnimation })));
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
