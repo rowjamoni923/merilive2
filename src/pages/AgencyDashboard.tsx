@@ -66,9 +66,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
-import SubAgentsPanel from "@/components/agency/SubAgentsPanel";
-import PayrollHelperWelcomeModal from "@/components/agency/PayrollHelperWelcomeModal";
+const HelperApplicationForm = lazy(() => import("@/components/helper/HelperApplicationForm"));
+const SubAgentsPanel = lazy(() => import("@/components/agency/SubAgentsPanel"));
+const PayrollHelperWelcomeModal = lazy(() => import("@/components/agency/PayrollHelperWelcomeModal"));
 import { formatNumber as formatNum } from "@/utils/formatNumber";
 
 // Helper for formatting numbers with English numerals
