@@ -320,6 +320,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         id: result.transactionId || 'unknown',
         coins_spent: result.coinsSpent || 0,
         beans_earned: result.hostReceived || 0,
+        diamond_bonus: result.diamondBonus || 0,
+        is_lucky: !!result.isLucky,
       },
       gift: {
         id: giftId,
@@ -328,6 +330,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         category: 'popular',
       },
     };
+
 
   } catch (error) {
     console.error('[GiftingService] Send gift error:', error);
