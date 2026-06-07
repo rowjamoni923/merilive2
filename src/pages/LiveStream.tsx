@@ -773,7 +773,7 @@ const LiveStream = () => {
       console.error('❌ LiveKit error:', error);
       const msg = error instanceof Error ? error.message : String(error);
       recordClientError({ label: "LiveStream.deltaY", message: msg });
-      // Viewer-side: stream ended/inactive → friendly toast + navigate home (no blank screen)
+      // Viewer-side: stream ended/inactive → show the premium ended dialog (no blank screen)
       if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
         // Phase G bug-fix #1: differentiate the two cases — `stream_inactive`
         // really means the host ended the stream, `must_enter_stream_first`
@@ -783,9 +783,9 @@ const LiveStream = () => {
         if (/must_enter_stream_first/i.test(msg)) {
           toast.error('Unable to join this stream — please try again.');
         } else {
-          toast.info('This live stream has ended.');
+          void showViewerStreamEnded(hostInfo?.name || 'Host');
+          return;
         }
-        try { navigate('/', { replace: true }); } catch { /* ignore */ }
         return;
       }
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
