@@ -576,46 +576,9 @@ const GoLive = () => {
     }
     setShowPermissionPrompt(false);
 
-    // Pkg415: On Android we MUST try the native CameraX preview FIRST.
-    // Previously web getUserMedia ran unconditionally and held the camera
-    // handle — when LiveKit native then claimed Camera2 it failed with
-    // CAMERA_IN_USE → 2-second white screen. Native first, web only as
-    // a true fallback.
-    if (isNativeAndroid) {
-      try {
-        const started = await startNativePreview();
-        if (started) {
-          playSound('notification');
-          return;
-        }
-      } catch (err) {
-        console.warn('[GoLive] native preview threw, falling back to web:', err);
-      }
-
-      // Native failed — make sure CameraX released the camera before web tries.
-      try { await stopNativePreview(); } catch { /* noop */ }
-      await new Promise((r) => setTimeout(r, 400));
-
-      try {
-        const fallbackStream = await getCameraStream(true);
-        if (fallbackStream) {
-          setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-          setStream(fallbackStream);
-          setFacingMode('user');
-          attachWebPreviewStream(fallbackStream);
-          toast.info('Using standard camera (Beauty Studio unavailable)');
-          playSound('notification');
-          return;
-        }
-      } catch (e) {
-        console.error('[GoLive] web fallback also failed:', e);
-      }
-      setShowPermissionPrompt(true);
-      toast.error('Camera failed to start. Please check permissions in Settings.');
-      return;
-    }
-
-    // Web / iOS path — getUserMedia directly.
+    // Browser/Android WebView permission must be requested by the same user
+    // tap. Do not run native probes, timeout waits, or a second permission
+    // check before getUserMedia — that loses the browser gesture context.
     try {
       const mediaStream = await getCameraStream(true);
       if (!mediaStream) throw new Error('Failed to get camera stream');
