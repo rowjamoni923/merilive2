@@ -536,7 +536,11 @@ export const RoomChatOverlay = memo(({
         {/* Join Notifications - After messages in reverse (appear above messages) */}
         <AnimatePresence initial={false} mode="sync">
           {joinNotifications.slice().reverse().map((notification) => (
-            <JoinNotificationItem key={notification.id} notification={notification} />
+            <JoinNotificationItem
+              key={notification.id}
+              notification={notification}
+              roomKind={roomType === 'live' ? 'live' : 'party'}
+            />
           ))}
         </AnimatePresence>
         
