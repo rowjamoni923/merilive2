@@ -146,6 +146,27 @@ serve(async (req) => {
       });
     }
 
+    // J1 dedup: prevent duplicate FCM dispatch when DB webhook retries.
+    // Uses the same notification_push_dispatches table as send-push-notification.
+    if (record.id) {
+      const supabaseEarly = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { error: dispatchErr } = await supabaseEarly
+        .from("notification_push_dispatches")
+        .insert({ notification_id: record.id });
+      if (dispatchErr) {
+        if (dispatchErr.code === "23505") {
+          console.log(`[PushOnNotif] Skipping duplicate dispatch for notification ${record.id}`);
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: "already_dispatched" }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        console.warn("[PushOnNotif] Dispatch insert error (continuing):", dispatchErr);
+      }
+    }
+
     const userId = record.user_id;
     const title = record.title;
     const body = record.message || "";

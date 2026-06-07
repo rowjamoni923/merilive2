@@ -8301,6 +8301,21 @@ export type Database = {
           },
         ]
       }
+      message_push_dispatches: {
+        Row: {
+          created_at: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          message_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

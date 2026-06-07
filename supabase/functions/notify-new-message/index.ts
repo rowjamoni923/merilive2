@@ -134,6 +134,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // J2 dedup: prevent duplicate FCM push when sender's client retries.
+    {
+      const { error: dispatchErr } = await supabase
+        .from("message_push_dispatches")
+        .insert({ message_id: messageId });
+      if (dispatchErr) {
+        if (dispatchErr.code === "23505") {
+          console.log(`[MsgPush] Skipping duplicate dispatch for message ${messageId}`);
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: "already_dispatched" }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        console.warn("[MsgPush] Dispatch insert error (continuing):", dispatchErr);
+      }
+    }
+
     const { data: verifiedMessage, error: verifyError } = await supabase
       .from("messages")
       .select("id, conversation_id, sender_id, content, message_type, media_url")
