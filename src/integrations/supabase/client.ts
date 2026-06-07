@@ -41,10 +41,14 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
 const __isNativeAndroid = (() => {
   try {
     if (typeof navigator !== 'undefined' && /MeriLive-Android-Native/i.test(navigator.userAgent || '')) return true;
-    const cap: any = (typeof window !== 'undefined') ? (window as any).Capacitor : null;
+    const cap = (typeof window !== 'undefined')
+      ? (window as Window & { Capacitor?: { getPlatform?: () => string; isNativePlatform?: () => boolean } }).Capacitor
+      : null;
     if (cap?.getPlatform && cap.getPlatform() === 'android') return true;
     if (cap?.isNativePlatform && cap.isNativePlatform()) return true;
-  } catch {}
+  } catch {
+    return false;
+  }
   return false;
 })();
 
@@ -77,7 +81,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
           opts.headers = headers;
           init = opts;
         }
-      } catch {}
+      } catch {
+        adminToken = null;
+      }
 
       const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       return fetchWithInstantRestCache(input, init, {
@@ -89,13 +95,21 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       }).then(async (resp) => {
         if (!adminToken || resp.ok || resp.status === 304) return resp;
         if (!requestUrl.includes('/rest/v1/') && !requestUrl.includes('/functions/v1/')) return resp;
+        // Error telemetry must never create a user-visible admin toast loop.
+        // If the telemetry endpoint itself is denied/slow, keep the original
+        // failure silent; the admin panel must remain usable.
+        if (requestUrl.includes('/rest/v1/system_error_logs')) return resp;
         let bodyText = '';
-        try { bodyText = await resp.clone().text(); } catch {}
+        try { bodyText = await resp.clone().text(); } catch {
+          bodyText = '';
+        }
         let message = bodyText;
         try {
           const j = JSON.parse(bodyText);
           message = j.message || j.error || j.msg || bodyText;
-        } catch {}
+        } catch {
+          message = bodyText;
+        }
         const isRpc = requestUrl.includes('/rest/v1/rpc/');
         const isEdge = requestUrl.includes('/functions/v1/');
         const path = requestUrl.replace(SUPABASE_URL, '').split('?')[0];

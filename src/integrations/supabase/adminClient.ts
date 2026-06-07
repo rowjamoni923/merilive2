@@ -58,10 +58,15 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
 const SAFETY_LIMIT = 500;
 const DEDUPE_MS = 250;
 const ADMIN_SESSION_PREFLIGHT_TTL_MS = 5 * 60 * 1000;
+const ADMIN_SESSION_PREFLIGHT_TIMEOUT_MS = 5_000;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
 let adminSessionPreflightUntil = 0;
 let adminSessionPreflightPromise: Promise<boolean> | null = null;
 let lastInvalidAdminRedirectAt = 0;
+
+export const markAdminSessionPreflightValid = () => {
+  adminSessionPreflightUntil = Date.now() + ADMIN_SESSION_PREFLIGHT_TTL_MS;
+};
 
 if (typeof window !== 'undefined') {
   const clearAdminReadCache = () => {
@@ -122,8 +127,12 @@ const ensureAdminSessionDeviceBound = (token: string): Promise<boolean> => {
 
   if (adminSessionPreflightPromise) return adminSessionPreflightPromise;
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), ADMIN_SESSION_PREFLIGHT_TIMEOUT_MS);
+
   adminSessionPreflightPromise = fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_request_device_access`, {
     method: 'POST',
+    signal: controller.signal,
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
@@ -169,6 +178,7 @@ const ensureAdminSessionDeviceBound = (token: string): Promise<boolean> => {
       return true;
     })
     .finally(() => {
+      window.clearTimeout(timeoutId);
       adminSessionPreflightPromise = null;
     });
 

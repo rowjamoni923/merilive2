@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { adminSupabase, markAdminSessionPreflightValid } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind, getAdminLinkChallenge, getAdminLinkToken, setAdminLinkChallenge, setAdminLinkKind, setAdminLinkToken } from "@/utils/adminAccessStorage";
@@ -201,6 +201,7 @@ export default function AdminAuth() {
       device_fingerprint: pendingFingerprint,
       session_token: pendingSessionToken,
     });
+    markAdminSessionPreflightValid();
     grantAdminAccess(false);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('admin-session-change'));
@@ -364,6 +365,7 @@ export default function AdminAuth() {
           device_fingerprint: fp.fingerprint,
           session_token: auth.session_token,
         });
+        markAdminSessionPreflightValid();
         setAdminSessionToken(auth.session_token);
         grantAdminAccess(true);
         if (typeof window !== 'undefined') {
@@ -398,6 +400,7 @@ export default function AdminAuth() {
           device_fingerprint: fp.fingerprint,
           session_token: auth.session_token,
         });
+        markAdminSessionPreflightValid();
         setAdminSessionToken(auth.session_token);
         grantAdminAccess(!!auth.is_owner);
         if (typeof window !== 'undefined') {
