@@ -230,6 +230,8 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 
 **Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
 
+
+
 ### Phase 1A — Application-scope Engine Singleton
 - [ ] Create `android/app/src/main/java/com/merilive/app/MeriLiveApplication.kt` — Application subclass, init RtcEngineManager
 - [ ] Register Application in AndroidManifest
