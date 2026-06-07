@@ -122,6 +122,7 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 | Phase | Theme | Days | Track |
 |-------|-------|------|-------|
 | **Phase 0** | Foundation already done (reference) | — | T+B |
+| **Phase 0.5** | 🧹 Native Plugin Audit + Duplicate Consolidation (BEFORE Phase 1) | 1 | T |
 | **Phase 1** | Native LiveKit RTC foundation | 1-2 | T |
 | **Phase 2** | Camera lifecycle hardening | 1-2 | T |
 | **Phase 3** | Native Private Call Activity + business rules | 2-3 | T+B |
