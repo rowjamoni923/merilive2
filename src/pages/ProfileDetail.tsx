@@ -1039,18 +1039,23 @@ const ProfileDetail = () => {
                 </Badge>
                 {/* Previous level is now merged into main level display via useRealtimeLevel */}
                 
-                {/* Status: Live > Busy (in call) > Online */}
-                {activeLiveStream ? (
+                {/* Status: Live > Party > Busy > Online */}
+                {isProfileLive ? (
  <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1" />
                     🔴 Live
                   </Badge>
-                ) : profile.is_in_call ? (
+                ) : isProfileInParty ? (
+ <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 text-[10px] shadow-lg shadow-violet-500/25 px-2 py-0.5">
+                    <Users className="w-3 h-3 mr-1" />
+                    Party
+                  </Badge>
+                ) : isPresenceBusy ? (
  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-amber-500/20 px-2 py-0.5">
                     <Phone className="w-3 h-3 mr-1" />
                     Busy
                   </Badge>
-                ) : profile.is_online ? (
+                ) : isPresenceOnline ? (
  <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
                     Online
