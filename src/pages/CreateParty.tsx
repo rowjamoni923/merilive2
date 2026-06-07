@@ -170,7 +170,8 @@ const CreateParty = () => {
     const ALLOWED_CREATE_PARTY_GAMES = ['lucky_28', 'aviator', 'plinko', 'dragon_tiger', 'andar_bahar', 'crash'];
 
     const initParty = async () => {
-      // Run user fetch, games fetch, and camera start in parallel
+      // Run data loading only. Camera/mic must start from an explicit tap so
+      // browsers keep the permission request inside the user gesture.
       const [userData, gamesData] = await Promise.all([
         (async () => {
           const { data: { user } } = await supabase.auth.getUser();
@@ -189,8 +190,7 @@ const CreateParty = () => {
           .select('game_id, game_name, game_emoji, game_color, logo_url')
           .eq('is_active', true)
           .in('game_id', ALLOWED_CREATE_PARTY_GAMES)
-          .order('display_order', { ascending: true }),
-        startCameraInstant(mode !== "audio")
+          .order('display_order', { ascending: true })
       ]);
       
       if (!isMounted) return;
@@ -248,6 +248,16 @@ const CreateParty = () => {
       }
     }
   }, [mode]);
+  const handleEnableMedia = async () => {
+    setCameraReady(false);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      releaseAndroidWebViewCamera('create-party:enable-media-retry');
+      setStream(null);
+    }
+    await startCameraInstant(mode !== "audio");
+  };
+
   const handleCreateParty = async () => {
     // Re-check level restriction before creating
     if (showLevelRestricted) {
@@ -258,6 +268,11 @@ const CreateParty = () => {
     if (mode === "game" && !selectedGame) {
       toast.error("Please select a game first");
       setShowGameSelection(true);
+      return;
+    }
+
+    if (!streamRef.current?.getTracks().some((track) => track.readyState === 'live')) {
+      toast.error(mode === "audio" ? "Please enable microphone first" : "Please enable camera and microphone first");
       return;
     }
 
