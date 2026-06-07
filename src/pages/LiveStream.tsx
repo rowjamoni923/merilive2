@@ -1373,10 +1373,37 @@ const LiveStream = () => {
           }
         }
 
-        // 3. Gift transactions (backup)
+        // 3. Gift transactions safety-net (Pkg-audit MEDIUM fix)
+        // Host bean counter previously updated ONLY via LiveKit DataPacket.
+        // If a viewer's LiveKit session lost the WS or background-dropped,
+        // the gift was written to DB but never counted on host UI until refresh.
+        // Now: if no LiveKit fast-path mark within 5s, apply receiver_beans here.
         if (table === 'gift_transactions' && row.stream_id === id && event === 'INSERT') {
-          console.log('[LiveStream] Gift transaction detected via Realtime:', row);
+          if (!row?.id || seenGiftTxnIdsRef.current.has(row.id)) return;
+          seenGiftTxnIdsRef.current.add(row.id);
+          // Cap set size to avoid unbounded growth
+          if (seenGiftTxnIdsRef.current.size > 500) {
+            const first = seenGiftTxnIdsRef.current.values().next().value;
+            if (first) seenGiftTxnIdsRef.current.delete(first);
+          }
+          const dedupKey = `${row.sender_id}|${row.gift_id}|${row.quantity ?? 1}`;
+          const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
+          if (Date.now() - lkMark < 5000) return; // LiveKit fast-path already applied
+          // Safety-net apply: top up host bean counter
+          const giftAmount = Number(row.receiver_beans ?? row.total_coins ?? 0);
+          if (giftAmount > 0 && row.receiver_id === currentUserId) {
+            setTotalBeans(prev => prev + giftAmount);
+            if (isHost) {
+              try {
+                window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                  detail: { userId: currentUserId, beansDelta: giftAmount },
+                }));
+              } catch { /* ignore */ }
+            }
+          }
+          console.log('[LiveStream] Gift safety-net applied (LK missed):', row.id, '+', giftAmount);
         }
+
       }
     );
 
