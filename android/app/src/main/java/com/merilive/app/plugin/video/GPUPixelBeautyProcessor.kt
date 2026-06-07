@@ -372,27 +372,32 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
         // the system past the ANR threshold on low-end devices while a 1080p
         // frame was mid-processing. Post cleanup to the worker and quit the
         // looper from inside the worker so no new work can be accepted after.
+        if (!disposed.compareAndSet(false, true)) return
         worker.post {
-            try {
-                rawInput?.RemoveAllSinks()
-                faceDetector?.destroy()
-                rawInput?.Destroy()
-                rawOutput?.Destroy()
-                beauty?.Destroy()
-                reshape?.Destroy()
-                lipstick?.Destroy()
-                blusher?.Destroy()
-            } catch (_: Throwable) {}
-            faceDetector = null
-            rawInput = null
-            rawOutput = null
-            beauty = null
-            reshape = null
-            lipstick = null
-            blusher = null
-            initialized.set(false)
-            busy.set(false)
+            releaseGraphLocked()
             workerThread.quitSafely()
         }
+    }
+
+    private fun releaseGraphLocked() {
+        try {
+            rawInput?.RemoveAllSinks()
+            faceDetector?.destroy()
+            rawInput?.Destroy()
+            rawOutput?.Destroy()
+            beauty?.Destroy()
+            reshape?.Destroy()
+            lipstick?.Destroy()
+            blusher?.Destroy()
+        } catch (_: Throwable) {}
+        faceDetector = null
+        rawInput = null
+        rawOutput = null
+        beauty = null
+        reshape = null
+        lipstick = null
+        blusher = null
+        initialized.set(false)
+        busy.set(false)
     }
 }
