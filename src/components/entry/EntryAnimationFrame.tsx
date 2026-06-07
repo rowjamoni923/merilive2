@@ -116,6 +116,10 @@ const EntryAnimationFrame: React.FC<EntryAnimationFrameProps> = ({
   debug,
   debugTag,
   triggerKey,
+  dynamicAvatarUrl = null,
+  dynamicFrameUrl = null,
+  dynamicUserName = null,
+  dynamicUserLevel = null,
 }) => {
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
