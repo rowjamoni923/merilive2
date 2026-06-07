@@ -262,17 +262,23 @@ const ShopItemCard = ({
           if (animSrc && isAnimatedType(animType) && !imageError) {
             return (
               <div className="w-[72%] h-[72%] mx-auto flex items-center justify-center">
-                <FixedAnimationFrame
-                  src={animSrc}
-                  type={animType as any}
-                  configSrc={item.animation_config_url || undefined}
-                  size="fill"
-                  loop
-                  autoPlay
-                  muted
-                  background="none"
-                  onError={() => setImageError(true)}
-                />
+                {inView ? (
+                  <FixedAnimationFrame
+                    src={animSrc}
+                    type={animType as any}
+                    configSrc={item.animation_config_url || undefined}
+                    size="fill"
+                    loop
+                    autoPlay
+                    muted
+                    background="none"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  // Lightweight placeholder while card is off-screen so the
+                  // browser doesn't decode dozens of animations at once.
+                  <div className="w-full h-full rounded-xl bg-amber-100/40 border border-amber-300/30" />
+                )}
               </div>
             );
           }
