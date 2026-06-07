@@ -304,7 +304,7 @@ class NativeGiftAnimationPlugin : Plugin() {
         val slot = Slot(job)
         activeJobIds[job.id] = slot
         // Schedule timeout watchdog up front; cancelled on natural complete.
-        mainHandler().postDelayed(slot.watchdog, job.timeoutMs)
+        mainHandler.postDelayed(slot.watchdog, job.timeoutMs)
 
         // Resolve file off the UI thread, then play on UI thread.
         downloadExecutor.execute {
@@ -491,7 +491,7 @@ class NativeGiftAnimationPlugin : Plugin() {
             iv.setImageURI(Uri.fromFile(file))
         } catch (_: Throwable) {}
         // Static image — finish after a short reveal so the queue keeps flowing.
-        mainHandler().postDelayed({ finishOk(slot) }, 2_500)
+        mainHandler.postDelayed({ finishOk(slot) }, 2_500)
     }
 
     // ─── View tree ──────────────────────────────────────────────────────────
@@ -523,7 +523,7 @@ class NativeGiftAnimationPlugin : Plugin() {
     }
 
     private fun tearDown(slot: Slot) {
-        mainHandler().removeCallbacks(slot.watchdog)
+        mainHandler.removeCallbacks(slot.watchdog)
         try { slot.animView?.stopPlay() } catch (_: Throwable) {}
         try { slot.svgaView?.stopAnimation(true) } catch (_: Throwable) {}
         try { slot.lottieView?.cancelAnimation() } catch (_: Throwable) {}
