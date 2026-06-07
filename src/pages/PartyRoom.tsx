@@ -615,16 +615,58 @@ const PartyRoom = () => {
     // Initial fetch
     fetchTotalBeans();
 
-    // Pkg81: `party-beans-${roomId}` Supabase Realtime channel DELETED.
-    // Beans counter realtime now arrives purely via Pkg76 LiveKit
-    // `livekit-gift-sent` DataPacket — the handler further below already
-    // bumps `setTotalRoomBeans` + `setParticipantBeans` from the same
-    // envelope. Late-join state = the initial `fetchTotalBeans()` above.
-    // Net result: every active party room saves 1 Realtime channel + 1
-    // gift_transactions postgres_changes subscription. ZERO functional
-    // regression — the LiveKit path was already the primary; this just
-    // removes the redundant fallback.
+    // Pkg-audit MEDIUM: gift_transactions safety-net subscription.
+    // LiveKit DataPacket is the primary instant path. But if a sender's WS
+    // dropped or background-throttled, their gift was written to DB but
+    // never counted on receiver UI until refresh. This realtime channel
+    // tops up totals from any INSERT that LiveKit dedup didn't already mark
+    // within 5s. ZERO double-count: dedup key = sender|gift|qty.
+    const giftSafetyChannel = supabase
+      .channel(`party-gifts-safety-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'gift_transactions', filter: `party_room_id=eq.${roomId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row?.id || seenGiftTxnIdsRef.current.has(row.id)) return;
+          seenGiftTxnIdsRef.current.add(row.id);
+          if (seenGiftTxnIdsRef.current.size > 500) {
+            const first = seenGiftTxnIdsRef.current.values().next().value;
+            if (first) seenGiftTxnIdsRef.current.delete(first);
+          }
+          const dedupKey = `${row.sender_id}|${row.gift_id}|${row.quantity ?? 1}`;
+          const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
+          if (Date.now() - lkMark < 5000) return; // LiveKit fast-path won
+          // Safety-net apply
+          const beans = Number(row.receiver_beans ?? Math.floor((row.coin_amount || 0) * hostCommissionPercentRef.current / 100));
+          const coins = Number(row.total_coins ?? row.coin_amount ?? 0);
+          if (beans > 0) {
+            setTotalRoomBeans(prev => prev + beans);
+            const cuid = currentUserRef.current?.id;
+            if (row.receiver_id === cuid) {
+              try {
+                window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                  detail: { userId: cuid, beansDelta: beans },
+                }));
+              } catch { /* ignore */ }
+            }
+          }
+          if (row.sender_id && coins > 0) {
+            setParticipantBeans(prev => ({
+              ...prev,
+              [row.sender_id]: (prev[row.sender_id] || 0) + coins,
+            }));
+          }
+          console.log('[PartyRoom] Gift safety-net applied (LK missed):', row.id, '+', beans);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(giftSafetyChannel); } catch { /* ignore */ }
+    };
   }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
+
 
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
