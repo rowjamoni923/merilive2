@@ -520,7 +520,9 @@ class NativeGiftAnimationPlugin : Plugin() {
             iv.setImageURI(Uri.fromFile(file))
         } catch (_: Throwable) {}
         // Static image — finish after a short reveal so the queue keeps flowing.
-        mainHandler.postDelayed({ finishOk(slot) }, 2_500)
+        val deferred = Runnable { finishOk(slot) }
+        slot.deferredFinish = deferred
+        mainHandler.postDelayed(deferred, 2_500)
     }
 
     // ─── View tree ──────────────────────────────────────────────────────────
