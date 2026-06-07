@@ -111,6 +111,14 @@ public class IncomingCallActivity extends AppCompatActivity {
         btnAccept.setOnClickListener(v -> {
             stopRinging();
             dispatchAction("accept");
+            // Pkg-audit Tier-12 (High): promote Telecom Connection to ACTIVE
+            // so audio routing (BT > wired > speaker) and the system call log
+            // reflect the accepted state. Mirrors CallActionReceiver.
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    com.merilive.app.telecom.TelecomBridge.reportConnected(callId);
+                }
+            } catch (Throwable ignored) {}
             cancelCallNotification();
             Intent mainIntent = new Intent(this, MainActivity.class);
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -126,6 +134,14 @@ public class IncomingCallActivity extends AppCompatActivity {
         btnDecline.setOnClickListener(v -> {
             stopRinging();
             dispatchAction("decline");
+            // Pkg-audit Tier-12 (High): tear down the Telecom Connection so
+            // it's removed from ConnectionService map (otherwise audio focus
+            // stays grabbed and the BT End button on the NEXT call no-ops).
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    com.merilive.app.telecom.TelecomBridge.reportEnded(callId, false);
+                }
+            } catch (Throwable ignored) {}
             cancelCallNotification();
             finish();
         });
@@ -153,6 +169,14 @@ public class IncomingCallActivity extends AppCompatActivity {
         timeoutRunnable = () -> {
             stopRinging();
             dispatchAction("timeout");
+            // Pkg-audit Tier-12 (High): also end the Telecom Connection on
+            // timeout — same rationale as decline. Without this a missed
+            // call leaves the Telecom slot occupied.
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    com.merilive.app.telecom.TelecomBridge.reportEnded(callId, false);
+                }
+            } catch (Throwable ignored) {}
             cancelCallNotification();
             finish();
         };

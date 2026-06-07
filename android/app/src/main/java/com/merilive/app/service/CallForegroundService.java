@@ -159,6 +159,9 @@ public class CallForegroundService extends Service {
         // Pkg-audit Tier-3: always close InputStream + disconnect HttpURLConnection,
         // otherwise burst call-notification updates leak file descriptors and
         // sockets until SocketException: Too many open files.
+        // Pkg-audit Tier-12 (Medium): also subsample large remote avatars —
+        // a 4000×4000 JPEG previously decoded to ~64MB heap on the avatar
+        // thread, OOM-killing the FGS process during call notifications.
         HttpURLConnection conn = null;
         InputStream input = null;
         try {
@@ -170,7 +173,26 @@ public class CallForegroundService extends Service {
             conn.setReadTimeout(8000);
             conn.connect();
             input = conn.getInputStream();
-            return BitmapFactory.decodeStream(input);
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int total = 0, n;
+            while ((n = input.read(buf)) > 0) {
+                total += n;
+                if (total > 4 * 1024 * 1024) return null;
+                baos.write(buf, 0, n);
+            }
+            byte[] raw = baos.toByteArray();
+            if (raw.length == 0) return null;
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(raw, 0, raw.length, bounds);
+            int maxEdge = Math.max(bounds.outWidth, bounds.outHeight);
+            int sample = 1;
+            while (maxEdge / sample > 512) sample *= 2;
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            return BitmapFactory.decodeByteArray(raw, 0, raw.length, opts);
         } catch (Exception e) {
             Log.w(TAG, "loadBitmapFromUrl failed: " + e.getMessage());
             return null;
