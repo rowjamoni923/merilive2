@@ -431,15 +431,69 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun releaseCameraForWebView(call: PluginCall) {
-        CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
-        call.resolve(JSObject().put("released", true))
+        // Fix 2 — Synchronous barrier. The JS leaveChannel path awaits this
+        // promise before triggering a new join, so we MUST not resolve until
+        // the OEM Camera2 HAL release grace has elapsed (and ideally the
+        // CameraManager.AvailabilityCallback has fired). Otherwise the next
+        // native open() races the still-locked hardware handle and the
+        // re-entry preview comes back blank.
+        scope.launch {
+            try {
+                CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+                // Prefer dynamic signal; fall back to static grace.
+                val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+                if (!became) delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                call.resolve(JSObject().put("released", true))
+            } catch (e: Throwable) {
+                call.resolve(JSObject().put("released", true).put("warning", e.message ?: "release-warn"))
+            }
+        }
     }
 
     @PluginMethod
-    fun connect(call: PluginCall) {
-        if (getPermissionState("camera") != PermissionState.GRANTED ||
-            getPermissionState("microphone") != PermissionState.GRANTED
-        ) {
+    fun getCameraOwner(call: PluginCall) {
+        // Fix 5 — JS-side ProCameraEngine can query this to coordinate its own
+        // advisory lock with the native CameraOwnership arbiter. Returns null
+        // when free.
+        val ret = JSObject()
+        ret.put("owner", CameraOwnership.owner())
+        call.resolve(ret)
+    }
+
+    /**
+     * Fix 1 — Dynamic OEM grace. CameraManager.AvailabilityCallback fires
+     * onCameraAvailable() when the physical Camera2 handle is reusable. We
+     * resolve early on the first availability event (any camera id — usually
+     * the front camera since that's what live broadcasts use) or fall back to
+     * a static cap when callbacks are not delivered (some MIUI builds).
+     */
+    private suspend fun awaitFrontCameraAvailable(maxWaitMs: Long): Boolean {
+        return try {
+            withTimeout(maxWaitMs) {
+                suspendCancellableCoroutine<Boolean> { cont ->
+                    val mgr = try {
+                        context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+                    } catch (_: Throwable) { null }
+                    if (mgr == null) { if (cont.isActive) cont.resume(false); return@suspendCancellableCoroutine }
+                    val cb = object : CameraManager.AvailabilityCallback() {
+                        override fun onCameraAvailable(cameraId: String) {
+                            try { mgr.unregisterAvailabilityCallback(this) } catch (_: Throwable) {}
+                            if (cont.isActive) cont.resume(true)
+                        }
+                    }
+                    try {
+                        mgr.registerAvailabilityCallback(cb, Handler(Looper.getMainLooper()))
+                    } catch (_: Throwable) {
+                        if (cont.isActive) cont.resume(false)
+                    }
+                    cont.invokeOnCancellation {
+                        try { mgr.unregisterAvailabilityCallback(cb) } catch (_: Throwable) {}
+                    }
+                }
+            }
+        } catch (_: Throwable) { false }
+    }
+
             requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permsCallback")
             return
         }
