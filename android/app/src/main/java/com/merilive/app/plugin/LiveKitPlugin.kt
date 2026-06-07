@@ -490,6 +490,7 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 Log.e(TAG, "connect failed", e)
                 try { room?.disconnect() } catch (_: Exception) {}
+                releaseRoomResources(room, "connect-failed")
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
@@ -527,7 +528,9 @@ class LiveKitPlugin : Plugin() {
         // can't repaint the renderer black for the reconnect race window.
         withContext(Dispatchers.Main) { detachAllRenderersInternal() }
         // Tear down any previous room first.
-        room?.disconnect()
+        val previousRoom = room
+        try { previousRoom?.disconnect() } catch (_: Exception) {}
+        releaseRoomResources(previousRoom, "connect-replace")
         room = null
 
         // Step 22 — reset adaptive ladder for this fresh session.
@@ -777,7 +780,9 @@ class LiveKitPlugin : Plugin() {
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
                 activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
-                room?.disconnect()
+                val currentRoom = room
+                try { currentRoom?.disconnect() } catch (_: Exception) {}
+                releaseRoomResources(currentRoom, "disconnect")
                 room = null
                 setKeepScreenOn(false)
                 setProximityMonitoringInternal(false)
