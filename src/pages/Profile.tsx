@@ -67,7 +67,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { VIPBadge, FloatingVIPIcon } from "@/components/common/VIPBadge";
 import { Slider } from "@/components/ui/slider";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
- import UserBeansExchangeModal from "@/components/profile/UserBeansExchangeModal";
+ const UserBeansExchangeModal = lazy(() => import("@/components/profile/UserBeansExchangeModal"));
  import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
