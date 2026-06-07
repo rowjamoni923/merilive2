@@ -3983,21 +3983,25 @@ const Recharge = () => {
         </DialogContent>
       </Dialog>
 
-      <SwiftPayDepositModal
-        open={showSwiftPayModal}
-        onOpenChange={(v) => {
-          setShowSwiftPayModal(v);
-          if (!v) setMericashInitialPackageId(null);
-        }}
-        initialPackageId={mericashInitialPackageId}
-        packages={packages.map((p: any) => ({
-          id: p.id,
-          coins: p.coins,
-          bonus_percentage: p.bonus_percentage,
-          price_usd: Number(p.price ?? p.price_usd ?? 0),
-          name: p.name,
-        }))}
-      />
+      {showSwiftPayModal && (
+        <Suspense fallback={null}>
+          <SwiftPayDepositModal
+            open={showSwiftPayModal}
+            onOpenChange={(v) => {
+              setShowSwiftPayModal(v);
+              if (!v) setMericashInitialPackageId(null);
+            }}
+            initialPackageId={mericashInitialPackageId}
+            packages={packages.map((p: any) => ({
+              id: p.id,
+              coins: p.coins,
+              bonus_percentage: p.bonus_percentage,
+              price_usd: Number(p.price ?? p.price_usd ?? 0),
+              name: p.name,
+            }))}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
