@@ -1250,7 +1250,12 @@ const LiveStream = () => {
           .select("id, display_name, user_level, avatar_url, country_flag, created_at")
           .in("id", userIds);
         const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
-        setMessages(chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId)));
+        const historyRows = chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId));
+        setMessages((prev) => {
+          const transientRows = prev.filter((m) => String(m.id).startsWith('welcome_') || String(m.id).startsWith('join_'));
+          const existingIds = new Set(historyRows.map((m) => m.id));
+          return [...historyRows, ...transientRows.filter((m) => !existingIds.has(m.id))];
+        });
       }
     };
     
