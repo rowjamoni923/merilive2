@@ -6,6 +6,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const fallbackSupportSuggestions = JSON.stringify([
+  "Thanks for contacting support. We understand your concern and are checking it now.",
+  "Please share any screenshot, app ID, and the exact steps where the issue happens so we can investigate quickly.",
+  "We will review the details and get back to you with the best solution as soon as possible."
+]);
+
+const supportReplyFallback = (reason: string) => new Response(JSON.stringify({
+  result: fallbackSupportSuggestions,
+  fallback: true,
+  reason,
+}), {
+  status: 200,
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -43,7 +58,10 @@ serve(async (req) => {
 
     const { messages, mode } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!LOVABLE_API_KEY) {
+      if (mode === "support_reply") return supportReplyFallback("ai_key_missing");
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
 
     // Different system prompts based on mode
     const systemPrompts: Record<string, string> = {
@@ -104,6 +122,11 @@ Example format: ["Reply 1", "Reply 2", "Reply 3"]`
     });
 
     if (!response.ok) {
+      if (mode === "support_reply") {
+        const t = await response.text().catch(() => "");
+        console.error("AI gateway support_reply fallback:", response.status, t);
+        return supportReplyFallback(`ai_gateway_${response.status}`);
+      }
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -95,6 +95,29 @@ const AI_MESSAGE_PATTERNS = [
 const isAiSummarySupportMessage = (content?: string) =>
   Boolean(content) && AI_MESSAGE_PATTERNS.some(re => re.test(content!));
 
+const buildFallbackSupportSuggestions = (message: string): string[] => {
+  const lower = message.toLowerCase();
+  if (/refund|payment|purchase|coin|diamond|recharge|top.?up/.test(lower)) {
+    return [
+      "Thanks for contacting us. We understand this payment issue is important, and we are checking your transaction details now.",
+      "Please share the transaction ID, payment method, amount, and time so we can verify it quickly.",
+      "If the payment was completed but the balance did not update, we will verify the record and adjust it after confirmation."
+    ];
+  }
+  if (/login|account|password|ban|blocked|device/.test(lower)) {
+    return [
+      "Thanks for reporting this account issue. We are reviewing your account status and will guide you shortly.",
+      "Please send your app ID, device model, and the exact error message you see so we can check faster.",
+      "We will verify the account records and update you with the next step as soon as possible."
+    ];
+  }
+  return [
+    "Thanks for contacting support. We understand your concern and are checking it now.",
+    "Please share any screenshot, app ID, and the exact steps where the issue happens so we can investigate quickly.",
+    "We will review the details and get back to you with the best solution as soon as possible."
+  ];
+};
+
 
 const ADMIN_TICKETS_FETCH_LIMIT = 120;
 const ADMIN_RT_REFRESH_DEBOUNCE_MS = 280;
@@ -404,7 +427,7 @@ const AdminSupportTickets = () => {
             }
           } catch (e) {
             console.error('[AutoTranslate] Failed for msg:', msg.id, e);
-            recordAdminError({ kind: "rpc", label: "AdminSupportTickets.translatedText", message: msg.id instanceof Error ? msg.id.message : String(msg.id) });
+            recordAdminError({ kind: "edge", label: "AdminSupportTickets.translatedText", message: formatAdminError(e) });
           }
           return null;
         });
@@ -473,7 +496,10 @@ const AdminSupportTickets = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        setAiSuggestions(buildFallbackSupportSuggestions(messageContent));
+        return;
+      }
       
       const result = data?.result || data?.choices?.[0]?.message?.content;
       if (result) {
@@ -485,12 +511,14 @@ const AdminSupportTickets = () => {
           }
         } catch {
           console.error('[AI Suggestions] Failed to parse:', result);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(result)});
+          setAiSuggestions(buildFallbackSupportSuggestions(messageContent));
         }
+      } else {
+        setAiSuggestions(buildFallbackSupportSuggestions(messageContent));
       }
     } catch (error) {
       console.error('[AI Suggestions] Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(error) });
+      setAiSuggestions(buildFallbackSupportSuggestions(messageContent));
     } finally {
       setLoadingSuggestions(false);
     }
@@ -523,7 +551,7 @@ const AdminSupportTickets = () => {
           translatedContent = transData?.translatedText || "";
         } catch (e) {
           console.error("Translation error:", e);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
+          recordAdminError({ kind: "edge", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
         } finally {
           setIsTranslating(false);
         }
