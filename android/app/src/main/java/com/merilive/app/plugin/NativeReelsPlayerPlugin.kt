@@ -289,9 +289,10 @@ class NativeReelsPlayerPlugin : Plugin() {
     }
 
     private fun warmCache(url: String, maxBytes: Long): Boolean {
+        var dataSource: androidx.media3.datasource.DataSource? = null
         return try {
             val cancelFlag = AtomicBoolean(false)
-            val dataSource = CacheDataSource.Factory()
+            dataSource = CacheDataSource.Factory()
                 .setCache(cache(context))
                 .setUpstreamDataSourceFactory(
                     DefaultHttpDataSource.Factory()
@@ -316,6 +317,8 @@ class NativeReelsPlayerPlugin : Plugin() {
             false
         } catch (_: Throwable) {
             false
+        } finally {
+            try { dataSource?.close() } catch (_: Throwable) {}
         }
     }
 
