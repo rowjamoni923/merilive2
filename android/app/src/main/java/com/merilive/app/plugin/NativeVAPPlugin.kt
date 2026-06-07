@@ -240,6 +240,14 @@ class NativeVAPPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        try {
+            activity?.runOnUiThread {
+                try { animView?.stopPlay() } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                animView = null
+            }
+        } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }
