@@ -406,6 +406,7 @@ serve(async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         ok: true,
+        fcmConfigured: true,
         attempts: maxRetries,
         fcmDelivered: anyFcmOk,
         notifInsertOk,
@@ -413,6 +414,7 @@ serve(async (req: Request): Promise<Response> => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("[call-deliver]", e);
