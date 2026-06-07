@@ -723,30 +723,23 @@ const App = () => {
       .catch(() => {});
 
 
-    // Defer SVGA prewarm to idle
+    // Defer SVGA module prewarm to idle (JS module only — zero network bytes).
     const svgaIdleId = idle(() => prewarmSVGA(), 2000);
 
-    // Pkg C — prewarm top gift animations (SVGA binaries + Lottie JSON + images)
-    // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
-    // sent in any room/call/chat plays with zero network delay on the receiver side.
+    // Gift METADATA prefetch only (small JSON, no animation binaries).
+    // Binary animations are warmed on-demand: when GiftPanel opens (visible
+    // gifts only) and when a gift is actually sent/received. This matches
+    // TikTok/Bigo/Chamet behavior and is the single biggest egress saver.
     const giftIdleId = idle(() => {
       import('@/hooks/useGiftPrefetch')
         .then(m => m.prefetchGifts())
         .catch(() => {});
     }, 2200);
-    const giftAssetIdleId = idle(() => {
-      import('@/utils/giftAnimationPrewarm')
-        .then(m => m.prewarmGiftAnimations())
-        .catch(() => {});
-    }, 7000);
 
-    // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
-    // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
-    const framesIdleId = idle(() => {
-      import('@/utils/frameBulkPrewarm')
-        .then(m => m.prewarmActiveFrames())
-        .catch(() => {});
-    }, 12000);
+    // NOTE: Boot-time bulk binary prewarm (giftAnimationPrewarm / frameBulkPrewarm)
+    // has been removed — it was causing 100+ MB egress per cold session for
+    // assets the user never actually saw. Frames + heavy animations now load
+    // lazily on first sight and stay cached in the SW / Cache API afterwards.
 
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
