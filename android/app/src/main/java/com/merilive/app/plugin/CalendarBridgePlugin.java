@@ -74,7 +74,12 @@ public class CalendarBridgePlugin extends Plugin {
     @PluginMethod
     public void isAvailable(PluginCall call) {
         Intent test = new Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI);
-        boolean ok = test.resolveActivity(getContext().getPackageManager()) != null;
+        boolean ok;
+        try {
+            ok = !getContext().getPackageManager()
+                    .queryIntentActivities(test, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+                    .isEmpty();
+        } catch (Throwable ignored) { ok = false; }
         JSObject ret = new JSObject();
         ret.put("available", ok);
         call.resolve(ret);
