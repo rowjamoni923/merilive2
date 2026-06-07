@@ -212,17 +212,23 @@ public class IncomingCallActivity extends AppCompatActivity {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 VibratorManager vm = (VibratorManager) getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
-                vibrator = vm.getDefaultVibrator();
+                // Pkg-audit fix: VibratorManager service can be null on stripped
+                // OEM builds / mocked frameworks — crashed the ring path before.
+                if (vm == null) { vibrator = null; }
+                else { vibrator = vm.getDefaultVibrator(); }
             } else {
                 vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             }
-            long[] pattern = {0, 1000, 500, 1000, 500, 1000};
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
-            } else {
-                vibrator.vibrate(pattern, 0);
+            if (vibrator != null) {
+                long[] pattern = {0, 1000, 500, 1000, 500, 1000};
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
+                } else {
+                    vibrator.vibrate(pattern, 0);
+                }
             }
         } catch (Exception e) { e.printStackTrace(); }
+
     }
 
     private void stopRinging() {
