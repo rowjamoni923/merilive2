@@ -313,7 +313,13 @@ export function usePartyRoomWebRTC(
               maxFramerate: 30,
             },
             degradationPreference: 'maintain-resolution',
-            simulcast: false,
+            // Phase-B fix: party rooms have many viewers on heterogeneous
+            // networks (3G mobile → wifi). Simulcast lets the SFU forward
+            // a lower layer to weak-link viewers instead of pausing video.
+            // Two layers (180p + source) keeps publisher CPU/bitrate cost
+            // modest while eliminating the all-or-nothing freeze pattern.
+            simulcast: true,
+            videoSimulcastLayers: [VideoPresets.h180, VideoPresets.h540],
             // Pkg205 (M3): device-aware codec selection (Safari → H.264,
             // Chromium → AV1/VP9, H.264 backup preferred over VP8).
             ...pickOptimalCodecs(),

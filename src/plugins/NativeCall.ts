@@ -19,7 +19,11 @@ export type NativeCallAction =
   | 'decline'
   | 'timeout'
   | 'dismissed'
-  | 'presented';
+  | 'presented'
+  // Pkg-audit Phase-A: emitted by MeriConnection.onDisconnect when the user
+  // ends an ALREADY-active call from a BT headset / system controls / lock-
+  // screen. Distinct from 'decline' (pre-accept reject).
+  | 'ended';
 
 export interface NativeCallActionEvent {
   callId: string;
