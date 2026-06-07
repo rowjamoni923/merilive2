@@ -1302,10 +1302,14 @@ const PartyRoom = () => {
       const { data: publicProfiles } = userIds.length
         ? await supabase
             .from('profiles_public')
-            .select('id, display_name, avatar_url, user_level, frame_id')
+            .select('id, display_name, avatar_url, user_level, frame_id, equipped_frame_id')
             .in('id', userIds)
         : { data: [] as any[] };
-      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, {
+        ...profile,
+        avatar_url: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || null,
+        frame_id: profile.equipped_frame_id || profile.frame_id || null,
+      }]));
       const hydratedParticipants = data.map((participant: any) => ({
         ...participant,
         // Section #12 pass-2: DB column is seat_number — expose it as `position` for app code.
