@@ -393,6 +393,10 @@ const PartyRoom = () => {
   
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
+  // Pkg-audit MEDIUM: gift safety-net dedup vs LiveKit fast-path
+  const recentGiftDedupRef = useRef<Map<string, number>>(new Map());
+  const seenGiftTxnIdsRef = useRef<Set<string>>(new Set());
+
   const joinedRoomKeyRef = useRef<string | null>(null);
   const explicitLeaveRef = useRef(false);
   const [mediaReady, setMediaReady] = useState(false);
