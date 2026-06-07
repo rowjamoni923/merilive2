@@ -2287,7 +2287,7 @@ const LiveStream = () => {
         // detailed end_live_stream RPC below is kept for earnings/summary and is
         // idempotent after this fast close.
         try {
-          const { data: fastClose, error: fastCloseError } = await supabase.rpc('close_live_stream_now', {
+          const { data: fastClose, error: fastCloseError } = await supabase.rpc('close_live_stream_now' as any, {
             p_stream_id: id,
           });
           if (fastCloseError || (fastClose as any)?.success === false) {
