@@ -53,9 +53,14 @@ export interface GiftSendResult {
     id: string;
     coins_spent: number;
     beans_earned: number;
+    /** Lucky-gift diamond bonus paid to sender (0 when no win). */
+    diamond_bonus?: number;
+    /** True when the gift had is_lucky=true. */
+    is_lucky?: boolean;
   };
   gift?: GiftItem;
 }
+
 
 // Cache for gifts to avoid repeated fetches
 let giftsCache: GiftItem[] | null = null;
