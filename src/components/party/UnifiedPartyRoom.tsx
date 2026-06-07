@@ -934,7 +934,7 @@ export function UnifiedPartyRoom({
             message: m.content,
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
             userLevel: profile?.user_level || 1,
-            userAvatar: profile?.avatar_url,
+            userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
             isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
             type: m.message_type || 'text',
@@ -942,7 +942,11 @@ export function UnifiedPartyRoom({
           };
         });
         if (loadSeq !== chatLoadSeqRef.current || roomIdRef.current !== roomId) return;
-        setPremiumMessages(unifiedMsgs);
+        setPremiumMessages((prev) => {
+          const transientRows = prev.filter((m) => String(m.id).startsWith('join-') || String(m.id).startsWith('livekit_join_'));
+          const existingIds = new Set(unifiedMsgs.map((m) => m.id));
+          return [...unifiedMsgs, ...transientRows.filter((m) => !existingIds.has(m.id))];
+        });
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
 
         // Asynchronously enrich each message with sender's equipped designer chat bubble
@@ -1050,7 +1054,7 @@ export function UnifiedPartyRoom({
           message: row.content,
           color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
           userLevel: profile?.user_level || 1,
-          userAvatar: profile?.avatar_url || undefined,
+          userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
           isHost: !!profile?.is_host || (row.user_id === hostIdRef.current),
           isNewUser: false,
           type: msgType,
