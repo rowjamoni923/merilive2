@@ -355,9 +355,11 @@ export function CallProvider({ children }: CallProviderProps) {
     
     // Fire endCall (network ops happen in background)
     await endCall();
-    
-    // ☠️ Reset callEndedRef after cooldown to allow new calls
-    setTimeout(() => { callEndedRef.current = false; }, 3000);
+
+    // Phase-3 C3: release the in-flight end guard immediately. The
+    // prior 3s cooldown blocked Accept on a brand-new incoming call
+    // that arrived within 3 seconds of ending a previous call.
+    callEndedRef.current = false;
   };
 
   const handleCallEndedModalClose = () => {
