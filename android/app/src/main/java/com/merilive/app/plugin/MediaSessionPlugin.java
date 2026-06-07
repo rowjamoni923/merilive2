@@ -157,8 +157,10 @@ public class MediaSessionPlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         if (session != null) {
-            session.release();
+            try { session.setActive(false); } catch (Exception ignored) {}
+            try { session.release(); } catch (Exception ignored) {}
             session = null;
         }
+        super.handleOnDestroy();
     }
 }
