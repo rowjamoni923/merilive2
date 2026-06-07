@@ -55,7 +55,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || SUPABASE_ANON_KEY;
       
-      await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_online_status`, {
+      await fetch(`${SUPABASE_URL}/rest/v1/rpc/sync_host_online_status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
