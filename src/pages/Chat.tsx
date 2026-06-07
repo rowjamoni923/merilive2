@@ -77,7 +77,7 @@ import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
-import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+const ReportUserDialog = lazy(() => import("@/components/report/ReportUserDialog").then(m => ({ default: m.ReportUserDialog })));
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
