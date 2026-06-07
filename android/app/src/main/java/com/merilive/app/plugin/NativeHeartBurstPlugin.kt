@@ -129,7 +129,7 @@ class NativeHeartBurstPlugin : Plugin() {
         val act = activity ?: return
         val density = act.resources.displayMetrics.density
         val sizePx = sizeDp * density
-        val tv = acquireHeart().apply {
+        val tv = (acquireHeart() ?: return).apply {
             text = HEART_GLYPHS[Random.nextInt(HEART_GLYPHS.size)]
             setTextSize(TypedValue.COMPLEX_UNIT_PX, sizePx)
             alpha = 0f
@@ -184,17 +184,31 @@ class NativeHeartBurstPlugin : Plugin() {
                     overlay?.removeView(tv)
                     if (pool.size < MAX_POOL) pool.addLast(tv)
                 } catch (_: Throwable) {}
+                activeAnimators.remove(set)
+            }
+            override fun onAnimationCancel(animation: android.animation.Animator) {
+                activeAnimators.remove(set)
             }
         })
+        activeAnimators.add(set)
         set.start()
+    }
+
+    private fun cancelAllAnimators() {
+        for (s in activeAnimators.toList()) {
+            try { s.cancel() } catch (_: Throwable) {}
+        }
+        activeAnimators.clear()
     }
 
     override fun handleOnPause() {
         super.handleOnPause()
+        try { cancelAllAnimators() } catch (_: Throwable) {}
         try { overlay?.removeAllViews() } catch (_: Throwable) {}
     }
 
     override fun handleOnDestroy() {
+        try { cancelAllAnimators() } catch (_: Throwable) {}
         try {
             overlay?.let { activity?.windowManager?.removeViewImmediate(it) }
         } catch (_: Throwable) {}
