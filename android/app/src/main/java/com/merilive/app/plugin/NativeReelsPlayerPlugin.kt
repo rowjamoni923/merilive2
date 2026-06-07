@@ -210,6 +210,7 @@ class NativeReelsPlayerPlugin : Plugin() {
                 player?.release()
                 player = null
                 hideOverlay()
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
                 surface = null
                 overlay = null
                 currentUrl = null
