@@ -574,10 +574,10 @@ const ProfileDetail = () => {
     };
     const unsubscribePresence = subscribeToTables(
       `profile-detail-presence-${targetId}`,
-      ['live_streams', 'party_rooms', 'private_calls', 'profiles'],
+      ['live_streams', 'party_rooms', 'party_room_participants', 'private_calls', 'profiles'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as { host_id?: string; id?: string } | undefined;
-        if (row?.host_id === targetId || row?.id === targetId) void refetchPresenceStatus();
+        const row = (payload?.new ?? payload?.old) as { host_id?: string; caller_id?: string; user_id?: string; id?: string } | undefined;
+        if (row?.host_id === targetId || row?.caller_id === targetId || row?.user_id === targetId || row?.id === targetId) void refetchPresenceStatus();
       }
     );
     void refetchPresenceStatus();
