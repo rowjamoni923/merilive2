@@ -11,6 +11,21 @@ export interface GiftServicePayload {
   partyRoomId?: string | null;
   callId?: string | null;
   reelId?: string | null;
+  /**
+   * Optional caller-supplied idempotency key. If omitted, callGiftService
+   * auto-generates a stable key for the lifetime of this single call (incl.
+   * the 401 silent-refresh retry) so a dropped HTTP response cannot
+   * double-charge the sender.
+   */
+  idempotencyKey?: string;
+}
+
+function generateIdempotencyKey(): string {
+  try {
+    const c: any = (globalThis as any).crypto;
+    if (c?.randomUUID) return c.randomUUID();
+  } catch {}
+  return `gift_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 export interface GiftServiceResponse {
