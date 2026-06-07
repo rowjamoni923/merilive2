@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.distribute_pk_rewards(uuid) FROM anon, PUBLIC;
