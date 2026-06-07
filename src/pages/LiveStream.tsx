@@ -1483,8 +1483,19 @@ const LiveStream = () => {
       if (data.senderId === currentUserId) return;
 
       console.log('[LiveStream] ⚡ Pkg76 livekit-gift-sent received:', data.giftName, 'from', data.senderName);
-      warmGiftForInstantPlay({
-        icon_url: data.giftIconUrl || null,
+      // Pkg-audit MEDIUM: mark dedup so Postgres gift safety-net skips this gift
+      try {
+        const k = `${data.senderId}|${data.giftId || ''}|${data.count || 1}`;
+        recentGiftDedupRef.current.set(k, Date.now());
+        // GC old entries
+        if (recentGiftDedupRef.current.size > 200) {
+          const cutoff = Date.now() - 10000;
+          for (const [key, ts] of recentGiftDedupRef.current) {
+            if (ts < cutoff) recentGiftDedupRef.current.delete(key);
+          }
+        }
+      } catch { /* ignore */ }
+
         animation_url: data.giftAnimationUrl || null,
         animation_format: data.giftAnimationFormat || null,
         animation_config_url: data.giftAnimationConfigUrl || null,
