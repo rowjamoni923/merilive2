@@ -19,6 +19,16 @@ const isValidUrl = (url?: string): boolean => {
   return !!(url && url.trim().length > 0 && (url.startsWith('http') || url.startsWith('/')));
 };
 
+/**
+ * Industry-standard threshold (Chamet / BIGO / MICO parity):
+ * Levels 1–5 → NO flying name bar. The user only sees the static
+ *   RoomWelcomeBanner at the bottom of the chat overlay.
+ * Levels 6+  → Flying Name Bar with avatar + frame + name + level
+ *   slides in from the right, with optional SVGA/GIF effect on top.
+ */
+export const MIN_FLYING_NAMEBAR_LEVEL = 6;
+
+
 export interface NameBarAnimation {
   id: string;
   userId: string;
