@@ -137,7 +137,8 @@ import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
-import { claimAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
+import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
