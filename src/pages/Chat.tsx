@@ -3665,18 +3665,20 @@ const Chat = () => {
       />
       {/* Group Settings Panel */}
       {showGroupSettings && selectedGroup && currentUserId && (
-        <GroupSettingsPanel
-          group={selectedGroup}
-          currentUserId={currentUserId}
-          onClose={() => setShowGroupSettings(false)}
-          onGroupUpdated={() => fetchGroups()}
-          onLeaveGroup={() => {
-            setShowGroupSettings(false);
-            setSelectedGroup(null);
-            setGroupMessages([]);
-            fetchGroups();
-          }}
-        />
+        <Suspense fallback={null}>
+          <GroupSettingsPanel
+            group={selectedGroup}
+            currentUserId={currentUserId}
+            onClose={() => setShowGroupSettings(false)}
+            onGroupUpdated={() => fetchGroups()}
+            onLeaveGroup={() => {
+              setShowGroupSettings(false);
+              setSelectedGroup(null);
+              setGroupMessages([]);
+              fetchGroups();
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Report User Dialog */}
