@@ -97,6 +97,16 @@ class NativeGiftPanelPlugin : Plugin() {
         }
     }
 
+    override fun handleOnDestroy() {
+        try { dialog?.dismiss() } catch (_: Throwable) {}
+        dialog = null
+        balanceText = null
+        adapter = null
+        gifts.clear()
+        categories.clear()
+        super.handleOnDestroy()
+    }
+
     private fun parseData(giftsArr: JSArray, catsArr: JSArray) {
         gifts.clear()
         for (i in 0 until giftsArr.length()) {

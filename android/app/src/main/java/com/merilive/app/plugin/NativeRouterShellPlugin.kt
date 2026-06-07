@@ -257,9 +257,30 @@ class NativeRouterShellPlugin : Plugin() {
             val color = if (active) Color.parseColor("#2563EB") else Color.parseColor("#6B7280")
             if (view.childCount >= 2) {
                 (view.getChildAt(1) as? TextView)?.setTextColor(color)
-                ((view.getChildAt(0) as? ImageView)?.background as? GradientDrawable)
+                // Icon may be wrapped in a FrameLayout when a badge is present.
+                val child0 = view.getChildAt(0)
+                val iconView: ImageView? = child0 as? ImageView
+                    ?: (child0 as? FrameLayout)?.getChildAt(0) as? ImageView
+                (iconView?.background as? GradientDrawable)
                     ?.setColor(if (active) Color.parseColor("#2563EB") else Color.parseColor("#E5E7EB"))
             }
         }
+    }
+
+    override fun handleOnDestroy() {
+        try {
+            activity?.window?.decorView?.let { dv ->
+                (dv as? ViewGroup)?.let { vg ->
+                    rootOverlay?.let { vg.removeView(it) }
+                }
+            }
+        } catch (_: Throwable) {}
+        rootOverlay = null
+        topBar = null
+        bottomBar = null
+        titleView = null
+        tabViews.clear()
+        tabs.clear()
+        super.handleOnDestroy()
     }
 }

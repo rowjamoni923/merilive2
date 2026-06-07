@@ -35,11 +35,16 @@ object GiftAudioMixer {
     private const val MAX_MEDIAPLAYER_STREAMS = 3
     private const val SOUNDPOOL_SIZE_THRESHOLD = 1024L * 1024L      // 1 MiB
     private const val SOUNDPOOL_DUR_THRESHOLD_MS = 5_000
+    // Pkg-audit fix: bound SoundPool entries so per-sample decoder memory
+    // doesn't grow unbounded across hundreds of unique gift URLs.
+    private const val MAX_POOL_ENTRIES = 30
 
     @Volatile private var initialized = false
     private lateinit var appContext: Context
     private lateinit var soundPool: SoundPool
-    private val poolIds = ConcurrentHashMap<String, Int>()         // url → soundId
+    // Pkg-audit fix: LinkedHashMap with access-order=true gives LRU semantics
+    // for unload-on-evict. Guarded by `this` (poolIds) for all mutations.
+    private val poolIds = java.util.LinkedHashMap<String, Int>(16, 0.75f, true)
     private val activePoolStreams = mutableSetOf<Int>()            // stream ids
     private val activePlayers = mutableListOf<MediaPlayer>()
     // Pkg-audit fix: SoundPool.setOnLoadCompleteListener is a GLOBAL setter;
@@ -119,16 +124,53 @@ object GiftAudioMixer {
     }
 
     private fun playViaSoundPool(url: String, file: File, volume: Float) {
-        val existing = poolIds[url]
+        val existing: Int? = synchronized(poolIds) { poolIds[url] }
         if (existing != null) {
             startSoundPool(existing, volume)
             return
         }
         val newId = soundPool.load(file.absolutePath, 1)
-        poolIds[url] = newId
+        // Insert into LRU map and evict oldest if over cap.
+        val evictedId: Int? = synchronized(poolIds) {
+            poolIds[url] = newId
+            if (poolIds.size > MAX_POOL_ENTRIES) {
+                val it = poolIds.entries.iterator()
+                if (it.hasNext()) {
+                    val oldest = it.next()
+                    it.remove()
+                    oldest.value
+                } else null
+            } else null
+        }
+        if (evictedId != null) {
+            try { soundPool.unload(evictedId) } catch (_: Throwable) {}
+            pendingPoolPlays.remove(evictedId)
+        }
         // Register desired volume; persistent listener in ensureInit() handles
         // dispatch. Concurrent loads no longer overwrite each other.
         pendingPoolPlays[newId] = volume
+    }
+
+    /**
+     * Pkg-audit fix: explicit teardown for tests / long background states.
+     * Singleton — safe to re-init after release().
+     */
+    @Synchronized
+    fun release() {
+        if (!initialized) return
+        try { stopAll() } catch (_: Throwable) {}
+        try {
+            synchronized(poolIds) {
+                for (id in poolIds.values) {
+                    try { soundPool.unload(id) } catch (_: Throwable) {}
+                }
+                poolIds.clear()
+            }
+            pendingPoolPlays.clear()
+            soundPool.release()
+        } catch (_: Throwable) {}
+        downloadCache.clear()
+        initialized = false
     }
 
 

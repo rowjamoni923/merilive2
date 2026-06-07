@@ -19,6 +19,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.util.ArrayDeque
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -41,6 +42,7 @@ class NativeHeartBurstPlugin : Plugin() {
     private val pool = ArrayDeque<TextView>()
     private val MAX_POOL = 16
     private val HEART_GLYPHS = arrayOf("❤", "♥", "💖", "💕", "💘")
+    private val activeAnimators = CopyOnWriteArrayList<AnimatorSet>()
 
     @PluginMethod
     fun isAvailable(call: PluginCall) {
@@ -112,8 +114,8 @@ class NativeHeartBurstPlugin : Plugin() {
         }
     }
 
-    private fun acquireHeart(): TextView {
-        val act = activity!!
+    private fun acquireHeart(): TextView? {
+        val act = activity ?: return null
         val tv = pool.pollFirst() ?: TextView(act).apply {
             includeFontPadding = false
             setTextColor(Color.parseColor("#FF3B6B"))
@@ -127,7 +129,7 @@ class NativeHeartBurstPlugin : Plugin() {
         val act = activity ?: return
         val density = act.resources.displayMetrics.density
         val sizePx = sizeDp * density
-        val tv = acquireHeart().apply {
+        val tv = (acquireHeart() ?: return).apply {
             text = HEART_GLYPHS[Random.nextInt(HEART_GLYPHS.size)]
             setTextSize(TypedValue.COMPLEX_UNIT_PX, sizePx)
             alpha = 0f
@@ -182,17 +184,31 @@ class NativeHeartBurstPlugin : Plugin() {
                     overlay?.removeView(tv)
                     if (pool.size < MAX_POOL) pool.addLast(tv)
                 } catch (_: Throwable) {}
+                activeAnimators.remove(set)
+            }
+            override fun onAnimationCancel(animation: android.animation.Animator) {
+                activeAnimators.remove(set)
             }
         })
+        activeAnimators.add(set)
         set.start()
+    }
+
+    private fun cancelAllAnimators() {
+        for (s in activeAnimators.toList()) {
+            try { s.cancel() } catch (_: Throwable) {}
+        }
+        activeAnimators.clear()
     }
 
     override fun handleOnPause() {
         super.handleOnPause()
+        try { cancelAllAnimators() } catch (_: Throwable) {}
         try { overlay?.removeAllViews() } catch (_: Throwable) {}
     }
 
     override fun handleOnDestroy() {
+        try { cancelAllAnimators() } catch (_: Throwable) {}
         try {
             overlay?.let { activity?.windowManager?.removeViewImmediate(it) }
         } catch (_: Throwable) {}

@@ -113,6 +113,8 @@ class NativeGiftAnimationPlugin : Plugin() {
         var svgaView: SVGAImageView? = null
         var animView: AnimView? = null
         val finished = AtomicBoolean(false)
+        // Pkg-audit fix: cancellable deferred for static-image auto-finish.
+        var deferredFinish: Runnable? = null
         val watchdog = Runnable {
             if (finished.compareAndSet(false, true)) {
                 emit("gift:error", JSObject()
@@ -124,6 +126,8 @@ class NativeGiftAnimationPlugin : Plugin() {
             }
         }
     }
+
+    @Volatile private var destroyed = false
 
     // ─── Public API ─────────────────────────────────────────────────────────
 
@@ -281,11 +285,29 @@ class NativeGiftAnimationPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        destroyed = true
+        isPaused.set(true)
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
         try {
             for (slot in activeJobIds.values.toList()) tearDown(slot)
         } catch (_: Throwable) {}
+        synchronized(jobsLock) { jobs.clear() }
+        try {
+            giftRoot?.let { v -> (v.parent as? ViewGroup)?.removeView(v) }
+        } catch (_: Throwable) {}
+        giftRoot = null
+        downloadCache.clear()
         super.handleOnDestroy()
+    }
+
+    private fun runUiSafe(block: () -> Unit) {
+        if (destroyed) return
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        act.runOnUiThread {
+            if (destroyed) return@runOnUiThread
+            try { block() } catch (_: Throwable) {}
+        }
     }
 
     // ─── Queue pump ─────────────────────────────────────────────────────────
@@ -307,41 +329,48 @@ class NativeGiftAnimationPlugin : Plugin() {
         mainHandler.postDelayed(slot.watchdog, job.timeoutMs)
 
         // Resolve file off the UI thread, then play on UI thread.
-        downloadExecutor.execute {
-            val file = try { resolveLocalFile(job.url) } catch (_: Throwable) { null }
-            if (file == null) {
-                if (slot.finished.compareAndSet(false, true)) {
-                    activity.runOnUiThread {
-                        emit("gift:error", JSObject()
-                            .put("id", job.id).put("url", job.url)
-                            .put("errorMsg", "download failed"))
-                        tearDown(slot); pump()
-                    }
-                }
-                return@execute
-            }
-            activity.runOnUiThread {
-                if (slot.finished.get()) return@runOnUiThread
-                try {
-                    when (job.type) {
-                        "vap"    -> renderVAP(slot, file)
-                        "svga"   -> renderSVGA(slot, file)
-                        "lottie" -> renderLottie(slot, file)
-                        "mp4"    -> renderExo(slot, file)
-                        "image"  -> renderImage(slot, file)
-                        else     -> renderImage(slot, file)
-                    }
-                    GiftAudioMixer.play(job.soundUrl)
-                    emit("gift:start", JSObject()
-                        .put("id", job.id).put("url", job.url).put("type", job.type))
-                } catch (t: Throwable) {
+        try {
+            downloadExecutor.execute {
+                val file = try { resolveLocalFile(job.url) } catch (_: Throwable) { null }
+                if (file == null) {
                     if (slot.finished.compareAndSet(false, true)) {
-                        emit("gift:error", JSObject()
-                            .put("id", job.id).put("url", job.url)
-                            .put("errorMsg", t.message ?: "render exception"))
-                        tearDown(slot); pump()
+                        runUiSafe {
+                            emit("gift:error", JSObject()
+                                .put("id", job.id).put("url", job.url)
+                                .put("errorMsg", "download failed"))
+                            tearDown(slot); pump()
+                        }
+                    }
+                    return@execute
+                }
+                runUiSafe {
+                    if (slot.finished.get()) return@runUiSafe
+                    try {
+                        when (job.type) {
+                            "vap"    -> renderVAP(slot, file)
+                            "svga"   -> renderSVGA(slot, file)
+                            "lottie" -> renderLottie(slot, file)
+                            "mp4"    -> renderExo(slot, file)
+                            "image"  -> renderImage(slot, file)
+                            else     -> renderImage(slot, file)
+                        }
+                        GiftAudioMixer.play(job.soundUrl)
+                        emit("gift:start", JSObject()
+                            .put("id", job.id).put("url", job.url).put("type", job.type))
+                    } catch (t: Throwable) {
+                        if (slot.finished.compareAndSet(false, true)) {
+                            emit("gift:error", JSObject()
+                                .put("id", job.id).put("url", job.url)
+                                .put("errorMsg", t.message ?: "render exception"))
+                            tearDown(slot); pump()
+                        }
                     }
                 }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Executor already shut down (destroy in flight) — abort job cleanly.
+            if (slot.finished.compareAndSet(false, true)) {
+                tearDown(slot)
             }
         }
     }
@@ -491,7 +520,9 @@ class NativeGiftAnimationPlugin : Plugin() {
             iv.setImageURI(Uri.fromFile(file))
         } catch (_: Throwable) {}
         // Static image — finish after a short reveal so the queue keeps flowing.
-        mainHandler.postDelayed({ finishOk(slot) }, 2_500)
+        val deferred = Runnable { finishOk(slot) }
+        slot.deferredFinish = deferred
+        mainHandler.postDelayed(deferred, 2_500)
     }
 
     // ─── View tree ──────────────────────────────────────────────────────────
@@ -529,6 +560,8 @@ class NativeGiftAnimationPlugin : Plugin() {
         // a job that was actually externally cancelled / cleared / errored.
         slot.finished.set(true)
         mainHandler.removeCallbacks(slot.watchdog)
+        slot.deferredFinish?.let { mainHandler.removeCallbacks(it) }
+        slot.deferredFinish = null
         try { slot.animView?.stopPlay() } catch (_: Throwable) {}
         try { slot.svgaView?.stopAnimation(true) } catch (_: Throwable) {}
         try { slot.lottieView?.cancelAnimation() } catch (_: Throwable) {}

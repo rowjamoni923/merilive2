@@ -194,9 +194,28 @@ class NativeEntryAnimationPlugin : Plugin() {
         super.handleOnResume(); isPaused.set(false); activity.runOnUiThread { pump() }
     }
 
+    @Volatile private var destroyed = false
+
     override fun handleOnDestroy() {
+        destroyed = true
+        // CRITICAL: pause BEFORE finishActive so the trailing 250ms pump() does
+        // not dispatch a new job into a now-shutdown downloadExecutor.
+        isPaused.set(true)
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
         try { finishActive("destroy") } catch (_: Throwable) {}
+        synchronized(jobsLock) { jobs.clear() }
+        try {
+            activeView?.let { v ->
+                try { v.animate().cancel() } catch (_: Throwable) {}
+                (v.parent as? ViewGroup)?.removeView(v)
+            }
+        } catch (_: Throwable) {}
+        try {
+            root?.let { v -> (v.parent as? ViewGroup)?.removeView(v) }
+        } catch (_: Throwable) {}
+        activeView = null
+        root = null
+        downloadCache.clear()
         super.handleOnDestroy()
     }
 
@@ -219,31 +238,44 @@ class NativeEntryAnimationPlugin : Plugin() {
         // Pkg-audit fix: capture the job we started so a late download-failure
         // doesn't tear down a different (innocent) job that started meanwhile.
         val capturedJob = job
-        downloadExecutor.execute {
-            val file = try { resolveLocalFile(capturedJob.url) } catch (_: Throwable) { null }
-            if (file == null) {
-                activity.runOnUiThread {
-                    if (activeJob?.id != capturedJob.id) return@runOnUiThread
-                    finishActive("download failed")
-                }
-                return@execute
-            }
-            activity.runOnUiThread {
-                if (activeFinished.get()) return@runOnUiThread
-                if (activeJob?.id != capturedJob.id) return@runOnUiThread
-                try {
-                    when (capturedJob.type) {
-                        "vap"    -> renderVAP(capturedJob, file)
-                        "lottie" -> renderLottie(capturedJob, file)
-                        "image"  -> renderImage(capturedJob, file)
-                        else     -> renderImage(capturedJob, file)
+        try {
+            downloadExecutor.execute {
+                val file = try { resolveLocalFile(capturedJob.url) } catch (_: Throwable) { null }
+                if (file == null) {
+                    if (destroyed) return@execute
+                    activity?.runOnUiThread {
+                        if (destroyed) return@runOnUiThread
+                        if (activeJob?.id != capturedJob.id) return@runOnUiThread
+                        finishActive("download failed")
                     }
-                    GiftAudioMixer.play(capturedJob.soundUrl, 0.85f)
-                    emit("entry:start", JSObject()
-                        .put("id", capturedJob.id).put("url", capturedJob.url).put("type", capturedJob.type))
-                } catch (t: Throwable) {
-                    finishActive("render: ${t.message}")
+                    return@execute
                 }
+                if (destroyed) return@execute
+                activity?.runOnUiThread {
+                    if (destroyed) return@runOnUiThread
+                    if (activeFinished.get()) return@runOnUiThread
+                    if (activeJob?.id != capturedJob.id) return@runOnUiThread
+                    try {
+                        when (capturedJob.type) {
+                            "vap"    -> renderVAP(capturedJob, file)
+                            "lottie" -> renderLottie(capturedJob, file)
+                            "image"  -> renderImage(capturedJob, file)
+                            else     -> renderImage(capturedJob, file)
+                        }
+                        GiftAudioMixer.play(capturedJob.soundUrl, 0.85f)
+                        emit("entry:start", JSObject()
+                            .put("id", capturedJob.id).put("url", capturedJob.url).put("type", capturedJob.type))
+                    } catch (t: Throwable) {
+                        finishActive("render: ${t.message}")
+                    }
+                }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Executor shut down (destroy in flight) — abort job cleanly.
+            if (activeFinished.compareAndSet(false, true)) {
+                activeWatchdog?.let { mainHandler.removeCallbacks(it) }
+                activeWatchdog = null
+                activeJob = null
             }
         }
     }
@@ -260,6 +292,9 @@ class NativeEntryAnimationPlugin : Plugin() {
         try { activeAnim?.stopPlay() } catch (_: Throwable) {}
         try { activeLottie?.cancelAnimation() } catch (_: Throwable) {}
         activeView?.let { v ->
+            // Cancel any in-flight animator on the view to avoid a stale
+            // ViewPropertyAnimator holding the view past detach.
+            try { v.animate().cancel() } catch (_: Throwable) {}
             // Slide-out for image, fade-out for animated.
             v.animate().alpha(0f).setDuration(SLIDE_DURATION_MS).withEndAction {
                 try { (v.parent as? ViewGroup)?.removeView(v) } catch (_: Throwable) {}
@@ -274,8 +309,11 @@ class NativeEntryAnimationPlugin : Plugin() {
                 .put("id", job.id).put("url", job.url).put("reason", reason))
         }
         activeJob = null
-        // Slight gap between consecutive entries.
-        mainHandler.postDelayed({ pump() }, 250)
+        // Slight gap between consecutive entries — but skip when destroyed
+        // to avoid posting work onto a torn-down handler/executor.
+        if (!destroyed) {
+            mainHandler.postDelayed({ pump() }, 250)
+        }
     }
 
     // ─── Renderers ──────────────────────────────────────────────────────────

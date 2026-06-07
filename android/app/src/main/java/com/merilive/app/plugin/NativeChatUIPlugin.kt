@@ -69,17 +69,19 @@ class NativeChatUIPlugin : Plugin() {
             safe(call) {
                 ensureOverlay(title)
                 overlay?.visibility = View.VISIBLE
+                call.resolve()
             }
         }
-        call.resolve()
     }
 
     @PluginMethod
     fun close(call: PluginCall) = safe(call) {
         activity.runOnUiThread {
-            safe(call) { overlay?.visibility = View.GONE }
+            safe(call) {
+                overlay?.visibility = View.GONE
+                call.resolve()
+            }
         }
-        call.resolve()
     }
 
     @PluginMethod
@@ -92,9 +94,9 @@ class NativeChatUIPlugin : Plugin() {
                 items.addAll(parsed)
                 adapter.notifyDataSetChanged()
                 recycler?.scrollToPosition(items.size - 1)
+                call.resolve()
             }
         }
-        call.resolve()
     }
 
     @PluginMethod
@@ -108,9 +110,9 @@ class NativeChatUIPlugin : Plugin() {
                 items.addAll(parsed)
                 adapter.notifyItemRangeInserted(start, parsed.size)
                 if (stickBottom) recycler?.smoothScrollToPosition(items.size - 1)
+                call.resolve()
             }
         }
-        call.resolve()
     }
 
     @PluginMethod
@@ -121,9 +123,9 @@ class NativeChatUIPlugin : Plugin() {
             safe(call) {
                 items.addAll(0, parsed)
                 adapter.notifyItemRangeInserted(0, parsed.size)
+                call.resolve()
             }
         }
-        call.resolve()
     }
 
     @PluginMethod
@@ -133,9 +135,24 @@ class NativeChatUIPlugin : Plugin() {
                 val n = items.size
                 items.clear()
                 adapter.notifyItemRangeRemoved(0, n)
+                call.resolve()
             }
         }
-        call.resolve()
+    }
+
+    override fun handleOnDestroy() {
+        try {
+            activity?.window?.decorView?.let { dv ->
+                (dv as? ViewGroup)?.let { vg ->
+                    overlay?.let { vg.removeView(it) }
+                }
+            }
+        } catch (_: Throwable) {}
+        try { recycler?.adapter = null } catch (_: Throwable) {}
+        overlay = null
+        recycler = null
+        items.clear()
+        super.handleOnDestroy()
     }
 
     private fun parseItems(arr: JSArray): List<ChatItem> {
