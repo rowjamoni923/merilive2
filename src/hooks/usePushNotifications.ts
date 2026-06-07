@@ -4,6 +4,7 @@ import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } fro
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { navigateInAppPath, openInApp } from '@/utils/inAppNavigation';
+import { getNotificationPath } from '@/utils/notificationDeepLink';
 
 interface UsePushNotificationsReturn {
   isSupported: boolean;
@@ -83,38 +84,20 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   // Handle notification tap (app was in background)
   const handleNotificationAction = useCallback((action: ActionPerformed) => {
     console.log('[Push] Notification action performed:', action);
-    
+
     const data = action.notification.data as Record<string, string> | undefined;
-    if (!data) return;
+    if (!data) {
+      navigateInAppPath('/chat?tab=notifications');
+      return;
+    }
 
-    const type = data.type || '';
-    const go = (path: string) => navigateInAppPath(path);
+    const path = getNotificationPath(data);
 
-    // Use comprehensive deep-linking
-    if (type === 'incoming_call' || type === 'call') {
-      go(`/call?callId=${data.call_id || data.callId || ''}`);
-    } else if (type === 'call_missed' || type === 'call_received') {
-      go('/call-history');
-    } else if (type === 'message') {
-      go(`/chat/${data.conversation_id || data.conversationId || ''}`);
-    } else if (type === 'gift' || type === 'gift_received') {
-      go(data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile');
-    } else if (type === 'follow' || type === 'new_follower') {
-      go(`/profile-detail/${data.follower_id || ''}`);
-    } else if (type === 'live' || type === 'live_started') {
-      go(data.stream_id ? `/live/${data.stream_id}` : '/discover');
-    } else if (type === 'party_invite') {
-      go(data.room_id ? `/party/${data.room_id}` : '/party-rooms');
-    } else if (type === 'support_reply') {
-      go(`/settings/customer-service?mode=live_chat&ticket_id=${data.ticket_id || ''}`);
-    } else if (type.startsWith('agency_')) {
-      go('/agency-dashboard');
-    } else if (data.link_url) {
-      void openInApp(data.link_url);
-    } else if (data.action_url) {
-      void openInApp(data.action_url);
+    // Absolute http(s) URLs use the in-app browser, internal paths use the router.
+    if (/^https?:\/\//i.test(path)) {
+      void openInApp(path);
     } else {
-      go('/chat?tab=notifications');
+      navigateInAppPath(path);
     }
   }, []);
 
