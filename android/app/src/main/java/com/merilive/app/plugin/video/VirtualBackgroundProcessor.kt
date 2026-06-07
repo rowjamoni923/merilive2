@@ -284,20 +284,27 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
     }
 
     private fun blurRenderScript(src: Bitmap, radius: Float): Bitmap? {
+        val rs = try {
+            renderScript ?: RenderScript.create(context).also { renderScript = it }
+        } catch (_: Exception) { return null }
+        val script = try {
+            blurScript ?: ScriptIntrinsicBlur.create(rs, Element.U8_4(rs)).also { blurScript = it }
+        } catch (_: Exception) { return null }
+        var input: Allocation? = null
+        var output: Allocation? = null
         return try {
-            val rs = renderScript ?: RenderScript.create(context).also { renderScript = it }
-            val script = blurScript ?: ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-                .also { blurScript = it }
-            val input = Allocation.createFromBitmap(rs, src)
             val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
-            val output = Allocation.createFromBitmap(rs, out)
+            input = Allocation.createFromBitmap(rs, src)
+            output = Allocation.createFromBitmap(rs, out)
             script.setRadius(radius.coerceIn(1f, 25f))
             script.setInput(input)
             script.forEach(output)
             output.copyTo(out)
-            input.destroy(); output.destroy()
             out
-        } catch (_: Exception) { null }
+        } catch (_: Exception) { null } finally {
+            try { input?.destroy() } catch (_: Exception) {}
+            try { output?.destroy() } catch (_: Exception) {}
+        }
     }
 
     // ---- Bitmap / I420 conversion -----------------------------------
