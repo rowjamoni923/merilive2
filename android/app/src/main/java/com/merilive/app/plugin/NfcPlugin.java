@@ -289,8 +289,8 @@ public class NfcPlugin extends Plugin {
     private String parseTextRecord(byte[] payload) {
         if (payload.length == 0) return "";
         byte statusByte = payload[0];
-        boolean isUtf16 = ((statusByte & 0x80) != 1);
-        int languageCodeLength = statusByte & 1;
+        boolean isUtf16 = ((statusByte & 0x80) != 0);
+        int languageCodeLength = statusByte & 0x3F;
         String text = new String(payload, 1 + languageCodeLength,
                 payload.length - 1 - languageCodeLength,
                 isUtf16 ? StandardCharsets.UTF_16 : StandardCharsets.UTF_8);
