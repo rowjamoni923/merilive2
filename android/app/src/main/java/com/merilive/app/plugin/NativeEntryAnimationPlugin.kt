@@ -337,7 +337,10 @@ class NativeEntryAnimationPlugin : Plugin() {
             .alpha(1f).translationX(0f)
             .setInterpolator(DecelerateInterpolator())
             .setDuration(SLIDE_DURATION_MS).start()
-        mainHandler.postDelayed({
+        // Pkg-audit fix: track this deferred slide-out so finishActive can
+        // cancel it on early cancel/timeout instead of leaking a 4.5s reference
+        // to the (potentially detached) ImageView.
+        val deferred = Runnable {
             iv.animate()
                 .alpha(0f)
                 .translationX(if (job.anchor == "top") iv.resources.displayMetrics.widthPixels.toFloat()
@@ -346,8 +349,11 @@ class NativeEntryAnimationPlugin : Plugin() {
                 .setDuration(SLIDE_DURATION_MS)
                 .withEndAction { finishActive("complete") }
                 .start()
-        }, IMAGE_DURATION_MS)
+        }
+        activeDeferred = deferred
+        mainHandler.postDelayed(deferred, IMAGE_DURATION_MS)
     }
+
 
     private fun makeLp(anchor: String): FrameLayout.LayoutParams =
         FrameLayout.LayoutParams(
