@@ -363,7 +363,7 @@ const AdminEntryBars = () => {
                       className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                   ) : item.animation_url ? (
                     <div >
-                      <FixedAnimationFrame playOnClick size="fill" center={false}
+                      <FixedAnimationFrame size="fill" center
                         src={item.animation_url}
                         className="w-full h-full object-cover"
                         loop
