@@ -226,13 +226,20 @@ export function useR2Upload() {
     setProgress(10);
     onProgress?.(10);
 
-    const { data, error } = await supabase.storage
+    // Pkg fix: Supabase storage SDK has no built-in timeout — if the network
+    // stalls the promise never resolves and the admin spinner gets stuck.
+    // Race it against a 90s timeout so the UI always recovers.
+    const uploadPromise = supabase.storage
       .from(uploadTarget.bucket)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: true,
         contentType: uploadTarget.contentType,
       });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Upload timed out after 90s — check network and retry.')), 90_000)
+    );
+    const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as Awaited<typeof uploadPromise>;
 
     if (error) {
       console.error('[Supabase Storage] Upload error:', error);
