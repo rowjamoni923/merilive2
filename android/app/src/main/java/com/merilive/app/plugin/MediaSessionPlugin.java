@@ -97,9 +97,12 @@ public class MediaSessionPlugin extends Plugin {
                     if (bmp != null) {
                         b.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bmp);
                     }
-                    getActivity().runOnUiThread(() -> session.setMetadata(b.build()));
-                } catch (Exception ignored) {
-                    getActivity().runOnUiThread(() -> session.setMetadata(b.build()));
+                } catch (Exception ignored) {}
+                android.app.Activity act = getActivity();
+                if (act != null && !act.isFinishing()) {
+                    act.runOnUiThread(() -> {
+                        if (session != null) session.setMetadata(b.build());
+                    });
                 }
             }).start();
         } else {
