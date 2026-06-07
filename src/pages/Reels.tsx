@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,8 +16,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
 import { LevelBadge } from "@/components/common/LevelBadge";
-import { ReelUploadModal } from "@/components/reels/ReelUploadModal";
-import { GiftPanel, GiftData } from "@/components/live/GiftPanel";
+const ReelUploadModal = lazy(() => import("@/components/reels/ReelUploadModal").then(m => ({ default: m.ReelUploadModal })));
+const GiftPanel = lazy(() => import("@/components/live/GiftPanel").then(m => ({ default: m.GiftPanel })));
+import type { GiftData } from "@/components/live/GiftPanel";
 import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
 import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
@@ -1189,29 +1190,37 @@ const Reels = () => {
 
 
       {/* Upload Modal */}
-      <ReelUploadModal
-        isOpen={showUploadModal}
-        onClose={() => {
-          setShowUploadModal(false);
-          setPreSelectedSound(null);
-        }}
-        categories={categories}
-        onUploadSuccess={() => {
-          setShowUploadModal(false);
-          setPreSelectedSound(null);
-          fetchReels();
-          toast.success("Reel uploaded successfully!");
-        }}
-        preSelectedSound={preSelectedSound}
-      />
+      {showUploadModal && (
+        <Suspense fallback={null}>
+          <ReelUploadModal
+            isOpen={showUploadModal}
+            onClose={() => {
+              setShowUploadModal(false);
+              setPreSelectedSound(null);
+            }}
+            categories={categories}
+            onUploadSuccess={() => {
+              setShowUploadModal(false);
+              setPreSelectedSound(null);
+              fetchReels();
+              toast.success("Reel uploaded successfully!");
+            }}
+            preSelectedSound={preSelectedSound}
+          />
+        </Suspense>
+      )}
 
       {/* Gift Panel */}
-      <GiftPanel
-        isOpen={showGiftPanel}
-        onClose={() => setShowGiftPanel(false)}
-        onSendGift={handleSendGift}
-        userCoins={userCoins}
-      />
+      {showGiftPanel && (
+        <Suspense fallback={null}>
+          <GiftPanel
+            isOpen={showGiftPanel}
+            onClose={() => setShowGiftPanel(false)}
+            onSendGift={handleSendGift}
+            userCoins={userCoins}
+          />
+        </Suspense>
+      )}
 
       {/* Flying Gift Animations */}
       <AnimatePresence>
