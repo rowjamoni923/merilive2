@@ -336,9 +336,9 @@ export function useLiveKitCall(
 
   useEffect(() => {
     if (!callId || !userId) return;
-    if (isInitRef.current || deadRef.current) return;
-    isInitRef.current = true;
+    if (isInitRef.current) return;
     deadRef.current = false;
+    isInitRef.current = true;
 
     const roomName = `call_${callId}`;
 
@@ -441,11 +441,12 @@ export function useLiveKitCall(
             setTimeout(() => { if (!deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 600);
             return;
           } catch (nativeErr) {
-            console.error('[LiveKitCall/Native] init failed after retry, falling back to web:', nativeErr);
+            console.error('[LiveKitCall/Native] init failed after retry:', nativeErr);
             usingNativeRef.current = false;
             setNativeActive(false);
-            // Fall through to web path — WebView's livekit-client can still
-            // bring up the call as a safety net.
+            try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+            toast.error('Call camera failed to start. Please end the call and try again.');
+            throw nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr));
           }
         }
 

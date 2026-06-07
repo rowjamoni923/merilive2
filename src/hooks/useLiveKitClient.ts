@@ -469,21 +469,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         console.log(`[LiveKitClient/Native] ✅ Connected in ${joinTime.toFixed(0)}ms`);
         return { uid: uidRef.current || 0, channel: normalizedChannel };
       } catch (nativeErr) {
-        console.error('[LiveKitClient/Native] join failed after retry, falling back to web:', nativeErr);
+        console.error('[LiveKitClient/Native] join failed after retry:', nativeErr);
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
-        // Pkg415: explicitly tear down the native session AND wait for Camera2
-        // to fully release before the web Room calls getUserMedia. Camera2
-        // teardown takes ~800-900ms on most Android phones; without this
-        // delay the web fallback hits NotReadableError and the host sees a
-        // permanent white/black screen.
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
-        await new Promise((r) => setTimeout(r, 1000));
-        // Surface to the host so they aren't stuck on a black "Starting camera..." UI.
+        lastConfigRef.current = null;
+        setConnectionState('DISCONNECTED');
+        setIsLoading(false);
+        isJoiningRef.current = false;
         try { options.onError?.(nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr))); } catch { /* ignore */ }
-        // Fall through to web path — web livekit-client inside the WebView
-        // can still publish via getUserMedia as a safety net.
+        throw nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr));
       }
     }
 
