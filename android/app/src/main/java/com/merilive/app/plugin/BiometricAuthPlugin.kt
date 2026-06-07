@@ -20,6 +20,11 @@ import com.getcapacitor.annotation.CapacitorPlugin
 @CapacitorPlugin(name = "BiometricAuth")
 class BiometricAuthPlugin : Plugin() {
 
+    // Pkg-audit fix: track in-flight prompt so a second authenticate() can
+    // cancel the first instead of orphaning its PluginCall forever.
+    @Volatile private var activePrompt: BiometricPrompt? = null
+    @Volatile private var activeCall: PluginCall? = null
+
     @PluginMethod
     fun isAvailable(call: PluginCall) {
         val ctx = context
