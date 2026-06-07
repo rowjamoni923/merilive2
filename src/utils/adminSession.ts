@@ -95,10 +95,31 @@ export const getAdminSessionToken = (): string => {
 export const setAdminSessionToken = (token: string | null | undefined): void => {
   if (!hasWindow()) return;
   try {
+    // CRITICAL: keep the standalone token key AND the session blob's
+    // session_token field in sync. `getAdminSessionToken()` prefers the blob
+    // (it's the source of truth). If we only wrote ADMIN_TOKEN_KEY here, a
+    // stale blob left over from a previous login would still win and every
+    // following admin RPC would send a dead x-admin-token, which the server
+    // rejects with "Invalid admin session" — even though the user just
+    // successfully re-authenticated.
+    const existing = getBestStoredAdminSession();
     if (token && token.length >= 16) {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      if (existing && existing.session_token !== token) {
+        const updated: AdminSession = { ...existing, session_token: token };
+        const json = JSON.stringify(updated);
+        window.localStorage.setItem(ADMIN_SESSION_KEY, json);
+        window.sessionStorage.setItem(ADMIN_SESSION_KEY, json);
+      }
     } else {
       window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+      if (existing && existing.session_token) {
+        const updated: AdminSession = { ...existing };
+        delete updated.session_token;
+        const json = JSON.stringify(updated);
+        window.localStorage.setItem(ADMIN_SESSION_KEY, json);
+        window.sessionStorage.setItem(ADMIN_SESSION_KEY, json);
+      }
     }
   } catch {}
 };
