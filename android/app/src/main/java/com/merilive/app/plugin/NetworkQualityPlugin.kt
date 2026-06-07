@@ -71,7 +71,13 @@ class NetworkQualityPlugin : Plugin() {
             .build()
         val cb = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) { emit() }
-            override fun onLost(network: Network) { emit(offline = true) }
+            // Pkg-audit Tier-4: do NOT blindly emit offline=true here — onLost
+            // fires when ONE network is lost (e.g. wifi drops while cellular
+            // is still active), and a false offline flash forces LiveKit
+            // adaptive bitrate to drop quality unnecessarily. Re-query the
+            // active network instead so buildSnapshot derives truth from
+            // ConnectivityManager state.
+            override fun onLost(network: Network) { emit() }
             override fun onCapabilitiesChanged(n: Network, caps: NetworkCapabilities) { emit(caps) }
         }
         try {
@@ -82,9 +88,9 @@ class NetworkQualityPlugin : Plugin() {
         }
     }
 
-    private fun emit(caps: NetworkCapabilities? = null, offline: Boolean = false) {
+    private fun emit(caps: NetworkCapabilities? = null) {
         try {
-            val snap = buildSnapshot(caps, offline)
+            val snap = buildSnapshot(caps)
             notifyListeners("networkChange", snap)
         } catch (_: Throwable) {}
     }
@@ -92,19 +98,21 @@ class NetworkQualityPlugin : Plugin() {
     @PluginMethod
     fun getStatus(call: PluginCall) {
         try {
-            call.resolve(buildSnapshot(null, false))
+            call.resolve(buildSnapshot(null))
         } catch (e: Throwable) {
             call.reject("getStatus failed: ${e.message}")
         }
     }
 
-    private fun buildSnapshot(capsIn: NetworkCapabilities?, offline: Boolean): JSObject {
+    private fun buildSnapshot(capsIn: NetworkCapabilities?): JSObject {
         val out = JSObject()
         val mgr = cm
         val net = mgr?.activeNetwork
         val caps = capsIn ?: (net?.let { mgr.getNetworkCapabilities(it) })
 
-        val online = !offline && caps != null &&
+        // Pkg-audit Tier-4: derive online purely from ConnectivityManager
+        // — onLost on a non-default network must not cause a false offline.
+        val online = caps != null &&
             caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         out.put("online", online)
 

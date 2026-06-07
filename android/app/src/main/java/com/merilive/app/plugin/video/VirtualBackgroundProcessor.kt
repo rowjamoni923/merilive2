@@ -80,8 +80,18 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
     private val workerThread = HandlerThread("VBackgroundProc").apply { start() }
     private val worker = Handler(workerThread.looper)
 
-    @Volatile private var lastMask: Bitmap? = null
-    @Volatile private var inFlight = false
+    // Pkg-audit Tier-4: use a dedicated lock for read/recycle of the mask
+    // bitmap. `@Volatile` only protects reference visibility — without
+    // synchronization the capture thread could be holding (and drawing into)
+    // a Bitmap reference at the exact instant the worker thread recycles it,
+    // crashing with "Canvas: trying to use a recycled bitmap".
+    private val maskLock = Any()
+    private var lastMask: Bitmap? = null
+    // Pkg-audit Tier-4: AtomicBoolean.compareAndSet for the in-flight gate —
+    // a plain `@Volatile` flag is visible across threads but the read-modify-
+    // write (if (!inFlight) { inFlight = true ... }) is not atomic, so two
+    // captured frames arriving back-to-back can both pass the guard.
+    private val inFlight = java.util.concurrent.atomic.AtomicBoolean(false)
 
     @Synchronized
     fun tryInit(modelAsset: String = "mediapipe/selfie_segmenter.tflite"): Boolean {
@@ -139,7 +149,7 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
         try { blurScript?.destroy() } catch (_: Exception) {}
         try { renderScript?.destroy() } catch (_: Exception) {}
         blurScript = null; renderScript = null
-        lastMask?.recycle(); lastMask = null
+        synchronized(maskLock) { lastMask?.recycle(); lastMask = null }
         backgroundBitmap.getAndSet(null)?.recycle()
     }
 
@@ -165,8 +175,7 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
         val bitmap = i420ToArgbBitmap(i420)
         i420.release()
 
-        if (!inFlight) {
-            inFlight = true
+        if (inFlight.compareAndSet(false, true)) {
             val downscale = scaleBitmap(bitmap, 256, 256)
             worker.post {
                 try {
@@ -179,28 +188,33 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
                         com.google.mediapipe.framework.image.ByteBufferExtractor
                             .extract(maskImg, maskBytes)
                         val newMask = maskBufferToBitmap(maskBytes, 256, 256)
-                        lastMask?.recycle()
-                        lastMask = newMask
+                        // Pkg-audit Tier-4: swap + recycle the old mask under
+                        // the lock so the capture thread can never read a
+                        // reference that's about to be (or has been) recycled.
+                        synchronized(maskLock) {
+                            lastMask?.recycle()
+                            lastMask = newMask
+                        }
                     }
                     res.close()
                 } catch (e: Exception) {
                     Log.w(TAG, "segment failed: ${e.message}")
                 } finally {
                     downscale.recycle()
-                    inFlight = false
+                    inFlight.set(false)
                 }
             }
         }
 
-        val mask = lastMask
-        val composed = if (mask != null) {
-            composite(bitmap, mask, activeMode)
-        } else {
-            bitmap
+        // Compose under the lock: holding maskLock for the duration of
+        // composite() guarantees the worker can't recycle the mask mid-draw.
+        val outFrame = synchronized(maskLock) {
+            val mask = lastMask
+            val composed = if (mask != null) composite(bitmap, mask, activeMode) else bitmap
+            val f = argbBitmapToVideoFrame(composed, srcW, srcH, rotation, capturedAtNs)
+            if (composed !== bitmap) composed.recycle()
+            f
         }
-
-        val outFrame = argbBitmapToVideoFrame(composed, srcW, srcH, rotation, capturedAtNs)
-        if (composed !== bitmap) composed.recycle()
         bitmap.recycle()
         sink?.onFrame(outFrame)
         outFrame.release()
@@ -254,12 +268,16 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
     }
 
     private fun blurBitmap(src: Bitmap, radius: Float): Bitmap {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(out)
-            return blurRenderScript(src, radius) ?: out.also { canvas.drawBitmap(src, 0f, 0f, null) }
+        // Pkg-audit Tier-4: previously the API ≥ 31 branch eagerly allocated
+        // a placeholder `out` bitmap, then `blurRenderScript` returned a NEW
+        // bitmap on success — leaking the placeholder every frame (~1-3 MB ×
+        // 30 fps → OOM in minutes). Allocate the fallback only when blur
+        // actually failed.
+        val result = blurRenderScript(src, radius)
+        if (result != null) return result
+        return Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888).also {
+            Canvas(it).drawBitmap(src, 0f, 0f, null)
         }
-        return blurRenderScript(src, radius) ?: src
     }
 
     private fun blurRenderScript(src: Bitmap, radius: Float): Bitmap? {
@@ -328,7 +346,12 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
     ): VideoFrame {
         val pixels = IntArray(bm.width * bm.height)
         bm.getPixels(pixels, 0, bm.width, 0, 0, bm.width, bm.height)
-        val buffer = org.webrtc.JavaI420Buffer.allocate(w, h)
+        // Pkg-audit Tier-4: was `org.webrtc.JavaI420Buffer` — wrong package.
+        // The surrounding VideoFrame / VideoSink etc. all come from
+        // `livekit.org.webrtc.*` (repackaged WebRTC bundled with LiveKit),
+        // and the `livekit.org.webrtc.VideoFrame` constructor will not accept
+        // a buffer from a different package namespace.
+        val buffer = livekit.org.webrtc.JavaI420Buffer.allocate(w, h)
         val yStride = buffer.strideY
         val uStride = buffer.strideU
         val vStride = buffer.strideV
