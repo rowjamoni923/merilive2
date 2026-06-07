@@ -66,6 +66,7 @@ import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
@@ -767,7 +768,7 @@ export function UnifiedPartyRoom({
             return {
               id: profile?.id || pv.user_id,
               displayName: profile?.display_name || profile?.app_uid || "Anonymous",
-              avatarUrl: profile?.avatar_url,
+              avatarUrl: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
               level: profile?.user_level || 1,
               frameId: profile?.frame_id || undefined,
             };
@@ -873,8 +874,6 @@ export function UnifiedPartyRoom({
       const entranceUrl = data.entranceAnimationUrl || undefined;
       const entryNameBarUrl = data.entryNameBarUrl || undefined;
       const vehicleUrl = data.vehicleAnimationUrl || undefined;
-      if (!entranceUrl && !entryNameBarUrl && !vehicleUrl) return;
-
       if (triggerCallback) {
         triggeredEntryAnimationsRef.current.add(animationKey);
         triggerCallback({
