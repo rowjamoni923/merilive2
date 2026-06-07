@@ -5061,6 +5061,7 @@ export type Database = {
           diamond_cost: number | null
           gift_id: string | null
           id: string
+          idempotency_key: string | null
           party_room_id: string | null
           quantity: number | null
           receiver_beans: number | null
@@ -5081,6 +5082,7 @@ export type Database = {
           diamond_cost?: number | null
           gift_id?: string | null
           id?: string
+          idempotency_key?: string | null
           party_room_id?: string | null
           quantity?: number | null
           receiver_beans?: number | null
@@ -5101,6 +5103,7 @@ export type Database = {
           diamond_cost?: number | null
           gift_id?: string | null
           id?: string
+          idempotency_key?: string | null
           party_room_id?: string | null
           quantity?: number | null
           receiver_beans?: number | null
@@ -19641,19 +19644,34 @@ export type Database = {
             }
             Returns: Json
           }
-      process_gift_transaction: {
-        Args: {
-          p_call_id?: string
-          p_gift_id: string
-          p_party_room_id?: string
-          p_quantity?: number
-          p_receiver_id: string
-          p_reel_id?: string
-          p_sender_id: string
-          p_stream_id?: string
-        }
-        Returns: Json
-      }
+      process_gift_transaction:
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_reel_id?: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_idempotency_key?: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_reel_id?: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
       process_google_play_purchase: {
         Args: {
           p_google_order_id?: string

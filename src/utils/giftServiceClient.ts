@@ -11,6 +11,21 @@ export interface GiftServicePayload {
   partyRoomId?: string | null;
   callId?: string | null;
   reelId?: string | null;
+  /**
+   * Optional caller-supplied idempotency key. If omitted, callGiftService
+   * auto-generates a stable key for the lifetime of this single call (incl.
+   * the 401 silent-refresh retry) so a dropped HTTP response cannot
+   * double-charge the sender.
+   */
+  idempotencyKey?: string;
+}
+
+function generateIdempotencyKey(): string {
+  try {
+    const c: any = (globalThis as any).crypto;
+    if (c?.randomUUID) return c.randomUUID();
+  } catch {}
+  return `gift_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 export interface GiftServiceResponse {
@@ -54,18 +69,25 @@ async function doRequest(accessToken: string, payload: GiftServicePayload): Prom
 }
 
 export async function callGiftService(payload: GiftServicePayload): Promise<GiftServiceResponse> {
+  // Stabilize idempotency key BEFORE any network attempt. The same key MUST be
+  // sent on the silent 401 retry below so the server can recognize a replay.
+  const stablePayload: GiftServicePayload = {
+    ...payload,
+    idempotencyKey: payload.idempotencyKey || generateIdempotencyKey(),
+  };
+
   let accessToken = await getAccessToken(false);
   if (!accessToken) accessToken = await getAccessToken(true);
   if (!accessToken) throw new Error("No active session. Please sign in again.");
 
-  let response = await doRequest(accessToken, payload);
+  let response = await doRequest(accessToken, stablePayload);
 
   // Token may have been revoked server-side (single-device displacement,
   // password change). Try ONE silent refresh + retry before surfacing 401.
   if (response.status === 401) {
     const refreshed = await getAccessToken(true);
     if (refreshed && refreshed !== accessToken) {
-      response = await doRequest(refreshed, payload);
+      response = await doRequest(refreshed, stablePayload);
     }
   }
 
