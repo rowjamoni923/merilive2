@@ -18,6 +18,7 @@ Chamet-class live streaming app. NEVER use polling/visibility-refresh in place o
 - [No duplicate native systems](mem://preferences/no-duplicate-native-systems) — Single-owner rule for camera/audio/beauty/call plugins. Audit + reference-check before deleting any plugin (10K+ production users).
 - [Google research before fix](mem://preferences/google-research-before-fix) — Spawn research subagent / websearch on pro apps before non-trivial RTC/billing/animation code.
 - [Owner test account](mem://preferences/test-account.md) — Always-available preview login (smdollarex923@gmail.com) for end-to-end self-testing.
+- [Phase 0.5 Native Plugin Audit](mem://features/phase-0.5-native-plugin-audit) — DONE 2026-06-07. Deleted Pkg435 NativeAudioEnginePlugin + NativeVideoEnginePlugin + JNI cpp + CMake. No real duplicates — layered beauty/call/audio designs confirmed legitimate.
 - [Phase 3 Private Call audit](mem://features/phase3-private-call-audit) — DONE 2026-06-06.
 - [Pkg438 Native gift+entry animation Phase A](mem://features/pkg438-native-gift-entry-animation-phase-a) — DONE 2026-06-06. Android-only foundation. Phase B (JS dispatcher) → Plan Phase 5.
 - [Pkg425 Trader wallet history + instant UI](mem://features/pkg425-trader-wallet-history-instant) — DONE 2026-06-06.
