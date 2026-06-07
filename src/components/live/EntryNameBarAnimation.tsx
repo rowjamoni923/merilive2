@@ -2,14 +2,16 @@ import { useState, useRef, useCallback, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  getLevelBadgeBg, 
-  getLevelTextColor, 
-  ensureValidLevel, 
-  formatLevel 
+import {
+  getLevelBadgeBg,
+  getLevelTextColor,
+  ensureValidLevel,
+  formatLevel,
 } from "@/features/shared/level";
 import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
+
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
   if (!url) return null;
