@@ -1515,7 +1515,7 @@ const PartyRoom = () => {
       const isHostUser = room?.host_id === currentUser.id;
       const userName = currentUser.profile?.display_name || 'User';
       const userLevel = currentUser.profile?.user_level || 1;
-      const avatarUrl = currentUser.profile?.avatar_url || undefined;
+      const avatarUrl = normalizeProfileMediaUrl(currentUser.profile?.avatar_url) || currentUser.profile?.avatar_url || undefined;
       
       // First, leave all other active rooms to prevent stale participant records
       await supabase
@@ -1577,23 +1577,19 @@ const PartyRoom = () => {
       
       console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
       
-      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl || rankCode) {
-        console.log('[PartyRoom] 🚗 Self has equipped animation or rank:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
-        // TRIGGER entry animation for SELF using UNIFIED system (like gifts)
-        addEntryAnimation({
-          userId: currentUser.id,
-          displayName: userName,
-          avatarUrl,
-          level: userLevel,
-          entranceUrl: selfEntranceUrl || undefined,
-          entryNameBarUrl: selfNameBarUrl || undefined,
-          vehicleAnimationUrl: selfVehicleUrl || undefined,
-          soundUrl: selfEntranceSound || undefined,
-          rankCode: rankCode || undefined,
-        });
-      } else {
-        console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
-      }
+      console.log('[PartyRoom] 🚗 Dispatching self entry/namebar:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
+      // TRIGGER entry/namebar for SELF using UNIFIED system (like gifts)
+      addEntryAnimation({
+        userId: currentUser.id,
+        displayName: userName,
+        avatarUrl,
+        level: userLevel,
+        entranceUrl: selfEntranceUrl || undefined,
+        entryNameBarUrl: selfNameBarUrl || undefined,
+        vehicleAnimationUrl: selfVehicleUrl || undefined,
+        soundUrl: selfEntranceSound || undefined,
+        rankCode: rankCode || undefined,
+      });
       
       // Pkg80: LiveKit DataPacket replaces Supabase `join_broadcast_party_*`
       // channel. Sub-50ms fanout; DB row remains for REST snapshot/history.
