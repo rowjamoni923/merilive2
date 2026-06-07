@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { 
@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
-import AddLocalPaymentMethodDialog from "@/components/helper/AddLocalPaymentMethodDialog";
+const AddLocalPaymentMethodDialog = lazy(() => import("@/components/helper/AddLocalPaymentMethodDialog"));
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -28,9 +28,9 @@ import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
-import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
+const SwiftPayDepositModal = lazy(() => import("@/components/recharge/SwiftPayDepositModal"));
 import { recordClientError } from "@/utils/clientErrorLog";
-import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
+const HelperApplicationForm = lazy(() => import("@/components/helper/HelperApplicationForm"));
 
 
 interface TraderLevel {
@@ -1046,25 +1046,26 @@ const HelperDashboard = () => {
           </div>
         </div>
         <div className="px-4 pb-8">
-          <HelperApplicationForm
-            onSuccess={async () => {
-              setShowApplyForm(false);
-              setLoading(true);
-              // Re-fetch helper data — Pkg432 RPC will have created the topup_helpers row.
-              const { data: { user } } = await supabase.auth.getUser();
-              if (user) {
-                const { data: helper } = await supabase
-                  .from('topup_helpers').select('*').eq('user_id', user.id).single();
-                if (helper && helper.is_verified && helper.is_active) {
-                  setHelperData(helper);
-                  setHelperCache(helper);
-                  setHelperId(helper.id);
+          <Suspense fallback={null}>
+            <HelperApplicationForm
+              onSuccess={async () => {
+                setShowApplyForm(false);
+                setLoading(true);
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  const { data: helper } = await supabase
+                    .from('topup_helpers').select('*').eq('user_id', user.id).single();
+                  if (helper && helper.is_verified && helper.is_active) {
+                    setHelperData(helper);
+                    setHelperCache(helper);
+                    setHelperId(helper.id);
+                  }
                 }
-              }
-              setLoading(false);
-            }}
-            onClose={() => navigate('/profile')}
-          />
+                setLoading(false);
+              }}
+              onClose={() => navigate('/profile')}
+            />
+          </Suspense>
         </div>
       </div>
     );
@@ -1880,22 +1881,24 @@ const HelperDashboard = () => {
               </CardContent>
             </Card>
 
-            {helperId && (
-              <SwiftPayDepositModal
-                open={showCryptoTopupModal}
-                onOpenChange={setShowCryptoTopupModal}
-                packages={[]}
-                mode="helper"
-                helperId={helperId}
-                helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
-                helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
-                onCredited={(coins) => {
-                  setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
-                  setShowTopupForm(false);
-                  setSelectedDiamondPackage(null);
-                  setCustomDiamondAmount('');
-                }}
-              />
+            {helperId && showCryptoTopupModal && (
+              <Suspense fallback={null}>
+                <SwiftPayDepositModal
+                  open={showCryptoTopupModal}
+                  onOpenChange={setShowCryptoTopupModal}
+                  packages={[]}
+                  mode="helper"
+                  helperId={helperId}
+                  helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
+                  helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
+                  onCredited={(coins) => {
+                    setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
+                    setShowTopupForm(false);
+                    setSelectedDiamondPackage(null);
+                    setCustomDiamondAmount('');
+                  }}
+                />
+              </Suspense>
             )}
           </TabsContent>
 
@@ -2020,7 +2023,8 @@ const HelperDashboard = () => {
 
 
       {/* Auto Crypto Gateway for Helper Upgrade Application */}
-      {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && (
+      {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && showUpgradeCryptoModal && (
+        <Suspense fallback={null}>
         <SwiftPayDepositModal
           open={showUpgradeCryptoModal}
           onOpenChange={setShowUpgradeCryptoModal}
@@ -2057,6 +2061,7 @@ const HelperDashboard = () => {
             }
           }}
         />
+        </Suspense>
       )}
 
 
@@ -2487,14 +2492,16 @@ const HelperDashboard = () => {
       </Dialog>
 
       {/* Manage local payment methods (name + logo + account#) */}
-      {helperData?.id && (
-        <AddLocalPaymentMethodDialog
-          open={showAddPaymentMethodDialog}
-          onOpenChange={setShowAddPaymentMethodDialog}
-          helperId={helperData.id}
-          helperCountryCode={helperData?.country_code || null}
-          onSaved={() => setPaymentMethodsRefreshKey((k) => k + 1)}
-        />
+      {helperData?.id && showAddPaymentMethodDialog && (
+        <Suspense fallback={null}>
+          <AddLocalPaymentMethodDialog
+            open={showAddPaymentMethodDialog}
+            onOpenChange={setShowAddPaymentMethodDialog}
+            helperId={helperData.id}
+            helperCountryCode={helperData?.country_code || null}
+            onSaved={() => setPaymentMethodsRefreshKey((k) => k + 1)}
+          />
+        </Suspense>
       )}
     </div>
   );

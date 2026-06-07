@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -38,7 +38,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
 
-import ManualTopupCard from "@/components/helper/ManualTopupCard";
+const ManualTopupCard = lazy(() => import("@/components/helper/ManualTopupCard"));
 
 interface PaymentMethod {
   id: string;
@@ -1457,20 +1457,22 @@ const Level5HelperDashboard = () => {
               </DialogTitle>
             </DialogHeader>
             <div className="px-4 pb-4">
-              {helperData?.id && (
-                <ManualTopupCard
-                  helperId={helperData.id}
-                  traderLevel={helperData?.trader_level || 5}
-                  defaultOpen={true}
-                  onCredited={(coins) => {
-                    setHelperData((prev: any) =>
-                      prev
-                        ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins }
-                        : prev
-                    );
-                    setShowManualTopupDialog(false);
-                  }}
-                />
+              {helperData?.id && showManualTopupDialog && (
+                <Suspense fallback={null}>
+                  <ManualTopupCard
+                    helperId={helperData.id}
+                    traderLevel={helperData?.trader_level || 5}
+                    defaultOpen={true}
+                    onCredited={(coins) => {
+                      setHelperData((prev: any) =>
+                        prev
+                          ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins }
+                          : prev
+                      );
+                      setShowManualTopupDialog(false);
+                    }}
+                  />
+                </Suspense>
               )}
             </div>
           </DialogContent>
