@@ -1,5 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
+import { useNotifications } from '@/hooks/useNotifications';
 // subscribeToTables no longer needed - usePrivateCall handles all call-end detection
 import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
@@ -8,6 +10,19 @@ import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
+
+/**
+ * Phase-3 C1: GLOBAL `notifications` realtime mount, attached to the
+ * authenticated tree directly under CallProvider. No Suspense, no
+ * isPublicPage gate — so the moment auth resolves the realtime channel
+ * is live and `incoming_call` notification rows bridge to the
+ * `incoming-call-notification` window event WITHOUT the deferred-hooks
+ * Suspense dead-window that used to drop the first call on cold start.
+ */
+const GlobalNotificationsMount = () => {
+  useNotifications();
+  return null;
+};
 
 interface CallContextType {
   startCall: (hostId: string, streamId?: string) => Promise<string | null>;
