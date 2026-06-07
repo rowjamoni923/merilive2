@@ -801,6 +801,10 @@ class LiveKitPlugin : Plugin() {
                 data.put("attempt", attempt + 1)
                 data.put("reason", reason)
                 notifyListeners("camera-state", data)
+                // Phase-E: camera was (re)published — re-attach beauty
+                // processor to the fresh LocalVideoTrack so beauty survives
+                // reconnects, resolution flips, and recovery cycles.
+                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
                 return true
             } catch (e: Throwable) {
                 lastError = e
