@@ -32,6 +32,10 @@ public class DeepLinkHandlerPlugin extends Plugin {
             if (data != null) {
                 JSObject ev = buildPayload(data);
                 notifyListeners("deepLinkOpened", ev, true);
+                // Pkg-audit Tier-13: clear so a later getLastDeepLink() (e.g.
+                // on resume) does not replay this same URL — JS would route
+                // twice and break analytics dedup.
+                try { intent.setData(null); } catch (Throwable ignored) {}
             }
         } catch (Throwable ignored) {}
     }
