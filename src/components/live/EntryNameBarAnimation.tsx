@@ -27,10 +27,13 @@ interface EntryNameBarAnimationProps {
   userLevel: number;
   avatarUrl?: string;
   animationUrl?: string;
+  /** When provided, renders the user's equipped avatar frame (professional parity). */
+  userId?: string;
   onComplete?: () => void;
   className?: string;
   bottomPosition?: string;
 }
+
 
 /**
  * Entry Name Bar Animation - Professional Sliding Banner
