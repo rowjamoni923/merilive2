@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.process_google_play_purchase(uuid, text, text, text, jsonb) FROM authenticated;
