@@ -285,11 +285,29 @@ class NativeGiftAnimationPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        destroyed = true
+        isPaused.set(true)
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
         try {
             for (slot in activeJobIds.values.toList()) tearDown(slot)
         } catch (_: Throwable) {}
+        synchronized(jobsLock) { jobs.clear() }
+        try {
+            giftRoot?.let { v -> (v.parent as? ViewGroup)?.removeView(v) }
+        } catch (_: Throwable) {}
+        giftRoot = null
+        downloadCache.clear()
         super.handleOnDestroy()
+    }
+
+    private fun runUiSafe(block: () -> Unit) {
+        if (destroyed) return
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        act.runOnUiThread {
+            if (destroyed) return@runOnUiThread
+            try { block() } catch (_: Throwable) {}
+        }
     }
 
     // ─── Queue pump ─────────────────────────────────────────────────────────
