@@ -53,7 +53,6 @@ public class AudioRecorderPlugin extends Plugin {
     private long pausedAccumMs;
     private long pauseStartedMs;
     private boolean isPaused;
-    private PluginCall pendingStartCall;
     private java.util.Timer amplitudeTimer;
 
 
