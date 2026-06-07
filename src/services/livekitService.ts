@@ -176,7 +176,8 @@ export async function getLiveKitToken(
   roomType: 'call' | 'host_stream' | 'viewer_stream' | 'party',
   participantName?: string,
   hidden?: boolean,
-  partyCanPublish?: boolean
+  partyCanPublish?: boolean,
+  asAdmin?: boolean
 ): Promise<LiveKitTokenResponse> {
   const request: LiveKitTokenRequest = {
     roomName,
@@ -184,9 +185,12 @@ export async function getLiveKitToken(
     participantName,
     ...(hidden ? { hidden: true } : {}),
     ...(roomType === 'party' && partyCanPublish !== undefined ? { partyCanPublish } : {}),
+    ...(asAdmin ? { asAdmin: true } : {}),
   };
 
-  const accessToken = await getAuthAccessToken();
+  // Admin monitor calls bypass Supabase user JWT to avoid identity collision
+  // (e.g. operator is also signed-in as a regular user).
+  const accessToken = asAdmin ? undefined : await getAuthAccessToken();
   const cacheKey = getCacheKey(request, accessToken);
 
   const cached = getFromCache(cacheKey);
@@ -214,7 +218,8 @@ export function warmLiveKitToken(
   roomType: 'call' | 'host_stream' | 'viewer_stream' | 'party',
   participantName?: string,
   hidden?: boolean,
-  partyCanPublish?: boolean
+  partyCanPublish?: boolean,
+  asAdmin?: boolean
 ): Promise<LiveKitTokenResponse> {
-  return getLiveKitToken(roomName, roomType, participantName, hidden, partyCanPublish);
+  return getLiveKitToken(roomName, roomType, participantName, hidden, partyCanPublish, asAdmin);
 }
