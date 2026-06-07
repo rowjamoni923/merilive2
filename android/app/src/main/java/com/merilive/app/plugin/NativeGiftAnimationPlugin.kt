@@ -329,41 +329,48 @@ class NativeGiftAnimationPlugin : Plugin() {
         mainHandler.postDelayed(slot.watchdog, job.timeoutMs)
 
         // Resolve file off the UI thread, then play on UI thread.
-        downloadExecutor.execute {
-            val file = try { resolveLocalFile(job.url) } catch (_: Throwable) { null }
-            if (file == null) {
-                if (slot.finished.compareAndSet(false, true)) {
-                    activity.runOnUiThread {
-                        emit("gift:error", JSObject()
-                            .put("id", job.id).put("url", job.url)
-                            .put("errorMsg", "download failed"))
-                        tearDown(slot); pump()
-                    }
-                }
-                return@execute
-            }
-            activity.runOnUiThread {
-                if (slot.finished.get()) return@runOnUiThread
-                try {
-                    when (job.type) {
-                        "vap"    -> renderVAP(slot, file)
-                        "svga"   -> renderSVGA(slot, file)
-                        "lottie" -> renderLottie(slot, file)
-                        "mp4"    -> renderExo(slot, file)
-                        "image"  -> renderImage(slot, file)
-                        else     -> renderImage(slot, file)
-                    }
-                    GiftAudioMixer.play(job.soundUrl)
-                    emit("gift:start", JSObject()
-                        .put("id", job.id).put("url", job.url).put("type", job.type))
-                } catch (t: Throwable) {
+        try {
+            downloadExecutor.execute {
+                val file = try { resolveLocalFile(job.url) } catch (_: Throwable) { null }
+                if (file == null) {
                     if (slot.finished.compareAndSet(false, true)) {
-                        emit("gift:error", JSObject()
-                            .put("id", job.id).put("url", job.url)
-                            .put("errorMsg", t.message ?: "render exception"))
-                        tearDown(slot); pump()
+                        runUiSafe {
+                            emit("gift:error", JSObject()
+                                .put("id", job.id).put("url", job.url)
+                                .put("errorMsg", "download failed"))
+                            tearDown(slot); pump()
+                        }
+                    }
+                    return@execute
+                }
+                runUiSafe {
+                    if (slot.finished.get()) return@runUiSafe
+                    try {
+                        when (job.type) {
+                            "vap"    -> renderVAP(slot, file)
+                            "svga"   -> renderSVGA(slot, file)
+                            "lottie" -> renderLottie(slot, file)
+                            "mp4"    -> renderExo(slot, file)
+                            "image"  -> renderImage(slot, file)
+                            else     -> renderImage(slot, file)
+                        }
+                        GiftAudioMixer.play(job.soundUrl)
+                        emit("gift:start", JSObject()
+                            .put("id", job.id).put("url", job.url).put("type", job.type))
+                    } catch (t: Throwable) {
+                        if (slot.finished.compareAndSet(false, true)) {
+                            emit("gift:error", JSObject()
+                                .put("id", job.id).put("url", job.url)
+                                .put("errorMsg", t.message ?: "render exception"))
+                            tearDown(slot); pump()
+                        }
                     }
                 }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Executor already shut down (destroy in flight) — abort job cleanly.
+            if (slot.finished.compareAndSet(false, true)) {
+                tearDown(slot)
             }
         }
     }
