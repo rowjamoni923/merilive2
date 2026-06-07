@@ -125,7 +125,12 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_HARD_MS = 15_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
         private const val OEM_CAMERA_OPEN_TIMEOUT_MS = 4_500L
-        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
+        // Fix 7 (Hotfix): bumped 650 → 1200 ms. MIUI 14 / OneUI 6 / ColorOS 14
+        // Camera2 HAL keeps the front-camera handle locked 800-1500 ms after
+        // close() returns. Fix 1 (dynamic grace via CameraManager.AvailabilityCallback)
+        // can resolve sooner; this is the floor + cap when callbacks misfire.
+        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 1_200L
+        private const val OEM_CAMERA_AVAILABILITY_WAIT_MS = 2_000L
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
