@@ -19,6 +19,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.util.ArrayDeque
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.max
 import kotlin.random.Random
 
