@@ -85,9 +85,18 @@ public class NativeCameraPlugin extends Plugin {
 
     private ImageCapture imageCapture;
     private VideoCapture<Recorder> videoCapture;
-    private Recording activeRecording;
-    private File activeRecordingFile;
-    private PluginCall pendingStopCall;
+    // Pkg-audit Tier2 fix: cross-thread reads/writes (Capacitor bridge thread vs
+    // main-thread CameraX finalizer) need @volatile to avoid stale-read
+    // double-stop / double-resolve crashes.
+    private volatile Recording activeRecording;
+    private volatile File activeRecordingFile;
+    private volatile PluginCall pendingStopCall;
+    // Pkg-audit Tier2 fix: keep a reference to delayed start/stop runnables so
+    // releaseCameraResources() / a rapid stop→start sequence can cancel them
+    // before they run against torn-down state.
+    private Handler pendingDelayedHandler;
+    private Runnable pendingGraceRunnable;
+    private Runnable pendingStopRunnable;
     private long recordingStartedAt;
     private final ExecutorService cameraExecutor = Executors.newSingleThreadExecutor();
     private final Object frameLock = new Object();
@@ -175,10 +184,14 @@ public class NativeCameraPlugin extends Plugin {
         getActivity().runOnUiThread(() -> {
             if (graceMs > 0L) {
                 Log.w(TAG, "OEM Camera2 release grace before CameraX open: " + graceMs + "ms");
-                new Handler(Looper.getMainLooper()).postDelayed(
-                    () -> bindCameraAsync(call, lens, res, sessionId),
-                    graceMs
-                );
+                // Pkg-audit Tier2 fix: keep a reference so destroy/stop can cancel it.
+                if (pendingDelayedHandler == null) pendingDelayedHandler = new Handler(Looper.getMainLooper());
+                if (pendingGraceRunnable != null) pendingDelayedHandler.removeCallbacks(pendingGraceRunnable);
+                pendingGraceRunnable = () -> {
+                    pendingGraceRunnable = null;
+                    bindCameraAsync(call, lens, res, sessionId);
+                };
+                pendingDelayedHandler.postDelayed(pendingGraceRunnable, graceMs);
             } else {
                 bindCameraAsync(call, lens, res, sessionId);
             }
@@ -189,13 +202,28 @@ public class NativeCameraPlugin extends Plugin {
     public void stop(PluginCall call) {
         getActivity().runOnUiThread(() -> {
             try {
-                cameraSessionId++;
+                final int stopSessionId = ++cameraSessionId;
                 if (activeRecording != null) {
                     try { activeRecording.stop(); } catch (Exception ignored) {}
                     activeRecording = null;
                 }
                 if (cameraProvider != null) cameraProvider.unbindAll();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> finishStopCamera(call), OEM_CAMERA_RELEASE_SETTLE_MS);
+                // Pkg-audit Tier2 fix: guard the delayed teardown so a rapid
+                // stop()→start() within OEM_CAMERA_RELEASE_SETTLE_MS does not
+                // null out the freshly bound use-cases or release ownership
+                // the new session has just legitimately re-acquired.
+                if (pendingDelayedHandler == null) pendingDelayedHandler = new Handler(Looper.getMainLooper());
+                if (pendingStopRunnable != null) pendingDelayedHandler.removeCallbacks(pendingStopRunnable);
+                pendingStopRunnable = () -> {
+                    pendingStopRunnable = null;
+                    if (stopSessionId != cameraSessionId) {
+                        // A newer start() raced ahead; do NOT tear it down.
+                        try { call.resolve(); } catch (Exception ignored) {}
+                        return;
+                    }
+                    finishStopCamera(call);
+                };
+                pendingDelayedHandler.postDelayed(pendingStopRunnable, OEM_CAMERA_RELEASE_SETTLE_MS);
             } catch (Exception e) {
                 call.reject("Failed to stop camera: " + e.getMessage());
             }
@@ -624,6 +652,11 @@ public class NativeCameraPlugin extends Plugin {
                     latestFrameRotation = 0;
                     lastFrameEncodeAt = now;
                 }
+            } catch (OutOfMemoryError oom) {
+                // Pkg-audit Tier2 fix: OOM is an Error, not an Exception — without
+                // this catch a single oversized bitmap kills the analyzer thread
+                // and triggers an unbounded thread-respawn / GC-churn loop.
+                Log.e(TAG, "Frame analyzer OOM — skipping frame", oom);
             } catch (Exception e) {
                 Log.w(TAG, "Frame analyzer encode failed: " + e.getMessage());
             } finally {
@@ -844,6 +877,18 @@ public class NativeCameraPlugin extends Plugin {
     private void releaseCameraResources(boolean destroyProvider) {
         try {
             if (getActivity() == null) return;
+            // Pkg-audit Tier2 fix: cancel any pending delayed open/teardown
+            // runnables so they cannot fire against a destroyed plugin.
+            if (pendingDelayedHandler != null) {
+                if (pendingGraceRunnable != null) {
+                    pendingDelayedHandler.removeCallbacks(pendingGraceRunnable);
+                    pendingGraceRunnable = null;
+                }
+                if (pendingStopRunnable != null) {
+                    pendingDelayedHandler.removeCallbacks(pendingStopRunnable);
+                    pendingStopRunnable = null;
+                }
+            }
             Runnable release = () -> {
                 try {
                     if (activeRecording != null) {

@@ -13,8 +13,6 @@ import livekit.org.webrtc.JavaI420Buffer
 import livekit.org.webrtc.VideoFrame
 import livekit.org.webrtc.VideoProcessor
 import livekit.org.webrtc.VideoSink
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -146,7 +144,12 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     override fun onCapturerStopped() {
-        Log.i(TAG, "onCapturerStopped")
+        // Pkg-audit Tier2 fix: free the GPUPixel native graph + HandlerThread
+        // when the capturer stops. Without this, a track close / reconnect /
+        // re-publish leaks the worker thread + native EGL context and can
+        // eventually cause CAMERA_IN_USE on the next start.
+        Log.i(TAG, "onCapturerStopped — releasing GPUPixel processor")
+        release()
     }
 
     override fun onFrameCaptured(frame: VideoFrame) {
@@ -258,7 +261,12 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     fun release() {
-        val latch = CountDownLatch(1)
+        // Pkg-audit Tier2 fix: never block the calling thread. release() can be
+        // invoked from the main thread (Capacitor handleOnDestroy / LiveKit
+        // teardown) and the previous CountDownLatch.await(500ms) could push
+        // the system past the ANR threshold on low-end devices while a 1080p
+        // frame was mid-processing. Post cleanup to the worker and quit the
+        // looper from inside the worker so no new work can be accepted after.
         worker.post {
             try {
                 rawInput?.RemoveAllSinks()
@@ -279,9 +287,7 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
             blusher = null
             initialized.set(false)
             busy.set(false)
-            latch.countDown()
+            workerThread.quitSafely()
         }
-        try { latch.await(500L, TimeUnit.MILLISECONDS) } catch (_: Throwable) {}
-        workerThread.quitSafely()
     }
 }
