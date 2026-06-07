@@ -165,7 +165,12 @@ const EntryNameBarAnimationInner = memo(({
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-800/85 to-indigo-900/90 backdrop-blur-md rounded-full" />
               )}
 
-              {/* Layer 1: SVGA background — only mounts after name slides in */}
+              {/* Layer 1: SVGA background — only mounts after name slides in.
+                  Avatar / name / level are injected INTO the SVGA timeline
+                  via dynamic compositing (Chamet/BIGO API) so they move
+                  frame-by-frame with the animation. When the template lacks
+                  the standard ImageKeys, these are silent no-ops and the
+                  HTML overlay (Layer 2 below) carries the user info. */}
               {hasSvga && cleanAnimUrl && showAnimationLayer && (
                 <div className="absolute inset-0 z-[1] pointer-events-none">
                   <EntryAnimationFrame
@@ -178,6 +183,9 @@ const EntryNameBarAnimationInner = memo(({
                     onComplete={handleSvgaComplete}
                     onError={handleSvgaError}
                     center={false}
+                    dynamicAvatarUrl={avatarUrl ?? null}
+                    dynamicUserName={userName}
+                    dynamicUserLevel={level}
                   />
                 </div>
               )}
