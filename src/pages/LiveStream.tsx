@@ -2039,6 +2039,13 @@ const LiveStream = () => {
 
   useEffect(() => {
     if (localVideoTrack && hostTransitionPreviewStream) {
+      const activeTrack = (localVideoTrack as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+      hostTransitionPreviewStream.getTracks().forEach((track) => {
+        if (track !== activeTrack) {
+          try { track.stop(); } catch { /* ignore */ }
+        }
+      });
+      void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
       setHostTransitionPreviewStream(null);
     }
   }, [localVideoTrack, hostTransitionPreviewStream]);
@@ -2107,6 +2114,12 @@ const LiveStream = () => {
     return () => {
       console.log('🧹 Component unmounting, cleaning up...');
       const wasHost = verifiedHostRef.current === true || initialHostRole;
+      if (initialHostRole && hostTransitionPreviewStream) {
+        hostTransitionPreviewStream.getTracks().forEach((track) => {
+          try { track.stop(); } catch { /* ignore */ }
+        });
+        void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+      }
       
       // Pkg385: Enhanced host cleanup. We still avoid closing on momentary
       // churn (e.g. PiP transition), but we MUST close if the user is truly
