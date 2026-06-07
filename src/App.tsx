@@ -47,8 +47,11 @@ import { CallProvider } from "./components/call/CallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
 import DeferredAppHooks from "./components/common/DeferredAppHooks";
-import AppUpdateChecker from "@/components/common/AppUpdateChecker";
-import PushNotificationInitializer from "@/components/common/PushNotificationInitializer";
+// AppUpdateChecker + PushNotificationInitializer are pure side-effect components.
+// Lazy-loaded so their chunks (and the dependencies they pull — Capacitor app-update,
+// firebase messaging shims, etc.) never block first paint. They mount inside <Suspense>.
+const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
+const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
 const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperDashboard")));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
@@ -531,9 +534,9 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       ) : null}
       {!isAdminRoute && !isPublicPage && (
         <>
-          <AppUpdateChecker />
+          <Suspense fallback={null}><AppUpdateChecker /></Suspense>
           <NetworkStatusBar />
-          <PushNotificationInitializer />
+          <Suspense fallback={null}><PushNotificationInitializer /></Suspense>
           <Suspense fallback={null}><NativeMessageActionsBridge /></Suspense>
           <Suspense fallback={null}><ScreenshotDetectionBridge /></Suspense>
         </>
