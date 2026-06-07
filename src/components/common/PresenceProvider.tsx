@@ -140,9 +140,30 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const data = payload.data || {};
             const notifTitle = payload.notification?.title || data.title;
             const notifBody = payload.notification?.body || data.body;
-            
+
             if (data.type === 'incoming_call') {
-              // Incoming call — show prominent toast
+              // Phase-3 C6: bridge foreground FCM `incoming_call` to the same
+              // window event that the `notifications` realtime listener fires.
+              // This is a redundant safety path — if the Realtime channel is
+              // reconnecting at the exact moment the call lands, FCM still
+              // wakes the IncomingCallModal instantly instead of waiting for
+              // the next channel reconnect.
+              try {
+                const callId = (data as any).call_id || (data as any).callId;
+                if (callId && typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+                    detail: {
+                      type: 'incoming_call',
+                      data: {
+                        call_id: callId,
+                        caller_id: (data as any).caller_id,
+                        caller_name: (data as any).caller_name,
+                      },
+                    },
+                  }));
+                }
+              } catch { /* noop */ }
+              // Incoming call — show prominent toast as a secondary cue
               toast.info(`📞 ${notifTitle}`, { description: notifBody, duration: 30000 });
             } else if (notifTitle) {
               toast(notifTitle, { description: notifBody });

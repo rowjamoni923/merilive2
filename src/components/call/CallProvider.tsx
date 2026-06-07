@@ -1,5 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
+import { useNotifications } from '@/hooks/useNotifications';
 // subscribeToTables no longer needed - usePrivateCall handles all call-end detection
 import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
@@ -8,6 +10,19 @@ import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
+
+/**
+ * Phase-3 C1: GLOBAL `notifications` realtime mount, attached to the
+ * authenticated tree directly under CallProvider. No Suspense, no
+ * isPublicPage gate — so the moment auth resolves the realtime channel
+ * is live and `incoming_call` notification rows bridge to the
+ * `incoming-call-notification` window event WITHOUT the deferred-hooks
+ * Suspense dead-window that used to drop the first call on cold start.
+ */
+const GlobalNotificationsMount = () => {
+  useNotifications();
+  return null;
+};
 
 interface CallContextType {
   startCall: (hostId: string, streamId?: string) => Promise<string | null>;
@@ -166,8 +181,10 @@ export function CallProvider({ children }: CallProviderProps) {
       });
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
-      callEndedRef.current = true;
-      setTimeout(() => { callEndedRef.current = false; }, 3000);
+      // Phase-3 C3: do NOT raise callEndedRef here. The previous 3s
+      // cooldown silently blocked Accept on any new incoming call that
+      // arrived within 3s of a prior call end. Per-callId block lives in
+      // usePrivateCall.endedCallIdsRef already — that is sufficient.
 
       // ☠️ DEAD FOREVER: Dismiss ended state → reset to idle
       dismissCall();
@@ -338,9 +355,11 @@ export function CallProvider({ children }: CallProviderProps) {
     
     // Fire endCall (network ops happen in background)
     await endCall();
-    
-    // ☠️ Reset callEndedRef after cooldown to allow new calls
-    setTimeout(() => { callEndedRef.current = false; }, 3000);
+
+    // Phase-3 C3: release the in-flight end guard immediately. The
+    // prior 3s cooldown blocked Accept on a brand-new incoming call
+    // that arrived within 3 seconds of ending a previous call.
+    callEndedRef.current = false;
   };
 
   const handleCallEndedModalClose = () => {
@@ -380,27 +399,42 @@ export function CallProvider({ children }: CallProviderProps) {
     });
   }, [callState.status, activeCallId, isHost, showCallEndedModal]);
 
+  // Phase-3 C5: portal the IncomingCallModal to <body> so full-screen
+  // overlays in LiveStream / PartyRoom / Reels / ActiveCallScreen cannot
+  // bury it underneath their stacking context. The modal already uses
+  // z-[99]/z-[100] internally, but a portal guarantees it joins the
+  // top-level layer regardless of the current route's parent z-index.
+  const incomingCallModalNode = (
+    <IncomingCallModal
+      isOpen={!!incomingCall}
+      callerName={incomingCall?.callerName || ''}
+      callerAvatar={incomingCall?.callerAvatar || null}
+      callerLevel={incomingCall?.callerLevel || 1}
+      onAccept={() => {
+        // Auto-close call ended modal if a new call comes in
+        if (showCallEndedModal) {
+          setShowCallEndedModal(false);
+          setCallEndedInfo(null);
+        }
+        handleAcceptCall();
+      }}
+      onDecline={handleDeclineCall}
+    />
+  );
+
   return (
     <CallContext.Provider value={{ startCall, isInCall }}>
       {children}
 
-      {/* Incoming Call Modal. callEndedRef is reset by the effect on line 105
-          when a new incomingCall arrives — never mutate refs inside render. */}
-      <IncomingCallModal
-        isOpen={!!incomingCall}
-        callerName={incomingCall?.callerName || ''}
-        callerAvatar={incomingCall?.callerAvatar || null}
-        callerLevel={incomingCall?.callerLevel || 1}
-        onAccept={() => {
-          // Auto-close call ended modal if a new call comes in
-          if (showCallEndedModal) {
-            setShowCallEndedModal(false);
-            setCallEndedInfo(null);
-          }
-          handleAcceptCall();
-        }}
-        onDecline={handleDeclineCall}
-      />
+      {/* Phase-3 C1: keep the global notifications realtime channel mounted
+          inside the authenticated provider tree — no Suspense, no public-page
+          gate — so incoming-call notification rows reach usePrivateCall
+          immediately on cold start. */}
+      {userId ? <GlobalNotificationsMount /> : null}
+
+      {typeof document !== 'undefined'
+        ? createPortal(incomingCallModalNode, document.body)
+        : incomingCallModalNode}
 
       {/* Active Call Screen with WebRTC - lazy loaded to defer livekit bundle */}
       {shouldShowActiveCall && (
