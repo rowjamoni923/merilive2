@@ -54,3 +54,30 @@ Audited every money-credit surface: Google Play IAP, SSLCommerz/AamarPay IPN, he
 - `admin-verify-purchase` edge function — manual purchase verification
 - `agency_send_diamonds_to_user` idempotency_key API change
 - `coin_transactions` debit attribution for `complete_gateway_helper_topup` helper-side
+
+---
+
+## Round 3 — DONE 2026-06-07
+
+| # | Bug | Severity | Status |
+|---|---|---|---|
+| D1 | `auto_credit_agency_commission` + `_from_call` anon-callable | N/A | ✅ False positive — trigger functions, PostgREST refuses RPC invocation |
+| D2 | `bulk_credit_call_earnings` used client-supplied `_admin_id` for `is_admin()` check — any authenticated user could pass a real admin's UUID and trigger admin bean credits (priv-esc, same pattern as Phase 4A Bug #1) | CRITICAL | ✅ Now enforces `auth.uid() = _admin_id` (or service_role / active_admin_session) |
+| D2b | `bulk_credit_call_earnings` UPDATE without row locks → concurrent runs could double-credit | MED | ✅ Added `FOR UPDATE` on `private_calls` rows |
+| D2c | `bulk_credit_call_earnings` no audit attribution | MED | ✅ Per-credit `balance_audit_log` row tagged with admin id + source_id |
+| D3 | `credit_sub_agent_commission` | — | ✅ CLEAN — service/admin gated, idempotent via `ON CONFLICT (source_transaction_id, transaction_type)` |
+
+## Verified clean (edge fns)
+- `admin-verify-purchase` — dual auth path (x-admin-token session → admin_sessions check; OR Bearer JWT → admin_users mapping); both paths require `is_active=true` admin row.
+
+## Phase 4B summary (Rounds 1-3)
+| Round | Findings | Fixed |
+|---|---|---|
+| R1 | 9 anon-callable money RPCs + Google Play ledger gap | 9 REVOKEs + coin_transactions ledger row |
+| R2 | VIP/Noble bonus replay (double-credit) | Unique index + unique_violation handler |
+| R3 | `bulk_credit_call_earnings` priv-esc + concurrent double-credit | Caller-binding + FOR UPDATE + balance_audit_log |
+
+## Still open (deferred — explicit user request to revisit)
+- `agency_send_diamonds_to_user` accept `_idempotency_key` (C3)
+- `agency_send_diamonds_to_agency` add coin_transactions ledger row (C4)
+- `complete_gateway_helper_topup` helper-side coin_transactions debit (B5)
