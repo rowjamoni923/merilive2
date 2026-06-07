@@ -4,7 +4,6 @@ import { useSingleDeviceSession } from "@/hooks/useSingleDeviceSession";
 import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
 import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
