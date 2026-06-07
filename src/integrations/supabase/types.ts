@@ -19599,36 +19599,15 @@ export type Database = {
         Args: { p_room_id: string }
         Returns: undefined
       }
-      place_game_bet:
-        | {
-            Args: { p_amount: number; p_game_type?: string; p_user_id: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_amount: number
-              p_game_id: string
-              p_game_name: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_bet_amount: number
-              p_game_type: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_bet_amount: number
-              p_game_type: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      place_game_bet: {
+        Args: {
+          p_amount: number
+          p_game_id: string
+          p_game_name: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       place_live_game_bet: {
         Args: {
           p_bet_amount: number
@@ -19690,41 +19669,17 @@ export type Database = {
         }
         Returns: Json
       }
-      process_game_win:
-        | {
-            Args: {
-              p_amount: number
-              p_game_id: string
-              p_game_name: string
-              p_is_jackpot?: boolean
-              p_multiplier?: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: { p_amount: number; p_game_type?: string; p_user_id: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_amount: number
-              p_game_id: string
-              p_game_name: string
-              p_is_jackpot?: boolean
-              p_multiplier?: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_game_type: string
-              p_user_id: string
-              p_win_amount: number
-            }
-            Returns: Json
-          }
+      process_game_win: {
+        Args: {
+          p_amount: number
+          p_game_id: string
+          p_game_name: string
+          p_is_jackpot?: boolean
+          p_multiplier?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_gift_transaction:
         | {
             Args: {
