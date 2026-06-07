@@ -19,6 +19,8 @@ import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 import { getVapCompositeHint, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 import { warmGiftForInstantPlay } from '@/utils/instantGiftWarmup';
+import { toast } from 'sonner';
+
 
 export interface GiftItem {
   id: string;
@@ -53,9 +55,14 @@ export interface GiftSendResult {
     id: string;
     coins_spent: number;
     beans_earned: number;
+    /** Lucky-gift diamond bonus paid to sender (0 when no win). */
+    diamond_bonus?: number;
+    /** True when the gift had is_lucky=true. */
+    is_lucky?: boolean;
   };
   gift?: GiftItem;
 }
+
 
 // Cache for gifts to avoid repeated fetches
 let giftsCache: GiftItem[] | null = null;
@@ -245,17 +252,32 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       transaction_id: result.transactionId,
       coins_spent: result.coinsSpent,
       beans_earned: result.hostReceived,
-      host_percent: result.hostPercent
+      host_percent: result.hostPercent,
+      diamond_bonus: result.diamondBonus,
+      is_lucky: result.isLucky,
     });
 
     // Pkg85: Instant My Diamond update for sender.
+    // newBalance from RPC already reflects (initial - spent + luckyBonus).
     if (typeof result.newBalance === 'number' && Number.isFinite(result.newBalance)) {
       try {
         updateCachedBalance(Math.max(0, result.newBalance));
       } catch {}
     } else if (result.coinsSpent && result.coinsSpent > 0) {
       try {
-        updateCachedBalance(Math.max(0, getCachedBalance() - result.coinsSpent));
+        const net = getCachedBalance() - result.coinsSpent + (result.diamondBonus || 0);
+        updateCachedBalance(Math.max(0, net));
+      } catch {}
+    }
+
+    // 🎰 LUCKY GIFT WIN — show celebratory toast to sender with bonus amount.
+    // Per spec: "she sees +N diamond bonus instantly added to My Diamond".
+    if (result.isLucky && (result.diamondBonus || 0) > 0) {
+      try {
+        toast.success(`🎉 Lucky Win! +${result.diamondBonus} 💎`, {
+          description: 'Bonus diamonds added to your wallet',
+          duration: 4000,
+        });
       } catch {}
     }
 
@@ -296,11 +318,13 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftCoins: gift?.coins || 0,
             totalCoins: result.coinsSpent || 0,
             receiverBeans: result.hostReceived || 0,
+            luckyBonus: result.diamondBonus || 0,
             timestamp: Date.now(),
           }).catch((err) => console.warn('[Pkg76] fallback publishGiftSent failed:', err));
         } catch (err) {
           console.warn('[GiftingService] fallback broadcast failed (non-fatal):', err);
         }
+
       })();
     }
 
@@ -310,6 +334,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         id: result.transactionId || 'unknown',
         coins_spent: result.coinsSpent || 0,
         beans_earned: result.hostReceived || 0,
+        diamond_bonus: result.diamondBonus || 0,
+        is_lucky: !!result.isLucky,
       },
       gift: {
         id: giftId,
@@ -318,6 +344,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         category: 'popular',
       },
     };
+
 
   } catch (error) {
     console.error('[GiftingService] Send gift error:', error);

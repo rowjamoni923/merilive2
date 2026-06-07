@@ -63,8 +63,11 @@ export interface GiftSentPayload {
   count?: number;
   totalCoins?: number;       // unit × count
   receiverBeans?: number;    // optimistic beans credit for receiver
+  /** Lucky-gift diamond bonus paid to the sender on this send. 0 when no win. */
+  luckyBonus?: number;
   timestamp?: number;
 }
+
 
 export interface GiftSentDetail extends GiftSentPayload {
   sender?: string;           // LiveKit participant identity that published

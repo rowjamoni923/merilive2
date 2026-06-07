@@ -36,8 +36,12 @@ export interface GiftServiceResponse {
   hostReceived?: number;
   hostPercent?: number;
   newBalance?: number | null;
+  /** Lucky-gift diamond bonus paid to sender. 0 when no win or not a lucky gift. */
+  diamondBonus?: number;
+  isLucky?: boolean;
   error?: string;
 }
+
 
 async function getAccessToken(forceRefresh: boolean): Promise<string | null> {
   if (forceRefresh) {
