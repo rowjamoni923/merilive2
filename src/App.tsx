@@ -556,9 +556,10 @@ const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</S
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
+  const isInitialAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
   // ⚡ Skip the splash loader entirely if we already have a stored session.
   // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !isStandalonePublicLocation() && !hasStoredSupabaseSession());
+  const [loading, setLoading] = useState(() => !isInitialAdminRoute && !isStandalonePublicLocation() && !hasStoredSupabaseSession());
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -653,6 +654,12 @@ const App = () => {
   const isLandingDomain = isLandingOnlyHostname(hostname);
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
+
+  useEffect(() => {
+    if (!isAdminRoute || !loading) return;
+    const timer = window.setTimeout(() => setLoading(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [isAdminRoute, loading]);
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
@@ -1113,7 +1120,7 @@ const App = () => {
     || currentPath.startsWith('/join-agency')
     || isStandalonePublicPath(currentPath);
 
-  if (loading) {
+  if (loading && !isAdminRoute) {
     // No full-screen "Checking your session…" loader — render nothing so the
     // app feels instant. Auth-gated routes already handle their own redirect.
     return null;
@@ -1186,9 +1193,9 @@ const App = () => {
               <RouteTransitionHost />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
-              {session && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
-              {!isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
-              {!isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
+              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
