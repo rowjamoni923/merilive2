@@ -1,228 +1,612 @@
-# 🎯 MeriLive Professional Migration Plan
-**Version:** 1.0 | **Created:** 2026-06-07 | **Status:** Active
+# 🎯 MeriLive Professional A-to-Z Migration Plan
+**Version:** 2.0 | **Created:** 2026-06-07 | **Status:** Active | **Owner:** smdollarex923@gmail.com
 
-> **AGENT RULE:** এই file টা প্রতিবার live/call/party-related কাজ শুরু করার আগে পড়তে হবে। কাজ complete হলে relevant checkbox-এ `[x]` mark দিতে হবে এবং memory update করতে হবে। কখনো plan skip করে কাজ শুরু করা যাবে না।
+> **🔴 AGENT MANDATORY RULE:** এই file টা **প্রতিবার** live/call/party/RTC/camera/animation/billing/wallet/agency-related কাজ শুরুর আগে পড়তে হবে। কাজ complete হলে relevant checkbox-এ `[x]` mark দিতে হবে। কখনো plan skip করে কাজ করা যাবে না। Non-trivial fix হলে আগে Google research (subagent/websearch) করতে হবে — mem://preferences/google-research-before-fix।
+
+> **📱 ANDROID-FIRST:** 99% user Android। সব design Native Android primary, Web silent fallback only। মাথা থেকে "web-first" thinking permanent ban।
 
 ---
 
 ## 📊 Executive Summary
 
-Research করে দেখা গেছে — Bigo, Chamet, PoPo, CrushLive, CoMeet, StreamKar, HiClub সব **professional live apps ~85-95% native Android (Kotlin + C++) + ~5-15% WebView for non-media UI only**। কেউই camera-কে WebView-এর ভেতরে চালায় না। আমাদের current architecture (Capacitor + React + WebView + LiveKit-in-WebView) **মৌলিকভাবে ভুল** — এই কারণেই blank camera, re-entry issue, Android 16 permission loop হচ্ছে।
+**Vision:** Bigo Live / Chamet / StreamKar / PoPo Live / CrushLive / HiClub / Wejoy-class professional live + call + party app for Bangladesh / SE-Asia market। 10K+ existing users — flop হলে 12 মাসের কষ্ট নষ্ট।
 
-**Target architecture:**
-- **Native Kotlin layer** (NEW): Camera capture, RTC engine, SurfaceView rendering, gift animation, seat management, private call Activity
-- **React/WebView layer** (existing): Navigation, profile, store, chat text, leaderboards, seat name overlays, action sheets
+**Two parallel tracks:**
+- **Track T (Technical):** Camera/mic/RTC → Native Android plugin (Kotlin + LiveKit Android SDK)। React/WebView শুধু UI shell + non-media UI।
+- **Track B (Business):** Per-minute billing, hourly bonus, beans/diamond economy, gift flow, party seat rules, agency system, KYC — all industry-standard formulas locked in DB + edge functions।
 
-**RTC SDK decision:** LiveKit self-hosted (wss://livekit.merilive.xyz) **রাখা হবে** — Agora/ZEGO-তে migrate করা হবে না (cost + already deployed)। LiveKit Android Native SDK (`io.livekit:livekit-android`) ব্যবহার করে native plugin বানানো হবে — যেভাবে Bigo Agora native ব্যবহার করে সেভাবে।
+**RTC SDK:** LiveKit self-hosted (wss://livekit.merilive.xyz) — NOT migrating to Agora/ZEGO। LiveKit Android Native SDK ব্যবহার করে Bigo-style native engine।
 
----
-
-## 🏆 Industry Comparison (Honest Gap Analysis)
-
-| Dimension | Pro apps (Bigo/Chamet/ZEGO) | আমাদের current | Gap |
-|-----------|---------|---------|-----|
-| Camera owner | Native C++ engine | WebRTC-in-WebView | 🔴 CRITICAL |
-| Blank on re-entry | 0ms (surface rebind only) | 1-3s or permanent | 🔴 CRITICAL |
-| RTC lifecycle | Application singleton | JS heap | 🔴 CRITICAL |
-| Video render | SurfaceView/TextureView | `<video>` DOM | 🔴 HIGH |
-| Encoding latency | 20-80ms | 80-200ms+ | 🟠 HIGH |
-| Gift animation | VAP on GLSurfaceView | CSS/Lottie in DOM | 🟡 MED |
-| Android 12+ bg camera | Explicit handling | Silent death | 🔴 CRITICAL |
-| Android 16 permission | Single permission ctx | Dual ctx → loop | 🔴 CRITICAL |
-| Battery (1hr) | 15-22% | 28-40% | 🟠 HIGH |
-| Cold start to room | <2s | 4-8s | 🟠 HIGH |
+**Why two tracks parallel:** Tech fix camera blank, Business fix host earnings + user trust — দুটো না হলে app professional হবে না।
 
 ---
 
-## 🛠️ Phased Migration Plan (6 phases × ~1-2 days each)
+## 🔬 Industry Research Summary (Cited)
 
-> **Philosophy:** পুরো app rewrite করা হবে না। শুধু **camera + mic + RTC + render** native-এ migrate হবে। UI shell, navigation, store, profile, chat — সব React/WebView-এ থাকবে।
+Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppolive.net, livehosting.xyz, Scribd policy PDFs (2025-2026)।
+
+### Industry Standard Defaults (locked references)
+
+| Rule | Bigo | Chamet | PoPo | StreamKar | **OurApp Target** |
+|------|------|--------|------|-----------|-------------------|
+| Per-min call billing | Per-min advance | 70 coins/min fixed | hourly model | not public | **Per-min advance** |
+| Min charge | 1 full minute | 1 full minute | n/a | n/a | **1 full minute** |
+| Connect grace | not published | 0s | n/a | n/a | **8 seconds** |
+| Reconnect window | ~30s | none | n/a | n/a | **15 seconds** |
+| Low-balance warn | ~30s before end | none | n/a | n/a | **2 min remaining** |
+| Pre-call balance check | manual | manual | n/a | n/a | **Block if <3 min** |
+| Platform cut (gift) | 20-50% | 40% | 30% | not disclosed | **35%** |
+| Platform cut (call) | 50% | 40% | n/a | n/a | **35%** |
+| Withdrawal min | $31.90 | $10 | $10 | not public | **$5** |
+| Withdrawal freq | weekly | weekly Thu 06:00 UTC+8 | weekly Sun cutoff | monthly | **Weekly Thursday** |
+| Bean hold period | 48h | weekly batch | weekly batch | monthly | **48 hours** |
+| KYC required | ID | 3-tier liveness | 1080p face | PAN+Aadhaar | **NID + liveness** |
+| Age gate | 18+ | 18+ | 18+ | 18+ | **18+ strict** |
+| Multi-guest seats | 12 | n/a | n/a | yes | **8 (expand to 12)** |
+| PK duration | 10 min | yes | yes | yes | **10 min** |
+| Recording private call | NO | NO | NO | NO | **NO (FLAG_SECURE)** |
+| Hourly stream bonus | tiered salary | online bonus | 11 tiers 2K-70K coins/hr | gems target | **6 tiers, 500-5K Petals/hr** |
+| Min hours for bonus | 30h/15days | implied | 4h/week | 40h/15days | **30h across 15 days** |
+| Face detection in call | yes (AI) | yes | mandatory >1hr | not disclosed | **yes, warn 90s, end 3min** |
+| Agency commission | tier | 5-30% (9-tier) | 4-20% (D-S) | deposit-based | **5-25% (6-tier), from platform cut** |
+
+### Critical insights for our app
+
+1. **PoPo's agency model = host-friendly:** Commission comes from platform's 30% cut, NOT from host's 70%. We should copy this (Chamet takes from host's share → toxic to hosts).
+2. **Chamet = 70 coins/min flat viewer-side, host-set host-side:** Hides spread. We can use this dual-pricing model.
+3. **Bigo's 48h hold + bean freeze on fraud:** Industry standard for chargeback protection. Mandatory.
+4. **Bigo SSS host = $23K/month with 50h streaming:** Aspirational tier shows the ceiling.
+5. **PoPo's explicit 11-tier hourly bonus table** = most transparent, easiest to copy.
+6. **Server-side timer is mandatory** (not client-reported) — prevents fake duration fraud.
+7. **No server-side call recording** — universal industry practice for privacy/liability.
 
 ---
 
-### ✅ Phase 0 — Foundation Already Done (Reference)
+## 🏆 Honest Gap Analysis: আমরা vs Professional
+
+### 🔴 CRITICAL gaps (blocks professional rating)
+- [ ] **Camera blank on re-entry** — root: WebRTC in WebView. Bigo/Chamet use native engine.
+- [ ] **No native private call Activity** — currently WebView screen → camera permission loop
+- [ ] **No server-side call duration timer** — client-reported = fraud-prone
+- [ ] **No 48h bean hold** for fraud window
+- [ ] **No face detection during call** — anyone can camera-off and bill host
+- [ ] **No KYC liveness check** for withdrawal — chargeback exposure
+- [ ] **No `FLAG_SECURE` on private call** — screenshots possible
+
+### 🟠 HIGH gaps
+- [ ] **No tiered hourly streaming bonus system** (Bigo/PoPo have explicit tables)
+- [ ] **No PK battle system** (10-min split-screen)
+- [ ] **No agency commission system** (5-25% 6-tier)
+- [ ] **No multi-guest party seats** (8-12 native SurfaceView grid)
+- [ ] **No gift velocity / fraud detection** (chargeback freeze)
+- [ ] **No top-spender real-time list** for host
+- [ ] **No banned-word filter** (Bengali + English keyword blacklist)
+
+### 🟡 MEDIUM gaps
+- [ ] No beauty filter pipeline (Agora-style BeautyOptions equivalent)
+- [ ] No adaptive bitrate per device tier
+- [ ] No PK score / family / level badges UI
+- [ ] No host stream-end stats screen
+
+---
+
+## 🛠️ Phase Structure
+
+| Phase | Theme | Days | Track |
+|-------|-------|------|-------|
+| **Phase 0** | Foundation already done (reference) | — | T+B |
+| **Phase 1** | Native LiveKit RTC foundation | 1-2 | T |
+| **Phase 2** | Camera lifecycle hardening | 1-2 | T |
+| **Phase 3** | Native Private Call Activity + business rules | 2-3 | T+B |
+| **Phase 4** | Live streaming polish + viewer/chat/anti-fraud | 2 | T+B |
+| **Phase 5** | Hourly streaming bonus system | 1-2 | B |
+| **Phase 6** | Native Party Room (audio/video/game) | 2-3 | T+B |
+| **Phase 7** | Native gift dispatcher (Pkg438 Phase B) | 1 | T |
+| **Phase 8** | Wallet hardening — KYC, 48h hold, withdrawal | 2 | B |
+| **Phase 9** | Agency / family system (6-tier 5-25%) | 2 | B |
+| **Phase 10** | Anti-fraud (face detect, FLAG_SECURE, velocity, keyword) | 2 | T+B |
+| **Phase 11** | Production polish — adaptive bitrate, beauty, crash hardening | 1-2 | T |
+
+**Total:** ~18-25 working days for first professional release। Bigo SSS-class polish lifetime journey।
+
+---
+
+## ✅ Phase 0 — Foundation Already Done (Reference)
+
 - [x] Capacitor + Android setup
 - [x] LiveKit self-hosted on VPS (wss://livekit.merilive.xyz)
-- [x] Supabase backend (auth/DB/edge functions)
-- [x] Existing LiveKitPlugin.kt (partial native) — needs major upgrade
-- [x] NativeGiftAnimationPlugin + NativeEntryAnimationPlugin (Pkg438 Phase A)
-- [x] 7-fix camera hotfix applied (CameraManager.AvailabilityCallback, OEM grace, soft reconnect)
+- [x] Supabase backend (Auth/DB/Storage/Edge Functions)
+- [x] Existing LiveKitPlugin.kt (partial native — needs Phase 1 major upgrade)
+- [x] Pkg438 Phase A: NativeGiftAnimationPlugin + NativeEntryAnimationPlugin
+- [x] Phase 3 Private Call audit (2026-06-06) — 5 bugs fixed
+- [x] 7-fix camera hotfix (CameraManager.AvailabilityCallback, OEM grace, soft reconnect)
+- [x] Pkg425 Trader wallet history
+- [x] Pkg424 instant-play warmup
 
 ---
 
-### 🔄 Phase 1 — Native LiveKit RTC Foundation (Day 1-2)
-**Goal:** LiveKit Android Native SDK দিয়ে full native RTC engine। Camera ownership 100% Kotlin-এ। JS-এর কাজ শুধু command pass করা।
+## 🔄 Phase 1 — Native LiveKit RTC Foundation (Day 1-2)
 
-#### Files to Create / Modify
-- [ ] `android/app/build.gradle` — Add `io.livekit:livekit-android:2.x.x` (full native SDK, not just our partial)
-- [ ] `android/app/src/main/java/com/merilive/app/rtc/RtcEngineManager.kt` (NEW) — Application-scope singleton holding `Room` object; survives Activity lifecycle
-- [ ] `android/app/src/main/java/com/merilive/app/rtc/CameraOwnership.kt` (NEW) — Single source of truth: who owns Camera2 (NATIVE_RTC | WEBVIEW_PHOTO | NONE)
-- [ ] `android/app/src/main/java/com/merilive/app/rtc/SurfaceLifecycleManager.kt` (NEW) — Surface attach/detach without engine restart (the KEY blank-camera fix)
-- [ ] `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (MAJOR REFACTOR) — Thin Capacitor bridge; delegate all camera/RTC to RtcEngineManager
-- [ ] `android/app/src/main/java/com/merilive/app/MainActivity.kt` — Init RtcEngineManager in Application class, NOT Activity
-- [ ] `android/app/src/main/java/com/merilive/app/MeriLiveApplication.kt` (NEW) — Application subclass for engine init
-- [ ] `android/app/src/main/AndroidManifest.xml` — Register Application, add FOREGROUND_SERVICE_CAMERA / FOREGROUND_SERVICE_MICROPHONE (Android 14+)
-- [ ] `src/plugins/NativeLiveKit.ts` — Extend interface: `nativeJoinRoom`, `nativeLeaveRoom`, `attachLocalSurface(viewId)`, `attachRemoteSurface(uid, viewId)`, `enableLocalVideo(bool)`
-- [ ] `src/components/NativeVideoView.tsx` (NEW) — React wrapper that allocates a viewId and lets Kotlin position a SurfaceView at its bounds
+**Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
 
-#### Success Criteria
-- [ ] Host joins live room — camera renders in native SurfaceView (NOT `<video>` element)
-- [ ] Navigate to /profile → return to /live → camera shows in **<500ms** (no re-init)
-- [ ] CPU < 20% on Pixel 4a-class device at 720p
+### Phase 1A — Application-scope Engine Singleton
+- [ ] Create `android/app/src/main/java/com/merilive/app/MeriLiveApplication.kt` — Application subclass, init RtcEngineManager
+- [ ] Register Application in AndroidManifest
+- [ ] Add `io.livekit:livekit-android:2.x.x` to `android/app/build.gradle` (replace partial wrapper)
+- [ ] Create `android/app/.../rtc/RtcEngineManager.kt` — singleton holding LiveKit `Room` object, survives Activity lifecycle
 
-#### Risk
-- LiveKit Android SDK lifecycle differs from JS SDK — needs careful study of `Room.disconnect()` vs `Room.release()`
-- SurfaceView Z-order with transparent WebView above — must set `setZOrderMediaOverlay(false)` and make WebView background transparent
+### Phase 1B — Camera Ownership State Machine
+- [ ] Create `android/app/.../rtc/CameraOwnership.kt` — single source of truth: `NATIVE_RTC | WEBVIEW_PHOTO | NONE`
+- [ ] Create `android/app/.../rtc/SurfaceLifecycleManager.kt` — surface attach/detach WITHOUT engine restart (the KEY blank-camera fix)
+
+### Phase 1C — Capacitor Plugin Refactor
+- [ ] Major refactor `android/app/.../plugin/LiveKitPlugin.kt` — thin bridge, delegate all to RtcEngineManager
+- [ ] Extend `src/plugins/NativeLiveKit.ts` interface: `nativeJoinRoom`, `nativeLeaveRoom`, `attachLocalSurface(viewId)`, `attachRemoteSurface(uid, viewId)`, `enableLocalVideo(bool)`, `setCameraOwner(owner)`
+- [ ] Create `src/components/NativeVideoView.tsx` — React wrapper that allocates viewId; Kotlin positions SurfaceView at its bounds
+
+### Phase 1D — Permissions + Manifest
+- [ ] Add `FOREGROUND_SERVICE_CAMERA`, `FOREGROUND_SERVICE_MICROPHONE` to AndroidManifest (Android 14+)
+- [ ] Update target SDK to 35 (Android 15) if not already
+
+### ✅ Success Criteria
+- [ ] Host joins live → camera renders in native SurfaceView (NOT `<video>`)
+- [ ] Navigate /profile → /live → camera shows in <500ms (no re-init)
+- [ ] CPU <20% on Pixel 4a-class at 720p
+- [ ] Existing flow doesn't break (regression test using mem://preferences/test-account.md)
+
+### ⚠️ Risk
+- LiveKit Android SDK `Room.disconnect()` vs `Room.release()` semantics — study before refactor
+- SurfaceView Z-order under WebView — `setZOrderMediaOverlay(false)` + WebView transparent bg
 
 ---
 
-### 🔄 Phase 2 — Camera Lifecycle Hardening (Day 3-4)
-**Goal:** Blank camera on re-entry **100% eliminated**। Android 12+ background restriction, Android 16 permission loop — সব handle।
+## 🔄 Phase 2 — Camera Lifecycle Hardening (Day 3-4)
 
-#### Files to Create / Modify
-- [ ] `android/app/.../rtc/AppLifecycleObserver.kt` (NEW) — `ProcessLifecycleOwner` based; NOT Activity-level. App background → `enableLocalVideo(false)`, foreground → `enableLocalVideo(true)` + rebind surface
-- [ ] `android/app/.../rtc/PermissionHelper.kt` (NEW) — Centralized camera/mic permission; explicitly DROP WebView permission on /live, /call, /party routes
-- [ ] `android/app/.../plugin/LiveKitPlugin.kt` — Add `onUserLeaveHint()` override → mute video stream, keep CameraDevice alive
-- [ ] `android/app/src/main/java/com/merilive/app/WebViewPermissionGate.kt` (NEW) — Block WebView's `getUserMedia` when native owns camera (the Chamet fix)
-- [ ] Modify `MainActivity.kt` — `onWindowFocusChanged` → coordinate with RtcEngineManager
-- [ ] `src/hooks/useRtcLifecycle.ts` (NEW) — Listen to `onCameraPaused`/`onCameraResumed` events
-- [ ] `src/components/CameraPausedOverlay.tsx` (NEW) — Show "paused" UI when backgrounded
+**Pre-task research:** Android 12+ background camera restriction; Android 16 WebView permission loop (Chamet had this exact bug — documented at bittopup.com Dec 2025). Fix = native ProcessLifecycleOwner + WebView permission gate.
 
-#### Success Criteria
+### Phase 2A — Process-level Lifecycle
+- [ ] Create `android/app/.../rtc/AppLifecycleObserver.kt` using `ProcessLifecycleOwner` (NOT Activity-level)
+- [ ] Add `androidx.lifecycle:lifecycle-process` dependency
+- [ ] On app background → `enableLocalVideo(false)`, keep CameraDevice alive
+- [ ] On foreground → `enableLocalVideo(true)` + rebind surface
+
+### Phase 2B — WebView Permission Gate (Chamet bug fix)
+- [ ] Create `android/app/.../WebViewPermissionGate.kt` — block WebView `getUserMedia` on /live, /call, /party routes when native owns camera
+- [ ] Override `WebChromeClient.onPermissionRequest` in MainActivity
+- [ ] Centralized PermissionHelper.kt
+
+### Phase 2C — JS Lifecycle Sync
+- [ ] Create `src/hooks/useRtcLifecycle.ts` — listen `onCameraPaused`/`onCameraResumed`
+- [ ] Create `src/components/CameraPausedOverlay.tsx` — "Camera paused" UI on bg
+
+### ✅ Success Criteria
 - [ ] Lock screen 2min → unlock → camera resumes <500ms ✓
-- [ ] App switch (recents) → return → no blank screen ✓
+- [ ] App switch (recents) → return → no blank ✓
 - [ ] Android 16 device: `adb logcat | grep CameraManager` shows NO permission loop ✓
-- [ ] Chamet-class black screen DOES NOT reproduce on user's test devices ✓
+- [ ] Test using mem://preferences/test-account.md account on owner's device
 
-#### Risk
-- `ProcessLifecycleOwner` requires `androidx.lifecycle:lifecycle-process` — check Capacitor compat
-- `muteLocalVideoStream` still sends black frames — server-side "camera paused" state needed (Phase 2.5 ext)
+### ⚠️ Risk
+- `muteLocalVideoStream` still sends black frames to remote — server-side "camera paused" Realtime state
 
 ---
 
-### 🔄 Phase 3 — Native Private 1-1 Call Activity (Day 5-6)
-**Goal:** Private call পুরোপুরি native Activity-তে (NOT WebView screen)। FCM-driven full-screen incoming call। আজকের সমস্যা: re-enter করলে camera blank — সম্পূর্ণ fix।
+## 🔄 Phase 3 — Native Private Call Activity + Business Rules (Day 5-7)
 
-#### Files to Create / Modify
-- [ ] `android/app/.../privatecall/PrivateCallActivity.kt` (NEW) — Full-screen native, NOT a React route
-- [ ] `android/app/src/main/res/layout/activity_private_call.xml` (NEW) — SurfaceView local (PIP) + SurfaceView remote (full)
-- [ ] `android/app/.../privatecall/CallStateMachine.kt` (NEW) — IDLE→RINGING→ACCEPTED→ACTIVE→ENDED
-- [ ] `android/app/.../privatecall/CallForegroundService.kt` (NEW) — Android 14+ FOREGROUND_SERVICE_MICROPHONE+CAMERA for active calls
-- [ ] `android/app/.../privatecall/PrivateCallPlugin.kt` (NEW) — `@PluginMethod startOutgoingCall`, `acceptIncomingCall`, `endCall`
-- [ ] Modify `MeriLivePushService.kt` (existing FCM) — On `type=private_call_invite`, launch PrivateCallActivity via full-screen intent
-- [ ] `src/lib/privateCall.ts` — Replace existing WebView-based call screen with `PrivateCallPlugin.startOutgoingCall(targetUserId)` → native takes over
-- [ ] Keep `src/pages/PrivateCall.tsx` only as fallback / pre-call contact picker
+**Pre-task research:** Bigo/Chamet private call = dedicated full-screen Activity, NOT WebView screen. Per-minute server-side timer (not client). 8s connect grace, 15s reconnect window, 1-min minimum charge, balance check pre-call.
 
-#### Success Criteria
+### Phase 3A — Native PrivateCallActivity (Technical)
+- [ ] Create `android/app/.../privatecall/PrivateCallActivity.kt` — full-screen native, NOT React route
+- [ ] Create `android/app/src/main/res/layout/activity_private_call.xml` — SurfaceView local (PIP) + SurfaceView remote (fill)
+- [ ] Create `android/app/.../privatecall/CallStateMachine.kt` — IDLE→RINGING→ACCEPTED→ACTIVE→ENDED
+- [ ] Create `android/app/.../privatecall/CallForegroundService.kt` — Android 14+ `FOREGROUND_SERVICE_MICROPHONE` + `FOREGROUND_SERVICE_CAMERA`
+- [ ] Create `android/app/.../privatecall/PrivateCallPlugin.kt` — Capacitor bridge methods
+- [ ] Modify existing `MeriLivePushService.kt` — on FCM `type=private_call_invite`, launch via full-screen notification intent
+- [ ] Add `FLAG_SECURE` on PrivateCallActivity window (screenshot block — Bigo standard)
+- [ ] Replace `src/pages/PrivateCall.tsx` to redirect to native via `PrivateCallPlugin.startOutgoingCall(targetUserId)`
+
+### Phase 3B — Server-Side Per-Minute Billing (Business)
+- [ ] Create `supabase/migrations/<ts>_private_call_billing.sql`:
+  - `private_calls` table columns: `started_at`, `connected_at` (after 8s grace), `last_billed_minute`, `total_minutes_billed`, `viewer_rate_per_min`, `host_rate_per_min`, `platform_cut_percent` (default 35)
+  - DB function `bill_call_minute(call_id)` — atomic: deduct viewer coins, credit host beans, increment counter
+  - Trigger or scheduled edge function to call every 60s
+- [ ] Create edge function `supabase/functions/call-billing-tick/index.ts` — runs every 30s, finds active calls, bills due minutes
+- [ ] Create edge function `supabase/functions/call-start/index.ts` — pre-call balance check: reject if viewer balance < (rate × 3 minutes)
+- [ ] Add `connect_grace_seconds` config (default 8) to a `system_config` table or edge function env
+
+### Phase 3C — Low-Balance Warning + Reconnect
+- [ ] Add Realtime channel `private_call:{call_id}:billing` — host/viewer subscribe
+- [ ] Edge function emits `low_balance_warning` event when viewer has <2 min remaining
+- [ ] Edge function emits `balance_depleted` → native CallActivity auto-ends call
+- [ ] Reconnect window: if `connected_at` exists and disconnect detected, allow 15s grace before marking ENDED — don't double-bill that minute
+
+### Phase 3D — Face Detection Bridge (defer ML to Phase 10, just stub here)
+- [ ] PrivateCallPlugin: hook to report frames per minute (placeholder for Phase 10 ML)
+- [ ] Add `face_detection_warnings` column to `private_calls`
+
+### Phase 3E — Call End — Earnings Summary
+- [ ] On CallStateMachine.ENDED: edge function `call-end` finalizes — total minutes, viewer diamonds spent, host beans earned, platform cut
+- [ ] Native UI shows "Call ended. Duration: 12:34. Earned: 1,500 Petals" toast
+- [ ] DB: `call_ended_at`, `final_status` (completed/disconnected/insufficient_balance/face_violation)
+
+### ✅ Success Criteria
 - [ ] Incoming call full-screen shows when app backgrounded (Android 10+ full-screen intent) ✓
-- [ ] Camera appears <300ms on accept ✓
-- [ ] Lock/unlock during call → camera stays alive ✓
-- [ ] App killed by system → call survives via foreground service ✓
-- [ ] **Re-enter private call after exit → camera works first time** (the bug user reported) ✓
+- [ ] Camera <300ms on accept ✓
+- [ ] Lock/unlock during call → camera stays ✓
+- [ ] **Re-enter private call after exit → camera works first time** (user's reported bug) ✓
+- [ ] Server-side billing — even if user kills app, last started minute charged ✓
+- [ ] Low balance (<2 min) → warning toast ✓
+- [ ] Insufficient balance → call ends, no overcharge ✓
+- [ ] Test using mem://preferences/test-account.md on real device
 
-#### Risk
-- Android 10+ background activity launch restriction → MUST use full-screen notification intent
-- Foreground service permissions require runtime check on Android 14+
-- LiveKit token renewal during long calls — implement `onTokenExpiring` callback
+### ⚠️ Risk
+- Android 10+ background activity launch — MUST use full-screen notification intent
+- Token renewal during long calls (LiveKit `onTokenExpiring`)
+- DB race condition on parallel billing tick + call end — use SELECT FOR UPDATE
+- Per-min cron precision — use 30s tick interval, idempotent on `last_billed_minute`
 
 ---
 
-### 🔄 Phase 4 — Native Party Room (Audio / Video / Game) (Day 7-8)
-**Goal:** Party room-এর seat grid native RecyclerView। প্রতি seat-এর video native SurfaceView। Game panel-ই শুধু WebView।
+## 🔄 Phase 4 — Live Streaming Polish + Viewer/Chat/Anti-Fraud (Day 8-9)
 
-#### Files to Create / Modify
-- [ ] `android/app/.../partyroom/SeatGridView.kt` (NEW) — Custom RecyclerView, 8-12 seats
-- [ ] `android/app/.../partyroom/SeatItemView.kt` (NEW) — Per-seat: avatar + mic indicator + SurfaceView (if video)
-- [ ] `android/app/.../partyroom/MultiSeatRtcManager.kt` (NEW) — Manages map<seatIndex, SurfaceView>; bind/unbind LiveKit participant tracks per seat
-- [ ] `android/app/.../partyroom/SeatStateManager.kt` (NEW) — Sync via Supabase Realtime (we already use it for seats)
-- [ ] `android/app/.../partyroom/PartyRoomPlugin.kt` (NEW) — `joinPartyRoom`, `takeSeat`, `leaveSeat`, `muteSeat`, `lockSeat`, `kickFromSeat`
-- [ ] `src/components/PartyRoomNative.tsx` (NEW) — Renders ONLY: chat overlay, gift send UI, room title, action sheets, seat name labels. Seat grid = native.
-- [ ] Modify `src/pages/PartyRoom.tsx` — Branch: native mode (Android) vs web mode (web fallback)
-- [ ] Game room: keep H5 game in WebView panel (40% height bottom), audio above stays native
+**Pre-task research:** Bigo viewer list = real-time WebSocket, top spender real-time, 200K+ banned words, 1-3 msg/sec rate limit, AI moderation. Server-side viewer count (no client lies).
 
-#### Success Criteria
-- [ ] 8-seat audio room — CPU <25%, clear audio ✓
-- [ ] 4-seat video party — all feeds render, no blank frames ✓
-- [ ] Seat take/leave <300ms via Supabase Realtime ✓
+### Phase 4A — Native Camera in Live Stream (extends Phase 1)
+- [ ] Modify `src/pages/LiveStream.tsx` — use `<NativeVideoView>` for host preview (drop WebRTC `<video>`)
+- [ ] Verify Phase 1 SurfaceView lifecycle works in /live route
+- [ ] Add `FLAG_SECURE` to LiveStream when host is streaming (Bigo standard for premium hosts — optional flag)
+
+### Phase 4B — Real-Time Viewer Count + List
+- [ ] DB: `live_room_viewers` table with `joined_at`, `last_seen_at`, `total_gifts_in_session_diamonds`
+- [ ] Realtime channel `live_room:{room_id}:viewers` — push on join/leave
+- [ ] Top spender computed view (top 10 by `total_gifts_in_session_diamonds`)
+- [ ] Native UI overlay on host side: viewer count badge + top spender avatars (existing React component, just wire Realtime)
+
+### Phase 4C — Chat Rate Limit + Keyword Filter
+- [ ] Edge function `chat-send` — enforce: max 3 msg/sec/user (rate limit via DB or Redis)
+- [ ] Create `banned_words` table — seed with 500+ Bengali + English keywords (start small, grow weekly)
+- [ ] Edge function `chat-send` — reject if message contains banned word (case-insensitive substring match)
+- [ ] Auto-mute user for 5 min after 3 banned-word attempts in 10 min
+
+### Phase 4D — Anti-Fraud Hooks (foundations for Phase 10)
+- [ ] Add `viewer_join_velocity_check` — block if same device joins >5 rooms in 1 min (bot signal)
+- [ ] Log all gift sends with `ip`, `device_id` for later analysis
+
+### ✅ Success Criteria
+- [ ] Viewer count updates <500ms on join/leave ✓
+- [ ] Top spender list visible to host, updates real-time ✓
+- [ ] Spam message (10/sec) → 4th onwards rejected ✓
+- [ ] Banned word in chat → rejected, toast to sender ✓
+- [ ] Test using mem://preferences/test-account.md as host + secondary device as viewer
+
+### ⚠️ Risk
+- Banned-word list false positives — start small, manual curation
+- Realtime channel scaling — Supabase Realtime handles 100s of subscribers per channel; for 1000+, partition by region
+
+---
+
+## 🔄 Phase 5 — Hourly Streaming Bonus System (Day 10-11)
+
+**Pre-task research:** PoPo's 11-tier explicit table = most transparent. Bigo's monthly tier salary = aspirational. We start with 6 tiers, expand later. Min 30h/15days for bonus eligibility.
+
+### Phase 5A — Tier Definition (Business)
+- [ ] Create `supabase/migrations/<ts>_host_bonus_tiers.sql`:
+  - `host_bonus_tiers` table — `tier_name`, `min_hours_monthly`, `min_petals_monthly`, `base_salary_usd`, `petals_per_hour_bonus`
+  - Seed 6 tiers (Bronze/Silver/Gold/Platinum/Diamond/Crown) — values per "OurApp Target" column in research summary
+  - `host_monthly_progress` table — `host_id`, `month`, `total_streaming_seconds`, `total_petals_earned`, `effective_days`, `current_tier`
+  - `host_bonus_payouts` table — historical record
+
+### Phase 5B — Streaming Time Tracker
+- [ ] Edge function `stream-start` / `stream-end` — record session duration
+- [ ] Aggregate daily via scheduled function (UTC+6 midnight = Bangladesh time)
+- [ ] "Effective day" = streamed >= 1 hour that day
+
+### Phase 5C — Monthly Tier Calculation + Payout
+- [ ] Scheduled edge function `monthly-bonus-payout` — runs 1st of each month UTC+6
+- [ ] For each host: determine tier from `total_streaming_seconds` + `total_petals_earned` + `effective_days`
+- [ ] Credit base salary as Petals to host wallet
+- [ ] Penalty: missed targets → 50% salary cut (NOT removal in v1 — softer than Bigo)
+- [ ] Record in `host_bonus_payouts` with `payout_status = pending → completed`
+
+### Phase 5D — Host UI — Progress Dashboard
+- [ ] Create `src/pages/HostDashboard.tsx` — current tier, hours streamed this month, Petals earned, days remaining, next-tier requirement
+- [ ] Real-time progress bar (Realtime subscription on `host_monthly_progress`)
+- [ ] **English-only UI strings** (mem://preferences/english-only-ui-strings)
+
+### Phase 5E — PK Battle Bonus (foundation)
+- [ ] DB: `pk_battles` table for future Phase (PK feature itself is Phase 6+)
+- [ ] +200 Petals per PK win logged here
+
+### ✅ Success Criteria
+- [ ] Host streams 30h across 15 days → next month receives Bronze base salary in Petals wallet ✓
+- [ ] Dashboard shows accurate progress ✓
+- [ ] Tier upgrade automatic — no manual admin step ✓
+
+### ⚠️ Risk
+- Cron precision — test in staging DB first
+- Wallet transactions atomicity — use existing wallet transfer function (Pkg425)
+- Disputes — log every calculation step in `host_bonus_calculation_logs`
+
+---
+
+## 🔄 Phase 6 — Native Party Room (Audio/Video/Game) (Day 12-14)
+
+**Pre-task research:** Bigo Multi-Guest = 12 seats native SurfaceView grid. Audio party = Clubhouse-style. Game room = native voice + WebView H5 game panel. Seat states: empty/reserved/occupied/muted/locked. Roles: owner > co-host > seat > audience.
+
+### Phase 6A — Native SeatGridView
+- [ ] Create `android/app/.../partyroom/SeatGridView.kt` — custom RecyclerView, 8 seats (expand to 12 via config)
+- [ ] Create `android/app/.../partyroom/SeatItemView.kt` — per-seat: avatar + mic indicator + SurfaceView (video mode)
+- [ ] Create `android/app/.../partyroom/MultiSeatRtcManager.kt` — bind/unbind LiveKit participant tracks per seat
+
+### Phase 6B — Seat State (Supabase Realtime, NOT polling per mem://index core rule)
+- [ ] DB: `party_room_seats` table — `room_id`, `seat_index`, `user_id`, `is_muted`, `is_locked`, `is_video_on`, `taken_at`
+- [ ] Realtime channel `party_room:{id}:seats` — bidirectional state sync
+- [ ] DB unique constraint `(room_id, seat_index)` to prevent double-take race
+- [ ] DB function `take_seat(room_id, seat_index, user_id)` — atomic check + insert
+
+### Phase 6C — Role Hierarchy + Permissions
+- [ ] DB: `party_room_members` table — `role: owner | co_host | member | guest`
+- [ ] Edge function `party-room-action` — validates role permission for take/leave/lock/mute/kick
+- [ ] Owner can transfer ownership to another member
+
+### Phase 6D — Gift to Seat vs Room (Business)
+- [ ] Existing gift flow extended: `target_type: seat | room`
+- [ ] Gift to specific seat: 100% to that user (minus 35% platform cut)
+- [ ] Gift to room: 50% owner, 50% split equally among occupied seats
+- [ ] DB function `process_room_gift(room_id, target_type, target_id, gift_id, sender_id)` atomic
+
+### Phase 6E — Capacitor Plugin Bridge
+- [ ] Create `android/app/.../partyroom/PartyRoomPlugin.kt` — methods: `joinPartyRoom`, `takeSeat`, `leaveSeat`, `muteSeat`, `lockSeat`, `kickFromSeat`, `transferOwner`
+- [ ] `src/components/PartyRoomNative.tsx` — only chat overlay, gift UI, room title, action sheets, seat name labels (native renders seat grid + video)
+
+### Phase 6F — Audio Party Mode
+- [ ] Detect room.mode === 'audio' → native publishes audio only, no SurfaceView allocated
+- [ ] CPU optimization: 8-seat audio room target <15% CPU
+
+### Phase 6G — Game Party Mode (foundation)
+- [ ] Add `room.mode === 'game'` flag
+- [ ] Below seat grid: 40% screen bottom WebView panel for H5 game (placeholder URL for now)
+- [ ] JS bridge: game ↔ seat state (mute/kick from game UI)
+- [ ] **Game room cannot have real-money gambling** (App Store policy) — play points only
+
+### Phase 6H — Room Entry Controls
+- [ ] Optional password (text field, hashed in DB)
+- [ ] Level requirement (default Level 3)
+- [ ] Entry fee in Coins (deduct on join, refund on leave within 30s)
+
+### ✅ Success Criteria
+- [ ] 8-seat audio party: CPU <25%, clear audio ✓
+- [ ] 4-seat video party: all feeds render, no blank frames ✓
+- [ ] Take/leave seat <300ms (Realtime) ✓
+- [ ] Lock/mute/kick visible to all <500ms ✓
 - [ ] Phone rotation → seat state survives ✓
-- [ ] New joiner sees correct seat state immediately ✓
+- [ ] Gift to seat: 65% Petals to that user; to room: 50% owner + 50% split ✓
+- [ ] Test using mem://preferences/test-account.md on owner device + secondary as seat-taker
 
-#### Risk
-- Multiple SurfaceViews can cause GPU pressure on low-end devices — implement seat tier (only top N publish video)
-- Realtime race condition on simultaneous seat take — implement DB-level unique constraint + optimistic UI
-
----
-
-### 🔄 Phase 5 — Native Gift / Entry Animation Bridge (Day 9-10)
-**Goal:** Pkg438 Phase A তে already foundation আছে। Phase B-তে JS dispatcher add করতে হবে — gift/entry events native plugin-এ dispatch হবে, WebView DOM bypass।
-
-> ⚠️ NEVER edit existing FlyingGiftAnimation/FullScreenGiftAnimation/EntryBarAnimation/UnifiedEntryAnimation/VAPPlayer components — see mem://constraints/never-touch-gift-entry-animations। শুধু NEW dispatcher shim তৈরি করব।
-
-#### Files to Create / Modify
-- [ ] `src/lib/nativeAnimationDispatcher.ts` (NEW shim) — On gift/entry event, if `nativeGiftAnimFlag.isEnabled()` → call NativeGiftAnimation, else fall through to existing WebView player
-- [ ] `src/hooks/useGiftAnimationBridge.ts` (NEW) — Subscribe to Supabase Realtime gift channel → dispatch to native or web
-- [ ] `android/app/.../animation/GiftAssetPrefetcher.kt` (NEW) — Pre-download VAP/SVGA/Lottie files to disk cache
-- [ ] Modify `android/app/.../animation/NativeGiftAnimationPlugin.kt` — Add `prefetchAsset(url, type)` method
-- [ ] `src/components/admin/GiftAnimationDeviceFlag.tsx` (NEW admin UI) — Per-device flag toggle for QA rollout
-
-#### Success Criteria
-- [ ] Gift animation plays at 30fps native, NO drop during active camera ✓
-- [ ] 5 consecutive gifts queue and play ✓
-- [ ] On 3GB RAM device: no OOM ✓
-- [ ] Per-device flag OFF → existing WebView path works (zero regression) ✓
-
-#### Risk
-- VAP/SVGA file format mismatch — strict asset spec needed
-- GL context sharing — VAP runs in its own EGL context (handled by lib)
+### ⚠️ Risk
+- Multiple SurfaceViews → GPU pressure; tier video to top 4 publishers only on <4GB RAM device
+- Simultaneous seat-take race — DB unique constraint catches it
+- Audio echo on speakerphone — LiveKit AEC handles, verify on test device
 
 ---
 
-### 🔄 Phase 6 — Production Polish, Beauty, Network Adaptation (Day 11-12)
-**Goal:** Bigo/Chamet-class polish। Beauty filter, adaptive bitrate, device tier detection, error recovery, crash hardening।
+## 🔄 Phase 7 — Native Gift Dispatcher (Pkg438 Phase B) (Day 15)
 
-#### Files to Create / Modify
-- [ ] `android/app/.../media/DeviceCapabilityDetector.kt` (NEW) — RAM/CPU based tier → HIGH (1080p30 2Mbps) / MED (720p30 1.2Mbps) / LOW (480p24 600kbps) / MIN (360p15 300kbps)
-- [ ] `android/app/.../media/AdaptiveBitrateConfig.kt` (NEW) — LiveKit video preset per tier
-- [ ] `android/app/.../media/BeautyFilterManager.kt` (NEW) — LiveKit doesn't have built-in beauty → integrate FaceUnity Lite (free tier) OR keep simple GPUImage shader
-- [ ] `android/app/.../media/NetworkQualityMonitor.kt` (NEW) — LiveKit `ConnectionQuality` callback → notify JS
-- [ ] `android/app/proguard-rules.pro` — Add LiveKit + VAP + native plugin keep rules
-- [ ] `src/components/NetworkQualityIndicator.tsx` (NEW) — Signal bar overlay
-- [ ] `src/components/BeautyFilterSheet.tsx` (NEW) — Beauty slider UI (smoothness/whitening/ruddy)
-- [ ] `capacitor.config.ts` — Set `backgroundColor: '#000000'`, disable webContentsDebugging in production
+**Pre-task research:** Pkg438 Phase A done — NativeGiftAnimationPlugin + NativeEntryAnimationPlugin exist. Phase B = JS dispatcher shim that routes gift events to native when flag enabled. **Per mem://constraints/never-touch-gift-entry-animations — DO NOT edit existing FlyingGiftAnimation, FullScreenGiftAnimation, EntryBarAnimation, UnifiedEntryAnimation, VAPPlayer components.** Build NEW shim files only.
 
-#### Success Criteria
-- [ ] 720p30 stream on Redmi Note 11 (3GB) — CPU <30%, stable 29-30fps ✓
-- [ ] Network drop → indicator shows <500ms → auto-downgrade quality ✓
-- [ ] Cold start deeplink → active room: <2.5s ✓
-- [ ] Crashlytics crash rate <0.1% ✓
+### Phase 7A — Dispatcher Shim (NEW files only)
+- [ ] Create `src/lib/nativeAnimationDispatcher.ts` — on gift/entry event: if `nativeGiftAnimFlag.isEnabled()` → call NativeGiftAnimation, else fall through to existing path
+- [ ] Create `src/hooks/useGiftAnimationBridge.ts` — Subscribe Realtime gift channel → dispatch
+- [ ] Wire dispatcher in App.tsx as a passive listener (no UI change)
+
+### Phase 7B — Asset Prefetcher
+- [ ] Create `android/app/.../animation/GiftAssetPrefetcher.kt` — pre-download VAP/SVGA/Lottie to disk cache
+- [ ] Modify `NativeGiftAnimationPlugin.kt` — add `prefetchAsset(url, type)` method
+- [ ] Trigger prefetch on app start + on gift catalog update
+
+### Phase 7C — Per-Device Flag QA Rollout
+- [ ] Create `src/components/admin/GiftAnimationDeviceFlag.tsx` — admin UI for per-device flag toggle
+- [ ] Default OFF, enable for owner test account first
+
+### ✅ Success Criteria
+- [ ] Flag OFF → existing WebView path works unchanged (ZERO regression) ✓
+- [ ] Flag ON → native VAP plays 30fps during active camera, no drop ✓
+- [ ] 5 consecutive gifts queue & play ✓
+- [ ] 3GB RAM device: no OOM ✓
+
+### ⚠️ Risk
+- VAP/SVGA asset format mismatch — strict spec doc
+- Audio mixer (Pkg438 GiftAudioMixer) collision with LiveKit audio — verify ducking works
+
+---
+
+## 🔄 Phase 8 — Wallet Hardening: KYC + 48h Hold + Withdrawal (Day 16-17)
+
+**Pre-task research:** Bigo 48h hold + bean freeze on fraud is universal. Chamet 3-tier KYC (Basic $50/day → Fully $10K/day). PoPo requires Level 5 + 1080p face for withdraw. BD market = NID + liveness.
+
+### Phase 8A — 48h Bean Hold
+- [ ] DB: extend `wallet_transactions` — `available_after timestamptz` column
+- [ ] Petals from gift/call → `available_after = NOW() + 48h`
+- [ ] DB view `host_withdrawable_balance` = sum where `available_after <= NOW()`
+- [ ] Withdrawal request validates against `host_withdrawable_balance` not raw balance
+
+### Phase 8B — KYC Tiers
+- [ ] DB: `user_kyc` table — `tier: none | basic | semi | full`, `nid_number`, `nid_verified_at`, `liveness_verified_at`, `daily_withdraw_limit_usd`
+- [ ] Edge function `kyc-submit-nid` — validates Bangladesh NID format (10 or 17 digit)
+- [ ] Edge function `kyc-liveness-check` — accepts video, calls external liveness API (placeholder — integrate later)
+- [ ] Tier limits: none=$0, basic=$50, semi=$500, full=$5000/day
+
+### Phase 8C — Withdrawal Flow
+- [ ] DB: `withdrawal_requests` table — `amount_petals`, `amount_usd`, `method (bkash/nagad/rocket/bank)`, `status (pending/approved/paid/rejected)`, `requested_at`, `paid_at`
+- [ ] Edge function `withdrawal-request` — validates: KYC tier OK, balance available, weekly limit not exceeded
+- [ ] Min withdrawal: $5 equivalent
+- [ ] Schedule: weekly Thursday batch (configurable)
+- [ ] Admin UI: approve/reject pending withdrawals
+
+### Phase 8D — Fraud Freeze
+- [ ] DB: `wallet_freezes` table — `user_id`, `reason`, `frozen_at`, `released_at`, `admin_notes`
+- [ ] Chargeback received (manual admin trigger) → freeze related host beans
+- [ ] Velocity check: same NID multiple accounts → freeze
+- [ ] Frozen balance excluded from `host_withdrawable_balance`
+
+### Phase 8E — Wallet History UI (English-only)
+- [ ] Use existing Pkg425 wallet history — extend with `available_after` indicator (locked vs available)
+- [ ] Show "Available in: 2h 15m" countdown for held balance
+
+### ✅ Success Criteria
+- [ ] Host receives 1000 Petals → cannot withdraw for 48h ✓
+- [ ] NID submission without liveness → withdrawal capped at $50/day ✓
+- [ ] Min $5 enforced; weekly batch only on Thursday ✓
+- [ ] Admin freeze blocks withdrawal ✓
+
+### ⚠️ Risk
+- Real BD NID validation API integration deferred (placeholder for v1)
+- Liveness check vendor TBD — Microsoft Face / AWS Rekognition / open-source MediaPipe
+
+---
+
+## 🔄 Phase 9 — Agency / Family System (Day 18-19)
+
+**Pre-task research:** PoPo's model (commission from platform's cut, NOT host's) = host-friendly. Chamet (commission from host's share) = toxic. We copy PoPo. 6-tier 5-25%.
+
+### Phase 9A — Agency DB Schema
+- [ ] DB: `agencies` table — `name`, `owner_user_id`, `security_deposit_usd`, `tier`, `created_at`
+- [ ] `agency_hosts` table — `agency_id`, `host_user_id`, `joined_at`, `left_at`
+- [ ] `agency_commission_tiers` table — `tier_name`, `min_30day_revenue_usd`, `commission_percent`
+- [ ] Seed 6 tiers (5%/8%/12%/16%/20%/25%) at $500/$2K/$10K/$50K/$150K/$500K thresholds
+
+### Phase 9B — Monthly Commission Payout
+- [ ] Scheduled edge function `agency-commission-payout` — runs 1st each month
+- [ ] Calculate 30-day rolling team revenue → determine tier
+- [ ] Commission paid FROM platform's 35% cut, NOT from host's 65% — copy PoPo
+- [ ] Credit agency owner's Petals wallet
+
+### Phase 9C — Family System (lighter, no commission)
+- [ ] DB: `families` table — owner + members, social grouping only
+- [ ] Weekly leaderboard view — top families by total gifts received (member-level aggregate)
+- [ ] Family badge displayed in chat / viewer list
+
+### Phase 9D — Admin UI
+- [ ] `src/pages/admin/AgencyManagement.tsx` — approve agencies, view tier, manual override
+
+### ✅ Success Criteria
+- [ ] 5 hosts → agency tier 1 = 5% commission ✓
+- [ ] Commission deducted from platform's cut, host earnings unchanged ✓
+- [ ] Family leaderboard updates weekly ✓
+
+---
+
+## 🔄 Phase 10 — Anti-Fraud (Face Detect, FLAG_SECURE, Velocity, Keyword) (Day 20-21)
+
+**Pre-task research:** Bigo runs face detection ~1fps via ML; no face 90s → warning, 3min → end call. FLAG_SECURE blocks screenshots. Gift velocity = 10 large gifts/day from single user to single host. New-account cooling = no large gifts <7 days.
+
+### Phase 10A — Face Detection in Private Call
+- [ ] Add Google ML Kit Face Detection dependency (`com.google.mlkit:face-detection`)
+- [ ] In PrivateCallActivity: sample LiveKit local video track at 1fps, run face detection on bitmap
+- [ ] Track `consecutive_no_face_seconds`
+- [ ] No face 90s → native warning toast + log to DB
+- [ ] No face 180s → auto-end call, mark `final_status = face_violation`
+- [ ] Host gets full credit for billed minutes, no extra penalty
+- [ ] User can complain → admin review
+
+### Phase 10B — FLAG_SECURE on Sensitive Activities
+- [ ] PrivateCallActivity: `window.setFlags(FLAG_SECURE, FLAG_SECURE)`
+- [ ] Optionally LiveStream when host enables "private mode"
+- [ ] Wallet/withdrawal screens: FLAG_SECURE
+
+### Phase 10C — Gift Velocity Limits
+- [ ] Edge function `gift-send` — count today's large gifts (>= $5 equivalent) from sender to receiver
+- [ ] Reject if >10 in 24h
+- [ ] Reject if sender account <7 days old AND gift > $10 equivalent
+
+### Phase 10D — Keyword Filter Expansion
+- [ ] Expand `banned_words` from Phase 4C to 5000+ Bengali + English words
+- [ ] Categories: profanity, sexual, hate speech, solicitation, competitor names
+- [ ] Admin UI to add/remove words
+
+### Phase 10E — Device/IP Velocity
+- [ ] Track `device_id` per session in DB
+- [ ] If single device_id linked to >5 accounts → flag all for review
+- [ ] If single IP creates >3 accounts/day → cooldown
+
+### ✅ Success Criteria
+- [ ] Cover camera 90s during call → warning toast ✓
+- [ ] Cover camera 3min → call ends, billing correct ✓
+- [ ] Screenshot during private call → black image only ✓
+- [ ] 11th large gift from same user same day → rejected ✓
+
+### ⚠️ Risk
+- Face detection battery cost — sample 1fps not 30fps
+- False positives on dark skin / bad lighting — adjust ML Kit thresholds, allow user dispute
+
+---
+
+## 🔄 Phase 11 — Production Polish (Adaptive Bitrate, Beauty, Crash) (Day 22-23)
+
+**Pre-task research:** Bigo/Chamet adaptive bitrate per device tier — HIGH=1080p30 2Mbps, MED=720p30 1.2Mbps, LOW=480p24 600kbps, MIN=360p15 300kbps. ProGuard rules critical for release crashes.
+
+### Phase 11A — Device Tier Detection
+- [ ] Create `android/app/.../media/DeviceCapabilityDetector.kt` — RAM + CPU benchmark → tier
+- [ ] LiveKit `VideoCaptureOptions` per tier
+- [ ] Adaptive on poor network: downgrade automatically
+
+### Phase 11B — Beauty Filter
+- [ ] Evaluate FaceUnity Lite (free <1M MAU) vs GPUImage custom shader
+- [ ] Integrate as LiveKit video preprocessor
+- [ ] Create `src/components/BeautyFilterSheet.tsx` — smoothness/whitening/ruddy sliders
+
+### Phase 11C — Network Quality Monitor
+- [ ] LiveKit `ConnectionQuality` callback → JS event
+- [ ] `src/components/NetworkQualityIndicator.tsx` — signal bars overlay
+
+### Phase 11D — Crash Hardening
+- [ ] `android/app/proguard-rules.pro` — keep rules for LiveKit, VAP, native plugins
+- [ ] Firebase Crashlytics — verify integration, baseline crash rate
+- [ ] R8 release build smoke test
+
+### Phase 11E — Capacitor Config
+- [ ] `capacitor.config.ts`: `backgroundColor: '#000000'`, disable `webContentsDebuggingEnabled` in production
+
+### ✅ Success Criteria
+- [ ] 720p30 on Redmi Note 11 (3GB) — CPU <30%, 29-30fps ✓
+- [ ] Network drop → indicator <500ms → auto-downgrade ✓
+- [ ] Cold start deeplink → live room <2.5s ✓
+- [ ] Crash rate <0.1% Crashlytics ✓
 - [ ] APK size increase <25MB total ✓
 
-#### Risk
-- Beauty filter SDK licensing — FaceUnity Lite is free up to 1M MAU
-- ProGuard rules critical — missing rules = release-only crashes
+---
+
+## 📋 Per-Task Workflow (MUST follow every single time)
+
+1. **Open `.lovable/plan.md`** — find the phase + sub-phase
+2. **Read pre-task research note** at top of the phase
+3. **Read referenced memory files** (e.g., mem://preferences/test-account.md, mem://preferences/english-only-ui-strings, mem://constraints/never-touch-gift-entry-animations)
+4. **Non-trivial work?** → spawn Google research subagent OR `websearch--web_search` first (mem://preferences/google-research-before-fix)
+5. **Implement** — touch ONLY files listed in the sub-phase
+6. **Test** — verify success criteria using mem://preferences/test-account.md account in preview / real device
+7. **Mark `[x]`** on completed checkbox in this file
+8. **Update `mem://index.md`** if architecture/rule changed (e.g., new core decision)
+9. **Save phase completion note** to `mem://features/<phase-name>` if substantial
+10. **Report to user**: what's done + which checkbox ticked + what's next
 
 ---
 
-## 🚧 Out-of-Scope (NOT in this plan)
-- Pure native (Kotlin Compose) UI rewrite — too big, not needed
-- Migration away from LiveKit to Agora/ZEGO — costly, current self-hosted LiveKit works
-- iOS native parity — Android first; iOS via Capacitor WebView until Android proven
-- VPS / docker / livekit-server config changes — DEFERRED per mem://preferences/vps-deferred
+## 🚧 Explicitly Out-of-Scope (NOT in this plan)
+- Pure native (Jetpack Compose) full UI rewrite — too big, Bigo-level polish takes years
+- Migration from LiveKit to Agora/ZEGO — costly, self-hosted LiveKit works
+- iOS native parity — Android first; iOS via Capacitor WebView until Android proven (~6 months later)
+- VPS / docker / livekit-server config changes — DEFERRED (mem://preferences/vps-deferred)
+- Real money gambling / casino games (App Store ban)
+- Server-side recording of private calls (privacy/liability — industry never does)
 
 ---
 
-## 📋 Per-Task Workflow (MUST follow every time)
+## 🎯 North Star
 
-1. **Read this plan first** — find which phase + task
-2. **Read referenced memory files** (e.g., `mem://constraints/never-touch-gift-entry-animations`, `mem://preferences/english-only-ui-strings`, `mem://preferences/test-account.md`)
-3. **Implement** — edit only files listed in the phase
-4. **Test** — verify success criteria using `mem://preferences/test-account.md` credentials in preview if applicable
-5. **Mark `[x]`** on completed checkbox in this file
-6. **Update `mem://index.md`** if architecture/rule changed
-7. **Report to user** with what's done + what's next
+12 phases শেষে আমাদের app হবে:
+- **Tech-side:** Chamet-class (80-90% native), Bigo-class architecture পেতে আরো 3-6 মাস
+- **Business-side:** PoPo-tier transparency + Chamet-tier agency + Bigo-tier fraud protection
+- **BD market:** No competitor matches NID+bKash+Bengali keyword combo
 
----
+10K+ existing users protect, agency onboarding শুরু → next 12 মাসে 100K users target।
 
-## 🎯 Final North Star
-
-User Bigo/Chamet-class quality চায় → এই 6 phases শেষ হলে **80-90% সেই quality** পাওয়া যাবে। 100% পেতে full native rewrite লাগবে (3-6 months) — কিন্তু সেটা business value-এ worth না। এই plan অনুযায়ী 12 working days-এ professional-grade live + call + party deliverable।
+**Honest:** Bigo SSS-tier ($23K/month hosts) এক বছরে impossible। কিন্তু Chamet/StreamKar-tier 4-6 মাসে absolutely achievable এই plan follow করলে।
