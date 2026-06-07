@@ -35,11 +35,16 @@ object GiftAudioMixer {
     private const val MAX_MEDIAPLAYER_STREAMS = 3
     private const val SOUNDPOOL_SIZE_THRESHOLD = 1024L * 1024L      // 1 MiB
     private const val SOUNDPOOL_DUR_THRESHOLD_MS = 5_000
+    // Pkg-audit fix: bound SoundPool entries so per-sample decoder memory
+    // doesn't grow unbounded across hundreds of unique gift URLs.
+    private const val MAX_POOL_ENTRIES = 30
 
     @Volatile private var initialized = false
     private lateinit var appContext: Context
     private lateinit var soundPool: SoundPool
-    private val poolIds = ConcurrentHashMap<String, Int>()         // url → soundId
+    // Pkg-audit fix: LinkedHashMap with access-order=true gives LRU semantics
+    // for unload-on-evict. Guarded by `this` (poolIds) for all mutations.
+    private val poolIds = java.util.LinkedHashMap<String, Int>(16, 0.75f, true)
     private val activePoolStreams = mutableSetOf<Int>()            // stream ids
     private val activePlayers = mutableListOf<MediaPlayer>()
     // Pkg-audit fix: SoundPool.setOnLoadCompleteListener is a GLOBAL setter;
