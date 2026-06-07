@@ -500,10 +500,14 @@ const LiveStream = () => {
       // Lazy-load Capacitor App so web builds don't pull native plugin code.
       void import('@capacitor/app').then(({ App }) => {
         try {
-          const handle = App.addListener('appStateChange', ({ isActive }) => {
+          const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
             if (!isActive) sendViewerLeave();
-          });
-          appStateDetach = () => { try { (handle as any)?.remove?.(); } catch { /* noop */ } };
+          }));
+          appStateDetach = () => {
+            handlePromise
+              .then((handle: any) => handle?.remove?.())
+              .catch(() => undefined);
+          };
         } catch { /* ignore — non-Capacitor runtime */ }
       }).catch(() => { /* ignore */ });
     } catch { /* ignore */ }
@@ -555,6 +559,18 @@ const LiveStream = () => {
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
     console.log('[LiveStream] Stream ended via lifecycle hook');
+    if (!isHost) {
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
+      setStreamEndedBy(hostInfo?.name || "Host");
+      setShowStreamEndedModal(true);
+      await leaveChannel().catch(() => {});
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 3000);
+      return;
+    }
     await leaveChannel();
     navigate('/');
   };
