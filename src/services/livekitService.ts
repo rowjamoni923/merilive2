@@ -22,6 +22,8 @@ interface LiveKitTokenRequest {
   hidden?: boolean;
   /** Party rooms only: `false` = subscribe-only (audience). Omitted = legacy default (publish allowed). */
   partyCanPublish?: boolean;
+  /** Pkg439: when true, request a hidden admin monitor token (uses admin link token header). */
+  asAdmin?: boolean;
 }
 
 const TOKEN_CACHE_TTL_MS = 25_000;
