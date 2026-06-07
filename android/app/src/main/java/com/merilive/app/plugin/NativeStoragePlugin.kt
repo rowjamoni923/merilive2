@@ -308,6 +308,10 @@ class NativeStoragePlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { io.shutdown() } catch (_: Throwable) {}
+        // Flush WAL + close the SQLite database file handle. Without this
+        // the WAL may not checkpoint on process death, causing slow next-launch
+        // open and (on some OEMs) corruption risk.
+        try { if (this::helper.isInitialized) helper.close() } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 
