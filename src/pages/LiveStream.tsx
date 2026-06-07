@@ -1393,6 +1393,12 @@ const LiveStream = () => {
         if (seenMsgIds.has(row.id)) return;
         seenMsgIds.add(row.id);
 
+        // F1 — Skip trigger-written system_join rows in realtime: the live
+        // in-memory join message (LiveKit fast-path or Postgres safety-net)
+        // already renders the entrance. Trigger row exists only for
+        // late-joiner history (fetched on mount).
+        if (row.message_type === 'system_join') return;
+
         // Skip own messages — already optimistically rendered by sender.
         if (row.user_id === currentUserId) return;
 
