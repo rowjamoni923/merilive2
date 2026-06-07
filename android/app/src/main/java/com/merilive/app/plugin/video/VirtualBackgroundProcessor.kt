@@ -157,7 +157,10 @@ class VirtualBackgroundProcessor(private val context: Context) : VideoProcessor 
 
     override fun setSink(sink: VideoSink?) { this.sink = sink }
     override fun onCapturerStarted(success: Boolean) {}
-    override fun onCapturerStopped() {}
+    override fun onCapturerStopped() {
+        Log.i(TAG, "onCapturerStopped — releasing VirtualBackgroundProcessor")
+        try { release() } catch (_: Throwable) {}
+    }
 
     override fun onFrameCaptured(frame: VideoFrame) {
         val activeMode = mode
