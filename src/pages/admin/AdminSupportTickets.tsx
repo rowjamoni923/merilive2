@@ -427,7 +427,7 @@ const AdminSupportTickets = () => {
             }
           } catch (e) {
             console.error('[AutoTranslate] Failed for msg:', msg.id, e);
-            recordAdminError({ kind: "rpc", label: "AdminSupportTickets.translatedText", message: msg.id instanceof Error ? msg.id.message : String(msg.id) });
+            recordAdminError({ kind: "edge", label: "AdminSupportTickets.translatedText", message: formatAdminError(e) });
           }
           return null;
         });
@@ -551,7 +551,7 @@ const AdminSupportTickets = () => {
           translatedContent = transData?.translatedText || "";
         } catch (e) {
           console.error("Translation error:", e);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
+          recordAdminError({ kind: "edge", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
         } finally {
           setIsTranslating(false);
         }
