@@ -46,10 +46,12 @@ const EntryNameBarAnimationInner = memo(({
   userLevel,
   avatarUrl,
   animationUrl,
+  userId,
   onComplete,
   className,
   bottomPosition = '12%',
 }: EntryNameBarAnimationProps) => {
+
   const [phase, setPhase] = useState<'entering' | 'exiting' | 'done'>('entering');
   const level = ensureValidLevel(userLevel);
   const completedRef = useRef(false);
