@@ -2014,6 +2014,32 @@ class LiveKitPlugin : Plugin() {
                 hardReconnectAttempts = 0
                 reconnectingSinceMs = System.currentTimeMillis()
                 stopReconnectWatchdog()
+
+                // Fix 3 — Soft reconnect path. If the Room is still alive,
+                // toggle the camera (off→on) instead of rebuilding the entire
+                // Room + PeerConnection + Camera2 session. This avoids the
+                // 1-3 s black screen of the full rebuild and reuses the
+                // existing ICE state. Falls through to the full path on
+                // failure or when the Room is gone.
+                val existing = room
+                if (existing != null) {
+                    try {
+                        val ok = setNativeCameraEnabledWithOemRetry(existing, false, "soft-reconnect-off") &&
+                                 setNativeCameraEnabledWithOemRetry(existing, true, "soft-reconnect-on")
+                        if (ok) {
+                            try { activity?.runOnUiThread { /* re-attach handled by attachLocal call */ } } catch (_: Throwable) {}
+                            val ret = JSObject()
+                            ret.put("connected", true)
+                            ret.put("soft", true)
+                            call.resolve(ret)
+                            return@launch
+                        }
+                        Log.w(TAG, "soft reconnect failed — falling back to full rebuild")
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "soft reconnect threw — falling back: ${t.message}")
+                    }
+                }
+
                 connectInternal(args, isReconnect = true)
                 val ret = JSObject()
                 ret.put("connected", true)
