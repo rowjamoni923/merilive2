@@ -337,7 +337,7 @@ export function CallProvider({ children }: CallProviderProps) {
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
         return;
       }
-
+    };
 
     let listener: { remove: () => Promise<void> } | null = null;
     void NativeCall.addListener('call-action', handleNativeAction).then((h) => {
