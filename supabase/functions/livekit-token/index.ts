@@ -147,18 +147,43 @@ Deno.serve(async (req) => {
           if (ls.host_id !== identity) {
             const { data: ban } = await svc.rpc("is_user_live_banned", { p_user_id: identity });
             if (ban === true) return json(403, { error: "live_banned" });
-            if (hidden && String(ls.live_privacy ?? "public").toLowerCase() === "public") {
+            const privacy = String(ls.live_privacy ?? "public").toLowerCase();
+            if (hidden && privacy === "public") {
               // Public live preloader: subscribe-only hidden token before durable viewer row.
               // Real entry still uses enter_live_stream before visible playback/viewer count.
             } else {
-            const { data: sv } = await svc
-              .from("stream_viewers")
-              .select("viewer_id")
-              .eq("stream_id", m[1])
-              .eq("viewer_id", identity)
-              .is("left_at", null)
-              .maybeSingle();
-            if (!sv) return json(200, { error: "must_enter_stream_first", fallback: true });
+              const { data: sv } = await svc
+                .from("stream_viewers")
+                .select("viewer_id")
+                .eq("stream_id", m[1])
+                .eq("viewer_id", identity)
+                .is("left_at", null)
+                .maybeSingle();
+              if (!sv) {
+                // Bug-fix #1 (viewer-race): For PUBLIC streams the client may
+                // request the token in parallel with enter_live_stream — the
+                // DB row may not have committed yet, which previously dumped
+                // the viewer back to home with a misleading "stream ended"
+                // toast. Public streams have no entry barrier, so auto-upsert
+                // the viewer row here (race-safe) instead of erroring out.
+                // Non-public (password / followers / pk_only) rooms still
+                // require explicit enter_live_stream so this fallback only
+                // applies to `public`.
+                if (privacy === "public") {
+                  const { error: insErr } = await svc
+                    .from("stream_viewers")
+                    .upsert(
+                      { stream_id: m[1], viewer_id: identity, joined_at: new Date().toISOString(), left_at: null },
+                      { onConflict: "stream_id,viewer_id" },
+                    );
+                  if (insErr) {
+                    console.warn("[livekit-token] viewer auto-enter failed:", insErr);
+                    return json(200, { error: "must_enter_stream_first", fallback: true });
+                  }
+                } else {
+                  return json(200, { error: "must_enter_stream_first", fallback: true });
+                }
+              }
             }
           }
         } else if (roomType === "call") {
@@ -189,6 +214,7 @@ Deno.serve(async (req) => {
           if (!pr) return json(403, { error: "party_room_not_found" });
           if (pr.host_id === identity) {
             // Host: allow even if is_active=false (let host resurrect/cleanup).
+            (body as Record<string, unknown>).__partyIsHost = true;
           } else {
             if (!pr.is_active || pr.ended_at) {
               return json(403, { error: "party_room_inactive" });
@@ -200,7 +226,7 @@ Deno.serve(async (req) => {
             // has inserted/reactivated it.
             const { data: participant } = await svc
               .from("party_room_participants")
-              .select("user_id")
+              .select("user_id,seat_number")
               .eq("room_id", roomId)
               .eq("user_id", identity)
               .is("left_at", null)
@@ -212,8 +238,19 @@ Deno.serve(async (req) => {
               p_room_id: roomId,
             });
             if (allowed !== true) return json(403, { error: "party_access_denied" });
+
+            // Bug-fix #2 (party-publish hole): stash seated state so the
+            // permission block below grants canPublish ONLY when this
+            // participant currently holds a seat. Non-seat audience get
+            // canPublish=false at the LiveKit level — even a modified
+            // client cannot publish until the host approves a seat and
+            // livekit-update-permission promotes them in-place.
+            (body as Record<string, unknown>).__partyIsHost = false;
+            (body as Record<string, unknown>).__partyIsSeated =
+              participant.seat_number !== null && participant.seat_number !== undefined;
           }
         }
+
       } catch (e) {
         console.error("[livekit-token] binding check failed:", e);
         return json(500, { error: "binding_check_failed" });
