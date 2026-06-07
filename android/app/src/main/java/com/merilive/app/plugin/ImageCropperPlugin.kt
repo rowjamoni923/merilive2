@@ -183,7 +183,9 @@ class ImageCropperPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        val c = pendingCall
         pendingCall = null
+        try { c?.reject("Cropper cancelled: activity destroyed", "ACTIVITY_DESTROYED") } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }
