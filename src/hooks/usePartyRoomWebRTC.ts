@@ -42,6 +42,10 @@ import {
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
+import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
+import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { registerNativeChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
+import { registerNativeGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -112,6 +116,7 @@ export function usePartyRoomWebRTC(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
+  const usingNativeRef = useRef(false);
 
   const getRemoteAudioTrackKey = (
     identity: string,
