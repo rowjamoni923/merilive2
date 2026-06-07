@@ -1067,7 +1067,23 @@ const Chat = () => {
     };
     container.addEventListener('scroll', onScroll, { passive: true });
     return () => container.removeEventListener('scroll', onScroll);
-  }, [selectedConversation?.id]);
+  }, [selectedConversation?.id, selectedGroup?.id]);
+
+  // Keep the thread pinned to the bottom when content reflows (avatars,
+  // images, gift media loading after first paint). Mirrors WhatsApp/imo
+  // behavior where opening a chat always lands on the latest message.
+  useEffect(() => {
+    const container = chatScrollRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (wasNearBottomRef.current) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+    ro.observe(container);
+    Array.from(container.children).forEach((child) => ro.observe(child as Element));
+    return () => ro.disconnect();
+  }, [selectedConversation?.id, selectedGroup?.id]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
