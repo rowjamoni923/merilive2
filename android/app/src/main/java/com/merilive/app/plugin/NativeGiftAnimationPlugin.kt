@@ -113,6 +113,8 @@ class NativeGiftAnimationPlugin : Plugin() {
         var svgaView: SVGAImageView? = null
         var animView: AnimView? = null
         val finished = AtomicBoolean(false)
+        // Pkg-audit fix: cancellable deferred for static-image auto-finish.
+        var deferredFinish: Runnable? = null
         val watchdog = Runnable {
             if (finished.compareAndSet(false, true)) {
                 emit("gift:error", JSObject()
@@ -124,6 +126,8 @@ class NativeGiftAnimationPlugin : Plugin() {
             }
         }
     }
+
+    @Volatile private var destroyed = false
 
     // ─── Public API ─────────────────────────────────────────────────────────
 
