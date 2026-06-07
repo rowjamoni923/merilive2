@@ -105,6 +105,8 @@ export function useLiveKitCall(
   const remoteAudioKeysRef = useRef<Set<string>>(new Set());
   const callVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callCameraPermissionMonitorRef = useRef<(() => void) | null>(null);
+  const callRemoteVideoWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callRemoteVideoToastShownRef = useRef(false);
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -204,6 +206,11 @@ export function useLiveKitCall(
       try { callCameraPermissionMonitorRef.current(); } catch { /* ignore */ }
       callCameraPermissionMonitorRef.current = null;
     }
+    if (callRemoteVideoWatchdogRef.current) {
+      clearInterval(callRemoteVideoWatchdogRef.current);
+      callRemoteVideoWatchdogRef.current = null;
+    }
+    callRemoteVideoToastShownRef.current = false;
 
     // Pkg73: drop call-signaling registration before tearing the room down.
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
@@ -688,11 +695,31 @@ export function useLiveKitCall(
 
 
         // Pkg-audit: canPublish guard — if server token denies publish,
-        // warn immediately so user knows this is a one-way call, not a silent black face.
-        const perms = (room.localParticipant as any).permissions;
-        if (perms && perms.canPublish === false) {
-          console.error('[LiveKitCall] Token grants canPublish=false — camera will not send');
-          toast.error('Call token denied camera publish. You may see a black screen.');
+        // try ONE token refresh + reconnect before warning. This is the real fix
+        // for "silent one-way video" — never accept a publish-denied token silently.
+        {
+          const perms = (room.localParticipant as any).permissions;
+          if (perms && perms.canPublish === false) {
+            console.warn('[LiveKitCall] Token canPublish=false — attempting refresh + reconnect');
+            try {
+              const fresh = await getLiveKitToken(roomName, 'call');
+              if (fresh?.token) {
+                try { await room.disconnect(true); } catch { /* ignore */ }
+                if (deadRef.current) return;
+                await room.connect(fresh.url, fresh.token);
+                const perms2 = (room.localParticipant as any).permissions;
+                if (perms2 && perms2.canPublish === false) {
+                  console.error('[LiveKitCall] Refresh still canPublish=false — giving up');
+                  toast.error('Call token denied camera publish. You may see a black screen.');
+                } else {
+                  console.log('[LiveKitCall] ✅ canPublish restored after refresh');
+                }
+              }
+            } catch (e) {
+              console.error('[LiveKitCall] canPublish refresh failed:', e);
+              toast.error('Call token denied camera publish. You may see a black screen.');
+            }
+          }
         }
 
         // Enable camera and microphone with retry (3 attempts).
@@ -755,6 +782,12 @@ export function useLiveKitCall(
               console.warn('[LiveKitCall] 📷 Camera track ended (instant detect)');
               recoverCallCamera();
             });
+            // Pkg-audit: browser/OS-level mute (e.g. another app grabs camera)
+            // fires 'mute' WITHOUT 'ended' — must recover here too or peer sees black.
+            mt.addEventListener('mute', () => {
+              console.warn('[LiveKitCall] 📷 Camera track muted by browser/OS — recovering');
+              recoverCallCamera();
+            });
           } catch { /* ignore */ }
         };
         const initialCallPub = Array.from(room.localParticipant.trackPublications.values())
@@ -789,6 +822,45 @@ export function useLiveKitCall(
             callCameraPermissionMonitorRef.current = () => perm.removeEventListener('change', onPermChange);
           } catch { /* ignore — some browsers don't support camera permission query */ }
         }
+
+        // Pkg-audit: Remote video arrival watchdog. If a remote participant is
+        // in the room but no remote video track arrives within 12s (peer's
+        // camera silently failed / canPublish=false on their side / SFU
+        // subscription dropped), surface a clear toast instead of leaving the
+        // user staring at a black face wondering what happened.
+        callRemoteVideoToastShownRef.current = false;
+        const watchdogStartedAt = Date.now();
+        callRemoteVideoWatchdogRef.current = setInterval(() => {
+          if (deadRef.current || usingNativeRef.current) return;
+          const activeRoom = roomRef.current;
+          if (!activeRoom || activeRoom.state !== ConnectionState.Connected) return;
+          const remotes = Array.from(activeRoom.remoteParticipants.values());
+          if (remotes.length === 0) return; // peer not joined yet — don't blame
+          const hasRemoteVideo = remotes.some(rp =>
+            Array.from(rp.trackPublications.values()).some((pub: any) =>
+              pub.kind === Track.Kind.Video && pub.track && !pub.isMuted
+            )
+          );
+          if (hasRemoteVideo) {
+            callRemoteVideoToastShownRef.current = false;
+            return;
+          }
+          const elapsed = Date.now() - watchdogStartedAt;
+          if (elapsed > 12000 && !callRemoteVideoToastShownRef.current) {
+            callRemoteVideoToastShownRef.current = true;
+            console.warn('[LiveKitCall] ⚠️ Peer video not arriving after 12s');
+            toast.error("Peer's camera isn't arriving. Ask them to re-enable video.");
+            // Nudge SFU: re-request subscription on all remote video pubs.
+            remotes.forEach(rp => {
+              rp.trackPublications.forEach((pub: any) => {
+                if (pub.kind === Track.Kind.Video) {
+                  try { pub.setSubscribed(false); } catch { /* ignore */ }
+                  setTimeout(() => { try { pub.setSubscribed(true); } catch { /* ignore */ } }, 250);
+                }
+              });
+            });
+          }
+        }, 2000);
 
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during
