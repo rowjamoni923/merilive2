@@ -946,8 +946,25 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           }
         });
 
+        // FIX (Pkg-audit HIGH): Preloaded room was missing TrackPublished + ParticipantConnected
+        // re-wires. If host published video AFTER preloaded handoff but BEFORE TrackSubscribed
+        // fired, viewer saw a black screen until reconnect. Mirror the normal-path handlers.
+        pRoom.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+          try { publication.setSubscribed(true); } catch { /* ignore */ }
+          if (publication.kind === Track.Kind.Video) {
+            try { publication.setVideoQuality?.(preferredVideoQualityRef.current); } catch { /* ignore */ }
+          }
+          ensureParticipantSubscribed(participant);
+        });
+        pRoom.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+          const pUid = getUidForParticipant(participant.identity);
+          ensureParticipantSubscribed(participant);
+          options.onUserJoined?.(pUid);
+        });
+
         // Immediately process existing participants
         pRoom.remoteParticipants.forEach((participant) => ensureParticipantSubscribed(participant));
+
 
         setIsJoined(true);
         setConnectionState('CONNECTED');
