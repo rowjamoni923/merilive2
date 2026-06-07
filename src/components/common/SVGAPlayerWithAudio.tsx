@@ -65,6 +65,10 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   volume = 0.95,
   soundUrl = null,
   triggerKey,
+  dynamicAvatarUrl = null,
+  dynamicFrameUrl = null,
+  dynamicName = null,
+  dynamicLevel = null,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
