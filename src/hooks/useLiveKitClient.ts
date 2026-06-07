@@ -818,6 +818,41 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
             }, 300);
           }
+        } else if (config.role === 'host') {
+          // Phase-D fix: previously a HOST-side full Disconnected (SFU drop,
+          // network flap that exceeded LiveKit's internal reconnect budget,
+          // token expiry past the auto-refresh window) had ZERO auto-rejoin
+          // path. The host's stream would silently die — viewers see "Host
+          // left" and the host stares at a frozen UI until they manually
+          // restart. Now we bounded-retry the join with backoff.
+          const lastConfig = lastConfigRef.current;
+          if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            lastConfigRef.current = null;
+            const HOST_REJOIN_DELAYS = [800, 1800, 3500, 6500];
+            let attempt = 0;
+            const tryRejoin = () => {
+              if (isLeavingRef.current || isJoiningRef.current) return;
+              if (roomRef.current && roomRef.current.state === ConnectionState.Connected) return;
+              console.warn('[LiveKitClient] Host auto-rejoin attempt', attempt + 1);
+              setConnectionState('CONNECTING');
+              joinChannel({ ...lastConfig, preloadedRoom: undefined })
+                .then(() => {
+                  console.log('[LiveKitClient] ✅ Host auto-rejoin succeeded');
+                })
+                .catch((err) => {
+                  attempt += 1;
+                  if (attempt < HOST_REJOIN_DELAYS.length) {
+                    setTimeout(tryRejoin, HOST_REJOIN_DELAYS[attempt]);
+                  } else {
+                    console.error('[LiveKitClient] 🛑 Host auto-rejoin gave up after', attempt, 'attempts');
+                    try {
+                      options.onError?.(err instanceof Error ? err : new Error('Live connection lost. Please restart the stream.'));
+                    } catch { /* ignore */ }
+                  }
+                });
+            };
+            setTimeout(tryRejoin, HOST_REJOIN_DELAYS[0]);
+          }
         }
       });
 
