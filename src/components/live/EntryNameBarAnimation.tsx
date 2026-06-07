@@ -128,7 +128,7 @@ const EntryNameBarAnimationInner = memo(({
   const bannerHeight = hasAnimation ? 110 : 44;
   // Mount the SVGA/GIF layer only AFTER the name has slid in.
   const showAnimationLayer = phase === 'animating' || phase === 'exiting';
-  const shouldShow = phase !== 'done' && (hasSvga || !hasGifOrImage || gifLoaded);
+  const shouldShow = hasSvga || !hasGifOrImage || gifLoaded;
 
   return (
     <div
