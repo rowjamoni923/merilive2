@@ -24,7 +24,14 @@ export default function AdminStreamViewer({ streamId, roomName, hostName, onClos
 
     const connect = async () => {
       try {
-        const { token, url } = await getLiveKitToken(roomName, "viewer_stream", `admin-monitor-${Date.now()}`);
+        const { token, url } = await getLiveKitToken(
+          roomName,
+          "viewer_stream",
+          `admin-monitor-${Date.now()}`,
+          true,            // hidden
+          undefined,       // partyCanPublish (n/a)
+          true             // asAdmin → invisible admin monitor
+        );
         if (cancelled) return;
 
         const room = new Room({
