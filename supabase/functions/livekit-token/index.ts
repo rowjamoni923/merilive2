@@ -282,18 +282,24 @@ Deno.serve(async (req) => {
           canPublish = true;
           break;
         case "party":
-          // Chamet-parity: every party participant is granted publish
-          // capability up-front so seat approval is INSTANT (no LiveKit
-          // reconnect / token re-issue). Client keeps mic+camera muted by
-          // default for non-seat audience and only enables them once the
-          // host approves the seat. `partyCanPublish` is kept as a hint so
-          // future server-side moderation can still down-grade a banned
-          // user via UpdateParticipant — but it never blocks the initial
-          // token any more.
-          canPublish = true;
+          // Bug-fix #2 (party-publish hole): Chamet-parity *with* server-side
+          // seat enforcement. Room host always gets canPublish=true. Other
+          // participants get canPublish=true ONLY when they currently hold a
+          // seat (`party_room_participants.seat_number IS NOT NULL`). The
+          // host approval flow calls livekit-update-permission → promotes
+          // the participant in-place (no token reissue, no reconnect, INSTANT)
+          // so the seat-up UX remains identical to before.
+          // `canPublishData=true` for everyone so audience can still
+          // emit chat / reaction DataPackets.
+          {
+            const isPartyHost = (body as Record<string, unknown>).__partyIsHost === true;
+            const isSeated = (body as Record<string, unknown>).__partyIsSeated === true;
+            canPublish = isPartyHost || isSeated;
+          }
           break;
       }
     }
+
 
     // Pkg189: TTL bumped 1h → 6h to cover long live/party sessions.
     // Client-side livekitTokenRefresh.ts proactively refreshes at ttl-600s.
