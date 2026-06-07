@@ -166,6 +166,7 @@ public class AudioRecorderPlugin extends Plugin {
         if (recorder == null) { call.reject("not_recording"); return; }
         boolean wantBase64 = call.getBoolean("includeBase64", false);
         try {
+            stopAmplitudeTimer();
             try { recorder.stop(); } catch (RuntimeException ignored) {
                 // stop() throws if started==stopped without any data; treat as cancel
                 cleanup();
