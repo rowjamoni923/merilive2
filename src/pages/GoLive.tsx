@@ -431,7 +431,7 @@ const GoLive = () => {
     proCameraReadyRef.current = proCamera.ready;
     proCameraErrorRef.current = !!proCamera.error;
     if (proCamera.error) {
-      toast.error('ক্যামেরা ব্যস্ত — Face Verification শেষ করে আবার চেষ্টা করুন');
+      toast.error('Camera is busy. Finish Face Verification and try again.');
       // Hard bail: leave GoLive so user can't sit on a stuck white screen.
       const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
       return () => clearTimeout(t);
@@ -508,7 +508,7 @@ const GoLive = () => {
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
-  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
+  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
 
   useEffect(() => {
     if (!currentUserId) return;
