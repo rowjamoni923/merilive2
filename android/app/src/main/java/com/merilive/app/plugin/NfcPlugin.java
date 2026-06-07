@@ -66,8 +66,8 @@ public class NfcPlugin extends Plugin {
         Intent intent = new Intent(getContext(), getActivity().getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                ? PendingIntent.FLAG_MUTABLE
-                : 1; // FLAG_UPDATE_CURRENT
+                ? (PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                : PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, flags);
 
         nfcAdapter.enableForegroundDispatch(getActivity(), pi, null, null);
