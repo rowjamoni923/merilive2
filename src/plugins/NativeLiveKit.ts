@@ -250,6 +250,13 @@ export interface NativeLiveKitPlugin {
   /** "voice" = earpiece + proximity; "video" = speaker; "none"/"off"/"restore" = release. */
   setAudioMode(opts: { mode: 'voice' | 'video' | 'none' | 'off' | 'restore' }): Promise<{ mode: string }>;
 
+  /**
+   * Phase F — Switch the professional audio profile mid-session.
+   * Triggers a hard reconnect because Opus bitrate + AEC chain are
+   * pinned at room-create time. No-op when the profile is unchanged.
+   */
+  setAudioProfile(opts: { profile: 'voice' | 'broadcast' | 'music' }): Promise<{ profile: string }>;
+
   // --- Audio device routing (Step 13) --------------------------
   getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
   setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
