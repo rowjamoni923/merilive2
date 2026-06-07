@@ -273,7 +273,7 @@ export async function goOfflineManually(userId: string) {
 export async function goOnlineManually(userId: string) {
   localStorage.removeItem(MANUAL_OFFLINE_KEY);
   try {
-    await supabase.rpc('update_online_status', { p_user_id: userId, p_is_online: true });
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: true });
     console.log('[Presence] 🟢 Manual online for:', userId);
   } catch (e) {
     console.error('[Presence] Manual online failed:', e);
