@@ -235,6 +235,14 @@ class NativeSVGAPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
+        try {
+            activity?.runOnUiThread {
+                try { svgaView?.stopAnimation(true) } catch (_: Throwable) {}
+                try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) {}
+                overlay = null
+                svgaView = null
+            }
+        } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
 }
