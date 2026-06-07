@@ -78,6 +78,16 @@ export const NATIVE_FLAG_META: NativeFlagMeta[] = [
     label: 'Native Voice Recorder',
     description: 'Use native Android MediaRecorder with real-time waveform visualization.',
   },
+  {
+    key: 'nativeGiftAnim',
+    label: 'Native Gift Animation',
+    description: 'Pkg438 — Use Android-native VAP/SVGA/Lottie player for full-screen gifts (60fps, lower memory). Requires APK rebuild.',
+  },
+  {
+    key: 'nativeEntryAnim',
+    label: 'Native Entry Animation',
+    description: 'Pkg438 — Use Android-native overlay for room entry banners / noble entrances. Requires APK rebuild.',
+  },
 
   // Legacy aliases to fix build errors in individual feature utils
   { key: 'nativeChatUI', label: '', description: '', hidden: true },
