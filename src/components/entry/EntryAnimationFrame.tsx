@@ -71,6 +71,20 @@ export interface EntryAnimationFrameProps {
   debug?: boolean;
   debugTag?: string;
   triggerKey?: string | number;
+  /**
+   * Industry-standard SVGA dynamic compositing (Chamet / BIGO parity).
+   * When the SVGA template was authored with the standard placeholder
+   * ImageKeys (`avatar`, `frame`, `name`, `level` — or their Chinese
+   * equivalents), these values are injected INSIDE the animation
+   * timeline so the avatar/name move with the animation frame-by-frame
+   * instead of sitting as a static HTML overlay on top.
+   * Silently ignored on non-SVGA formats and on templates without the
+   * matching ImageKeys.
+   */
+  dynamicAvatarUrl?: string | null;
+  dynamicFrameUrl?: string | null;
+  dynamicUserName?: string | null;
+  dynamicUserLevel?: number | null;
 }
 
 const BG_CLASSES: Record<NonNullable<EntryAnimationFrameProps['background']>, string> = {
