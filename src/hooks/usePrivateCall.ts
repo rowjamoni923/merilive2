@@ -257,7 +257,8 @@ export function usePrivateCall(userId: string | null) {
       NativeCamera.stop().catch(() => {});
       clearPreparedCallMediaStream(cid, { stopTracks: true });
     }
-    setTimeout(() => { callEndedRef.current = false; }, 3000);
+    // Phase-3 C3: 3s cooldown removed — endedCallIdsRef is sufficient.
+    // Do NOT set a timeout that blocks new incoming calls.
     if (endedCallIdsRef.current.size > 20) {
       const idsArray = Array.from(endedCallIdsRef.current);
       endedCallIdsRef.current = new Set(idsArray.slice(-10));
