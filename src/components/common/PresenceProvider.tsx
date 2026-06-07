@@ -260,7 +260,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export async function goOfflineManually(userId: string) {
   localStorage.setItem(MANUAL_OFFLINE_KEY, 'true');
   try {
-    await supabase.rpc('update_online_status', { p_user_id: userId, p_is_online: false });
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: false });
     console.log('[Presence] 🔴 Manual offline for:', userId);
   } catch (e) {
     console.error('[Presence] Manual offline failed:', e);
