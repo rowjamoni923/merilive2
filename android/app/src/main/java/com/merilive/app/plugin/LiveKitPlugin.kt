@@ -592,6 +592,11 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
             delay(graceMs)
         }
+        // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
+        // HAL reports any camera is back online (typically within 100-800 ms);
+        // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
+        val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+        if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
