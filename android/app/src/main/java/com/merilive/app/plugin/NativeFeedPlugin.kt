@@ -177,7 +177,7 @@ class NativeFeedPlugin : Plugin() {
                         notifyListeners("feed:loadMore", JSObject())
                     }
                 }
-            })
+            }.also { scrollListener = it })
         }
         column.addView(header)
         column.addView(recycler)
