@@ -1786,6 +1786,7 @@ class LiveKitPlugin : Plugin() {
                     try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
                     try { pre.disconnect() } catch (_: Exception) {}
+                    releaseRoomResources(pre, "destroy")
                 }
             }
 
