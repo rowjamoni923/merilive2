@@ -194,9 +194,28 @@ class NativeEntryAnimationPlugin : Plugin() {
         super.handleOnResume(); isPaused.set(false); activity.runOnUiThread { pump() }
     }
 
+    @Volatile private var destroyed = false
+
     override fun handleOnDestroy() {
+        destroyed = true
+        // CRITICAL: pause BEFORE finishActive so the trailing 250ms pump() does
+        // not dispatch a new job into a now-shutdown downloadExecutor.
+        isPaused.set(true)
         try { downloadExecutor.shutdownNow() } catch (_: Throwable) {}
         try { finishActive("destroy") } catch (_: Throwable) {}
+        synchronized(jobsLock) { jobs.clear() }
+        try {
+            activeView?.let { v ->
+                try { v.animate().cancel() } catch (_: Throwable) {}
+                (v.parent as? ViewGroup)?.removeView(v)
+            }
+        } catch (_: Throwable) {}
+        try {
+            root?.let { v -> (v.parent as? ViewGroup)?.removeView(v) }
+        } catch (_: Throwable) {}
+        activeView = null
+        root = null
+        downloadCache.clear()
         super.handleOnDestroy()
     }
 
