@@ -17,16 +17,25 @@
  */
 
 const TOP_ROUTES: Array<() => Promise<unknown>> = [
+  // Critical user-facing pages (warm first)
   () => import("@/pages/Profile"),
   () => import("@/pages/Chat"),
-  () => import("@/pages/Discover"),
   () => import("@/pages/Reels"),
   () => import("@/pages/Recharge"),
+  () => import("@/pages/Settings"),
+  // Agency stack (user explicitly flagged)
+  () => import("@/pages/Agency"),
+  () => import("@/pages/AgencyDashboard"),
+  () => import("@/pages/JoinAgency"),
+  // AI chat / support widgets (lazy-imported from Chat & Settings)
+  () => import("@/components/ai/AIChatbot"),
+  () => import("@/components/support/AISupportChat"),
+  // Secondary
+  () => import("@/pages/Discover"),
   () => import("@/pages/Tasks"),
   () => import("@/pages/Shop"),
   () => import("@/pages/SearchUsers"),
   () => import("@/pages/FollowingList"),
-  () => import("@/pages/Settings"),
 ];
 
 const fetched = new WeakSet<() => Promise<unknown>>();
