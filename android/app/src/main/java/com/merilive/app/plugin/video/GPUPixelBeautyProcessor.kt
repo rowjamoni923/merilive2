@@ -13,6 +13,7 @@ import livekit.org.webrtc.JavaI420Buffer
 import livekit.org.webrtc.VideoFrame
 import livekit.org.webrtc.VideoProcessor
 import livekit.org.webrtc.VideoSink
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -47,6 +48,7 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     @Volatile private var sink: VideoSink? = null
     private val busy = AtomicBoolean(false)
     private val initialized = AtomicBoolean(false)
+    private val disposed = AtomicBoolean(false)
 
     private val workerThread = HandlerThread("GPUPixelBeauty").apply { start() }
     private val worker = Handler(workerThread.looper)
@@ -59,6 +61,8 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     private var reshape: GPUPixelFilter? = null
     private var lipstick: GPUPixelFilter? = null
     private var blusher: GPUPixelFilter? = null
+
+    fun isReleased(): Boolean = disposed.get()
 
     // Live levels (0..1). Updated from JS via setLevels(...).
     @Volatile var smooth: Float = 0.6f
