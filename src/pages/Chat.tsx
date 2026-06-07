@@ -1821,13 +1821,14 @@ const Chat = () => {
   };
 
   const markMessageAsRead = async (messageId: string) => {
-    await supabase
-      .from('messages')
-      .update({ is_read: true })
-      .eq('id', messageId);
+    // RLS only allows the sender to UPDATE — use SECURITY DEFINER RPC for the receiver.
+    const { data: updatedCount } = await supabase.rpc('mark_messages_read', {
+      p_message_ids: [messageId],
+    });
 
-    emitGlobalUnreadRefresh({ messagesDecrement: 1 });
-    
+    emitGlobalUnreadRefresh({
+      messagesDecrement: typeof updatedCount === 'number' ? updatedCount : 1,
+    });
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
