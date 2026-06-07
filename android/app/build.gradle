@@ -9,11 +9,12 @@ android {
     namespace 'com.merilive.app'
     compileSdk 34
 
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
-    }
+    // Note: native C++ build removed 2026-06-07 (Phase 0.5 cleanup).
+    // The dead native_video_engine.cpp + NativeVideoEnginePlugin/NativeAudioEnginePlugin
+    // were never registered/called. Re-enable externalNativeBuild only when a real
+    // JNI module is reintroduced.
+
+
 
     defaultConfig {
         applicationId "com.merilive.app"
