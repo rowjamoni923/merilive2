@@ -268,18 +268,19 @@ const EntryNameBarAnimationInner = memo(({
 
 EntryNameBarAnimationInner.displayName = 'EntryNameBarAnimationInner';
 
-export const EntryNameBarAnimation = ({ 
-  userName, userLevel, avatarUrl, animationUrl, onComplete, className, bottomPosition,
+export const EntryNameBarAnimation = ({
+  userName, userLevel, avatarUrl, animationUrl, userId, onComplete, className, bottomPosition,
 }: EntryNameBarAnimationProps) => {
   const stableKey = useRef(`entry-namebar-${Date.now()}-${userName}`);
   return (
-    <EntryNameBarAnimationInner 
+    <EntryNameBarAnimationInner
       key={stableKey.current}
       userName={userName} userLevel={userLevel} avatarUrl={avatarUrl}
-      animationUrl={animationUrl} onComplete={onComplete}
+      animationUrl={animationUrl} userId={userId} onComplete={onComplete}
       className={className} bottomPosition={bottomPosition}
     />
   );
+
 };
 
 export default EntryNameBarAnimation;
