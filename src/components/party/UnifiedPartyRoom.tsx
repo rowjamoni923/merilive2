@@ -1708,8 +1708,8 @@ export function UnifiedPartyRoom({
       </main>
 
       {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 pb-[env(safe-area-inset-bottom)]">
-        <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-2.5">
+      <div className="absolute bottom-0 left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-3">
           {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 
             onSubmit={(e) => {
