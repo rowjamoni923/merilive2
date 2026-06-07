@@ -227,6 +227,55 @@ const adminFetch: typeof fetch = (input, init) => {
     clearInstantRestCache('admin');
   }
 
+  // Broadcast cross-page refresh signal AFTER successful mutations so every
+  // open admin tab/page re-reads its data instantly without manual refresh.
+  const broadcastMutationIfNeeded = (resp: Response) => {
+    if (typeof window === 'undefined') return;
+    if (!resp.ok) return;
+    if (method === 'GET' || method === 'HEAD') return;
+    // Skip noisy preflight RPCs
+    if (isLoginRpc) return;
+    try {
+      window.dispatchEvent(new CustomEvent('admin-table-update', {
+        detail: { url: url.replace(SUPABASE_URL, '').split('?')[0], method },
+      }));
+    } catch { /* no-op */ }
+  };
+
+  // Transient-failure single retry: network error or 5xx/408/429 on idempotent
+  // requests (GET/HEAD/RPC reads). Mutations are NOT auto-retried to avoid
+  // double-writes. This eliminates flaky "RPC fail" toasts caused by edge
+  // network blips without ever risking duplicate state changes.
+  const isIdempotent = method === 'GET' || method === 'HEAD';
+  const shouldRetryStatus = (s: number) => s === 408 || s === 429 || (s >= 500 && s <= 599);
+  const fetchOnce = (target: string, options: RequestInit) =>
+    fetchWithInstantRestCache(target, options, {
+      namespace: 'admin',
+      ttlMs: 3_000,
+      staleWhileRevalidateMs: 0,
+      maxEntries: 320,
+      skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
+    });
+  const fetchWithRetry = async (target: string, options: RequestInit): Promise<Response> => {
+    try {
+      const r = isIdempotent ? await fetchOnce(target, options) : await fetch(target, options);
+      if (isIdempotent && shouldRetryStatus(r.status)) {
+        await new Promise((res) => setTimeout(res, 350));
+        try {
+          const r2 = await fetch(target, options);
+          return r2;
+        } catch { return r; }
+      }
+      return r;
+    } catch (err) {
+      if (isIdempotent) {
+        await new Promise((res) => setTimeout(res, 350));
+        return fetch(target, options);
+      }
+      throw err;
+    }
+  };
+
   // Helper to detect+log failures uniformly
   const logIfFailed = async (resp: Response): Promise<Response> => {
     if (resp.ok || resp.status === 304) return resp;
