@@ -48,8 +48,15 @@ class NativeCallPlugin : Plugin() {
         // Pending actions queued before JS attaches a listener (cold-start).
         private val pending = ConcurrentLinkedQueue<JSONObject>()
 
+        // Pkg-audit fix: real dedup state for acknowledgeAction(). FCM
+        // duplicate delivery (two pushes for same call) previously slipped
+        // through because acknowledgeAction was a no-op.
+        private val ackedActions = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        private const val ACK_TTL_MS = 10 * 60 * 1000L // 10 minutes
+
         @Volatile
         private var INSTANCE: NativeCallPlugin? = null
+
 
         @JvmStatic
         fun dispatch(
