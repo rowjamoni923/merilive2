@@ -325,7 +325,7 @@ export default function AdminEntryBanners() {
                   containerClassName="w-full h-full"
                 />
               ) : banner.animation_url ? (
-                <FixedAnimationFrame playOnClick size="fill" center={false}
+                <FixedAnimationFrame size="fill" center
                   src={banner.animation_url}
                   className="w-full h-full object-contain"
                   loop

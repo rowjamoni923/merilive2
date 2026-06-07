@@ -289,7 +289,7 @@ const AdminNobleCards = () => {
               <CardContent>
                 <div className="aspect-[3/1] bg-gradient-to-r from-rose-500/20 to-pink-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <FixedAnimationFrame playOnClick size="fill" center={false} src={item.animation_url}  loop />
+                    <FixedAnimationFrame size="fill" center src={item.animation_url}  loop />
                   ) : item.preview_url ? (
                     <SmartImage src={item.preview_url} alt={item.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                   ) : (

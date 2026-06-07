@@ -325,7 +325,7 @@ const AdminChatBubbles = () => {
               <CardContent>
                 <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <FixedAnimationFrame playOnClick size="fill" center={false}
+                    <FixedAnimationFrame size="fill" center
                       src={item.animation_url}
                       
                       loop

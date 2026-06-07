@@ -328,7 +328,7 @@ const AdminVIPMedals = () => {
               <CardContent>
                 <div className="aspect-square bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <FixedAnimationFrame playOnClick size="fill" center={false}
+                    <FixedAnimationFrame size="fill" center
                       src={item.animation_url}
                       
                       loop

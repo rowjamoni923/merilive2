@@ -291,7 +291,7 @@ const AdminVIPPrivileges = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                     {tier.badge_animation_url ? (
-                      <FixedAnimationFrame playOnClick size="fill" center={false}
+                      <FixedAnimationFrame size="fill" center
                         src={tier.badge_animation_url}
                         className="w-10 h-10"
                         loop

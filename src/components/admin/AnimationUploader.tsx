@@ -159,10 +159,16 @@ export const AnimationUploader: React.FC<Props> = ({
       const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random()
         .toString(36)
         .slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
+      // Hard 90s timeout so the spinner never gets stuck if the storage
+      // request stalls (Supabase SDK has no built-in timeout).
+      const uploadPromise = supabase.storage.from(bucket).upload(fileName, file, {
         upsert: true,
         contentType: file.type || 'application/octet-stream',
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timed out after 90s — check network and retry.')), 90_000)
+      );
+      const { error } = await Promise.race([uploadPromise, timeoutPromise]) as Awaited<typeof uploadPromise>;
       if (error) throw error;
       const {
         data: { publicUrl },
