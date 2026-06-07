@@ -4053,7 +4053,7 @@ export type Database = {
           display_order: number | null
           duration_ms: number | null
           id: string
-          image_url: string
+          image_url: string | null
           is_active: boolean | null
           is_premium: boolean | null
           level_required: number | null
@@ -4074,7 +4074,7 @@ export type Database = {
           display_order?: number | null
           duration_ms?: number | null
           id?: string
-          image_url: string
+          image_url?: string | null
           is_active?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
@@ -4095,7 +4095,7 @@ export type Database = {
           display_order?: number | null
           duration_ms?: number | null
           id?: string
-          image_url?: string
+          image_url?: string | null
           is_active?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
