@@ -1118,48 +1118,68 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
           clearHostVideoRecoveryTimer();
           let recovering = false;
-          hostVideoRecoveryTimerRef.current = setInterval(() => {
+          const recoverHostCamera = () => {
             if (recovering) return;
-            if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
+            const activeRoom = roomRef.current;
+            if (activeRoom !== room || room.state !== ConnectionState.Connected) return;
+            recovering = true;
+            console.warn('[LiveKitClient] ⚠️ Host camera lost, recovering...');
+            room.localParticipant.setCameraEnabled(false)
+              .catch(() => {})
+              .then(() => new Promise((resolve) => setTimeout(resolve, 80)))
+              .then(async () => {
+                await claimAndroidWebViewCamera('live:web-recover-camera');
+                return room.localParticipant.setCameraEnabled(true);
+              })
+              .then(() => {
+                const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
+                  .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+                if (refreshedPub?.track) {
+                  setLocalVideoTrack(refreshedPub.track);
+                  // Re-attach onended listener to the fresh track
+                  const freshMt = (refreshedPub.track as any).mediaStreamTrack as MediaStreamTrack | undefined;
+                  if (freshMt) attachOnEnded(freshMt);
+                }
+              })
+              .catch((recoverErr) => {
+                console.error('[LiveKitClient] Host camera recovery failed:', recoverErr);
+              })
+              .finally(() => { recovering = false; });
+          };
 
+          // Pkg-audit Camera-bulletproof: instant onended listener (0ms detection)
+          // vs the 3s polling timer below. Camera unplug / OS-revocation / hardware
+          // error now triggers recovery immediately instead of up to 3s later.
+          const attachedTracksRef = new WeakSet<MediaStreamTrack>();
+          const attachOnEnded = (mt: MediaStreamTrack) => {
+            if (attachedTracksRef.has(mt)) return;
+            attachedTracksRef.add(mt);
+            try {
+              mt.addEventListener('ended', () => {
+                console.warn('[LiveKitClient] 📷 Camera track ended (instant detect)');
+                recoverHostCamera();
+              });
+            } catch { /* ignore */ }
+          };
+          // Attach to current camera track
+          const initialPub = Array.from(room.localParticipant.trackPublications.values())
+            .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+          const initialMt = (initialPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+          if (initialMt) attachOnEnded(initialMt);
+
+          hostVideoRecoveryTimerRef.current = setInterval(() => {
+            if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
             const videoPub = Array.from(room.localParticipant.trackPublications.values())
               .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
-
             const track = videoPub?.track as any;
             const mediaTrack = track?.mediaStreamTrack as MediaStreamTrack | undefined;
             if (!track || !mediaTrack) return;
+            // Belt-and-suspenders: re-attach onended in case the track was swapped
+            attachOnEnded(mediaTrack);
+            if (!mediaTrack.enabled) mediaTrack.enabled = true;
+            if (mediaTrack.readyState === 'ended') recoverHostCamera();
+          }, 3000); // Polling kept as safety-net; onended is the primary path.
 
-            if (!mediaTrack.enabled) {
-              mediaTrack.enabled = true;
-            }
-
-            if (mediaTrack.readyState === 'ended') {
-              recovering = true;
-              console.warn('[LiveKitClient] ⚠️ Host camera track ended, recovering...');
-
-              room.localParticipant.setCameraEnabled(false)
-                .catch(() => {})
-                .then(() => new Promise((resolve) => setTimeout(resolve, 80)))
-                .then(async () => {
-                  await claimAndroidWebViewCamera('live:web-recover-camera');
-                  return room.localParticipant.setCameraEnabled(true);
-                })
-                .then(() => {
-                  const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
-                    .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
-
-                  if (refreshedPub?.track) {
-                    setLocalVideoTrack(refreshedPub.track);
-                  }
-                })
-                .catch((recoverErr) => {
-                  console.error('[LiveKitClient] Host camera recovery failed:', recoverErr);
-                })
-                .finally(() => {
-                  recovering = false;
-                });
-            }
-          }, 3000); // Pkg-audit Bug I: reduced from 10s → 3s so blank-after-interrupt recovers in 3s, not 10s.
 
         } catch (trackErr: any) {
           console.error('[LiveKitClient] Track creation error:', trackErr);
