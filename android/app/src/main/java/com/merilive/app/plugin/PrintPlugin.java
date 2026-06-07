@@ -22,6 +22,22 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "Print")
 public class PrintPlugin extends Plugin {
 
+    // Keep references to in-flight WebViews so they can be destroyed.
+    // The print PrintDocumentAdapter requires the WebView to outlive pm.print()
+    // until the system pulls pages — so we destroy on next print() call and on
+    // plugin teardown rather than immediately.
+    private final java.util.List<WebView> activeWebViews =
+            java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+
+    private void disposeOldWebViews() {
+        synchronized (activeWebViews) {
+            for (WebView wv : activeWebViews) {
+                try { wv.stopLoading(); wv.destroy(); } catch (Throwable ignored) {}
+            }
+            activeWebViews.clear();
+        }
+    }
+
     @PluginMethod
     public void isAvailable(PluginCall call) {
         JSObject ret = new JSObject();
@@ -37,13 +53,21 @@ public class PrintPlugin extends Plugin {
             return;
         }
         final String jobName = call.getString("jobName", "MeriLive Document");
-        final String orientation = call.getString("orientation", "portrait"); // portrait | landscape
-        final String mediaSize = call.getString("mediaSize", "iso_a4"); // iso_a4 | na_letter | iso_a6 | thermal_80mm
+        final String orientation = call.getString("orientation", "portrait");
+        final String mediaSize = call.getString("mediaSize", "iso_a4");
 
-        getActivity().runOnUiThread(() -> {
+        final android.app.Activity act = getActivity();
+        if (act == null) { call.reject("no activity"); return; }
+        if (act.isFinishing() || act.isDestroyed()) { call.reject("activity destroyed"); return; }
+
+        act.runOnUiThread(() -> {
             try {
+                // Dispose any WebViews left from previous print jobs to bound memory.
+                disposeOldWebViews();
+
                 final Context ctx = getContext();
                 final WebView webView = new WebView(ctx);
+                activeWebViews.add(webView);
                 webView.getSettings().setJavaScriptEnabled(false);
                 webView.getSettings().setLoadsImagesAutomatically(true);
                 webView.setWebViewClient(new WebViewClient() {
@@ -61,7 +85,6 @@ public class PrintPlugin extends Plugin {
                                 case "na_letter": size = PrintAttributes.MediaSize.NA_LETTER; break;
                                 case "iso_a6":    size = PrintAttributes.MediaSize.ISO_A6; break;
                                 case "thermal_80mm":
-                                    // 80mm x 297mm (continuous roll approximation)
                                     size = new PrintAttributes.MediaSize("THERMAL_80", "Thermal 80mm", 3150, 11700);
                                     break;
                                 case "iso_a4":
@@ -101,5 +124,11 @@ public class PrintPlugin extends Plugin {
                 call.reject("print init failed: " + t.getMessage(), t);
             }
         });
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        disposeOldWebViews();
+        super.handleOnDestroy();
     }
 }

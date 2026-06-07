@@ -40,7 +40,12 @@ public class InAppReviewPlugin extends Plugin {
                         return;
                     }
                     ReviewInfo info = req.getResult();
-                    manager.launchReviewFlow(activity, info).addOnCompleteListener(flow -> {
+                    Activity currentActivity = getActivity();
+                    if (currentActivity == null || currentActivity.isFinishing() || currentActivity.isDestroyed()) {
+                        call.reject("activity gone");
+                        return;
+                    }
+                    manager.launchReviewFlow(currentActivity, info).addOnCompleteListener(flow -> {
                         try {
                             JSObject ret = new JSObject();
                             ret.put("shown", flow.isSuccessful());

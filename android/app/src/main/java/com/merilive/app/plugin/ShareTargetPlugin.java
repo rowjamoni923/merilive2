@@ -29,7 +29,8 @@ import java.util.List;
 @CapacitorPlugin(name = "Sharing")
 public class ShareTargetPlugin extends Plugin {
 
-    private static volatile JSObject pending;
+    private static final java.util.concurrent.atomic.AtomicReference<JSObject> pending =
+            new java.util.concurrent.atomic.AtomicReference<>(null);
 
     /** Called from MainActivity for both cold-start and onNewIntent. */
     public static void handleIntent(Intent intent) {
@@ -60,13 +61,12 @@ public class ShareTargetPlugin extends Plugin {
             return;
         }
 
-        pending = payload;
+        pending.set(payload);
     }
 
     @PluginMethod
     public void consumeIncoming(PluginCall call) {
-        JSObject p = pending;
-        pending = null;
+        JSObject p = pending.getAndSet(null);
         JSObject ret = new JSObject();
         ret.put("payload", p);
         call.resolve(ret);
@@ -75,7 +75,7 @@ public class ShareTargetPlugin extends Plugin {
     @PluginMethod
     public void hasIncoming(PluginCall call) {
         JSObject ret = new JSObject();
-        ret.put("value", pending != null);
+        ret.put("value", pending.get() != null);
         call.resolve(ret);
     }
 

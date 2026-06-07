@@ -44,11 +44,17 @@ public class AppLocalePlugin extends Plugin {
 
     @PluginMethod
     public void getAppLocale(PluginCall call) {
-        try {
-            LocaleListCompat list = AppCompatDelegate.getApplicationLocales();
-            JSObject ret = new JSObject();
-            ret.put("language", list.isEmpty() ? "" : list.toLanguageTags());
-            call.resolve(ret);
-        } catch (Throwable t) { call.reject(t.getMessage() == null ? "getAppLocale failed" : t.getMessage()); }
+        android.app.Activity act = getBridge().getActivity();
+        Runnable work = () -> {
+            try {
+                LocaleListCompat list = AppCompatDelegate.getApplicationLocales();
+                JSObject ret = new JSObject();
+                ret.put("language", list.isEmpty() ? "" : list.toLanguageTags());
+                call.resolve(ret);
+            } catch (Throwable t) {
+                call.reject(t.getMessage() == null ? "getAppLocale failed" : t.getMessage());
+            }
+        };
+        if (act != null) act.runOnUiThread(work); else work.run();
     }
 }

@@ -76,7 +76,10 @@ public class InstallReferrerPlugin extends Plugin {
 
             @Override
             public void onInstallReferrerServiceDisconnected() {
-                // No-op — next call will retry.
+                // Reject so the JS caller is not left hanging forever.
+                // KEY_FETCHED is intentionally NOT set, allowing a retry next launch.
+                try { call.reject("Install referrer service disconnected"); } catch (Throwable ignored) {}
+                try { client.endConnection(); } catch (Throwable ignored) {}
             }
         });
     }
