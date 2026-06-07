@@ -693,6 +693,44 @@ export function useLiveKitCall(
         });
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
         if (callVideoRecoveryTimerRef.current) clearInterval(callVideoRecoveryTimerRef.current);
+
+        // Pkg-audit Camera-bulletproof: instant onended listener + polling safety-net
+        let callRecovering = false;
+        const recoverCallCamera = () => {
+          if (callRecovering || deadRef.current || usingNativeRef.current) return;
+          const activeRoom = roomRef.current;
+          if (!activeRoom || activeRoom.state !== ConnectionState.Connected) return;
+          callRecovering = true;
+          console.warn('[LiveKitCall] 📷 Recovering camera...');
+          activeRoom.localParticipant.setCameraEnabled(false).catch(() => {})
+            .then(() => new Promise((resolve) => setTimeout(resolve, 150)))
+            .then(() => activeRoom.localParticipant.setCameraEnabled(true))
+            .then(() => {
+              try { window.dispatchEvent(new Event('beauty:reapply')); } catch { /* ignore */ }
+              const fresh = Array.from(activeRoom.localParticipant.trackPublications.values())
+                .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+              const freshMt = (fresh?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+              if (freshMt) attachCallOnEnded(freshMt);
+            })
+            .catch((e) => console.warn('[LiveKitCall] camera recovery failed:', e))
+            .finally(() => { callRecovering = false; });
+        };
+        const callAttachedTracks = new WeakSet<MediaStreamTrack>();
+        const attachCallOnEnded = (mt: MediaStreamTrack) => {
+          if (callAttachedTracks.has(mt)) return;
+          callAttachedTracks.add(mt);
+          try {
+            mt.addEventListener('ended', () => {
+              console.warn('[LiveKitCall] 📷 Camera track ended (instant detect)');
+              recoverCallCamera();
+            });
+          } catch { /* ignore */ }
+        };
+        const initialCallPub = Array.from(room.localParticipant.trackPublications.values())
+          .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+        const initialCallMt = (initialCallPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+        if (initialCallMt) attachCallOnEnded(initialCallMt);
+
         callVideoRecoveryTimerRef.current = setInterval(() => {
           if (deadRef.current || usingNativeRef.current) return;
           const activeRoom = roomRef.current;
@@ -700,13 +738,11 @@ export function useLiveKitCall(
           const vPub = Array.from(activeRoom.localParticipant.trackPublications.values())
             .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
           const mediaTrack = (vPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
-          if (mediaTrack?.readyState !== 'ended') return;
-          activeRoom.localParticipant.setCameraEnabled(false).catch(() => {})
-            .then(() => new Promise((resolve) => setTimeout(resolve, 150)))
-            .then(() => activeRoom.localParticipant.setCameraEnabled(true))
-            .then(() => window.dispatchEvent(new Event('beauty:reapply')))
-            .catch((e) => console.warn('[LiveKitCall] camera recovery failed:', e));
+          if (!mediaTrack) return;
+          attachCallOnEnded(mediaTrack);
+          if (mediaTrack.readyState === 'ended') recoverCallCamera();
         }, 4000);
+
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during
         // the enableCameraAndMicrophone() await. Disable + disconnect now so
