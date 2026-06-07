@@ -220,6 +220,9 @@ const ProfileDetail = () => {
 
   // Live stream state
   const [activeLiveStream, setActiveLiveStream] = useState<{ id: string; title: string; viewer_count: number } | null>(null);
+  const [activePartyRoom, setActivePartyRoom] = useState<{ id: string; name: string } | null>(null);
+  const [isPresenceBusy, setIsPresenceBusy] = useState(false);
+  const [isPresenceOnline, setIsPresenceOnline] = useState(!!profileCache?.is_online);
   // Trader status
   const [isTrader, setIsTrader] = useState(false);
   const [traderLevel, setTraderLevel] = useState(0);
@@ -320,6 +323,7 @@ const ProfileDetail = () => {
       followersResult,
       followingResult,
       liveStreamResult,
+      profilePresenceResult,
       traderResult,
     ] = await Promise.all([
       // Current user's diamond balance
@@ -342,6 +346,8 @@ const ProfileDetail = () => {
       supabase.from("followers").select("*", { count: "exact", head: true }).eq("follower_id", targetId),
       // Active live stream
       supabase.from("live_streams").select("id, title, viewer_count").eq("host_id", targetId).eq("is_active", true).maybeSingle(),
+      // Public-safe realtime presence summary: live / party / private-call busy / online
+      supabase.rpc('get_public_profile_presence_v1' as any, { p_user_id: targetId }),
       // Trader/Helper status
       supabase.from("topup_helpers").select("id, trader_level, payroll_enabled").eq("user_id", targetId).eq("is_active", true).eq("is_verified", true).maybeSingle(),
     ]);
@@ -389,8 +395,25 @@ const ProfileDetail = () => {
     setFollowersCount(followersResult?.count || 0);
     setFollowingCount(followingResult?.count || 0);
     
-    // Set active live stream
-    setActiveLiveStream(liveStreamResult?.data as any || null);
+    // Set active presence from SECURITY DEFINER RPC so profile details show
+    // Live / Party / Busy / Online from authoritative active rows, not stale flags.
+    const presenceData = Array.isArray(profilePresenceResult?.data)
+      ? (profilePresenceResult.data[0] as any)
+      : (profilePresenceResult?.data as any);
+    if (presenceData?.is_live && presenceData.live_stream_id) {
+      setActiveLiveStream({
+        id: presenceData.live_stream_id,
+        title: presenceData.live_title || '',
+        viewer_count: presenceData.live_viewer_count || 0,
+      });
+    } else {
+      setActiveLiveStream(liveStreamResult?.data as any || null);
+    }
+    setActivePartyRoom(presenceData?.is_party && presenceData.party_room_id
+      ? { id: presenceData.party_room_id, name: presenceData.party_room_name || 'Party Room' }
+      : null);
+    setIsPresenceBusy(Boolean(presenceData?.is_busy ?? profileData?.is_in_call));
+    setIsPresenceOnline(Boolean(presenceData?.is_online ?? profileData?.is_online));
 
     // Set trader status
     if (traderResult?.data) {
