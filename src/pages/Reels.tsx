@@ -1190,29 +1190,37 @@ const Reels = () => {
 
 
       {/* Upload Modal */}
-      <ReelUploadModal
-        isOpen={showUploadModal}
-        onClose={() => {
-          setShowUploadModal(false);
-          setPreSelectedSound(null);
-        }}
-        categories={categories}
-        onUploadSuccess={() => {
-          setShowUploadModal(false);
-          setPreSelectedSound(null);
-          fetchReels();
-          toast.success("Reel uploaded successfully!");
-        }}
-        preSelectedSound={preSelectedSound}
-      />
+      {showUploadModal && (
+        <Suspense fallback={null}>
+          <ReelUploadModal
+            isOpen={showUploadModal}
+            onClose={() => {
+              setShowUploadModal(false);
+              setPreSelectedSound(null);
+            }}
+            categories={categories}
+            onUploadSuccess={() => {
+              setShowUploadModal(false);
+              setPreSelectedSound(null);
+              fetchReels();
+              toast.success("Reel uploaded successfully!");
+            }}
+            preSelectedSound={preSelectedSound}
+          />
+        </Suspense>
+      )}
 
       {/* Gift Panel */}
-      <GiftPanel
-        isOpen={showGiftPanel}
-        onClose={() => setShowGiftPanel(false)}
-        onSendGift={handleSendGift}
-        userCoins={userCoins}
-      />
+      {showGiftPanel && (
+        <Suspense fallback={null}>
+          <GiftPanel
+            isOpen={showGiftPanel}
+            onClose={() => setShowGiftPanel(false)}
+            onSendGift={handleSendGift}
+            userCoins={userCoins}
+          />
+        </Suspense>
+      )}
 
       {/* Flying Gift Animations */}
       <AnimatePresence>
