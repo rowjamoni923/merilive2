@@ -240,6 +240,13 @@ public class IncomingCallActivity extends AppCompatActivity {
         // new call's Accept / Decline taps.
         String nid = intent.getStringExtra("call_id");
         if (nid != null && !nid.isEmpty() && !nid.equals(callId)) {
+            // Phase-A fix: cancel the previous call's pending ring-timeout
+            // BEFORE swapping callId — otherwise the old timer keeps running
+            // and force-times-out the new call ~seconds after it appears.
+            if (timeoutHandler != null && timeoutRunnable != null) {
+                timeoutHandler.removeCallbacks(timeoutRunnable);
+            }
+
             callId = nid;
             String cid = intent.getStringExtra("caller_id");
             if (cid != null) callerId = cid;
@@ -250,6 +257,45 @@ public class IncomingCallActivity extends AppCompatActivity {
             String ct = intent.getStringExtra("call_type");
             if (ct != null && !ct.isEmpty()) callType = ct;
             actionDispatched = false;
+
+            // Refresh visible UI for the new caller.
+            try {
+                TextView tvCallerName = findViewById(R.id.tvCallerName);
+                TextView tvCallType = findViewById(R.id.tvCallType);
+                if (tvCallerName != null) tvCallerName.setText(callerName);
+                if (tvCallType != null) tvCallType.setText(
+                    "video".equals(callType) ? "Incoming Video Call 📹" : "Incoming Audio Call 📞");
+            } catch (Throwable ignored) {}
+
+            // Re-arm the ring timeout for the new call, honoring its own
+            // ring_timeout_seconds extra when present.
+            long ringTimeoutMs = 30000L;
+            try {
+                String s = intent.getStringExtra("ring_timeout_seconds");
+                if (s != null && !s.isEmpty()) {
+                    long parsed = Long.parseLong(s.trim());
+                    if (parsed >= 10) ringTimeoutMs = Math.min(parsed, 120L) * 1000L;
+                }
+            } catch (Exception ignored) {}
+            if (timeoutHandler == null) timeoutHandler = new Handler(Looper.getMainLooper());
+            timeoutRunnable = () -> {
+                stopRinging();
+                dispatchAction("timeout");
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        com.merilive.app.telecom.TelecomBridge.reportEnded(callId, false);
+                    }
+                } catch (Throwable ignored) {}
+                cancelCallNotification();
+                finish();
+            };
+            timeoutHandler.postDelayed(timeoutRunnable, ringTimeoutMs);
+
+            // Re-notify JS so the new call is treated as freshly presented.
+            try {
+                NativeCallPlugin.dispatch(getApplicationContext(),
+                    callId, callerId, callerName, callType, "presented");
+            } catch (Throwable ignored) {}
         }
     }
 
