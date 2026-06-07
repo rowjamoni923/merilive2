@@ -799,6 +799,14 @@ const LiveStream = () => {
     },
   });
 
+  const liveStreamCamera = useProCamera('live-stream', location.state?.isHost === true || (isHost && isHostVerified));
+
+  useEffect(() => {
+    if (liveStreamCamera.error) {
+      toast.error('Camera is in use by another feature. Please close it and try again.');
+    }
+  }, [liveStreamCamera.error]);
+
   // Pkg444 Phase-6: host mic auto-mutes on transient audio-focus loss
   // (incoming phone call, alarm, voice assistant) and restores on gain
   // — unless the host had already muted themselves.
