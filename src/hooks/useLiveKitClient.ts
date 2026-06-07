@@ -1166,27 +1166,42 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // 🚨 Surface the error so the host sees a clear toast instead of
           // staring at a "Starting camera..." screen forever.
           try { options.onError?.(trackErr instanceof Error ? trackErr : new Error(String(trackErr?.message || trackErr))); } catch { /* ignore */ }
-          // Schedule a single retry — camera may have been busy/locked transiently
-          // (Android WebView competing with native preview, permission race, etc.).
-          setTimeout(() => {
-            if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
-            const hasVideo = Array.from(room.localParticipant.trackPublications.values())
-              .some((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
-            if (hasVideo) return;
-            console.log('[LiveKitClient] 🔁 Retrying camera publish after initial failure');
-            publishReliableLocalMedia(room, { needVideo: true, needAudio: true })
-              .then(() => {
-                room.localParticipant.trackPublications.forEach((pub) => {
-                  if (pub.track?.kind === Track.Kind.Video) setLocalVideoTrack(pub.track);
-                  if (pub.track?.kind === Track.Kind.Audio) setLocalAudioTrack(pub.track);
+          // Pkg-audit Camera-bulletproof: multi-attempt retry with backoff
+          // (was single 1.2s retry — Android WebView camera handoff can take
+          // 2-4s when transitioning from native preview). 3 attempts: 800ms,
+          // 1800ms, 3500ms. Surfaces error each time so UI can update status.
+          const retryDelays = [800, 1800, 3500];
+          let retryIdx = 0;
+          const attemptRetry = () => {
+            if (retryIdx >= retryDelays.length) return;
+            const delay = retryDelays[retryIdx++];
+            setTimeout(() => {
+              if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
+              const hasVideo = Array.from(room.localParticipant.trackPublications.values())
+                .some((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+              if (hasVideo) return;
+              console.log(`[LiveKitClient] 🔁 Camera publish retry ${retryIdx}/${retryDelays.length}`);
+              publishReliableLocalMedia(room, { needVideo: true, needAudio: true })
+                .then(() => {
+                  room.localParticipant.trackPublications.forEach((pub) => {
+                    if (pub.track?.kind === Track.Kind.Video) setLocalVideoTrack(pub.track);
+                    if (pub.track?.kind === Track.Kind.Audio) setLocalAudioTrack(pub.track);
+                  });
+                  console.log('[LiveKitClient] ✅ Camera publish succeeded on retry');
+                })
+                .catch((retryErr) => {
+                  console.error(`[LiveKitClient] Camera publish retry ${retryIdx} failed:`, retryErr);
+                  if (retryIdx >= retryDelays.length) {
+                    try { options.onError?.(retryErr instanceof Error ? retryErr : new Error(String(retryErr?.message || retryErr))); } catch { /* ignore */ }
+                  } else {
+                    attemptRetry();
+                  }
                 });
-              })
-              .catch((retryErr) => {
-                console.error('[LiveKitClient] Camera publish retry failed:', retryErr);
-                try { options.onError?.(retryErr instanceof Error ? retryErr : new Error(String(retryErr?.message || retryErr))); } catch { /* ignore */ }
-              });
-          }, 1200);
+            }, delay);
+          };
+          attemptRetry();
         }
+
       }
 
       // Force immediate subscriptions for existing participants (viewer first-frame speed)
