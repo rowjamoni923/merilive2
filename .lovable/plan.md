@@ -122,6 +122,7 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 | Phase | Theme | Days | Track |
 |-------|-------|------|-------|
 | **Phase 0** | Foundation already done (reference) | — | T+B |
+| **Phase 0.5** | 🧹 Native Plugin Audit + Duplicate Consolidation (BEFORE Phase 1) | 1 | T |
 | **Phase 1** | Native LiveKit RTC foundation | 1-2 | T |
 | **Phase 2** | Camera lifecycle hardening | 1-2 | T |
 | **Phase 3** | Native Private Call Activity + business rules | 2-3 | T+B |
@@ -152,7 +153,68 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 
 ---
 
+## 🧹 Phase 0.5 — Native Plugin Audit + Duplicate Consolidation (Day 0)
+
+**MUST run before Phase 1.** Goal: single-owner native pipeline per concern. Zero parallel camera/audio/beauty paths. See mem://preferences/no-duplicate-native-systems.
+
+### Known duplicate suspects (current audit 2026-06-07)
+
+**Camera concern — 3 candidates:**
+- `plugin/LiveKitPlugin.kt` (RTC, Kotlin) — keep as future single camera owner via livekit-android SDK
+- `plugin/NativeCameraPlugin.java` (legacy Java) — purpose unclear, audit
+- `plugin/video/NativeVideoEnginePlugin.java` — purpose unclear, audit
+
+**Beauty concern — 3 candidates:**
+- `plugin/BeautyPipelineBridge.kt`
+- `plugin/GPUPixelBeautyPlugin.kt`
+- `plugin/video/GPUPixelBeautyProcessor.kt` (+ `VirtualBackgroundProcessor.kt`)
+→ Consolidate to ONE pipeline (likely `GPUPixelBeautyPlugin` + processor, drop bridge)
+
+**Audio concern — overlap:**
+- `plugin/AudioFocusPlugin.java` (focus arbiter — keep)
+- `plugin/AudioRecorderPlugin.java` (voice msg only — keep, scope-limited)
+- `plugin/HeadsetRoutingPlugin.kt` (routing — keep)
+- `plugin/GiftAudioMixer.kt` (gift SFX — keep, scope-limited per Pkg438)
+- `plugin/video/NativeAudioEnginePlugin.java` — audit, likely overlaps with LiveKit audio + AudioFocusPlugin → candidate for removal
+
+**Call concern — overlap:**
+- `plugin/LiveKitPlugin.kt` (RTC layer)
+- `plugin/NativeCallPlugin.kt` (call lifecycle wrapper)
+- `telecom/MeriConnectionService.kt` + `telecom/TelecomBridge.kt` (Android Telecom API integration)
+- `service/CallForegroundService.java` (foreground service)
+→ Clarify boundaries; NativeCallPlugin should orchestrate, LiveKitPlugin = media only, Telecom = OS call API only
+
+### Phase 0.5 Sub-tasks
+- [ ] Run `rg -n "NativeCameraPlugin\|NativeVideoEnginePlugin" src/ android/` — list every reference
+- [ ] Run `rg -n "BeautyPipelineBridge\|GPUPixelBeautyPlugin\|GPUPixelBeautyProcessor" src/ android/` — map usage
+- [ ] Run `rg -n "NativeAudioEnginePlugin" src/ android/` — usage map
+- [ ] Read `MainActivity.java` registration list — which plugins active vs dead
+- [ ] Read `src/plugins/*.ts` — which TS wrappers exist for the above
+- [ ] Produce written audit table: plugin → status (active/dead/duplicate) → JS callers → decision (keep/delete/merge)
+- [ ] **PRESENT audit to user — get explicit approval before any `rm`**
+- [ ] After approval: delete confirmed-dead plugins, remove from MainActivity registration, remove TS wrappers, remove any imports
+- [ ] APK smoke build (lovable-exec build) — confirm no compilation error
+- [ ] Test using mem://preferences/test-account.md — live, call, party flows still work
+
+### ✅ Success Criteria
+- [ ] Exactly ONE plugin owns camera (LiveKitPlugin going forward)
+- [ ] Exactly ONE beauty pipeline file path
+- [ ] Exactly ONE audio focus arbiter
+- [ ] No dead `.kt` / `.java` file in `android/app/src/main/java/com/merilive/app/plugin/`
+- [ ] No dead TS wrapper in `src/plugins/`
+- [ ] MainActivity registration list = active plugins only
+- [ ] Owner test account verifies live + call + party + gift + entry animation all work
+
+### ⚠️ Risk
+- 10K+ production users on current APK — only delete after JS reference check
+- Deleting a plugin still called from old WebView path → instant crash
+- **Mitigation:** keep plugin stub returning no-op for 1 APK cycle if uncertain; delete fully next release
+
+---
+
 ## 🔄 Phase 1 — Native LiveKit RTC Foundation (Day 1-2)
+
+**Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
 
 **Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
 
