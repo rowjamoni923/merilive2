@@ -2866,8 +2866,10 @@ const LiveStream = () => {
     toast.info('Restarting camera…');
   }, []);
 
-  const syncedFilterCSS = generateSyncedFilterCSS();
-  const combinedFilterCSS = syncedFilterCSS || getBeautyFilterCSS();
+  // CSS beauty filter removed permanently — native GPUPixel pipeline is the
+  // single source of truth and already paints the broadcast/local track.
+  const combinedFilterCSS = '';
+  void generateSyncedFilterCSS; void getBeautyFilterCSS;
 
   // Live End Summary Modal
   // Minimal loading state - show spinner in corner only (fast perceived load)
