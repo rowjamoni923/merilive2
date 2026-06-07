@@ -447,6 +447,7 @@ export function useLiveKitCall(
             setNativeActive(false);
             try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
             toast.error('Call camera failed to start. Please end the call and try again.');
+            setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
             throw nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr));
           }
         }
