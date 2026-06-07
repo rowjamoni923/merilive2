@@ -63,7 +63,6 @@ public class AudioRecorderPlugin extends Plugin {
             return;
         }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
-            pendingStartCall = call;
             requestPermissionForAlias("microphone", call, "micPermCallback");
             return;
         }
