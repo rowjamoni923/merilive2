@@ -190,6 +190,9 @@ const getGiftAnimationSignature = (content: string, senderId?: string | null): s
   return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
 };
 
+const PLAYED_GIFT_ANIMATION_STORAGE_PREFIX = 'merilive:chat-played-gift-animations:v1:';
+const MAX_PLAYED_GIFT_ANIMATION_IDS = 300;
+
 // Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
@@ -367,6 +370,8 @@ const Chat = () => {
   const directMessageChannelRef = useRef<any>(null);
   const receiptChannelRef = useRef<any>(null);
   const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
+  const playedGiftMessageIdsRef = useRef<Set<string>>(new Set());
+  const playedGiftStorageUserRef = useRef<string | null>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
