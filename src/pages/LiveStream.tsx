@@ -3168,6 +3168,7 @@ const LiveStream = () => {
       {nameBarAnimations.length > 0 && (
         <EntryNameBarAnimation
           key={nameBarAnimations[0].id}
+          userId={nameBarAnimations[0].userId}
           userName={nameBarAnimations[0].displayName}
           userLevel={nameBarAnimations[0].level}
           avatarUrl={nameBarAnimations[0].avatarUrl}
@@ -3175,6 +3176,7 @@ const LiveStream = () => {
           onComplete={() => removeNameBarAnimation(nameBarAnimations[0].id)}
         />
       )}
+
 
       {/* Bigo-Style Flying Join Banner - Shows when viewers join */}
       <BigoJoinBannerContainer
