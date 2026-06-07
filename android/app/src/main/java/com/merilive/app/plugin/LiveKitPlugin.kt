@@ -1405,6 +1405,7 @@ class LiveKitPlugin : Plugin() {
                     }
                 }
                 try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
+                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
                 currentTier = target
                 Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
 
