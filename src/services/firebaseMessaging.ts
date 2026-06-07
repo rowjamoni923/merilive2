@@ -325,76 +325,19 @@ function showBrowserNotification(title: string, body: string, image?: string, da
 }
 
 /**
- * Handle notification tap — navigate to appropriate screen
+ * Handle notification tap — navigate to appropriate screen.
+ * Routing is centralized in src/utils/notificationDeepLink.ts so the
+ * native Capacitor handler and the web service worker stay in parity.
  */
 function handleNotificationTap(data?: NotificationData) {
-  if (!data) return;
+  const path = getNotificationPath(data as NotificationData | undefined);
 
-  const type = data.type || '';
-  const go = (path: string) => navigateInAppPath(path);
-
-  // Call
-  if (type === 'incoming_call' || type === 'call') { go(`/call?callId=${data.call_id}`); return; }
-  if (type === 'call_missed' || type === 'call_received') { go('/call-history'); return; }
-
-  // Message
-  if (type === 'message') { go(`/chat/${data.conversation_id || ''}`); return; }
-  if (type === 'admin_message' || type === 'admin_message_reply') {
-    go(data.source === 'helper_messaging' ? '/helper-dashboard?tab=inbox' : '/chat'); return;
+  if (/^https?:\/\//i.test(path)) {
+    void openInApp(path);
+    return;
   }
 
-  // Gift
-  if (type === 'gift' || type === 'gift_received') { go(data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile'); return; }
-
-  // Social
-  if (type === 'follow' || type === 'new_follower') { go(`/profile-detail/${data.follower_id || ''}`); return; }
-
-  // Live & Party
-  if (type === 'live' || type === 'live_started') { go(data.stream_id ? `/live/${data.stream_id}` : '/discover'); return; }
-  if (type === 'party_invite') { go(data.room_id ? `/party/${data.room_id}` : '/party-rooms'); return; }
-
-  // Transactions
-  if (['topup_approved', 'topup_rejected', 'coin_purchase_helper', 'coin_purchase_direct', 'payment_completed', 'payment_pending'].includes(type)) {
-    go('/recharge-history'); return;
-  }
-  if (['coins_added', 'coins_received', 'diamonds_credited', 'beans_exchanged', 'balance_deducted'].includes(type)) {
-    go('/profile'); return;
-  }
-  if (type === 'coin_exchange' || type === 'diamond_sent') { go('/agency-coin-exchange'); return; }
-
-  // Withdrawal
-  if (['withdrawal', 'withdrawal_approved', 'withdrawal_rejected'].includes(type)) { go('/agency-withdrawal'); return; }
-
-  // Level & Rewards
-  if (type === 'level_up') { go('/level'); return; }
-  if (type === 'reward' || type === 'task_completed' || type === 'daily_bonus') { go('/tasks'); return; }
-
-  // Host
-  if (type === 'host_approved') { go('/host-dashboard'); return; }
-  if (type === 'host_rejected') { go('/host-application'); return; }
-
-  // Helper
-  if (['helper_approved', 'payroll_approved', 'payroll_rejected', 'level_upgrade_approved', 'level_upgrade_rejected'].includes(type)) {
-    go('/helper-dashboard'); return;
-  }
-  if (type === 'new_topup_order') { go('/helper-dashboard?tab=orders'); return; }
-  if (type === 'new_withdrawal_request') { go('/helper-dashboard?tab=agency-withdrawals'); return; }
-  if (type === 'order_completed') { go('/helper-dashboard?tab=orders'); return; }
-
-  // Agency
-  if (type.startsWith('agency_')) { go('/agency-dashboard'); return; }
-
-  // Support
-  if (type === 'support_reply') {
-    const params = new URLSearchParams({ mode: 'live_chat', ticket_id: data.ticket_id || '' });
-    if (data.message_id) params.set('message_id', data.message_id);
-    go(`/settings/customer-service?${params.toString()}`); return;
-  }
-
-  // Fallback
-  if (data.link_url) { void openInApp(data.link_url); return; }
-  if (data.action_url) { void openInApp(data.action_url); return; }
-  go('/');
+  navigateInAppPath(path);
 }
 
 /**
