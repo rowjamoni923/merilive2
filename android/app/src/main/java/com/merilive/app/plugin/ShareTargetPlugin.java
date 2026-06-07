@@ -29,7 +29,8 @@ import java.util.List;
 @CapacitorPlugin(name = "Sharing")
 public class ShareTargetPlugin extends Plugin {
 
-    private static volatile JSObject pending;
+    private static final java.util.concurrent.atomic.AtomicReference<JSObject> pending =
+            new java.util.concurrent.atomic.AtomicReference<>(null);
 
     /** Called from MainActivity for both cold-start and onNewIntent. */
     public static void handleIntent(Intent intent) {
