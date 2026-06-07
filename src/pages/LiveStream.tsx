@@ -1293,8 +1293,8 @@ const LiveStream = () => {
               if (count !== null) setViewerCount(count);
             });
           // Pkg383 safety-net: if LiveKit viewer_joined doesn't arrive within 1.5s,
-          // fire welcome popup + join chat from Postgres INSERT so other viewers
-          // always see the new viewer's name+level instantly.
+          // fire welcome popup + join chat + entry animation from Postgres INSERT
+          // so other viewers always see the new viewer's entrance instantly.
           if (event === 'INSERT' && row.viewer_id && row.viewer_id !== currentUserId && !row.left_at) {
             const uid = row.viewer_id as string;
             const lastMark = joinNotifyDedupRef.current.get(uid) || 0;
@@ -1305,9 +1305,11 @@ const LiveStream = () => {
               const lastMark2 = joinNotifyDedupRef.current.get(uid) || 0;
               if (Date.now() - lastMark2 < 5000) return; // LiveKit won the race
               joinNotifyDedupRef.current.set(uid, Date.now());
+              // F6 — fetch profile WITH equipped IDs so fallback can dispatch
+              // the entry animation when LiveKit publish never arrived.
               const { data: prof } = await supabase
                 .from('profiles_public')
-                .select('display_name, avatar_url, user_level')
+                .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
                 .eq('id', uid)
                 .maybeSingle();
               if (!mountedRef.current) return;
@@ -1332,6 +1334,33 @@ const LiveStream = () => {
                   userLevel,
                 }];
               });
+              // F6 — fallback entry animation (LiveKit-fast-path lost). The 5s
+              // dedup in useEntryAnimations prevents double-play if LiveKit
+              // packet arrives just after this fires.
+              try {
+                const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode } =
+                  await fetchUserEntryAnimations(
+                    (prof as any)?.equipped_entrance_id,
+                    (prof as any)?.equipped_entry_name_bar_id,
+                    (prof as any)?.equipped_vehicle_id,
+                    userLevel,
+                    uid,
+                  );
+                if (!mountedRef.current) return;
+                addEntryAnimation({
+                  userId: uid,
+                  displayName: userName,
+                  avatarUrl: userAvatar,
+                  level: userLevel,
+                  entranceUrl: entranceAnimationUrl || undefined,
+                  entryNameBarUrl: entryNameBarUrl || undefined,
+                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                  soundUrl: entranceSoundUrl || undefined,
+                  rankCode: rankCode || undefined,
+                });
+              } catch (e) {
+                console.warn('[LiveStream] F6 fallback entry animation failed:', e);
+              }
             }, 1500);
             pendingJoinFallbackTimersRef.current.set(uid, timer);
           }
@@ -1556,10 +1585,10 @@ const LiveStream = () => {
 
       // 4. INSTANT entry animation — URLs are pre-resolved in the envelope,
       // ZERO extra fetch round-trips needed.
-      if (
-        (p.entranceAnimationUrl || p.entryNameBarUrl || p.vehicleAnimationUrl || p.rankCode) &&
-        mountedRef.current
-      ) {
+      // F5 — Always trigger entry namebar for every viewer (Chamet-parity).
+      // useEntryAnimations renders a gradient fallback namebar when no URL,
+      // so even plain viewers without equipped items get a visible entrance.
+      if (mountedRef.current) {
         addEntryAnimation({
           userId: p.userId,
           displayName: p.userName,
