@@ -18431,6 +18431,10 @@ export type Database = {
         Args: { p_room_id: string; p_user_id: string }
         Returns: boolean
       }
+      can_enter_live_stream_row: {
+        Args: { _stream_id: string; _viewer_id: string }
+        Returns: boolean
+      }
       can_initiate_private_call: {
         Args: {
           p_caller_id: string
@@ -18449,6 +18453,10 @@ export type Database = {
       }
       can_user_create_party: { Args: never; Returns: Json }
       can_user_go_live: { Args: never; Returns: Json }
+      can_view_stream_viewer_row: {
+        Args: { _stream_id: string; _viewer_id: string }
+        Returns: boolean
+      }
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
       cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
       check_ban_on_login:
@@ -19419,6 +19427,7 @@ export type Database = {
         }
         Returns: Json
       }
+      has_joined_live_stream: { Args: { _stream_id: string }; Returns: boolean }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_unclaimed_task_reward: { Args: { uid: string }; Returns: boolean }
       hash_admin_pin: { Args: { _pin: string }; Returns: string }
