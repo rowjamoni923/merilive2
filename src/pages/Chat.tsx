@@ -9,13 +9,13 @@ import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
-import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
+const GroupSettingsPanel = lazy(() => import("@/components/chat/GroupSettingsPanel").then(m => ({ default: m.GroupSettingsPanel })));
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { VoiceWaveform } from "@/components/chat/VoiceWaveform";
-import { EmojiPicker } from "@/components/chat/EmojiPicker";
-import { MediaUploader } from "@/components/chat/MediaUploader";
+const EmojiPicker = lazy(() => import("@/components/chat/EmojiPicker").then(m => ({ default: m.EmojiPicker })));
+const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(m => ({ default: m.MediaUploader })));
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
@@ -23,8 +23,9 @@ import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData } from "@/features/shared/gifting";
-import { LiveGameSelector } from "@/components/games/LiveGameSelector";
+import type { GiftData } from "@/features/shared/gifting";
+const GiftPanel = lazy(() => import("@/components/live/GiftPanel").then(m => ({ default: m.GiftPanel })));
+const LiveGameSelector = lazy(() => import("@/components/games/LiveGameSelector").then(m => ({ default: m.LiveGameSelector })));
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -65,20 +66,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { NotificationList } from "@/components/notifications/NotificationList";
-import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import { messageOutbox, type OutboxItem } from "@/lib/messageOutbox";
 import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
-import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
+const GiftEmojiAnimation = lazy(() => import("@/components/chat/GiftEmojiAnimation").then(m => ({ default: m.GiftEmojiAnimation })));
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
-import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+const ReportUserDialog = lazy(() => import("@/components/report/ReportUserDialog").then(m => ({ default: m.ReportUserDialog })));
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
@@ -2835,24 +2834,32 @@ const Chat = () => {
         {/* Message Input - Ultra Premium Dark Glass */}
         <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
           {/* Media Uploader (direct gallery) */}
-          <MediaUploader
-            isOpen={showMediaUploader}
-            onClose={() => setShowMediaUploader(false)}
-            userId={currentUserId}
-            onMediaSelect={(url, type) => {
-              // Save as pending media, don't send directly
-              setPendingMedia({ url, type });
-              setShowMediaUploader(false);
-            }}
-            directGallery={true}
-          />
-          <EmojiPicker
-            isOpen={showEmojiPicker}
-            onClose={() => setShowEmojiPicker(false)}
-            onSelect={(emoji) => {
-              setMessage(prev => prev + emoji);
-            }}
-          />
+          {showMediaUploader && (
+            <Suspense fallback={null}>
+              <MediaUploader
+                isOpen={showMediaUploader}
+                onClose={() => setShowMediaUploader(false)}
+                userId={currentUserId}
+                onMediaSelect={(url, type) => {
+                  // Save as pending media, don't send directly
+                  setPendingMedia({ url, type });
+                  setShowMediaUploader(false);
+                }}
+                directGallery={true}
+              />
+            </Suspense>
+          )}
+          {showEmojiPicker && (
+            <Suspense fallback={null}>
+              <EmojiPicker
+                isOpen={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+                onSelect={(emoji) => {
+                  setMessage(prev => prev + emoji);
+                }}
+              />
+            </Suspense>
+          )}
           
           {/* Inline Translation Bar — premium luxury redesign */}
           {inlineTranslateEnabled && !isGroup && (
@@ -3527,37 +3534,47 @@ const Chat = () => {
           </Dialog>
           
           {/* Gift Panel - Same as Live/Party Room */}
-          <GiftPanel
-            isOpen={showGiftPanel}
-            onClose={() => setShowGiftPanel(false)}
-            onSendGift={handleSendGift}
-            userCoins={userCoins}
-          />
+          {showGiftPanel && (
+            <Suspense fallback={null}>
+              <GiftPanel
+                isOpen={showGiftPanel}
+                onClose={() => setShowGiftPanel(false)}
+                onSendGift={handleSendGift}
+                userCoins={userCoins}
+              />
+            </Suspense>
+          )}
           
           {/* Game Panel - Same as Live/Party Room */}
-          <LiveGameSelector
-            isOpen={showGamePanel}
-            onClose={() => setShowGamePanel(false)}
-            onOpenGifts={() => setShowGiftPanel(true)}
-          />
+          {showGamePanel && (
+            <Suspense fallback={null}>
+              <LiveGameSelector
+                isOpen={showGamePanel}
+                onClose={() => setShowGamePanel(false)}
+                onOpenGifts={() => setShowGiftPanel(true)}
+              />
+            </Suspense>
+          )}
 
           {/* Gift Emoji Animation */}
           <AnimatePresence>
             {showGiftAnimation && animatingGiftEmoji && (
-              <GiftEmojiAnimation
-                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
-                emoji={animatingGiftEmoji}
-                animationFormat={animatingGiftFormat}
-                animationConfigUrl={animatingGiftConfigUrl}
-                soundUrl={animatingGiftSound || undefined}
-                onComplete={() => {
-                  setShowGiftAnimation(false);
-                  setAnimatingGiftEmoji("");
-                  setAnimatingGiftFormat(null);
-                  setAnimatingGiftConfigUrl(null);
-                  setAnimatingGiftSound(null);
-                }}
-              />
+              <Suspense fallback={null}>
+                <GiftEmojiAnimation
+                  key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
+                  emoji={animatingGiftEmoji}
+                  animationFormat={animatingGiftFormat}
+                  animationConfigUrl={animatingGiftConfigUrl}
+                  soundUrl={animatingGiftSound || undefined}
+                  onComplete={() => {
+                    setShowGiftAnimation(false);
+                    setAnimatingGiftEmoji("");
+                    setAnimatingGiftFormat(null);
+                    setAnimatingGiftConfigUrl(null);
+                    setAnimatingGiftSound(null);
+                  }}
+                />
+              </Suspense>
             )}
           </AnimatePresence>
 
@@ -3648,30 +3665,34 @@ const Chat = () => {
       />
       {/* Group Settings Panel */}
       {showGroupSettings && selectedGroup && currentUserId && (
-        <GroupSettingsPanel
-          group={selectedGroup}
-          currentUserId={currentUserId}
-          onClose={() => setShowGroupSettings(false)}
-          onGroupUpdated={() => fetchGroups()}
-          onLeaveGroup={() => {
-            setShowGroupSettings(false);
-            setSelectedGroup(null);
-            setGroupMessages([]);
-            fetchGroups();
-          }}
-        />
+        <Suspense fallback={null}>
+          <GroupSettingsPanel
+            group={selectedGroup}
+            currentUserId={currentUserId}
+            onClose={() => setShowGroupSettings(false)}
+            onGroupUpdated={() => fetchGroups()}
+            onLeaveGroup={() => {
+              setShowGroupSettings(false);
+              setSelectedGroup(null);
+              setGroupMessages([]);
+              fetchGroups();
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Report User Dialog */}
-      {selectedConversation?.other_user?.id && currentUserId && (
-        <ReportUserDialog
-          open={showReportDialog}
-          onOpenChange={setShowReportDialog}
-          reportedUserId={selectedConversation.other_user.id}
-          reporterUserId={currentUserId}
-          contextType="chat"
-          contextId={selectedConversation.id}
-        />
+      {showReportDialog && selectedConversation?.other_user?.id && currentUserId && (
+        <Suspense fallback={null}>
+          <ReportUserDialog
+            open={showReportDialog}
+            onOpenChange={setShowReportDialog}
+            reportedUserId={selectedConversation.other_user.id}
+            reporterUserId={currentUserId}
+            contextType="chat"
+            contextId={selectedConversation.id}
+          />
+        </Suspense>
       )}
 
       <BottomNavigation activeTab={activeTab} onTabChange={(path) => {
