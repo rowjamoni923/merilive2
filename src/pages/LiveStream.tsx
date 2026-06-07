@@ -500,10 +500,14 @@ const LiveStream = () => {
       // Lazy-load Capacitor App so web builds don't pull native plugin code.
       void import('@capacitor/app').then(({ App }) => {
         try {
-          const handle = App.addListener('appStateChange', ({ isActive }) => {
+          const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
             if (!isActive) sendViewerLeave();
-          });
-          appStateDetach = () => { try { (handle as any)?.remove?.(); } catch { /* noop */ } };
+          }));
+          appStateDetach = () => {
+            handlePromise
+              .then((handle: any) => handle?.remove?.())
+              .catch(() => undefined);
+          };
         } catch { /* ignore — non-Capacitor runtime */ }
       }).catch(() => { /* ignore */ });
     } catch { /* ignore */ }
@@ -555,6 +559,18 @@ const LiveStream = () => {
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
     console.log('[LiveStream] Stream ended via lifecycle hook');
+    if (!isHost) {
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
+      setStreamEndedBy(hostInfo?.name || "Host");
+      setShowStreamEndedModal(true);
+      await leaveChannel().catch(() => {});
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 3000);
+      return;
+    }
     await leaveChannel();
     navigate('/');
   };
@@ -757,7 +773,7 @@ const LiveStream = () => {
       console.error('❌ LiveKit error:', error);
       const msg = error instanceof Error ? error.message : String(error);
       recordClientError({ label: "LiveStream.deltaY", message: msg });
-      // Viewer-side: stream ended/inactive → friendly toast + navigate home (no blank screen)
+      // Viewer-side: stream ended/inactive → show the premium ended dialog (no blank screen)
       if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
         // Phase G bug-fix #1: differentiate the two cases — `stream_inactive`
         // really means the host ended the stream, `must_enter_stream_first`
@@ -767,9 +783,9 @@ const LiveStream = () => {
         if (/must_enter_stream_first/i.test(msg)) {
           toast.error('Unable to join this stream — please try again.');
         } else {
-          toast.info('This live stream has ended.');
+          void showViewerStreamEnded(hostInfo?.name || 'Host');
+          return;
         }
-        try { navigate('/', { replace: true }); } catch { /* ignore */ }
         return;
       }
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
@@ -1099,22 +1115,18 @@ const LiveStream = () => {
               
               console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
               
-              if (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl || rankCode) {
-                console.log('[LiveStream] 🚗 Self has equipped animation or rank:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
-                addEntryAnimation({
-                  userId: currentUserId,
-                  displayName: userName,
-                  avatarUrl,
-                  level: userLevel,
-                  entranceUrl: entranceAnimationUrl || undefined,
-                  entryNameBarUrl: entryNameBarUrl || undefined,
-                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
-                  soundUrl: entranceSoundUrl || undefined,
-                  rankCode: rankCode || undefined,
-                });
-              } else {
-                console.log('[LiveStream] ⚠️ No animation URL found for self');
-              }
+              console.log('[LiveStream] 🚗 Dispatching self entry/namebar:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
+              addEntryAnimation({
+                userId: currentUserId,
+                displayName: userName,
+                avatarUrl,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
+                rankCode: rankCode || undefined,
+              });
               
               // ⚡ Pkg82a: LiveKit-ONLY viewer_joined publish (replaces Supabase
               // `join_broadcast_${id}` broadcast). Fires after `stream_viewers`
@@ -1238,7 +1250,12 @@ const LiveStream = () => {
           .select("id, display_name, user_level, avatar_url, country_flag, created_at")
           .in("id", userIds);
         const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
-        setMessages(chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId)));
+        const historyRows = chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId));
+        setMessages((prev) => {
+          const transientRows = prev.filter((m) => String(m.id).startsWith('welcome_') || String(m.id).startsWith('join_'));
+          const existingIds = new Set(historyRows.map((m) => m.id));
+          return [...historyRows, ...transientRows.filter((m) => !existingIds.has(m.id))];
+        });
       }
     };
     

@@ -109,6 +109,7 @@ import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface PartyRoom {
   id: string;
@@ -338,6 +339,12 @@ const PartyRoom = () => {
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   // Track recently processed requests to prevent duplicates
   const recentlyProcessedRequestsRef = useRef<Set<string>>(new Set());
   // Join messages for chat display
@@ -813,12 +820,23 @@ const PartyRoom = () => {
         const { data: hostProfile } = hostId
           ? await supabase
               .from('profiles_public')
-              .select('id, display_name, avatar_url, host_level, user_level, country_code, country_flag, frame_id')
+              .select('id, display_name, avatar_url, host_level, user_level, country_code, country_flag, frame_id, equipped_frame_id')
               .eq('id', hostId)
               .maybeSingle()
           : { data: null };
 
-        setRoom({ ...(roomData.data as any), host: hostProfile || null } as PartyRoom);
+        const hostFallback = hostId && userData?.id === hostId ? userData.profile : null;
+        const resolvedHost = hostProfile || hostFallback;
+        setRoom({
+          ...(roomData.data as any),
+          host: resolvedHost ? {
+            ...resolvedHost,
+            id: hostId,
+            display_name: resolvedHost.display_name || 'Host',
+            avatar_url: normalizeProfileMediaUrl(resolvedHost.avatar_url) || resolvedHost.avatar_url || null,
+            frame_id: (resolvedHost as any).equipped_frame_id || (resolvedHost as any).frame_id || null,
+          } : null,
+        } as PartyRoom);
         
         // Fetch participants and seat requests in parallel
         await Promise.all([fetchParticipants(), fetchSeatRequests()]);
@@ -1052,6 +1070,7 @@ const PartyRoom = () => {
         if (data.userId === myId) return; // self-join already shown optimistically
 
         const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
+        if (processedBroadcastJoinsRef.current.has(joinKey)) return;
         processedBroadcastJoinsRef.current.add(joinKey);
 
         console.log('[PartyRoom] 🟣 ⚡ Pkg80 livekit participant_joined:', data.userName);
@@ -1091,19 +1110,17 @@ const PartyRoom = () => {
         // join row exactly ONCE (was N−1 duplicates: one per receiver client).
         // F5 — Always trigger entry namebar for every viewer (gradient fallback
         // in useEntryAnimations when no equipped URL). Chamet-parity.
-        if (isMountedRef.current) {
-          addEntryAnimation({
-            userId: data.userId,
-            displayName: data.userName,
-            avatarUrl: data.userAvatar,
-            level: data.userLevel,
-            entranceUrl: data.entranceAnimationUrl || undefined,
-            entryNameBarUrl: data.entryNameBarUrl || undefined,
-            vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
-            soundUrl: data.entranceSoundUrl || undefined,
-            rankCode: data.rankCode || undefined,
-          });
-        }
+        addEntryAnimation({
+          userId: data.userId,
+          displayName: data.userName,
+          avatarUrl: data.userAvatar,
+          level: data.userLevel,
+          entranceUrl: data.entranceAnimationUrl || undefined,
+          entryNameBarUrl: data.entryNameBarUrl || undefined,
+          vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+          soundUrl: data.entranceSoundUrl || undefined,
+          rankCode: data.rankCode || undefined,
+        });
         return;
       }
 
@@ -1196,7 +1213,6 @@ const PartyRoom = () => {
     window.addEventListener('livekit-party-event', handleLiveKitPartyEvent);
 
     return () => {
-      isMountedRef.current = false;
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
@@ -1290,10 +1306,14 @@ const PartyRoom = () => {
       const { data: publicProfiles } = userIds.length
         ? await supabase
             .from('profiles_public')
-            .select('id, display_name, avatar_url, user_level, frame_id')
+            .select('id, display_name, avatar_url, user_level, frame_id, equipped_frame_id')
             .in('id', userIds)
         : { data: [] as any[] };
-      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, {
+        ...profile,
+        avatar_url: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || null,
+        frame_id: profile.equipped_frame_id || profile.frame_id || null,
+      }]));
       const hydratedParticipants = data.map((participant: any) => ({
         ...participant,
         // Section #12 pass-2: DB column is seat_number — expose it as `position` for app code.
@@ -1443,13 +1463,13 @@ const PartyRoom = () => {
             processedBroadcastJoinsRef.current.add(joinKey);
             const { data: prof } = await supabase
               .from('profiles_public')
-              .select('display_name, avatar_url, user_level')
+              .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
               .eq('id', uid)
               .maybeSingle();
             if (!isMountedRef.current) return;
             const userName = prof?.display_name || 'User';
             const userLevel = prof?.user_level || 1;
-            const userAvatar = prof?.avatar_url || undefined;
+            const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
             addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
             setJoinMessages(prev => [...prev.slice(-20), {
               id: `pg_join_${Date.now()}_${uid}`,
@@ -1460,6 +1480,29 @@ const PartyRoom = () => {
               type: 'join' as const,
               timestamp: new Date(),
             }]);
+            try {
+              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode } = await fetchUserEntryAnimations(
+                (prof as any)?.equipped_entrance_id,
+                (prof as any)?.equipped_entry_name_bar_id,
+                (prof as any)?.equipped_vehicle_id,
+                userLevel,
+                uid,
+              );
+              if (!isMountedRef.current) return;
+              addEntryAnimation({
+                userId: uid,
+                displayName: userName,
+                avatarUrl: userAvatar,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
+                rankCode: rankCode || undefined,
+              });
+            } catch (e) {
+              console.warn('[PartyRoom] participant fallback entry animation failed:', e);
+            }
           }, 1500);
           pendingJoinTimers.set(uid, timer);
         },
@@ -1488,7 +1531,7 @@ const PartyRoom = () => {
       try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
       try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
-  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification]);
+  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification, addEntryAnimation]);
 
 
 
@@ -1500,7 +1543,7 @@ const PartyRoom = () => {
       const isHostUser = room?.host_id === currentUser.id;
       const userName = currentUser.profile?.display_name || 'User';
       const userLevel = currentUser.profile?.user_level || 1;
-      const avatarUrl = currentUser.profile?.avatar_url || undefined;
+      const avatarUrl = normalizeProfileMediaUrl(currentUser.profile?.avatar_url) || currentUser.profile?.avatar_url || undefined;
       
       // First, leave all other active rooms to prevent stale participant records
       await supabase
@@ -1562,23 +1605,19 @@ const PartyRoom = () => {
       
       console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
       
-      if (selfEntranceUrl || selfNameBarUrl || selfVehicleUrl || rankCode) {
-        console.log('[PartyRoom] 🚗 Self has equipped animation or rank:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
-        // TRIGGER entry animation for SELF using UNIFIED system (like gifts)
-        addEntryAnimation({
-          userId: currentUser.id,
-          displayName: userName,
-          avatarUrl,
-          level: userLevel,
-          entranceUrl: selfEntranceUrl || undefined,
-          entryNameBarUrl: selfNameBarUrl || undefined,
-          vehicleAnimationUrl: selfVehicleUrl || undefined,
-          soundUrl: selfEntranceSound || undefined,
-          rankCode: rankCode || undefined,
-        });
-      } else {
-        console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
-      }
+      console.log('[PartyRoom] 🚗 Dispatching self entry/namebar:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
+      // TRIGGER entry/namebar for SELF using UNIFIED system (like gifts)
+      addEntryAnimation({
+        userId: currentUser.id,
+        displayName: userName,
+        avatarUrl,
+        level: userLevel,
+        entranceUrl: selfEntranceUrl || undefined,
+        entryNameBarUrl: selfNameBarUrl || undefined,
+        vehicleAnimationUrl: selfVehicleUrl || undefined,
+        soundUrl: selfEntranceSound || undefined,
+        rankCode: rankCode || undefined,
+      });
       
       // Pkg80: LiveKit DataPacket replaces Supabase `join_broadcast_party_*`
       // channel. Sub-50ms fanout; DB row remains for REST snapshot/history.
