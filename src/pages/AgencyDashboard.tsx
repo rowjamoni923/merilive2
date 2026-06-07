@@ -2167,19 +2167,25 @@ const AgencyDashboard = () => {
       </Dialog>
 
       {/* Sub-Agents Panel */}
-      <SubAgentsPanel 
-        agencyId={agency.id}
-        agencyCode={agency.agency_code}
-        isOpen={showSubAgentsPanel}
-        onClose={() => setShowSubAgentsPanel(false)}
-      />
+      {showSubAgentsPanel && (
+        <Suspense fallback={null}>
+          <SubAgentsPanel 
+            agencyId={agency.id}
+            agencyCode={agency.agency_code}
+            isOpen={showSubAgentsPanel}
+            onClose={() => setShowSubAgentsPanel(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Payroll Helper Welcome Modal (one-time for new agencies) */}
       {currentUserId && agency && (
-        <PayrollHelperWelcomeModal 
-          agencyId={agency.id}
-          userId={currentUserId}
-        />
+        <Suspense fallback={null}>
+          <PayrollHelperWelcomeModal 
+            agencyId={agency.id}
+            userId={currentUserId}
+          />
+        </Suspense>
       )}
       </div>
     </div>
