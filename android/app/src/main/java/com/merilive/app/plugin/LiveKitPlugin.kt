@@ -148,6 +148,11 @@ class LiveKitPlugin : Plugin() {
     private var eventJob: Job? = null
     private var room: Room? = null
 
+    private fun releaseRoomResources(r: Room?, reason: String) {
+        if (r == null) return
+        try { r.release() } catch (t: Throwable) { Log.w(TAG, "Room.release failed ($reason): ${t.message}") }
+    }
+
     private var localRenderer: TextureViewRenderer? = null
     private val remoteRenderers = mutableMapOf<String, TextureViewRenderer>()
 
