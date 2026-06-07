@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { 
@@ -66,9 +66,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
-import SubAgentsPanel from "@/components/agency/SubAgentsPanel";
-import PayrollHelperWelcomeModal from "@/components/agency/PayrollHelperWelcomeModal";
+const HelperApplicationForm = lazy(() => import("@/components/helper/HelperApplicationForm"));
+const SubAgentsPanel = lazy(() => import("@/components/agency/SubAgentsPanel"));
+const PayrollHelperWelcomeModal = lazy(() => import("@/components/agency/PayrollHelperWelcomeModal"));
 import { formatNumber as formatNum } from "@/utils/formatNumber";
 
 // Helper for formatting numbers with English numerals
@@ -2052,14 +2052,16 @@ const AgencyDashboard = () => {
             </>
           ) : (
             // Not Applied Yet - Show Application Form using the dedicated component
-            <HelperApplicationForm 
-              agencyId={agency?.id}
-              onSuccess={() => {
-                setShowHelperDialog(false);
-                setHelperPendingApplication(true);
-              }}
-              onClose={() => setShowHelperDialog(false)}
-            />
+            <Suspense fallback={null}>
+              <HelperApplicationForm 
+                agencyId={agency?.id}
+                onSuccess={() => {
+                  setShowHelperDialog(false);
+                  setHelperPendingApplication(true);
+                }}
+                onClose={() => setShowHelperDialog(false)}
+              />
+            </Suspense>
           )}
 
           <Button 
@@ -2165,19 +2167,25 @@ const AgencyDashboard = () => {
       </Dialog>
 
       {/* Sub-Agents Panel */}
-      <SubAgentsPanel 
-        agencyId={agency.id}
-        agencyCode={agency.agency_code}
-        isOpen={showSubAgentsPanel}
-        onClose={() => setShowSubAgentsPanel(false)}
-      />
+      {showSubAgentsPanel && (
+        <Suspense fallback={null}>
+          <SubAgentsPanel 
+            agencyId={agency.id}
+            agencyCode={agency.agency_code}
+            isOpen={showSubAgentsPanel}
+            onClose={() => setShowSubAgentsPanel(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Payroll Helper Welcome Modal (one-time for new agencies) */}
       {currentUserId && agency && (
-        <PayrollHelperWelcomeModal 
-          agencyId={agency.id}
-          userId={currentUserId}
-        />
+        <Suspense fallback={null}>
+          <PayrollHelperWelcomeModal 
+            agencyId={agency.id}
+            userId={currentUserId}
+          />
+        </Suspense>
       )}
       </div>
     </div>
