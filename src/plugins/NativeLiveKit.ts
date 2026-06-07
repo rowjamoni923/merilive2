@@ -232,7 +232,9 @@ export interface QualityProbeProgressEvent {
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   claimCameraForWebView(): Promise<{ claimed: boolean }>;
-  releaseCameraForWebView(): Promise<{ released: boolean }>;
+  releaseCameraForWebView(): Promise<{ released: boolean; warning?: string }>;
+  /** Fix 5 — query the native Camera2 advisory arbiter from JS. */
+  getCameraOwner(): Promise<{ owner: string | null }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
   sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;

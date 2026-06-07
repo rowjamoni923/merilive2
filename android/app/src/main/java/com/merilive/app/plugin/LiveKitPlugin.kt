@@ -14,9 +14,14 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.hardware.camera2.CameraManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import com.merilive.app.service.CallForegroundService
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
 import android.util.Log
 import android.util.Base64
 import android.view.ViewGroup
@@ -120,7 +125,12 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_HARD_MS = 15_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
         private const val OEM_CAMERA_OPEN_TIMEOUT_MS = 4_500L
-        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
+        // Fix 7 (Hotfix): bumped 650 → 1200 ms. MIUI 14 / OneUI 6 / ColorOS 14
+        // Camera2 HAL keeps the front-camera handle locked 800-1500 ms after
+        // close() returns. Fix 1 (dynamic grace via CameraManager.AvailabilityCallback)
+        // can resolve sooner; this is the floor + cap when callbacks misfire.
+        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 1_200L
+        private const val OEM_CAMERA_AVAILABILITY_WAIT_MS = 2_000L
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
@@ -421,8 +431,67 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun releaseCameraForWebView(call: PluginCall) {
-        CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
-        call.resolve(JSObject().put("released", true))
+        // Fix 2 — Synchronous barrier. The JS leaveChannel path awaits this
+        // promise before triggering a new join, so we MUST not resolve until
+        // the OEM Camera2 HAL release grace has elapsed (and ideally the
+        // CameraManager.AvailabilityCallback has fired). Otherwise the next
+        // native open() races the still-locked hardware handle and the
+        // re-entry preview comes back blank.
+        scope.launch {
+            try {
+                CameraOwnership.release(CameraOwnership.OWNER_WEBVIEW_LIVEKIT)
+                // Prefer dynamic signal; fall back to static grace.
+                val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+                if (!became) delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                call.resolve(JSObject().put("released", true))
+            } catch (e: Throwable) {
+                call.resolve(JSObject().put("released", true).put("warning", e.message ?: "release-warn"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getCameraOwner(call: PluginCall) {
+        // Fix 5 — JS-side ProCameraEngine can query this to coordinate its own
+        // advisory lock with the native CameraOwnership arbiter. Returns null
+        // when free.
+        val ret = JSObject()
+        ret.put("owner", CameraOwnership.owner())
+        call.resolve(ret)
+    }
+
+    /**
+     * Fix 1 — Dynamic OEM grace. CameraManager.AvailabilityCallback fires
+     * onCameraAvailable() when the physical Camera2 handle is reusable. We
+     * resolve early on the first availability event (any camera id — usually
+     * the front camera since that's what live broadcasts use) or fall back to
+     * a static cap when callbacks are not delivered (some MIUI builds).
+     */
+    private suspend fun awaitFrontCameraAvailable(maxWaitMs: Long): Boolean {
+        return try {
+            withTimeout(maxWaitMs) {
+                suspendCancellableCoroutine<Boolean> { cont ->
+                    val mgr = try {
+                        context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+                    } catch (_: Throwable) { null }
+                    if (mgr == null) { if (cont.isActive) cont.resume(false); return@suspendCancellableCoroutine }
+                    val cb = object : CameraManager.AvailabilityCallback() {
+                        override fun onCameraAvailable(cameraId: String) {
+                            try { mgr.unregisterAvailabilityCallback(this) } catch (_: Throwable) {}
+                            if (cont.isActive) cont.resume(true)
+                        }
+                    }
+                    try {
+                        mgr.registerAvailabilityCallback(cb, Handler(Looper.getMainLooper()))
+                    } catch (_: Throwable) {
+                        if (cont.isActive) cont.resume(false)
+                    }
+                    cont.invokeOnCancellation {
+                        try { mgr.unregisterAvailabilityCallback(cb) } catch (_: Throwable) {}
+                    }
+                }
+            }
+        } catch (_: Throwable) { false }
     }
 
     @PluginMethod
@@ -523,6 +592,11 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
             delay(graceMs)
         }
+        // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
+        // HAL reports any camera is back online (typically within 100-800 ms);
+        // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
+        val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+        if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
@@ -1050,6 +1124,19 @@ class LiveKitPlugin : Plugin() {
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
+                // Fix 4 — Surface validity check. If the renderer didn't make
+                // it into the window tree (Z-order race vs WebView, parent
+                // detached during reconnect), re-mount once. Without this the
+                // camera is technically streaming but the user sees black.
+                renderer.postDelayed({
+                    try {
+                        if (localRenderer === renderer && !renderer.isAttachedToWindow) {
+                            Log.w(TAG, "attachLocal: renderer not attached to window — re-mounting")
+                            (renderer.parent as? ViewGroup)?.removeView(renderer)
+                            mountBehindWebView(renderer)
+                        }
+                    } catch (_: Throwable) {}
+                }, 220L)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachLocal failed: ${e.message}")
@@ -1927,6 +2014,32 @@ class LiveKitPlugin : Plugin() {
                 hardReconnectAttempts = 0
                 reconnectingSinceMs = System.currentTimeMillis()
                 stopReconnectWatchdog()
+
+                // Fix 3 — Soft reconnect path. If the Room is still alive,
+                // toggle the camera (off→on) instead of rebuilding the entire
+                // Room + PeerConnection + Camera2 session. This avoids the
+                // 1-3 s black screen of the full rebuild and reuses the
+                // existing ICE state. Falls through to the full path on
+                // failure or when the Room is gone.
+                val existing = room
+                if (existing != null) {
+                    try {
+                        val ok = setNativeCameraEnabledWithOemRetry(existing, false, "soft-reconnect-off") &&
+                                 setNativeCameraEnabledWithOemRetry(existing, true, "soft-reconnect-on")
+                        if (ok) {
+                            try { activity?.runOnUiThread { /* re-attach handled by attachLocal call */ } } catch (_: Throwable) {}
+                            val ret = JSObject()
+                            ret.put("connected", true)
+                            ret.put("soft", true)
+                            call.resolve(ret)
+                            return@launch
+                        }
+                        Log.w(TAG, "soft reconnect failed — falling back to full rebuild")
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "soft reconnect threw — falling back: ${t.message}")
+                    }
+                }
+
                 connectInternal(args, isReconnect = true)
                 val ret = JSObject()
                 ret.put("connected", true)
