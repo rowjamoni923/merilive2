@@ -618,6 +618,7 @@ export function usePartyRoomWebRTC(
         // CRITICAL: Rebuild localStream whenever local tracks are published/unpublished
         // Use VIDEO-ONLY stream for preview UI to avoid avatar/video flicker from audio-only updates.
         const rebuildLocalStream = () => {
+          if (!isActiveSession(room)) return;
           const r = roomRef.current;
           if (!r?.localParticipant) return;
           const ms = new MediaStream();
