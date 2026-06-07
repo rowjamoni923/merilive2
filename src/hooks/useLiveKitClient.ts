@@ -1118,15 +1118,28 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
           clearHostVideoRecoveryTimer();
           let recovering = false;
+          // Phase-C fix: bound camera-recovery attempts. Without a cap, a
+          // permanently-revoked camera (user denied permission mid-stream,
+          // device camera locked by another app, hardware failure) caused
+          // the 3s poller to retry recoverHostCamera() forever — burning
+          // CPU/battery and spamming logs. After MAX consecutive failures
+          // we stop and surface a single error to UI so the host sees a
+          // clear message instead of a silent black preview.
+          const MAX_RECOVERY_FAILURES = 5;
+          let recoveryFailures = 0;
+          let recoveryGivenUp = false;
           const recoverHostCamera = () => {
-            if (recovering) return;
+            if (recovering || recoveryGivenUp) return;
             const activeRoom = roomRef.current;
             if (activeRoom !== room || room.state !== ConnectionState.Connected) return;
             recovering = true;
-            console.warn('[LiveKitClient] ⚠️ Host camera lost, recovering...');
+            console.warn('[LiveKitClient] ⚠️ Host camera lost, recovering...', { attempt: recoveryFailures + 1 });
+            // Phase-C: small exponential backoff between settle + retry so
+            // we don't hammer the camera HAL on a flapping device.
+            const settleMs = Math.min(80 * (recoveryFailures + 1), 600);
             room.localParticipant.setCameraEnabled(false)
               .catch(() => {})
-              .then(() => new Promise((resolve) => setTimeout(resolve, 80)))
+              .then(() => new Promise((resolve) => setTimeout(resolve, settleMs)))
               .then(async () => {
                 await claimAndroidWebViewCamera('live:web-recover-camera');
                 return room.localParticipant.setCameraEnabled(true);
@@ -1139,10 +1152,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   // Re-attach onended listener to the fresh track
                   const freshMt = (refreshedPub.track as any).mediaStreamTrack as MediaStreamTrack | undefined;
                   if (freshMt) attachOnEnded(freshMt);
+                  // Phase-C: success → reset failure counter so a future
+                  // (unrelated) glitch isn't penalized by prior history.
+                  recoveryFailures = 0;
                 }
               })
               .catch((recoverErr) => {
-                console.error('[LiveKitClient] Host camera recovery failed:', recoverErr);
+                recoveryFailures += 1;
+                console.error('[LiveKitClient] Host camera recovery failed', { attempt: recoveryFailures, err: recoverErr });
+                if (recoveryFailures >= MAX_RECOVERY_FAILURES) {
+                  recoveryGivenUp = true;
+                  console.error('[LiveKitClient] 🛑 Camera recovery gave up after', MAX_RECOVERY_FAILURES, 'attempts');
+                  try {
+                    options.onError?.(new Error('Camera unavailable. Please check camera permission or close other apps using the camera, then restart the stream.'));
+                  } catch { /* ignore */ }
+                  clearHostVideoRecoveryTimer();
+                }
               })
               .finally(() => { recovering = false; });
           };
