@@ -175,8 +175,13 @@ class NativeGiftAnimationPlugin : Plugin() {
         synchronized(jobsLock) {
             if (jobs.size >= MAX_QUEUE_SIZE) {
                 // Drop lowest-priority job to make room — never block enqueue.
-                val lowest = jobs.maxWithOrNull(jobs.comparator().reversed())
-                if (lowest != null && (lowest.priority < priority || lowest.coins < coins)) {
+                // PriorityQueue head = smallest per comparator (highest priority);
+                // tail = largest per comparator (lowest priority). maxWithOrNull
+                // with the queue's own comparator returns that lowest-priority element.
+                val lowest = jobs.maxWithOrNull(jobs.comparator())
+                // Evict only if the incoming job ranks BETTER than the lowest
+                // current job per the SAME comparator (composite pri+coins+ts).
+                if (lowest != null && jobs.comparator().compare(lowest, job) > 0) {
                     jobs.remove(lowest)
                     emit("gift:error", JSObject()
                         .put("id", lowest.id)
@@ -187,6 +192,7 @@ class NativeGiftAnimationPlugin : Plugin() {
             }
             jobs.add(job)
         }
+
         emit("gift:queued", JSObject().put("id", id).put("queueSize", queueSize()))
         activity.runOnUiThread { pump() }
         call.resolve(JSObject().put("id", id).put("queued", true))
@@ -557,8 +563,11 @@ class NativeGiftAnimationPlugin : Plugin() {
         }
     }
 
-    private fun mainHandler(): android.os.Handler =
-        android.os.Handler(android.os.Looper.getMainLooper())
+    // Single shared Handler — MUST be a property, not a function. A new
+    // Handler per call would make removeCallbacks() target the wrong
+    // instance, leaking watchdogs and firing false timeouts.
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
 
     private fun cacheBytes(): Long {
         var total = 0L
