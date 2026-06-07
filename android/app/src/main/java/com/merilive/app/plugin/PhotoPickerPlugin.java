@@ -211,6 +211,16 @@ public class PhotoPickerPlugin extends Plugin {
             return obj;
         } catch (Exception e) {
             return null;
-        }
     }
+
+    @Override
+    protected void handleOnDestroy() {
+        PluginCall c = pendingCall;
+        pendingCall = null;
+        if (c != null) {
+            try { c.reject("picker cancelled", "ACTIVITY_DESTROYED"); } catch (Throwable ignored) {}
+        }
+        super.handleOnDestroy();
+    }
+}
 }
