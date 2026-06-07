@@ -104,6 +104,7 @@ export function useLiveKitCall(
   const [nativeActive, setNativeActive] = useState(false);
   const remoteAudioKeysRef = useRef<Set<string>>(new Set());
   const callVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callCameraPermissionMonitorRef = useRef<(() => void) | null>(null);
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -198,6 +199,10 @@ export function useLiveKitCall(
     if (callVideoRecoveryTimerRef.current) {
       clearInterval(callVideoRecoveryTimerRef.current);
       callVideoRecoveryTimerRef.current = null;
+    }
+    if (callCameraPermissionMonitorRef.current) {
+      try { callCameraPermissionMonitorRef.current(); } catch { /* ignore */ }
+      callCameraPermissionMonitorRef.current = null;
     }
 
     // Pkg73: drop call-signaling registration before tearing the room down.
@@ -682,15 +687,41 @@ export function useLiveKitCall(
         if (callId) registerReactionRoom('call', callId, room);
 
 
-        // Enable camera and microphone. Prefer the stream captured directly
-        // from the user's call/accept tap so Android WebView never needs a
-        // delayed getUserMedia request after async DB/token work.
-        const preparedStream = consumePreparedCallMediaStream(callId);
-        await publishReliableLocalMedia(room, {
-          needVideo: true,
-          needAudio: true,
-          preparedStream,
-        });
+        // Pkg-audit: canPublish guard — if server token denies publish,
+        // warn immediately so user knows this is a one-way call, not a silent black face.
+        const perms = (room.localParticipant as any).permissions;
+        if (perms && perms.canPublish === false) {
+          console.error('[LiveKitCall] Token grants canPublish=false — camera will not send');
+          toast.error('Call token denied camera publish. You may see a black screen.');
+        }
+
+        // Enable camera and microphone with retry (3 attempts).
+        let publishAttempt = 0;
+        let publishError: Error | null = null;
+        while (publishAttempt < 3) {
+          try {
+            const preparedStream = consumePreparedCallMediaStream(callId);
+            await publishReliableLocalMedia(room, {
+              needVideo: true,
+              needAudio: true,
+              preparedStream,
+            });
+            publishError = null;
+            break;
+          } catch (e) {
+            publishError = e instanceof Error ? e : new Error(String(e));
+            publishAttempt++;
+            console.warn(`[LiveKitCall] Publish attempt ${publishAttempt} failed:`, publishError.message);
+            if (publishAttempt < 3) {
+              await new Promise(r => setTimeout(r, 300 * publishAttempt));
+            }
+          }
+        }
+        if (publishError) {
+          console.error('[LiveKitCall] Camera/mic publish failed after 3 attempts:', publishError);
+          toast.error('Camera failed to start. Please check permissions and retry.');
+          throw publishError;
+        }
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
         if (callVideoRecoveryTimerRef.current) clearInterval(callVideoRecoveryTimerRef.current);
 
@@ -742,6 +773,22 @@ export function useLiveKitCall(
           attachCallOnEnded(mediaTrack);
           if (mediaTrack.readyState === 'ended') recoverCallCamera();
         }, 4000);
+
+        // Pkg-audit Camera-bulletproof: monitor OS camera permission revocation
+        if (typeof navigator !== 'undefined' && 'permissions' in navigator) {
+          try {
+            const perm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+            const onPermChange = () => {
+              console.warn('[LiveKitCall] Camera permission changed:', perm.state);
+              if (perm.state === 'denied' || perm.state === 'prompt') {
+                toast.error('Camera permission was revoked. Trying to recover…');
+                recoverCallCamera();
+              }
+            };
+            perm.addEventListener('change', onPermChange);
+            callCameraPermissionMonitorRef.current = () => perm.removeEventListener('change', onPermChange);
+          } catch { /* ignore — some browsers don't support camera permission query */ }
+        }
 
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during
