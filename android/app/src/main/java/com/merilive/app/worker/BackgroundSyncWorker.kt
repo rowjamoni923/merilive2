@@ -55,6 +55,13 @@ class BackgroundSyncWorker(
     }
 
     private fun fetchUnreadTotal(supabaseUrl: String, anonKey: String, jwt: String): Int {
+        // Pkg-audit Tier-11 (Medium): the prior implementation called
+        // conn.disconnect() in two separate branches but never in a finally
+        // block. If outputStream.write, responseCode, or inputStream.read
+        // threw, the HttpURLConnection (and its underlying socket /
+        // keep-alive pool slot) leaked. Wrap everything in a single
+        // try/finally and always drain the error stream so the pool can
+        // recycle the connection.
         val url = URL("$supabaseUrl/rest/v1/rpc/get_background_unread_total")
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
@@ -67,25 +74,26 @@ class BackgroundSyncWorker(
             doOutput = true
             doInput = true
         }
-        conn.outputStream.use { it.write("{}".toByteArray()) }
-        val code = conn.responseCode
-        if (code !in 200..299) {
-            conn.disconnect()
-            android.util.Log.w(TAG, "rpc HTTP $code")
-            return 0
-        }
-        val body = conn.inputStream.bufferedReader().use { it.readText() }
-        conn.disconnect()
-
-        // Supabase RPC returns the bare number for scalar functions
-        return try {
-            body.trim().toInt()
-        } catch (_: NumberFormatException) {
-            try {
-                JSONArray(body).optInt(0, 0)
-            } catch (_: Exception) {
-                try { JSONObject(body).optInt("total", 0) } catch (_: Exception) { 0 }
+        try {
+            conn.outputStream.use { it.write("{}".toByteArray()) }
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                try { conn.errorStream?.bufferedReader()?.use { it.readText() } } catch (_: Exception) {}
+                android.util.Log.w(TAG, "rpc HTTP $code")
+                return 0
             }
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            return try {
+                body.trim().toInt()
+            } catch (_: NumberFormatException) {
+                try {
+                    JSONArray(body).optInt(0, 0)
+                } catch (_: Exception) {
+                    try { JSONObject(body).optInt("total", 0) } catch (_: Exception) { 0 }
+                }
+            }
+        } finally {
+            try { conn.disconnect() } catch (_: Throwable) {}
         }
     }
 

@@ -481,6 +481,13 @@ public class NotificationHelper {
     private static Bitmap fetchBitmapBestEffort(String url) {
         if (url == null || url.isEmpty()) return null;
         if (!(url.startsWith("http://") || url.startsWith("https://"))) return null;
+        // Pkg-audit Tier-11 (Medium): the prior version decoded the remote
+        // bitmap at full resolution, which could be 4000x4000 = 64MB heap
+        // for a single notification — guaranteed OOM on low-RAM devices.
+        // Two-pass decode: read bounds first, then choose inSampleSize
+        // targeting ~512px max edge (plenty for notification largeIcon /
+        // bigPicture). Bytes are buffered to a small in-memory array so
+        // we don't hold the socket open across two reads.
         HttpURLConnection conn = null;
         InputStream is = null;
         try {
@@ -491,7 +498,30 @@ public class NotificationHelper {
             conn.setReadTimeout(6000);
             conn.connect();
             is = conn.getInputStream();
-            return BitmapFactory.decodeStream(is);
+            // Cap the raw download at 4MB to avoid pathological payloads.
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int total = 0;
+            int n;
+            while ((n = is.read(buf)) > 0) {
+                total += n;
+                if (total > 4 * 1024 * 1024) return null;
+                baos.write(buf, 0, n);
+            }
+            byte[] raw = baos.toByteArray();
+            if (raw.length == 0) return null;
+
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(raw, 0, raw.length, bounds);
+            int maxEdge = Math.max(bounds.outWidth, bounds.outHeight);
+            int sample = 1;
+            while (maxEdge / sample > 512) sample *= 2;
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            return BitmapFactory.decodeByteArray(raw, 0, raw.length, opts);
         } catch (Throwable ignored) {
             return null;
         } finally {

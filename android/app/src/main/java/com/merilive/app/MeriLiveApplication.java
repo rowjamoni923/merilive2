@@ -80,11 +80,22 @@ public class MeriLiveApplication extends Application {
         }
 
 
-        // Catch any uncaught crash on background threads so the WebView
-        // process keeps the app visible and the user gets a recoverable UI
-        // rather than a hard "App keeps stopping" dialog on first launch.
+        // Pkg-audit Tier-11 (Critical): we MUST chain to the previous
+        // uncaught-exception handler. Firebase Crashlytics installs its
+        // own handler during FirebaseApp.initializeApp(); replacing it
+        // without delegating silently disabled all crash reporting.
+        final Thread.UncaughtExceptionHandler previous =
+            Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-            Log.e(TAG, "Uncaught exception in thread " + t.getName(), e);
+            try {
+                Log.e(TAG, "Uncaught exception in thread " + t.getName(), e);
+            } catch (Throwable ignored) {}
+            if (previous != null) {
+                // Hand off to Crashlytics (and ultimately the system handler)
+                // so the crash is reported AND the process is torn down
+                // cleanly instead of being left in a half-dead state.
+                previous.uncaughtException(t, e);
+            }
         });
     }
 

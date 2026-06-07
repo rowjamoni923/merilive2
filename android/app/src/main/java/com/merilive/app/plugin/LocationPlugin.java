@@ -47,6 +47,11 @@ public class LocationPlugin extends Plugin {
 
     private FusedLocationProviderClient client;
     private LocationCallback streamCallback;
+    // Pkg-audit Tier-11 (High): retain the kept-alive watch call so we can
+    // release it from the bridge on clearWatch / replacement / destroy.
+    // Previously the saved JS callback was leaked on every clearWatch() and
+    // every re-watch, growing the bridge's savedCalls map indefinitely.
+    private PluginCall savedWatchCall;
 
     @Override
     public void load() {
@@ -102,7 +107,9 @@ public class LocationPlugin extends Plugin {
     @PluginMethod
     public void watch(final PluginCall call) {
         if (!hasPerm()) { call.reject("permission-denied"); return; }
-        long intervalMs = call.getLong("intervalMs", 30_000L);
+        // Pkg-audit Tier-11: clamp to >=1s to avoid setMinUpdateIntervalMillis(0)
+        // and crash on LocationRequest.Builder when caller passes <= 0.
+        long intervalMs = Math.max(1000L, call.getLong("intervalMs", 30_000L));
         final boolean precise = Boolean.TRUE.equals(call.getBoolean("precise", false));
         call.setKeepAlive(true);
 
@@ -110,9 +117,14 @@ public class LocationPlugin extends Plugin {
             LocationRequest req = new LocationRequest.Builder(
                 precise ? Priority.PRIORITY_HIGH_ACCURACY : Priority.PRIORITY_BALANCED_POWER_ACCURACY,
                 intervalMs
-            ).setMinUpdateIntervalMillis(intervalMs / 2).build();
+            ).setMinUpdateIntervalMillis(Math.max(500L, intervalMs / 2)).build();
 
             stopStream();
+            // Release any previously saved watch call before overwriting.
+            releaseSavedWatchCall();
+            savedWatchCall = call;
+            bridge.saveCall(call);
+
             streamCallback = new LocationCallback() {
                 @Override public void onLocationResult(LocationResult result) {
                     Location loc = result.getLastLocation();
@@ -121,26 +133,40 @@ public class LocationPlugin extends Plugin {
             };
             client.requestLocationUpdates(req, streamCallback, Looper.getMainLooper());
         } catch (SecurityException e) {
+            releaseSavedWatchCall();
             call.reject("permission-denied", e.getMessage());
+        } catch (Throwable t) {
+            releaseSavedWatchCall();
+            call.reject("watch-failed", t.getMessage());
         }
     }
 
     @PluginMethod
     public void clearWatch(PluginCall call) {
         stopStream();
+        releaseSavedWatchCall();
         call.resolve();
     }
 
     private void stopStream() {
         if (streamCallback != null) {
-            client.removeLocationUpdates(streamCallback);
+            try { client.removeLocationUpdates(streamCallback); } catch (Throwable ignored) {}
             streamCallback = null;
+        }
+    }
+
+    private void releaseSavedWatchCall() {
+        PluginCall c = savedWatchCall;
+        savedWatchCall = null;
+        if (c != null) {
+            try { bridge.releaseCall(c); } catch (Throwable ignored) {}
         }
     }
 
     @Override
     protected void handleOnDestroy() {
         stopStream();
+        releaseSavedWatchCall();
         super.handleOnDestroy();
     }
 
