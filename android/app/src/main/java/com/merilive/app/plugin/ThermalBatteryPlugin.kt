@@ -187,7 +187,12 @@ class ThermalBatteryPlugin : Plugin() {
                 } catch (_: Throwable) {}
             }
         }
-        context.registerReceiver(r, filter)
+        // Pkg-audit Tier-13: same RECEIVER_NOT_EXPORTED guard for API 33+
+        // — system-only broadcast, must be explicitly flagged.
+        androidx.core.content.ContextCompat.registerReceiver(
+            context, r, filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         powerSaveReceiver = r
     }
 
