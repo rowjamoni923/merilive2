@@ -240,6 +240,23 @@ class NativeImageLoaderPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        // Restore the original WebViewClient so the destroyed plugin isn't
+        // pinned in memory by the WebView's reference to our anonymous client.
+        try {
+            if (interceptorInstalled) {
+                activity?.runOnUiThread {
+                    try {
+                        val wv = bridge?.webView
+                        val prev = originalClient
+                        if (wv != null && prev != null) {
+                            wv.webViewClient = prev
+                        }
+                    } catch (_: Throwable) {}
+                    interceptorInstalled = false
+                    originalClient = null
+                }
+            }
+        } catch (_: Throwable) {}
         try { ioPool.shutdownNow() } catch (_: Throwable) {}
         super.handleOnDestroy()
     }
