@@ -233,6 +233,14 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (!serviceAccountJson) {
+      // Bug-fix #3 (call silent fail): previously this returned `ok:true` with
+      // reason="fcm_not_configured", so the caller's UI showed "ringing" while
+      // the callee's phone (if backgrounded/killed) never rang. We still
+      // return HTTP 200 (the in-app notifications row above already delivers
+      // to foregrounded callees), but now we explicitly mark `ok:false`,
+      // `fcmConfigured:false`, AND `requiresAttention:true` so the client UI
+      // can warn the caller: "Push not configured — recipient may not be
+      // notified if the app is closed."
       await admin.from("call_delivery_log").insert({
         call_id: callId,
         callee_id: calleeId,
@@ -242,18 +250,23 @@ serve(async (req: Request): Promise<Response> => {
         error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
         device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
       });
+      console.warn("[call-deliver] FIREBASE_SERVICE_ACCOUNT_JSON missing — push delivery skipped. Set the secret to enable background-ring delivery.");
       return new Response(JSON.stringify({
-        ok: true,
+        ok: false,
         reason: "fcm_not_configured",
+        fcmConfigured: false,
+        requiresAttention: true,
         attempts: 0,
         fcmDelivered: false,
         notifInsertOk,
         lastResults,
+        warning: "Push not configured — recipient will only be notified if the app is in the foreground.",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
 
     const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
@@ -393,6 +406,7 @@ serve(async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         ok: true,
+        fcmConfigured: true,
         attempts: maxRetries,
         fcmDelivered: anyFcmOk,
         notifInsertOk,
@@ -400,6 +414,7 @@ serve(async (req: Request): Promise<Response> => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("[call-deliver]", e);

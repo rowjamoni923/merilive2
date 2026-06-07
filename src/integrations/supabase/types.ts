@@ -18447,6 +18447,7 @@ export type Database = {
         Args: { _object_name: string }
         Returns: boolean
       }
+      can_user_create_party: { Args: never; Returns: Json }
       can_user_go_live: { Args: never; Returns: Json }
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
       cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
