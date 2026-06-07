@@ -21,7 +21,10 @@ import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
 import { getPersistentDeviceId, getDeviceIdSync } from "@/utils/persistentDeviceId";
 import { getSessionFromNative } from "@/utils/nativeSessionStorage";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
-import { detectCountryViaIP, getCountryFlag, countryNamesEnglish } from "@/hooks/useGeolocation";
+// Geolocation helpers are loaded lazily — they're a 600+ line module with
+// country/IP detection that's only needed AFTER the user submits, so we keep
+// them out of the initial Auth bundle for a faster first paint.
+const loadGeolocation = () => import("@/hooks/useGeolocation");
 import { COUNTRY_CODES } from "@/data/countryCodes";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -743,8 +746,9 @@ const Auth = () => {
       }
 
       // Fallback to client-side only if server-side fails
+      const geo = await loadGeolocation();
       if (!countryCode) {
-        const ipResult = await detectCountryViaIP();
+        const ipResult = await geo.detectCountryViaIP();
         if (!ipResult) {
           console.log('[Auth] ALL detection methods failed - country will be null');
           return;
@@ -756,8 +760,8 @@ const Auth = () => {
         console.log('[Auth] Client-side fallback detection:', countryCode);
       }
 
-      const countryFlag = getCountryFlag(countryCode);
-      const countryName = countryNamesEnglish[countryCode] || "Unknown";
+      const countryFlag = geo.getCountryFlag(countryCode);
+      const countryName = geo.countryNamesEnglish[countryCode] || "Unknown";
 
       const deviceInfo = {
         userAgent: navigator.userAgent,
@@ -2352,6 +2356,7 @@ const Auth = () => {
       </div>
 
       {/* Gender + Name Combined Dialog (Start flow & Email flow) */}
+      {authStep === "gender" && (
       <Dialog open={authStep === "gender"} onOpenChange={() => closeDialog()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-pink-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-rose-500/30 to-amber-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -2480,8 +2485,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Name Entry Dialog kept for backward compat but redirects to gender */}
+      {authStep === "name" && (
       <Dialog open={authStep === "name"} onOpenChange={() => { setAuthStep("gender"); }}>
         <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70">
           <DialogHeader>
@@ -2492,8 +2499,10 @@ const Auth = () => {
           </DialogHeader>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* NEW Email Flow - Step 1: Email Input - ULTRA PREMIUM */}
+      {authStep === "email" && (
       <Dialog open={authStep === "email"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-purple-900/40">
           {/* Animated gradient border */}
@@ -2570,8 +2579,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* NEW Email Flow - Step 2: OTP Verification - ULTRA PREMIUM */}
+      {authStep === "email_otp" && (
       <Dialog open={authStep === "email_otp"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-emerald-900/30">
           {/* Animated gradient border */}
@@ -2651,10 +2662,12 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Gender selection removed - will be shown on Home page after login */}
 
       {/* NEW Email Flow - Step 4: Name & Password - ULTRA PREMIUM */}
+      {authStep === "email_password" && (
       <Dialog open={authStep === "email_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-violet-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-500/40 via-pink-500/30 to-purple-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -2717,8 +2730,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* OTP Verification Dialog - ULTRA PREMIUM */}
+      {authStep === "otp_verify" && (
       <Dialog open={authStep === "otp_verify"} onOpenChange={() => closeDialog()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-pink-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-violet-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -2766,8 +2781,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Login Dialog - ULTRA PREMIUM */}
+      {authStep === "login" && (
       <Dialog open={authStep === "login"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-indigo-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-500/40 via-purple-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -2814,8 +2831,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Phone Number Input Dialog */}
+      {authStep === "phone_input" && (
       <Dialog open={authStep === "phone_input"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -2956,8 +2975,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Phone OTP Verification Dialog */}
+      {authStep === "phone_otp" && (
       <Dialog open={authStep === "phone_otp"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-teal-500/30 to-emerald-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -3029,8 +3050,10 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Phone Flow - Name & Password (after phone verification) */}
+      {authStep === "phone_password" && (
       <Dialog open={authStep === "phone_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
@@ -3092,6 +3115,7 @@ const Auth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
       </div>
     </div>
   );
