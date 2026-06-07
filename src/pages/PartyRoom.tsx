@@ -2280,6 +2280,7 @@ const PartyRoom = () => {
       {nameBarAnimations.length > 0 && (
         <EntryNameBarAnimation
           key={nameBarAnimations[0].id}
+          userId={nameBarAnimations[0].userId}
           userName={nameBarAnimations[0].displayName}
           userLevel={nameBarAnimations[0].level}
           avatarUrl={nameBarAnimations[0].avatarUrl}
@@ -2287,6 +2288,7 @@ const PartyRoom = () => {
           onComplete={() => removeNameBarAnimation(nameBarAnimations[0].id)}
         />
       )}
+
 
       {/* Flying Gift Animation */}
       <AnimatePresence>
