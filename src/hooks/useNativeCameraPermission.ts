@@ -171,10 +171,11 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     try {
       console.log(`[Camera] Attempt ${i + 1}/${constraintOptions.length}`);
       const stream = await withTimeout(
-        claimAndroidWebViewCameraForStream(() => navigator.mediaDevices.getUserMedia(constraintOptions[i]), `camera-stream:${i + 1}`),
+        navigator.mediaDevices.getUserMedia(constraintOptions[i]),
         9000,
         'Camera stream request timed out',
       );
+      releaseAndroidWebViewCameraWhenStopped(stream, `camera-stream:${i + 1}`);
       const videoTracks = stream.getVideoTracks();
       const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
       if (!hasLiveVideo) {
