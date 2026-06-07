@@ -34,9 +34,25 @@ export async function releaseAndroidWebViewCameraNow(reason: string): Promise<vo
   if (!isNativeLiveKitAvailable()) return;
   webViewVideoClaimCount = 0;
   try {
+    // Fix 2 — releaseCameraForWebView now blocks on the native side until
+    // CameraManager.AvailabilityCallback fires or the OEM grace elapses.
+    // Awaiting the promise is enough — no extra delay needed here.
     await NativeLiveKit.releaseCameraForWebView();
     console.log(`[AndroidCameraHandoff] released WebView camera: ${reason}`);
   } catch { /* native optional */ }
+}
+
+/**
+ * Fix 5 — query the native Camera2 advisory arbiter so the JS ProCameraEngine
+ * can coordinate its own lock. Returns null when the camera is free, or the
+ * owner string (e.g. "livekit", "native-camera").
+ */
+export async function getAndroidCameraOwner(): Promise<string | null> {
+  if (!isNativeLiveKitAvailable()) return null;
+  try {
+    const res = await (NativeLiveKit as any).getCameraOwner?.();
+    return res?.owner ?? null;
+  } catch { return null; }
 }
 
 export function releaseAndroidWebViewCameraWhenStopped(stream: MediaStream | null | undefined, reason: string): void {
