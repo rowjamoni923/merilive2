@@ -190,9 +190,11 @@ class NativeSVGAPlugin : Plugin() {
                 tmp.delete()
             }
         } finally {
-            conn.disconnect()
+            try { conn.disconnect() } catch (_: Throwable) {}
+            // Clean up orphan .tmp left behind by interruption or copy failure.
+            try { if (tmp.exists() && !target.exists()) tmp.delete() } catch (_: Throwable) {}
         }
-        
+
         downloadCache[url] = target
         return target
     }
