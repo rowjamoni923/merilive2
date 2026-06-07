@@ -843,26 +843,10 @@ const GoLive = () => {
       return;
     }
 
-    if (isNativeAndroid && !nativePreviewActive) {
-      const started = await startNativePreview();
-      if (!started) {
-        // Fallback: try web camera instead of blocking Go Live
-        console.warn('[GoLive] Native camera failed on Go Live, trying web camera fallback');
-        try {
-          const fallbackStream = await getCameraStream(true);
-          if (fallbackStream) {
-            setStream(fallbackStream);
-            attachWebPreviewStream(fallbackStream);
-            setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-          } else {
-            toast.error('Camera failed to start. Please allow camera permission and retry.');
-            return;
-          }
-        } catch {
-          toast.error('Camera failed to start. Please allow camera permission and retry.');
-          return;
-        }
-      }
+    if (!streamRef.current?.getVideoTracks().some((track) => track.readyState === 'live')) {
+      setShowPermissionPrompt(true);
+      toast.error('Please allow camera and microphone first.');
+      return;
     }
 
     // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.
