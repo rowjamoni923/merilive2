@@ -759,7 +759,16 @@ const LiveStream = () => {
       recordClientError({ label: "LiveStream.deltaY", message: msg });
       // Viewer-side: stream ended/inactive → friendly toast + navigate home (no blank screen)
       if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
-        toast.info('This live stream has ended.');
+        // Phase G bug-fix #1: differentiate the two cases — `stream_inactive`
+        // really means the host ended the stream, `must_enter_stream_first`
+        // only fires now for non-public (password / followers / pk_only)
+        // streams where the entry RPC genuinely didn't run. Public streams
+        // are auto-entered server-side so this branch never fires for them.
+        if (/must_enter_stream_first/i.test(msg)) {
+          toast.error('Unable to join this stream — please try again.');
+        } else {
+          toast.info('This live stream has ended.');
+        }
         try { navigate('/', { replace: true }); } catch { /* ignore */ }
         return;
       }
