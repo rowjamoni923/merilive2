@@ -122,6 +122,26 @@ export function _getRegisteredRoom(scope: StreamScope, id: string): Room | null 
   return registry.get(key(scope, id))?.room ?? null;
 }
 
+/**
+ * Phase-3 C4: force-disconnect every registered Room.
+ * Called from CallProvider before accepting a private call so the prior
+ * live-stream / party-room LiveKit session releases mic/camera before
+ * the private call takes over.  Ignores non-connected rooms and swallows
+ * errors so a single bad room cannot block call acceptance.
+ */
+export function disconnectAllRegisteredRooms() {
+  registry.forEach((entry) => {
+    try {
+      const s = (entry.room as any).state;
+      if (s === 'connected' || s === 'reconnecting') {
+        entry.room.disconnect(true);
+      }
+    } catch {
+      /* ignore — room may already be tearing down */
+    }
+  });
+}
+
 
 // ─── Text streams ─────────────────────────────────────────────────────────
 

@@ -55,7 +55,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || SUPABASE_ANON_KEY;
       
-      await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_online_status`, {
+      await fetch(`${SUPABASE_URL}/rest/v1/rpc/sync_host_online_status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     lastOnlineSet.current = now;
 
     try {
-      await supabase.rpc('update_online_status', { p_user_id: uid, p_is_online: true });
+      await supabase.rpc('sync_host_online_status', { p_user_id: uid, p_is_online: true });
       console.log('[Presence] 🟢 Set ONLINE for:', uid);
     } catch (e) {
       console.error('[Presence] Failed to set online:', e);
@@ -128,7 +128,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         // Check if host was manually offline — regular users always go online
         if (localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true' || !profile?.is_host) {
-          void (async () => { try { await supabase.rpc('update_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
+          void (async () => { try { await supabase.rpc('sync_host_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
         }
 
         // Register FCM push notification token
@@ -221,8 +221,36 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('[Presence] Starting presence tracking for:', userId);
 
     // Set online immediately
-    setOnlineStatus(userId);
-    
+    void setOnlineStatus(userId);
+
+    // Phase-3 C7: after coming back online, check for missed calls that are
+    // still pending/ringing within the timeout window and re-fire the incoming
+    // call notification so the modal pops up instantly.
+    void (async () => {
+      try {
+        const { data: missedCalls } = await supabase
+          .from('private_calls')
+          .select('id, caller_id, created_at, status')
+          .eq('host_id', userId)
+          .in('status', ['pending', 'ringing'])
+          .gt('created_at', new Date(Date.now() - 120_000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (missedCalls && missedCalls.length > 0) {
+          const call = missedCalls[0];
+          window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+            detail: {
+              type: 'incoming_call',
+              data: { call_id: call.id, caller_id: call.caller_id },
+            },
+          }));
+          console.log('[Presence] 🔔 Re-ringing missed call:', call.id);
+        }
+      } catch {
+        /* ignore — non-critical re-ring path */
+      }
+    })();
+
     // Run cleanup
     runCleanupIfDue();
     const cleanupInterval = setInterval(() => runCleanupIfDue(), CLEANUP_COOLDOWN_MS);
@@ -260,7 +288,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export async function goOfflineManually(userId: string) {
   localStorage.setItem(MANUAL_OFFLINE_KEY, 'true');
   try {
-    await supabase.rpc('update_online_status', { p_user_id: userId, p_is_online: false });
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: false });
     console.log('[Presence] 🔴 Manual offline for:', userId);
   } catch (e) {
     console.error('[Presence] Manual offline failed:', e);
@@ -273,7 +301,7 @@ export async function goOfflineManually(userId: string) {
 export async function goOnlineManually(userId: string) {
   localStorage.removeItem(MANUAL_OFFLINE_KEY);
   try {
-    await supabase.rpc('update_online_status', { p_user_id: userId, p_is_online: true });
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: true });
     console.log('[Presence] 🟢 Manual online for:', userId);
   } catch (e) {
     console.error('[Presence] Manual online failed:', e);

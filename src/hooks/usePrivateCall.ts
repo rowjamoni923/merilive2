@@ -223,10 +223,11 @@ export function usePrivateCall(userId: string | null) {
       console.log(`[Call] Call ${callIdToReset} is now dead forever.`);
     }
 
-    // Keep callEndedRef true for 3 seconds to block any stale events
-    setTimeout(() => {
-      callEndedRef.current = false;
-    }, 3000);
+    // Phase-3 C3: the 3-second cooldown is REMOVED.  Per-callId block in
+    // endedCallIdsRef is sufficient — the cooldown used to silently block
+    // Accept on a brand-new incoming call that arrived within 3s of ending a
+    // previous call.  Keep callEndedRef false so the next call can come in
+    // immediately.
 
     
     // Auto-clean old entries from endedCallIdsRef after 5 minutes to prevent memory growth
@@ -256,7 +257,8 @@ export function usePrivateCall(userId: string | null) {
       NativeCamera.stop().catch(() => {});
       clearPreparedCallMediaStream(cid, { stopTracks: true });
     }
-    setTimeout(() => { callEndedRef.current = false; }, 3000);
+    // Phase-3 C3: 3s cooldown removed — endedCallIdsRef is sufficient.
+    // Do NOT set a timeout that blocks new incoming calls.
     if (endedCallIdsRef.current.size > 20) {
       const idsArray = Array.from(endedCallIdsRef.current);
       endedCallIdsRef.current = new Set(idsArray.slice(-10));
