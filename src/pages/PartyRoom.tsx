@@ -1346,7 +1346,27 @@ const PartyRoom = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
         (payload: any) => {
+          // Pkg-audit MEDIUM: INSTANT participant count update.
+          // Don't wait 250ms debounce + REST fetch — patch state from payload
+          // first so viewerCount={participants.length} updates immediately.
+          // Debounced refetch still runs to hydrate full profile fields.
+          try {
+            const newRow = payload.new || {};
+            const oldRow = payload.old || {};
+            if (payload.eventType === 'INSERT' && newRow.user_id && !newRow.left_at) {
+              setParticipants(prev => prev.some(p => p.user_id === newRow.user_id)
+                ? prev
+                : [...prev, { ...newRow } as Participant]);
+            } else if (payload.eventType === 'DELETE' && oldRow.user_id) {
+              setParticipants(prev => prev.filter(p => p.user_id !== oldRow.user_id));
+            } else if (payload.eventType === 'UPDATE' && newRow.user_id) {
+              if (newRow.left_at) {
+                setParticipants(prev => prev.filter(p => p.user_id !== newRow.user_id));
+              }
+            }
+          } catch { /* ignore */ }
           scheduleRefetch();
+
           // Pkg383 safety-net: welcome popup + join chat from Postgres INSERT
           // when LiveKit participant_joined fanout is missed.
           if (payload.eventType !== 'INSERT') return;
