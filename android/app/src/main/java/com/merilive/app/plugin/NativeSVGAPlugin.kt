@@ -63,9 +63,16 @@ class NativeSVGAPlugin : Plugin() {
             }
 
             activity.runOnUiThread {
+                var streamClosed = false
+                val inputStream = try { localFile.inputStream() } catch (t: Throwable) {
+                    call.reject("svga open failed: ${t.message}")
+                    return@runOnUiThread
+                }
                 try {
                     ensureOverlay(fillScreen)
                     val sv = svgaView ?: run {
+                        try { inputStream.close() } catch (_: Throwable) {}
+                        streamClosed = true
                         call.reject("overlay init failed")
                         return@runOnUiThread
                     }
@@ -73,13 +80,11 @@ class NativeSVGAPlugin : Plugin() {
                     sv.clearsAfterStop = true
 
                     val parser = SVGAParser.shareParser().apply { init(context) }
-                    
-                    // Use file input if possible for instant loading from disk
-                    val inputStream = localFile.inputStream()
+
                     parser.decodeFromInputStream(inputStream, localFile.absolutePath, object : SVGAParser.ParseCompletion {
                         override fun onComplete(videoItem: SVGAVideoEntity) {
                             try {
-                                inputStream.close()
+                                try { inputStream.close() } catch (_: Throwable) {}
                                 sv.setVideoItem(videoItem)
                                 sv.setCallback(object : SVGACallback {
                                     override fun onPause() {}
@@ -104,6 +109,7 @@ class NativeSVGAPlugin : Plugin() {
                         }
                     }, true)
                 } catch (t: Throwable) {
+                    if (!streamClosed) try { inputStream.close() } catch (_: Throwable) {}
                     call.reject("svga setup failed: ${t.message}")
                 }
             }
