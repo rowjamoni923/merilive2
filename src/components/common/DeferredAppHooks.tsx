@@ -72,7 +72,7 @@ const DeferredAppHooks = memo(forwardRef<HTMLDivElement, { userId: string | null
   if (isAdminRoute) return null;
   return (
     <>
-      <GlobalNotificationsMount />
+      {/* GlobalNotificationsMount moved into CallProvider — see C1 note above */}
       <SessionDebugOverlay userId={singleDeviceUserId} />
       {/* Pkg255: shake-to-feedback dialog (Android shake → feedback, no-op on web/iOS until openFeedbackDialog() is called) */}
       <FeedbackDialog />
