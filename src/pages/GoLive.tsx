@@ -481,48 +481,10 @@ const GoLive = () => {
         setIsLoading(false);
       }
 
-      // Pkg365: "Premium Auto-Start" camera behavior.
-      // Check if permission is ALREADY granted (cached) — only then auto-start
-      if (!useLiveKit && isMounted) {
-        const permissionState = await checkPermissionStatus();
-        
-        // On native, we are more aggressive: if we have a cache or if the state 
-        // is 'prompt', we try to auto-start. If it fails, only THEN we show the UI.
-        const shouldAttemptAutoStart = permissionState === 'granted' || (isNativeAndroid && permissionState === 'prompt');
-
-        if (shouldAttemptAutoStart) {
-          console.log('[GoLive] Attempting premium auto-start...');
-          try {
-            if (isNativeAndroid) {
-              const started = await startNativePreview();
-              if (isMounted) {
-                setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-                if (!started) {
-                  const fallbackStream = await getCameraStream(true);
-                  if (fallbackStream && isMounted) {
-                    setStream(fallbackStream);
-                    attachWebPreviewStream(fallbackStream);
-                  }
-                }
-              }
-            } else {
-              const mediaStream = await getCameraStream(true);
-              if (isMounted && mediaStream) {
-                setStream(mediaStream);
-                setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
-                attachWebPreviewStream(mediaStream);
-              }
-            }
-          } catch (err: any) {
-            console.warn('[GoLive] Auto-start camera failed:', err?.message);
-            // Only show UI if auto-start truly fails (e.g. user denied)
-            if (isMounted) setShowPermissionPrompt(true);
-          }
-        } else {
-          // Explicitly denied or needs prompt on web
-          if (isMounted) setShowPermissionPrompt(true);
-        }
-      }
+        // Camera must start from a real tap/click. Auto-starting from mount can
+        // make browsers/WebViews ignore the later Allow action, so always show
+        // the explicit permission button here.
+        if (!useLiveKit && isMounted) setShowPermissionPrompt(true);
     };
     
     initializeGoLive();
