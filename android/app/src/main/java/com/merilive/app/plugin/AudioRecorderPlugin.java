@@ -190,7 +190,11 @@ public class AudioRecorderPlugin extends Plugin {
             if (wantBase64 && outputFile.length() <= 25 * 1024 * 1024) {
                 byte[] bytes = new byte[(int) outputFile.length()];
                 try (FileInputStream fis = new FileInputStream(outputFile)) {
-                    fis.read(bytes);
+                    int offset = 0, remaining = bytes.length, n;
+                    while (remaining > 0 && (n = fis.read(bytes, offset, remaining)) != -1) {
+                        offset += n;
+                        remaining -= n;
+                    }
                 }
                 ret.put("base64", Base64.encodeToString(bytes, Base64.NO_WRAP));
             }
