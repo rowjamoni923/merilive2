@@ -991,33 +991,11 @@ const GoLive = () => {
         return;
       }
 
-      // Emergency cleanup: close any stale active stream for this host before creating a new one
-      const nowIso = new Date().toISOString();
-      const { data: staleStreams } = await supabase
-        .from("live_streams")
-        .select("id")
-        .eq("host_id", user.id)
-        .eq("is_active", true);
-
-      if (staleStreams && staleStreams.length > 0) {
-        const staleIds = staleStreams.map((s) => s.id);
-
-        await Promise.all([
-          supabase
-            .from("stream_viewers")
-            .update({ left_at: nowIso })
-            .in("stream_id", staleIds)
-            .is("left_at", null),
-          supabase
-            .from("live_streams")
-            .update({ is_active: false, ended_at: nowIso, viewer_count: 0 })
-            .in("id", staleIds),
-        ]);
-      }
-
       // Create live stream record through the server RPC so title moderation,
       // host eligibility, one-active-stream cleanup, privacy defaults, and
-      // server-managed counters all stay in one DB-controlled path.
+      // server-managed counters all stay in one DB-controlled path. Do not
+      // directly patch stream_viewers/live_streams here: those fields are
+      // guarded and the trusted RPC closes stale host sessions safely.
       const streamTitle = title.trim() || `${userProfile?.display_name || 'User'}'s Live`;
 
       const { data: startResult, error } = await supabase.rpc('start_live_stream', {

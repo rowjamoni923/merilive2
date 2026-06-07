@@ -1379,9 +1379,20 @@ export function UnifiedPartyRoom({
             />
           )}
           <div className="flex flex-col">
-            <span className="text-white font-semibold text-sm truncate max-w-[120px]">{roomName}</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-white font-semibold text-sm truncate max-w-[112px]">{hostInfo?.displayName || roomName}</span>
+              {hostInfo && (
+                <span className="shrink-0 rounded px-1.5 py-0.5 text-[8px] font-black text-white bg-gradient-to-r from-fuchsia-500 to-rose-500 shadow-sm">
+                  Lv.{hostInfo.level || 1}
+                </span>
+              )}
+              <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[7px] font-black text-white bg-red-500 shadow-sm">
+                LIVE
+              </span>
+            </div>
             <div className="flex items-center gap-1.5 text-[10px]">
               <CountryFlag code={hostCountryCode} emoji={hostCountryFlag || '🌍'} className="w-[16px] h-[11px]" />
+              <span className="text-white/70 truncate max-w-[86px]">{roomName}</span>
               <button
                 onClick={onOpenGiftContributors}
                 className="inline-flex items-center"
