@@ -208,7 +208,8 @@ dependencies {
 
     // ===== LiveKit Android SDK (Native WebRTC) =====
     // Publishes camera + mic as native WebRTC tracks for Live + Private Call.
-    implementation 'io.livekit:livekit-android:2.7.0'
+    // 2.22.1+ includes Android camera-disconnect cleanup fixes; keep native app aligned.
+    implementation 'io.livekit:livekit-android:2.23.4'
 
     // ===== MediaPipe Tasks Vision (Step 36 — virtual background / blur) =====
     // On-device person-segmentation for VirtualBackgroundProcessor. Runs the

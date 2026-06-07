@@ -137,7 +137,8 @@ import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
-import { claimAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
+import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
@@ -797,6 +798,14 @@ const LiveStream = () => {
       }
     },
   });
+
+  const liveStreamCamera = useProCamera('live-stream', location.state?.isHost === true || (isHost && isHostVerified));
+
+  useEffect(() => {
+    if (liveStreamCamera.error) {
+      toast.error('Camera is in use by another feature. Please close it and try again.');
+    }
+  }, [liveStreamCamera.error]);
 
   // Pkg444 Phase-6: host mic auto-mutes on transient audio-focus loss
   // (incoming phone call, alarm, voice assistant) and restores on gain
@@ -2030,6 +2039,13 @@ const LiveStream = () => {
 
   useEffect(() => {
     if (localVideoTrack && hostTransitionPreviewStream) {
+      const activeTrack = (localVideoTrack as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+      hostTransitionPreviewStream.getTracks().forEach((track) => {
+        if (track !== activeTrack) {
+          try { track.stop(); } catch { /* ignore */ }
+        }
+      });
+      void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
       setHostTransitionPreviewStream(null);
     }
   }, [localVideoTrack, hostTransitionPreviewStream]);
@@ -2098,6 +2114,12 @@ const LiveStream = () => {
     return () => {
       console.log('🧹 Component unmounting, cleaning up...');
       const wasHost = verifiedHostRef.current === true || initialHostRole;
+      if (initialHostRole && hostTransitionPreviewStream) {
+        hostTransitionPreviewStream.getTracks().forEach((track) => {
+          try { track.stop(); } catch { /* ignore */ }
+        });
+        void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+      }
       
       // Pkg385: Enhanced host cleanup. We still avoid closing on momentary
       // churn (e.g. PiP transition), but we MUST close if the user is truly
