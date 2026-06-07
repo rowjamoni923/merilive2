@@ -11,6 +11,16 @@ import {
   logAnimationCompletion,
   type AnimationCompletionSource,
 } from '@/utils/animationDebug';
+import {
+  circularizeAvatar,
+  applyDynamicImage,
+  applyDynamicText,
+  AVATAR_KEY_ALIASES,
+  FRAME_KEY_ALIASES,
+  NAME_KEY_ALIASES,
+  LEVEL_KEY_ALIASES,
+  type SVGAText,
+} from '@/utils/svgaDynamicAssets';
 
 
 interface SVGAPlayerWithAudioProps {
@@ -29,6 +39,17 @@ interface SVGAPlayerWithAudioProps {
   soundUrl?: string | null;
   /** Changing this key re-triggers the audio segments without restarting the animation */
   triggerKey?: string | number;
+  /**
+   * Industry-standard dynamic compositing (Chamet / BIGO parity).
+   * If the SVGA template was authored with placeholder ImageKeys like
+   * `avatar`, `frame`, `name`, `level`, these values are injected into
+   * the timeline BEFORE startAnimation so they move with the animation.
+   * Templates without these keys silently ignore the injection.
+   */
+  dynamicAvatarUrl?: string | null;
+  dynamicFrameUrl?: string | null;
+  dynamicName?: SVGAText | null;
+  dynamicLevel?: SVGAText | null;
 }
 
 const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
