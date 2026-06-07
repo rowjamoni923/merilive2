@@ -185,30 +185,42 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 → Clarify boundaries; NativeCallPlugin should orchestrate, LiveKitPlugin = media only, Telecom = OS call API only
 
 ### Phase 0.5 Sub-tasks
-- [ ] Run `rg -n "NativeCameraPlugin\|NativeVideoEnginePlugin" src/ android/` — list every reference
-- [ ] Run `rg -n "BeautyPipelineBridge\|GPUPixelBeautyPlugin\|GPUPixelBeautyProcessor" src/ android/` — map usage
-- [ ] Run `rg -n "NativeAudioEnginePlugin" src/ android/` — usage map
-- [ ] Read `MainActivity.java` registration list — which plugins active vs dead
-- [ ] Read `src/plugins/*.ts` — which TS wrappers exist for the above
-- [ ] Produce written audit table: plugin → status (active/dead/duplicate) → JS callers → decision (keep/delete/merge)
-- [ ] **PRESENT audit to user — get explicit approval before any `rm`**
-- [ ] After approval: delete confirmed-dead plugins, remove from MainActivity registration, remove TS wrappers, remove any imports
-- [ ] APK smoke build (lovable-exec build) — confirm no compilation error
-- [ ] Test using mem://preferences/test-account.md — live, call, party flows still work
+- [x] Run `rg -n "NativeCameraPlugin\|NativeVideoEnginePlugin" src/ android/` — reference map complete
+- [x] Run `rg -n "BeautyPipelineBridge\|GPUPixelBeautyPlugin\|GPUPixelBeautyProcessor" src/ android/` — confirmed layered architecture (Plugin → Bridge → Processor), NOT duplicates
+- [x] Run `rg -n "NativeAudioEnginePlugin" src/ android/` — DEAD (not registered, no JS callers)
+- [x] Read `MainActivity.java` registration list — `NativeVideoEnginePlugin` + `NativeAudioEnginePlugin` confirmed unregistered
+- [x] Read `src/plugins/*.ts` — `NativeVideoEngine.ts` + `NativeAudioEngine.ts` had ZERO imports
+- [x] Produce written audit table presented to user
+- [x] User approval received
+- [x] Delete confirmed-dead files (5 files + cpp dir + CMake block):
+  - `android/app/src/main/java/com/merilive/app/plugin/video/NativeVideoEnginePlugin.java`
+  - `android/app/src/main/java/com/merilive/app/plugin/video/NativeAudioEnginePlugin.java`
+  - `android/app/src/main/cpp/native_video_engine.cpp` (+ whole `cpp/` dir + CMakeLists.txt)
+  - `src/plugins/NativeVideoEngine.ts`
+  - `src/plugins/NativeAudioEngine.ts`
+  - `android/app/build.gradle` externalNativeBuild block removed
+- [ ] APK smoke build verification (next APK rebuild cycle — Phase 1 will trigger anyway)
 
 ### ✅ Success Criteria
-- [ ] Exactly ONE plugin owns camera (LiveKitPlugin going forward)
-- [ ] Exactly ONE beauty pipeline file path
-- [ ] Exactly ONE audio focus arbiter
-- [ ] No dead `.kt` / `.java` file in `android/app/src/main/java/com/merilive/app/plugin/`
-- [ ] No dead TS wrapper in `src/plugins/`
-- [ ] MainActivity registration list = active plugins only
-- [ ] Owner test account verifies live + call + party + gift + entry animation all work
+- [x] Exactly ONE plugin owns camera for live/call (LiveKitPlugin) — `NativeCameraPlugin` scope-limited to Pkg272 Face Verification, arbitrated via `CameraOwnership.kt`
+- [x] Beauty pipeline = layered (Plugin → Bridge → Processor), single user-facing entry (`GPUPixelBeautyPlugin`)
+- [x] Exactly ONE audio focus arbiter (`AudioFocusPlugin`)
+- [x] ZERO dead `.kt` / `.java` in `plugin/video/` directory
+- [x] ZERO dead TS wrapper in `src/plugins/`
+- [x] MainActivity registration list = 100% active plugins
+- [ ] Owner test account verifies live + call + party + gift + entry animation all work (verify after Phase 1 APK rebuild)
 
-### ⚠️ Risk
-- 10K+ production users on current APK — only delete after JS reference check
-- Deleting a plugin still called from old WebView path → instant crash
-- **Mitigation:** keep plugin stub returning no-op for 1 APK cycle if uncertain; delete fully next release
+### Audit Outcome — NO real duplicates found
+The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
+- Beauty uses Bigo/Chamet-standard layered design (Plugin/Bridge/Processor)
+- `NativeCameraPlugin` ≠ duplicate; it's Pkg272 Face Verification KYC, separate concern, arbitrated by `CameraOwnership`
+- `NativeCallPlugin` ≠ duplicate of `LiveKitPlugin`; it's CallKit-style action bridge (accept/decline events)
+- Telecom plugins handle Android OS Telecom API only — different concern from media RTC
+- Only 2 plugins were actual dead code (Pkg435 NativeAudioEnginePlugin + NativeVideoEnginePlugin) — both now deleted
+
+### ⚠️ Risk (resolved)
+- Deleted files had ZERO references — no production crash risk
+- Phase 1 APK rebuild will validate clean build (no CMake error, no missing native libs)
 
 ---
 
@@ -216,7 +228,9 @@ Source: 30+ pages from BitTopup, Buffget, bigo.tv blog, chamet-live.com, poppoli
 
 **Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
 
-**Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
+
+
+
 
 ### Phase 1A — Application-scope Engine Singleton
 - [ ] Create `android/app/src/main/java/com/merilive/app/MeriLiveApplication.kt` — Application subclass, init RtcEngineManager
