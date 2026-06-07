@@ -2719,8 +2719,11 @@ const LiveStream = () => {
     }
   };
 
-  // Base options for all users (viewers) — trimmed to only Share/Tasks/Top Up/Music/React per product spec
+  // Base options for ALL users (viewers + host). Now includes Like — per UX
+  // refresh the heart button moved off the bottom bar into More so the chat
+  // input gets more breathing room.
   const baseOptions = [
+    { id: "like", name: "Like", iconName: "Heart" as const, color: "from-rose-400 to-pink-500", shadowColor: "shadow-rose-500/40", action: () => { setShowMoreOptions(false); handleLike(); } },
     { id: "share", name: "Share", iconName: "Share2" as const, color: "from-cyan-400 to-blue-500", shadowColor: "shadow-cyan-500/40", action: handleShare },
     { id: "tasks", name: "Tasks", iconName: "ClipboardList" as const, color: "from-amber-400 to-orange-500", shadowColor: "shadow-amber-500/40", action: () => navigate("/tasks") },
     { id: "topup", name: "Top Up", iconName: "Gem" as const, color: "from-emerald-400 to-teal-500", shadowColor: "shadow-emerald-500/40", action: () => navigate("/recharge") },
@@ -2728,12 +2731,15 @@ const LiveStream = () => {
     { id: "react", name: "React", iconName: "Smile" as const, color: "from-yellow-400 to-orange-500", shadowColor: "shadow-yellow-500/40", action: () => { setShowMoreOptions(false); setShowReactionPicker(true); } },
   ];
 
-  // Host-only options: only Beauty per product spec (Sticker/Background/Noise Cut/Publish Quality/Stream Source/Dial Phone/Agent/Raised Hands hidden)
+  // Host-only options: Beauty + Mic toggle + PK Battle (all moved off bottom
+  // bar). Beauty uses its own Sparkles icon (was rendering blank before).
   const hostOnlyOptions = [
+    { id: "mic", name: isHostMicMuted ? "Unmute" : "Mute", iconName: (isHostMicMuted ? "MicOff" as const : "Mic" as const), color: isHostMicMuted ? "from-red-400 to-rose-600" : "from-cyan-400 to-teal-500", shadowColor: "shadow-cyan-500/40", action: () => { setShowMoreOptions(false); const next = !isHostMicMuted; setIsHostMicMuted(next); toggleAudio(!next); } },
+    { id: "pk", name: "PK Battle", iconName: "Swords" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => { setShowMoreOptions(false); handleOpenPKPanel(); } },
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
   ];
 
-  // Combined options - host sees Beauty + base, viewers see base only
+  // Combined options - host sees host-only + base, viewers see base only
   const moreOptions = isHost ? [...hostOnlyOptions, ...baseOptions] : baseOptions;
 
   const handleSendGift = async (gift: typeof gifts[0]) => {
@@ -3615,8 +3621,8 @@ const LiveStream = () => {
           <RoomChatOverlay 
             messages={messages}
             joinNotifications={liveJoinNotifications}
-            maxMessages={20}
-            maxHeight="35vh"
+            maxMessages={60}
+            maxHeight="45vh"
             showWelcome={true}
             hostName={hostInfo?.name}
             hostLevel={hostInfo?.level}
@@ -3716,67 +3722,9 @@ const LiveStream = () => {
             <BrandedGameIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
           </motion.button>
 
-          {isHost && (
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.06 }}
-              onClick={() => {
-                const newState = !isHostMicMuted;
-                setIsHostMicMuted(newState);
-                toggleAudio(!newState);
-              }}
-              aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-              style={{
-                background: isHostMicMuted
-                  ? 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #991b1b 100%)'
-                  : 'radial-gradient(120% 120% at 30% 20%, #67e8f9 0%, #06b6d4 45%, #0e7490 100%)',
-                boxShadow: isHostMicMuted
-                  ? '0 6px 18px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)'
-                  : '0 6px 18px rgba(6,182,212,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
-              }}
-            >
-              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-              {isHostMicMuted ? (
-                <MicOff className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
-              ) : (
-                <BrandedVoiceIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
-              )}
-            </motion.button>
-          )}
+          {/* Mic, PK Battle, and Like buttons moved into More Options sheet
+              (per UX refresh) — chat input now gets the freed horizontal space. */}
 
-          {isHost && (
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.06 }}
-              onClick={handleOpenPKPanel}
-              aria-label="Start PK battle"
-              className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-              style={{
-                background: 'radial-gradient(120% 120% at 30% 20%, #fcd34d 0%, #f59e0b 45%, #b45309 100%)',
-                boxShadow: '0 6px 18px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
-              }}
-            >
-              <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-              <Swords className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
-            </motion.button>
-          )}
-
-          {/* Like/Heart Button — Pulse on tap */}
-          <motion.button
-            whileTap={{ scale: 0.82 }}
-            whileHover={{ scale: 1.08 }}
-            onClick={handleLike}
-            aria-label="Like"
-            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-            style={{
-              background: 'radial-gradient(120% 120% at 30% 20%, #fda4af 0%, #f43f5e 45%, #9f1239 100%)',
-              boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
-            }}
-          >
-            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-            <Heart className="w-4 h-4 md:w-5 md:h-5 text-white fill-white relative z-10" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
-          </motion.button>
 
           {/* Gift Button — Premium pink orb with shine sweep */}
           <motion.button
@@ -3861,6 +3809,10 @@ const LiveStream = () => {
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
+                      Sparkles: <Sparkles className="w-6 h-6" strokeWidth={1.8} />,
+                      Heart: <Heart className="w-6 h-6 fill-current" strokeWidth={1.8} />,
+                      Mic: <Mic className="w-6 h-6" strokeWidth={1.8} />,
+                      MicOff: <MicOff className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
 
