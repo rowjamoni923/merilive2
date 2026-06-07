@@ -560,7 +560,7 @@ class LiveKitPlugin : Plugin() {
                 Log.e(TAG, "connect failed", e)
                 try { room?.disconnect() } catch (_: Exception) {}
                 releaseRoomResources(room, "connect-failed")
-                try { com.meritlive_unbind_safe(room, "connect-failed") } catch (_: Throwable) {}
+                try { com.merilive.app.rtc.RtcEngineManager.unbind("connect-failed", room) } catch (_: Throwable) {}
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
