@@ -758,7 +758,6 @@ const App = () => {
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
-      cancelIdle(batteryIdleId);
     };
 
   }, []);
