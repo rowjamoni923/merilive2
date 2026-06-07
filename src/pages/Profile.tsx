@@ -1,5 +1,5 @@
 // Profile Page - Main user profile view
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { PageSkeleton } from "@/components/common/PageSkeleton";
@@ -67,7 +67,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { VIPBadge, FloatingVIPIcon } from "@/components/common/VIPBadge";
 import { Slider } from "@/components/ui/slider";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
- import UserBeansExchangeModal from "@/components/profile/UserBeansExchangeModal";
+ const UserBeansExchangeModal = lazy(() => import("@/components/profile/UserBeansExchangeModal"));
  import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
@@ -3478,28 +3478,30 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       </Dialog>
 
        {/* User Beans Exchange Modal - For regular users only */}
-       <UserBeansExchangeModal
-         open={showUserBeansExchangeModal}
-         onOpenChange={setShowUserBeansExchangeModal}
-         currentBeans={beans}
-         userId={currentUser?.id || ""}
-          onExchangeComplete={() => {
-            // Refresh balance without page reload
-            refetchBalance();
-            // Re-fetch profile data inline
-            const targetId = currentUser?.id;
-            if (targetId) {
-              supabase.from("profiles").select("beans, coins").eq("id", targetId).maybeSingle().then(({ data }) => {
-                if (data) {
-                  setBeans(data.beans || 0);
-                  if (data.coins !== undefined) {
-                    updateCachedBalance(data.coins);
-                  }
-                }
-              });
-            }
-          }}
-       />
+       {showUserBeansExchangeModal && (
+         <Suspense fallback={null}>
+           <UserBeansExchangeModal
+             open={showUserBeansExchangeModal}
+             onOpenChange={setShowUserBeansExchangeModal}
+             currentBeans={beans}
+             userId={currentUser?.id || ""}
+             onExchangeComplete={() => {
+               refetchBalance();
+               const targetId = currentUser?.id;
+               if (targetId) {
+                 supabase.from("profiles").select("beans, coins").eq("id", targetId).maybeSingle().then(({ data }) => {
+                   if (data) {
+                     setBeans(data.beans || 0);
+                     if (data.coins !== undefined) {
+                       updateCachedBalance(data.coins);
+                     }
+                   }
+                 });
+               }
+             }}
+           />
+         </Suspense>
+       )}
     </div>
   );
 };
