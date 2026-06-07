@@ -3682,15 +3682,17 @@ const Chat = () => {
       )}
 
       {/* Report User Dialog */}
-      {selectedConversation?.other_user?.id && currentUserId && (
-        <ReportUserDialog
-          open={showReportDialog}
-          onOpenChange={setShowReportDialog}
-          reportedUserId={selectedConversation.other_user.id}
-          reporterUserId={currentUserId}
-          contextType="chat"
-          contextId={selectedConversation.id}
-        />
+      {showReportDialog && selectedConversation?.other_user?.id && currentUserId && (
+        <Suspense fallback={null}>
+          <ReportUserDialog
+            open={showReportDialog}
+            onOpenChange={setShowReportDialog}
+            reportedUserId={selectedConversation.other_user.id}
+            reporterUserId={currentUserId}
+            contextType="chat"
+            contextId={selectedConversation.id}
+          />
+        </Suspense>
       )}
 
       <BottomNavigation activeTab={activeTab} onTabChange={(path) => {
