@@ -142,12 +142,15 @@ export function useEntryAnimations() {
     }
     
     // === ENTRY NAME BAR (Compact sliding banner) ===
-    // Industry-standard gate: ONLY level 6+ users get the flying name bar.
-    // Levels 1–5 see only the static RoomWelcomeBanner at the bottom.
+    // Industry rule (Chamet/BIGO): show the flying bar ONLY when the user
+    // actually owns a flying name-bar asset (level privilege OR shop purchase).
+    // Level alone is irrelevant — a Lv2 user who bought one MUST see it,
+    // and a Lv8 user without any equipped/owned asset MUST NOT see a fake bar.
     const userLevel = Number(params.level) || 1;
-    if (userLevel < MIN_FLYING_NAMEBAR_LEVEL) {
+    const hasOwnedNameBar = isValidUrl(params.entryNameBarUrl);
+    if (!hasOwnedNameBar) {
       console.log(
-        `[useEntryAnimations] 🚫 NameBar skipped — level ${userLevel} < ${MIN_FLYING_NAMEBAR_LEVEL} for:`,
+        '[useEntryAnimations] 🚫 NameBar skipped — no owned/configured asset for:',
         params.displayName,
       );
     } else {
@@ -157,11 +160,10 @@ export function useEntryAnimations() {
         displayName: params.displayName,
         avatarUrl: params.avatarUrl,
         level: userLevel,
-        animationUrl: isValidUrl(params.entryNameBarUrl) ? params.entryNameBarUrl : undefined,
+        animationUrl: params.entryNameBarUrl,
       };
 
-      console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR banner for:', params.displayName,
-        newNameBar.animationUrl ? '(with animation)' : '(gradient fallback)');
+      console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR (owned asset) for:', params.displayName);
 
       setNameBarAnimations(prev => {
         if (prev.some(e => e.userId === params.userId)) {
