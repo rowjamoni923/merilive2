@@ -556,9 +556,10 @@ const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</S
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
+  const isInitialAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
   // ⚡ Skip the splash loader entirely if we already have a stored session.
   // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !isStandalonePublicLocation() && !hasStoredSupabaseSession());
+  const [loading, setLoading] = useState(() => !isInitialAdminRoute && !isStandalonePublicLocation() && !hasStoredSupabaseSession());
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -1113,7 +1114,7 @@ const App = () => {
     || currentPath.startsWith('/join-agency')
     || isStandalonePublicPath(currentPath);
 
-  if (loading) {
+  if (loading && !isAdminRoute) {
     // No full-screen "Checking your session…" loader — render nothing so the
     // app feels instant. Auth-gated routes already handle their own redirect.
     return null;
