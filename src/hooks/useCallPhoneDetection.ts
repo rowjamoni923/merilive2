@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { detectPhoneNumber } from '@/utils/phoneNumberDetector';
 import { useToast } from '@/hooks/use-toast';
@@ -107,6 +108,16 @@ export function useCallPhoneDetection({
   // Start listening to audio
   const startListening = useCallback(async () => {
     if (isListening || !isConnected) return;
+
+    // Phase-A fix: on Android/iOS native, the LiveKit native track owns the
+    // mic exclusively on most devices. Opening a second WebView getUserMedia
+    // here causes mic capture conflicts, killing call audio. Phone-number
+    // detection is intentionally disabled on native — the JS WebView mic path
+    // is not safe to share with the native LiveKit audio track.
+    if (Capacitor.isNativePlatform()) {
+      return;
+    }
+
 
     try {
       // Get audio from microphone
