@@ -43,16 +43,24 @@ class NativeLottiePlugin : Plugin() {
                 call.reject("lottie download failed: ${t.message}")
                 return@execute
             }
+            // Read the JSON OFF the UI thread — large Lottie files can be
+            // multi-MB and reading on UI is an ANR risk on slow flash.
+            val jsonText = try {
+                localFile.readText()
+            } catch (t: Throwable) {
+                call.reject("lottie read failed: ${t.message}")
+                return@execute
+            }
 
             activity.runOnUiThread {
                 try {
                     ensureOverlay()
                     val lv = lottieView ?: return@runOnUiThread call.reject("overlay init failed")
-                    
+
                     lv.repeatCount = if (loop) LottieDrawable.INFINITE else 0
-                    lv.setAnimationFromJson(localFile.readText(), localFile.absolutePath)
+                    lv.setAnimationFromJson(jsonText, localFile.absolutePath)
                     lv.playAnimation()
-                    
+
                     call.resolve(JSObject().put("ok", true))
                 } catch (t: Throwable) {
                     call.reject("lottie play failed: ${t.message}")
@@ -71,22 +79,35 @@ class NativeLottiePlugin : Plugin() {
     }
 
     private fun resolveLocalFile(url: String): File {
-        downloadCache[url]?.let { if (it.exists()) return it }
+        downloadCache[url]?.let { if (it.exists() && it.length() > 0) return it }
         val cacheDir = File(context.cacheDir, "lottie_native_cache").apply { mkdirs() }
         val safeName = url.hashCode().toString().replace("-", "n") + ".json"
         val target = File(cacheDir, safeName)
-        if (target.exists()) return target
+        // Only trust the cached file when it's non-empty — a zero-byte
+        // file is a partial download from a previous crash/interrupt.
+        if (target.exists() && target.length() > 0) {
+            downloadCache[url] = target
+            return target
+        }
 
+        // Atomic download: write to .tmp first, then rename. Prevents
+        // partial JSON from being permanently cached and served back.
+        val tmp = File(cacheDir, "$safeName.tmp")
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 10_000
             readTimeout = 20_000
         }
         try {
             conn.inputStream.use { input ->
-                target.outputStream().use { out -> input.copyTo(out) }
+                tmp.outputStream().use { out -> input.copyTo(out) }
+            }
+            if (!tmp.renameTo(target)) {
+                tmp.copyTo(target, overwrite = true)
+                tmp.delete()
             }
         } finally {
-            conn.disconnect()
+            try { conn.disconnect() } catch (_: Throwable) {}
+            try { if (tmp.exists() && !target.exists()) tmp.delete() } catch (_: Throwable) {}
         }
         downloadCache[url] = target
         return target
