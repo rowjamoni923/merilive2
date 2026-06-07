@@ -83,9 +83,11 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     private fun ensureGraph() {
+        if (disposed.get()) return
         if (initialized.get()) return
         try {
             GPUPixel.Init(context.applicationContext)
+            validateGpupixelResources()
             faceDetector = FaceDetector.Create()
             rawInput = GPUPixelSourceRawData.Create()
             rawOutput = GPUPixelSinkRawData.Create()
@@ -106,6 +108,31 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
             Log.i(TAG, "GPUPixel MarsFace 3D landmark graph ready")
         } catch (t: Throwable) {
             Log.e(TAG, "ensureGraph failed", t)
+        }
+    }
+
+    private fun validateGpupixelResources() {
+        val base = context.applicationContext.getExternalFilesDir(null) ?: return
+        val required = listOf(
+            "gpupixel/models/face_det.mars_model",
+            "gpupixel/models/face_align.mars_model",
+            "gpupixel/res/mouth.png",
+            "gpupixel/res/blusher.png",
+        )
+        val missing = required.filter { rel ->
+            val f = File(base, rel)
+            !f.exists() || f.length() <= 0L
+        }
+        if (missing.isEmpty()) return
+        missing.forEach { rel -> runCatching { File(base, rel).delete() } }
+        Log.w(TAG, "GPUPixel resources missing/corrupt: $missing — recopying bundled AI assets")
+        GPUPixel.copyResource(context.applicationContext)
+        val stillMissing = required.filter { rel ->
+            val f = File(base, rel)
+            !f.exists() || f.length() <= 0L
+        }
+        if (stillMissing.isNotEmpty()) {
+            Log.e(TAG, "GPUPixel AI resources still unavailable after recopy: $stillMissing")
         }
     }
 
@@ -148,12 +175,11 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     }
 
     override fun onCapturerStopped() {
-        // Pkg-audit Tier2 fix: free the GPUPixel native graph + HandlerThread
-        // when the capturer stops. Without this, a track close / reconnect /
-        // re-publish leaks the worker thread + native EGL context and can
-        // eventually cause CAMERA_IN_USE on the next start.
-        Log.i(TAG, "onCapturerStopped — releasing GPUPixel processor")
-        release()
+        // Capturer stop is not final: LiveKit can restart the same track after
+        // camera switch/recovery. Release only the native graph; keep the
+        // worker thread alive so onCapturerStarted can rebuild AI filters.
+        Log.i(TAG, "onCapturerStopped — releasing GPUPixel graph")
+        worker.post { releaseGraphLocked() }
     }
 
     override fun onFrameCaptured(frame: VideoFrame) {
