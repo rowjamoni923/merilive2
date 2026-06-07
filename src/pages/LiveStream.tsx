@@ -439,6 +439,13 @@ const LiveStream = () => {
   // Pkg383: shared join-notify dedup map (LiveKit viewer_joined vs Postgres stream_viewers INSERT safety-net)
   const joinNotifyDedupRef = useRef<Map<string, number>>(new Map());
   const pendingJoinFallbackTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Pkg-audit MEDIUM: dedup map for LiveKit gift fast-path vs Postgres gift_transactions
+  // safety-net. Key = `${sender_id}|${gift_id}|${quantity}`, value = Date.now().
+  // If LiveKit marked within 5s, safety-net skips. Otherwise safety-net tops up
+  // host bean counter so gifts from network-troubled viewers are never lost.
+  const recentGiftDedupRef = useRef<Map<string, number>>(new Map());
+  const seenGiftTxnIdsRef = useRef<Set<string>>(new Set());
+
 
   useEffect(() => {
     activeViewerIdsRef.current = new Set();
