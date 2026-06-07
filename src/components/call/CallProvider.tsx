@@ -181,8 +181,10 @@ export function CallProvider({ children }: CallProviderProps) {
       });
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
-      callEndedRef.current = true;
-      setTimeout(() => { callEndedRef.current = false; }, 3000);
+      // Phase-3 C3: do NOT raise callEndedRef here. The previous 3s
+      // cooldown silently blocked Accept on any new incoming call that
+      // arrived within 3s of a prior call end. Per-callId block lives in
+      // usePrivateCall.endedCallIdsRef already — that is sufficient.
 
       // ☠️ DEAD FOREVER: Dismiss ended state → reset to idle
       dismissCall();
