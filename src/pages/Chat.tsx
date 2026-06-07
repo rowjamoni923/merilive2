@@ -2834,24 +2834,32 @@ const Chat = () => {
         {/* Message Input - Ultra Premium Dark Glass */}
         <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
           {/* Media Uploader (direct gallery) */}
-          <MediaUploader
-            isOpen={showMediaUploader}
-            onClose={() => setShowMediaUploader(false)}
-            userId={currentUserId}
-            onMediaSelect={(url, type) => {
-              // Save as pending media, don't send directly
-              setPendingMedia({ url, type });
-              setShowMediaUploader(false);
-            }}
-            directGallery={true}
-          />
-          <EmojiPicker
-            isOpen={showEmojiPicker}
-            onClose={() => setShowEmojiPicker(false)}
-            onSelect={(emoji) => {
-              setMessage(prev => prev + emoji);
-            }}
-          />
+          {showMediaUploader && (
+            <Suspense fallback={null}>
+              <MediaUploader
+                isOpen={showMediaUploader}
+                onClose={() => setShowMediaUploader(false)}
+                userId={currentUserId}
+                onMediaSelect={(url, type) => {
+                  // Save as pending media, don't send directly
+                  setPendingMedia({ url, type });
+                  setShowMediaUploader(false);
+                }}
+                directGallery={true}
+              />
+            </Suspense>
+          )}
+          {showEmojiPicker && (
+            <Suspense fallback={null}>
+              <EmojiPicker
+                isOpen={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+                onSelect={(emoji) => {
+                  setMessage(prev => prev + emoji);
+                }}
+              />
+            </Suspense>
+          )}
           
           {/* Inline Translation Bar — premium luxury redesign */}
           {inlineTranslateEnabled && !isGroup && (
