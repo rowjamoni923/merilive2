@@ -243,6 +243,8 @@ const adminFetch: typeof fetch = (input, init) => {
     } catch { /* not json */ }
     const path = url.replace(SUPABASE_URL, '').split('?')[0];
     const isRpc = url.includes('/rest/v1/rpc/');
+    const isEdge = url.includes('/functions/v1/');
+    const kind = isRpc ? 'rpc' : isEdge ? 'edge' : 'rest';
     const isAuthStatus = [400, 401, 403].includes(resp.status);
     const sessionExpired = isAuthStatus &&
       /not authorized|unauthorized|invalid.*session|session.*expired|jwt/i.test(parsedMsg);
@@ -255,7 +257,7 @@ const adminFetch: typeof fetch = (input, init) => {
     // or single-device displacement may end the session.
     if ((sessionExpired || accessDenied || missingToken) && !isLoginRpc) {
       recordAdminError({
-        kind: isRpc ? 'rpc' : 'rest',
+        kind,
         label: `${method} ${path}`,
         status: resp.status,
         message: missingToken
@@ -271,7 +273,7 @@ const adminFetch: typeof fetch = (input, init) => {
     }
 
     recordAdminError({
-      kind: isRpc ? 'rpc' : 'rest',
+      kind,
       label: `${method} ${path}`,
       status: resp.status,
       message: String(parsedMsg).slice(0, 300),
