@@ -22,7 +22,8 @@ import { useEnableBrowserPageInteraction } from '@/hooks/useEnableBrowserPageInt
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
-import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
+// prefetchCommonAdminRoutes is dynamically imported below (admin paths only)
+// so the 162-entry admin route map never loads for normal users.
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
@@ -382,7 +383,8 @@ if (typeof window !== 'undefined') {
         import("./pages/admin/AdminLayout");
         import("./pages/admin/AdminDashboard");
         import("./components/admin/AdminRouteGuard");
-        prefetchCommonAdminRoutes();
+        // Dynamic — admin route map only loads when an admin URL is visited.
+        import("@/utils/adminRoutePrefetch").then((m) => m.prefetchCommonAdminRoutes()).catch(() => {});
       };
       // Fresh secret-link visits prefetch IMMEDIATELY (don't wait for idle —
       // user is about to log in, network bandwidth should be used now).
