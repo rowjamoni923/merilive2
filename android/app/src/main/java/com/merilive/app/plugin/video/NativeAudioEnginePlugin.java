@@ -62,22 +62,24 @@ public class NativeAudioEnginePlugin extends Plugin {
         // Atomic get-or-create — see ConcurrentHashMap note above.
         SessionFx fx = sessions.computeIfAbsent(sid, k -> new SessionFx());
 
-        try {
-            if (echoSupported && fx.aec == null) {
-                fx.aec = AcousticEchoCanceler.create(sid);
-                if (fx.aec != null) fx.aec.setEnabled(true);
+        synchronized (fx) {
+            try {
+                if (echoSupported && fx.aec == null) {
+                    fx.aec = AcousticEchoCanceler.create(sid);
+                    if (fx.aec != null) fx.aec.setEnabled(true);
+                }
+                if (noiseSupported && fx.ns == null) {
+                    fx.ns = NoiseSuppressor.create(sid);
+                    if (fx.ns != null) fx.ns.setEnabled(true);
+                }
+                if (gainSupported && fx.agc == null) {
+                    fx.agc = AutomaticGainControl.create(sid);
+                    if (fx.agc != null) fx.agc.setEnabled(true);
+                }
+            } catch (Throwable t) {
+                call.reject("audio effect bind failed: " + t.getMessage());
+                return;
             }
-            if (noiseSupported && fx.ns == null) {
-                fx.ns = NoiseSuppressor.create(sid);
-                if (fx.ns != null) fx.ns.setEnabled(true);
-            }
-            if (gainSupported && fx.agc == null) {
-                fx.agc = AutomaticGainControl.create(sid);
-                if (fx.agc != null) fx.agc.setEnabled(true);
-            }
-        } catch (Throwable t) {
-            call.reject("audio effect bind failed: " + t.getMessage());
-            return;
         }
 
         JSObject ret = new JSObject();
