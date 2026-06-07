@@ -112,5 +112,6 @@ public class TextToSpeechPlugin extends Plugin {
             try { tts.stop(); tts.shutdown(); } catch (Exception ignored) {}
             tts = null;
         }
+        super.handleOnDestroy();
     }
 }
