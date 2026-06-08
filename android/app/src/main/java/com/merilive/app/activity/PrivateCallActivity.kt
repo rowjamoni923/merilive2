@@ -68,10 +68,13 @@ import kotlinx.coroutines.launch
 class PrivateCallActivity : ComponentActivity() {
 
     companion object {
+        private const val TAG = "PrivateCallActivity"
+
         const val EXTRA_CALL_ID = "call_id"
         const val EXTRA_PEER_ID = "peer_id"
         const val EXTRA_PEER_NAME = "peer_name"
         const val EXTRA_PEER_AVATAR = "peer_avatar"
+
         const val EXTRA_IS_CALLER = "is_caller"
         const val EXTRA_LIVEKIT_URL = "livekit_url"
         const val EXTRA_LIVEKIT_TOKEN = "livekit_token"
