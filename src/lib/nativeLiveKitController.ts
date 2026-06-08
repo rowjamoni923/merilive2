@@ -114,6 +114,9 @@ class NativeLiveKitController {
         resolution: opts.resolution ?? '1080p',
         callerName: opts.callerName,
         callType: opts.callType,
+        // Phase I — default to "broadcast" audio + "live" notification for hosts.
+        audioProfile: opts.audioProfile ?? (opts.broadcastMode === 'live' ? 'broadcast' : undefined),
+        broadcastMode: opts.broadcastMode,
       };
 
       try {
