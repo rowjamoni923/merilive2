@@ -47,6 +47,7 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { NativeLiveKit } from '@/plugins/NativeLiveKit';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -351,6 +352,10 @@ export function usePartyRoomWebRTC(
     const init = async () => {
       try {
         console.log('[PartyLiveKit] Initializing for room:', roomId);
+
+        if (isNativeAndroidApp() && !shouldUseNativeLiveKit({ feature: 'party-room' })) {
+          throw new Error('Native Android LiveKit is required for party media. Web camera fallback is disabled.');
+        }
 
         if (shouldUseNativeLiveKit({ feature: 'party-room' })) {
           try {
