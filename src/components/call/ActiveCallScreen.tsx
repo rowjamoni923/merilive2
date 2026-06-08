@@ -753,6 +753,18 @@ export function ActiveCallScreen({
         )}
       </AnimatePresence>
 
+      {/* Phase 3 Step 3 — viewer-only low-balance warning banner */}
+      {!isHost && (
+        <LowBalanceBanner
+          visible={callSignal.lowBalance && !callSignal.forceEnded}
+          severity={callSignal.severity}
+          remainingMinutes={callSignal.remainingMinutes}
+          onRecharge={handleRechargeFromBanner}
+        />
+      )}
+
+
+
       {!isInNativePip && (
         <div 
           className="absolute top-0 left-0 right-0 z-10 safe-area-top"
