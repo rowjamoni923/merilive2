@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 // PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
 // mvp_user_id + punishment_end_ts. Client only renders these fields.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { usePKBattleSfx } from "@/hooks/usePKBattleSfx";
 
 interface PKBattleActiveProps {
   battleId: string;
@@ -18,6 +19,8 @@ interface PKBattleActiveProps {
   opponentAvatar: string;
   opponentLevel: number;
   opponentId?: string;
+  /** Current viewer/host user id — drives native PK SFX/VAP/haptic cues. Optional. */
+  currentUserId?: string | null;
   onBattleEnd: (winnerId: string | null) => void;
 }
 
@@ -32,6 +35,7 @@ export const PKBattleActive = ({
   opponentAvatar,
   opponentLevel,
   opponentId,
+  currentUserId,
   onBattleEnd,
 }: PKBattleActiveProps) => {
   const [challengerScore, setChallengerScore] = useState(0);
