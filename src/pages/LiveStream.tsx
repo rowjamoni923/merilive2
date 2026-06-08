@@ -307,6 +307,7 @@ const LiveStream = () => {
     mvpName?: string | null;
     mvpAvatar?: string | null;
     mvpCoins?: number | null;
+    rewardCoins?: number | null;
   } | null>(null);
   // PK Battle Step 4 (P2): keep punishment overlay alive after battle ends.
   const [pkPunishment, setPKPunishment] = useState<{ battleId: string } | null>(null);
@@ -2908,9 +2909,18 @@ const LiveStream = () => {
             }
           }
 
+          // P4 Bigo-parity: surface 70/30 reward split to the winner.
+          // Server credits round(loserScore * 0.7) to the winning team
+          // (`end_pk_battle` RPC). For 1v1 the local winner gets the full
+          // amount. For team modes this is the team pool — kept as a coarse
+          // display; per-member split UI is a future polish.
+          const rewardCoins = !isDraw && winnerId === currentUserId
+            ? Math.max(0, Math.round(loserScore * 0.7))
+            : null;
+
           setPKResult((prev) =>
             prev
-              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins }
+              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins, rewardCoins }
               : prev,
           );
         }
@@ -4158,6 +4168,7 @@ const LiveStream = () => {
           mvpName={pkResult.mvpName}
           mvpAvatar={pkResult.mvpAvatar}
           mvpCoins={pkResult.mvpCoins}
+          rewardCoins={pkResult.rewardCoins}
           onClose={handleClosePKResult}
         />
       )}
