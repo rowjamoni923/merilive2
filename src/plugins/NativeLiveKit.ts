@@ -354,6 +354,33 @@ export interface NativeLiveKitPlugin {
    */
   setAudioProfile(opts: { profile: 'voice' | 'broadcast' | 'music' }): Promise<{ profile: string }>;
 
+  /**
+   * N3c — Cap the simulcast layer the SFU forwards for a given remote video
+   * track. Industry standard: LOW for off-screen seats / PiP / low-end devices,
+   * HIGH for focused tile / active speaker. Saves 40-60 % bandwidth vs HIGH.
+   *
+   * `sid` blank → applies to all remote participants.
+   * `source` default "camera".
+   */
+  setSubscriberVideoQuality(opts: {
+    sid?: string;
+    quality: 'low' | 'medium' | 'high';
+    source?: 'camera' | 'screen_share';
+  }): Promise<{ applied: number; quality: string; source: string; scope: string }>;
+
+  /**
+   * N3c — Hard unsubscribe / resubscribe a remote video track (audio-only
+   * mode). Cheaper than LOW: drops the SFU forwarder entirely so the host's
+   * uplink isn't spent on layers nobody watches. Mirrors `livekitAudioOnlyMode`.
+   */
+  setRemoteVideoSubscribed(opts: {
+    sid?: string;
+    subscribed: boolean;
+    source?: 'camera' | 'screen_share';
+  }): Promise<{ applied: number; subscribed: boolean; source: string; scope: string }>;
+
+
+
   // --- Audio device routing (Step 13) --------------------------
   getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
   setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
