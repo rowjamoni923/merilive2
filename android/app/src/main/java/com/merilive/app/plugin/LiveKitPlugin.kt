@@ -1992,6 +1992,66 @@ class LiveKitPlugin : Plugin() {
                         val now = System.currentTimeMillis()
                         stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
                     }
+                    // N3b — active speakers (server-driven loudness ranking).
+                    // Mirrors Agora onAudioVolumeIndication / Bigo IBGLiveLink speaker
+                    // detection. Used by the UI to pulse mic-rings on the loudest seats.
+                    is RoomEvent.ActiveSpeakersChanged -> {
+                        val arr = com.getcapacitor.JSArray()
+                        event.speakers.forEach { p ->
+                            val item = JSObject()
+                            item.put("sid", p.sid.value)
+                            item.put("identity", p.identity?.value ?: "")
+                            item.put("audioLevel", p.audioLevel)
+                            item.put("isSpeaking", p.isSpeaking)
+                            item.put("isLocal", p == r.localParticipant)
+                            arr.put(item)
+                        }
+                        val data = JSObject()
+                        data.put("speakers", arr)
+                        notifyListeners("active-speakers-changed", data)
+                    }
+                    // N3b — participant metadata (per-user JSON blob: badge, level, role).
+                    is RoomEvent.ParticipantMetadataChanged -> {
+                        val data = JSObject()
+                        data.put("sid", event.participant.sid.value)
+                        data.put("identity", event.participant.identity?.value ?: "")
+                        data.put("metadata", event.participant.metadata ?: "")
+                        data.put("prevMetadata", event.prevMetadata ?: "")
+                        notifyListeners("participant-metadata-changed", data)
+                    }
+                    // N3b — participant name (display-name push from server-side update).
+                    is RoomEvent.ParticipantNameChanged -> {
+                        val data = JSObject()
+                        data.put("sid", event.participant.sid.value)
+                        data.put("identity", event.participant.identity?.value ?: "")
+                        data.put("name", event.participant.name ?: "")
+                        notifyListeners("participant-name-changed", data)
+                    }
+                    // N3b — room metadata (room-wide JSON: PK state, theme, banner).
+                    is RoomEvent.RoomMetadataChanged -> {
+                        val data = JSObject()
+                        data.put("metadata", event.newMetadata ?: "")
+                        data.put("prevMetadata", event.prevMetadata ?: "")
+                        notifyListeners("room-metadata-changed", data)
+                    }
+                    is RoomEvent.TranscriptionReceived -> {
+                        val segs = com.getcapacitor.JSArray()
+                        event.transcriptionSegments.forEach { s ->
+                            val item = JSObject()
+                            item.put("id", s.id)
+                            item.put("text", s.text)
+                            item.put("language", s.language)
+                            item.put("startTime", s.startTime)
+                            item.put("endTime", s.endTime)
+                            item.put("final", s.final)
+                            segs.put(item)
+                        }
+                        val data = JSObject()
+                        data.put("participantSid", event.participant?.sid?.value ?: "")
+                        data.put("participantIdentity", event.participant?.identity?.value ?: "")
+                        data.put("segments", segs)
+                        notifyListeners("transcription-received", data)
+                    }
                     else -> { /* ignore */ }
                 }
             }
