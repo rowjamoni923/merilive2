@@ -1397,6 +1397,122 @@ class LiveKitPlugin : Plugin() {
     }
 
     /**
+     * N3c — Subscriber-side video quality cap (Agora `setRemoteVideoStreamType`
+     * / Bigo `setSubscribeMode` equivalent). The SFU sends only the requested
+     * simulcast layer to this viewer, so we save uplink-bandwidth on the host
+     * AND downlink on the viewer (40-60 % less data on LOW vs HIGH).
+     *
+     * Use cases (industry standard):
+     *  • Mosaic / multi-seat party room → LOW for off-screen seats, HIGH for
+     *    the active speaker / focused tile.
+     *  • Background / PiP → LOW to keep playback cheap.
+     *  • Low-end device or 2G/3G → cap all subscribers at LOW.
+     *  • Audio-only mode → call `setSubscribed(false)` instead.
+     *
+     * Args:
+     *   sid       — RemoteParticipant.sid; if blank, applies to ALL remotes.
+     *   quality   — "low" | "medium" | "high"  (case-insensitive)
+     *   source    — optional Track.Source filter ("camera" | "screen_share").
+     *               Default: "camera".
+     */
+    @PluginMethod
+    fun setSubscriberVideoQuality(call: PluginCall) {
+        val sid = call.getString("sid", "") ?: ""
+        val qualityRaw = (call.getString("quality") ?: "").lowercase()
+        val sourceRaw = (call.getString("source", "camera") ?: "camera").lowercase()
+        val r = room ?: return call.reject("Not connected")
+        val quality = when (qualityRaw) {
+            "low" -> io.livekit.android.room.track.VideoQuality.LOW
+            "medium", "med" -> io.livekit.android.room.track.VideoQuality.MEDIUM
+            "high" -> io.livekit.android.room.track.VideoQuality.HIGH
+            else -> return call.reject("quality must be low|medium|high")
+        }
+        val source = when (sourceRaw) {
+            "screen_share", "screenshare", "screen" -> Track.Source.SCREEN_SHARE
+            else -> Track.Source.CAMERA
+        }
+        scope.launch {
+            try {
+                var applied = 0
+                val targets = if (sid.isBlank()) {
+                    r.remoteParticipants.values.toList()
+                } else {
+                    r.remoteParticipants.values.filter { it.sid.value == sid }
+                }
+                for (participant in targets) {
+                    val pub = participant.getTrackPublication(source)
+                        as? RemoteTrackPublication ?: continue
+                    try {
+                        pub.setVideoQuality(quality)
+                        applied++
+                    } catch (e: Exception) {
+                        Log.w(TAG, "setVideoQuality(${participant.sid.value}, $quality) failed: ${e.message}")
+                    }
+                }
+                val ret = JSObject()
+                ret.put("applied", applied)
+                ret.put("quality", qualityRaw)
+                ret.put("source", sourceRaw)
+                ret.put("scope", if (sid.isBlank()) "all" else sid)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("setSubscriberVideoQuality failed: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * N3c — Toggle remote video subscription entirely (audio-only mode).
+     * Cheaper than LOW quality: drops the SFU forwarder for this viewer's
+     * video stream completely, so the host doesn't pay uplink for layers
+     * nobody watches. Mirrors `livekitAudioOnlyMode.ts` intent.
+     *
+     * Args:
+     *   sid        — RemoteParticipant.sid; blank → all remotes.
+     *   subscribed — true to (re)subscribe video, false to drop.
+     *   source     — "camera" | "screen_share" (default "camera").
+     */
+    @PluginMethod
+    fun setRemoteVideoSubscribed(call: PluginCall) {
+        val sid = call.getString("sid", "") ?: ""
+        val subscribed = call.getBoolean("subscribed", true) ?: true
+        val sourceRaw = (call.getString("source", "camera") ?: "camera").lowercase()
+        val r = room ?: return call.reject("Not connected")
+        val source = when (sourceRaw) {
+            "screen_share", "screenshare", "screen" -> Track.Source.SCREEN_SHARE
+            else -> Track.Source.CAMERA
+        }
+        scope.launch {
+            try {
+                var applied = 0
+                val targets = if (sid.isBlank()) {
+                    r.remoteParticipants.values.toList()
+                } else {
+                    r.remoteParticipants.values.filter { it.sid.value == sid }
+                }
+                for (participant in targets) {
+                    val pub = participant.getTrackPublication(source)
+                        as? RemoteTrackPublication ?: continue
+                    try {
+                        pub.setSubscribed(subscribed)
+                        applied++
+                    } catch (e: Exception) {
+                        Log.w(TAG, "setSubscribed($subscribed) on ${participant.sid.value} failed: ${e.message}")
+                    }
+                }
+                val ret = JSObject()
+                ret.put("applied", applied)
+                ret.put("subscribed", subscribed)
+                ret.put("source", sourceRaw)
+                ret.put("scope", if (sid.isBlank()) "all" else sid)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("setRemoteVideoSubscribed failed: ${e.message}")
+            }
+        }
+    }
+
+    /**
      * Phase F — Switch the professional audio profile mid-session.
      *
      * Profiles: `"voice"` | `"broadcast"` | `"music"`. Because Opus
