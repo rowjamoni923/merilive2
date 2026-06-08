@@ -900,6 +900,7 @@ class LiveKitPlugin : Plugin() {
         consecutiveExcellent = 0
         lastTierChangeMs = 0L
         adaptiveBusy = false
+        audioOnlyActive = false
 
         val captureParams: VideoCaptureParameter = if (args.resolution == "720p") {
             VideoPreset169.H720.capture
@@ -3383,7 +3384,13 @@ class LiveKitPlugin : Plugin() {
                     savedSpeakerphoneOn = am.isSpeakerphoneOn
                     audioModeApplied = true
                 }
-                am.mode = AudioManager.MODE_IN_COMMUNICATION
+                // Phase I.b — music-mode hosts (DJ / karaoke) need MODE_NORMAL
+                // so the OS does NOT activate hardware AEC/AGC and Opus capture
+                // can run at full 48 kHz. Voice/broadcast profiles keep the
+                // standard MODE_IN_COMMUNICATION for full-duplex echo control.
+                val isMusic = lastConnectArgs?.audioProfile == "music"
+                am.mode = if (isMusic) AudioManager.MODE_NORMAL
+                          else AudioManager.MODE_IN_COMMUNICATION
             } else if (audioModeApplied) {
                 try { am.mode = savedAudioMode } catch (_: Exception) {}
                 @Suppress("DEPRECATION")
