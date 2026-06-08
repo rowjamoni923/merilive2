@@ -41,6 +41,7 @@ import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { SeatSelectorPanel } from "./SeatSelectorPanel";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { NativeVideoView } from "@/components/NativeVideoView";
 import BeansIcon from "@/components/common/BeansIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useNavigate } from "react-router-dom";
@@ -163,6 +164,8 @@ interface UnifiedPartyRoomProps {
   
   isConnected?: boolean;
   connectionState?: ConnectionState;
+  isNativeMediaActive?: boolean;
+  nativeParticipants?: Map<string, { sid: string; identity: string }>;
   
   // Actions
   onMicToggle: () => void;
@@ -384,6 +387,8 @@ const VideoGridSeat = ({
   isMyself,
   localStream,
   peerStream,
+  nativeParticipant,
+  isNativeMediaActive,
   hostCountryFlag,
   hostCountryCode,
   totalRoomBeans,
@@ -396,6 +401,8 @@ const VideoGridSeat = ({
   isMyself: boolean;
   localStream?: MediaStream | null;
   peerStream?: MediaStream | null;
+  nativeParticipant?: { sid: string; identity: string } | null;
+  isNativeMediaActive?: boolean;
   hostCountryFlag?: string;
   hostCountryCode?: string | null;
   totalRoomBeans?: number;
@@ -406,6 +413,7 @@ const VideoGridSeat = ({
     streamToUse?.getVideoTracks().some((track) => track.readyState === 'live' && track.enabled !== false)
   );
   
+  const canRenderNativeVideo = Boolean(isNativeMediaActive && !participant?.isVideoOff && (isMyself || nativeParticipant?.sid));
   const canRenderVideo = Boolean(hasRenderableVideoTrack && !participant?.isVideoOff && streamToUse);
   
   // Extract video track from stream to use with LiveKitVideoPlayer
@@ -460,7 +468,14 @@ const VideoGridSeat = ({
       onClick={onTap}
     >
       {/* Video or Avatar */}
-      {canRenderVideo ? (
+      {canRenderNativeVideo ? (
+        <NativeVideoView
+          kind={isMyself ? 'local' : 'remote'}
+          sid={isMyself ? undefined : nativeParticipant?.sid}
+          mirror={isMyself}
+          className="absolute inset-0 w-full h-full"
+        />
+      ) : canRenderVideo ? (
         <LiveKitVideoPlayer 
           videoTrack={videoTrack}
           mirror={isMyself}
