@@ -581,34 +581,45 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return
         val scopeName = lastConnectArgs?.roomScope ?: "call"
         val isLiveHost = scopeName == "live" && lastConnectArgs?.broadcastMode == "live"
+        // Phase III.c — party host gets the same 60s background grace as live host.
+        // Industry parity: Bigo/Poppo/Olamet hold a host's seat for ~60s while the
+        // app is briefly backgrounded so micro app-switches (notification, phone
+        // call peek, OTP read) don't tear the room down for every seated audience.
+        val isPartyHost = scopeName == "party" && lastConnectArgs?.isHost == true
+        val hostGraceEligible = isLiveHost || isPartyHost
+        val graceLabel = if (isPartyHost) "party-host" else "live-host"
 
-        // Phase I.b — Bigo/Chamet-class 60s background grace for live HOST.
+        // Phase I.b / III.c — Bigo/Chamet-class 60s background grace for hosts.
         // FGS keeps mic + Room alive; we only pause the camera so viewers see
         // the frozen last keyframe with a "Host is away" hint (JS overlay).
         // If the host returns before LIVE_HOST_BG_GRACE_MS, video resumes
         // instantly. Otherwise we run the existing teardown path.
-        if (!foreground && isLiveHost) {
+        if (!foreground && hostGraceEligible) {
             try {
                 liveHostGraceJob?.cancel()
                 val endsAtMs = System.currentTimeMillis() + LIVE_HOST_BG_GRACE_MS
                 val payload = JSObject()
                 payload.put("endsAtMs", endsAtMs)
                 payload.put("graceMs", LIVE_HOST_BG_GRACE_MS)
+                payload.put("scope", scopeName)
+                payload.put("role", graceLabel)
                 notifyListeners("live-host-grace-start", payload)
             } catch (_: Exception) {}
-            // Pause camera (mic stays on so viewers keep hearing the host).
+            // Pause camera (mic stays on so listeners keep hearing the host).
             scope.launch {
-                try { setNativeCameraEnabledWithOemRetry(r, false, "live-host-grace") }
-                catch (e: Exception) { Log.w(TAG, "live-host-grace camera off failed: ${e.message}") }
+                try { setNativeCameraEnabledWithOemRetry(r, false, "$graceLabel-grace") }
+                catch (e: Exception) { Log.w(TAG, "$graceLabel-grace camera off failed: ${e.message}") }
             }
             liveHostGraceJob = scope.launch {
                 try {
                     delay(LIVE_HOST_BG_GRACE_MS)
                     if (processInBackground) {
-                        Log.i(TAG, "Live host grace expired — ending native live session")
+                        Log.i(TAG, "$graceLabel grace expired — ending native $scopeName session")
                         try {
                             val expired = JSObject()
                             expired.put("reason", "GRACE_EXPIRED")
+                            expired.put("scope", scopeName)
+                            expired.put("role", graceLabel)
                             notifyListeners("live-host-grace-end", expired)
                         } catch (_: Exception) {}
                         endLiveSessionAfterGrace(r)
@@ -620,7 +631,7 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        // Viewers + party + private call → preserve existing immediate teardown.
+        // Viewers + party audience + private call → preserve existing immediate teardown.
         if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
             scope.launch {
                 try {
@@ -657,17 +668,19 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        // Foreground transition for live host: cancel grace, restore camera.
-        if (foreground && isLiveHost && liveHostGraceJob != null) {
+        // Foreground transition for a host inside grace: cancel timer, restore camera.
+        if (foreground && hostGraceEligible && liveHostGraceJob != null) {
             try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
             liveHostGraceJob = null
             scope.launch {
-                try { setNativeCameraEnabledWithOemRetry(r, true, "live-host-grace-resume") }
-                catch (e: Exception) { Log.w(TAG, "live-host-grace resume failed: ${e.message}") }
+                try { setNativeCameraEnabledWithOemRetry(r, true, "$graceLabel-grace-resume") }
+                catch (e: Exception) { Log.w(TAG, "$graceLabel-grace resume failed: ${e.message}") }
             }
             try {
                 val resumed = JSObject()
                 resumed.put("reason", "RESUMED")
+                resumed.put("scope", scopeName)
+                resumed.put("role", graceLabel)
                 notifyListeners("live-host-grace-end", resumed)
             } catch (_: Exception) {}
             return
