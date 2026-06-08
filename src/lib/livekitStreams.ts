@@ -186,10 +186,35 @@ export function registerTextStreamHandler(
   handler: (ctx: TextStreamHandlerContext) => void | Promise<void>,
 ): () => void {
   const entry = registry.get(key(scope, id));
+  let nativeRegistered = false;
+
+  // Native fallback: register a parallel handler so pure-native Android
+  // sessions (no JS Room) still surface incoming text streams. No-op on web.
+  void tryRegisterNativeTextStreamHandler(topic, {
+    onComplete: async (e) => {
+      const enabled = await isLiveKitEnabled('streams');
+      if (!enabled) return;
+      try {
+        const info: TextStreamInfo = {
+          id: e.streamId,
+          topic,
+          senderIdentity: e.fromIdentity,
+          attributes: e.attributes,
+        };
+        await handler({ info, text: e.text ?? '' });
+      } catch (err) {
+        console.warn(`[Pkg121-native] text stream handler(${topic}) failed`, err);
+      }
+    },
+  }).then((ok) => { nativeRegistered = ok; });
+
   if (!entry) {
-    console.warn(`[Pkg121] registerTextStreamHandler: Room not registered for ${scope}:${id}`);
-    return () => {};
+    // Pure native session — only the native handler installed above.
+    return () => {
+      if (nativeRegistered) void tryUnregisterNativeTextStreamHandler(topic);
+    };
   }
+
   try {
     entry.room.registerTextStreamHandler(topic, async (reader: any, participantInfo: any) => {
       const enabled = await isLiveKitEnabled('streams');
@@ -224,6 +249,7 @@ export function registerTextStreamHandler(
       /* ignore */
     }
     entry.textTopics.delete(topic);
+    if (nativeRegistered) void tryUnregisterNativeTextStreamHandler(topic);
   };
 }
 
