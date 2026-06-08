@@ -331,8 +331,12 @@ class PrivateCallActivity : ComponentActivity() {
             PrivateCallBeautySheet.show(this)
         }
         btnGift.setOnClickListener {
-            // Inline gift sheet — Phase E follow-up. For now broadcast a
-            // request so JS can open the existing gift sheet behind the call.
+            // Pkg500 Phase G — inline in-call gift sheet.
+            //  1) Broadcast gift_inline → JS GlobalCallGiftSheet opens
+            //  2) Enter PIP so the call shrinks to a floating window
+            //  3) Bring MainActivity (WebView) to the front so the sheet
+            //     is visible. JS calls resumeInCallActivity() when the
+            //     sheet closes and the call expands back to fullscreen.
             try {
                 val callId = vm.identity.value?.callId.orEmpty()
                 val peerId = vm.identity.value?.peerId.orEmpty()
@@ -344,8 +348,36 @@ class PrivateCallActivity : ComponentActivity() {
                 }
                 sendBroadcast(i)
             } catch (_: Throwable) {}
+            enterPipForInlineSheet()
+            bringMainTaskToFront()
         }
         btnEnd.setOnClickListener { onUserRequestedEnd() }
+    }
+
+    /** Pkg500 Phase G — enter PIP for an inline sheet handoff (gift, recharge). */
+    private fun enterPipForInlineSheet() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || inPipMode) return
+        val st = vm.state.value
+        if (st != PrivateCallViewModel.CallState.CONNECTED &&
+            st != PrivateCallViewModel.CallState.RECONNECTING
+        ) return
+        runCatching { enterPictureInPictureMode(buildPipParams()) }
+    }
+
+    /** Pkg500 Phase G — surface MainActivity (WebView) on top of PIP. */
+    private fun bringMainTaskToFront() {
+        try {
+            val launch = packageManager.getLaunchIntentForPackage(packageName)
+                ?: return
+            launch.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                    or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
+            startActivity(launch)
+        } catch (t: Throwable) {
+            Log.w(TAG, "bringMainTaskToFront: ${t.message}")
+        }
     }
 
     private fun renderSpeakerButton() {
