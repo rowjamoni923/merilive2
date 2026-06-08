@@ -99,32 +99,41 @@ export const PKBattlePanel = ({
         const acceptorLevel = data.fromLevel || 1;
         const acceptorStreamId = data.fromStreamId || "";
 
-        const { data: battle, error } = await supabase
-          .from("pk_battles")
-          .insert({
-            challenger_id: currentUserId,
-            opponent_id: acceptorId,
-            challenger_stream_id: currentStreamId,
-            opponent_stream_id: acceptorStreamId,
-            status: "accepted",
-            started_at: new Date().toISOString(),
-            duration_seconds: 180,
-          })
-          .select()
-          .single();
+        // PK Battle Step 3: replace forgeable client insert with the server-side
+        // start_pk_battle RPC (level≥5 gate, anti-double-accept lock, server-clamped
+        // duration). For random-match accept we then call accept_pk_battle so the
+        // battle transitions pending → active with server-stamped started_at.
+        const { data: createRes, error: createErr } = await supabase.rpc("start_pk_battle", {
+          p_opponent_id: acceptorId,
+          p_challenger_stream_id: currentStreamId,
+          p_opponent_stream_id: acceptorStreamId,
+          p_duration_seconds: 300,
+        });
+        const createPayload = (createRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
 
-        if (!error && battle) {
-          toast.success(`${acceptorName} accepted your PK!`);
-          onBattleStarted(battle.id, {
-            id: acceptorId,
-            display_name: acceptorName,
-            avatar_url: acceptorAvatar,
-            user_level: acceptorLevel,
-            gender: "female",
-            stream_id: acceptorStreamId,
-            viewer_count: 0,
-          });
+        if (createErr || !createPayload.ok || !createPayload.battle_id) {
+          toast.error(createPayload.error || "PK battle could not be created");
+          return;
         }
+        const battleId = createPayload.battle_id;
+
+        const { data: acceptRes } = await supabase.rpc("accept_pk_battle", { p_battle_id: battleId });
+        const acceptPayload = (acceptRes ?? {}) as { ok?: boolean; error?: string };
+        if (!acceptPayload.ok) {
+          toast.error(acceptPayload.error || "Failed to start PK battle");
+          return;
+        }
+
+        toast.success(`${acceptorName} accepted your PK!`);
+        onBattleStarted(battleId, {
+          id: acceptorId,
+          display_name: acceptorName,
+          avatar_url: acceptorAvatar,
+          user_level: acceptorLevel,
+          gender: "female",
+          stream_id: acceptorStreamId,
+          viewer_count: 0,
+        });
       }
     };
 
@@ -185,20 +194,21 @@ export const PKBattlePanel = ({
   const sendPKRequest = async (opponent: LiveHost) => {
     setSendingRequest(opponent.id);
     try {
-      const { data: battle, error } = await supabase
-        .from("pk_battles")
-        .insert({
-          challenger_id: currentUserId,
-          opponent_id: opponent.id,
-          challenger_stream_id: currentStreamId,
-          opponent_stream_id: opponent.stream_id,
-          status: "pending",
-          duration_seconds: 180,
-        })
-        .select()
-        .single();
+      // PK Battle Step 3: server-validated invite creation (level≥5,
+      // anti-double-accept, duration clamped 120–900s). Replaces the legacy
+      // direct insert that let any client forge battle_id/status/duration.
+      const { data: rpcRes, error } = await supabase.rpc("start_pk_battle", {
+        p_opponent_id: opponent.id,
+        p_challenger_stream_id: currentStreamId,
+        p_opponent_stream_id: opponent.stream_id,
+        p_duration_seconds: 300,
+      });
+      const payload = (rpcRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
 
-      if (error) throw error;
+      if (error || !payload.ok || !payload.battle_id) {
+        throw new Error(payload.error || error?.message || "Failed to create PK invite");
+      }
+      const battle = { id: payload.battle_id };
 
       // Pkg82d: send invite via FCM (was `pk_battle_${battleId}` postgres_changes).
       pendingDirectRef.current.set(battle.id, opponent);
