@@ -10,7 +10,6 @@
  * NativeLiveKit plugin. There is no Android WebView camera fallback.
  */
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
-import { getNativeLiveKitKillSwitch } from '@/lib/nativeLiveKitKillSwitch';
 
 export type NativeLiveKitFeature = 'live-broadcast' | 'private-call' | 'party-room';
 
