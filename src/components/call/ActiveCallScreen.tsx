@@ -401,7 +401,26 @@ export function ActiveCallScreen({
     };
   }, [isOpen, callId, remoteUserId, userId, remoteUserName, addFlyingGift, playSound]);
 
+  // Phase 3 Step 3 — Low-balance + force-end signals from server billing tick.
+  // Viewer (caller) only sees the warning banner; host doesn't need recharge CTA.
+  const callSignal = useCallSignaling(callId);
+  useEffect(() => {
+    if (callSignal.forceEnded && isOpen) {
+      try { toast.error('Call ended: ' + (callSignal.forceEndReason === 'insufficient_balance' ? 'insufficient balance' : 'connection ended')); } catch { /* noop */ }
+      Promise.resolve(onEndCall()).catch(() => { /* noop */ });
+    }
+  }, [callSignal.forceEnded, callSignal.forceEndReason, isOpen, onEndCall]);
+
+  const handleRechargeFromBanner = useCallback(() => {
+    try { hapticFeedback('light'); } catch { /* noop */ }
+    // Navigate without unmounting via SPA history when possible.
+    if (typeof window !== 'undefined') {
+      window.location.assign('/recharge');
+    }
+  }, []);
+
   // Format helpers
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
