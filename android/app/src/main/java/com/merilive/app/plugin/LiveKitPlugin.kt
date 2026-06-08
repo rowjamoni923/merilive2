@@ -308,6 +308,8 @@ class LiveKitPlugin : Plugin() {
     // permission sheets, notification shade, PiP and WebView focus churn.
     @Volatile private var processInBackground: Boolean = false
     private var unsubscribeAppLifecycle: (() -> Unit)? = null
+    // Phase I.b — Live HOST 60s background grace timer. Null when not running.
+    @Volatile private var liveHostGraceJob: kotlinx.coroutines.Job? = null
 
     // --- Stall & black-frame recovery (Step 25) ------------------
     //
