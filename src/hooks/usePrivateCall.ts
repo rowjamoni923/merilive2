@@ -416,17 +416,14 @@ export function usePrivateCall(userId: string | null) {
       }
     }, 1000);
 
-    // Start caller billing only after media goes live (host never deducts)
-    const isCurrentUserHost = !!userId && callState.hostId === userId;
-    if (!isCurrentUserHost) {
-      void deductCoinsPerMinute(callId);
-
-      billingTimerRef.current = setInterval(() => {
-        if (!callEndedRef.current && currentCallIdRef.current === callId) {
-          void deductCoinsPerMinute(callId);
-        }
-      }, 60000);
-    }
+    // Phase 3B (Step 3): client-side per-minute billing REMOVED.
+    // Server cron `call-billing-tick` → `bill_call_minute()` is the single source
+    // of truth (idempotent UNIQUE(call_id, minute_number), FOR UPDATE SKIP LOCKED).
+    // Running a parallel client setInterval here re-introduced double-charge.
+    // Live coin counter now refreshes from the `private_calls` realtime UPDATE
+    // payload (caller-side handler below) when bill_call_minute writes
+    // last_billed_minute / total_minutes_billed.
+    void deductCoinsPerMinute; // keep symbol referenced for dev-tools/debug only
   }, [callState.status, callState.callId, callState.hostId, userId, deductCoinsPerMinute]);
 
   // Keep refs updated for stable subscription effect
@@ -1236,6 +1233,21 @@ export function usePrivateCall(userId: string | null) {
         return;
       }
 
+      // Phase 3B (Step 3): sync live caller balance from server-cron billing writes.
+      // bill_call_minute() updates last_billed_minute on each successful tick;
+      // the new viewer balance lives in profiles.coins, but we also surface the
+      // total_minutes_billed counter here so the in-call HUD never drifts.
+      if (row.caller_id === userId && currentCallIdRef.current === callId && !callEndedRef.current) {
+        const minutesBilled = typeof row.total_minutes_billed === 'number' ? row.total_minutes_billed : null;
+        const viewerRate = typeof row.viewer_rate_per_min === 'number' ? row.viewer_rate_per_min : null;
+        if (minutesBilled !== null && viewerRate !== null) {
+          setCallState(prev => ({
+            ...prev,
+            duration: Math.max(prev.duration, minutesBilled * 60),
+          }));
+        }
+      }
+
       if (!isTerminal(status)) return;
 
       const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
@@ -1252,6 +1264,16 @@ export function usePrivateCall(userId: string | null) {
       if (trackedCallId !== callId || callEndedRef.current || endedCallIdsRef.current.has(callId)) return;
 
       if (status === 'ended') {
+        // Phase 3B (Step 3): surface server-cron auto-end reasons to the caller UI.
+        const finalStatus = String(row.final_status || '');
+        const endReason = String(row.end_reason || '');
+        if (row.caller_id === userId && (finalStatus === 'insufficient_balance' || endReason === 'insufficient_coins')) {
+          toastRef.current({
+            title: 'Insufficient Diamonds',
+            description: 'Call ended automatically — please recharge to continue',
+            variant: 'destructive',
+          });
+        }
         softEndCallRef.current?.();
       } else {
         resetCallStateRef.current?.();
