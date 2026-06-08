@@ -389,6 +389,8 @@ export function useLiveKitCall(
                   resolution: '1080p',
                   attachLocal: true,
                   callType: 'Video Call',
+                  audioProfile: 'voice',
+                  roomScope: 'call',
                 });
                 // Step 29 — auto-enable PiP on leave hint for 1:1 calls.
                 // Parity with WhatsApp/Meet: home button = floating window.
