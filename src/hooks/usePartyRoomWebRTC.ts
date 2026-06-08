@@ -23,9 +23,9 @@ import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
-import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
-import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
+import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
@@ -39,7 +39,7 @@ import {
   applySelectiveSubscriptions,
   getSelectiveSubConfig,
 } from '@/lib/livekitSelectiveSubscription';
-import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
+import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
@@ -47,9 +47,6 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { NativeLiveKit } from '@/plugins/NativeLiveKit';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
-import { registerNativeChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
-import { registerNativeGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
-import { registerNativeReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
