@@ -360,7 +360,7 @@ export function usePartyRoomWebRTC(
         if (shouldUseNativeLiveKit({ feature: 'party-room' })) {
           try {
             await whenNativeLiveKitKillSwitchReady();
-            if (!shouldUseNativeLiveKit({ feature: 'party-room' })) throw new Error('native_livekit_disabled_after_settings_sync');
+            if (!shouldUseNativeLiveKit({ feature: 'party-room' })) throw new Error('native_livekit_required');
             warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
             const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
             if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
