@@ -337,3 +337,65 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - Web fallback gated — `shouldUseNativeLiveKit()` returns true on Android APK
 - DataPacket parity required before flipping any flow
 - Coordinate with `ProCamera` arbiter + face-verify + Camera2 handoff (no double-open)
+
+---
+
+## 📡 Phase N3 — Live Stream Native Port (RESEARCH + AUDIT COMPLETE, 2026-06-08)
+
+**Owner request:** "Live stream ১০০% সত্যি সাথে করতে হবে বন্ধু হিসানে" — port live broadcast (host + viewer) fully to `io.livekit:livekit-android` 2.23.4 native SDK.
+
+### Research findings (verified)
+- **Official LiveKit Android pattern:** `LiveKit.create()` → `room.connect(url, token)` → `localParticipant.setCameraEnabled(true)` + `setMicrophoneEnabled(true)`. Source: `client-sdk-android/sample-app-basic/MainActivity.kt:88-90`.
+- **Camera flip:** `LocalVideoTrack.switchCamera(position)` keeps PeerConnection alive (no RTP interruption). Source: `CallViewModel.kt:376-388`.
+- **Bitrate / simulcast:** `VideoTrackPublishOptions(videoEncoding=VideoEncoding(maxBitrate=2_500_000), simulcast=true, videoCodec=H264.codecName)` + `RoomOptions(adaptiveStream=true, dynacast=true)`. Bigo/Chamet pattern: H.264 hardware encoder (lower CPU, better quality per bit than VP8). Default LiveKit uses VP8 — **MUST set H264 explicitly**.
+- **Foreground service Android 14+:** `<service foregroundServiceType="mediaPlayback|camera|microphone">` + matching `FOREGROUND_SERVICE_CAMERA/_MICROPHONE` permissions. Permission MUST be granted BEFORE `startForeground()` or `InvalidForegroundServiceTypeException`.
+- **TextureViewRenderer overlay:** `TextureView`-based (composites with siblings). NOT `SurfaceViewRenderer` (punches hole through window). WebView `setBackgroundColor(TRANSPARENT)` + CSS `body { background: transparent }`.
+- **Reconnect:** SDK auto-restores tracks on `Reconnecting` → `Reconnected`. Only handle `Disconnected(reason=TOKEN_EXPIRED)` manually → refresh token → `room.connect(newToken)` → re-enable mic+cam.
+- **DataPacket:** `publishData(bytes, reliability=RELIABLE, topic="gifts")`, max 15KB. Receive via `room.events.collect { event -> if (event is RoomEvent.DataReceived) ... }`.
+- **Beauty (GPUPixel):** `VideoProcessor` interface on `createVideoTrack(videoProcessor=...)`. EGL context MUST share `EglBase` with WebRTC. Already implemented via `setBeautyPipelineEnabled` ↔ GPUPixelBeautyPlugin handoff.
+- **Camera "icon stays on" root cause:** `room.disconnect()` alone is NOT enough — must also call `room.release()` + `unregisterCameraProvider()`. Source: `CallViewModel.kt:342-361`.
+- **APK size:** `libwebrtc.so` adds ~14MB arm64. Already accepted (Pkg pre-existing).
+
+### Audit findings (our codebase)
+- **Native path is ALREADY active on Android** (no JS fallback) — `useLiveKitClient.ts:414-415` throws hard if `nativeAndroidShell && !shouldUseNativeLiveKit()`. Real port = swap JS `RoomEvent.*` listeners → native plugin events while preserving the hook's returned API surface.
+- **Plugin coverage:** 50+ `@PluginMethod` already in `LiveKitPlugin.kt` (5188 lines). Covers connect/disconnect/mic/cam/switch/screen-share/data-send/beauty/VBG/E2EE/codec/audio-only/PiP/stats/preflight.
+- **8 plugin gaps to close before flip can be claimed "complete":**
+  1. `refreshToken({token})` — for `livekitTokenRefresh.ts`
+  2. `setSubscriberVideoQuality({sid, quality})` — viewer-side quality cap
+  3. `active-speakers-changed` event — `livekitActiveSpeaker.ts`
+  4. `participant-metadata-changed` event — `livekitMetadata.ts`
+  5. `room-metadata-changed` event — `livekitRoomMetadata.ts`
+  6. `transcription-received` event — `livekitTranscription.ts`
+  7. RPC bridge (`registerRpcMethod`, `performRpc`) — `livekitRpc.ts`
+  8. Text/byte stream API (`registerTextStreamHandler`, `sendText`) — `livekitStreams.ts`
+- **Connection-quality window event:** `livekitConnectionQuality.ts` only fires for JS Room. Need native-event bridge.
+- **Beauty/camera arbiter:** `CameraOwnership` enforces single-owner; `OWNER_GPUPIXEL` rejected outright; `setBeautyPipelineEnabled` handles handoff (already correct).
+- **Foreground service:** `CallForegroundService` already starts on `connect()`, `broadcastMode="live"` triggers 🔴 LIVE notification, 60s background grace for host. ✅ Already correct.
+
+### N3 Sub-phase order (each = APK rebuild)
+
+- [ ] **N3a — H.264 codec lock + bitrate ceiling.** Patch `LiveKitPlugin.kt` connect() so live broadcast uses `VideoCodec.H264.codecName` (default is VP8 → 30-40% higher CPU on host). Verify hardware H.264 encoder via `MediaCodecInfo`.
+- [ ] **N3b — Plugin event gaps (4 events).** Add `active-speakers-changed`, `participant-metadata-changed`, `room-metadata-changed`, `transcription-received` notifyListeners() calls in Kotlin RoomEvent collector. TS interface in `NativeLiveKit.ts` + `useNativeLiveKitEvents.ts` subscriber.
+- [ ] **N3c — Native subscriber video quality cap.** New `setSubscriberVideoQuality({sid, quality})` `@PluginMethod` mapping to `RemoteTrackPublication.videoQuality = HIGH|MEDIUM|LOW`. Wire `livekitAudioOnlyMode.ts` + viewer-side LOW cap.
+- [ ] **N3d — Token refresh native bridge.** `refreshToken({token})` calls `room.prepareConnection(...)` / updates internal access token. Wire `livekitTokenRefresh.ts` native path. Test with short-lived token.
+- [ ] **N3e — Connection-quality + active-speaker window-event bridge on native.** Update `livekitConnectionQuality.ts` and `livekitActiveSpeaker.ts` to subscribe to native plugin events when `isNativeMediaActive`, fall back to `RoomEvent.*` on web.
+- [ ] **N3f — RPC + text-stream bridges.** Lowest priority (gifts/chat already work via DataPacket). Defer if owner OK.
+- [ ] **N3g — Camera release hardening.** Verify `disconnect()` calls `room.release()` + `unregisterCameraProvider()` (not just `room.disconnect()`) — the "video icon stuck on" fix from research §7e.
+- [ ] **N3h — Test updates.** `src/test/mediaSurfacesAudit.test.ts` grep assertions broken by N3a-N3g; refactor to test the native bridge contract instead of JS `RoomEvent.*` symbol presence.
+- [ ] **N3i — Owner APK test.** Owner installs APK, runs go-live + viewer-join + camera-flip + background-30s + reconnect + end-stream. Verify camera icon clears within 2s of end-stream.
+
+### Files to edit (N3a-N3g)
+1. `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` — codec, 4 event emits, 2 new @PluginMethod, release-on-disconnect hardening
+2. `src/plugins/NativeLiveKit.ts` — TS interface additions
+3. `src/hooks/useNativeLiveKitEvents.ts` — 4 event listeners
+4. `src/lib/livekitTokenRefresh.ts` — native branch
+5. `src/lib/livekitAudioOnlyMode.ts` — native branch
+6. `src/lib/livekitConnectionQuality.ts` — native event subscribe
+7. `src/lib/livekitActiveSpeaker.ts` — native event subscribe
+8. `src/test/mediaSurfacesAudit.test.ts` — refactor
+
+### Hard honesty
+- **Every step requires APK rebuild.** No Lovable browser preview can verify Camera2/MediaCodec/foreground-service changes.
+- **Owner-account test is the only verification.** I will say "APK rebuild needed" — never claim "verified" without owner reproducing.
+- **Design untouched.** Zero React UI / copy / animation edits in Phase N3.
+- **JS `livekit-client` not removed yet** — still imported by `useLiveKitClient.ts` for web preview / iOS fallback (per N8). N3 only ensures Android APK never reaches that code path.
