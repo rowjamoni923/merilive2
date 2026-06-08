@@ -109,6 +109,8 @@ export function usePartyRoomWebRTC(
     isAudioEnabled: true,
     isVideoEnabled: true, // Auto-enable camera by default for 100% video experience
     connectionState: ConnectionState.Disconnected,
+    isNativeMediaActive: false,
+    nativeParticipants: new Map(),
   });
   const [restartNonce, setRestartNonce] = useState(0);
 
@@ -230,6 +232,8 @@ export function usePartyRoomWebRTC(
       isAudioEnabled: true,
       isVideoEnabled: true,
       connectionState: ConnectionState.Disconnected,
+      isNativeMediaActive: false,
+      nativeParticipants: new Map(),
     });
   }, [roomId]);
 
