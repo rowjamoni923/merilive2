@@ -41,6 +41,15 @@ export interface ConnectOptions {
    * everything else → "broadcast".
    */
   audioProfile?: 'voice' | 'broadcast' | 'music';
+  /**
+   * Phase I — Foreground-service notification mode.
+   *   "call" (default) → Android 12+ CallStyle "Call in progress" UI.
+   *   "live"           → Bigo/Chamet-style "🔴 LIVE · {viewers} watching"
+   *                      with chronometer + "End Live" action. No CallStyle.
+   * Use "live" for host live broadcasts so users never see "Call with X"
+   * on the lockscreen — it is the #1 hybrid leak in WebView live apps.
+   */
+  broadcastMode?: 'call' | 'live';
 }
 
 export interface ParticipantEvent {
