@@ -57,6 +57,10 @@ export const PKBattlePanel = ({
   // pk_random_accepted notifications back to the right handler WITHOUT
   // opening any Supabase Realtime channel.
   const pendingDirectRef = useRef<Map<string, LiveHost>>(new Map());
+  // P4 audit: per-invite TTL timer so a dropped accept/decline reply never
+  // leaks the pending entry forever (prevented a future invite for the same
+  // battleId from auto-resolving against stale state).
+  const pendingDirectTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const pendingRandomRef = useRef<boolean>(false);
   const randomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -77,6 +81,8 @@ export const PKBattlePanel = ({
         const opponent = pendingDirectRef.current.get(data.battleId);
         if (opponent) {
           pendingDirectRef.current.delete(data.battleId);
+          const t = pendingDirectTimersRef.current.get(data.battleId);
+          if (t) { clearTimeout(t); pendingDirectTimersRef.current.delete(data.battleId); }
           toast.success("PK Battle starting!");
           onBattleStarted(data.battleId, opponent);
         }
@@ -84,6 +90,8 @@ export const PKBattlePanel = ({
         const opponent = pendingDirectRef.current.get(data.battleId);
         if (opponent) {
           pendingDirectRef.current.delete(data.battleId);
+          const t = pendingDirectTimersRef.current.get(data.battleId);
+          if (t) { clearTimeout(t); pendingDirectTimersRef.current.delete(data.battleId); }
           toast.error(`${opponent.display_name} declined the PK request`);
         }
       } else if (detail.type === "pk_random_accepted" && pendingRandomRef.current) {
@@ -138,6 +146,9 @@ export const PKBattlePanel = ({
   useEffect(() => {
     return () => {
       if (randomTimeoutRef.current) clearTimeout(randomTimeoutRef.current);
+      pendingDirectTimersRef.current.forEach((t) => clearTimeout(t));
+      pendingDirectTimersRef.current.clear();
+      pendingDirectRef.current.clear();
     };
   }, []);
 

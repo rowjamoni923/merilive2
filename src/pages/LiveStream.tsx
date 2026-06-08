@@ -2774,41 +2774,53 @@ const LiveStream = () => {
     }
 
     // Challenger receives FCM and creates the pk_battles row with status='accepted'
-    // (see PKBattlePanel sendRandomPKRequest handler). Poll briefly for it.
-    setTimeout(async () => {
-      const { data: battle } = await supabase
-        .from("pk_battles")
-        .select("id, challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
-        .or(
-          `and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`
-        )
-        .eq("status", "accepted")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+    // (see PKBattlePanel sendRandomPKRequest handler). P4 audit: replaced the
+    // single 2s setTimeout (which left the acceptor stranded with no PK state
+    // whenever the challenger RPC took > 2s) with a bounded poll —
+    // 6 attempts × 600ms = up to 3.6s.
+    const acceptorChallengerId = randomPKRequest.challengerId;
+    const acceptorChallengerName = randomPKRequest.challengerName;
+    const acceptorChallengerAvatar = randomPKRequest.challengerAvatar;
+    const acceptorChallengerLevel = randomPKRequest.challengerLevel;
+    (async () => {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        await new Promise((r) => setTimeout(r, 600));
+        const { data: battle } = await supabase
+          .from("pk_battles")
+          .select("id, challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
+          .or(
+            `and(challenger_id.eq.${acceptorChallengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${acceptorChallengerId})`
+          )
+          .eq("status", "accepted")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      if (battle) {
-        setPKBattleState({
-          isActive: true,
-          battleId: battle.id,
-          isChallenger: false,
-          challengerInfo: {
-            name: randomPKRequest.challengerName,
-            avatar: randomPKRequest.challengerAvatar,
-            level: randomPKRequest.challengerLevel,
-            id: randomPKRequest.challengerId,
-            streamId: battle.challenger_stream_id || "",
-          },
-          opponentInfo: {
-            name: hostInfo.name,
-            avatar: hostInfo.avatar,
-            level: hostInfo.level,
-            id: currentUserId,
-            streamId: battle.opponent_stream_id || "",
-          },
-        });
+        if (battle) {
+          setPKBattleState({
+            isActive: true,
+            battleId: battle.id,
+            isChallenger: false,
+            challengerInfo: {
+              name: acceptorChallengerName,
+              avatar: acceptorChallengerAvatar,
+              level: acceptorChallengerLevel,
+              id: acceptorChallengerId,
+              streamId: battle.challenger_stream_id || "",
+            },
+            opponentInfo: {
+              name: hostInfo.name,
+              avatar: hostInfo.avatar,
+              level: hostInfo.level,
+              id: currentUserId,
+              streamId: battle.opponent_stream_id || "",
+            },
+          });
+          return;
+        }
       }
-    }, 2000);
+      console.warn("[LiveStream] random PK accept: challenger battle row never appeared after 3.6s");
+    })();
 
     setRandomPKRequest(null);
   };
