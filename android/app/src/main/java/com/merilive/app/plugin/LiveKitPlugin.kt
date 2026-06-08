@@ -957,10 +957,18 @@ class LiveKitPlugin : Plugin() {
         // dynamics processing without affecting other rooms.
         val audioCapture: LocalAudioTrackOptions = when (args.audioProfile) {
             "music" -> LocalAudioTrackOptions(
+                // Phase I.b — DJ / karaoke / instrument hosts. ALL processing OFF.
+                // AEC=true causes comb-filter artifacts on music; NS destroys timbre;
+                // AGC compresses dynamics; HPF kills sub-bass. Industry consensus
+                // (Agora AUDIO_SCENARIO_GAME_STREAMING, nanocosmos, WebRTC community):
+                // music mode requires raw 48 kHz capture. We emit a JS-side
+                // "music-headphone-warning" event so a "🎧 Use headphones" toast
+                // appears when no wired/BT headset is detected — Bigo/Chamet style
+                // soft warning, never a hard block.
                 noiseSuppression = false,
-                echoCancellation = true,   // keep — phone speakers still echo
-                autoGainControl = false,   // preserve dynamics
-                highPassFilter = false,    // preserve sub-bass
+                echoCancellation = false,
+                autoGainControl = false,
+                highPassFilter = false,
                 typingNoiseDetection = false,
             )
             "broadcast" -> LocalAudioTrackOptions(
