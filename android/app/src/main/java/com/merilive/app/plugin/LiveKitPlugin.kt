@@ -442,6 +442,53 @@ class LiveKitPlugin : Plugin() {
         call.resolve(ret)
     }
 
+    /**
+     * Phase 1A.2 — query whether an RTC session is currently bound to
+     * the Application-scope manager. JS layer can use this on /live
+     * screen mount to skip a fresh connect() when a session survived
+     * Activity recreation.
+     *
+     * `canHardReconnect=false` after adoption — JS must re-issue
+     * connect() with a fresh token before the hard-reconnect watchdog
+     * can resume. UI should not surface this — it's transparent.
+     */
+    @PluginMethod
+    fun getActiveSession(call: PluginCall) {
+        val ret = JSObject()
+        val active = com.merilive.app.rtc.RtcEngineManager.isConnected()
+        ret.put("active", active)
+        val summary = com.merilive.app.rtc.RtcEngineManager.lastConnect()
+        if (summary != null) {
+            ret.put("url", summary.url)
+            summary.callType?.let { ret.put("callType", it) }
+            summary.audioProfile?.let { ret.put("audioProfile", it) }
+            ret.put("e2eeEnabled", summary.e2eeEnabled)
+        }
+        ret.put("boundAtMs", com.merilive.app.rtc.RtcEngineManager.boundAtMs())
+        ret.put("ageMs", if (active) System.currentTimeMillis() - com.merilive.app.rtc.RtcEngineManager.boundAtMs() else 0L)
+        // Adopted sessions don't have ConnectArgs cached, so hard-reconnect
+        // is disabled until a fresh connect() is issued.
+        ret.put("canHardReconnect", lastConnectArgs != null)
+        call.resolve(ret)
+    }
+
+    /**
+     * Phase 1A.2 — opt the current Room into surviving the next Activity
+     * destroy. Call this from JS before navigating from /live to a
+     * different screen WITHIN the app session, so the next /live mount
+     * adopts the same Room instantly (no camera blank).
+     *
+     * Cleared automatically after the next adoption or any unbind.
+     */
+    @PluginMethod
+    fun setSurviveActivityDestroy(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", false) ?: false
+        com.merilive.app.rtc.RtcEngineManager.setSurviveActivityDestroy(enabled)
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        call.resolve(ret)
+    }
+
     @PluginMethod
     fun claimCameraForWebView(call: PluginCall) {
         val ok = CameraOwnership.acquire(CameraOwnership.OWNER_WEBVIEW_LIVEKIT, false)
