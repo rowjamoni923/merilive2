@@ -1292,6 +1292,84 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    // --- Phase 1C — Bounded NativeVideoView surfaces ------------------
+
+    @PluginMethod
+    fun attachLocalSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: return call.reject("viewId required")
+        val x = call.getFloat("x") ?: 0f
+        val y = call.getFloat("y") ?: 0f
+        val w = call.getFloat("width") ?: 0f
+        val h = call.getFloat("height") ?: 0f
+        val mirror = call.getBoolean("mirror", true) ?: true
+        val webView = bridge?.webView ?: return call.reject("WebView not ready")
+        activity?.runOnUiThread {
+            val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
+                context = context,
+                webView = webView,
+                room = room,
+                viewId = viewId,
+                kind = "local",
+                sid = null,
+                x = x, y = y, width = w, height = h,
+                mirror = mirror,
+            )
+            val ret = JSObject(); ret.put("attached", attached); call.resolve(ret)
+        }
+    }
+
+    @PluginMethod
+    fun attachRemoteSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: return call.reject("viewId required")
+        val sid = call.getString("sid") ?: return call.reject("sid required")
+        val x = call.getFloat("x") ?: 0f
+        val y = call.getFloat("y") ?: 0f
+        val w = call.getFloat("width") ?: 0f
+        val h = call.getFloat("height") ?: 0f
+        val webView = bridge?.webView ?: return call.reject("WebView not ready")
+        activity?.runOnUiThread {
+            val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
+                context = context,
+                webView = webView,
+                room = room,
+                viewId = viewId,
+                kind = "remote",
+                sid = sid,
+                x = x, y = y, width = w, height = h,
+                mirror = false,
+            )
+            val ret = JSObject(); ret.put("attached", attached); call.resolve(ret)
+        }
+    }
+
+    @PluginMethod
+    fun updateSurfaceBounds(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: return call.reject("viewId required")
+        val x = call.getFloat("x") ?: 0f
+        val y = call.getFloat("y") ?: 0f
+        val w = call.getFloat("width") ?: 0f
+        val h = call.getFloat("height") ?: 0f
+        activity?.runOnUiThread {
+            val updated = com.merilive.app.rtc.BoundedSurfaceHost.updateBounds(
+                viewId = viewId,
+                x = x, y = y, width = w, height = h,
+                cssPxPerDp = context.resources.displayMetrics.density,
+            )
+            val ret = JSObject(); ret.put("updated", updated); call.resolve(ret)
+        }
+    }
+
+    @PluginMethod
+    fun detachSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: return call.reject("viewId required")
+        activity?.runOnUiThread {
+            val detached = com.merilive.app.rtc.BoundedSurfaceHost.detach(viewId)
+            val ret = JSObject(); ret.put("detached", detached); call.resolve(ret)
+        }
+    }
+
+
+
 
 
     // --- Audio routing API (Step 11) -------------------------------
@@ -1607,6 +1685,7 @@ class LiveKitPlugin : Plugin() {
             if (releaseRenderers) try { renderer.release() } catch (_: Exception) {}
         }
         if (releaseRenderers) remoteRenderers.clear()
+        if (releaseRenderers) try { com.merilive.app.rtc.BoundedSurfaceHost.detachAll() } catch (_: Exception) {}
         webView?.setBackgroundColor(0xFF000000.toInt())
         (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
         webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)

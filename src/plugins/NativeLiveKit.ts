@@ -281,6 +281,34 @@ export interface NativeLiveKitPlugin {
   attachAllRemotes(): Promise<{ attached: number }>;
   detachAll(): Promise<void>;
 
+  // --- Phase 1C — Bounded NativeVideoView surfaces ----------------
+  /**
+   * Create / move a TextureViewRenderer positioned at CSS-pixel bounds
+   * behind the WebView and bind it to the local-camera or a remote
+   * participant's video track. Idempotent on `viewId` — repeat calls
+   * just update bounds / rebind the track without disturbing the Room.
+   *
+   * Coordinates are in **CSS pixels** (the same units returned by
+   * `getBoundingClientRect()`); the native side multiplies by the
+   * device pixel ratio when laying out the renderer.
+   *
+   * `kind: 'local'` is required for the local camera surface.
+   * `kind: 'remote'` requires `sid` (the participant video track sid).
+   */
+  attachLocalSurface(opts: {
+    viewId: string; x: number; y: number; width: number; height: number;
+    mirror?: boolean;
+  }): Promise<{ attached: boolean }>;
+  attachRemoteSurface(opts: {
+    viewId: string; sid: string; x: number; y: number; width: number; height: number;
+  }): Promise<{ attached: boolean }>;
+  /** Update bounds for an existing surface (cheap — no track churn). */
+  updateSurfaceBounds(opts: {
+    viewId: string; x: number; y: number; width: number; height: number;
+  }): Promise<{ updated: boolean }>;
+  /** Unmount + release the renderer for `viewId`. Room/tracks stay intact. */
+  detachSurface(opts: { viewId: string }): Promise<{ detached: boolean }>;
+
   // --- Audio routing (Step 11) ---------------------------------
   setSpeakerphoneEnabled(opts: { enabled: boolean }): Promise<{ speakerphone: boolean }>;
   setProximityMonitoring(opts: { enabled: boolean }): Promise<{ proximity: boolean }>;

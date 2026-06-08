@@ -270,10 +270,13 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] `android/app/.../plugin/CameraOwnership.kt` exists with `LIVEKIT | NATIVE_CAMERA | GPUPIXEL-rejected`, OEM 1 200 ms release grace, stale-owner 30 s TTL eviction
 - [x] `android/app/.../rtc/SurfaceLifecycleManager.kt` — centralizes `TextureViewRenderer` attach/detach against LiveKit `VideoTrack`s. Slot-keyed (`local` / `remote:<sid>`), idempotent `attachOrReuse` (no engine restart on surface churn), `detach(release=false)` keeps renderer warm, `pruneStaleRemotes(room)` cleans gone participants. Pure View-lifecycle helper — owns no camera/Room state. Ready for Phase 1C `NativeVideoView` to consume; LiveKitPlugin will migrate its inline renderer map to this manager in a follow-up turn (non-breaking, additive scaffold landed first).
 
-### Phase 1C — NativeVideoView React component
-- [ ] Create `src/components/NativeVideoView.tsx` — allocates viewId, native side positions `SurfaceViewRenderer` behind WebView at its bounds
-- [ ] Extend `src/plugins/NativeLiveKit.ts`: `attachLocalSurface(viewId)`, `attachRemoteSurface(uid, viewId)`, `detachSurface(viewId)` — without disturbing Room
-- [ ] WebView `setBackgroundColor(transparent)` + SurfaceView `setZOrderMediaOverlay(false)` z-order proof
+### Phase 1C — NativeVideoView React component ✅
+- [x] `src/components/NativeVideoView.tsx` — allocates a stable viewId from `useId()`, measures CSS-pixel bounds via `getBoundingClientRect` + `ResizeObserver` + rAF + capture-scroll, pushes them to native; calls `attachLocalSurface` / `attachRemoteSurface` on mount and `detachSurface` on unmount. Web/non-native → empty positioned `<div>` (graceful fallback).
+- [x] `src/plugins/NativeLiveKit.ts` extended with `attachLocalSurface({viewId,x,y,width,height,mirror})`, `attachRemoteSurface({viewId,sid,x,y,width,height})`, `updateSurfaceBounds({viewId,x,y,width,height})`, `detachSurface({viewId})` — all idempotent on viewId, never touch the Room.
+- [x] `android/app/.../rtc/BoundedSurfaceHost.kt` — new id-keyed registry that mounts `TextureViewRenderer`s at JS-reported CSS-pixel bounds (× display density) into the WebView's parent FrameLayout, binds to local/remote VideoTrack via `Room.initVideoRenderer` + `track.addRenderer`. Force-detaches on full RTC teardown.
+- [x] `LiveKitPlugin.kt` — four `@PluginMethod`s (`attachLocalSurface`, `attachRemoteSurface`, `updateSurfaceBounds`, `detachSurface`) on the main thread, plus cleanup hook in `detachAllRenderersInternal(releaseRenderers=true)`.
+- [x] WebView already set to `Color.TRANSPARENT` + `LAYER_TYPE_HARDWARE` in the existing `mountBehindWebView` path; `BoundedSurfaceHost.attach` re-asserts both on every new mount. TextureViewRenderer is used (not SurfaceView) — texture-layer composes correctly under a transparent WebView; no `setZOrderMediaOverlay` needed.
+- [ ] APK rebuild required before any `<NativeVideoView />` consumer (LiveStream / private-call / party-room) can render frames; web preview will silently no-op until then.
 
 ### Phase 1D — Permissions + Manifest ✅
 - [x] `FOREGROUND_SERVICE_CAMERA` + `FOREGROUND_SERVICE_MICROPHONE` already in AndroidManifest
