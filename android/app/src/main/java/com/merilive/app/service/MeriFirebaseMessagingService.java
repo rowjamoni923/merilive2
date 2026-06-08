@@ -19,10 +19,26 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MeriFirebaseMsgService";
+
+    // Honest-private-call fix (F-1): off-thread avatar loader.
+    // FCM gives us ~20 s on this thread before Android force-stops the
+    // service. Doing two 8 s socket reads here can blow that budget and
+    // the incoming-call notification never posts. We post immediately
+    // with no avatar, then re-post with the same notification id once
+    // the bitmap arrives. Single shared thread keeps burst pushes cheap.
+    private static final ExecutorService AVATAR_LOADER =
+        Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "meri-fcm-avatar");
+            t.setDaemon(true);
+            t.setPriority(Thread.MIN_PRIORITY);
+            return t;
+        });
 
     @Override
     public void onNewToken(@NonNull String token) {
