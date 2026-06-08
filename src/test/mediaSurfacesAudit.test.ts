@@ -225,7 +225,7 @@ describe("native LiveKit bridge — TS surface", () => {
 
   it("N3e — useNativeLiveKitEvents accepts scope/id bridge and is wired into all 3 surfaces", () => {
     const hook = read("src/hooks/useNativeLiveKitEvents.ts");
-    expect(hook).toMatch(/bridge\??:\s*\{\s*scope:/);
+    expect(hook).toMatch(/bridge\??:\s*NativeLiveKitBridgeOptions/);
     // Window CustomEvent fanout for the 4 N3b events.
     expect(hook).toMatch(/livekit-active-speakers/);
     expect(hook).toMatch(/livekit-participant-metadata/);
