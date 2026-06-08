@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Crown, Trophy, Swords, X } from "lucide-react";
+import { Crown, Trophy, Swords, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PKBattleResultProps {
@@ -11,6 +11,10 @@ interface PKBattleResultProps {
   loserName: string;
   loserAvatar: string;
   loserScore: number;
+  /** PK Battle Step 4 (P2): top-gifter MVP recognition. Optional — only rendered when server set mvp_user_id. */
+  mvpName?: string | null;
+  mvpAvatar?: string | null;
+  mvpCoins?: number | null;
   onClose: () => void;
 }
 
