@@ -67,7 +67,10 @@ interface CallEndedInfo {
   hostEarned: number;
   isHost: boolean;
   endedBy: 'self' | 'remote' | 'system';
-  endReason: 'normal' | 'declined' | 'missed' | 'insufficient_coins';
+  // Honest-private-call fix (F-15 / F-04): canonical enum, sourced from the
+  // DB row's `end_reason` column via normalizeEndReason() rather than the
+  // hardcoded 'normal' that legacy code used.
+  endReason: import('@/lib/callEndReasons').CallEndReason;
 }
 
 export function CallProvider({ children }: CallProviderProps) {
@@ -148,13 +151,16 @@ export function CallProvider({ children }: CallProviderProps) {
       let finalDuration = callState.duration;
       let coinsSpent = callState.totalCoinsSpent;
       let hostEarnedAmount = callState.hostEarned;
+      // Honest-private-call fix (F-15 / F-04): default to 'normal' but
+      // overwrite from the DB row whenever it is available.
+      let dbEndReasonRaw: string | null | undefined = undefined;
 
       // Fetch FINAL call data from DB for accuracy
       if (callState.callId) {
         try {
           const { data: finalCallData } = await supabase
             .from('private_calls')
-            .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at')
+            .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
             .eq('id', callState.callId)
             .single();
 
@@ -168,6 +174,9 @@ export function CallProvider({ children }: CallProviderProps) {
             }
             coinsSpent = finalCallData.total_coins_deducted || coinsSpent;
             hostEarnedAmount = finalCallData.host_earned || hostEarnedAmount;
+            dbEndReasonRaw = (finalCallData as { end_reason?: string; final_status?: string }).end_reason
+              ?? (finalCallData as { end_reason?: string; final_status?: string }).final_status
+              ?? undefined;
           }
         } catch (_) {}
       }
@@ -179,6 +188,9 @@ export function CallProvider({ children }: CallProviderProps) {
         ? (acceptedCallInfo?.callerAvatar || callState.remoteUserAvatar)
         : callState.remoteUserAvatar;
 
+      const { normalizeEndReason } = await import('@/lib/callEndReasons');
+      const normalisedReason = normalizeEndReason(dbEndReasonRaw);
+
       setCallEndedInfo({
         remoteUserName: remoteName,
         remoteUserAvatar: remoteAvatar,
@@ -188,7 +200,7 @@ export function CallProvider({ children }: CallProviderProps) {
         hostEarned: hostEarnedAmount,
         isHost,
         endedBy: 'remote',
-        endReason: 'normal',
+        endReason: normalisedReason,
       });
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
