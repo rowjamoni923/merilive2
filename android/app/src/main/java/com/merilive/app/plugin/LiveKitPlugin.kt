@@ -139,6 +139,12 @@ class LiveKitPlugin : Plugin() {
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
         private const val SIGNAL_POLL_INTERVAL_MS = 2_500L
+        // Phase I.b — Live HOST background grace period (Bigo/Chamet: 60s).
+        // While the app is backgrounded but the FGS keeps mic/network alive,
+        // the camera is paused and viewers see the frozen last keyframe.
+        // If the host returns before this elapses, video resumes instantly.
+        // Otherwise the existing process-background teardown runs.
+        private const val LIVE_HOST_BG_GRACE_MS = 60_000L
 
 
         // Step 29 — Picture-in-Picture bridge from MainActivity.
