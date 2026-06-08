@@ -311,10 +311,11 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] JS plugin interface (`NativeLiveKit.ts`) extended with `addListener('app-foreground', cb)` overload.
 - [ ] APK rebuild required to validate; pair with Phase 2C overlay to surface the state to users.
 
-### Phase 2B — WebView Permission Gate (Chamet bug fix)
-- [ ] Create `android/app/.../WebViewPermissionGate.kt` — block WebView `getUserMedia` on /live, /call, /party routes when native owns camera
-- [ ] Override `WebChromeClient.onPermissionRequest` in MainActivity
-- [ ] Centralized PermissionHelper.kt
+### Phase 2B — WebView Permission Gate (Chamet bug fix) ✅
+- [x] `android/app/.../rtc/PermissionHelper.kt` — central substring list of native-owned media routes (`/live`, `/go-live`, `/private-call`, `/call/`, `/party`, `/stream`, `/face-verification`). One place to update when routes change.
+- [x] `android/app/.../rtc/WebViewPermissionGate.kt` — subclasses Capacitor's `BridgeWebChromeClient`; overrides `onPermissionRequest`. For `VIDEO_CAPTURE` / `AUDIO_CAPTURE` requests, when the current WebView URL is a native-owned media route AND `CameraOwnership.owner()` is `LIVEKIT` / `NATIVE_CAMERA` → `request.deny()` with a TAG'd warn log. All other permission requests (notifications, geolocation, mic on non-call routes) fall through to super. Eliminates the Chamet-class Android-16 permission loop where the WebView fights LiveKitPlugin for the same Camera2 handle.
+- [x] Installed in `MainActivity.onCreate` after `super.onCreate` via `getBridge().getWebView().setWebChromeClient(...)`, wrapped in try/catch so a Bridge init race never crashes the app.
+- [ ] APK rebuild required to validate (verify on Android 16 device: `adb logcat | grep WebViewPermGate` should show DENY entries when the WebView attempts getUserMedia on /live, and `CameraManager` should NOT show a permission loop).
 
 ### Phase 2C — JS Lifecycle Sync
 - [ ] Create `src/hooks/useRtcLifecycle.ts` — listen `onCameraPaused`/`onCameraResumed`
