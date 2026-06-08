@@ -123,8 +123,26 @@ export function useNativeCallBillingSync({
                 break;
               case 'gift':
               case 'gift_inline':
-                if (e.peerId) {
-                  window.location.assign(`/profile/${e.peerId}?gift=1`);
+                if (e.peerId && e.callId) {
+                  // Pkg500 Phase G — open the inline call gift sheet
+                  // (GlobalCallGiftSheet listens for this) while the
+                  // native PrivateCallActivity auto-shrinks into PIP.
+                  // Older builds without the global host fall through
+                  // to the legacy profile-nav path below.
+                  let handled = false;
+                  try {
+                    window.dispatchEvent(
+                      new CustomEvent('open-call-gift-sheet', {
+                        detail: { peerId: e.peerId, callId: e.callId, source: e.action },
+                      }),
+                    );
+                    handled = true;
+                  } catch {
+                    /* no-op */
+                  }
+                  if (!handled) {
+                    window.location.assign(`/profile/${e.peerId}?gift=1`);
+                  }
                 }
                 break;
               case 'recharge':
