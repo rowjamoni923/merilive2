@@ -21,6 +21,7 @@ import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemot
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { NativeLiveKit } from '@/plugins/NativeLiveKit';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import {
@@ -433,6 +434,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // GoLive→/live navigation. A 600ms wait + retry recovers cleanly.
         let nativeAttempt = 0;
         let lastNativeErr: unknown = null;
+        // Phase I — pin H.264 for live broadcast: wider HW encoder support
+        // on entry-level Android (Chamet/Bigo baseline). No-op on web/iOS
+        // and on devices without HW H.264 (controller falls back to auto).
+        try { await NativeLiveKit.setPreferredCodec({ codec: 'h264' }); } catch { /* noop */ }
         while (nativeAttempt < 2) {
           nativeAttempt++;
           try {
@@ -444,6 +449,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               lens: 'front',
               resolution: '1080p',
               attachLocal: true,
+              // Phase I — Bigo/Chamet-style LIVE foreground notification
+              // ("🔴 LIVE · {viewers} watching" + "End Live" action) instead
+              // of the call-style "Call in progress" UI used for 1:1 calls.
+              broadcastMode: 'live',
+              audioProfile: 'broadcast',
+              callType: 'Live broadcast',
             });
             lastNativeErr = null;
             break;

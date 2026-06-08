@@ -41,6 +41,15 @@ export interface ConnectOptions {
    * everything else → "broadcast".
    */
   audioProfile?: 'voice' | 'broadcast' | 'music';
+  /**
+   * Phase I — Foreground-service notification mode.
+   *   "call" (default) → Android 12+ CallStyle "Call in progress" UI.
+   *   "live"           → Bigo/Chamet-style "🔴 LIVE · {viewers} watching"
+   *                      with chronometer + "End Live" action. No CallStyle.
+   * Use "live" for host live broadcasts so users never see "Call with X"
+   * on the lockscreen — it is the #1 hybrid leak in WebView live apps.
+   */
+  broadcastMode?: 'call' | 'live';
 }
 
 export interface ParticipantEvent {
@@ -272,6 +281,12 @@ export interface NativeLiveKitPlugin {
   getCameraOwner(): Promise<{ owner: string | null }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
+  /**
+   * Phase I — update the live-broadcast foreground notification with
+   * current viewer count and coin total. No-op when broadcastMode !== 'live'
+   * or no FGS is running. Safe to call on every viewer-count realtime tick.
+   */
+  updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void>;
   sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled?: boolean; skipped?: boolean; reason?: string } | void>;

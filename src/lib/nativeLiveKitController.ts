@@ -35,6 +35,10 @@ export interface NativeJoinOptions {
   callerName?: string;
   /** Step 14 — e.g. "Video Call", "Voice Call", "Live broadcast". */
   callType?: string;
+  /** Phase F — audio profile (voice / broadcast / music). Defaults inferred from broadcastMode. */
+  audioProfile?: 'voice' | 'broadcast' | 'music';
+  /** Phase I — "live" swaps the FGS notification to Bigo/Chamet LIVE style. */
+  broadcastMode?: 'call' | 'live';
 }
 
 class NativeLiveKitController {
@@ -110,6 +114,9 @@ class NativeLiveKitController {
         resolution: opts.resolution ?? '1080p',
         callerName: opts.callerName,
         callType: opts.callType,
+        // Phase I — default to "broadcast" audio + "live" notification for hosts.
+        audioProfile: opts.audioProfile ?? (opts.broadcastMode === 'live' ? 'broadcast' : undefined),
+        broadcastMode: opts.broadcastMode,
       };
 
       try {
@@ -150,6 +157,16 @@ class NativeLiveKitController {
     try { await NativeLiveKit.setSurviveActivityDestroy({ enabled }); }
     catch { /* not implemented on web/iOS */ }
   }
+
+  /**
+   * Phase I — update Bigo-style LIVE foreground notification. No-op on
+   * web/iOS or when broadcastMode !== 'live'. Cheap; safe per realtime tick.
+   */
+  async updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void> {
+    try { await NativeLiveKit.updateLiveStats(opts); }
+    catch { /* not implemented on web/iOS */ }
+  }
+
 
   async disconnect(): Promise<void> {
     await this.waitForIdle('disconnect handoff', 5000);

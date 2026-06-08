@@ -54,31 +54,45 @@ public class CallForegroundService extends Service {
         String callerAvatar = intent != null ? intent.getStringExtra("caller_avatar") : null;
         String callId = intent != null ? intent.getStringExtra("call_id") : null;
         String callerId = intent != null ? intent.getStringExtra("caller_id") : null;
-        if (callerName == null || callerName.isEmpty()) callerName = "Live session";
+        // Phase I — "live" → Bigo/Chamet host-broadcast notification.
+        String mode = intent != null ? intent.getStringExtra("mode") : null;
+        if (mode == null || mode.isEmpty()) mode = "call";
+        int viewerCount = intent != null ? intent.getIntExtra("viewer_count", -1) : -1;
+        long coinCount = intent != null ? intent.getLongExtra("coin_count", -1L) : -1L;
+
+        if (callerName == null || callerName.isEmpty()) {
+            callerName = "live".equals(mode) ? "Live broadcast" : "Live session";
+        }
         if (callType == null || callType.isEmpty()) callType = "Call";
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
 
-        Notification notification = buildNotification(callerName, callType, callId, callerId, null);
+        Notification notification = "live".equals(mode)
+            ? buildLiveNotification(callerName, viewerCount, coinCount)
+            : buildNotification(callerName, callType, callId, callerId, null);
 
         // Pkg229 — typed startForeground required since API 29 for camera/mic FGS
         // started from background. Android 14+ enforces type match against manifest;
         // ServiceCompat handles the version branching internally.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ServiceCompat.startForeground(this, FOREGROUND_NOTIFICATION_ID, notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+            int fgsType = "live".equals(mode)
+                // Live broadcast: camera + mic only (no phoneCall — Bigo/Chamet
+                // never claim CallStyle for hosts; avoids "Call in progress" leak).
+                ? ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-                    | ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
+                : ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+                    | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                    | ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+            ServiceCompat.startForeground(this, FOREGROUND_NOTIFICATION_ID, notification, fgsType);
         } else {
             startForeground(FOREGROUND_NOTIFICATION_ID, notification);
         }
 
         // Async-load avatar then re-issue the same notification id so the
         // ongoing call heads-up upgrades to the avatar-rich CallStyle render.
-        // Pkg-audit Tier-3: capture all four call fields into FINAL locals so
-        // the background thread can never read newer values written by a
-        // concurrent onStartCommand for a different call (data race).
-        if (callerAvatar != null && !callerAvatar.isEmpty()) {
+        // Skip avatar enrichment for live mode (broadcast notification uses a
+        // text-only template — no Person/CallStyle).
+        if (!"live".equals(mode) && callerAvatar != null && !callerAvatar.isEmpty()) {
             final String avatarUrl = callerAvatar;
             final String snapName = callerName;
             final String snapType = callType;
@@ -99,6 +113,69 @@ public class CallForegroundService extends Service {
         }
 
         return START_STICKY;
+    }
+
+    /**
+     * Phase I — Bigo / Chamet host-broadcast foreground notification.
+     * "🔴 LIVE" title + "{viewers} watching · 💎 {coins}" subtitle +
+     * chronometer + "End Live" action. Does NOT use CallStyle so users
+     * never see "Call in progress" while live (the #1 hybrid leak).
+     */
+    private Notification buildLiveNotification(String title, int viewerCount, long coinCount) {
+        Intent returnIntent = new Intent(this, MainActivity.class);
+        returnIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent returnPI = PendingIntent.getActivity(
+            this, 0, returnIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        // "End Live" routes through CallActionReceiver DECLINE so JS tears
+        // down the broadcast cleanly (same path as call hangup).
+        Intent endIntent = new Intent(this, CallActionReceiver.class);
+        endIntent.setAction(CallActionReceiver.ACTION_DECLINE);
+        endIntent.putExtra("call_type", "Live broadcast");
+        PendingIntent endPI = PendingIntent.getBroadcast(
+            this, "endLive".hashCode(), endIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        String subtitle;
+        if (viewerCount >= 0 && coinCount >= 0L) {
+            subtitle = formatViewers(viewerCount) + " watching · " + formatCoins(coinCount) + " coins";
+        } else if (viewerCount >= 0) {
+            subtitle = formatViewers(viewerCount) + " watching";
+        } else {
+            subtitle = "You are live";
+        }
+
+        String safeTitle = (title == null || title.isEmpty()) ? "LIVE" : title;
+
+        return new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(0xFFE53935) // LIVE red — matches Bigo/Chamet palette
+            .setColorized(true)
+            .setContentTitle("🔴 LIVE · " + safeTitle)
+            .setContentText(subtitle)
+            .setOngoing(true)
+            .setUsesChronometer(true)
+            .setShowWhen(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW) // never heads-up for live (user is the host)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOnlyAlertOnce(true)
+            .setContentIntent(returnPI)
+            .addAction(R.drawable.ic_call_decline, "End Live", endPI)
+            .build();
+    }
+
+    private static String formatViewers(int n) {
+        if (n >= 1_000_000) return String.format(java.util.Locale.US, "%.1fM", n / 1_000_000.0);
+        if (n >= 1_000) return String.format(java.util.Locale.US, "%.1fK", n / 1_000.0);
+        return String.valueOf(n);
+    }
+
+    private static String formatCoins(long n) {
+        if (n >= 1_000_000) return String.format(java.util.Locale.US, "%.1fM", n / 1_000_000.0);
+        if (n >= 1_000) return String.format(java.util.Locale.US, "%.1fK", n / 1_000.0);
+        return String.valueOf(n);
     }
 
     private Notification buildNotification(String callerName, String callType,
