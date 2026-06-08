@@ -144,6 +144,8 @@ class PrivateCallActivity : ComponentActivity() {
     private var closeReceiver: android.content.BroadcastReceiver? = null
     // Phase D — JS pushes billing updates (balance + rate per minute).
     private var billingReceiver: android.content.BroadcastReceiver? = null
+    // Phase G — JS asks us to exit PIP + come back to the foreground.
+    private var resumeReceiver: android.content.BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
