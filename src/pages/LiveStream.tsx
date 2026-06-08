@@ -2647,11 +2647,26 @@ const LiveStream = () => {
 
     setShowPKRequest(false);
 
-    // Persist accept on the battle row (audit/state of truth).
-    await supabase
-      .from("pk_battles")
-      .update({ status: "accepted", started_at: new Date().toISOString() })
-      .eq("id", incomingPKRequest.battleId);
+    // Phase II — use the atomic `accept_pk_battle` RPC. The raw client
+    // update bypassed the SECURITY DEFINER FOR UPDATE lock and the
+    // already_handled guard, so two concurrent accepts (e.g. opponent
+    // opens app on two devices) could both succeed and double-stamp
+    // started_at. The RPC re-verifies status='pending' under row lock
+    // and stamps server-clock started_at — making the accept race-free.
+    const { data: acceptResult, error: acceptErr } = await supabase.rpc(
+      "accept_pk_battle",
+      { p_battle_id: incomingPKRequest.battleId },
+    );
+    if (acceptErr || (acceptResult as { ok?: boolean } | null)?.ok === false) {
+      console.warn(
+        "[LiveStream] accept_pk_battle RPC failed:",
+        acceptErr?.message || acceptResult,
+      );
+      // Soft-fail: still surface the battle UI; postgres_changes will
+      // hydrate state if the row actually moved to active. If it didn't,
+      // the user simply sees the request dismissed without a crash.
+      return;
+    }
 
     // Pkg82d: notify challenger via FCM (replaces `pk_battle_${battleId}` channel).
     try {
