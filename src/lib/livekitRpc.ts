@@ -20,6 +20,11 @@
  */
 import type { Room } from 'livekit-client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import {
+  tryRegisterNativeRpcMethod,
+  tryUnregisterNativeRpcMethod,
+  tryPerformNativeRpc,
+} from './livekitNativeMessaging';
 
 export type RpcScope = 'call' | 'live' | 'party';
 
@@ -85,10 +90,28 @@ export function registerRpcMethod(
   handler: (ctx: RpcHandlerContext) => Promise<string> | string,
 ): () => void {
   const entry = registry.get(key(scope, id));
+  let nativeRegistered = false;
+
+  // Always also attempt native registration so a session running on the
+  // Android plugin (no JS Room) still serves RPCs. No-op on web/iOS.
+  void tryRegisterNativeRpcMethod(method, async (ctx) => {
+    const result = await handler({
+      callerIdentity: ctx.callerIdentity,
+      method: ctx.method,
+      payload: ctx.payload,
+      responseTimeout: ctx.responseTimeout,
+    });
+    return typeof result === 'string' ? result : JSON.stringify(result ?? '');
+  }).then((ok) => { nativeRegistered = ok; });
+
   if (!entry) {
-    console.warn(`[Pkg120] registerRpcMethod called before Room registered for ${scope}:${id}`);
-    return () => {};
+    // Pure native session — no JS Room ref. Native registration above is the
+    // only handler; return a disposer that unregisters it.
+    return () => {
+      if (nativeRegistered) void tryUnregisterNativeRpcMethod(method);
+    };
   }
+
   try {
     entry.room.registerRpcMethod(method, async (data: any) => {
       // Gate execution on kill-switch at call-time (cheap, 10s cached).
@@ -112,6 +135,7 @@ export function registerRpcMethod(
       /* ignore */
     }
     entry.methods.delete(method);
+    if (nativeRegistered) void tryUnregisterNativeRpcMethod(method);
   };
 }
 
@@ -126,6 +150,9 @@ export interface PerformRpcOptions {
 /**
  * Send an RPC to a specific participant and await their string reply.
  * Throws on timeout, peer not connected, peer threw, or kill-switch disabled.
+ *
+ * Tries the JS Room first; falls through to native plugin when no JS Room
+ * is registered (pure-native Android session).
  */
 export async function performRpc(
   scope: RpcScope,
@@ -135,7 +162,22 @@ export async function performRpc(
   const enabled = await isLiveKitEnabled('rpc');
   if (!enabled) throw new Error('rpc_disabled');
   const entry = registry.get(key(scope, id));
-  if (!entry) throw new Error('room_not_registered');
+  if (!entry) {
+    // No JS Room — try native session.
+    try {
+      return await tryPerformNativeRpc({
+        destinationIdentity: opts.destinationIdentity,
+        method: opts.method,
+        payload: opts.payload ?? '',
+        responseTimeout: opts.responseTimeout ?? 15000,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === 'native-unavailable') {
+        throw new Error('room_not_registered');
+      }
+      throw err;
+    }
+  }
   return entry.room.localParticipant.performRpc({
     destinationIdentity: opts.destinationIdentity,
     method: opts.method,

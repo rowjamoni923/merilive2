@@ -325,6 +325,29 @@ export function useNativeLiveKitEvents(
         if (cancelled) { transcription.remove(); return; }
         subs.push(transcription);
 
+        // N3b — participant display-name changes. Native-only path until a
+        // JS consumer subscribes to `livekit-participant-name`; emitting it
+        // keeps parity with the other 4 metadata-class events.
+        const participantName = await NativeLiveKit.addListener(
+          'participant-name-changed' as any,
+          (e: any) => {
+            const b = getBridge(); if (!b) return;
+            try {
+              window.dispatchEvent(new CustomEvent('livekit-participant-name', {
+                detail: {
+                  scope: b.scope,
+                  id: b.id,
+                  sid: e?.sid ?? '',
+                  identity: e?.identity ?? '',
+                  name: e?.name ?? '',
+                },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { participantName.remove(); return; }
+        subs.push(participantName);
+
 
 
       } catch (err) {

@@ -861,6 +861,11 @@ export interface NativeLiveKitPlugin {
     eventName: 'text-stream-complete',
     cb: (e: { topic: string; streamId: string; fromIdentity: string; text?: string; attributes?: Record<string, string>; error?: string }) => void,
   ): Promise<PluginListenerHandle>;
+  /** N3b — remote participant changed their display name. */
+  addListener(
+    eventName: 'participant-name-changed',
+    cb: (e: { sid: string; identity: string; name: string }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
