@@ -175,6 +175,7 @@ serve(async (req) => {
         skipped,
         ended,
         failed,
+        signalled,
         took_ms: Date.now() - startedAt,
         details: failed > 0 ? details : undefined,
       }),
