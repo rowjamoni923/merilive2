@@ -5412,6 +5412,286 @@ class LiveKitPlugin : Plugin() {
             call.reject("setBeautyBroadcast failed: ${e.message}")
         }
     }
+
+    // ============================================================
+    // N3f — Native LiveKit RPC + Text Streams bridge.
+    // ============================================================
+    //
+    // Mirrors livekit-client's:
+    //   - room.registerRpcMethod / room.unregisterRpcMethod
+    //   - localParticipant.performRpc
+    //   - localParticipant.sendText
+    //   - room.registerTextStreamHandler / room.unregisterTextStreamHandler
+    //
+    // Verified against livekit-android 2.23.4 (RPC since 2.12.0, data
+    // streams since 2.14.0). Lets JS code that drives the JS Room
+    // (src/lib/livekitRpc.ts, src/lib/livekitChatAttachments.ts) fall
+    // through to the native session on Android.
+    //
+    // RPC handler is async on JS side: native suspends the SDK handler
+    // until JS calls respondToRpc(requestId, result | errorMessage).
+    // Default + max timeout = SDK's `responseTimeout` (≥8s, ≤30s).
+    // ============================================================
+
+    private val pendingRpcInvocations =
+        java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.CompletableDeferred<String>>()
+    private val registeredRpcMethods =
+        java.util.Collections.synchronizedSet(HashSet<String>())
+    private val registeredTextStreamTopics =
+        java.util.Collections.synchronizedSet(HashSet<String>())
+
+    private fun identityValue(id: Any?): String {
+        if (id == null) return ""
+        // Participant.Identity is a Kotlin value class wrapping String;
+        // toString() returns the wrapped value in 2.23.4. Falls back to
+        // reflective .value access if upstream changes that.
+        return try {
+            val s = id.toString()
+            if (s.isNotBlank()) s else (id.javaClass.getMethod("getValue").invoke(id) as? String ?: "")
+        } catch (e: Throwable) { "" }
+    }
+
+    @PluginMethod
+    fun registerRpcMethod(call: PluginCall) {
+        val method = call.getString("method")
+        if (method.isNullOrBlank()) { call.reject("missing-method"); return }
+        val r = room ?: run { call.reject("no-room"); return }
+        try {
+            r.registerRpcMethod(method) { data ->
+                // `data` inferred as io.livekit.android.room.participant.RpcInvocationData
+                val requestId = try {
+                    data.javaClass.getMethod("getRequestId").invoke(data) as? String
+                } catch (e: Throwable) { null } ?: java.util.UUID.randomUUID().toString()
+                val callerIdentity = try {
+                    identityValue(data.javaClass.getMethod("getCallerIdentity").invoke(data))
+                } catch (e: Throwable) { "" }
+                val payload = try {
+                    data.javaClass.getMethod("getPayload").invoke(data) as? String
+                } catch (e: Throwable) { null } ?: ""
+                val responseTimeoutMs = try {
+                    val d = data.javaClass.getMethod("getResponseTimeout").invoke(data)
+                    d?.javaClass?.getMethod("getInWholeMilliseconds")?.invoke(d) as? Long ?: 15000L
+                } catch (e: Throwable) { 15000L }
+
+                val deferred = kotlinx.coroutines.CompletableDeferred<String>()
+                pendingRpcInvocations[requestId] = deferred
+                try {
+                    val ev = JSObject()
+                    ev.put("method", method)
+                    ev.put("requestId", requestId)
+                    ev.put("callerIdentity", callerIdentity)
+                    ev.put("payload", payload)
+                    ev.put("responseTimeout", responseTimeoutMs)
+                    notifyListeners("rpc-invocation", ev)
+                } catch (e: Throwable) {
+                    pendingRpcInvocations.remove(requestId)
+                    throw e
+                }
+                try {
+                    // Slightly under SDK timeout so JS rejects with a
+                    // friendlier error than the SDK's transport timeout.
+                    val waitMs = (responseTimeoutMs - 250L).coerceAtLeast(500L)
+                    kotlinx.coroutines.withTimeout(waitMs) { deferred.await() }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    pendingRpcInvocations.remove(requestId)
+                    throw RuntimeException("js_handler_timeout")
+                }
+            }
+            registeredRpcMethods.add(method)
+            val ret = JSObject()
+            ret.put("registered", true)
+            ret.put("method", method)
+            call.resolve(ret)
+        } catch (e: Throwable) {
+            call.reject("registerRpcMethod failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun unregisterRpcMethod(call: PluginCall) {
+        val method = call.getString("method") ?: run { call.reject("missing-method"); return }
+        try {
+            room?.unregisterRpcMethod(method)
+            registeredRpcMethods.remove(method)
+            val ret = JSObject()
+            ret.put("unregistered", true); ret.put("method", method)
+            call.resolve(ret)
+        } catch (e: Throwable) {
+            call.reject("unregisterRpcMethod failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun respondToRpc(call: PluginCall) {
+        val requestId = call.getString("requestId") ?: run { call.reject("missing-requestId"); return }
+        val deferred = pendingRpcInvocations.remove(requestId)
+        if (deferred == null) {
+            val ret = JSObject(); ret.put("responded", false); ret.put("reason", "unknown-requestId")
+            call.resolve(ret); return
+        }
+        val errorMessage = call.getString("errorMessage")
+        if (errorMessage != null) {
+            deferred.completeExceptionally(RuntimeException(errorMessage))
+        } else {
+            deferred.complete(call.getString("result") ?: "")
+        }
+        val ret = JSObject(); ret.put("responded", true); call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun performRpc(call: PluginCall) {
+        val destination = call.getString("destinationIdentity") ?: run { call.reject("missing-destinationIdentity"); return }
+        val method = call.getString("method") ?: run { call.reject("missing-method"); return }
+        val payload = call.getString("payload") ?: ""
+        val timeoutMs = (call.getLong("responseTimeout") ?: 15000L)
+        val r = room ?: run { call.reject("no-room"); return }
+        scope.launch {
+            try {
+                val identity = io.livekit.android.room.participant.Participant.Identity(destination)
+                val duration = kotlin.time.Duration.Companion.milliseconds(timeoutMs)
+                val response = r.localParticipant.performRpc(
+                    destinationIdentity = identity,
+                    method = method,
+                    payload = payload,
+                    responseTimeout = duration,
+                )
+                val ret = JSObject()
+                ret.put("response", response)
+                call.resolve(ret)
+            } catch (e: Throwable) {
+                // Surface RpcError code/message when available.
+                val code = try { e.javaClass.getMethod("getCode").invoke(e)?.toString() } catch (t: Throwable) { null }
+                val msg = e.message ?: "rpc_failed"
+                call.reject(if (code != null) "rpc_error_$code" else "rpc_error", msg)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun sendText(call: PluginCall) {
+        val text = call.getString("text") ?: run { call.reject("missing-text"); return }
+        val topic = call.getString("topic") ?: ""
+        val destinations = call.getArray("destinationIdentities", null)
+        val r = room ?: run { call.reject("no-room"); return }
+        scope.launch {
+            try {
+                val destList: List<io.livekit.android.room.participant.Participant.Identity> =
+                    if (destinations != null && destinations.length() > 0) {
+                        (0 until destinations.length()).mapNotNull { i ->
+                            try {
+                                val s = destinations.getString(i) ?: return@mapNotNull null
+                                io.livekit.android.room.participant.Participant.Identity(s)
+                            } catch (e: Throwable) { null }
+                        }
+                    } else emptyList()
+                val options = io.livekit.android.room.datastream.StreamTextOptions(
+                    topic = topic,
+                    destinationIdentities = destList,
+                )
+                val result = r.localParticipant.sendText(text, options)
+                val ret = JSObject()
+                ret.put("sent", result.isSuccess)
+                ret.put("topic", topic)
+                if (result.isFailure) ret.put("error", result.exceptionOrNull()?.message ?: "send_failed")
+                else {
+                    val info = result.getOrNull()
+                    val sid = try { info?.javaClass?.getMethod("getStreamId")?.invoke(info) as? String } catch (e: Throwable) { null }
+                    if (sid != null) ret.put("streamId", sid)
+                }
+                call.resolve(ret)
+            } catch (e: Throwable) {
+                call.reject("sendText failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun registerTextStreamHandler(call: PluginCall) {
+        val topic = call.getString("topic")
+        if (topic == null) { call.reject("missing-topic"); return }
+        val r = room ?: run { call.reject("no-room"); return }
+        try {
+            r.registerTextStreamHandler(topic) { receiver, fromIdentity ->
+                val identity = identityValue(fromIdentity)
+                val info = try { receiver.javaClass.getMethod("getInfo").invoke(receiver) } catch (e: Throwable) { null }
+                val streamId = try { info?.javaClass?.getMethod("getStreamId")?.invoke(info) as? String } catch (e: Throwable) { null } ?: ""
+                val attributes = try {
+                    @Suppress("UNCHECKED_CAST")
+                    info?.javaClass?.getMethod("getAttributes")?.invoke(info) as? Map<String, String>
+                } catch (e: Throwable) { null }
+
+                scope.launch {
+                    val buf = StringBuilder()
+                    try {
+                        val flow = receiver.javaClass.getMethod("getFlow").invoke(receiver)
+                        // Use readAll() coroutine when available — single round-trip,
+                        // fewer JS events, parity with web TextStreamReceiver.
+                        val text = try {
+                            receiver.javaClass.getMethod("readAll").let { m ->
+                                val obj = receiver
+                                // suspend functions take a Continuation arg via reflection; easier
+                                // to fall back to flow collection when readAll is suspend-only.
+                                throw NoSuchMethodException("prefer-flow")
+                            }
+                        } catch (_: Throwable) { null }
+                        if (text != null) {
+                            buf.append(text)
+                        } else if (flow != null) {
+                            kotlinx.coroutines.flow.Flow::class.java
+                            val collectMethod = flow.javaClass.methods.firstOrNull { it.name == "collect" }
+                            // Easier path: cast to Flow<String> directly.
+                            @Suppress("UNCHECKED_CAST")
+                            (flow as? kotlinx.coroutines.flow.Flow<String>)?.collect { chunk ->
+                                buf.append(chunk)
+                                val ev = JSObject()
+                                ev.put("topic", topic)
+                                ev.put("streamId", streamId)
+                                ev.put("fromIdentity", identity)
+                                ev.put("chunk", chunk)
+                                notifyListeners("text-stream-chunk", ev)
+                            }
+                        }
+                        val done = JSObject()
+                        done.put("topic", topic)
+                        done.put("streamId", streamId)
+                        done.put("fromIdentity", identity)
+                        done.put("text", buf.toString())
+                        if (attributes != null) {
+                            val attrs = JSObject()
+                            attributes.forEach { (k, v) -> attrs.put(k, v) }
+                            done.put("attributes", attrs)
+                        }
+                        notifyListeners("text-stream-complete", done)
+                    } catch (e: Throwable) {
+                        val err = JSObject()
+                        err.put("topic", topic)
+                        err.put("streamId", streamId)
+                        err.put("fromIdentity", identity)
+                        err.put("error", e.message ?: "stream_failed")
+                        notifyListeners("text-stream-complete", err)
+                    }
+                }
+            }
+            registeredTextStreamTopics.add(topic)
+            val ret = JSObject(); ret.put("registered", true); ret.put("topic", topic)
+            call.resolve(ret)
+        } catch (e: Throwable) {
+            call.reject("registerTextStreamHandler failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun unregisterTextStreamHandler(call: PluginCall) {
+        val topic = call.getString("topic") ?: run { call.reject("missing-topic"); return }
+        try {
+            room?.unregisterTextStreamHandler(topic)
+            registeredTextStreamTopics.remove(topic)
+            val ret = JSObject(); ret.put("unregistered", true); ret.put("topic", topic)
+            call.resolve(ret)
+        } catch (e: Throwable) {
+            call.reject("unregisterTextStreamHandler failed: ${e.message}")
+        }
+    }
 }
 
 
