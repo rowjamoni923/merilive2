@@ -73,6 +73,11 @@ export function usePrivateCall(userId: string | null) {
   const billingStartedRef = useRef<boolean>(false);
   const liveSessionStartedRef = useRef<boolean>(false);
   const startingCallRef = useRef<boolean>(false);
+  // Honest-private-call fix (F-11): true while LiveKit is mid-reconnect.
+  // Driven by `livekit-call-reconnecting` / `livekit-call-reconnected`
+  // window events from useLiveKitCall. Pauses the visible duration counter
+  // so users don't see seconds tick during a frozen feed.
+  const reconnectingRef = useRef<boolean>(false);
   const toastRef = useRef(toast);
   const deductCoinsRef = useRef<((callId: string) => Promise<void>) | null>(null);
   const resetCallStateRef = useRef<(() => void) | null>(null);
@@ -410,9 +415,12 @@ export function usePrivateCall(userId: string | null) {
 
     // Start duration timer immediately when real media is live
     durationTimerRef.current = setInterval(() => {
-      if (!callEndedRef.current && currentCallIdRef.current === callId) {
-        setCallState(prev => ({ ...prev, duration: prev.duration + 1 }));
-      }
+      if (callEndedRef.current) return;
+      if (currentCallIdRef.current !== callId) return;
+      // Honest-private-call fix (F-11): don't tick the visible duration
+      // while LiveKit is mid-reconnect.
+      if (reconnectingRef.current) return;
+      setCallState(prev => ({ ...prev, duration: prev.duration + 1 }));
     }, 1000);
 
     // Phase 3B (Step 3): client-side per-minute billing REMOVED.
