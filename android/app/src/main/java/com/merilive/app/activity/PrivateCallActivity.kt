@@ -237,6 +237,57 @@ class PrivateCallActivity : ComponentActivity() {
     }
 
     /**
+     * Pkg500 Phase G — JS-side asks the call surface to come back to the
+     * foreground after an inline sheet (gift, recharge) closes. We exit
+     * PIP (if we're in it) and re-launch our own task so we land on top
+     * of the WebView again, restoring the fullscreen call.
+     */
+    private fun registerResumeReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        inPipMode
+                    ) {
+                        // The official way to leave PIP is to restart the
+                        // activity in standard mode via a fresh intent.
+                        val i = Intent(this@PrivateCallActivity, PrivateCallActivity::class.java)
+                            .addFlags(
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                            )
+                        startActivity(i)
+                    } else {
+                        moveTaskToFront()
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "resumeReceiver: ${t.message}")
+                }
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_RESUME_PRIVATE_CALL
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        resumeReceiver = r
+    }
+
+    private fun moveTaskToFront() {
+        try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE)
+                as? android.app.ActivityManager
+            am?.moveTaskToFront(taskId, 0)
+        } catch (t: Throwable) {
+            Log.w(TAG, "moveTaskToFront: ${t.message}")
+        }
+    }
+
+    /**
      * Pkg500 Phase D — Recharge CTA. Broadcasts a request back out so JS
      * (NativeCallPlugin listener) can open the existing recharge sheet.
      * The Activity intentionally stays in foreground; the sheet is opened
