@@ -72,12 +72,14 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/RoomEvent\.ParticipantDisconnected/);
   });
 
-  it("party video seats use effect cleanup instead of callback-ref timers", () => {
+  it("party video seats render via LiveKitVideoPlayer with safe stream cleanup", () => {
     const src = read("src/components/party/UnifiedPartyRoom.tsx");
-    expect(src).toMatch(/const videoRef = useRef<HTMLVideoElement \| null>\(null\)/);
-    expect(src).toMatch(/timers\.forEach\(clearTimeout\)/);
+    // Track adapter must null `srcObject` on detach so reconnect doesn't double-bind.
     expect(src).toMatch(/el\.srcObject = null/);
+    // Host seat resolves from authoritative participant position (not stale prop).
     expect(src).toMatch(/participants\.find\(p => p\.id === hostInfo\?\.id\)\?\.position/);
+    // Video track adapter is memoized so re-renders don't churn the player.
+    expect(src).toMatch(/const videoTrack = useMemo\(/);
   });
 
   it("party room UI guards async viewer/chat state by room session", () => {
@@ -143,5 +145,122 @@ describe("media surfaces — token edge function honors roles", () => {
     expect(fn).toMatch(/case "viewer_stream":\s*canPublish = false/s);
     // Admin secret-link tokens are limited to viewer_stream only.
     expect(fn).toMatch(/isAdmin[\s\S]*canPublish = false/);
+  });
+});
+
+/**
+ * N3h — Native LiveKit bridge contract.
+ *
+ * N3a-N3g moved several LiveKit responsibilities from the JS Room onto the
+ * Android `LiveKitPlugin` (Kotlin) + `NativeLiveKit.ts` (Capacitor) so that
+ * sessions running on the native plugin keep the same semantics as web. The
+ * old assertions (grep for `RoomEvent.*` symbols) only proved the JS path —
+ * they were silent on the native path. These tests lock both sides of the
+ * bridge: the Kotlin plugin emits the event, and the TS surface exposes the
+ * matching API.
+ */
+describe("native LiveKit bridge — Kotlin plugin events", () => {
+  const KOTLIN = "android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt";
+
+  it("N3b — emits active-speakers / participant-metadata / room-metadata / transcription events", () => {
+    const src = read(KOTLIN);
+    expect(src).toMatch(/notifyListeners\(\s*"active-speakers-changed"/);
+    expect(src).toMatch(/notifyListeners\(\s*"participant-metadata-changed"/);
+    expect(src).toMatch(/notifyListeners\(\s*"room-metadata-changed"/);
+    expect(src).toMatch(/notifyListeners\(\s*"transcription-received"/);
+  });
+
+  it("N3c — exposes setSubscriberVideoQuality + setRemoteVideoSubscribed PluginMethods", () => {
+    const src = read(KOTLIN);
+    expect(src).toMatch(/fun setSubscriberVideoQuality\(call: PluginCall\)/);
+    expect(src).toMatch(/fun setRemoteVideoSubscribed\(call: PluginCall\)/);
+  });
+
+  it("N3d — exposes refreshToken PluginMethod (updates lastConnectArgs)", () => {
+    const src = read(KOTLIN);
+    expect(src).toMatch(/fun refreshToken\(call: PluginCall\)/);
+  });
+
+  it("N3f — exposes RPC + text-stream PluginMethods", () => {
+    const src = read(KOTLIN);
+    expect(src).toMatch(/fun registerRpcMethod\(call: PluginCall\)/);
+    expect(src).toMatch(/fun unregisterRpcMethod\(call: PluginCall\)/);
+    expect(src).toMatch(/fun respondToRpc\(call: PluginCall\)/);
+    expect(src).toMatch(/fun performRpc\(call: PluginCall\)/);
+    expect(src).toMatch(/fun sendText\(call: PluginCall\)/);
+    expect(src).toMatch(/fun registerTextStreamHandler\(call: PluginCall\)/);
+    expect(src).toMatch(/fun unregisterTextStreamHandler\(call: PluginCall\)/);
+    expect(src).toMatch(/notifyListeners\(\s*"rpc-invocation"/);
+    expect(src).toMatch(/notifyListeners\(\s*"text-stream-chunk"/);
+    expect(src).toMatch(/notifyListeners\(\s*"text-stream-complete"/);
+  });
+
+  it("N3g — disconnect() releases camera in OEM-safe order (cam off → settle → room.release → ownership release)", () => {
+    const src = read(KOTLIN);
+    // Order check: camera off comes before room.release / room.disconnect.
+    const camOffIdx = src.indexOf("setCameraEnabled");
+    const settleIdx = src.indexOf("OEM_CAMERA_RELEASE_SETTLE_MS");
+    const releaseIdx = src.indexOf("releaseRoomResources");
+    const ownershipIdx = src.indexOf("CameraOwnership.release");
+    expect(camOffIdx).toBeGreaterThan(0);
+    expect(settleIdx).toBeGreaterThan(0);
+    expect(releaseIdx).toBeGreaterThan(0);
+    expect(ownershipIdx).toBeGreaterThan(0);
+  });
+});
+
+describe("native LiveKit bridge — TS surface", () => {
+  const NATIVE_TS = "src/plugins/NativeLiveKit.ts";
+
+  it("N3c — TS exposes setSubscriberVideoQuality + setRemoteVideoSubscribed", () => {
+    const src = read(NATIVE_TS);
+    expect(src).toMatch(/setSubscriberVideoQuality\(opts:/);
+    expect(src).toMatch(/setRemoteVideoSubscribed\(opts:/);
+  });
+
+  it("N3d — TS exposes refreshToken", () => {
+    const src = read(NATIVE_TS);
+    expect(src).toMatch(/refreshToken\(opts: \{ token: string \}\)/);
+  });
+
+  it("N3e — useNativeLiveKitEvents accepts scope/id bridge and is wired into all 3 surfaces", () => {
+    const hook = read("src/hooks/useNativeLiveKitEvents.ts");
+    expect(hook).toMatch(/bridge\??:\s*NativeLiveKitBridgeOptions/);
+    // Window CustomEvent fanout for the 4 N3b events.
+    expect(hook).toMatch(/livekit-active-speakers/);
+    expect(hook).toMatch(/livekit-participant-metadata/);
+    expect(hook).toMatch(/livekit-room-metadata/);
+    expect(hook).toMatch(/livekit-transcription/);
+    // All 3 React consumer hooks pass a bridge.
+    expect(read("src/hooks/useLiveKitClient.ts")).toMatch(/scope:\s*['"]live['"]/);
+    expect(read("src/hooks/useLiveKitCall.ts")).toMatch(/scope:\s*['"]call['"]/);
+    expect(read("src/hooks/usePartyRoomNativeLiveKit.ts")).toMatch(/scope:\s*['"]party['"]/);
+  });
+
+  it("N3f — TS exposes RPC + text-stream methods and listener events", () => {
+    const src = read(NATIVE_TS);
+    expect(src).toMatch(/registerRpcMethod\(opts: \{ method: string \}\)/);
+    expect(src).toMatch(/performRpc\(opts:/);
+    expect(src).toMatch(/respondToRpc\(opts:/);
+    expect(src).toMatch(/sendText\(opts:/);
+    expect(src).toMatch(/registerTextStreamHandler\(opts:/);
+    expect(src).toMatch(/eventName:\s*'rpc-invocation'/);
+    expect(src).toMatch(/eventName:\s*'text-stream-chunk'/);
+    expect(src).toMatch(/eventName:\s*'text-stream-complete'/);
+  });
+
+  it("N3f — opt-in helper livekitNativeMessaging.ts exists and honors kill-switch", () => {
+    const src = read("src/lib/livekitNativeMessaging.ts");
+    expect(src).toMatch(/tryRegisterNativeRpcMethod/);
+    expect(src).toMatch(/tryPerformNativeRpc/);
+    expect(src).toMatch(/trySendNativeText/);
+    expect(src).toMatch(/tryRegisterNativeTextStreamHandler/);
+    expect(src).toMatch(/isLiveKitEnabled\(['"]rpc['"]\)/);
+    expect(src).toMatch(/isLiveKitEnabled\(['"]chat['"]\)/);
+  });
+
+  it("N3c/N3d — JS libs prefer native bridge when available", () => {
+    expect(read("src/lib/livekitAudioOnlyMode.ts")).toMatch(/NativeLiveKit/);
+    expect(read("src/lib/livekitTokenRefresh.ts")).toMatch(/NativeLiveKit/);
   });
 });
