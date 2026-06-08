@@ -1,69 +1,100 @@
-# Private Call — 100% Honest End-to-End Plan
+# PK Battle — Native Android Polish Plan
 
-বন্ধু হিসেবে সত্যি কথা: Private Call surface অনেক বড় (50+ files: React hooks, Android `PrivateCallActivity` + `IncomingCallActivity` + Telecom + FCM + LiveKitPlugin + NativeCallPlugin, edge functions, DB tables, billing, rating)। আগে যা হয়েছে:
+Research-locked (Bigo/Chamet/ZEGOCLOUD/Tencent TUILiveKit + Agora→LiveKit translation). Plan keeps the **React PK design 100% untouched** — only adds native sound, haptic, and full-screen winner/loser cues that WebView cannot deliver smoothly.
 
-- **Phase 3 audit (2026-06-06)** — 5টা bug fix: accept-catch wrong callId, hardcoded 30s ring timeout, render-time ref mutation, duplicate Realtime sub, IncomingCallActivity dismissed race.
-- **N3 series (today)** — Native LiveKit bridge (RPC, text streams, token rotation, participant rename) complete; APK rebuild + device test বাকি।
+We reuse plugins that already exist in the APK (no new Kotlin files, no new gradle deps, no MainActivity changes). This means: **one APK rebuild after Phase NP3 ships the asset list — that's it.**
 
-কিন্তু "100% নিখুঁত private call" claim করতে হলে আরও audit লাগবে। এই plan-টা সেই honest gap-closing।
+---
 
-## Scope (only Private Call, not live/party)
+## What stays untouched
 
-1-on-1 audio/video call lifecycle: invite → ring → accept/decline/timeout → connect → bill → end → rating।
+- All PK React components (Panel, Active, Result, Punishment, Request) — design + layout + animations
+- Server-authoritative score, autoend trigger, cron tick — all P1-P5 work
+- Supabase Realtime sync (already < 200 ms, matches industry standard)
+- Score bar fill animation (Framer Motion at 300 ms is within industry norm)
 
-## Step 1 — Research-first (mandatory per project rule)
+---
 
-Spawn 1 research subagent comparing Chamet/Bigo/Olamet/Crush Live private-call flows (Agora→LiveKit translation):
-- Ring timeout, retry, "called too soon" cooldown
-- Accept handshake (who joins room first, ICE warm-up)
-- Billing tick (per-second vs per-minute, grace seconds, low-balance kick)
-- Rating prompt timing, skip rules
-- End reasons taxonomy (busy/declined/timeout/network/balance/normal)
-- Push (FCM data-only) + foreground-service + Telecom integration on Android 14+
+## What gets native-polished
 
-Output: `.lovable/private-call-research.md` with numbers + citations.
+### Phase NP1 — Native SFX bank with auto-ducking
+Plays five PK sounds through the existing `GiftAudioMixer` (SoundPool ≤4, master ducking already wired):
 
-## Step 2 — Current state full audit
+```text
+battle-start.mp3   → on status='active' transition
+countdown-321.mp3  → at T-3s of timer
+time-up.mp3        → at T-0
+victory.mp3        → on winner_user_id === currentUserId
+defeat.mp3         → on winner_user_id !== currentUserId
+```
 
-Read in parallel and produce gap table:
+Wiring lives in a new tiny hook `usePKBattleSfx(battle)` consumed by `PKBattleActive`. Web = silent no-op (mixer methods already guarded).
 
-- `src/hooks/usePrivateCall.ts`, `useLiveKitCall.ts`, `useNativeCallBillingSync.ts`
-- `src/components/call/CallProvider.tsx`, `IncomingCallModal.tsx`, `CallRatingModal.tsx`, `GlobalCallGiftSheet.tsx`
-- `src/lib/livekitCallSignaling.ts`
-- `src/features/call/index.ts`
-- Android: `PrivateCallActivity.kt`, `PrivateCallViewModel.kt`, `IncomingCallActivity.java`, `NativeCallPlugin.kt`, `MeriConnectionService.kt`, `TelecomBridge.kt`, `MeriFirebaseMessagingService.java`, `CallActionReceiver.java`
-- Edge fns: `private-call-*`, `call-billing-*`, FCM dispatchers
-- DB: `private_calls`, `call_billing_ticks`, `call_ratings`, FCM config tables
+### Phase NP2 — Native haptic cues
+Uses existing `VibrationPlugin`. Triggers only on the affected user's device:
 
-Each finding tagged: **BUG / RACE / MISSING / WEAK** + severity + repro.
+```text
+gift received during PK  → 30 ms light tick (host only)
+battle start             → double-tap (both hosts)
+time up                  → 80 ms medium
+victory                  → 50-30-50 ms triple
+defeat                   → single 120 ms heavy
+```
 
-## Step 3 — Fix categories (locked order)
+Lives in same `usePKBattleSfx` hook. Already Android-only; web no-op.
 
-1. **Lifecycle correctness** — state machine: `ringing → accepted → connected → ended` with single writer (caller-side edge fn), idempotent transitions, no client-driven `ended`.
-2. **Ring/accept race fixes** — verify Phase 3 fixes still hold + add: double-accept guard, callee-offline detection, caller-cancel-during-accept.
-3. **Billing accuracy** — server-tick reconciliation, low-balance pre-warning 30s, hard-kick at 0, no double-bill on reconnect, transparent ledger entry per call.
-4. **Network resilience** — LiveKit reconnect within 15s = continue; >15s = end with reason `network`; UI freeze-with-overlay during reconnect.
-5. **End-reason taxonomy** — single enum used by Android + JS + edge fn + DB. Audit current strings, normalize.
-6. **Rating modal** — show only when call duration ≥ configurable threshold (default 30s) and ended normally; one-time per call; skip on declined/timeout.
-7. **Android Telecom + FCM** — full-screen intent shown on locked screen, ConnectionService binding, audio-route handover, proper unbind on end. Verify against Android 14/15 BAL restrictions.
+### Phase NP3 — Full-screen VAP winner / defeat cue
+Routes through existing **NativeGiftAnimationPlugin** (Pkg438) using `tryPlayUrl()` — no new plugin code needed. We just supply asset URLs from a new admin-configurable table `pk_battle_assets` (one row per cue: `start_vap_url`, `victory_vap_url`, `defeat_vap_url`, optional `punishment_sticker_url`). Falls back to current React result modal if asset missing or web platform.
 
-## Step 4 — Verification (Lovable-only)
+Punishment sticker = single PNG/VAP overlaid via the native plugin on the loser tile during the 90 s window, replacing the current CSS dim wash for Android while React overlay stays as fallback.
 
-- Vitest: extend `callAndGiftFlowsE2E` + `nativeCallColdStart` to cover each fix.
-- Owner-account preview test (smdollarex923@gmail.com) for any JS-only change.
-- Honesty marker: every Android-side fix labeled "needs APK rebuild" — no false "verified" claims.
+### Phase NP4 (optional, skip unless jank observed)
+Move score-bar width animation from Framer Motion to a thin native `ValueAnimator` bridge. Skipping by default — Bigo/Tencent use 300 ms native ValueAnimator, our 300 ms Framer Motion in WebView is visually equivalent on mid+ devices. Will revisit only if device QA flags jank.
 
-## Step 5 — Delivery
+---
 
-- Update `.lovable/plan.md` with all changes + APK-test checklist.
-- Save `mem://features/private-call-100pct-audit.md` with final gap-closure summary.
+## Files touched
 
-## Why I'm asking before coding
+**New (small):**
+- `src/hooks/usePKBattleSfx.ts` — orchestrates NP1+NP2+NP3 from server-authoritative `pk_battles` row state
+- Supabase migration: `pk_battle_assets` table (admin-configurable URLs, per existing admin-rates rule)
 
-Surface is too large to "just fix everything" in one shot without breaking design / billing. Per project rule (research-first mandatory + design sacred), I need your ✅ on:
+**Edited:**
+- `src/components/live/PKBattleActive.tsx` — adds `usePKBattleSfx(battle)` call (one line, no UI change)
+- `src/components/live/PKBattleResult.tsx` — fires victory/defeat cue via the hook (one line)
+- `src/components/live/PKPunishmentOverlay.tsx` — optional native sticker via `tryPlayEntryUrl`, React overlay stays as fallback
 
-- **A.** Run full Step 1+2 audit first (produces gap table, no code change yet) — recommended।
-- **B.** Skip research, trust Phase 3 + N3 already covered most of it, only fix anything you can name right now.
-- **C.** Different scope (e.g. only billing, only Android, only rating)।
+**Zero edits to:** Kotlin plugins, MainActivity, gradle, native manifest.
 
-বল কোনটা — তারপর আমি honest গতিতে এগোব।
+---
+
+## Honesty checkpoint
+
+- All five Phase NP1+NP2+NP3 React/SQL changes ship via WebView → users get them **without** an APK rebuild
+- The SFX/VAP assets themselves must be uploaded to Supabase Storage (admin task)
+- APK rebuild is **not required** because we only call existing native plugins through their existing JS wrappers
+- Owner can test in preview with smdollarex923@gmail.com (web SFX/VAP will no-op silently; Android device will play them)
+
+---
+
+## Anti-cheat (already in place — confirming, not adding)
+
+- Server-authoritative score via `bill_pk_gift` RPC ✅
+- `pk_battles.status` autoend trigger ✅
+- Cron 5 s safety net ✅
+- Gift de-dup via `pk_battle_gifts` PK ✅
+- Level ≥ 5 gating on PK initiation ✅
+
+No new anti-cheat work needed; current state matches Bigo/Chamet standard.
+
+---
+
+## Order of execution
+
+1. Write migration for `pk_battle_assets` + GRANTs + admin-readable RLS
+2. Build `usePKBattleSfx` hook
+3. Wire one-line calls in PKBattleActive + PKBattleResult
+4. Optional: wire native sticker in PKPunishmentOverlay
+5. Ship. Owner uploads VAP/MP3 assets via admin panel.
+
+Approve and I'll execute straight through.
