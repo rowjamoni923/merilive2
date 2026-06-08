@@ -99,11 +99,12 @@ export const PKBattlePanel = ({
         const acceptorLevel = data.fromLevel || 1;
         const acceptorStreamId = data.fromStreamId || "";
 
-        // PK Battle Step 3: replace forgeable client insert with the server-side
-        // start_pk_battle RPC (level≥5 gate, anti-double-accept lock, server-clamped
-        // duration). For random-match accept we then call accept_pk_battle so the
-        // battle transitions pending → active with server-stamped started_at.
-        const { data: createRes, error: createErr } = await supabase.rpc("start_pk_battle", {
+        // PK Battle Step 5: replace the racey two-call create+accept
+        // (which always failed because accept_pk_battle requires
+        // auth.uid() = opponent_id) with the atomic
+        // start_pk_battle_random RPC — single round-trip, server-side
+        // anti-collusion + level gate + auto-activate.
+        const { data: createRes, error: createErr } = await supabase.rpc("start_pk_battle_random", {
           p_opponent_id: acceptorId,
           p_challenger_stream_id: currentStreamId,
           p_opponent_stream_id: acceptorStreamId,
@@ -116,13 +117,6 @@ export const PKBattlePanel = ({
           return;
         }
         const battleId = createPayload.battle_id;
-
-        const { data: acceptRes } = await supabase.rpc("accept_pk_battle", { p_battle_id: battleId });
-        const acceptPayload = (acceptRes ?? {}) as { ok?: boolean; error?: string };
-        if (!acceptPayload.ok) {
-          toast.error(acceptPayload.error || "Failed to start PK battle");
-          return;
-        }
 
         toast.success(`${acceptorName} accepted your PK!`);
         onBattleStarted(battleId, {
