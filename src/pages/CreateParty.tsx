@@ -384,6 +384,11 @@ const CreateParty = () => {
     if (newMode === "game" && !selectedGame) {
       setShowGameSelection(true);
     }
+    if (isNativeAndroid) {
+      setCameraReady(false);
+      await startCameraInstant(newMode !== "audio");
+      return;
+    }
     if (!streamRef.current) return;
 
     const previousNeedsVideo = previousMode === "video" || previousMode === "game";
