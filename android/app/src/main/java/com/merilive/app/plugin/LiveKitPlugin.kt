@@ -249,6 +249,12 @@ class LiveKitPlugin : Plugin() {
     private var consecutiveExcellent: Int = 0
     private var lastTierChangeMs: Long = 0L
     private var adaptiveBusy: Boolean = false
+    // Phase I.b — audio-only fallback floor (Agora STREAM_FALLBACK_OPTION_AUDIO_ONLY
+    // equivalent). When we are already at LOW tier and quality stays POOR/LOST,
+    // mute the camera track (stops sending video frames) so audio survives on
+    // <200 kbps uplinks. On sustained EXCELLENT we re-enable video, then the
+    // normal step-up logic climbs the resolution ladder again.
+    private var audioOnlyActive: Boolean = false
 
     // --- Codec preference + hardware acceleration (Step 32) ------
     //
@@ -1946,16 +1952,29 @@ class LiveKitPlugin : Plugin() {
         when (quality) {
             ConnectionQuality.POOR, ConnectionQuality.LOST -> {
                 consecutiveExcellent = 0
+                // Phase I.b — audio-only floor. Already at LOW + still POOR/LOST
+                // means our ~700 kbps uplink can't sustain even 540p/24fps. Mute
+                // the camera track so audio keeps flowing (Bigo/Chamet behavior).
+                if (currentTier == AdaptiveTier.LOW) {
+                    if (!audioOnlyActive) enterAudioOnlyFallback("uplink-collapse")
+                    return
+                }
                 val next = when (currentTier) {
                     AdaptiveTier.HIGH   -> AdaptiveTier.MEDIUM
                     AdaptiveTier.MEDIUM -> AdaptiveTier.LOW
-                    AdaptiveTier.LOW    -> return // already at floor
+                    AdaptiveTier.LOW    -> return // already at floor (handled above)
                 }
                 applyAdaptiveTier(next, "downgrade")
             }
             ConnectionQuality.EXCELLENT -> {
                 consecutiveExcellent++
                 if (consecutiveExcellent < 2) return
+                // Phase I.b — recover from audio-only floor BEFORE climbing tiers.
+                // Re-enable camera; next quality tick will step LOW → MEDIUM → HIGH.
+                if (audioOnlyActive) {
+                    exitAudioOnlyFallback("uplink-recovered")
+                    return
+                }
                 if (currentTier == baseTier) return // already at ceiling
                 val next = when (currentTier) {
                     AdaptiveTier.LOW    -> AdaptiveTier.MEDIUM
@@ -1967,6 +1986,49 @@ class LiveKitPlugin : Plugin() {
                 applyAdaptiveTier(next, "upgrade")
             }
             else -> { consecutiveExcellent = 0 }
+        }
+    }
+
+    private fun enterAudioOnlyFallback(reason: String) {
+        val r = room ?: return
+        audioOnlyActive = true
+        lastTierChangeMs = System.currentTimeMillis()
+        scope.launch {
+            try {
+                r.localParticipant.setCameraEnabled(false)
+                Log.i(TAG, "Audio-only fallback ENTERED ($reason)")
+                val data = JSObject()
+                data.put("active", true)
+                data.put("reason", reason)
+                notifyListeners("audio-only-fallback", data)
+            } catch (e: Exception) {
+                Log.w(TAG, "enterAudioOnlyFallback failed: ${e.message}")
+                audioOnlyActive = false
+            }
+        }
+    }
+
+    private fun exitAudioOnlyFallback(reason: String) {
+        val r = room ?: return
+        lastTierChangeMs = System.currentTimeMillis()
+        scope.launch {
+            try {
+                // Re-publish camera via OEM-safe retry path (handles Xiaomi/Vivo
+                // capture-session races that surface after long mute intervals).
+                val ok = setNativeCameraEnabledWithOemRetry(r, true, "audio-only-recover")
+                if (!ok) {
+                    Log.w(TAG, "exitAudioOnlyFallback: camera re-enable failed")
+                    return@launch
+                }
+                audioOnlyActive = false
+                Log.i(TAG, "Audio-only fallback EXITED ($reason)")
+                val data = JSObject()
+                data.put("active", false)
+                data.put("reason", reason)
+                notifyListeners("audio-only-fallback", data)
+            } catch (e: Exception) {
+                Log.w(TAG, "exitAudioOnlyFallback failed: ${e.message}")
+            }
         }
     }
 
