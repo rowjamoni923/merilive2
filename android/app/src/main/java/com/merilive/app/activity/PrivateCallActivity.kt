@@ -114,17 +114,25 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var tvBalance: TextView
     private lateinit var ivPeerAvatar: ImageView
     private lateinit var btnMic: ImageButton
+    private lateinit var btnSpeaker: ImageButton
     private lateinit var btnFlip: ImageButton
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
 
-    // Phase D — low-balance warning banner (parent slot is now a LinearLayout
-    // holding the warning icon/text + Recharge CTA, inflated directly into
-    // the layout XML so we don't pay a runtime inflate cost on every call).
+    // Phase E — overlay views toggled in PIP mode.
+    private lateinit var topOverlay: View
+    private lateinit var bottomBar: View
+
+    // Phase D — low-balance warning banner.
     private lateinit var lowBalanceBannerSlot: View
     private lateinit var lowBalanceText: TextView
     private lateinit var btnRecharge: Button
+
+    // Phase E — audio routing helper.
+    private var audioRouter: CallAudioRouter? = null
+    @Volatile private var speakerOn: Boolean = true
+    @Volatile private var inPipMode: Boolean = false
 
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
@@ -289,30 +297,62 @@ class PrivateCallActivity : ComponentActivity() {
         tvBalance = findViewById(R.id.privateCallBalance)
         ivPeerAvatar = findViewById(R.id.privateCallPeerAvatar)
         btnMic = findViewById(R.id.privateCallBtnMic)
+        btnSpeaker = findViewById(R.id.privateCallBtnSpeaker)
         btnFlip = findViewById(R.id.privateCallBtnFlip)
         btnBeauty = findViewById(R.id.privateCallBtnBeauty)
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
+        topOverlay = findViewById(R.id.privateCallTopOverlay)
+        bottomBar = findViewById(R.id.privateCallBottomBar)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
         lowBalanceText = findViewById(R.id.privateCallLowBalanceText)
         btnRecharge = findViewById(R.id.privateCallBtnRecharge)
         btnRecharge.setOnClickListener { onRechargeRequested() }
+
+        // Phase E — initialise audio router. Default to speakerphone ON for a
+        // video call (Chamet/WhatsApp pattern). External devices override.
+        audioRouter = CallAudioRouter(applicationContext).also {
+            speakerOn = it.attach(defaultSpeakerOn = true)
+            renderSpeakerButton()
+        }
 
         btnMic.setOnClickListener {
             val on = vm.toggleMic()
             btnMic.isSelected = !on
             btnMic.contentDescription = if (on) "Mute microphone" else "Unmute microphone"
         }
+        btnSpeaker.setOnClickListener {
+            val next = !speakerOn
+            speakerOn = audioRouter?.applySpeaker(next) ?: next
+            renderSpeakerButton()
+        }
         btnFlip.setOnClickListener { vm.flipCamera() }
         btnBeauty.setOnClickListener {
-            // Phase C — open native beauty bottom sheet (4 GPUPixel sliders
-            // + master enable switch). All level changes apply in real time.
             PrivateCallBeautySheet.show(this)
         }
         btnGift.setOnClickListener {
-            // Phase D/E — open gift sheet without leaving the Activity.
+            // Inline gift sheet — Phase E follow-up. For now broadcast a
+            // request so JS can open the existing gift sheet behind the call.
+            try {
+                val callId = vm.identity.value?.callId.orEmpty()
+                val peerId = vm.identity.value?.peerId.orEmpty()
+                val i = Intent(com.merilive.app.plugin.NativeCallPlugin.ACTION_CALL_END_ACTION).apply {
+                    setPackage(packageName)
+                    putExtra("call_id", callId)
+                    putExtra("peer_id", peerId)
+                    putExtra("action", "gift_inline")
+                }
+                sendBroadcast(i)
+            } catch (_: Throwable) {}
         }
         btnEnd.setOnClickListener { onUserRequestedEnd() }
+    }
+
+    private fun renderSpeakerButton() {
+        btnSpeaker.isSelected = !speakerOn
+        btnSpeaker.alpha = if (speakerOn) 1.0f else 0.55f
+        btnSpeaker.contentDescription =
+            if (speakerOn) "Switch to earpiece" else "Switch to speaker"
     }
 
     private fun parseIntentInto(vm: PrivateCallViewModel): Boolean {
@@ -363,9 +403,10 @@ class PrivateCallActivity : ComponentActivity() {
                         tvCallState.visibility =
                             if (tvCallState.text.isNullOrEmpty()) View.GONE else View.VISIBLE
                         if (st == PrivateCallViewModel.CallState.ENDED) {
-                            // Phase E will show end-screen Activity first. For
-                            // Phase A scaffold, just finish.
-                            finishAndRemoveTask()
+                            // Phase E — slide in the post-call summary screen
+                            // (duration / coins / rating / gift / recharge)
+                            // before finishing the in-call surface.
+                            launchEndScreenAndFinish()
                         }
                     }
                 }
@@ -545,7 +586,95 @@ class PrivateCallActivity : ComponentActivity() {
         closeReceiver = null
         billingReceiver?.let { runCatching { unregisterReceiver(it) } }
         billingReceiver = null
+        runCatching { audioRouter?.detach() }
+        audioRouter = null
         super.onDestroy()
+    }
+
+    // ------------------------------------------------------------------
+    // Phase E — Picture-in-Picture
+    // ------------------------------------------------------------------
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // User pressed Home while the call is connected → drop into PIP so
+        // the video keeps flowing in a floating window (WhatsApp pattern).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !inPipMode) {
+            val st = vm.state.value
+            if (st == PrivateCallViewModel.CallState.CONNECTED ||
+                st == PrivateCallViewModel.CallState.RECONNECTING
+            ) {
+                runCatching { enterPictureInPictureMode(buildPipParams()) }
+            }
+        }
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPipParams(): android.app.PictureInPictureParams {
+        val builder = android.app.PictureInPictureParams.Builder()
+            .setAspectRatio(android.util.Rational(9, 16))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+            builder.setSeamlessResizeEnabled(true)
+        }
+        return builder.build()
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: android.content.res.Configuration,
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        inPipMode = isInPictureInPictureMode
+        val hide = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        topOverlay.visibility = hide
+        bottomBar.visibility = hide
+        localPreviewContainer.visibility =
+            if (isInPictureInPictureMode) View.GONE
+            else if (vm.cameraEnabled.value) View.VISIBLE else View.INVISIBLE
+        if (isInPictureInPictureMode) {
+            lowBalanceBannerSlot.visibility = View.GONE
+        } else {
+            // Restore banner based on the current warning level.
+            renderLowBalanceBanner(vm.warningLevel.value)
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Phase E — End-screen handoff
+    // ------------------------------------------------------------------
+
+    private fun launchEndScreenAndFinish() {
+        try {
+            val id = vm.identity.value
+            val duration = vm.durationSec.value
+            val coinsSpent = estimateCoinsSpent(duration, vm.ratePerMinute.value)
+            if (id != null) {
+                val intent = PrivateCallEndActivity.newIntent(
+                    ctx = this,
+                    callId = id.callId,
+                    peerId = id.peerId,
+                    peerName = id.peerName,
+                    peerAvatar = id.peerAvatar,
+                    durationSec = duration,
+                    coinsSpent = coinsSpent,
+                    isCaller = id.isCaller,
+                    reason = vm.endReason,
+                )
+                startActivity(intent)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "launchEndScreenAndFinish: ${t.message}")
+        }
+        finishAndRemoveTask()
+    }
+
+    /** Conservative client-side estimate; server settle_private_call is truth. */
+    private fun estimateCoinsSpent(durationSec: Int, ratePerMinute: Int): Long {
+        if (durationSec <= 0 || ratePerMinute <= 0) return 0L
+        // Bill in whole minutes, rounded up (industry standard for paid calls).
+        val minutes = (durationSec + 59) / 60
+        return minutes.toLong() * ratePerMinute.toLong()
     }
 
 

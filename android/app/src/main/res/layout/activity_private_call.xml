@@ -45,6 +45,7 @@
     <!-- Top overlay (peer info + duration + balance). Scrim gradient keeps
          text readable over any background. -->
     <LinearLayout
+        android:id="@+id/privateCallTopOverlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -178,8 +179,9 @@
             android:text="Recharge" />
     </LinearLayout>
 
-    <!-- Bottom action bar. Five circular buttons inside a translucent scrim. -->
+    <!-- Bottom action bar. Six circular buttons inside a translucent scrim. -->
     <LinearLayout
+        android:id="@+id/privateCallBottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -188,8 +190,8 @@
         android:gravity="center"
         android:paddingTop="24dp"
         android:paddingBottom="36dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <ImageButton
             android:id="@+id/privateCallBtnMic"
@@ -197,9 +199,15 @@
             android:src="@android:drawable/ic_btn_speak_now"
             android:contentDescription="Mute microphone" />
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="wrap_content" />
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnSpeaker"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/stat_sys_speakerphone"
+            android:contentDescription="Toggle speaker" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/privateCallBtnFlip"
@@ -207,9 +215,7 @@
             android:src="@android:drawable/ic_menu_camera"
             android:contentDescription="Flip camera" />
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="wrap_content" />
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/privateCallBtnBeauty"
@@ -217,9 +223,7 @@
             android:src="@android:drawable/ic_menu_view"
             android:contentDescription="Beauty filter" />
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="wrap_content" />
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/privateCallBtnGift"
@@ -227,9 +231,7 @@
             android:src="@android:drawable/ic_menu_send"
             android:contentDescription="Send gift" />
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="wrap_content" />
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/privateCallBtnEnd"

@@ -198,6 +198,17 @@
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale" />
 
+        <!-- Pkg500 Phase E — Post-call professional summary screen. -->
+        <activity
+            android:name=".activity.PrivateCallEndActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:theme="@style/AppTheme.PrivateCallEnd"
+            android:taskAffinity=":privatecall"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale" />
+
 
         <service android:name=".service.MeriFirebaseMessagingService" android:exported="false">
             <intent-filter>
