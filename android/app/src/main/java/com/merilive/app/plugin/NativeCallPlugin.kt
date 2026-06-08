@@ -503,6 +503,26 @@ class NativeCallPlugin : Plugin() {
     }
 
     /**
+     * Pkg500 Phase G — bring the existing PrivateCallActivity back to the
+     * foreground after an inline sheet (gift / recharge) opened in the
+     * WebView. Broadcasts ACTION_RESUME_PRIVATE_CALL; the Activity
+     * receives it and calls moveTaskToFront / exits PIP. Safe no-op when
+     * no PrivateCallActivity is running.
+     */
+    @PluginMethod
+    fun resumeInCallActivity(call: PluginCall) {
+        try {
+            val i = android.content.Intent(ACTION_RESUME_PRIVATE_CALL).apply {
+                setPackage(context.packageName)
+            }
+            context.sendBroadcast(i)
+        } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
+
+    /**
      * Pkg500 Phase D — push the latest billing snapshot into the active
      * PrivateCallActivity. JS calls this every time the server bills
      * another minute, the caller recharges, or `viewer_rate_per_min`
