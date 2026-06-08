@@ -825,23 +825,25 @@ class LiveKitPlugin : Plugin() {
         // NativeCameraPlugin can't race in and grab the hardware mid-connect.
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
-        val existingOwner = CameraOwnership.owner()
-        val isReentrantReconnect = isReconnect &&
-            (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
-        val ownerAcquired = CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
-        if (!ownerAcquired) {
-            throw IllegalStateException("Camera busy: held by $existingOwner")
+        if (args.video) {
+            val existingOwner = CameraOwnership.owner()
+            val isReentrantReconnect = isReconnect &&
+                (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
+            val ownerAcquired = CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
+            if (!ownerAcquired) {
+                throw IllegalStateException("Camera busy: held by $existingOwner")
+            }
+            val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
+            if (graceMs > 0L) {
+                Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
+                delay(graceMs)
+            }
+            // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
+            // HAL reports any camera is back online (typically within 100-800 ms);
+            // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
+            val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+            if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         }
-        val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
-        if (graceMs > 0L) {
-            Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
-            delay(graceMs)
-        }
-        // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
-        // HAL reports any camera is back online (typically within 100-800 ms);
-        // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
-        val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
-        if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
