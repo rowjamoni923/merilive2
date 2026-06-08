@@ -8,6 +8,7 @@ import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@/plugins/NativeCall';
+import { GlobalCallGiftSheet } from './GlobalCallGiftSheet';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
