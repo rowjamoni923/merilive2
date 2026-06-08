@@ -248,13 +248,20 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] JS API: `setSurviveActivityDestroy({ enabled })`
 - [x] `lastConnectArgs` intentionally NOT rebuilt on adoption → `canHardReconnect=false` until JS re-issues `connect()` (documented limitation, transparent to user)
 
-#### Step 2 — Conditional destroy + UI wiring (next turn)
-- [ ] `LiveKitPlugin.handleOnDestroy` — read `RtcEngineManager.shouldSurviveActivityDestroy()`; when true: skip `room.disconnect()` + `releaseRoomResources` + `unbind` (keep watchdogs, foreground service, audio focus alive)
-- [ ] Conditional release of beauty processor / virtual background — they're tied to Activity lifecycle, must rebuild on adoption
-- [ ] JS: in `/live` screen `useEffect` cleanup, call `setSurviveActivityDestroy({ enabled: true })` before in-app navigation; on mount, call `getActiveSession()` and skip `connect()` when `active=true`
-- [ ] Renderer re-bind: `attachLocal()` + `attachAllRemotes()` after adoption (renderers ARE Activity-bound, must recreate)
-- [ ] Owner test account verification: navigate /live → /profile → /live, camera should appear in <500 ms without re-init
-- [ ] Regression smoke test: live broadcast, private call, party room, gift, beauty, BT headset, PiP — all must still work without survival flag set
+#### Step 2 — Conditional destroy + adoption resume ✅ (this turn)
+- [x] `LiveKitPlugin.handleOnDestroy` early-return survival branch: skip `room.disconnect/release`, skip `RtcEngineManager.unbind`, skip `stopCallForegroundService`, skip `abandonAudioFocusInternal`, skip `applyAudioMode(false)`, skip `CameraOwnership.forceRelease`, skip `lastConnectArgs = null`
+- [x] In survival branch, DO unregister system listeners that capture `this`: stall+reconnect+stats watchdogs, network callback, audio device listener, headset receivers, MediaSession
+- [x] Release Activity-bound `virtualBackgroundProcessor` + `beautyProcessor` + renderers (will rebuild in new plugin)
+- [x] `load()` adoption block extended: restart stall watchdog + network callback + audio device listener + headset receivers + MediaSession after `attachEventListeners`
+- [x] Normal teardown path 100% unchanged when survival flag is OFF (production behavior preserved)
+
+#### Step 3 — JS-side wiring (next turn)
+- [ ] `/live` screen on-mount: call `getActiveSession()`; when `active=true`, skip `connect()` and instead call `attachLocal()` + `attachAllRemotes()` to rebind renderers
+- [ ] `/live` screen on-unmount during in-app navigation: call `setSurviveActivityDestroy({ enabled: true })` BEFORE navigation; do NOT call on user-initiated leave (back button = real disconnect)
+- [ ] Same wiring for `/private-call` and party room screens
+- [ ] Owner test account verification: navigate /live → /profile → /live, camera should appear in <500 ms without re-init; force-rotate device should not blank camera
+- [ ] Regression smoke test: live broadcast, private call, party room, gift, beauty, BT headset, PiP — all must still work without survival flag set (default OFF path)
+- [ ] APK rebuild required before Step 3 verification
 
 
 

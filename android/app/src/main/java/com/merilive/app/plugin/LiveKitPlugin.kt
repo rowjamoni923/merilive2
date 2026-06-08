@@ -422,6 +422,17 @@ class LiveKitPlugin : Plugin() {
                 try { attachEventListeners(handle.room) } catch (t: Throwable) {
                     Log.w(TAG, "adopt: attachEventListeners failed: ${t.message}")
                 }
+                // Phase 1A.2 step 2 — restart the listeners + watchdogs that
+                // survival-mode destroy had to unregister (because they hold
+                // a reference to the old plugin's `this`). The Room itself
+                // is still publishing/subscribing — these only re-wire the
+                // observer side. Renderers re-attach when JS calls
+                // attachLocal() / attachAllRemotes() on /live mount.
+                try { startStallWatchdog() } catch (t: Throwable) { Log.w(TAG, "adopt: startStallWatchdog: ${t.message}") }
+                try { registerNetworkCallback() } catch (t: Throwable) { Log.w(TAG, "adopt: registerNetworkCallback: ${t.message}") }
+                try { registerAudioDeviceListener() } catch (t: Throwable) { Log.w(TAG, "adopt: registerAudioDeviceListener: ${t.message}") }
+                try { registerHeadsetReceivers() } catch (t: Throwable) { Log.w(TAG, "adopt: registerHeadsetReceivers: ${t.message}") }
+                try { if (headsetButtonsEnabled) startHeadsetMediaSession() } catch (t: Throwable) { Log.w(TAG, "adopt: startHeadsetMediaSession: ${t.message}") }
                 Log.i(TAG, "adopted surviving Room url=${handle.summary.url} type=${handle.summary.callType}")
             }
         } catch (t: Throwable) {
@@ -1935,6 +1946,56 @@ class LiveKitPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
+
+        // Phase 1A.2 step 2 — Survival mode. When the JS layer (or any
+        // future native caller) opted the current session into surviving
+        // an Activity recreate via setSurviveActivityDestroy(true), we
+        // skip Room teardown + Foreground Service stop + audio focus
+        // abandon, so the next plugin instance can adopt the live Room
+        // in its load() without paying a cold-reconnect cost.
+        //
+        // We DO release Activity-bound resources (renderers, beauty
+        // processors, plugin-instance jobs, system listeners that hold
+        // a reference to `this`) — the new plugin re-registers them
+        // during the adoption path in load().
+        val survive = try {
+            com.merilive.app.rtc.RtcEngineManager.shouldSurviveActivityDestroy() && room != null
+        } catch (_: Throwable) { false }
+
+        if (survive) {
+            Log.i(TAG, "handleOnDestroy: survival mode — keeping Room + FGS + audio focus alive")
+            try {
+                // Stop plugin-instance coroutines + system listeners; they
+                // all hold a reference to the dying `this`.
+                eventJob?.cancel()
+                stopStallWatchdog()
+                stopReconnectWatchdog()
+                stopStatsCollector()
+                unregisterNetworkCallback()
+                unregisterAudioDeviceListener()
+                unregisterHeadsetReceivers()
+                stopHeadsetMediaSession()
+                // Renderers + Activity-scoped GPU pipelines must rebuild.
+                activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+                try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
+                virtualBackgroundProcessor = null
+                try { beautyProcessor?.release() } catch (_: Exception) {}
+                beautyProcessor = null
+                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
+                // Drop our local Room reference — the manager retains it.
+                // Do NOT call disconnect/release/unbind, do NOT stop the
+                // foreground service, do NOT abandon audio focus, do NOT
+                // reset audio mode, do NOT release CameraOwnership: the
+                // adopting plugin instance immediately reclaims them.
+                room = null
+            } catch (e: Exception) {
+                Log.w(TAG, "survival-mode destroy partial cleanup failure: ${e.message}")
+            }
+            if (INSTANCE === this) INSTANCE = null
+            return
+        }
+
+        // Normal teardown path (unchanged):
         try {
             eventJob?.cancel()
             stopStallWatchdog()
