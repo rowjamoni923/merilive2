@@ -114,17 +114,25 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var tvBalance: TextView
     private lateinit var ivPeerAvatar: ImageView
     private lateinit var btnMic: ImageButton
+    private lateinit var btnSpeaker: ImageButton
     private lateinit var btnFlip: ImageButton
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
 
-    // Phase D — low-balance warning banner (parent slot is now a LinearLayout
-    // holding the warning icon/text + Recharge CTA, inflated directly into
-    // the layout XML so we don't pay a runtime inflate cost on every call).
+    // Phase E — overlay views toggled in PIP mode.
+    private lateinit var topOverlay: View
+    private lateinit var bottomBar: View
+
+    // Phase D — low-balance warning banner.
     private lateinit var lowBalanceBannerSlot: View
     private lateinit var lowBalanceText: TextView
     private lateinit var btnRecharge: Button
+
+    // Phase E — audio routing helper.
+    private var audioRouter: CallAudioRouter? = null
+    @Volatile private var speakerOn: Boolean = true
+    @Volatile private var inPipMode: Boolean = false
 
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
