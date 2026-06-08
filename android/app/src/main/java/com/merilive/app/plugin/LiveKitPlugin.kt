@@ -1541,6 +1541,47 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * N3d — Token refresh (silent JWT rotation).
+     *
+     * livekit-android 2.23.4 has no public client-side `updateAuthToken` API.
+     * The SFU normally pushes a refreshed token over signaling via
+     * `RTCEngine.onRefreshToken` when the server-side issuer rotates it.
+     * For client-driven refresh (TTL nearing expiry, manual app-level rotation
+     * by `livekitTokenRefresh.ts`), we update `lastConnectArgs.token` so the
+     * NEXT hard-reconnect (resilience watchdog, network drop, server kick)
+     * picks up the new JWT automatically — same pattern as Bigo/Agora
+     * `renewToken` (which also requires reconnect for token swap).
+     *
+     * Returns:
+     *   applied   — true if the token was stored
+     *   willUseOnReconnect — true if a future reconnect will use the new token
+     */
+    @PluginMethod
+    fun refreshToken(call: PluginCall) {
+        val token = call.getString("token")
+        if (token.isNullOrBlank()) {
+            call.reject("token required"); return
+        }
+        val args = lastConnectArgs
+        if (args == null) {
+            val ret = JSObject()
+            ret.put("applied", false)
+            ret.put("willUseOnReconnect", false)
+            ret.put("reason", "no-active-session")
+            call.resolve(ret)
+            return
+        }
+        lastConnectArgs = args.copy(token = token)
+        Log.i(TAG, "refreshToken — JWT updated, will apply on next reconnect")
+        val ret = JSObject()
+        ret.put("applied", true)
+        ret.put("willUseOnReconnect", true)
+        call.resolve(ret)
+    }
+
+
+
     @PluginMethod
     fun setCameraEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", true) ?: true
