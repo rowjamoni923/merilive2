@@ -239,6 +239,11 @@ class LiveKitPlugin : Plugin() {
     private var pauseCameraOnBackground: Boolean = false
     private var inBackground: Boolean = false
     private var cameraOnBeforeBackground: Boolean = false
+    // Phase 2A — Process-level (not Activity-level) background tracking.
+    // Backed by AppLifecycleObserver / ProcessLifecycleOwner so it ignores
+    // permission sheets, notification shade, PiP and WebView focus churn.
+    @Volatile private var processInBackground: Boolean = false
+    private var unsubscribeAppLifecycle: (() -> Unit)? = null
 
     // --- Stall & black-frame recovery (Step 25) ------------------
     //
@@ -437,6 +442,59 @@ class LiveKitPlugin : Plugin() {
             }
         } catch (t: Throwable) {
             Log.w(TAG, "RtcEngineManager.adoptCurrentRoom failed (non-fatal): ${t.message}")
+        }
+
+        // Phase 2A — subscribe to process-level fg/bg. Replays current
+        // state synchronously so processInBackground is accurate before
+        // any further plugin call. Listener is cheap; the heavy work
+        // (camera toggle) only runs when pauseCameraOnBackground=true.
+        try {
+            unsubscribeAppLifecycle = com.merilive.app.rtc.AppLifecycleObserver.addListener { foreground ->
+                processInBackground = !foreground
+                onProcessLifecycleChanged(foreground)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "AppLifecycleObserver subscribe failed: ${t.message}")
+        }
+    }
+
+    /**
+     * Phase 2A — single funnel for process-level fg/bg transitions.
+     * Emits a `app-foreground` event for JS overlays (Phase 2C), and —
+     * when `pauseCameraOnBackground` is opted in — toggles the camera
+     * track without disturbing the Room. Activity-level handleOnPause
+     * is intentionally NOT used for the camera toggle anymore because
+     * it fires for permission sheets / shade / PiP.
+     */
+    private fun onProcessLifecycleChanged(foreground: Boolean) {
+        try {
+            val payload = JSObject()
+            payload.put("foreground", foreground)
+            notifyListeners("app-foreground", payload)
+        } catch (_: Exception) {}
+
+        val r = room ?: return
+        if (!pauseCameraOnBackground) return
+
+        if (!foreground) {
+            try {
+                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
+                if (cameraOnBeforeBackground) {
+                    scope.launch {
+                        try { setNativeCameraEnabledWithOemRetry(r, false, "process-bg") }
+                        catch (e: Exception) { Log.w(TAG, "process-bg camera off failed: ${e.message}") }
+                    }
+                }
+            } catch (e: Exception) { Log.w(TAG, "onProcessLifecycle bg failed: ${e.message}") }
+        } else {
+            if (cameraOnBeforeBackground) {
+                scope.launch {
+                    try { setNativeCameraEnabledWithOemRetry(r, true, "process-fg") }
+                    catch (e: Exception) { Log.w(TAG, "process-fg camera on failed: ${e.message}") }
+                }
+                cameraOnBeforeBackground = false
+            }
         }
     }
 
@@ -1964,18 +2022,10 @@ class LiveKitPlugin : Plugin() {
         inBackground = true
         try {
             detachAllRenderersInternal()
-
-            if (pauseCameraOnBackground) {
-                val r = room ?: return
-                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
-                if (cameraOnBeforeBackground) {
-                    scope.launch {
-                        try { setNativeCameraEnabledWithOemRetry(r, false, "background-pause") }
-                        catch (e: Exception) { Log.w(TAG, "pause camera failed: ${e.message}") }
-                    }
-                }
-            }
+            // Phase 2A — camera toggle moved to onProcessLifecycleChanged
+            // (ProcessLifecycleOwner-backed). Activity-level events fire
+            // for permission sheets / notification shade / PiP transitions
+            // and would otherwise cause noisy camera flapping.
         } catch (e: Exception) {
             Log.w(TAG, "handleOnPause cleanup failed", e)
         }
@@ -2007,13 +2057,10 @@ class LiveKitPlugin : Plugin() {
                 }
             }
 
-            if (pauseCameraOnBackground && cameraOnBeforeBackground) {
-                scope.launch {
-                    try { setNativeCameraEnabledWithOemRetry(r, true, "background-resume") }
-                    catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
-                }
-            }
-            cameraOnBeforeBackground = false
+            // Phase 2A — camera resume is owned by onProcessLifecycleChanged.
+            // handleOnResume only restores GPU compositor work (renderers).
+            // If we were paused due to a permission sheet / shade, the camera
+            // was never actually disabled, so there's nothing to flip here.
             // Step 25 — give the renderer time to start receiving frames
             // again before the watchdog re-arms its stall timer.
             val now = System.currentTimeMillis()
@@ -2070,6 +2117,10 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 Log.w(TAG, "survival-mode destroy partial cleanup failure: ${e.message}")
             }
+            // Phase 2A — drop our ProcessLifecycle subscription; the new
+            // plugin instance will re-subscribe in its own load().
+            try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
+            unsubscribeAppLifecycle = null
             if (INSTANCE === this) INSTANCE = null
             return
         }
@@ -2127,6 +2178,9 @@ class LiveKitPlugin : Plugin() {
             try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
             CameraOwnership.forceRelease()
         } catch (_: Exception) {}
+        // Phase 2A — drop ProcessLifecycle subscription on final teardown.
+        try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
+        unsubscribeAppLifecycle = null
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
         if (INSTANCE === this) INSTANCE = null

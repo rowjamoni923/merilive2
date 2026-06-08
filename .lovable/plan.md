@@ -300,11 +300,16 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 
 **Pre-task research:** Android 12+ background camera restriction; Android 16 WebView permission loop (Chamet had this exact bug — documented at bittopup.com Dec 2025). Fix = native ProcessLifecycleOwner + WebView permission gate.
 
-### Phase 2A — Process-level Lifecycle
-- [ ] Create `android/app/.../rtc/AppLifecycleObserver.kt` using `ProcessLifecycleOwner` (NOT Activity-level)
-- [ ] Add `androidx.lifecycle:lifecycle-process` dependency
-- [ ] On app background → `enableLocalVideo(false)`, keep CameraDevice alive
-- [ ] On foreground → `enableLocalVideo(true)` + rebind surface
+### Phase 2A — Process-level Lifecycle ✅
+- [x] `android/app/.../rtc/AppLifecycleObserver.kt` — singleton wrapping `ProcessLifecycleOwner` (~700 ms debounced ON_START/ON_STOP, true-bg only — ignores permission sheets, notification shade, PiP, WebView focus). Lazy attach on first subscription, detach on last unsubscribe. Replays current state on subscribe so callers don't race the first transition.
+- [x] `androidx.lifecycle:lifecycle-process:2.7.0` + `lifecycle-common-java8:2.7.0` added to `android/app/build.gradle`.
+- [x] `LiveKitPlugin.load()` subscribes via `AppLifecycleObserver.addListener`; sets `processInBackground` and routes through new `onProcessLifecycleChanged(foreground)` funnel. Emits `app-foreground { foreground: boolean }` JS event for Phase 2C overlay consumption.
+- [x] On true app bg → `setNativeCameraEnabledWithOemRetry(r, false, "process-bg")` (only when opt-in `pauseCameraOnBackground=true`; CameraDevice/foreground-service stay alive, only the publisher track is muted).
+- [x] On true app fg → resume via the same code path when `cameraOnBeforeBackground` was set.
+- [x] Removed the duplicate camera-toggle from `handleOnPause` / `handleOnResume` — Activity-level events kept only for renderer detach/restore (GPU saving). Eliminates the historic "camera flapping during permission sheets" regression that forced the JS `useNativeLiveKitLifecycle` to be a no-op.
+- [x] Cleanup hook in both survival and normal `handleOnDestroy` branches — `unsubscribeAppLifecycle?.invoke()` so the dying plugin instance does not leak its `this` into the observer's `CopyOnWriteArrayList`.
+- [x] JS plugin interface (`NativeLiveKit.ts`) extended with `addListener('app-foreground', cb)` overload.
+- [ ] APK rebuild required to validate; pair with Phase 2C overlay to surface the state to users.
 
 ### Phase 2B — WebView Permission Gate (Chamet bug fix)
 - [ ] Create `android/app/.../WebViewPermissionGate.kt` — block WebView `getUserMedia` on /live, /call, /party routes when native owns camera
