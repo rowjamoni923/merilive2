@@ -49,6 +49,14 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_CLOSE_PRIVATE_CALL_ACTIVITY =
             "com.merilive.app.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY"
 
+        /** Pkg500 Phase D — JS → PrivateCallActivity billing push. */
+        const val ACTION_UPDATE_BILLING =
+            "com.merilive.app.ACTION_UPDATE_BILLING"
+
+        /** Pkg500 Phase D — PrivateCallActivity → JS recharge request. */
+        const val ACTION_RECHARGE_REQUESTED =
+            "com.merilive.app.ACTION_RECHARGE_REQUESTED"
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
