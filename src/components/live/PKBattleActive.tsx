@@ -24,7 +24,7 @@ interface PKBattleActiveProps {
 
 export const PKBattleActive = ({
   battleId,
-  isChallenger,
+  isChallenger: _isChallenger,
   challengerName,
   challengerAvatar,
   challengerLevel,
