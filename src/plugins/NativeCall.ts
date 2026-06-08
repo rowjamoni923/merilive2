@@ -122,3 +122,22 @@ export const NativeCall = registerPlugin<NativeCallPlugin>('NativeCall');
 export function isNativeCallAvailable(): boolean {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
 }
+
+/**
+ * Pkg500 Phase B — true when this APK has the native PrivateCallActivity.
+ * Older APKs (pre-Pkg500) return false → JS keeps using the web fallback at
+ * /call/active. Cached per session so the branch is cheap.
+ */
+let _hasInCallCache: boolean | null = null;
+export async function hasNativeInCallActivity(): Promise<boolean> {
+  if (!isNativeCallAvailable()) return false;
+  if (_hasInCallCache !== null) return _hasInCallCache;
+  try {
+    const r = await NativeCall.hasInCallActivity();
+    _hasInCallCache = !!r?.available;
+  } catch {
+    _hasInCallCache = false;
+  }
+  return _hasInCallCache;
+}
+
