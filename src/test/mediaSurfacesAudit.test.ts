@@ -72,12 +72,14 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/RoomEvent\.ParticipantDisconnected/);
   });
 
-  it("party video seats use effect cleanup instead of callback-ref timers", () => {
+  it("party video seats render via LiveKitVideoPlayer with safe stream cleanup", () => {
     const src = read("src/components/party/UnifiedPartyRoom.tsx");
-    expect(src).toMatch(/const videoRef = useRef<HTMLVideoElement \| null>\(null\)/);
-    expect(src).toMatch(/timers\.forEach\(clearTimeout\)/);
+    // Track adapter must null `srcObject` on detach so reconnect doesn't double-bind.
     expect(src).toMatch(/el\.srcObject = null/);
+    // Host seat resolves from authoritative participant position (not stale prop).
     expect(src).toMatch(/participants\.find\(p => p\.id === hostInfo\?\.id\)\?\.position/);
+    // Video track adapter is memoized so re-renders don't churn the player.
+    expect(src).toMatch(/const videoTrack = useMemo\(/);
   });
 
   it("party room UI guards async viewer/chat state by room session", () => {
