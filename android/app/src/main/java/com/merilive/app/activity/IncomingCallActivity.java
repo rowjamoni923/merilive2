@@ -251,6 +251,17 @@ public class IncomingCallActivity extends AppCompatActivity {
             if (timeoutHandler != null && timeoutRunnable != null) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
             }
+            // Honest-private-call fix (I-2): fully stop & release the previous
+            // ringtone before the new call's ringing kicks in, otherwise the
+            // old Ringtone instance is overwritten while still streaming and
+            // two ringtones play simultaneously on rapid back-to-back calls.
+            try {
+                if (ringtone != null) {
+                    if (ringtone.isPlaying()) ringtone.stop();
+                    ringtone = null;
+                }
+            } catch (Throwable ignored) {}
+            stopRinging();
 
             callId = nid;
             String cid = intent.getStringExtra("caller_id");
@@ -262,6 +273,7 @@ public class IncomingCallActivity extends AppCompatActivity {
             String ct = intent.getStringExtra("call_type");
             if (ct != null && !ct.isEmpty()) callType = ct;
             actionDispatched = false;
+
 
             // Refresh visible UI for the new caller.
             try {

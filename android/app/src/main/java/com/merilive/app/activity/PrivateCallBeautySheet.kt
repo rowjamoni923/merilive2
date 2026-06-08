@@ -50,8 +50,19 @@ class PrivateCallBeautySheet private constructor(
         private const val DEFAULT_EYE = 0
 
         fun show(ctx: Context) {
-            PrivateCallBeautySheet(ctx).build().show()
+            // Honest-private-call fix (X-2): showing a BottomSheetDialog after
+            // the host Activity has started finishing throws BadTokenException
+            // (window already removed). Bail safely if the host is gone.
+            if (ctx is android.app.Activity && (ctx.isFinishing || ctx.isDestroyed)) {
+                return
+            }
+            try {
+                PrivateCallBeautySheet(ctx).build().show()
+            } catch (t: Throwable) {
+                android.util.Log.w("PrivateCallBeautySheet", "show failed: ${t.message}")
+            }
         }
+
 
         /**
          * Restore last beauty levels into the GPUPixel filter graph. Called

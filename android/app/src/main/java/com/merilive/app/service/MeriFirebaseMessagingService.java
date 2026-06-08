@@ -88,8 +88,20 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         boolean handledBySwitch = true;
         switch (type) {
             case "incoming_call":
+                // Honest-private-call fix (F-2): log a warning if the backend
+                // accidentally dispatches a call push at normal priority —
+                // Doze won't wake the device and the user misses the ring.
+                // Diagnostic only; we still attempt the call notification.
+                try {
+                    if (remoteMessage.getPriority() != RemoteMessage.PRIORITY_HIGH) {
+                        Log.w(TAG, "incoming_call push delivered at non-HIGH priority " +
+                            "(priority=" + remoteMessage.getPriority() + "). " +
+                            "Doze devices will miss this ring — fix the backend send.");
+                    }
+                } catch (Throwable ignored) {}
                 handleIncomingCall(data);
                 break;
+
             case "message":
                 handleMessage(data, title, body, imageUrl, iconEmoji);
                 break;
