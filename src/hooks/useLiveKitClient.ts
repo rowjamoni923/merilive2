@@ -1756,13 +1756,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.chatSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitChatSignaling');
         if (cancelled) return;
-        mod.registerChatRoom('live', streamId, room);
+        if (room) mod.registerChatRoom('live', streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeChatRoom('live', streamId);
       } catch (e) {
         console.warn('[Pkg79] registerChatRoom(live) failed:', e);
       }
@@ -1771,9 +1771,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitChatSignaling').then((mod) => {
         mod.unregisterChatRoom('live', streamId);
+        mod.unregisterNativeChatRoom('live', streamId);
       }).catch(() => {});
     };
-  }, [options.chatSignalingStreamId, isJoined]);
+  }, [options.chatSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg82a: Bind streamId → Room for LiveKit-based viewer presence signaling.
   // Reuses the SAME Room (DataReceived + ParticipantDisconnected support
@@ -1782,13 +1783,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.liveEventsStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitLiveEventsSignaling');
         if (cancelled) return;
-        mod.registerLiveEventsRoom(streamId, room);
+        if (room) mod.registerLiveEventsRoom(streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeLiveEventsRoom(streamId);
       } catch (e) {
         console.warn('[Pkg82a] registerLiveEventsRoom failed:', e);
       }
@@ -1797,9 +1798,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitLiveEventsSignaling').then((mod) => {
         mod.unregisterLiveEventsRoom(streamId);
+        mod.unregisterNativeLiveEventsRoom(streamId);
       }).catch(() => {});
     };
-  }, [options.liveEventsStreamId, isJoined]);
+  }, [options.liveEventsStreamId, isJoined, isNativeMediaActive]);
 
   // Bind streamId → Room for LiveKit-based filter_update signaling.
   useEffect(() => {
