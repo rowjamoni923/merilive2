@@ -266,9 +266,9 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 
 
 
-### Phase 1B — Camera Ownership State Machine ✅ (already exists)
+### Phase 1B — Camera Ownership State Machine ✅
 - [x] `android/app/.../plugin/CameraOwnership.kt` exists with `LIVEKIT | NATIVE_CAMERA | GPUPIXEL-rejected`, OEM 1 200 ms release grace, stale-owner 30 s TTL eviction
-- [ ] Create `android/app/.../rtc/SurfaceLifecycleManager.kt` — surface attach/detach without engine restart (the KEY blank-camera fix)
+- [x] `android/app/.../rtc/SurfaceLifecycleManager.kt` — centralizes `TextureViewRenderer` attach/detach against LiveKit `VideoTrack`s. Slot-keyed (`local` / `remote:<sid>`), idempotent `attachOrReuse` (no engine restart on surface churn), `detach(release=false)` keeps renderer warm, `pruneStaleRemotes(room)` cleans gone participants. Pure View-lifecycle helper — owns no camera/Room state. Ready for Phase 1C `NativeVideoView` to consume; LiveKitPlugin will migrate its inline renderer map to this manager in a follow-up turn (non-breaking, additive scaffold landed first).
 
 ### Phase 1C — NativeVideoView React component
 - [ ] Create `src/components/NativeVideoView.tsx` — allocates viewId, native side positions `SurfaceViewRenderer` behind WebView at its bounds
