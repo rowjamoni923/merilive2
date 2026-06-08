@@ -151,9 +151,8 @@ const CreateParty = () => {
       }
 
       if (videoMode) {
-        // Pkg-fix: removed double getUserMedia probe — getCameraStream already
-        // handles native permission internally and keeps the Android WebView
-        // user-gesture chain intact.
+        // Browser preview only. Android native app returns above and never
+        // opens WebView getUserMedia for party media setup.
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
           setStream(mediaStream);
@@ -343,7 +342,8 @@ const CreateParty = () => {
       if (error) throw error;
       if (!partyRoomId) throw new Error('Party room was not created');
 
-      // Preserve the camera stream for seamless handoff to PartyRoom
+      // Browser-only seamless handoff. Android PartyRoom opens the native
+      // LiveKit SDK camera itself; no WebView stream is preserved.
       if (!isNativeAndroid && stream) {
         preserveStreamRef.current = true;
         setPreparedHostPreviewStream(stream);
@@ -876,6 +876,11 @@ const CreateParty = () => {
         onMirrorModeToggle={() => setIsMirrorMode(!isMirrorMode)}
         isFrontCamera={facingMode === "user"}
         onSwitchCamera={async () => {
+          if (isNativeAndroid) {
+            setFacingMode((prev) => prev === "user" ? "environment" : "user");
+            toast.info("Camera will switch inside the party room.");
+            return;
+          }
           if (stream) {
             stream.getTracks().forEach(track => track.stop());
             releaseAndroidWebViewCamera('create-party:switch-camera');
