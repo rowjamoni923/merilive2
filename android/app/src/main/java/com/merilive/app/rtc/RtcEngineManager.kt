@@ -6,7 +6,7 @@ import io.livekit.android.room.Room
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Phase 1A — Application-scope RTC engine observer.
+ * Phase 1A / 1A.2 — Application-scope RTC engine observer + adoption point.
  *
  * Goal (Bigo / Chamet professional pattern): the LiveKit [Room] must
  * survive Activity recreation (config change, process trim, transient
@@ -14,38 +14,38 @@ import java.util.concurrent.atomic.AtomicReference
  * pays the cold-reconnect cost (camera blank, ICE renegotiation,
  * audio-focus flap).
  *
- * **Current scope (Phase 1A foundation):**
- *   This singleton is an *observer / handle*, not the owner. The
- *   active Room is still allocated inside [com.merilive.app.plugin.LiveKitPlugin],
- *   which calls [bind] on successful connect and [unbind] on
- *   disconnect / destroy. Nothing else queries the manager yet —
- *   wiring readers across the codebase happens in Phase 1A.2.
+ * **Lifecycle so far:**
+ *   - Phase 1A (shipped): observer hooks publish bind/unbind events
+ *     from [com.merilive.app.plugin.LiveKitPlugin]. Manager is read-only
+ *     to everyone else.
+ *   - Phase 1A.2 step 1 (this turn): expose [setSurviveActivityDestroy]
+ *     + adoption helpers so a freshly-loaded plugin instance can
+ *     reattach to a Room that survived an Activity rebuild.
+ *   - Phase 1A.2 step 2 (next turn): plugin's `handleOnDestroy` will
+ *     consult the survival flag and skip Room teardown when true.
  *
- * **Why observer first (not big-bang rewrite):**
- *   `LiveKitPlugin.kt` is 4 400+ lines of battle-tested code shipping
- *   to 10 K+ users. Moving Room ownership in one commit is Russian
- *   roulette. We introduce the singleton, point at the existing Room,
- *   and migrate readers one feature at a time without touching the
- *   shipping flow. Same pattern Bigo/Chamet use for native-engine
- *   refactors.
- *
- * Thread-safety: the [room] reference is atomic. Callers must not
- * assume the same Room across reads — the plugin may swap it on
- * reconnect.
+ * Thread-safety: [roomRef] is atomic. Callers must not assume the same
+ * Room across reads — the plugin may swap it on reconnect.
  */
 object RtcEngineManager {
     private const val TAG = "RtcEngineManager"
 
     private var appContext: Context? = null
 
-    /** Last-known active Room. Null when no session is bound. */
     private val roomRef = AtomicReference<Room?>(null)
-
-    /** Snapshot of the most recent successful connect args (URL + room context). */
     @Volatile private var lastConnectSummary: ConnectSummary? = null
-
-    /** Wall-clock when the current Room was bound. */
     @Volatile private var boundAtMs: Long = 0L
+
+    /**
+     * Phase 1A.2 — when `true`, the LiveKit plugin's `handleOnDestroy`
+     * is asked to keep the Room alive (skip `disconnect` + `release`).
+     * Default `false` so current behavior is unchanged until the JS
+     * layer or the plugin itself explicitly opts in for a screen-swap.
+     *
+     * Set this BEFORE the Activity dies — the plugin reads it inside
+     * `handleOnDestroy`.
+     */
+    @Volatile private var surviveActivityDestroy: Boolean = false
 
     /** Initialise from [com.merilive.app.MeriLiveApplication.onCreate]. Safe to call again. */
     @JvmStatic
@@ -54,14 +54,13 @@ object RtcEngineManager {
         Log.d(TAG, "init() — Application-scope engine manager ready")
     }
 
-    /** Application context (may be null only before [init]). */
     @JvmStatic
     fun appContext(): Context? = appContext
 
-    /**
-     * Called by LiveKitPlugin immediately after `room.connect()` returns
-     * successfully. Idempotent.
-     */
+    // -----------------------------------------------------------------
+    // Bind / unbind (called by LiveKitPlugin)
+    // -----------------------------------------------------------------
+
     @JvmStatic
     fun bind(room: Room, summary: ConnectSummary) {
         roomRef.set(room)
@@ -70,27 +69,23 @@ object RtcEngineManager {
         Log.d(TAG, "bound room=${System.identityHashCode(room)} url=${summary.url} type=${summary.callType}")
     }
 
-    /**
-     * Called by LiveKitPlugin when the room is being torn down (user
-     * disconnect, fatal error, Activity destroy). Idempotent.
-     */
     @JvmStatic
     @JvmOverloads
     fun unbind(reason: String, room: Room? = null) {
         val current = roomRef.get()
-        // Only clear if the caller's Room matches (avoid clobbering a
-        // newer Room that a parallel reconnect already bound).
         if (room == null || room === current) {
             roomRef.set(null)
             lastConnectSummary = null
             boundAtMs = 0L
-            Log.d(TAG, "unbound reason=$reason")
+            // Survival flag is one-shot — clear it after any unbind so a
+            // subsequent disconnect / fresh connect starts from default.
+            surviveActivityDestroy = false
+            Log.d(TAG, "unbound reason=$reason (survival flag cleared)")
         } else {
             Log.d(TAG, "unbind reason=$reason ignored — bound Room differs (stale caller)")
         }
     }
 
-    /** Current Room, or null if no session is active. */
     @JvmStatic
     fun currentRoom(): Room? = roomRef.get()
 
@@ -103,14 +98,64 @@ object RtcEngineManager {
     @JvmStatic
     fun boundAtMs(): Long = boundAtMs
 
+    // -----------------------------------------------------------------
+    // Phase 1A.2 — survival flag + adoption
+    // -----------------------------------------------------------------
+
+    /**
+     * Opt the current Room into surviving the next Activity destroy.
+     * The plugin's `handleOnDestroy` checks this and, when `true`,
+     * skips `room.disconnect()` + `room.release()` so a freshly-loaded
+     * plugin instance can adopt it via [adoptCurrentRoom].
+     *
+     * One-shot semantics: cleared on any [unbind] or after the next
+     * adoption — caller must re-arm before each screen-swap.
+     */
+    @JvmStatic
+    fun setSurviveActivityDestroy(enabled: Boolean) {
+        if (surviveActivityDestroy != enabled) {
+            surviveActivityDestroy = enabled
+            Log.d(TAG, "surviveActivityDestroy=$enabled")
+        }
+    }
+
+    @JvmStatic
+    fun shouldSurviveActivityDestroy(): Boolean = surviveActivityDestroy
+
+    /**
+     * Phase 1A.2 step 1 — called by a freshly-loaded LiveKitPlugin to
+     * inspect whether a Room survived Activity destroy and is ready to
+     * be re-attached. Returns the Room + summary, or `null` if none.
+     *
+     * Clears the survival flag on successful read so we don't double-
+     * adopt across a subsequent legitimate destroy.
+     */
+    @JvmStatic
+    fun adoptCurrentRoom(): AdoptionHandle? {
+        val r = roomRef.get() ?: return null
+        val s = lastConnectSummary ?: return null
+        val handle = AdoptionHandle(r, s, boundAtMs)
+        surviveActivityDestroy = false
+        Log.d(TAG, "adopted room=${System.identityHashCode(r)} url=${s.url} age=${System.currentTimeMillis() - boundAtMs}ms")
+        return handle
+    }
+
     /**
      * Lightweight summary of the active session — kept intentionally
-     * narrow (no token, no E2EE key) so this object is safe to log.
+     * narrow (no token, no E2EE key) so this object is safe to log
+     * AND safe to forward to the JS layer for UI decisions.
      */
     data class ConnectSummary(
         val url: String,
         val callType: String?,
         val audioProfile: String?,
         val e2eeEnabled: Boolean,
+    )
+
+    /** Handle returned from [adoptCurrentRoom]. */
+    data class AdoptionHandle(
+        val room: Room,
+        val summary: ConnectSummary,
+        val boundAtMs: Long,
     )
 }

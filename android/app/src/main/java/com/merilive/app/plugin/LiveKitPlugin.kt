@@ -407,6 +407,26 @@ class LiveKitPlugin : Plugin() {
                 android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE
             )
         } catch (_: Exception) { false }
+
+        // Phase 1A.2 step 1 — adopt any Room that survived an Activity
+        // destroy. Reattaches event listeners + claims Camera2 owner so
+        // the new plugin instance behaves as if it had opened the Room
+        // itself. lastConnectArgs is intentionally NOT rebuilt here —
+        // hard-reconnect is unavailable until the JS layer re-issues
+        // connect(); we surface that limitation via getActiveSession().
+        try {
+            val handle = com.merilive.app.rtc.RtcEngineManager.adoptCurrentRoom()
+            if (handle != null) {
+                room = handle.room
+                CameraOwnership.acquire(CameraOwnership.OWNER_LIVEKIT, force = true)
+                try { attachEventListeners(handle.room) } catch (t: Throwable) {
+                    Log.w(TAG, "adopt: attachEventListeners failed: ${t.message}")
+                }
+                Log.i(TAG, "adopted surviving Room url=${handle.summary.url} type=${handle.summary.callType}")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "RtcEngineManager.adoptCurrentRoom failed (non-fatal): ${t.message}")
+        }
     }
 
     // ------------------------------------------------------------
