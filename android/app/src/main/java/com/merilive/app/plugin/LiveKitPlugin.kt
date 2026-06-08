@@ -2057,13 +2057,10 @@ class LiveKitPlugin : Plugin() {
                 }
             }
 
-            if (pauseCameraOnBackground && cameraOnBeforeBackground) {
-                scope.launch {
-                    try { setNativeCameraEnabledWithOemRetry(r, true, "background-resume") }
-                    catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
-                }
-            }
-            cameraOnBeforeBackground = false
+            // Phase 2A — camera resume is owned by onProcessLifecycleChanged.
+            // handleOnResume only restores GPU compositor work (renderers).
+            // If we were paused due to a permission sheet / shade, the camera
+            // was never actually disabled, so there's nothing to flip here.
             // Step 25 — give the renderer time to start receiving frames
             // again before the watchdog re-arms its stall timer.
             val now = System.currentTimeMillis()
