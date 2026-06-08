@@ -92,7 +92,14 @@ export function usePartyRoomWebRTC(
    * Optional host user_id — when present, the selective-subscription engine
    * pins the host so they always stay at HIGH video quality even when silent.
    */
-  hostUserId: string | null = null
+  hostUserId: string | null = null,
+  /**
+   * Phase III.f — audio profile. 'music' (default) = 96kbps stereo opus
+   * via `AudioPresets.musicHighQuality` for DJ/video/game rooms.
+   * 'voice' = 24kbps mono via `AudioPresets.speech` for low-bandwidth
+   * voice-chat rooms. Existing callers keep music quality.
+   */
+  audioProfile: 'voice' | 'music' = 'music'
 ) {
   const partyCanPublishRef = useRef(partyCanPublish);
   partyCanPublishRef.current = partyCanPublish;
@@ -100,6 +107,8 @@ export function usePartyRoomWebRTC(
   cameraReadyRef.current = cameraReady;
   const hostUserIdRef = useRef(hostUserId);
   hostUserIdRef.current = hostUserId;
+  const audioProfileRef = useRef(audioProfile);
+  audioProfileRef.current = audioProfile;
   const [state, setState] = useState<PartyWebRTCState>({
     localStream: null,
     peerStreams: new Map(),
