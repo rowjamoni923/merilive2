@@ -443,6 +443,59 @@ class LiveKitPlugin : Plugin() {
         } catch (t: Throwable) {
             Log.w(TAG, "RtcEngineManager.adoptCurrentRoom failed (non-fatal): ${t.message}")
         }
+
+        // Phase 2A — subscribe to process-level fg/bg. Replays current
+        // state synchronously so processInBackground is accurate before
+        // any further plugin call. Listener is cheap; the heavy work
+        // (camera toggle) only runs when pauseCameraOnBackground=true.
+        try {
+            unsubscribeAppLifecycle = com.merilive.app.rtc.AppLifecycleObserver.addListener { foreground ->
+                processInBackground = !foreground
+                onProcessLifecycleChanged(foreground)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "AppLifecycleObserver subscribe failed: ${t.message}")
+        }
+    }
+
+    /**
+     * Phase 2A — single funnel for process-level fg/bg transitions.
+     * Emits a `app-foreground` event for JS overlays (Phase 2C), and —
+     * when `pauseCameraOnBackground` is opted in — toggles the camera
+     * track without disturbing the Room. Activity-level handleOnPause
+     * is intentionally NOT used for the camera toggle anymore because
+     * it fires for permission sheets / shade / PiP.
+     */
+    private fun onProcessLifecycleChanged(foreground: Boolean) {
+        try {
+            val payload = JSObject()
+            payload.put("foreground", foreground)
+            notifyListeners("app-foreground", payload)
+        } catch (_: Exception) {}
+
+        val r = room ?: return
+        if (!pauseCameraOnBackground) return
+
+        if (!foreground) {
+            try {
+                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
+                if (cameraOnBeforeBackground) {
+                    scope.launch {
+                        try { setNativeCameraEnabledWithOemRetry(r, false, "process-bg") }
+                        catch (e: Exception) { Log.w(TAG, "process-bg camera off failed: ${e.message}") }
+                    }
+                }
+            } catch (e: Exception) { Log.w(TAG, "onProcessLifecycle bg failed: ${e.message}") }
+        } else {
+            if (cameraOnBeforeBackground) {
+                scope.launch {
+                    try { setNativeCameraEnabledWithOemRetry(r, true, "process-fg") }
+                    catch (e: Exception) { Log.w(TAG, "process-fg camera on failed: ${e.message}") }
+                }
+                cameraOnBeforeBackground = false
+            }
+        }
     }
 
     // ------------------------------------------------------------
