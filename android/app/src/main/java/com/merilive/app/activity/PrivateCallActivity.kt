@@ -125,6 +125,9 @@ class PrivateCallActivity : ComponentActivity() {
     private var attachedRemoteTrack: VideoTrack? = null
     private var attachedLocalTrack: VideoTrack? = null
 
+    // Phase B — JS / server-side "close this Activity" signal.
+    private var closeReceiver: android.content.BroadcastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
         applyWindowFlags()
@@ -147,9 +150,35 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
+        registerCloseReceiver()
         wireUiToViewModel()
         wireBackPress()
     }
+
+    private fun registerCloseReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                val incomingCallId = intent?.getStringExtra("call_id").orEmpty()
+                val myCallId = vm.identity.value?.callId.orEmpty()
+                // Empty incoming id = "close any active call activity"
+                if (incomingCallId.isEmpty() || incomingCallId == myCallId) {
+                    vm.markEnding("remote_close")
+                    vm.markEnded()
+                }
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        closeReceiver = r
+    }
+
 
 
     private fun applyWindowFlags() {
