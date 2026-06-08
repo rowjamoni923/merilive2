@@ -154,6 +154,20 @@ export const PKBattleActive = ({
     return () => clearInterval(timer);
   }, [serverStartedAt, serverDurationSec, battleEnded]);
 
+  // Step 4: punishment countdown for the loser side (server-anchored).
+  useEffect(() => {
+    if (!punishmentEndTs) {
+      setPunishLeft(0);
+      return;
+    }
+    const tick = () => {
+      const remainMs = punishmentEndTs - Date.now();
+      setPunishLeft(Math.max(0, Math.ceil(remainMs / 1000)));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [punishmentEndTs]);
 
 
   const formatTime = (seconds: number) => {
