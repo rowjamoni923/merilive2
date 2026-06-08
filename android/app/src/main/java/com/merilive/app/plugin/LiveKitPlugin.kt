@@ -422,6 +422,17 @@ class LiveKitPlugin : Plugin() {
                 try { attachEventListeners(handle.room) } catch (t: Throwable) {
                     Log.w(TAG, "adopt: attachEventListeners failed: ${t.message}")
                 }
+                // Phase 1A.2 step 2 — restart the listeners + watchdogs that
+                // survival-mode destroy had to unregister (because they hold
+                // a reference to the old plugin's `this`). The Room itself
+                // is still publishing/subscribing — these only re-wire the
+                // observer side. Renderers re-attach when JS calls
+                // attachLocal() / attachAllRemotes() on /live mount.
+                try { startStallWatchdog() } catch (t: Throwable) { Log.w(TAG, "adopt: startStallWatchdog: ${t.message}") }
+                try { registerNetworkCallback() } catch (t: Throwable) { Log.w(TAG, "adopt: registerNetworkCallback: ${t.message}") }
+                try { registerAudioDeviceListener() } catch (t: Throwable) { Log.w(TAG, "adopt: registerAudioDeviceListener: ${t.message}") }
+                try { registerHeadsetReceivers() } catch (t: Throwable) { Log.w(TAG, "adopt: registerHeadsetReceivers: ${t.message}") }
+                try { if (headsetButtonsEnabled) startHeadsetMediaSession() } catch (t: Throwable) { Log.w(TAG, "adopt: startHeadsetMediaSession: ${t.message}") }
                 Log.i(TAG, "adopted surviving Room url=${handle.summary.url} type=${handle.summary.callType}")
             }
         } catch (t: Throwable) {
