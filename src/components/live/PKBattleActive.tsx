@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Crown, Swords, Timer } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
-// PK Battle Step 3: client no longer writes battle state, so the local
-// `toast`/`isChallenger` ending logic is gone. Server pk-battle-tick cron
-// is the single writer of status/winner/MVP/punishment.
+// PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
+// mvp_user_id + punishment_end_ts. Client only renders these fields.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 
 interface PKBattleActiveProps {
