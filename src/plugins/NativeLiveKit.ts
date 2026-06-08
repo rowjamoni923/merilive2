@@ -390,6 +390,47 @@ export interface NativeLiveKitPlugin {
     source?: 'camera' | 'screen_share';
   }): Promise<{ applied: number; subscribed: boolean; source: string; scope: string }>;
 
+  // --- N3f — Native RPC + Text Streams bridge ----------------
+  /**
+   * N3f — Register an RPC method on the native Room. The native side
+   * suspends the SDK handler until JS resolves via `respondToRpc`.
+   * Emits `rpc-invocation` events; JS replies with the result string
+   * or an `errorMessage` to reject.
+   */
+  registerRpcMethod(opts: { method: string }): Promise<{ registered: boolean; method: string }>;
+  unregisterRpcMethod(opts: { method: string }): Promise<{ unregistered: boolean; method: string }>;
+  respondToRpc(opts: { requestId: string; result?: string; errorMessage?: string }): Promise<{
+    responded: boolean;
+    reason?: string;
+  }>;
+  /** Perform an RPC to a peer in the active native Room. Returns the peer's reply string. */
+  performRpc(opts: {
+    destinationIdentity: string;
+    method: string;
+    payload?: string;
+    /** ms; SDK clamps to ≥8000 effective minimum. */
+    responseTimeout?: number;
+  }): Promise<{ response: string }>;
+
+  /**
+   * N3f — Fire-and-forget text message over the native Data Streams
+   * channel. `destinationIdentities` empty = broadcast to room.
+   */
+  sendText(opts: {
+    text: string;
+    topic?: string;
+    destinationIdentities?: string[];
+  }): Promise<{ sent: boolean; topic: string; streamId?: string; error?: string }>;
+
+  /**
+   * N3f — Register an incoming text-stream handler. Emits
+   * `text-stream-chunk` per delivered chunk and `text-stream-complete`
+   * when the sender closes the stream.
+   */
+  registerTextStreamHandler(opts: { topic: string }): Promise<{ registered: boolean; topic: string }>;
+  unregisterTextStreamHandler(opts: { topic: string }): Promise<{ unregistered: boolean; topic: string }>;
+
+
 
 
   // --- Audio device routing (Step 13) --------------------------
