@@ -288,7 +288,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         nativeLiveKitController.reconnectNow().catch(() => {});
       }
     },
-  });
+  }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
 
   // Pause camera + mic when the app is backgrounded; restore on resume.
   // Releases the native camera handle to Android so the OS doesn't kill
