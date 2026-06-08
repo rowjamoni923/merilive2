@@ -98,9 +98,7 @@ class ThermalBatteryPlugin : Plugin() {
         thermalListener = listener
     }
 
-    companion object Broadcasts {
-        const val ACTION_THERMAL_CHANGE = "com.merilive.app.action.THERMAL_CHANGE"
-    }
+
 
 
     private fun thermalLabel(s: Int): String = when (s) {
