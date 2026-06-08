@@ -26,6 +26,7 @@ import {
   setDevicePreferences,
   type DevicePreferences,
 } from '@/lib/livekitDevicePreferences';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 interface Props {
   open: boolean;
@@ -34,6 +35,11 @@ interface Props {
 }
 
 export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => {
+  // Native Android owns camera/mic via Capacitor LiveKit plugin — the WebView
+  // pre-join picker would race the native engine and trigger Android-16
+  // permission loops. Render nothing on native Android.
+  if (isNativeAndroidApp()) return null;
+
   const [devices, setDevs] = useState<{
     audioinput: MediaDeviceInfo[];
     videoinput: MediaDeviceInfo[];
