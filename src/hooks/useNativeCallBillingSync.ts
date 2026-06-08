@@ -32,12 +32,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { NativeCall } from '@/plugins/NativeCall';
 
 interface UseNativeCallBillingSyncArgs {
-  /** Current logged-in user id (caller side only — host side is a no-op). */
+  /** Current logged-in user id (caller side only — host side is skipped). */
   userId: string | null;
   /** Active call id; null/empty disables the sync. */
   callId: string | null | undefined;
-  /** Caller user id from the active call (skip when current user is host). */
-  callerId: string | null | undefined;
 }
 
 function isAndroidNative(): boolean {
@@ -61,7 +59,6 @@ async function pushBilling(callId: string, balance: number, ratePerMinute: numbe
 export function useNativeCallBillingSync({
   userId,
   callId,
-  callerId,
 }: UseNativeCallBillingSyncArgs): void {
   const lastPushedRef = useRef<{ balance: number; rate: number } | null>(null);
 
@@ -90,11 +87,10 @@ export function useNativeCallBillingSync({
     };
   }, []);
 
-  // 2) Billing sync — only active for caller side with a live call id.
+  // 2) Billing sync — caller side only (verified by reading caller_id).
   useEffect(() => {
     if (!isAndroidNative()) return;
-    if (!userId || !callId || !callerId) return;
-    if (userId !== callerId) return; // host side has no billing UI
+    if (!userId || !callId) return;
 
     let cancelled = false;
     let balance = 0;
@@ -108,21 +104,29 @@ export function useNativeCallBillingSync({
       void pushBilling(callId, balance, rate);
     };
 
-    // Initial fetch — caller wallet balance + per-minute rate on the call row.
+    // Initial fetch — verify caller side, then read wallet balance + per-minute rate.
     (async () => {
       try {
-        const [{ data: profile }, { data: callRow }] = await Promise.all([
-          supabase.from('profiles').select('coins').eq('id', userId).maybeSingle(),
-          supabase
-            .from('private_calls')
-            .select('viewer_rate_per_min, coins_per_minute')
-            .eq('id', callId)
-            .maybeSingle(),
-        ]);
+        const { data: callRow } = await supabase
+          .from('private_calls')
+          .select('caller_id, viewer_rate_per_min, coins_per_minute')
+          .eq('id', callId)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!callRow || callRow.caller_id !== userId) {
+          // host side or row missing — nothing to push
+          cancelled = true;
+          return;
+        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('coins')
+          .eq('id', userId)
+          .maybeSingle();
         if (cancelled) return;
         balance = Number(profile?.coins ?? 0);
         rate = Number(
-          callRow?.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number } | null)?.coins_per_minute ?? 0,
+          callRow.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number }).coins_per_minute ?? 0,
         );
         maybePush();
       } catch {
@@ -172,5 +176,5 @@ export function useNativeCallBillingSync({
       try { supabase.removeChannel(profileChannel); } catch { /* no-op */ }
       try { supabase.removeChannel(callChannel); } catch { /* no-op */ }
     };
-  }, [userId, callId, callerId]);
+  }, [userId, callId]);
 }
