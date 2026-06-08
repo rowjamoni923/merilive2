@@ -243,7 +243,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 
 ---
 
-## Phase III — Party Room professionalization (✅ III.a + III.b + III.c + III.d DONE 2026-06-08 (III.e–III.f next))
+## Phase III — Party Room professionalization (✅ III.a + III.b + III.c + III.d + III.e DONE 2026-06-08 (III.f next))
 
 **Research-first ✅** — sub-agent verified industry patterns from Bigo Live (Multi-Guest 2026 guide, Room PK system), Chamet, AgoraIO-Usecase/Chatroom reference impl, Agora RTM docs, LiveKit maintainer (issues #3041, #3292). Codebase audit produced 10 P0–P2 gaps with file:line refs.
 
@@ -289,7 +289,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - `PartyRoom.tsx`: wires `onInviteViewer` → opens picker for the tapped audience member; mounts inbox + response sheet for the logged-in user; if invitee accepts while inside a different room/page, navigates to the invitation's room.
 - `expires_at` DB default is 5 minutes; UI shows real countdown so users see whatever the trigger sets (industry-acceptable, plan's 60s target is a future tightening if needed).
 
-### Phase III.e — Per-seat gift target
+### Phase III.e — Per-seat gift target ✅ DONE 2026-06-08
 - Currently all party gifts route to `room.host.id` (`PartyRoom.tsx:2532`).
 - Industry: per-seat selection (Bigo/Chamet default). Add seat-picker to GiftPanel when context is party room.
 
