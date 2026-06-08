@@ -255,13 +255,14 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] `load()` adoption block extended: restart stall watchdog + network callback + audio device listener + headset receivers + MediaSession after `attachEventListeners`
 - [x] Normal teardown path 100% unchanged when survival flag is OFF (production behavior preserved)
 
-#### Step 3 — JS-side wiring (next turn)
-- [ ] `/live` screen on-mount: call `getActiveSession()`; when `active=true`, skip `connect()` and instead call `attachLocal()` + `attachAllRemotes()` to rebind renderers
-- [ ] `/live` screen on-unmount during in-app navigation: call `setSurviveActivityDestroy({ enabled: true })` BEFORE navigation; do NOT call on user-initiated leave (back button = real disconnect)
-- [ ] Same wiring for `/private-call` and party room screens
-- [ ] Owner test account verification: navigate /live → /profile → /live, camera should appear in <500 ms without re-init; force-rotate device should not blank camera
-- [ ] Regression smoke test: live broadcast, private call, party room, gift, beauty, BT headset, PiP — all must still work without survival flag set (default OFF path)
-- [ ] APK rebuild required before Step 3 verification
+#### Step 3 — JS-side wiring ✅ (this turn)
+- [x] `nativeLiveKitController.connectAndPublish` adoption branch: when `getActiveSession().active && url == opts.url`, skip native `connect()`, just `attachLocal()` + `attachAllRemotes()` (idempotent rebind of renderers, no network handshake)
+- [x] `nativeLiveKitController.getActiveSession()` + `setSurviveActivityDestroy(enabled)` JS wrappers — web/iOS safe no-op
+- [x] `src/components/native/NativeLiveKitRouteSurvivor.tsx` — single app-root component; on every PUSH/REPLACE route change while a native session is active, calls `setSurviveActivityDestroy(true)` (one-shot, native clears on adoption/unbind). POP (back button) intentionally skipped → real teardown.
+- [x] Mounted inside `<BrowserRouter>` above the route tree so it observes /live ↔ /profile ↔ /private-call ↔ /party transitions uniformly — no per-screen wiring required
+- [ ] APK rebuild required before owner-test verification (native plugin code from Step 1+2 ships only with new APK)
+- [ ] Owner test account verification (post-APK): navigate /live → /profile → /live, camera should appear in <500 ms without re-init; force-rotate device should not blank camera
+- [ ] Regression smoke test (post-APK): live broadcast, private call, party room, gift, beauty, BT headset, PiP — all still work; back-button from /live still tears down cleanly (survive flag not set on POP)
 
 
 

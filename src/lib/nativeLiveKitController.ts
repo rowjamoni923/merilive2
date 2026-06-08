@@ -76,6 +76,25 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
+      // Phase 1A.2 Step 3 — if the plugin already adopted a surviving Room
+      // for the SAME server URL, skip the network handshake and just rebind
+      // the renderers. Falls through to a fresh connect on any mismatch.
+      try {
+        const active = await NativeLiveKit.getActiveSession();
+        if (active?.active && active.url && active.url === opts.url) {
+          this.connected = true;
+          if (opts.attachLocal !== false) await this.attachLocalWithRetry();
+          try { await NativeLiveKit.attachAllRemotes(); } catch { /* noop */ }
+          console.log('[NativeLiveKitController] adopted surviving session', {
+            ageMs: active.ageMs,
+            canHardReconnect: active.canHardReconnect,
+          });
+          // Caller does not have sid/identity from adoption; return placeholders
+          // (downstream code only treats these as opaque strings for logging).
+          return { sid: 'adopted', identity: 'adopted' };
+        }
+      } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
+
       // If a stale session is around, tear it down first to avoid duplicate publishers.
       if (this.connected) {
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
@@ -109,6 +128,27 @@ class NativeLiveKitController {
     } finally {
       this.busy = false;
     }
+  }
+
+  // --- Phase 1A.2 Step 3 — Activity-survival API ---------------------
+  /**
+   * Query whether the native plugin currently holds a surviving Room.
+   * Safe on web/iOS — returns { active:false } when the plugin is absent.
+   */
+  async getActiveSession() {
+    try { return await NativeLiveKit.getActiveSession(); }
+    catch { return { active: false, boundAtMs: 0, ageMs: 0, canHardReconnect: false } as const; }
+  }
+
+  /**
+   * Opt the current Room into surviving the NEXT Activity destroy. One-shot:
+   * the native side clears the flag on adoption or unbind. Call from
+   * in-app navigation handlers; do NOT call from user-initiated leave
+   * (back button = real disconnect).
+   */
+  async setSurviveActivityDestroy(enabled: boolean): Promise<void> {
+    try { await NativeLiveKit.setSurviveActivityDestroy({ enabled }); }
+    catch { /* not implemented on web/iOS */ }
   }
 
   async disconnect(): Promise<void> {
