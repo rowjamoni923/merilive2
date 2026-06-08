@@ -229,8 +229,43 @@ export interface QualityProbeProgressEvent {
   detail?: Record<string, unknown>;
 }
 
+export interface ActiveSessionInfo {
+  /** True when an RTC Room is currently bound at the Application scope. */
+  active: boolean;
+  /** LiveKit server URL of the active session. */
+  url?: string;
+  /** Caller-supplied call type ("Video Call", "Live broadcast", "Party"…). */
+  callType?: string;
+  /** Audio profile in effect ("voice" / "broadcast" / "music"). */
+  audioProfile?: 'voice' | 'broadcast' | 'music' | string;
+  /** True when Insertable-Streams E2EE is active. */
+  e2eeEnabled?: boolean;
+  /** Wall-clock ms when this Room was bound to the manager. */
+  boundAtMs: number;
+  /** ms since boundAtMs at query time (0 when not active). */
+  ageMs: number;
+  /**
+   * True when the plugin has cached ConnectArgs for this session. False
+   * after an Activity-destroy adoption — JS must re-issue connect() with
+   * a fresh token before the hard-reconnect watchdog can resume.
+   */
+  canHardReconnect: boolean;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
+  /**
+   * Phase 1A.2 — query whether an RTC session survived Activity
+   * recreation. Use on /live screen mount to short-circuit a fresh
+   * connect() when a session is already alive.
+   */
+  getActiveSession(): Promise<ActiveSessionInfo>;
+  /**
+   * Phase 1A.2 — opt the current Room into surviving the next Activity
+   * destroy (screen-swap within app). One-shot: cleared on adoption or
+   * unbind. Default OFF — current behavior unchanged unless opted in.
+   */
+  setSurviveActivityDestroy(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   claimCameraForWebView(): Promise<{ claimed: boolean }>;
   releaseCameraForWebView(): Promise<{ released: boolean; warning?: string }>;
   /** Fix 5 — query the native Camera2 advisory arbiter from JS. */
