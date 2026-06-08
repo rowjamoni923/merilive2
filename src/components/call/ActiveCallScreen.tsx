@@ -38,6 +38,7 @@ import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { LowBalanceBanner } from "@/components/call/LowBalanceBanner";
+import { ReconnectingOverlay } from "@/components/call/ReconnectingOverlay";
 
 
 
@@ -760,6 +761,11 @@ export function ActiveCallScreen({
           onRecharge={handleRechargeFromBanner}
         />
       )}
+
+      {/* JS P2 polish — reconnecting overlay (billing paused). Shown to both
+          sides; the host benefits from knowing the freeze is transient too. */}
+      <ReconnectingOverlay callId={callId} />
+
 
 
 
