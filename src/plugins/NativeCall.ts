@@ -109,6 +109,14 @@ export interface NativeCallPlugin {
    */
   closeInCallActivity(opts: { callId?: string }): Promise<{ ok: boolean }>;
 
+  /**
+   * Pkg500 Phase G — bring the PrivateCallActivity back to fullscreen after
+   * an inline action (gift sheet, recharge sheet, etc) opened in the WebView.
+   * Native-side this exits PIP and moves the call task to the foreground.
+   * No-op on older APKs / web / iOS.
+   */
+  resumeInCallActivity(): Promise<{ ok: boolean }>;
+
   // ---- Pkg500 Phase D — In-call billing sync (caller-side) --------------
   /**
    * Push the latest billing snapshot into the active PrivateCallActivity.
