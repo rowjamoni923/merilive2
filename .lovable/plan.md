@@ -10,7 +10,11 @@
 
 **Fix applied:** native Android GoLive now requests Android runtime camera/mic permission only (no WebView camera stream), does not preserve WebView preview into native live, and fresh live host publish disconnects any surviving native room before starting.
 
-**Still requires APK rebuild + owner-device test:** start live → end live → camera LED/indicator off → re-enter GoLive → no "already live" → host preview/viewer video clean; party room still needs separate native publisher phase if user wants zero WebView camera there.
+**2026-06-08 immediate native-only correction:** Android live host, live viewer, and party room now route through the existing single-owner `LiveKitPlugin` / livekit-android path. Web `livekit-client` remains web/dev fallback only. Native process-background now explicitly disables camera+mic, disconnects, releases room resources, stops FGS/audio focus, and prevents hard reconnect so camera cannot continue in background after live/party/call exit.
+
+**Research citations used for this correction:** LiveKit Android `LocalParticipant.setCameraEnabled(false)` documentation says disabling mutes and stops camera; LiveKit Android sample `onCleared()` calls `room.disconnect()` + `room.release()` to release resources; LiveKit Android docs expose native `createVideoTrack` / `publishVideoTrack` for camera capture; Android 14 foreground-service rules require camera/microphone FGS types for background camera/mic.
+
+**Still requires APK rebuild + owner-device test:** start live → viewer joins → end live → camera indicator off → app background → no reconnect; party video room → take/leave seat → camera indicator off; private call → end/background → no reconnect. Web preview cannot prove native Camera2 release.
 
 ---
 
