@@ -217,7 +217,13 @@ export const PKBattlePanel = ({
 
       // Pkg82d: send invite via FCM (was `pk_battle_${battleId}` postgres_changes).
       pendingDirectRef.current.set(battle.id, opponent);
-      try {
+      // P4 audit: 60s TTL — if no accept/decline reply arrives, drop the
+      // pending entry so it can't ghost-resolve later.
+      const ttl = setTimeout(() => {
+        pendingDirectRef.current.delete(battle.id);
+        pendingDirectTimersRef.current.delete(battle.id);
+      }, 60_000);
+      pendingDirectTimersRef.current.set(battle.id, ttl);
         await supabase.functions.invoke("pk-invite-deliver", {
           body: {
             kind: "direct_invite",
