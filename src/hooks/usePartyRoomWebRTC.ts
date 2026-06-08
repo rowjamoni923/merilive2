@@ -232,6 +232,9 @@ export function usePartyRoomWebRTC(
     try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
     // Pkg133: drop reactions registration.
     try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeChatRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeGiftRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeReactionRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterViewerCountRoom(roomId); } catch { /* ignore */ }
 
     if (tokenRefreshDetachRef.current) {
@@ -1019,6 +1022,25 @@ export function usePartyRoomWebRTC(
   // false (user left seat / kicked), mute both again immediately.
   useEffect(() => {
     const room = roomRef.current;
+    if (usingNativeRef.current) {
+      let cancelled = false;
+      (async () => {
+        try {
+          if (partyCanPublish) {
+            await nativeLiveKitController.setMicrophoneEnabled(true);
+            if (isVideoPartyType(roomType) && cameraReadyRef.current) await nativeLiveKitController.setCameraEnabled(true);
+            if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: true, isVideoEnabled: isVideoPartyType(roomType) }));
+          } else {
+            await nativeLiveKitController.setCameraEnabled(false);
+            await nativeLiveKitController.setMicrophoneEnabled(false);
+            if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: false, isVideoEnabled: false }));
+          }
+        } catch (err) {
+          console.warn('[PartyLiveKit/Native] seat media toggle failed:', err);
+        }
+      })();
+      return () => { cancelled = true; };
+    }
     if (!room || room.state !== 'connected') return;
     let cancelled = false;
     (async () => {
