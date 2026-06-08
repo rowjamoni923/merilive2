@@ -85,11 +85,20 @@ class NativeLiveKitController {
       // is what shows "already live" and can leave camera running in background.
       try {
         const active = await NativeLiveKit.getActiveSession();
-        if (active?.active) {
+        if (opts.broadcastMode === 'live' && active?.active) {
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
           await new Promise((resolve) => setTimeout(resolve, 300));
+        } else if (active?.active && active.url && active.url === opts.url) {
+          this.connected = true;
+          if (opts.attachLocal !== false) await this.attachLocalWithRetry();
+          try { await NativeLiveKit.attachAllRemotes(); } catch { /* noop */ }
+          console.log('[NativeLiveKitController] adopted surviving session', {
+            ageMs: active.ageMs,
+            canHardReconnect: active.canHardReconnect,
+          });
+          return { sid: 'adopted', identity: 'adopted' };
         }
       } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
 
