@@ -2178,6 +2178,9 @@ class LiveKitPlugin : Plugin() {
             try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
             CameraOwnership.forceRelease()
         } catch (_: Exception) {}
+        // Phase 2A — drop ProcessLifecycle subscription on final teardown.
+        try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
+        unsubscribeAppLifecycle = null
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
         if (INSTANCE === this) INSTANCE = null
