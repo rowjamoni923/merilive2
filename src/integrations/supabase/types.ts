@@ -9824,6 +9824,8 @@ export type Database = {
           created_at: string | null
           gift_id: string
           id: string
+          phase: string
+          score_value: number
           sender_id: string
           target_host_id: string
         }
@@ -9833,6 +9835,8 @@ export type Database = {
           created_at?: string | null
           gift_id: string
           id?: string
+          phase?: string
+          score_value?: number
           sender_id: string
           target_host_id: string
         }
@@ -9842,6 +9846,8 @@ export type Database = {
           created_at?: string | null
           gift_id?: string
           id?: string
+          phase?: string
+          score_value?: number
           sender_id?: string
           target_host_id?: string
         }
@@ -9851,62 +9857,95 @@ export type Database = {
         Row: {
           challenger_id: string | null
           challenger_score: number | null
+          challenger_stream_id: string | null
+          connect_grace_seconds: number
           created_at: string | null
           duration_minutes: number | null
+          duration_seconds: number
           ended_at: string | null
+          final_status: string | null
           host1_id: string
           host1_score: number | null
           host2_id: string
           host2_score: number | null
           id: string
+          min_host_level: number
+          mvp_user_id: string | null
           opponent_id: string | null
           opponent_score: number | null
+          opponent_stream_id: string | null
+          phase_config: Json
+          punishment_end_ts: string | null
           started_at: string | null
           status: string | null
           stream1_id: string | null
           stream2_id: string | null
+          total_gift_value: number
           updated_at: string
           winner_id: string | null
+          winner_user_id: string | null
         }
         Insert: {
           challenger_id?: string | null
           challenger_score?: number | null
+          challenger_stream_id?: string | null
+          connect_grace_seconds?: number
           created_at?: string | null
           duration_minutes?: number | null
+          duration_seconds?: number
           ended_at?: string | null
+          final_status?: string | null
           host1_id: string
           host1_score?: number | null
           host2_id: string
           host2_score?: number | null
           id?: string
+          min_host_level?: number
+          mvp_user_id?: string | null
           opponent_id?: string | null
           opponent_score?: number | null
+          opponent_stream_id?: string | null
+          phase_config?: Json
+          punishment_end_ts?: string | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          total_gift_value?: number
           updated_at?: string
           winner_id?: string | null
+          winner_user_id?: string | null
         }
         Update: {
           challenger_id?: string | null
           challenger_score?: number | null
+          challenger_stream_id?: string | null
+          connect_grace_seconds?: number
           created_at?: string | null
           duration_minutes?: number | null
+          duration_seconds?: number
           ended_at?: string | null
+          final_status?: string | null
           host1_id?: string
           host1_score?: number | null
           host2_id?: string
           host2_score?: number | null
           id?: string
+          min_host_level?: number
+          mvp_user_id?: string | null
           opponent_id?: string | null
           opponent_score?: number | null
+          opponent_stream_id?: string | null
+          phase_config?: Json
+          punishment_end_ts?: string | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          total_gift_value?: number
           updated_at?: string
           winner_id?: string | null
+          winner_user_id?: string | null
         }
         Relationships: []
       }
@@ -18488,6 +18527,16 @@ export type Database = {
         Returns: Json
       }
       bill_call_minute: { Args: { p_call_id: string }; Returns: Json }
+      bill_pk_gift: {
+        Args: {
+          p_battle_id: string
+          p_coin_amount: number
+          p_gift_id: string
+          p_sender_id: string
+          p_target_host_id: string
+        }
+        Returns: Json
+      }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -18869,6 +18918,10 @@ export type Database = {
       }
       end_live_stream: { Args: { p_stream_id: string }; Returns: Json }
       end_party_room: { Args: { p_room_id: string }; Returns: Json }
+      end_pk_battle: {
+        Args: { p_battle_id: string; p_reason?: string }
+        Returns: Json
+      }
       end_private_call: {
         Args: { _call_id: string; _end_reason?: string }
         Returns: boolean
@@ -19226,6 +19279,12 @@ export type Database = {
         | { Args: never; Returns: number }
         | { Args: { p_user_id: string }; Returns: number }
       get_effective_user_receiver_percent: { Args: never; Returns: number }
+      get_expired_pk_battles: {
+        Args: never
+        Returns: {
+          battle_id: string
+        }[]
+      }
       get_game_rankings_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
