@@ -7,7 +7,9 @@ plugins {
 
 android {
     namespace 'com.merilive.app'
-    compileSdk 34
+    // Phase 1A — Android 15 (API 35) target. Required for foreground-service
+    // typing enforcement that Android 14+ checks at runtime (CAMERA, MIC).
+    compileSdk 35
 
     // Note: native C++ build removed 2026-06-07 (Phase 0.5 cleanup).
     // The dead native_video_engine.cpp + NativeVideoEnginePlugin/NativeAudioEnginePlugin
@@ -19,7 +21,7 @@ android {
     defaultConfig {
         applicationId "com.merilive.app"
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 40
         versionName "1.0.1"
         multiDexEnabled true

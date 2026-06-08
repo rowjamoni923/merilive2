@@ -226,40 +226,47 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 
 ## 🔄 Phase 1 — Native LiveKit RTC Foundation (Day 1-2)
 
-**Pre-task research:** Bigo/Chamet use native RTC engine in Application singleton, NOT JS. LiveKit Android SDK supports same pattern. We need to migrate from JS-side `Room` to Kotlin-side `Room`.
+**Reality check (2026-06-07):** Most of the originally-scoped Phase 1 work was already shipped in earlier sprints — `livekit-android:2.23.4` integrated, native Kotlin Room (`LiveKitPlugin.kt`, 4 460 lines: adaptive bitrate, stall recovery, hard-reconnect, E2EE, PiP, BT routing, audio profiles, RTC stats, beauty bridge), `CameraOwnership` arbiter, `FOREGROUND_SERVICE_CAMERA`/`_MICROPHONE` already declared. Remaining gap = (1) Room ownership tied to Capacitor plugin instance → cannot survive Activity recreation, (2) no native SurfaceView attach/detach that bypasses engine restart, (3) `targetSdk` was 34.
 
+**Professional pattern (Bigo/Chamet engineering):** incremental observer-first extraction, not 4 000-line blind rewrite. 10K live users — no Russian roulette.
 
+### Phase 1A — Application-scope Engine Observer ✅
+- [x] `MeriLiveApplication.java` already exists + registered in AndroidManifest (verified)
+- [x] `io.livekit:livekit-android:2.23.4` already in `android/app/build.gradle` (verified)
+- [x] Create `android/app/.../rtc/RtcEngineManager.kt` — Application-scope singleton, atomic Room holder, `bind/unbind/currentRoom/isConnected/lastConnect`. Observer-only in 1A.
+- [x] Init `RtcEngineManager` from `MeriLiveApplication.onCreate` (wrapped in try/catch, non-fatal)
+- [x] Observer hooks in `LiveKitPlugin`: `bind` after successful `room.connect()`; `unbind` at all 4 teardown sites (connect-failed, connect-replace, disconnect, destroy)
+- [x] Bump `compileSdk` 34 → 35, `targetSdk` 34 → 35 (Android 15 FGS typing enforcement)
 
+### Phase 1A.2 — Migrate Room Ownership (next session)
+- [ ] Move Room allocation out of `LiveKitPlugin.connectInternal` into `RtcEngineManager.connect(args)` — plugin becomes thin façade
+- [ ] Make `RtcEngineManager` survive Activity destroy (skip `unbind` on `handleOnDestroy` when intent is "screen-swap", only `unbind` on user-initiated disconnect)
+- [ ] Re-attach renderers from `MainActivity.onCreate` if `RtcEngineManager.isConnected()` returns true
 
+### Phase 1B — Camera Ownership State Machine ✅ (already exists)
+- [x] `android/app/.../plugin/CameraOwnership.kt` exists with `LIVEKIT | NATIVE_CAMERA | GPUPIXEL-rejected`, OEM 1 200 ms release grace, stale-owner 30 s TTL eviction
+- [ ] Create `android/app/.../rtc/SurfaceLifecycleManager.kt` — surface attach/detach without engine restart (the KEY blank-camera fix)
 
-### Phase 1A — Application-scope Engine Singleton
-- [ ] Create `android/app/src/main/java/com/merilive/app/MeriLiveApplication.kt` — Application subclass, init RtcEngineManager
-- [ ] Register Application in AndroidManifest
-- [ ] Add `io.livekit:livekit-android:2.x.x` to `android/app/build.gradle` (replace partial wrapper)
-- [ ] Create `android/app/.../rtc/RtcEngineManager.kt` — singleton holding LiveKit `Room` object, survives Activity lifecycle
+### Phase 1C — NativeVideoView React component
+- [ ] Create `src/components/NativeVideoView.tsx` — allocates viewId, native side positions `SurfaceViewRenderer` behind WebView at its bounds
+- [ ] Extend `src/plugins/NativeLiveKit.ts`: `attachLocalSurface(viewId)`, `attachRemoteSurface(uid, viewId)`, `detachSurface(viewId)` — without disturbing Room
+- [ ] WebView `setBackgroundColor(transparent)` + SurfaceView `setZOrderMediaOverlay(false)` z-order proof
 
-### Phase 1B — Camera Ownership State Machine
-- [ ] Create `android/app/.../rtc/CameraOwnership.kt` — single source of truth: `NATIVE_RTC | WEBVIEW_PHOTO | NONE`
-- [ ] Create `android/app/.../rtc/SurfaceLifecycleManager.kt` — surface attach/detach WITHOUT engine restart (the KEY blank-camera fix)
-
-### Phase 1C — Capacitor Plugin Refactor
-- [ ] Major refactor `android/app/.../plugin/LiveKitPlugin.kt` — thin bridge, delegate all to RtcEngineManager
-- [ ] Extend `src/plugins/NativeLiveKit.ts` interface: `nativeJoinRoom`, `nativeLeaveRoom`, `attachLocalSurface(viewId)`, `attachRemoteSurface(uid, viewId)`, `enableLocalVideo(bool)`, `setCameraOwner(owner)`
-- [ ] Create `src/components/NativeVideoView.tsx` — React wrapper that allocates viewId; Kotlin positions SurfaceView at its bounds
-
-### Phase 1D — Permissions + Manifest
-- [ ] Add `FOREGROUND_SERVICE_CAMERA`, `FOREGROUND_SERVICE_MICROPHONE` to AndroidManifest (Android 14+)
-- [ ] Update target SDK to 35 (Android 15) if not already
+### Phase 1D — Permissions + Manifest ✅
+- [x] `FOREGROUND_SERVICE_CAMERA` + `FOREGROUND_SERVICE_MICROPHONE` already in AndroidManifest
+- [x] `targetSdk` 35
 
 ### ✅ Success Criteria
-- [ ] Host joins live → camera renders in native SurfaceView (NOT `<video>`)
-- [ ] Navigate /profile → /live → camera shows in <500ms (no re-init)
+- [x] Phase 1A observer foundation in place, APK rebuild required to validate
+- [ ] Owner test account: host joins live → camera renders without re-init on Activity recreate (after 1A.2)
+- [ ] Navigate /profile → /live → camera shows in <500ms (after 1B SurfaceLifecycleManager)
 - [ ] CPU <20% on Pixel 4a-class at 720p
-- [ ] Existing flow doesn't break (regression test using mem://preferences/test-account.md)
+- [ ] No regression vs current 4 460-line LiveKitPlugin behavior (smoke test all: live, private call, party, gift, beauty, BT headset, PiP)
 
 ### ⚠️ Risk
-- LiveKit Android SDK `Room.disconnect()` vs `Room.release()` semantics — study before refactor
+- LiveKit Android SDK `Room.disconnect()` vs `Room.release()` semantics — `Room.release()` makes Room un-reconnectable; only call on final teardown
 - SurfaceView Z-order under WebView — `setZOrderMediaOverlay(false)` + WebView transparent bg
+- Phase 1A.2 must NOT unbind on every `handleOnDestroy` — Activity restart (orientation, dark-mode toggle, OEM trim) destroys plugin but should NOT kill Room
 
 ---
 
