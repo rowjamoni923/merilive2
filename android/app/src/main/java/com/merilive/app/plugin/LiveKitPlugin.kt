@@ -369,6 +369,8 @@ class LiveKitPlugin : Plugin() {
         // Phase I — "call" (default) → Android CallStyle ongoing-call FGS.
         //           "live" → Bigo/Chamet "🔴 LIVE · {viewers} watching" FGS.
         val broadcastMode: String = "call",
+        // Android-native room family. live/party/call must never fall back to WebView RTC.
+        val roomScope: String = "call",
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
@@ -731,12 +733,20 @@ class LiveKitPlugin : Plugin() {
             else -> "call"
         }
 
+        val roomScopeRaw = call.getString("roomScope", null)
+        val roomScope = when (roomScopeRaw?.lowercase()) {
+            "live" -> "live"
+            "party" -> "party"
+            "call" -> "call"
+            else -> if (broadcastMode == "live") "live" else if (callType.contains("party", ignoreCase = true)) "party" else "call"
+        }
+
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
             callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
-            broadcastMode,
+            broadcastMode, roomScope,
         )
         hardReconnectAttempts = 0
 
