@@ -165,6 +165,7 @@ class PrivateCallActivity : ComponentActivity() {
         runCatching { PrivateCallBeautySheet.restoreLevelsIfReady(this) }
 
         registerCloseReceiver()
+        registerBillingReceiver()
         wireUiToViewModel()
         wireBackPress()
     }
@@ -191,6 +192,56 @@ class PrivateCallActivity : ComponentActivity() {
             registerReceiver(r, filter)
         }
         closeReceiver = r
+    }
+
+    /**
+     * Pkg500 Phase D — JS pushes balance + per-minute rate every time the
+     * server bills another minute, the caller recharges, or rates change.
+     * We accept the update only when the call_id matches ours so a stale
+     * push from a previous call can't corrupt the banner.
+     */
+    private fun registerBillingReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                intent ?: return
+                val callId = intent.getStringExtra("call_id").orEmpty()
+                val myCallId = vm.identity.value?.callId.orEmpty()
+                if (callId.isNotEmpty() && myCallId.isNotEmpty() && callId != myCallId) return
+                val balance = intent.getLongExtra("balance", -1L)
+                val rate = intent.getIntExtra("rate_per_minute", -1)
+                if (balance < 0 || rate < 0) return
+                vm.setBilling(balance, rate)
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_UPDATE_BILLING
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        billingReceiver = r
+    }
+
+    /**
+     * Pkg500 Phase D — Recharge CTA. Broadcasts a request back out so JS
+     * (NativeCallPlugin listener) can open the existing recharge sheet.
+     * The Activity intentionally stays in foreground; the sheet is opened
+     * by JS via the WebView lifecycle behind it.
+     */
+    private fun onRechargeRequested() {
+        try {
+            val callId = vm.identity.value?.callId.orEmpty()
+            val i = Intent(com.merilive.app.plugin.NativeCallPlugin.ACTION_RECHARGE_REQUESTED).apply {
+                setPackage(packageName)
+                putExtra("call_id", callId)
+            }
+            sendBroadcast(i)
+        } catch (t: Throwable) {
+            Log.w(TAG, "onRechargeRequested: ${t.message}")
+        }
     }
 
 
