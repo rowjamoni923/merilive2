@@ -239,6 +239,11 @@ class LiveKitPlugin : Plugin() {
     private var pauseCameraOnBackground: Boolean = false
     private var inBackground: Boolean = false
     private var cameraOnBeforeBackground: Boolean = false
+    // Phase 2A — Process-level (not Activity-level) background tracking.
+    // Backed by AppLifecycleObserver / ProcessLifecycleOwner so it ignores
+    // permission sheets, notification shade, PiP and WebView focus churn.
+    @Volatile private var processInBackground: Boolean = false
+    private var unsubscribeAppLifecycle: (() -> Unit)? = null
 
     // --- Stall & black-frame recovery (Step 25) ------------------
     //
