@@ -37,7 +37,13 @@ import com.getcapacitor.annotation.CapacitorPlugin
 @CapacitorPlugin(name = "ThermalBattery")
 class ThermalBatteryPlugin : Plugin() {
 
-    companion object { private const val TAG = "ThermalBatteryPlugin" }
+    companion object {
+        private const val TAG = "ThermalBatteryPlugin"
+        // Pkg500 Phase H — local broadcast emitted alongside JS notifyListeners
+        // so in-process consumers (PrivateCallActivity) can subscribe directly.
+        const val ACTION_THERMAL_CHANGE = "com.merilive.app.action.THERMAL_CHANGE"
+    }
+
 
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
     private var batteryReceiver: BroadcastReceiver? = null
@@ -71,15 +77,29 @@ class ThermalBatteryPlugin : Plugin() {
         val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
         val listener = PowerManager.OnThermalStatusChangedListener { status ->
             try {
+                val label = thermalLabel(status)
                 val obj = JSObject()
-                obj.put("status", thermalLabel(status))
+                obj.put("status", label)
                 obj.put("statusCode", status)
                 notifyListeners("thermalChange", obj)
+                // Pkg500 Phase H — local broadcast so PrivateCallActivity's
+                // CameraResilienceController can react without a JS round-trip.
+                try {
+                    val i = Intent(ACTION_THERMAL_CHANGE).apply {
+                        setPackage(context.packageName)
+                        putExtra("status", label)
+                        putExtra("statusCode", status)
+                    }
+                    context.sendBroadcast(i)
+                } catch (_: Throwable) {}
             } catch (_: Throwable) {}
         }
         pm.addThermalStatusListener(listener)
         thermalListener = listener
     }
+
+
+
 
     private fun thermalLabel(s: Int): String = when (s) {
         PowerManager.THERMAL_STATUS_NONE -> "none"

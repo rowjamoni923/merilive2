@@ -134,6 +134,11 @@ class PrivateCallActivity : ComponentActivity() {
     @Volatile private var speakerOn: Boolean = true
     @Volatile private var inPipMode: Boolean = false
 
+    // Phase H — camera resilience controller (last-frame freeze, audio-only
+    // fallback banner, thermal-aware throttling, permission-revoke deep link).
+    private var resilienceController: CameraResilienceController? = null
+
+
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
     private var localRenderer: TextureViewRenderer? = null
@@ -179,7 +184,32 @@ class PrivateCallActivity : ComponentActivity() {
         registerResumeReceiver()
         wireUiToViewModel()
         wireBackPress()
+        attachResilienceController()
     }
+
+    /** Pkg500 Phase H — instantiate + attach the camera resilience controller. */
+    private fun attachResilienceController() {
+        try {
+            val freeze = findViewById<ImageView>(R.id.privateCallFreezeOverlay)
+            val banner = findViewById<android.widget.LinearLayout>(R.id.privateCallResilienceBanner)
+            val text = findViewById<TextView>(R.id.privateCallResilienceText)
+            val retry = findViewById<Button>(R.id.privateCallResilienceRetry)
+            val poor = findViewById<View>(R.id.privateCallRemotePoorOverlay)
+            resilienceController = CameraResilienceController(
+                activity = this,
+                remoteVideoContainer = remoteVideoContainer,
+                localPreviewContainer = localPreviewContainer,
+                freezeOverlay = freeze,
+                resilienceBanner = banner,
+                resilienceText = text,
+                resilienceRetry = retry,
+                remotePoorOverlay = poor,
+                localRendererProvider = { localRenderer },
+            ).also { it.attach() }
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachResilienceController: ${t.message}")
+        }
+
 
     private fun registerCloseReceiver() {
         val r = object : android.content.BroadcastReceiver() {
@@ -676,8 +706,11 @@ class PrivateCallActivity : ComponentActivity() {
         resumeReceiver = null
         runCatching { audioRouter?.detach() }
         audioRouter = null
+        runCatching { resilienceController?.detach() }
+        resilienceController = null
         super.onDestroy()
     }
+
 
     // ------------------------------------------------------------------
     // Phase E — Picture-in-Picture

@@ -1,75 +1,83 @@
-## Phase G — Inline in-call gift sheet
+# Phase H — Camera Resilience Layer (Native Private Call)
 
-### Goal
-When the caller taps the Gift button inside the native PrivateCallActivity, the gift catalog should slide up as a bottom sheet **over the live video** (Chamet/Bigo pattern). Sending a gift must trigger the existing on-screen gift animation (Pkg438) and deduct coins via the existing `send_gift` RPC — without ending or backgrounding the call.
+Research-first done. Competitors (Chamet/Bigo/Olamet on Agora) use a tiered watchdog + audio-only fallback with last-frame freeze. We already have most of the plumbing; Phase H wires the missing UX + thermal layer **only inside PrivateCallActivity**. No web design change, no new tables, no edge functions.
 
-### Trade-off (one decision needed before I build)
+## What already exists (DO NOT rebuild)
 
-I see two clean ways to ship this; only one needs your call:
+| Capability | Where | Status |
+|---|---|---|
+| Local + remote frame watchdog (5s warn / 12s hard) | `LiveKitPlugin.startStallWatchdog` | ✅ |
+| Soft recovery: stop+start camera capture | `LiveKitPlugin` line 2640 | ✅ |
+| OEM-aware camera retry (MIUI/ColorOS, 1200ms cooldown) | `setNativeCameraEnabledWithOemRetry` | ✅ |
+| Hard reconnect with exponential backoff (3/6/12s) | `reconnectWatchdogJob` | ✅ |
+| `video-stall` / `video-stall-failed` events to JS | LiveKitPlugin line 2669 | ✅ |
+| Thermal status listener (NONE→SHUTDOWN) | `ThermalBatteryPlugin` (Pkg441) | ✅ |
+| `thermalChange` event to JS | ThermalBatteryPlugin line 77 | ✅ |
 
-**Option A — Pure WebView bring-to-front + auto-PIP (recommended)**
-- In-call Gift tap → broadcast to JS → JS opens the existing `GiftSheet` component as a route/sheet in MainActivity's WebView
-- Native side calls `enterPictureInPictureMode()` on PrivateCallActivity so the call shrinks into a floating PIP and the WebView surfaces with the gift sheet
-- User picks gift → existing send flow runs → animation already plays inside the LiveKit video surface via Pkg438
-- Closing the sheet → broadcast back → PrivateCallActivity expands out of PIP via `moveTaskToFront`
-- **Pros:** zero duplicate UI; uses the real catalog, wallet check, VIP gating, and animations that already work; new Kotlin code stays under ~80 lines
-- **Cons:** a 300ms shrink/expand transition; PIP must be supported (Android 8+ — we already declare it)
+## What Phase H adds (gaps vs. Chamet/Bigo)
 
-**Option B — Native BottomSheetDialog with a nested WebView**
-- New compact React route `/embedded/call-gift-sheet?peerId=X&callId=Y` showing the catalog
-- Native `BottomSheetDialog` hosts a WebView loading that route; sheet covers bottom 60% of the call screen
-- `postMessage` bridge: `gift_sent` → dismiss sheet; `close` → dismiss
-- **Pros:** call video stays full-screen behind the sheet (no PIP transition)
-- **Cons:** second WebView instance (memory + JS cold-start), shared auth cookies need careful handling, two render pipelines maintained
+### 1. `CameraResilienceController.kt` (NEW, ~220 lines)
+A single coordinator owned by `PrivateCallActivity`. Subscribes to the existing native events (no new watchdog — reuses LiveKitPlugin's).
 
-### My recommendation: Option A
-Reuses every existing path, ships in a single day, no nested WebView. The PIP transition is the same one users see when they press Home — it's familiar, not jarring.
+- **State machine**: `HEALTHY → DEGRADED → AUDIO_ONLY → RECOVERING`.
+- **`onVideoStall(local=true, sid)`** (from `video-stall` event): enter `DEGRADED`, show subtle "Poor connection" overlay on the affected tile (local or remote).
+- **`onVideoStallFailed(local=true)`** (from `video-stall-failed`): enter `AUDIO_ONLY` — freeze last bitmap from `SurfaceViewRenderer` into an `ImageView` overlay, show persistent banner "Camera unavailable — audio only", show "Tap to retry" chip every 30s.
+- **`onThermalChange("SEVERE")`** (from `thermalChange`): proactively `setCameraEnabled(false)` + show banner "Phone overheating — camera paused".
+- **`onThermalChange("MODERATE")`**: emit new `setVideoQuality("low")` call via existing LiveKit publisher ladder (360p/15fps) — already supported.
+- **Retry**: tap "Tap to retry" → call `LiveKit.setCameraEnabled(true)`; on success → `HEALTHY`. On 3 failed retries → permanent audio-only for this call.
 
-### What I'll build (Option A)
+### 2. Permission-revoke dialog
+When camera restart fails with `SecurityException` / `CameraAccessException.CAMERA_DISABLED`:
+- Check `ContextCompat.checkSelfPermission(CAMERA)`.
+- If denied → show `MaterialAlertDialog` with deep-link to `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`.
+- Do NOT call `requestPermissions` mid-call (auto-denied on MIUI/ColorOS).
 
-1. **Native side** (`PrivateCallActivity.kt`)
-   - Gift button now broadcasts `action="gift_inline"` (already wired in Phase E) AND calls a new helper that enters PIP + `moveTaskToFront` for MainActivity's task
-   - On `ACTION_RESUME_PRIVATE_CALL` broadcast from JS → exit PIP, expand activity back to fullscreen
+### 3. UX layer in `activity_private_call.xml`
+- Add `ImageView @id/freeze_overlay` (gone by default, behind local renderer).
+- Add `LinearLayout @id/resilience_banner` (gone by default) with icon + text + "Retry" chip.
+- Add `ImageView @id/remote_poor_overlay` (gone, spinner on remote tile).
 
-2. **NativeCallPlugin.kt**
-   - New `@PluginMethod resumeInCallActivity()` → sends `ACTION_RESUME_PRIVATE_CALL` broadcast
-   - Reuses existing `call-end-action` event (no new event type)
+All colors/typography reuse existing `bg_private_call_*` drawables — no design token changes.
 
-3. **JS bridge** (`NativeCall.ts`)
-   - Add `resumeInCallActivity(): Promise<{ok:boolean}>` to the interface
+### 4. Wire-up in `PrivateCallActivity.kt` (~40-line diff)
+- `onCreate`: instantiate `CameraResilienceController(this, binding, viewModel)`.
+- `onResume` / `onPause`: forward to controller for lifecycle.
+- Controller subscribes to LiveKit + ThermalBattery via `Capacitor.getBridge().getPlugin(...)` callback-style (no JS round-trip — direct Kotlin listener registration on the plugin instance).
 
-4. **JS listener** (`useNativeCallBillingSync.ts`)
-   - On `gift_inline` action: open the existing in-app `GiftSheet` modal (no route nav — just toggle a state via window event), pass `{peerId, callId, source:'native_call'}`
-   - On sheet close OR after gift sent: call `NativeCall.resumeInCallActivity()` so the call exits PIP
+### 5. Tiny `LiveKitPlugin.kt` addition (~30 lines)
+Expose two Kotlin-callable hooks the controller can subscribe to without going through JS:
+- `addNativeVideoStallListener(cb: (local, sid, severity) -> Unit)`
+- `addNativeRecoveryListener(cb: (sid) -> Unit)` — fires when frame count resumes after a stall.
 
-5. **Existing GiftSheet wiring**
-   - Listen for `window` event `open-call-gift-sheet` → open with peerId pre-selected
-   - On close/sent → fire `close-call-gift-sheet` event
+These piggyback on the existing JS event emission — same data, second sink. JS path untouched.
 
-### Files
+## Out of scope (deferred)
 
-```
-android/.../activity/PrivateCallActivity.kt        edit  (~30 lines: gift btn → enterPiP+moveTaskToFront, receiver for resume)
-android/.../plugin/NativeCallPlugin.kt             edit  (~20 lines: resumeInCallActivity + ACTION_RESUME_PRIVATE_CALL)
-src/plugins/NativeCall.ts                          edit  (~5 lines: type addition)
-src/hooks/useNativeCallBillingSync.ts              edit  (~15 lines: gift_inline handler + post-close resume)
-src/components/call/CallProvider.tsx OR
-  the existing global GiftSheet host                edit  (~25 lines: listen for open-call-gift-sheet event)
-```
+- ❌ iOS — Phase H is Android-only (web design sacred).
+- ❌ Web — no change. Web preview will continue to show the existing call UI exactly as today.
+- ❌ Camera2 direct teardown — current `restartTrack()` + OEM retry is already sufficient per research.
+- ❌ LeakCanary wiring — separate QA phase.
 
-No DB migration. No new edge function. No design changes — only call-flow plumbing.
+## Files
 
-### Test path
-Owner account on rebuilt APK:
-1. Start a private call → tap Gift → call shrinks to PIP corner, WebView surfaces with gift sheet
-2. Send a gift → animation plays over the PIP video → sheet auto-closes → call expands back to fullscreen
-3. Cancel sheet → call expands back without sending
-4. Web/iOS/older APKs: `tryNative*` no-ops, existing `/profile/X?gift=1` nav path keeps working
+**New (3):**
+- `android/app/src/main/java/com/merilive/app/activity/CameraResilienceController.kt`
+- `android/app/src/main/res/drawable/bg_private_call_resilience_banner.xml`
+- `android/app/src/main/res/drawable/ic_private_call_camera_off.xml`
 
-### Out of scope (deferred to Phase H if you want them)
-- Full native (Compose) gift catalog without any WebView
-- Quick-gift bar (4 hot gifts as inline buttons above the action row)
-- Combo gift counter
-- Tip-jar style multi-tap
+**Edited (3):**
+- `android/app/src/main/java/com/merilive/app/activity/PrivateCallActivity.kt` (+40 lines)
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+30 lines for native listeners)
+- `android/app/src/main/res/layout/activity_private_call.xml` (3 overlays added)
 
-বল **"Go Option A"** = build it now; **"Option B"** = nested WebView path instead; **"Modify"** = টুইক করি।
+## Verification
+
+- Owner-account test (post-APK-rebuild): start call → enable airplane mode for 6s → resilience banner appears → restore network → call recovers.
+- Owner-account test: cover camera lens with finger for 8s → stall fires → restart → if persistent fail → audio-only banner.
+- Cannot test in Lovable preview (web has no native LiveKit). **APK rebuild required.**
+
+## Risk
+
+LOW. All paths are additive; existing JS event flow untouched. If controller throws, try/catch swallows and call continues with current (already-good) behavior. If user is on web, the native controller never instantiates.
+
+Want me to build it? Reply **"Build Phase H"** to proceed, or **"Tweak X"** to adjust scope.
