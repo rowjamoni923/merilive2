@@ -3,6 +3,7 @@ import { PhoneOff, Clock, TrendingUp, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import BeansIcon from "@/components/common/BeansIcon";
+import { endReasonLabel, normalizeEndReason, type CallEndReason } from "@/lib/callEndReasons";
 
 interface CallEndedModalProps {
   isOpen: boolean;
@@ -15,7 +16,8 @@ interface CallEndedModalProps {
   hostEarned: number;
   isHost: boolean;
   endedBy: 'self' | 'remote' | 'system';
-  endReason?: 'normal' | 'declined' | 'missed' | 'insufficient_coins';
+  // Honest-private-call fix (F-15): canonical end-reason enum.
+  endReason?: CallEndReason | string;
 }
 
 export function CallEndedModal({
@@ -68,18 +70,22 @@ export function CallEndedModal({
                   {/* Text Content - NO diamond/earnings info for user privacy */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-slate-900 font-semibold text-base">
-                      {endReason === 'declined' ? 'Call Declined' : 
-                       endReason === 'missed' ? 'Call Missed' : 
-                       endReason === 'insufficient_coins' ? 'Call Ended' :
-                       'Call Ended'}
+                      {endReasonLabel(endReason)}
                     </h3>
                     <p className="text-slate-600 text-sm truncate">
-                      {endReason === 'insufficient_coins' 
-                        ? 'Insufficient balance'
-                        : endedBy === 'remote' 
+                      {(() => {
+                        const r = normalizeEndReason(endReason);
+                        if (r === 'low_balance') return 'Insufficient balance';
+                        if (r === 'network') return 'Connection lost';
+                        if (r === 'missed') return 'No answer';
+                        if (r === 'declined') return `${remoteUserName} declined the call`;
+                        if (r === 'cancelled') return 'Call cancelled';
+                        if (r === 'busy') return 'User is busy';
+                        if (r === 'blocked') return 'Call blocked';
+                        return endedBy === 'remote'
                           ? `${remoteUserName} ended the call`
-                          : 'Thanks for using MeriLive!'
-                      }
+                          : 'Thanks for using MeriLive!';
+                      })()}
                     </p>
                   </div>
 

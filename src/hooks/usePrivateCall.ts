@@ -73,6 +73,11 @@ export function usePrivateCall(userId: string | null) {
   const billingStartedRef = useRef<boolean>(false);
   const liveSessionStartedRef = useRef<boolean>(false);
   const startingCallRef = useRef<boolean>(false);
+  // Honest-private-call fix (F-11): true while LiveKit is mid-reconnect.
+  // Driven by `livekit-call-reconnecting` / `livekit-call-reconnected`
+  // window events from useLiveKitCall. Pauses the visible duration counter
+  // so users don't see seconds tick during a frozen feed.
+  const reconnectingRef = useRef<boolean>(false);
   const toastRef = useRef(toast);
   const deductCoinsRef = useRef<((callId: string) => Promise<void>) | null>(null);
   const resetCallStateRef = useRef<(() => void) | null>(null);
@@ -410,9 +415,12 @@ export function usePrivateCall(userId: string | null) {
 
     // Start duration timer immediately when real media is live
     durationTimerRef.current = setInterval(() => {
-      if (!callEndedRef.current && currentCallIdRef.current === callId) {
-        setCallState(prev => ({ ...prev, duration: prev.duration + 1 }));
-      }
+      if (callEndedRef.current) return;
+      if (currentCallIdRef.current !== callId) return;
+      // Honest-private-call fix (F-11): don't tick the visible duration
+      // while LiveKit is mid-reconnect.
+      if (reconnectingRef.current) return;
+      setCallState(prev => ({ ...prev, duration: prev.duration + 1 }));
     }, 1000);
 
     // Phase 3B (Step 3): client-side per-minute billing REMOVED.
@@ -817,7 +825,11 @@ export function usePrivateCall(userId: string | null) {
       // ⚡ Optimistic connect UI first (don't wait for DB/network)
       callEndedRef.current = false;
       currentCallIdRef.current = callId;
-      billingStartedRef.current = true; // connected acknowledged, stops timeout logic
+      // Honest-private-call fix (F-01): do NOT mark billingStarted yet.
+      // We used to set this true synchronously, which meant a failing
+      // accept_private_call RPC (call already expired / timed out) would
+      // still flip the host into a "billing-on" state and silently swallow
+      // the timeout flow. We now flip it only after the RPC succeeds.
       liveSessionStartedRef.current = false;
       clearAllTimers();
       setIncomingCall(null);
@@ -862,6 +874,12 @@ export function usePrivateCall(userId: string | null) {
       if (acceptRes.data !== true) {
         throw new Error('Call is no longer available');
       }
+
+      // Honest-private-call fix (F-01): accept confirmed by server — only
+      // now is the host actually on a live billable call. Flip the flag
+      // here so a server-side `false` return (race with timeout) can no
+      // longer leak past as a billing-on state.
+      billingStartedRef.current = true;
 
       const callData = callDataRes.data;
 
@@ -1418,19 +1436,43 @@ export function usePrivateCall(userId: string | null) {
       endCall('network').catch(() => {});
     };
 
+    // Honest-private-call fix (F-11): pause / resume the visible duration
+    // counter as LiveKit reconnects.
+    const handleLiveKitReconnecting = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { callId?: string } | undefined;
+      const activeId = callState.callId;
+      if (!activeId) return;
+      if (detail?.callId && detail.callId !== activeId) return;
+      reconnectingRef.current = true;
+    };
+    const handleLiveKitReconnected = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { callId?: string } | undefined;
+      const activeId = callState.callId;
+      if (!activeId) return;
+      if (detail?.callId && detail.callId !== activeId) return;
+      reconnectingRef.current = false;
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
       window.addEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
       window.addEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
+      window.addEventListener('livekit-call-reconnecting', handleLiveKitReconnecting);
+      window.addEventListener('livekit-call-reconnected', handleLiveKitReconnected);
     }
 
     return () => {
       isCleanedUp = true;
+      // Honest-private-call fix (F-11): never leave the pause flag set if
+      // the effect tears down mid-reconnect — next call would start frozen.
+      reconnectingRef.current = false;
 
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
         window.removeEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
+        window.removeEventListener('livekit-call-reconnecting', handleLiveKitReconnecting);
+        window.removeEventListener('livekit-call-reconnected', handleLiveKitReconnected);
       }
     };
   }, [userId, callState.callId, endCall]);
