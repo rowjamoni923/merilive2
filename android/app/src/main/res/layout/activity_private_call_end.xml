@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pkg500 Phase E — PrivateCallEndActivity layout.
+
+    Professional post-call summary card (Chamet / Bigo / WhatsApp pattern):
+      - Peer avatar + name on a centered card
+      - Duration + coins spent
+      - 5-star rating row (caller side only; hidden on host side via JS)
+      - Quick gift CTA + Recharge CTA + Close
+    Black background so the transition from the in-call surface is seamless.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A0E">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="80dp"
+            android:paddingBottom="36dp">
+
+            <TextView
+                android:id="@+id/callEndHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Call ended"
+                android:textColor="#99FFFFFF"
+                android:textSize="14sp"
+                android:layout_marginBottom="20dp" />
+
+            <ImageView
+                android:id="@+id/callEndAvatar"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:scaleType="centerCrop"
+                android:contentDescription="Peer avatar" />
+
+            <TextView
+                android:id="@+id/callEndPeerName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:padding="20dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_private_call_end_card">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Duration"
+                        android:textColor="#99FFFFFF"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/callEndDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="#22FFFFFF" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/callEndCoinsLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Coins spent"
+                        android:textColor="#99FFFFFF"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/callEndCoins"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="#FFCA28"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Rating row — hidden by default; shown when caller side. -->
+            <LinearLayout
+                android:id="@+id/callEndRatingSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:padding="18dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone"
+                android:background="@drawable/bg_private_call_end_card">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="How was the call?"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/callEndStars"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/callEndStar1"
+                        style="@style/PrivateCallEndStar"
+                        android:text="★" />
+                    <TextView
+                        android:id="@+id/callEndStar2"
+                        style="@style/PrivateCallEndStar"
+                        android:text="★" />
+                    <TextView
+                        android:id="@+id/callEndStar3"
+                        style="@style/PrivateCallEndStar"
+                        android:text="★" />
+                    <TextView
+                        android:id="@+id/callEndStar4"
+                        style="@style/PrivateCallEndStar"
+                        android:text="★" />
+                    <TextView
+                        android:id="@+id/callEndStar5"
+                        style="@style/PrivateCallEndStar"
+                        android:text="★" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/callEndBtnPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="28dp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:background="@drawable/bg_private_call_primary_btn"
+                android:text="Send a gift" />
+
+            <Button
+                android:id="@+id/callEndBtnSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:background="@drawable/bg_private_call_secondary_btn"
+                android:text="Recharge wallet" />
+
+            <Button
+                android:id="@+id/callEndBtnClose"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginTop="14dp"
+                android:textAllCaps="false"
+                android:textColor="#AAFFFFFF"
+                android:textSize="14sp"
+                android:background="@android:color/transparent"
+                android:text="Close" />
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
