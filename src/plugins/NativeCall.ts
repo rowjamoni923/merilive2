@@ -139,6 +139,28 @@ export interface NativeCallPlugin {
     eventName: 'recharge-requested',
     cb: (e: { callId: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
+
+  /**
+   * Pkg500 Phase E — emitted by PrivateCallEndActivity (post-call summary)
+   * and the in-call Gift button. Possible `action` values:
+   *   "gift"         — caller tapped "Send a gift" on the end screen
+   *   "gift_inline"  — caller tapped the in-call Gift button
+   *   "recharge"     — caller tapped "Recharge wallet"
+   *   "rate"         — caller tapped a star (rating is 1..5)
+   *   "close"        — end-screen dismissed
+   *   "wallet"       — host tapped "Open wallet"
+   *   "go_live"      — host tapped "Go live"
+   */
+  addListener(
+    eventName: 'call-end-action',
+    cb: (e: {
+      callId: string;
+      peerId: string;
+      action: 'gift' | 'gift_inline' | 'recharge' | 'rate' | 'close' | 'wallet' | 'go_live';
+      rating?: number;
+      ts: number;
+    }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 
