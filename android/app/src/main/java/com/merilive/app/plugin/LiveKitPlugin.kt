@@ -2041,9 +2041,9 @@ class LiveKitPlugin : Plugin() {
                             item.put("id", s.id)
                             item.put("text", s.text)
                             item.put("language", s.language)
-                            item.put("startTime", s.startTime)
-                            item.put("endTime", s.endTime)
-                            item.put("final", s.final)
+                            item.put("firstReceivedTime", s.firstReceivedTime)
+                            item.put("lastReceivedTime", s.lastReceivedTime)
+                            item.put("final", s.`final`)
                             segs.put(item)
                         }
                         val data = JSObject()
