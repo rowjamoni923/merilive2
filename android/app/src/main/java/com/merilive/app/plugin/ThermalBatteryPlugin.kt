@@ -37,7 +37,13 @@ import com.getcapacitor.annotation.CapacitorPlugin
 @CapacitorPlugin(name = "ThermalBattery")
 class ThermalBatteryPlugin : Plugin() {
 
-    companion object { private const val TAG = "ThermalBatteryPlugin" }
+    companion object {
+        private const val TAG = "ThermalBatteryPlugin"
+        // Pkg500 Phase H — local broadcast emitted alongside JS notifyListeners
+        // so in-process consumers (PrivateCallActivity) can subscribe directly.
+        const val ACTION_THERMAL_CHANGE = "com.merilive.app.action.THERMAL_CHANGE"
+    }
+
 
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
     private var batteryReceiver: BroadcastReceiver? = null
