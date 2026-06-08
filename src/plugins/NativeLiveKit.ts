@@ -53,6 +53,13 @@ export interface ConnectOptions {
   broadcastMode?: 'call' | 'live';
   /** Native room family. Used by Android lifecycle policy: live/party/call media never falls back to WebView RTC. */
   roomScope?: NativeRoomScope;
+  /**
+   * Phase III.c — Party/Live HOST flag. When true, the Android plugin gives
+   * the host a 60s background grace window (mic + Room stay alive, camera
+   * pauses) before tearing down the session. Audience/listeners stay on the
+   * existing immediate-teardown path.
+   */
+  isHost?: boolean;
 }
 
 export interface ParticipantEvent {
