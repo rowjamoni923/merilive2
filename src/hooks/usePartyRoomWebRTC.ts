@@ -281,6 +281,12 @@ export function usePartyRoomWebRTC(
 
   const toggleAudio = useCallback(() => {
     if (!partyCanPublishRef.current) return;
+    if (usingNativeRef.current) {
+      const newEnabled = !state.isAudioEnabled;
+      nativeLiveKitController.setMicrophoneEnabled(newEnabled).catch(() => {});
+      setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
@@ -294,6 +300,12 @@ export function usePartyRoomWebRTC(
 
   const toggleVideo = useCallback(async () => {
     if (!partyCanPublishRef.current) return;
+    if (usingNativeRef.current) {
+      const newEnabled = !state.isVideoEnabled;
+      await nativeLiveKitController.setCameraEnabled(newEnabled).catch(() => {});
+      setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
