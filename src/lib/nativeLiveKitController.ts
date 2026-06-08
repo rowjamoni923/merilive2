@@ -172,7 +172,11 @@ class NativeLiveKitController {
 
 
   async disconnect(): Promise<void> {
-    await this.waitForIdle('disconnect handoff', 5000);
+    try {
+      await this.waitForIdle('disconnect handoff', 5000);
+    } catch (error) {
+      console.warn('[NativeLiveKitController] disconnect forcing through busy native state:', error);
+    }
     this.busy = true;
     try {
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
