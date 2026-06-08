@@ -399,3 +399,13 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - **Owner-account test is the only verification.** I will say "APK rebuild needed" — never claim "verified" without owner reproducing.
 - **Design untouched.** Zero React UI / copy / animation edits in Phase N3.
 - **JS `livekit-client` not removed yet** — still imported by `useLiveKitClient.ts` for web preview / iOS fallback (per N8). N3 only ensures Android APK never reaches that code path.
+
+### N3 Honesty Pass — gap fixes (2026-06-08)
+After self-audit, fixed 5 real gaps that owner-test alone wouldn't catch:
+1. **N3f Kotlin compile risk** — `call.getArray("destinationIdentities", null)` 2-arg form doesn't exist in Capacitor → switched to 1-arg `call.getArray("destinationIdentities")` (matches every other plugin in repo). `Duration.Companion.milliseconds(timeoutMs)` deprecated function-form → switched to extension-property form `timeoutMs.milliseconds` via `with(kotlin.time.Duration.Companion) {...}`. APK build should now compile cleanly.
+2. **N3b TS surface — `participant-name-changed` listener missing** — added `addListener('participant-name-changed', ...)` overload in `NativeLiveKit.ts` + window-event bridge in `useNativeLiveKitEvents.ts` (dispatches `livekit-participant-name` with `{scope, id, sid, identity, name}` detail). All 5 N3b Kotlin emissions now reachable from TS.
+3. **N3f dead code** — removed the `try { ...; throw NoSuchMethodException("prefer-flow") }` block (always threw → dead readAll branch) and the useless `Flow::class.java` / unused `collectMethod` lines from `registerTextStreamHandler`. Now a clean: `getFlow → cast to Flow<String> → collect`.
+4. **N3d proactive token rotation** — `livekitTokenRefresh.ts` now schedules `NativeLiveKit.reconnectNow({reason:'token-rotation'})` 30 s before the OLD token's actual expiry IF still on a native session. Cancelled when an organic Reconnecting event fires (SDK already swapping). Default ON on native, opt-out via `forceNativeReconnectOnRotate:false`. Closes the "Bigo/Agora has the same limitation" gap.
+5. **N3f JS consumer wiring** — `livekitRpc.ts` and `livekitStreams.ts` now fall through to `livekitNativeMessaging.ts` when no JS Room is registered (pure-native Android session). `registerRpcMethod`/`performRpc`/`registerTextStreamHandler`/`sendText` all transparently route to the native plugin → `livekitChatAttachments.ts` chat path works end-to-end on Android without JS Room. Native registration runs IN PARALLEL with JS Room registration on hybrid sessions so both transports receive incoming traffic.
+
+Tests still 28/28 passing.
