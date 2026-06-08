@@ -87,6 +87,74 @@ export function useNativeCallBillingSync({
     };
   }, []);
 
+  // 1b) Pkg500 Phase F — Post-call end-screen action listener.
+  //
+  // PrivateCallEndActivity (native) emits a single `call-end-action`
+  // event for every button on the summary screen plus the in-call
+  // Gift button. We route each action to the existing in-app sheet
+  // without dragging additional UI into this hook (the call task is
+  // separate from the WebView, so route changes here surface AFTER
+  // the user dismisses the end screen — exactly the Chamet pattern).
+  //
+  //   gift / gift_inline → open the gift sheet for the peer (DM-style)
+  //   recharge / wallet  → open the recharge / wallet page
+  //   rate               → submit_call_rating RPC (RLS-enforced)
+  //   go_live            → open Go-Live composer (host side)
+  //   close              → no-op (Activity already finished)
+  useEffect(() => {
+    if (!isAndroidNative()) return;
+    let handle: { remove?: () => void } | null = null;
+    (async () => {
+      try {
+        handle = await NativeCall.addListener('call-end-action', async (e) => {
+          // Broadcast for any mounted UI that wants to react in-place.
+          try {
+            window.dispatchEvent(new CustomEvent('private-call-end-action', { detail: e }));
+          } catch { /* no-op */ }
+          try {
+            switch (e.action) {
+              case 'rate':
+                if (e.rating && e.rating >= 1 && e.rating <= 5 && e.callId) {
+                  await supabase.rpc('submit_call_rating', {
+                    _call_id: e.callId,
+                    _rating: e.rating,
+                  });
+                }
+                break;
+              case 'gift':
+              case 'gift_inline':
+                if (e.peerId) {
+                  window.location.assign(`/profile/${e.peerId}?gift=1`);
+                }
+                break;
+              case 'recharge':
+                window.location.assign('/recharge');
+                break;
+              case 'wallet':
+                window.location.assign('/wallet');
+                break;
+              case 'go_live':
+                window.location.assign('/go-live');
+                break;
+              case 'close':
+              default:
+                break;
+            }
+          } catch {
+            /* no-op — route may not exist on every build */
+          }
+          // eslint-disable-next-line no-console
+          console.log('[Pkg500/F] call-end-action', e);
+        });
+      } catch {
+        /* no-op — older APKs lack this event */
+      }
+    })();
+    return () => {
+      try { handle?.remove?.(); } catch { /* no-op */ }
+    };
+  }, []);
+
   // 2) Billing sync — caller side only (verified by reading caller_id).
   useEffect(() => {
     if (!isAndroidNative()) return;
