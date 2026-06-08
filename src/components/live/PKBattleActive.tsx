@@ -71,6 +71,8 @@ export const PKBattleActive = ({
       status?: string | null;
       winner_user_id?: string | null;
       final_status?: string | null;
+      mvp_user_id?: string | null;
+      punishment_end_ts?: string | null;
     }) => {
       if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
       if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
@@ -78,6 +80,12 @@ export const PKBattleActive = ({
       if (typeof row.duration_seconds === "number" && row.duration_seconds > 0) {
         setServerDurationSec(row.duration_seconds);
       }
+      if (row.mvp_user_id !== undefined) setMvpUserId(row.mvp_user_id ?? null);
+      if (row.final_status !== undefined) setFinalStatus(row.final_status ?? null);
+      if (row.punishment_end_ts !== undefined) {
+        setPunishmentEndTs(row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null);
+      }
+      if (row.winner_user_id !== undefined) setWinnerUserId(row.winner_user_id ?? null);
       if (row.status === "ended") {
         setBattleEnded(true);
         onBattleEnd(row.winner_user_id ?? null);
