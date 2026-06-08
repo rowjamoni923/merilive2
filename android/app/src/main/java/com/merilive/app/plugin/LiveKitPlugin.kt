@@ -693,6 +693,47 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * Phase I.b — runs the same teardown as the original process-background
+     * branch, but after the 60s live-host grace window has expired with the
+     * app still backgrounded. Mirrors the immediate-teardown path so the
+     * "no host returned in 60s" outcome converges on the existing cleanup.
+     */
+    private suspend fun endLiveSessionAfterGrace(r: Room) {
+        try {
+            lastConnectArgs = null
+            stopReconnectWatchdog()
+            hardReconnectAttempts = 0
+            try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+            try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+            activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+            try { r.disconnect() } catch (_: Exception) {}
+            releaseRoomResources(r, "live-host-grace-expired")
+            try { com.merilive.app.rtc.RtcEngineManager.unbind("live-host-grace-expired", r) } catch (_: Throwable) {}
+            room = null
+            setKeepScreenOn(false)
+            setProximityMonitoringInternal(false)
+            applyAudioMode(false)
+            unregisterAudioDeviceListener()
+            unregisterHeadsetReceivers()
+            stopHeadsetMediaSession()
+            stopBluetoothScoInternal()
+            abandonAudioFocusInternal()
+            stopCallForegroundService()
+            CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
+            val data = JSObject()
+            data.put("reason", "LIVE_HOST_GRACE_EXPIRED")
+            notifyListeners("disconnected", data)
+        } catch (e: Exception) {
+            Log.w(TAG, "live-host-grace teardown failed: ${e.message}")
+        } finally {
+            liveHostGraceJob = null
+        }
+    }
+
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
