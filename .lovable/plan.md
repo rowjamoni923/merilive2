@@ -239,3 +239,63 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 2. During battle, send gift to either side → score updates on both clients within ~200ms (server `bill_pk_gift` + postgres_changes).
 3. Wait 5min → battle ends within 10s of timer expiry; winner side beans += 70% of loser score; `coin_transactions` row of type `pk_battle_reward` inserted.
 4. Punishment overlay shows for 90s after end on losing side.
+
+
+---
+
+## Phase III — Party Room professionalization (✅ III.a DONE 2026-06-08 (III.b–III.f next))
+
+**Research-first ✅** — sub-agent verified industry patterns from Bigo Live (Multi-Guest 2026 guide, Room PK system), Chamet, AgoraIO-Usecase/Chatroom reference impl, Agora RTM docs, LiveKit maintainer (issues #3041, #3292). Codebase audit produced 10 P0–P2 gaps with file:line refs.
+
+### Industry-locked numbers
+- Seat-request expiry: **60s** (Agora raise-hand blog)
+- Invitation expiry: **30–60s** (Chamet UX teardown; trigger already sets 60s ✅)
+- Request queue cap: **50 pending** (Agora CHATROOM_MEMBERS_FULL)
+- Audio profile: **`AudioPresets.music` 40 kbps Opus mono** per seat → 9-seat budget ~360 kbps
+- ConnectionQuality.Lost: **~2–3s** early warning; ParticipantDisconnected: **~15s** authoritative (LiveKit maintainer confirmed)
+- Source of truth: **server-only** (Redis SETNX / Postgres SELECT FOR UPDATE) — RTM/data-channel is fan-out only
+- Host transfer: **DB-persisted required** (current in-memory auto-promote is broken)
+- Party-host background grace: **0s in our app, should be 60s** to match live-host (Bigo uses FGS indefinitely)
+
+### Phase III.a — P0 schema + race fixes (THIS PASS, Lovable-only, no APK rebuild)
+
+**Fixes:**
+- **R1** `seat_requests.status` CHECK missing `'cancelled'` — client writes it on every clean leave → DB error swallowed. Migration: extend CHECK to include `cancelled`.
+- **R2** `party_rooms.background_id` referenced in `PartyRoom.tsx:120,551-566` but column does not exist → silent NULL. Migration: add column FK→party_room_backgrounds.
+- **R3** `party_room_backgrounds.gradient_css` read at `PartyRoom.tsx:1211` but column doesn't exist. Migration: add `gradient_css text`.
+- **R4** No `FOR UPDATE` lock on seat approval (`PartyRoom.tsx:1908-1975` does raw UPDATE). Migration: new RPC `approve_seat_request(p_request_id)` — SELECT FOR UPDATE on participant + seat slot, atomic transition. Client switches to RPC.
+- **R5** Host transfer: no DB RPC, no client UI. Migration: new RPC `transfer_party_host(p_room_id, p_new_host_id)` — verifies caller is current host, updates `party_rooms.host_id` + both participants' `role`, idempotent. Client UI deferred to III.b.
+- **R6** Dead `party_rooms.active_seats` column — leave for now (drop in cleanup phase).
+
+### Phase III.b — Host controls + mute persistence (next)
+- Server-side host verification in `livekit-moderate` + `livekit-update-permission` edge fns (currently any authenticated user can call).
+- New RPC `party_mute_seat(p_room_id, p_target_user_id, p_muted)` writes `is_muted` to DB so mute survives reconnect.
+- "Mute all" RPC.
+- Host transfer UI (host-action sheet → "Transfer host" → user picker).
+
+### Phase III.c — Party host 60s background grace (APK rebuild)
+- Extend `LIVE_HOST_BG_GRACE_MS` branch in `LiveKitPlugin.kt:580` to also cover `scopeName == "party" && isHost`.
+- Currently party hits immediate-teardown at line 621 → 0 grace.
+
+### Phase III.d — Seat invitation flow (client wiring)
+- `seat_invitations` table + RLS + trigger already shipped (`20260404013217.sql:479`) — zero client implementation.
+- Add host UI: tap empty seat → "Invite from audience" → picker → INSERT to `seat_invitations`.
+- Invitee receives Realtime row → modal → accept/decline within 60s.
+
+### Phase III.e — Per-seat gift target
+- Currently all party gifts route to `room.host.id` (`PartyRoom.tsx:2532`).
+- Industry: per-seat selection (Bigo/Chamet default). Add seat-picker to GiftPanel when context is party room.
+
+### Phase III.f — Audio profile (music/speech) for party rooms (DJ rooms)
+- `usePartyRoomWebRTC` uses LiveKit default speech. Add `audioProfile` prop ('voice'|'music') wired through token request → LiveKit `AudioPresets.music` (40 kbps) or `AudioPresets.speech` (24 kbps).
+
+### Deferred (cleanup, no user impact)
+- Drop dead columns: `party_rooms.active_seats`, `party_rooms.password` (plaintext, replaced by `password_hash`).
+- Drop unused alias columns once all client writers migrated: `seat_requests.requester_id`/`seat_position` (kept until full client cleanup).
+- LiveKit Egress → HLS/RTMP for 10k+ audience scale (only if room concurrency exceeds ~500 listeners).
+
+### Verification for III.a (Lovable preview using owner account)
+1. Create party room → leave cleanly → DB row in `seat_requests` shows `status='cancelled'` (no swallowed error).
+2. Two devices simultaneously approve same seat → only one succeeds, second returns RPC error `seat_taken`.
+3. Open party room background picker → selected `gradient_css` background renders correctly.
+4. Call `transfer_party_host` RPC manually → `party_rooms.host_id` updates atomically; old host becomes `speaker`, new host becomes `host`.

@@ -9393,6 +9393,7 @@ export type Database = {
       party_rooms: {
         Row: {
           announcement: string | null
+          background_id: string | null
           background_url: string | null
           country_code: string | null
           created_at: string | null
@@ -9417,6 +9418,7 @@ export type Database = {
         }
         Insert: {
           announcement?: string | null
+          background_id?: string | null
           background_url?: string | null
           country_code?: string | null
           created_at?: string | null
@@ -9441,6 +9443,7 @@ export type Database = {
         }
         Update: {
           announcement?: string | null
+          background_id?: string | null
           background_url?: string | null
           country_code?: string | null
           created_at?: string | null
@@ -18575,6 +18578,7 @@ export type Database = {
         Args: { p_admin_id: string; p_claim_id: string }
         Returns: Json
       }
+      approve_seat_request: { Args: { p_request_id: string }; Returns: Json }
       assign_payroll_to_trader: {
         Args: { _withdrawal_id: string }
         Returns: Json
@@ -20331,6 +20335,10 @@ export type Database = {
           _sender_id: string
         }
         Returns: boolean
+      }
+      transfer_party_host: {
+        Args: { p_new_host_id: string; p_room_id: string }
+        Returns: Json
       }
       trigger_weekly_agency_schedule: { Args: never; Returns: Json }
       update_active_session: {
