@@ -1,6 +1,10 @@
 import { useState, useCallback } from 'react';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
 import { releaseAndroidWebViewCameraWhenStopped } from '@/lib/androidCameraHandoff';
+import {
+  requestCameraPermission as requestNativeCameraPermission,
+  requestMicrophonePermission as requestNativeMicrophonePermission,
+} from '@/utils/nativePermissions';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -230,24 +234,29 @@ export function useNativeCameraPermission() {
     permissionRequestInFlight = (async (): Promise<CameraPermissionResult> => {
       try {
         if (isNativeApp) {
-          // ===== NATIVE ANDROID: Direct getUserMedia (the ONLY reliable method) =====
-          // @capacitor/camera is for photo capture, NOT for WebRTC getUserMedia.
-          // The native WebChromeClient.onPermissionRequest() handles the Android permission dialog.
-          const result = await requestCameraViaGetUserMedia(includeMicrophone, true);
-          
-          if (result.granted) {
-            // Stop the probe stream - actual stream will be requested later
-            result.stream?.getTracks().forEach(t => t.stop());
+          // Native Android live/party/call must NEVER open a WebView
+          // getUserMedia probe. It creates a second camera pipeline and can
+          // leave Chromium's video surface showing the native play icon.
+          const cameraGranted = await requestNativeCameraPermission();
+          const microphoneGranted = includeMicrophone
+            ? await requestNativeMicrophonePermission()
+            : true;
+
+          if (cameraGranted && microphoneGranted) {
             globalPermissionGranted = true; writeCachedPerm(true);
             if (includeMicrophone) globalMicrophoneGranted = true;
             permissionDeniedCount = 0;
             setPermissionGranted(true);
             return { granted: true, microphoneGranted: includeMicrophone ? true : undefined };
-          } else {
-            permissionDeniedCount++;
-            setPermissionGranted(false);
-            return { granted: false, error: result.error };
           }
+
+          permissionDeniedCount++;
+          setPermissionGranted(false);
+          return {
+            granted: false,
+            microphoneGranted: includeMicrophone ? microphoneGranted : undefined,
+            error: !cameraGranted ? denialHint(true) : 'Microphone permission denied.',
+          };
         }
 
         // ===== WEB BROWSER =====
@@ -314,6 +323,12 @@ export function useNativeCameraPermission() {
   }, [isNativeApp]);
 
   const getCameraStream = useCallback(async (includeAudio: boolean = false): Promise<MediaStream | null> => {
+    if (isNativeApp) {
+      const permission = await requestCameraPermission({ includeMicrophone: includeAudio });
+      if (!permission.granted) throw new Error(permission.error || 'Camera permission denied.');
+      return null;
+    }
+
     if (streamRequestInFlight) {
       return streamRequestInFlight;
     }
