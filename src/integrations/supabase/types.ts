@@ -19865,6 +19865,14 @@ export type Database = {
         Args: { _url: string }
         Returns: string
       }
+      party_mute_all: {
+        Args: { p_muted: boolean; p_room_id: string }
+        Returns: Json
+      }
+      party_mute_seat: {
+        Args: { p_muted: boolean; p_room_id: string; p_target_user_id: string }
+        Returns: Json
+      }
       party_participant_heartbeat: {
         Args: { p_room_id: string }
         Returns: undefined

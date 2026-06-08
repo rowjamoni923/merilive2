@@ -243,7 +243,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 
 ---
 
-## Phase III — Party Room professionalization (✅ III.a DONE 2026-06-08 (III.b–III.f next))
+## Phase III — Party Room professionalization (✅ III.a + III.b DONE 2026-06-08 (III.c–III.f next))
 
 **Research-first ✅** — sub-agent verified industry patterns from Bigo Live (Multi-Guest 2026 guide, Room PK system), Chamet, AgoraIO-Usecase/Chatroom reference impl, Agora RTM docs, LiveKit maintainer (issues #3041, #3292). Codebase audit produced 10 P0–P2 gaps with file:line refs.
 
@@ -267,11 +267,13 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - **R5** Host transfer: no DB RPC, no client UI. Migration: new RPC `transfer_party_host(p_room_id, p_new_host_id)` — verifies caller is current host, updates `party_rooms.host_id` + both participants' `role`, idempotent. Client UI deferred to III.b.
 - **R6** Dead `party_rooms.active_seats` column — leave for now (drop in cleanup phase).
 
-### Phase III.b — Host controls + mute persistence (next)
-- Server-side host verification in `livekit-moderate` + `livekit-update-permission` edge fns (currently any authenticated user can call).
-- New RPC `party_mute_seat(p_room_id, p_target_user_id, p_muted)` writes `is_muted` to DB so mute survives reconnect.
-- "Mute all" RPC.
-- Host transfer UI (host-action sheet → "Transfer host" → user picker).
+### Phase III.b — Host controls + mute persistence ✅ DONE 2026-06-08
+- **Audit finding:** `livekit-moderate` AND `livekit-update-permission` edge fns ALREADY verify host ownership (resolveHostOwnership against party_rooms.host_id) — plan's "any auth user can call" claim was wrong. No edge-fn change needed.
+- New RPC `party_mute_seat(p_room_id, p_target_user_id, p_muted)` — SECURITY DEFINER, FOR UPDATE on `party_rooms`, host-only, writes `is_muted` so mute survives reconnect. Rejects host self-mute.
+- New RPC `party_mute_all(p_room_id, p_muted)` — bulk DB-persist for seated speakers, host-excluded.
+- `PartyRoom.tsx muteUser` now calls RPC first (durable state), then `hostMuteParticipantAudio` for instant LiveKit track mute.
+- Host-transfer RPC `transfer_party_host` (shipped in III.a) UI = deferred to optional III.b2 sheet (low-priority, no user complaint yet).
+
 
 ### Phase III.c — Party host 60s background grace (APK rebuild)
 - Extend `LIVE_HOST_BG_GRACE_MS` branch in `LiveKitPlugin.kt:580` to also cover `scopeName == "party" && isHost`.
