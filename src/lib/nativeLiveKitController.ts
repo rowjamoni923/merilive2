@@ -80,22 +80,16 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
-      // Phase 1A.2 Step 3 — if the plugin already adopted a surviving Room
-      // for the SAME server URL, skip the network handshake and just rebind
-      // the renderers. Falls through to a fresh connect on any mismatch.
+      // Never adopt a surviving live Room as a fresh host publish. If the host
+      // ended/minimized and returns through GoLive, reusing the old native room
+      // is what shows "already live" and can leave camera running in background.
       try {
         const active = await NativeLiveKit.getActiveSession();
-        if (active?.active && active.url && active.url === opts.url) {
-          this.connected = true;
-          if (opts.attachLocal !== false) await this.attachLocalWithRetry();
-          try { await NativeLiveKit.attachAllRemotes(); } catch { /* noop */ }
-          console.log('[NativeLiveKitController] adopted surviving session', {
-            ageMs: active.ageMs,
-            canHardReconnect: active.canHardReconnect,
-          });
-          // Caller does not have sid/identity from adoption; return placeholders
-          // (downstream code only treats these as opaque strings for logging).
-          return { sid: 'adopted', identity: 'adopted' };
+        if (active?.active) {
+          try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
+          try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
+          this.connected = false;
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
 
