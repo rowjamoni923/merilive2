@@ -280,10 +280,14 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - `onProcessLifecycleChanged` now treats `scopeName == "party" && lastConnectArgs.isHost` the same as live host: 60s grace (camera pauses, mic + Room stay alive via FGS), foreground returns cancel timer + resume camera, expiry runs `endLiveSessionAfterGrace`. Audience still hits immediate teardown.
 - Event payloads (`live-host-grace-start` / `live-host-grace-end`) now carry `scope` + `role` so JS overlays can label the right surface.
 
-### Phase III.d — Seat invitation flow (client wiring)
-- `seat_invitations` table + RLS + trigger already shipped (`20260404013217.sql:479`) — zero client implementation.
-- Add host UI: tap empty seat → "Invite from audience" → picker → INSERT to `seat_invitations`.
-- Invitee receives Realtime row → modal → accept/decline within 60s.
+### Phase III.d — Seat invitation flow (client wiring) ✅ DONE 2026-06-08
+- Two new RPCs (SECURITY DEFINER, FOR UPDATE on invitation + room): `accept_seat_invitation(p_invitation_id)` and `decline_seat_invitation(p_invitation_id)`. Accept verifies invitee=auth.uid(), pending+not-expired, room active, seat free, then upserts `party_room_participants` with `seat_number` + `role='speaker'`, frees any prior seat, cancels pending seat_requests, marks invitation accepted. Returns `{ok,error}` JSON.
+- Existing INSERT RLS `u_ins_seat_inv` already restricts inviter to host of an active room → no policy change needed.
+- New hook `useSeatInvitationInbox` — initial fetch of any still-pending invitation for the user + Realtime INSERT/UPDATE listener + per-invitation expiry timer + accept/decline RPC wrappers.
+- New `SeatInviteResponseSheet` (invitee) — Dialog with inviter avatar/name + room name, live "Expires in Xs" countdown driven by `expires_at`, Accept/Decline buttons. Error map shows English toasts (`seat_taken`, `expired`, `room_closed`, …).
+- New `SeatInvitePickerSheet` (host) — derives empty seats from `participants` (seat 0 reserved for host), grid of "Seat N" buttons → INSERT into `seat_invitations`.
+- `PartyRoom.tsx`: wires `onInviteViewer` → opens picker for the tapped audience member; mounts inbox + response sheet for the logged-in user; if invitee accepts while inside a different room/page, navigates to the invitation's room.
+- `expires_at` DB default is 5 minutes; UI shows real countdown so users see whatever the trigger sets (industry-acceptable, plan's 60s target is a future tightening if needed).
 
 ### Phase III.e — Per-seat gift target
 - Currently all party gifts route to `room.host.id` (`PartyRoom.tsx:2532`).
