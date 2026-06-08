@@ -194,20 +194,21 @@ export const PKBattlePanel = ({
   const sendPKRequest = async (opponent: LiveHost) => {
     setSendingRequest(opponent.id);
     try {
-      const { data: battle, error } = await supabase
-        .from("pk_battles")
-        .insert({
-          challenger_id: currentUserId,
-          opponent_id: opponent.id,
-          challenger_stream_id: currentStreamId,
-          opponent_stream_id: opponent.stream_id,
-          status: "pending",
-          duration_seconds: 180,
-        })
-        .select()
-        .single();
+      // PK Battle Step 3: server-validated invite creation (level≥5,
+      // anti-double-accept, duration clamped 120–900s). Replaces the legacy
+      // direct insert that let any client forge battle_id/status/duration.
+      const { data: rpcRes, error } = await supabase.rpc("start_pk_battle", {
+        p_opponent_id: opponent.id,
+        p_challenger_stream_id: currentStreamId,
+        p_opponent_stream_id: opponent.stream_id,
+        p_duration_seconds: 300,
+      });
+      const payload = (rpcRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
 
-      if (error) throw error;
+      if (error || !payload.ok || !payload.battle_id) {
+        throw new Error(payload.error || error?.message || "Failed to create PK invite");
+      }
+      const battle = { id: payload.battle_id };
 
       // Pkg82d: send invite via FCM (was `pk_battle_${battleId}` postgres_changes).
       pendingDirectRef.current.set(battle.id, opponent);
