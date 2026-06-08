@@ -980,8 +980,17 @@ export function usePrivateCall(userId: string | null) {
             _call_id: cleanupCallId,
             _end_reason: 'connect_failed',
           });
+          // Server billing P2 — safety-net refund. Reverses any minute that
+          // got charged before the connect failed (idempotent via the
+          // `call_refunded` event guard inside the RPC).
+          try {
+            await supabase.rpc('refund_call_on_failed_connect' as never, {
+              p_call_id: cleanupCallId,
+            } as never);
+          } catch { /* refund is best-effort; sweeper retries */ }
         }
       } catch { /* server-side cleanup_stale_in_call_flags cron is the final safety net */ }
+
       resetCallState();
       toast({
         title: "Call Failed",

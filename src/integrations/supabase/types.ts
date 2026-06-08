@@ -20127,6 +20127,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      refund_call_on_failed_connect: {
+        Args: { p_call_id: string }
+        Returns: Json
+      }
       regenerate_admin_secret_token: {
         Args: { _new_token: string }
         Returns: Json
