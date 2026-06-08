@@ -25,6 +25,8 @@ import { GameSelectionModal } from "@/components/party/GameSelectionModal";
 import { ChametStyleSettingsPanel } from "@/components/party/ChametStyleSettingsPanel";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
+import { requestMicrophonePermission } from "@/utils/nativePermissions";
+import { isNativeAndroidApp } from "@/utils/nativeUtils";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
@@ -90,6 +92,7 @@ const CreateParty = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
   const preserveStreamRef = useRef(false);
+  const isNativeAndroid = isNativeAndroidApp();
   useEffect(() => {
     streamRef.current = stream;
   }, [stream]);
@@ -135,10 +138,21 @@ const CreateParty = () => {
   // Start camera with native permission handling
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
     try {
+      if (isNativeAndroid) {
+        if (videoMode) {
+          const mediaPermission = await getCameraStream(true);
+          if (mediaPermission) setStream(mediaPermission);
+        } else {
+          const micGranted = await requestMicrophonePermission();
+          if (!micGranted) throw new Error("Microphone permission denied.");
+        }
+        setCameraReady(true);
+        return;
+      }
+
       if (videoMode) {
-        // Pkg-fix: removed double getUserMedia probe — getCameraStream already
-        // handles native permission internally and keeps the Android WebView
-        // user-gesture chain intact.
+        // Browser preview only. Android native app returns above and never
+        // opens WebView getUserMedia for party media setup.
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
           setStream(mediaStream);
@@ -160,7 +174,7 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream]);
+  }, [getCameraStream, isNativeAndroid]);
 
   // Initialize everything in parallel on mount
   useEffect(() => {
@@ -268,7 +282,9 @@ const CreateParty = () => {
       return;
     }
 
-    if (!streamRef.current?.getTracks().some((track) => track.readyState === 'live')) {
+    const nativeMediaReady = isNativeAndroid && cameraReady;
+    const webMediaReady = streamRef.current?.getTracks().some((track) => track.readyState === 'live');
+    if (!nativeMediaReady && !webMediaReady) {
       toast.error(mode === "audio" ? "Please enable microphone first" : "Please enable camera and microphone first");
       return;
     }
@@ -326,8 +342,9 @@ const CreateParty = () => {
       if (error) throw error;
       if (!partyRoomId) throw new Error('Party room was not created');
 
-      // Preserve the camera stream for seamless handoff to PartyRoom
-      if (stream) {
+      // Browser-only seamless handoff. Android PartyRoom opens the native
+      // LiveKit SDK camera itself; no WebView stream is preserved.
+      if (!isNativeAndroid && stream) {
         preserveStreamRef.current = true;
         setPreparedHostPreviewStream(stream);
       } else {
@@ -366,6 +383,11 @@ const CreateParty = () => {
     setMode(newMode);
     if (newMode === "game" && !selectedGame) {
       setShowGameSelection(true);
+    }
+    if (isNativeAndroid) {
+      setCameraReady(false);
+      await startCameraInstant(newMode !== "audio");
+      return;
     }
     if (!streamRef.current) return;
 
@@ -489,7 +511,7 @@ const CreateParty = () => {
     </div>
   );
 
-  const mediaReady = !!stream?.getTracks().some((track) => track.readyState === 'live');
+  const mediaReady = isNativeAndroid ? cameraReady : !!stream?.getTracks().some((track) => track.readyState === 'live');
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden">
@@ -854,6 +876,11 @@ const CreateParty = () => {
         onMirrorModeToggle={() => setIsMirrorMode(!isMirrorMode)}
         isFrontCamera={facingMode === "user"}
         onSwitchCamera={async () => {
+          if (isNativeAndroid) {
+            setFacingMode((prev) => prev === "user" ? "environment" : "user");
+            toast.info("Camera will switch inside the party room.");
+            return;
+          }
           if (stream) {
             stream.getTracks().forEach(track => track.stop());
             releaseAndroidWebViewCamera('create-party:switch-camera');

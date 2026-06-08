@@ -11,8 +11,7 @@ import { getAppSetting } from '@/utils/appSettingsCache';
 import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 import { NativeCall } from '@/plugins/NativeCall';
 import { NativeCamera } from '@/plugins/NativeCamera';
-import { getUserMediaWithFallback } from '@/hooks/useNativeCameraPermission';
-import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitKillSwitch';
 
@@ -464,11 +463,10 @@ export function usePrivateCall(userId: string | null) {
     }
     startingCallRef.current = true;
 
-    let preparedOutgoingStream: MediaStream | null = null;
     try {
       if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
-      if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
-        preparedOutgoingStream = await getUserMediaWithFallback(true);
+      if (!shouldUseNativeLiveKit({ feature: 'private-call' })) {
+        throw new Error('Native Android LiveKit is required for private calls. Web camera fallback is disabled.');
       }
       // ✅ FIX: Force-clear ALL stale call state before starting new call
       // This ensures old call never reconnects
@@ -598,8 +596,6 @@ export function usePrivateCall(userId: string | null) {
 
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
-      setPreparedCallMediaStream(resolvedCallId, preparedOutgoingStream);
-      preparedOutgoingStream = null;
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
       const resolvedTimeoutSeconds = Number(
         rpcPayload?.timeout_seconds ?? callSettings.call_timeout_seconds ?? DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS,
@@ -786,7 +782,6 @@ export function usePrivateCall(userId: string | null) {
 
       return resolvedCallId;
     } catch (error: any) {
-      preparedOutgoingStream?.getTracks().forEach((track) => track.stop());
       console.error('Error starting call:', error);
       setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
       
@@ -806,20 +801,16 @@ export function usePrivateCall(userId: string | null) {
       });
       return null;
     } finally {
-      preparedOutgoingStream?.getTracks().forEach((track) => track.stop());
       startingCallRef.current = false;
     }
   }, [userId, toast, navigate]);
 
   // Accept an incoming call (Host side)
   const acceptCall = useCallback(async (callId: string) => {
-    let preparedIncomingStream: MediaStream | null = null;
     try {
       if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
-      if (!isNativeAndroidApp() || !shouldUseNativeLiveKit({ feature: 'private-call' })) {
-        preparedIncomingStream = await getUserMediaWithFallback(true);
-        setPreparedCallMediaStream(callId, preparedIncomingStream);
-        preparedIncomingStream = null;
+      if (!shouldUseNativeLiveKit({ feature: 'private-call' })) {
+        throw new Error('Native Android LiveKit is required for private calls. Web camera fallback is disabled.');
       }
       const incomingSnapshot = incomingCallIdRef.current === callId ? incomingCall : null;
 
@@ -955,7 +946,6 @@ export function usePrivateCall(userId: string | null) {
 
       return true;
     } catch (error: any) {
-      preparedIncomingStream?.getTracks().forEach((track) => track.stop());
       console.error('Error accepting call:', error);
       // Pkg425: accept_private_call may have already set the row to 'connected'.
       // If LiveKit connect then throws (network blip, native plugin race) the row

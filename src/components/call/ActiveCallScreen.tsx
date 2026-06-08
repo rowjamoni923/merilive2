@@ -713,10 +713,8 @@ export function ActiveCallScreen({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
-  // Browser calling enabled — web uses LiveKit web SDK + getUserMedia,
-  // native Android still uses the native LiveKit plugin (handled inside
-  // useLiveKitCall via shouldUseNativeLiveKit). Old hard block removed so
-  // users on web actually see remote video + hear remote audio.
+  // Private calls are Android-native only. The hook also fails closed before
+  // any web getUserMedia path can run.
 
   const callUi = (
     <div
@@ -1287,5 +1285,8 @@ export function ActiveCallScreen({
     </div>
   );
 
-  return createPortal(callUi, document.body);
+  return createPortal(
+    <RequireNativeAndroidGate feature="call">{callUi}</RequireNativeAndroidGate>,
+    document.body,
+  );
 };

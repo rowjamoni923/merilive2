@@ -354,9 +354,16 @@ export function useLiveKitCall(
       try {
         console.log('[LiveKitCall] Initializing for call:', callId);
 
-        // 🛰️ Native Android publish path. Web/iOS gate=false → falls
-        // through to web livekit-client Room flow below.
-        if (shouldUseNativeLiveKit({ feature: 'private-call' })) {
+        // 🛰️ Native Android publish path only. Private calls must never fall
+        // back to browser getUserMedia/web LiveKit; fail closed instead.
+        const nativeCallRequired = shouldUseNativeLiveKit({ feature: 'private-call' });
+        if (!nativeCallRequired) {
+          toast.error('Private calls require the Android app.');
+          setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
+          return;
+        }
+
+        if (nativeCallRequired) {
           try {
             warmLiveKitToken(roomName, 'call').catch(() => {});
             const { token, url } = await getLiveKitToken(roomName, 'call');
@@ -389,6 +396,8 @@ export function useLiveKitCall(
                   resolution: '1080p',
                   attachLocal: true,
                   callType: 'Video Call',
+                  audioProfile: 'voice',
+                  roomScope: 'call',
                 });
                 // Step 29 — auto-enable PiP on leave hint for 1:1 calls.
                 // Parity with WhatsApp/Meet: home button = floating window.

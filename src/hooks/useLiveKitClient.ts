@@ -24,6 +24,7 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { NativeLiveKit } from '@/plugins/NativeLiveKit';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import {
   AUDIO_ONLY_CHANGED_EVENT,
   applyAudioOnlyToRoom,
@@ -408,17 +409,26 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const startTime = performance.now();
     console.log(`[LiveKitClient] Joining channel: ${normalizedChannel} as ${config.role}`);
 
+    const nativeAndroidShell = isNativeAndroidApp();
+
+    if (!config.preloadedRoom && nativeAndroidShell && !shouldUseNativeLiveKit({ feature: 'live-broadcast' })) {
+      const err = new Error('Native Android LiveKit is required for live media. Web camera fallback is disabled.');
+      setConnectionState('DISCONNECTED');
+      setIsLoading(false);
+      isJoiningRef.current = false;
+      try { options.onError?.(err); } catch { /* ignore */ }
+      throw err;
+    }
+
     // 🛰️ Native Android live path (Capacitor + LiveKit Android SDK).
-    // Android hosts AND viewers use native LiveKit only; WebView RTC is dev/web fallback only.
+    // Android hosts AND viewers use native LiveKit only; there is no WebView RTC fallback.
     if (
       !config.preloadedRoom &&
       shouldUseNativeLiveKit({ feature: 'live-broadcast' })
     ) {
       try {
         await whenNativeLiveKitKillSwitchReady();
-        if (!shouldUseNativeLiveKit({ feature: 'live-broadcast' })) {
-          throw new Error('native_livekit_disabled_after_settings_sync');
-        }
+        if (!shouldUseNativeLiveKit({ feature: 'live-broadcast' })) throw new Error('native_livekit_required');
 
         const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});

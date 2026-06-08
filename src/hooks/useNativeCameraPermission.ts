@@ -68,8 +68,8 @@ const queryPermissionSafe = async (name: PermissionName): Promise<PermissionStat
 
 
 /**
- * On Android WebView, navigator.permissions.query may not work for camera/mic.
- * We skip it on native and go straight to getUserMedia probe.
+ * On native Android, media permission checks are handled by the Android
+ * permission plugin. Web permission probes are browser-only.
  */
 const queryPermission = async (name: PermissionName, isNative: boolean): Promise<PermissionState | null> => {
   // Android WebView often doesn't support permissions.query for camera/mic
@@ -84,9 +84,8 @@ const queryPermission = async (name: PermissionName, isNative: boolean): Promise
 };
 
 /**
- * The CORE fix: On native Android WebView, we MUST use getUserMedia directly.
- * @capacitor/camera plugin only handles photo/gallery permissions, NOT WebRTC.
- * The native WebChromeClient.onPermissionRequest() handles the actual Android permission dialog.
+ * Browser-only getUserMedia request helper. Native Android live/party/call
+ * paths must never call this because it opens a second WebView camera owner.
  */
 const denialHint = (isNative: boolean): string =>
   isNative
@@ -201,10 +200,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
 /**
  * Hook to handle camera permission requests.
  * 
- * KEY FIX for Play Store WebView:
- * - On native Android, we SKIP @capacitor/camera plugin entirely for WebRTC
- * - We go straight to getUserMedia which triggers WebChromeClient.onPermissionRequest()
- * - This is the ONLY reliable way to get camera/mic in Android WebView
+ * Native Android uses the Android runtime permission plugin only; actual
+ * capture is owned by the NativeLiveKit SDK path. Browser getUserMedia stays
+ * available only for non-native web surfaces.
  */
 export function useNativeCameraPermission() {
   const [isRequesting, setIsRequesting] = useState(false);

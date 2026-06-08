@@ -6,11 +6,10 @@
  * gate the native publish path. Web + iOS callers always get `false`
  * and continue with their existing livekit-client flow.
  *
- * A runtime kill-switch is supported via `app_settings.native_livekit_enabled`
- * (read by callers). Default = ON when the platform check passes.
+ * Live / Party / Private Call policy: Android native app MUST use the
+ * NativeLiveKit plugin. There is no Android WebView camera fallback.
  */
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
-import { getNativeLiveKitKillSwitch } from '@/lib/nativeLiveKitKillSwitch';
 
 export type NativeLiveKitFeature = 'live-broadcast' | 'private-call' | 'party-room';
 
@@ -23,11 +22,11 @@ interface GateInput {
 export function shouldUseNativeLiveKit({ killSwitch }: GateInput): boolean {
   // 1. Platform check — web/iOS never enter the native path.
   if (!isNativeLiveKitAvailable()) return false;
-  // 2. Explicit override wins (used by tests / forced fallback).
+  // 2. Explicit override is retained only for isolated tests; production
+  // Android live/party/call must fail closed instead of falling back to web RTC.
   if (killSwitch === false) return false;
   if (killSwitch === true) return true;
-  // 3. Admin runtime kill-switch from app_settings.native_livekit_enabled.
-  return getNativeLiveKitKillSwitch();
+  return true;
 }
 
 export { isNativeLiveKitAvailable };
