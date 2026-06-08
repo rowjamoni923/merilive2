@@ -57,6 +57,10 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_RECHARGE_REQUESTED =
             "com.merilive.app.ACTION_RECHARGE_REQUESTED"
 
+        /** Pkg500 Phase E — PrivateCallEndActivity (or in-call gift btn) → JS. */
+        const val ACTION_CALL_END_ACTION =
+            "com.merilive.app.ACTION_CALL_END_ACTION"
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
@@ -145,6 +149,7 @@ class NativeCallPlugin : Plugin() {
         // lost. Keep events in `pending`; JS drains them explicitly via
         // getLastAction() once usePrivateCall has mounted its listener.
         registerRechargeReceiver()
+        registerCallEndActionReceiver()
     }
 
 
@@ -152,6 +157,8 @@ class NativeCallPlugin : Plugin() {
         super.handleOnDestroy()
         rechargeReceiver?.let { runCatching { context.unregisterReceiver(it) } }
         rechargeReceiver = null
+        callEndActionReceiver?.let { runCatching { context.unregisterReceiver(it) } }
+        callEndActionReceiver = null
         if (INSTANCE === this) INSTANCE = null
     }
 
