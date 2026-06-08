@@ -5571,7 +5571,7 @@ class LiveKitPlugin : Plugin() {
     fun sendText(call: PluginCall) {
         val text = call.getString("text") ?: run { call.reject("missing-text"); return }
         val topic = call.getString("topic") ?: ""
-        val destinations = call.getArray("destinationIdentities", null)
+        val destinations: com.getcapacitor.JSArray? = call.getArray("destinationIdentities")
         val r = room ?: run { call.reject("no-room"); return }
         scope.launch {
             try {
