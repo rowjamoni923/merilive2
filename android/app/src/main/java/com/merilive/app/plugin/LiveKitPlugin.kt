@@ -724,11 +724,19 @@ class LiveKitPlugin : Plugin() {
             else -> "broadcast"
         }
 
+        // Phase I — "live" swaps the FGS notification to Bigo-style.
+        val broadcastModeRaw = call.getString("broadcastMode", null)
+        val broadcastMode = when (broadcastModeRaw?.lowercase()) {
+            "live" -> "live"
+            else -> "call"
+        }
+
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
             callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
+            broadcastMode,
         )
         hardReconnectAttempts = 0
 
