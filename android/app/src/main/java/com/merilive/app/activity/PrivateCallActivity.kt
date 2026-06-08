@@ -672,6 +672,8 @@ class PrivateCallActivity : ComponentActivity() {
         closeReceiver = null
         billingReceiver?.let { runCatching { unregisterReceiver(it) } }
         billingReceiver = null
+        resumeReceiver?.let { runCatching { unregisterReceiver(it) } }
+        resumeReceiver = null
         runCatching { audioRouter?.detach() }
         audioRouter = null
         super.onDestroy()
