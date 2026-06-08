@@ -2818,23 +2818,27 @@ const LiveStream = () => {
     setRandomPKRequest(null);
   };
 
-  const handlePKBattleEnd = (winnerId: string | null) => {
+  const handlePKBattleEnd = async (winnerId: string | null) => {
     if (!pkBattleState.challengerInfo || !pkBattleState.opponentInfo) return;
 
     const isDraw = winnerId === null;
     const isWinner = winnerId === currentUserId;
+    const battleId = pkBattleState.battleId;
+    const challenger = pkBattleState.challengerInfo;
+    const opponent = pkBattleState.opponentInfo;
 
+    // Seed result with what we know synchronously.
     setPKResult({
       isWinner,
       isDraw,
-      winnerName: isWinner || isDraw ? pkBattleState.challengerInfo.name : pkBattleState.opponentInfo.name,
-      winnerAvatar: isWinner || isDraw ? pkBattleState.challengerInfo.avatar : pkBattleState.opponentInfo.avatar,
-      winnerScore: 0, // Will be updated from battle data
-      loserName: isWinner ? pkBattleState.opponentInfo.name : pkBattleState.challengerInfo.name,
-      loserAvatar: isWinner ? pkBattleState.opponentInfo.avatar : pkBattleState.challengerInfo.avatar,
+      winnerName: isWinner || isDraw ? challenger.name : opponent.name,
+      winnerAvatar: isWinner || isDraw ? challenger.avatar : opponent.avatar,
+      winnerScore: 0,
+      loserName: isWinner ? opponent.name : challenger.name,
+      loserAvatar: isWinner ? opponent.avatar : challenger.avatar,
       loserScore: 0,
     });
-    
+
     setPKBattleState({
       isActive: false,
       battleId: null,
@@ -2842,8 +2846,65 @@ const LiveStream = () => {
       challengerInfo: null,
       opponentInfo: null,
     });
-    
+
     setShowPKResult(true);
+
+    // Keep punishment overlay alive on the loser tile.
+    if (battleId) setPKPunishment({ battleId });
+
+    // Fetch final scores + MVP from server-authoritative row and enrich the modal.
+    if (battleId) {
+      try {
+        const { data: battle } = await supabase
+          .from("pk_battles")
+          .select("challenger_score, opponent_score, mvp_user_id")
+          .eq("id", battleId)
+          .maybeSingle();
+        if (battle) {
+          const challengerScore = Number(battle.challenger_score ?? 0);
+          const opponentScore = Number(battle.opponent_score ?? 0);
+          const winnerScore = isDraw
+            ? Math.max(challengerScore, opponentScore)
+            : winnerId === challenger.id
+              ? challengerScore
+              : opponentScore;
+          const loserScore = isDraw
+            ? Math.min(challengerScore, opponentScore)
+            : winnerId === challenger.id
+              ? opponentScore
+              : challengerScore;
+
+          let mvpName: string | null = null;
+          let mvpAvatar: string | null = null;
+          let mvpCoins: number | null = null;
+          if (battle.mvp_user_id) {
+            const { data: mvpProfile } = await supabase
+              .from("profiles")
+              .select("name, avatar_url")
+              .eq("id", battle.mvp_user_id)
+              .maybeSingle();
+            mvpName = mvpProfile?.name ?? null;
+            mvpAvatar = mvpProfile?.avatar_url ?? null;
+            const { data: mvpRow } = await supabase
+              .from("pk_battle_gifts")
+              .select("score_value")
+              .eq("battle_id", battleId)
+              .eq("sender_id", battle.mvp_user_id);
+            if (Array.isArray(mvpRow)) {
+              mvpCoins = mvpRow.reduce((s, r) => s + Number(r.score_value ?? 0), 0) || null;
+            }
+          }
+
+          setPKResult((prev) =>
+            prev
+              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins }
+              : prev,
+          );
+        }
+      } catch (e) {
+        console.warn("[PK] enrich result failed", e);
+      }
+    }
   };
 
   const handleClosePKResult = () => {
