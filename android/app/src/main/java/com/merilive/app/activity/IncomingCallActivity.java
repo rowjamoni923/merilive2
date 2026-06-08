@@ -56,6 +56,10 @@ public class IncomingCallActivity extends AppCompatActivity {
             setTurnScreenOn(true);
             KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             if (km != null) km.requestDismissKeyguard(this, null);
+            // Honest-private-call fix (I-1): API 27+ path was missing
+            // FLAG_KEEP_SCREEN_ON, so a 15-30s screen-timeout could blank
+            // the display mid-ring before the user could answer.
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -63,6 +67,7 @@ public class IncomingCallActivity extends AppCompatActivity {
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+
 
         // Security - block screenshots
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,

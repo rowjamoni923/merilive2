@@ -72,6 +72,10 @@ class PrivateCallEndActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_private_call_end)
+        // L-4: register predictive-back-compatible handler.
+        onBackPressedDispatcher.addCallback(this, backHandler)
+
+
 
         val i = intent ?: run { finish(); return }
         callId = i.getStringExtra(EXTRA_CALL_ID).orEmpty()
