@@ -238,10 +238,25 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] Observer hooks in `LiveKitPlugin`: `bind` after successful `room.connect()`; `unbind` at all 4 teardown sites (connect-failed, connect-replace, disconnect, destroy)
 - [x] Bump `compileSdk` 34 → 35, `targetSdk` 34 → 35 (Android 15 FGS typing enforcement)
 
-### Phase 1A.2 — Migrate Room Ownership (next session)
-- [ ] Move Room allocation out of `LiveKitPlugin.connectInternal` into `RtcEngineManager.connect(args)` — plugin becomes thin façade
-- [ ] Make `RtcEngineManager` survive Activity destroy (skip `unbind` on `handleOnDestroy` when intent is "screen-swap", only `unbind` on user-initiated disconnect)
-- [ ] Re-attach renderers from `MainActivity.onCreate` if `RtcEngineManager.isConnected()` returns true
+### Phase 1A.2 — Migrate Room Ownership (split across 2 turns for safety)
+
+#### Step 1 — Adoption capability ✅ (this turn)
+- [x] `RtcEngineManager.setSurviveActivityDestroy(bool)` + `shouldSurviveActivityDestroy()` — one-shot flag, cleared on adoption / unbind
+- [x] `RtcEngineManager.adoptCurrentRoom()` — returns `AdoptionHandle(room, summary, boundAtMs)` for the new plugin instance
+- [x] `LiveKitPlugin.load()` — calls `adoptCurrentRoom()`; on success: `room = handle.room`, force-claim `CameraOwnership.LIVEKIT`, `attachEventListeners(room)`
+- [x] JS API: `getActiveSession(): ActiveSessionInfo { active, url, callType, audioProfile, e2eeEnabled, boundAtMs, ageMs, canHardReconnect }`
+- [x] JS API: `setSurviveActivityDestroy({ enabled })`
+- [x] `lastConnectArgs` intentionally NOT rebuilt on adoption → `canHardReconnect=false` until JS re-issues `connect()` (documented limitation, transparent to user)
+
+#### Step 2 — Conditional destroy + UI wiring (next turn)
+- [ ] `LiveKitPlugin.handleOnDestroy` — read `RtcEngineManager.shouldSurviveActivityDestroy()`; when true: skip `room.disconnect()` + `releaseRoomResources` + `unbind` (keep watchdogs, foreground service, audio focus alive)
+- [ ] Conditional release of beauty processor / virtual background — they're tied to Activity lifecycle, must rebuild on adoption
+- [ ] JS: in `/live` screen `useEffect` cleanup, call `setSurviveActivityDestroy({ enabled: true })` before in-app navigation; on mount, call `getActiveSession()` and skip `connect()` when `active=true`
+- [ ] Renderer re-bind: `attachLocal()` + `attachAllRemotes()` after adoption (renderers ARE Activity-bound, must recreate)
+- [ ] Owner test account verification: navigate /live → /profile → /live, camera should appear in <500 ms without re-init
+- [ ] Regression smoke test: live broadcast, private call, party room, gift, beauty, BT headset, PiP — all must still work without survival flag set
+
+
 
 ### Phase 1B — Camera Ownership State Machine ✅ (already exists)
 - [x] `android/app/.../plugin/CameraOwnership.kt` exists with `LIVEKIT | NATIVE_CAMERA | GPUPIXEL-rejected`, OEM 1 200 ms release grace, stale-owner 30 s TTL eviction
