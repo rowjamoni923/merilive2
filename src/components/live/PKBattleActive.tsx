@@ -155,13 +155,18 @@ export const PKBattleActive = ({
   }, [serverStartedAt, serverDurationSec, battleEnded]);
 
   // Step 4: punishment countdown for the loser side (server-anchored).
+  // P3 leak guard: clamp pathological `punishment_end_ts` values (server bug
+  // or clock skew) so the local interval cannot tick forever on the HUD.
   useEffect(() => {
     if (!punishmentEndTs) {
       setPunishLeft(0);
       return;
     }
+    const HARD_CAP_MS = 180_000; // industry max ~120s, ceiling 180s
+    const ceiling = Date.now() + HARD_CAP_MS;
+    const effectiveEnd = Math.min(punishmentEndTs, ceiling);
     const tick = () => {
-      const remainMs = punishmentEndTs - Date.now();
+      const remainMs = effectiveEnd - Date.now();
       setPunishLeft(Math.max(0, Math.ceil(remainMs / 1000)));
     };
     tick();
