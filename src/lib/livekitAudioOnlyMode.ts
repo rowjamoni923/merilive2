@@ -40,6 +40,22 @@ export function setAudioOnlyEnabled(enabled: boolean): void {
 }
 
 export function applyAudioOnlyToRoom(room: Room | null | undefined, enabled: boolean): void {
+  // N3c — Prefer the native plugin path on Android. The SFU honours the cap
+  // even when the JS `Room` reference is absent (native session).
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { NativeLiveKit, isNativeLiveKitAvailable } = require('@/plugins/NativeLiveKit');
+    if (isNativeLiveKitAvailable()) {
+      NativeLiveKit.setSubscriberVideoQuality({
+        quality: enabled ? 'low' : 'high',
+        source: 'camera',
+      }).catch(() => { /* noop — native may not be connected yet */ });
+      // Native path is authoritative; if a JS room also exists, fall through
+      // to update its publication state for renderer parity.
+    }
+  } catch {
+    // require failed — non-native build, ignore
+  }
   if (!room) return;
   try {
     room.remoteParticipants.forEach((p: RemoteParticipant) => {
@@ -61,3 +77,4 @@ export function applyAudioOnlyToRoom(room: Room | null | undefined, enabled: boo
     // ignore
   }
 }
+
