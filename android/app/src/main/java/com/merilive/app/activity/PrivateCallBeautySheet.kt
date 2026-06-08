@@ -1,7 +1,7 @@
 package com.merilive.app.activity
 
 import android.content.Context
-import android.os.Bundle
+
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.SeekBar
@@ -162,5 +162,3 @@ class PrivateCallBeautySheet private constructor(
     }
 }
 
-// Bundle import-keeper so AS doesn't complain in case of partial diff edits.
-@Suppress("unused") private val _b: Bundle? = null

@@ -150,6 +150,11 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
+        // Phase C — restore saved beauty levels into GPUPixel filter graph
+        // so reopening a call resumes the user's last "look" without
+        // needing to open the beauty sheet again.
+        runCatching { PrivateCallBeautySheet.restoreLevelsIfReady(this) }
+
         registerCloseReceiver()
         wireUiToViewModel()
         wireBackPress()
