@@ -192,7 +192,7 @@ export function useLiveKitCall(
       if (deadRef.current) return;
       setState(p => ({ ...p, networkQuality: quality as any }));
     },
-  });
+  }, callId ? { scope: 'call', id: callId } : undefined);
 
 
   // Pause camera + mic when the app is backgrounded; restore on resume.
