@@ -12,7 +12,7 @@
  * Zero new Supabase channels, zero polls, zero cross-user reads.
  */
 import { ReactNode } from "react";
-import { Smartphone, Download } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
@@ -37,11 +37,28 @@ const FEATURE_COPY: Record<RequireNativeAndroidGateProps["feature"], { title: st
   },
 };
 
-export function RequireNativeAndroidGate({ children }: RequireNativeAndroidGateProps) {
-  // Browser live streaming enabled — gate is now a pass-through.
-  // Native Android still works via existing isNativeAndroid branches downstream;
-  // web browsers now use getUserMedia + LiveKit web SDK.
-  return <>{children}</>;
+export function RequireNativeAndroidGate({ feature, children }: RequireNativeAndroidGateProps) {
+  if (isNativeAndroidApp()) return <>{children}</>;
+
+  const navigate = useNavigate();
+  const copy = FEATURE_COPY[feature];
+
+  return (
+    <main className="fixed inset-0 z-[100] flex items-center justify-center bg-background px-6 text-foreground">
+      <section className="w-full max-w-sm text-center space-y-5">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <Smartphone className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold leading-tight">{copy.title}</h1>
+          <p className="text-sm leading-6 text-muted-foreground">{copy.body}</p>
+        </div>
+        <Button onClick={() => navigate(-1)} className="w-full">
+          Go Back
+        </Button>
+      </section>
+    </main>
+  );
 }
 
 export default RequireNativeAndroidGate;
