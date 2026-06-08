@@ -1436,19 +1436,43 @@ export function usePrivateCall(userId: string | null) {
       endCall('network').catch(() => {});
     };
 
+    // Honest-private-call fix (F-11): pause / resume the visible duration
+    // counter as LiveKit reconnects.
+    const handleLiveKitReconnecting = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { callId?: string } | undefined;
+      const activeId = callState.callId;
+      if (!activeId) return;
+      if (detail?.callId && detail.callId !== activeId) return;
+      reconnectingRef.current = true;
+    };
+    const handleLiveKitReconnected = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { callId?: string } | undefined;
+      const activeId = callState.callId;
+      if (!activeId) return;
+      if (detail?.callId && detail.callId !== activeId) return;
+      reconnectingRef.current = false;
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
       window.addEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
       window.addEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
+      window.addEventListener('livekit-call-reconnecting', handleLiveKitReconnecting);
+      window.addEventListener('livekit-call-reconnected', handleLiveKitReconnected);
     }
 
     return () => {
       isCleanedUp = true;
+      // Honest-private-call fix (F-11): never leave the pause flag set if
+      // the effect tears down mid-reconnect — next call would start frozen.
+      reconnectingRef.current = false;
 
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
         window.removeEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
+        window.removeEventListener('livekit-call-reconnecting', handleLiveKitReconnecting);
+        window.removeEventListener('livekit-call-reconnected', handleLiveKitReconnected);
       }
     };
   }, [userId, callState.callId, endCall]);
