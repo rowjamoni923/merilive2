@@ -782,7 +782,6 @@ export function usePrivateCall(userId: string | null) {
 
       return resolvedCallId;
     } catch (error: any) {
-      preparedOutgoingStream?.getTracks().forEach((track) => track.stop());
       console.error('Error starting call:', error);
       setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
       
@@ -947,7 +946,6 @@ export function usePrivateCall(userId: string | null) {
 
       return true;
     } catch (error: any) {
-      preparedIncomingStream?.getTracks().forEach((track) => track.stop());
       console.error('Error accepting call:', error);
       // Pkg425: accept_private_call may have already set the row to 'connected'.
       // If LiveKit connect then throws (network blip, native plugin race) the row
