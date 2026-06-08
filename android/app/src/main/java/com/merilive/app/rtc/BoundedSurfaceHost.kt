@@ -10,7 +10,6 @@ import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.Room
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
-import org.webrtc.EglBase
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 
