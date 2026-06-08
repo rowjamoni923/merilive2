@@ -119,6 +119,7 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
         // Step 25 — stall watchdog tunables.
