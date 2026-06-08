@@ -5548,7 +5548,7 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 val identity = io.livekit.android.room.participant.Participant.Identity(destination)
-                val duration = kotlin.time.Duration.Companion.milliseconds(timeoutMs)
+                val duration = with(kotlin.time.Duration.Companion) { timeoutMs.milliseconds }
                 val response = r.localParticipant.performRpc(
                     destinationIdentity = identity,
                     method = method,
