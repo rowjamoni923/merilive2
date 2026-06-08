@@ -297,30 +297,62 @@ class PrivateCallActivity : ComponentActivity() {
         tvBalance = findViewById(R.id.privateCallBalance)
         ivPeerAvatar = findViewById(R.id.privateCallPeerAvatar)
         btnMic = findViewById(R.id.privateCallBtnMic)
+        btnSpeaker = findViewById(R.id.privateCallBtnSpeaker)
         btnFlip = findViewById(R.id.privateCallBtnFlip)
         btnBeauty = findViewById(R.id.privateCallBtnBeauty)
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
+        topOverlay = findViewById(R.id.privateCallTopOverlay)
+        bottomBar = findViewById(R.id.privateCallBottomBar)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
         lowBalanceText = findViewById(R.id.privateCallLowBalanceText)
         btnRecharge = findViewById(R.id.privateCallBtnRecharge)
         btnRecharge.setOnClickListener { onRechargeRequested() }
+
+        // Phase E — initialise audio router. Default to speakerphone ON for a
+        // video call (Chamet/WhatsApp pattern). External devices override.
+        audioRouter = CallAudioRouter(applicationContext).also {
+            speakerOn = it.attach(defaultSpeakerOn = true)
+            renderSpeakerButton()
+        }
 
         btnMic.setOnClickListener {
             val on = vm.toggleMic()
             btnMic.isSelected = !on
             btnMic.contentDescription = if (on) "Mute microphone" else "Unmute microphone"
         }
+        btnSpeaker.setOnClickListener {
+            val next = !speakerOn
+            speakerOn = audioRouter?.applySpeaker(next) ?: next
+            renderSpeakerButton()
+        }
         btnFlip.setOnClickListener { vm.flipCamera() }
         btnBeauty.setOnClickListener {
-            // Phase C — open native beauty bottom sheet (4 GPUPixel sliders
-            // + master enable switch). All level changes apply in real time.
             PrivateCallBeautySheet.show(this)
         }
         btnGift.setOnClickListener {
-            // Phase D/E — open gift sheet without leaving the Activity.
+            // Inline gift sheet — Phase E follow-up. For now broadcast a
+            // request so JS can open the existing gift sheet behind the call.
+            try {
+                val callId = vm.identity.value?.callId.orEmpty()
+                val peerId = vm.identity.value?.peerId.orEmpty()
+                val i = Intent(com.merilive.app.plugin.NativeCallPlugin.ACTION_CALL_END_ACTION).apply {
+                    setPackage(packageName)
+                    putExtra("call_id", callId)
+                    putExtra("peer_id", peerId)
+                    putExtra("action", "gift_inline")
+                }
+                sendBroadcast(i)
+            } catch (_: Throwable) {}
         }
         btnEnd.setOnClickListener { onUserRequestedEnd() }
+    }
+
+    private fun renderSpeakerButton() {
+        btnSpeaker.isSelected = !speakerOn
+        btnSpeaker.alpha = if (speakerOn) 1.0f else 0.55f
+        btnSpeaker.contentDescription =
+            if (speakerOn) "Switch to earpiece" else "Switch to speaker"
     }
 
     private fun parseIntentInto(vm: PrivateCallViewModel): Boolean {
