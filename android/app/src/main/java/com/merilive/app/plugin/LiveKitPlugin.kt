@@ -4053,12 +4053,24 @@ class LiveKitPlugin : Plugin() {
 
     private fun resolvePublishCodec(): String? {
         val want = preferredCodec.lowercase()
-        if (want == "auto" || want.isBlank()) return null
+        val caps = probeCodecCapabilities()
+        // N3a — when JS leaves codec as "auto", pick the best HW-encoded codec.
+        // Industry standard for live streaming on Android (Bigo/Chamet/Olamet):
+        // H.264 baseline — universally HW-encoded since 2014, 30-40 % lower CPU
+        // than VP8 software, better quality per bit. Prefer AV1/VP9 only on
+        // newer SoCs that have HW encode. Last resort = SDK default (VP8 sw).
+        if (want == "auto" || want.isBlank()) {
+            return when {
+                caps.optJSONObject("h264")?.optBoolean("hwEncode") == true -> "h264"
+                caps.optJSONObject("vp9")?.optBoolean("hwEncode") == true -> "vp9"
+                caps.optJSONObject("av1")?.optBoolean("hwEncode") == true -> "av1"
+                else -> null
+            }
+        }
         if (want !in supportedCodecs) return null
         // Only honour the preference if MediaCodec can HW-encode it;
         // otherwise let the SDK fall back to its default to avoid a
         // software encoder pinning the CPU at 100 %.
-        val caps = probeCodecCapabilities()
         val hw = caps.optJSONObject(want)?.optBoolean("hwEncode", false) ?: false
         return if (hw) want else null
     }
