@@ -292,14 +292,110 @@ class PrivateCallActivity : ComponentActivity() {
                             if (on) View.VISIBLE else View.INVISIBLE
                     }
                 }
+                // Phase B — mount remote / local video tracks into their
+                // TextureViewRenderers as soon as the ViewModel sees them.
+                launch {
+                    vm.remoteVideo.collect { track -> attachRemote(track) }
+                }
+                launch {
+                    vm.localVideo.collect { track -> attachLocal(track) }
+                }
             }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Phase B — TextureViewRenderer lifecycle
+    // ------------------------------------------------------------------
+
+    private fun ensureRemoteRenderer(): TextureViewRenderer {
+        remoteRenderer?.let { return it }
+        val r = TextureViewRenderer(this).apply {
+            setEnableHardwareScaler(true)
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+        }
+        remoteVideoContainer.addView(
+            r,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        remoteRenderer = r
+        return r
+    }
+
+    private fun ensureLocalRenderer(): TextureViewRenderer {
+        localRenderer?.let { return it }
+        val r = TextureViewRenderer(this).apply {
+            setEnableHardwareScaler(true)
+            // Local PiP is small + cropped to portrait — FILL avoids letterbox.
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            setMirror(true) // selfie convention
+        }
+        localPreviewContainer.addView(
+            r,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        localRenderer = r
+        return r
+    }
+
+    private fun attachRemote(track: VideoTrack?) {
+        // Detach previous if changed (or cleared).
+        attachedRemoteTrack?.let { prev ->
+            if (prev !== track) {
+                runCatching { remoteRenderer?.let { prev.removeRenderer(it) } }
+                attachedRemoteTrack = null
+            }
+        }
+        if (track == null) return
+        val r = ensureRemoteRenderer()
+        runCatching { track.addRenderer(r) }
+            .onFailure { Log.w(TAG, "attachRemote: ${it.message}") }
+        attachedRemoteTrack = track
+    }
+
+    private fun attachLocal(track: VideoTrack?) {
+        attachedLocalTrack?.let { prev ->
+            if (prev !== track) {
+                runCatching { localRenderer?.let { prev.removeRenderer(it) } }
+                attachedLocalTrack = null
+            }
+        }
+        if (track == null) return
+        val r = ensureLocalRenderer()
+        runCatching { track.addRenderer(r) }
+            .onFailure { Log.w(TAG, "attachLocal: ${it.message}") }
+        attachedLocalTrack = track
+    }
+
+    private fun detachAllRenderers(release: Boolean) {
+        runCatching {
+            attachedRemoteTrack?.let { t -> remoteRenderer?.let { t.removeRenderer(it) } }
+        }
+        runCatching {
+            attachedLocalTrack?.let { t -> localRenderer?.let { t.removeRenderer(it) } }
+        }
+        attachedRemoteTrack = null
+        attachedLocalTrack = null
+        if (release) {
+            runCatching { remoteRenderer?.release() }
+            runCatching { localRenderer?.release() }
+            (remoteRenderer?.parent as? ViewGroup)?.removeView(remoteRenderer)
+            (localRenderer?.parent as? ViewGroup)?.removeView(localRenderer)
+            remoteRenderer = null
+            localRenderer = null
         }
     }
 
     private fun wireBackPress() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Phase E: confirm dialog. Phase A: treat as End so users in
+                // Phase E: confirm dialog. Phase B: treat as End so users in
                 // testing can dismiss the scaffold cleanly.
                 onUserRequestedEnd()
             }
@@ -311,11 +407,16 @@ class PrivateCallActivity : ComponentActivity() {
             vm.state.value == PrivateCallViewModel.CallState.ENDING
         ) return
         vm.markEnding("user_hangup")
-        // Phase B/D will:
-        //   - call settle_private_call RPC
-        //   - room.disconnect()
-        // For Phase A we just mark ended so the state collector calls finish().
+        // Phase D will dispatch a NativeCall.dispatch("end") event so the JS
+        // layer can call settle_private_call + LiveKitPlugin.disconnect. For
+        // Phase B we just mark ended; the state collector will finish().
         vm.markEnded()
+    }
+
+    override fun onDestroy() {
+        // Release renderers but DO NOT touch the Room (LiveKitPlugin owns it).
+        detachAllRenderers(release = true)
+        super.onDestroy()
     }
 
     private fun formatDuration(totalSec: Int): String {
@@ -324,3 +425,4 @@ class PrivateCallActivity : ComponentActivity() {
         return "%02d:%02d".format(m, s)
     }
 }
+
