@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
+import { useNativeCallBillingSync } from '@/hooks/useNativeCallBillingSync';
 import { useNotifications } from '@/hooks/useNotifications';
 // subscribeToTables no longer needed - usePrivateCall handles all call-end detection
 import { IncomingCallModal } from './IncomingCallModal';
@@ -113,6 +114,15 @@ export function CallProvider({ children }: CallProviderProps) {
     dismissCall,
     notifyMediaConnected,
   } = usePrivateCall(userId);
+
+  // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
+  // every time the caller's wallet or the call's per-minute rate changes.
+  // No-op on web / iOS / older APKs. Hook verifies caller side internally
+  // by reading `private_calls.caller_id` so host-side mounts cost nothing.
+  useNativeCallBillingSync({
+    userId,
+    callId: callState.callId,
+  });
 
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
 

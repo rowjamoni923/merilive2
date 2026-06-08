@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -117,7 +118,13 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
-    private lateinit var lowBalanceBannerSlot: FrameLayout
+
+    // Phase D — low-balance warning banner (parent slot is now a LinearLayout
+    // holding the warning icon/text + Recharge CTA, inflated directly into
+    // the layout XML so we don't pay a runtime inflate cost on every call).
+    private lateinit var lowBalanceBannerSlot: View
+    private lateinit var lowBalanceText: TextView
+    private lateinit var btnRecharge: Button
 
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
@@ -127,6 +134,8 @@ class PrivateCallActivity : ComponentActivity() {
 
     // Phase B — JS / server-side "close this Activity" signal.
     private var closeReceiver: android.content.BroadcastReceiver? = null
+    // Phase D — JS pushes billing updates (balance + rate per minute).
+    private var billingReceiver: android.content.BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
@@ -156,6 +165,7 @@ class PrivateCallActivity : ComponentActivity() {
         runCatching { PrivateCallBeautySheet.restoreLevelsIfReady(this) }
 
         registerCloseReceiver()
+        registerBillingReceiver()
         wireUiToViewModel()
         wireBackPress()
     }
@@ -182,6 +192,56 @@ class PrivateCallActivity : ComponentActivity() {
             registerReceiver(r, filter)
         }
         closeReceiver = r
+    }
+
+    /**
+     * Pkg500 Phase D — JS pushes balance + per-minute rate every time the
+     * server bills another minute, the caller recharges, or rates change.
+     * We accept the update only when the call_id matches ours so a stale
+     * push from a previous call can't corrupt the banner.
+     */
+    private fun registerBillingReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                intent ?: return
+                val callId = intent.getStringExtra("call_id").orEmpty()
+                val myCallId = vm.identity.value?.callId.orEmpty()
+                if (callId.isNotEmpty() && myCallId.isNotEmpty() && callId != myCallId) return
+                val balance = intent.getLongExtra("balance", -1L)
+                val rate = intent.getIntExtra("rate_per_minute", -1)
+                if (balance < 0 || rate < 0) return
+                vm.setBilling(balance, rate)
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_UPDATE_BILLING
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        billingReceiver = r
+    }
+
+    /**
+     * Pkg500 Phase D — Recharge CTA. Broadcasts a request back out so JS
+     * (NativeCallPlugin listener) can open the existing recharge sheet.
+     * The Activity intentionally stays in foreground; the sheet is opened
+     * by JS via the WebView lifecycle behind it.
+     */
+    private fun onRechargeRequested() {
+        try {
+            val callId = vm.identity.value?.callId.orEmpty()
+            val i = Intent(com.merilive.app.plugin.NativeCallPlugin.ACTION_RECHARGE_REQUESTED).apply {
+                setPackage(packageName)
+                putExtra("call_id", callId)
+            }
+            sendBroadcast(i)
+        } catch (t: Throwable) {
+            Log.w(TAG, "onRechargeRequested: ${t.message}")
+        }
     }
 
 
@@ -234,6 +294,9 @@ class PrivateCallActivity : ComponentActivity() {
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
+        lowBalanceText = findViewById(R.id.privateCallLowBalanceText)
+        btnRecharge = findViewById(R.id.privateCallBtnRecharge)
+        btnRecharge.setOnClickListener { onRechargeRequested() }
 
         btnMic.setOnClickListener {
             val on = vm.toggleMic()
@@ -336,7 +399,33 @@ class PrivateCallActivity : ComponentActivity() {
                 launch {
                     vm.localVideo.collect { track -> attachLocal(track) }
                 }
+                // Phase D — low-balance banner. Reacts to warningLevel +
+                // secondsRemaining flows so the countdown ticks every second.
+                launch {
+                    vm.warningLevel.collect { lvl -> renderLowBalanceBanner(lvl) }
+                }
+                launch {
+                    vm.secondsRemaining.collect { _ ->
+                        renderLowBalanceBanner(vm.warningLevel.value)
+                    }
+                }
             }
+        }
+    }
+
+    private fun renderLowBalanceBanner(level: PrivateCallViewModel.WarningLevel) {
+        val secs = vm.secondsRemaining.value
+        if (level == PrivateCallViewModel.WarningLevel.NONE) {
+            lowBalanceBannerSlot.visibility = View.GONE
+            return
+        }
+        lowBalanceBannerSlot.visibility = View.VISIBLE
+        lowBalanceText.text = when (level) {
+            PrivateCallViewModel.WarningLevel.CRITICAL -> "Balance empty — call will end"
+            PrivateCallViewModel.WarningLevel.TEN -> "Only ${secs ?: 0}s left — recharge now"
+            PrivateCallViewModel.WarningLevel.THIRTY -> "Low balance: ${secs ?: 0}s remaining"
+            PrivateCallViewModel.WarningLevel.SIXTY -> "About 1 minute of balance left"
+            else -> ""
         }
     }
 
@@ -454,6 +543,8 @@ class PrivateCallActivity : ComponentActivity() {
         detachAllRenderers(release = true)
         closeReceiver?.let { runCatching { unregisterReceiver(it) } }
         closeReceiver = null
+        billingReceiver?.let { runCatching { unregisterReceiver(it) } }
+        billingReceiver = null
         super.onDestroy()
     }
 

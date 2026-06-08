@@ -125,13 +125,58 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Low-balance banner slot (Phase D inflates here). -->
-    <FrameLayout
+    <!-- Pkg500 Phase D — Low-balance banner. Hidden by default. Shown at
+         60s / 30s / 10s thresholds reported by the JS billing sync hook.
+         Includes a Recharge CTA that broadcasts a request back to JS. -->
+    <LinearLayout
         android:id="@+id/privateCallLowBalanceSlot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:layout_marginTop="140dp" />
+        android:layout_marginTop="120dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_private_call_low_balance"
+        android:elevation="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
+            android:src="@android:drawable/stat_sys_warning"
+            android:contentDescription="Low balance warning" />
+
+        <TextView
+            android:id="@+id/privateCallLowBalanceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Low balance" />
+
+        <Button
+            android:id="@+id/privateCallBtnRecharge"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:minWidth="0dp"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:background="@drawable/bg_private_call_recharge_btn"
+            android:text="Recharge" />
+    </LinearLayout>
 
     <!-- Bottom action bar. Five circular buttons inside a translucent scrim. -->
     <LinearLayout

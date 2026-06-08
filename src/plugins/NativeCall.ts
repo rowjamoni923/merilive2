@@ -109,9 +109,35 @@ export interface NativeCallPlugin {
    */
   closeInCallActivity(opts: { callId?: string }): Promise<{ ok: boolean }>;
 
+  // ---- Pkg500 Phase D — In-call billing sync (caller-side) --------------
+  /**
+   * Push the latest billing snapshot into the active PrivateCallActivity.
+   * Call every time the server bills another minute, the caller recharges,
+   * or the per-minute rate changes mid-call. Activity stores the values
+   * and ticks down 1Hz locally between pushes (so the low-balance banner
+   * countdown never freezes between server billing intervals).
+   *
+   * No-op when no PrivateCallActivity is running.
+   */
+  updateInCallBilling(opts: {
+    callId: string;
+    balance: number;
+    ratePerMinute: number;
+  }): Promise<{ ok: boolean }>;
+
   addListener(
     eventName: 'call-action',
     cb: (e: NativeCallActionEvent) => void,
+  ): Promise<PluginListenerHandle>;
+
+  /**
+   * Pkg500 Phase D — fired when the caller taps the Recharge CTA inside
+   * the active PrivateCallActivity. JS responds by opening the existing
+   * recharge sheet; the call stays connected behind it.
+   */
+  addListener(
+    eventName: 'recharge-requested',
+    cb: (e: { callId: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
 }
 

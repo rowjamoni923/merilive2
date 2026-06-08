@@ -49,6 +49,14 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_CLOSE_PRIVATE_CALL_ACTIVITY =
             "com.merilive.app.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY"
 
+        /** Pkg500 Phase D — JS → PrivateCallActivity billing push. */
+        const val ACTION_UPDATE_BILLING =
+            "com.merilive.app.ACTION_UPDATE_BILLING"
+
+        /** Pkg500 Phase D — PrivateCallActivity → JS recharge request. */
+        const val ACTION_RECHARGE_REQUESTED =
+            "com.merilive.app.ACTION_RECHARGE_REQUESTED"
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
@@ -136,12 +144,42 @@ class NativeCallPlugin : Plugin() {
         // name), so flushing here can be consumed by an unrelated listener and
         // lost. Keep events in `pending`; JS drains them explicitly via
         // getLastAction() once usePrivateCall has mounted its listener.
+        registerRechargeReceiver()
     }
 
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
+        rechargeReceiver?.let { runCatching { context.unregisterReceiver(it) } }
+        rechargeReceiver = null
         if (INSTANCE === this) INSTANCE = null
+    }
+
+    // Pkg500 Phase D — listen for in-call Recharge taps from PrivateCallActivity
+    // and forward to JS via the `recharge-requested` Capacitor event so the
+    // existing recharge sheet can open behind the call surface.
+    private var rechargeReceiver: android.content.BroadcastReceiver? = null
+    private fun registerRechargeReceiver() {
+        if (rechargeReceiver != null) return
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: android.content.Intent?) {
+                val callId = intent?.getStringExtra("call_id").orEmpty()
+                val payload = JSObject()
+                payload.put("callId", callId)
+                payload.put("ts", System.currentTimeMillis())
+                try { notifyListeners("recharge-requested", payload, true) } catch (_: Throwable) {}
+            }
+        }
+        val filter = android.content.IntentFilter(ACTION_RECHARGE_REQUESTED)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                context.registerReceiver(r, filter)
+            }
+            rechargeReceiver = r
+        } catch (_: Throwable) {}
     }
 
     private fun flushPending() {
@@ -413,6 +451,40 @@ class NativeCallPlugin : Plugin() {
             val i = android.content.Intent(ACTION_CLOSE_PRIVATE_CALL_ACTIVITY).apply {
                 setPackage(context.packageName)
                 putExtra("call_id", callId)
+            }
+            context.sendBroadcast(i)
+        } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
+
+    /**
+     * Pkg500 Phase D — push the latest billing snapshot into the active
+     * PrivateCallActivity. JS calls this every time the server bills
+     * another minute, the caller recharges, or `viewer_rate_per_min`
+     * changes mid-call. Activity stores the values + ticks down 1Hz
+     * locally between pushes.
+     *
+     *   callId          String  — must match the active call
+     *   balance         Long    — current caller wallet balance in coins
+     *   ratePerMinute   Int     — coins charged per minute
+     */
+    @PluginMethod
+    fun updateInCallBilling(call: PluginCall) {
+        val callId = call.getString("callId").orEmpty()
+        val balance = call.getLong("balance") ?: -1L
+        val rate = call.getInt("ratePerMinute") ?: -1
+        if (balance < 0 || rate < 0) {
+            call.reject("missing_or_invalid_params")
+            return
+        }
+        try {
+            val i = android.content.Intent(ACTION_UPDATE_BILLING).apply {
+                setPackage(context.packageName)
+                putExtra("call_id", callId)
+                putExtra("balance", balance)
+                putExtra("rate_per_minute", rate)
             }
             context.sendBroadcast(i)
         } catch (_: Throwable) {}
