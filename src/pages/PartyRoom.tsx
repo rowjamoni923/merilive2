@@ -248,6 +248,8 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // Phase III.e — per-seat gift target (null = default to host on open).
+  const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
