@@ -89,4 +89,7 @@ project_id = "ayjdlvuurscxucatbbah"
     verify_jwt = false
   [functions.call-start]
     verify_jwt = true
+  [functions.pk-battle-tick]
+    verify_jwt = false
+
 
