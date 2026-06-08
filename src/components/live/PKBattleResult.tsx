@@ -15,6 +15,8 @@ interface PKBattleResultProps {
   mvpName?: string | null;
   mvpAvatar?: string | null;
   mvpCoins?: number | null;
+  /** P4: Bigo-parity reward badge — coins the local user earned from the 70/30 loser-score split. Winner-only. */
+  rewardCoins?: number | null;
   onClose: () => void;
 }
 
@@ -30,6 +32,7 @@ export const PKBattleResult = ({
   mvpName,
   mvpAvatar,
   mvpCoins,
+  rewardCoins,
   onClose,
 }: PKBattleResultProps) => {
   return (
