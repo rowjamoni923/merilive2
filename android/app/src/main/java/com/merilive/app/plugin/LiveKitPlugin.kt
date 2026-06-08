@@ -606,6 +606,7 @@ class LiveKitPlugin : Plugin() {
         val previousRoom = room
         try { previousRoom?.disconnect() } catch (_: Exception) {}
         releaseRoomResources(previousRoom, "connect-replace")
+        try { com.merilive.app.rtc.RtcEngineManager.unbind("connect-replace", previousRoom) } catch (_: Throwable) {}
         room = null
 
         // Step 22 — reset adaptive ladder for this fresh session.
@@ -873,6 +874,7 @@ class LiveKitPlugin : Plugin() {
                 val currentRoom = room
                 try { currentRoom?.disconnect() } catch (_: Exception) {}
                 releaseRoomResources(currentRoom, "disconnect")
+                try { com.merilive.app.rtc.RtcEngineManager.unbind("disconnect", currentRoom) } catch (_: Throwable) {}
                 room = null
                 setKeepScreenOn(false)
                 setProximityMonitoringInternal(false)
@@ -1879,6 +1881,7 @@ class LiveKitPlugin : Plugin() {
             // the same Room object. The async IO scope below owns the only
             // remaining reference and disconnects exactly once.
             room = null
+            try { com.merilive.app.rtc.RtcEngineManager.unbind("destroy", pre) } catch (_: Throwable) {}
             if (pre != null) {
                 // Pkg-audit fix: `runBlocking` on the main thread deadlocked here
                 // because setCameraEnabled/setMicrophoneEnabled internally hop to
