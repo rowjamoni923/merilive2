@@ -42,6 +42,8 @@ export interface NativeJoinOptions {
   broadcastMode?: 'call' | 'live';
   /** Android native media family; no WebView camera/WebRTC fallback for live/party/call. */
   roomScope?: NativeRoomScope;
+  /** Phase III.c — party/live host flag for 60s background grace. */
+  isHost?: boolean;
 }
 
 class NativeLiveKitController {
