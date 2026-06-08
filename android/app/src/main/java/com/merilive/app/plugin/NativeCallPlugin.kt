@@ -61,6 +61,10 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_CALL_END_ACTION =
             "com.merilive.app.ACTION_CALL_END_ACTION"
 
+        /** Pkg500 Phase G — JS → PrivateCallActivity: exit PIP + foreground. */
+        const val ACTION_RESUME_PRIVATE_CALL =
+            "com.merilive.app.ACTION_RESUME_PRIVATE_CALL"
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
