@@ -1668,9 +1668,11 @@ class LiveKitPlugin : Plugin() {
 
     @PermissionCallback
     private fun permsCallback(call: PluginCall) {
-        if (getPermissionState("camera") == PermissionState.GRANTED &&
-            getPermissionState("microphone") == PermissionState.GRANTED
-        ) connect(call) else call.reject("Camera/Microphone permission denied")
+        val wantsVideo = call.getBoolean("video", true) ?: true
+        val wantsAudio = call.getBoolean("audio", true) ?: true
+        val cameraOk = !wantsVideo || getPermissionState("camera") == PermissionState.GRANTED
+        val micOk = !wantsAudio || getPermissionState("microphone") == PermissionState.GRANTED
+        if (cameraOk && micOk) connect(call) else call.reject("Camera/Microphone permission denied")
     }
 
     private fun attachRemoteRendererInternal(
