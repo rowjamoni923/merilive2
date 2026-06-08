@@ -21,6 +21,7 @@ import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemot
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { NativeLiveKit } from '@/plugins/NativeLiveKit';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import {
