@@ -224,6 +224,7 @@ export const PKBattlePanel = ({
         pendingDirectTimersRef.current.delete(battle.id);
       }, 60_000);
       pendingDirectTimersRef.current.set(battle.id, ttl);
+      try {
         await supabase.functions.invoke("pk-invite-deliver", {
           body: {
             kind: "direct_invite",
