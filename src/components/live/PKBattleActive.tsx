@@ -179,6 +179,20 @@ export const PKBattleActive = ({
   }, [punishmentEndTs]);
 
 
+  // Native Android polish: SFX / VAP / haptics for battle_start, countdown,
+  // time_up, victory, defeat, punishment sticker. Pure side-effect — no UI.
+  usePKBattleSfx({
+    battleId,
+    currentUserId: currentUserId ?? null,
+    challengerId,
+    opponentId,
+    status: battleEnded ? "ended" : serverStartedAt ? "active" : "pending",
+    timeLeft,
+    winnerUserId,
+    finalStatus,
+    punishmentEndTs,
+  });
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
