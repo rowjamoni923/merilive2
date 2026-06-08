@@ -20,6 +20,11 @@
  */
 import type { Room } from 'livekit-client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import {
+  tryRegisterNativeRpcMethod,
+  tryUnregisterNativeRpcMethod,
+  tryPerformNativeRpc,
+} from './livekitNativeMessaging';
 
 export type RpcScope = 'call' | 'live' | 'party';
 
