@@ -817,7 +817,11 @@ export function usePrivateCall(userId: string | null) {
       // ⚡ Optimistic connect UI first (don't wait for DB/network)
       callEndedRef.current = false;
       currentCallIdRef.current = callId;
-      billingStartedRef.current = true; // connected acknowledged, stops timeout logic
+      // Honest-private-call fix (F-01): do NOT mark billingStarted yet.
+      // We used to set this true synchronously, which meant a failing
+      // accept_private_call RPC (call already expired / timed out) would
+      // still flip the host into a "billing-on" state and silently swallow
+      // the timeout flow. We now flip it only after the RPC succeeds.
       liveSessionStartedRef.current = false;
       clearAllTimers();
       setIncomingCall(null);
@@ -862,6 +866,12 @@ export function usePrivateCall(userId: string | null) {
       if (acceptRes.data !== true) {
         throw new Error('Call is no longer available');
       }
+
+      // Honest-private-call fix (F-01): accept confirmed by server — only
+      // now is the host actually on a live billable call. Flip the flag
+      // here so a server-side `false` return (race with timeout) can no
+      // longer leak past as a billing-on state.
+      billingStartedRef.current = true;
 
       const callData = callDataRes.data;
 
