@@ -2805,7 +2805,9 @@ const PartyRoom = () => {
             }}
             userCoins={userCoins}
           />
-        )}
+          </>
+          );
+        })()}
       </AnimatePresence>
 
       {/* Music Player */}
