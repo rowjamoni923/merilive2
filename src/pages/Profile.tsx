@@ -2451,8 +2451,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               entry-point. The card only appears for confirmed Agency owners (full Agency
               or Sub-Agency) below — locked/empty state shown until they recharge. */}
 
-          {/* Trader Wallet Card for Diamond Traders - Opens Transfer Modal directly */}
-          {isCoinTrader && !isAgencyOwner && (
+          {/* Trader Wallet Card for Diamond Traders - Opens Transfer Modal directly.
+              Agency-only: only shown to confirmed Agency owners who are also coin traders. */}
+          {isCoinTrader && isAgencyOwner && false && (
             <button 
               onClick={() => {
                 const combined = Number(traderWallet || 0) + Number(agencyData?.diamond_balance || 0);
