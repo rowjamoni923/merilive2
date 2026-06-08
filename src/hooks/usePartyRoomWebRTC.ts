@@ -124,6 +124,44 @@ export function usePartyRoomWebRTC(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
+  const usingNativeRef = useRef(false);
+
+  const refreshNativeParticipants = useCallback(async () => {
+    if (!usingNativeRef.current) return;
+    const participants = await nativeLiveKitController.getRemoteParticipants();
+    if (deadRef.current) return;
+    const next = new Map<string, { sid: string; identity: string }>();
+    participants.forEach((p) => {
+      if (!p.identity) return;
+      next.set(p.identity, p);
+      const stripped = p.identity.replace(/^user[-_]/i, '').replace(/^party[-_]/i, '').replace(/^livekit[-_]/i, '');
+      next.set(stripped, p);
+      next.set(`user-${stripped}`, p);
+      next.set(`user_${stripped}`, p);
+    });
+    setState((prev) => ({ ...prev, nativeParticipants: next }));
+    nativeLiveKitController.attachAllRemotes().catch(() => {});
+  }, []);
+
+  useNativeLiveKitEvents(state.isNativeMediaActive, {
+    onParticipantConnected: () => { refreshNativeParticipants().catch(() => {}); },
+    onParticipantDisconnected: () => { refreshNativeParticipants().catch(() => {}); },
+    onConnectionState: (s) => {
+      if (s === 'reconnected') refreshNativeParticipants().catch(() => {});
+    },
+    onDisconnected: () => {
+      if (deadRef.current) return;
+      usingNativeRef.current = false;
+      setState((prev) => ({
+        ...prev,
+        isConnected: false,
+        isNativeMediaActive: false,
+        connectionState: ConnectionState.Disconnected,
+        nativeParticipants: new Map(),
+      }));
+    },
+  });
+  useNativeLiveKitLifecycle(state.isNativeMediaActive);
 
   const getRemoteAudioTrackKey = (
     identity: string,
