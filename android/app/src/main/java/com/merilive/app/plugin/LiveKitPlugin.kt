@@ -119,6 +119,7 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
         // Step 25 — stall watchdog tunables.
@@ -468,6 +469,37 @@ class LiveKitPlugin : Plugin() {
                 android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE
             )
         } catch (_: Exception) { false }
+
+        // CameraX capturer registration — one-shot at plugin load. After
+        // this, room.localParticipant.setCameraEnabled(true) uses
+        // CameraXCapturer (cameraVersion=3) instead of the default
+        // Camera2Capturer (cameraVersion=2), avoiding the libwebrtc
+        // CameraDeviceImpl.configureStreamsChecked() stateLock deadlock
+        // surfaced on Xiaomi/MIUI + Vivo (issues #471, #502). The
+        // lifecycle owner is the host Activity so CameraX auto-releases
+        // sessions on Activity.onDestroy() — defense-in-depth on top of
+        // our own teardown path.
+        try {
+            val act = activity
+            if (cameraXRegistered) {
+                Log.d(TAG, "CameraXProvider already registered — skip")
+            } else if (act is androidx.lifecycle.LifecycleOwner) {
+                val provider = livekit.org.webrtc.CameraXHelper.createCameraProvider(act)
+                if (provider.isSupported(context)) {
+                    io.livekit.android.room.track.video.CameraCapturerUtils
+                        .registerCameraProvider(provider)
+                    cameraXRegistered = true
+                    Log.i(TAG, "CameraXProvider registered — CameraXCapturer is now the default")
+                } else {
+                    Log.w(TAG, "CameraXProvider.isSupported=false on this device — staying on Camera2Capturer")
+                }
+            } else {
+                Log.w(TAG, "activity is not a LifecycleOwner — cannot register CameraXProvider")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "CameraXProvider registration failed (non-fatal, falls back to Camera2): ${t.message}")
+        }
+
 
         // Phase 1A.2 step 1 — adopt any Room that survived an Activity
         // destroy. Reattaches event listeners + claims Camera2 owner so
