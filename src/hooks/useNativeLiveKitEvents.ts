@@ -151,6 +151,54 @@ export function useNativeLiveKitEvents(
         if (cancelled) { signalQuality.remove(); return; }
         subs.push(signalQuality);
 
+        // Phase I.b — music-mode headphone soft warning. Native fires this
+        // right after connect when audioProfile='music' and no wired/BT
+        // headset is detected. We bridge it to a window CustomEvent so the
+        // host UI (LiveStream / Party) can show its existing toast vocab
+        // without coupling this hook to a specific toast library.
+        const musicHeadset = await NativeLiveKit.addListener(
+          'music-headphone-warning' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:music-headphone-warning', {
+                detail: { reason: e?.reason, message: e?.message },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { musicHeadset.remove(); return; }
+        subs.push(musicHeadset);
+
+        // Phase I.b — Live HOST background 60s grace period (Bigo/Chamet
+        // standard). Native pauses camera and starts a timer; if the host
+        // returns the timer is cancelled and camera resumes. We forward
+        // start/end as window CustomEvents so the host overlay (if any)
+        // can render a countdown without touching native code.
+        const graceStart = await NativeLiveKit.addListener(
+          'live-host-grace-start' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:live-host-grace-start', {
+                detail: { endsAtMs: e?.endsAtMs, graceMs: e?.graceMs },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { graceStart.remove(); return; }
+        subs.push(graceStart);
+
+        const graceEnd = await NativeLiveKit.addListener(
+          'live-host-grace-end' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:live-host-grace-end', {
+                detail: { reason: e?.reason },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { graceEnd.remove(); return; }
+        subs.push(graceEnd);
 
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);

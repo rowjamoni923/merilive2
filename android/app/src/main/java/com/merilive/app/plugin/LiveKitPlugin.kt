@@ -139,6 +139,12 @@ class LiveKitPlugin : Plugin() {
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
         private const val SIGNAL_POLL_INTERVAL_MS = 2_500L
+        // Phase I.b — Live HOST background grace period (Bigo/Chamet: 60s).
+        // While the app is backgrounded but the FGS keeps mic/network alive,
+        // the camera is paused and viewers see the frozen last keyframe.
+        // If the host returns before this elapses, video resumes instantly.
+        // Otherwise the existing process-background teardown runs.
+        private const val LIVE_HOST_BG_GRACE_MS = 60_000L
 
 
         // Step 29 — Picture-in-Picture bridge from MainActivity.
@@ -302,6 +308,8 @@ class LiveKitPlugin : Plugin() {
     // permission sheets, notification shade, PiP and WebView focus churn.
     @Volatile private var processInBackground: Boolean = false
     private var unsubscribeAppLifecycle: (() -> Unit)? = null
+    // Phase I.b — Live HOST 60s background grace timer. Null when not running.
+    @Volatile private var liveHostGraceJob: kotlinx.coroutines.Job? = null
 
     // --- Stall & black-frame recovery (Step 25) ------------------
     //
@@ -569,6 +577,47 @@ class LiveKitPlugin : Plugin() {
 
         val r = room ?: return
         val scopeName = lastConnectArgs?.roomScope ?: "call"
+        val isLiveHost = scopeName == "live" && lastConnectArgs?.broadcastMode == "live"
+
+        // Phase I.b — Bigo/Chamet-class 60s background grace for live HOST.
+        // FGS keeps mic + Room alive; we only pause the camera so viewers see
+        // the frozen last keyframe with a "Host is away" hint (JS overlay).
+        // If the host returns before LIVE_HOST_BG_GRACE_MS, video resumes
+        // instantly. Otherwise we run the existing teardown path.
+        if (!foreground && isLiveHost) {
+            try {
+                liveHostGraceJob?.cancel()
+                val endsAtMs = System.currentTimeMillis() + LIVE_HOST_BG_GRACE_MS
+                val payload = JSObject()
+                payload.put("endsAtMs", endsAtMs)
+                payload.put("graceMs", LIVE_HOST_BG_GRACE_MS)
+                notifyListeners("live-host-grace-start", payload)
+            } catch (_: Exception) {}
+            // Pause camera (mic stays on so viewers keep hearing the host).
+            scope.launch {
+                try { setNativeCameraEnabledWithOemRetry(r, false, "live-host-grace") }
+                catch (e: Exception) { Log.w(TAG, "live-host-grace camera off failed: ${e.message}") }
+            }
+            liveHostGraceJob = scope.launch {
+                try {
+                    delay(LIVE_HOST_BG_GRACE_MS)
+                    if (processInBackground) {
+                        Log.i(TAG, "Live host grace expired — ending native live session")
+                        try {
+                            val expired = JSObject()
+                            expired.put("reason", "GRACE_EXPIRED")
+                            notifyListeners("live-host-grace-end", expired)
+                        } catch (_: Exception) {}
+                        endLiveSessionAfterGrace(r)
+                    }
+                } catch (_: kotlinx.coroutines.CancellationException) {
+                    // host returned in time — handled in foreground branch
+                }
+            }
+            return
+        }
+
+        // Viewers + party + private call → preserve existing immediate teardown.
         if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
             scope.launch {
                 try {
@@ -604,6 +653,22 @@ class LiveKitPlugin : Plugin() {
             }
             return
         }
+
+        // Foreground transition for live host: cancel grace, restore camera.
+        if (foreground && isLiveHost && liveHostGraceJob != null) {
+            try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
+            liveHostGraceJob = null
+            scope.launch {
+                try { setNativeCameraEnabledWithOemRetry(r, true, "live-host-grace-resume") }
+                catch (e: Exception) { Log.w(TAG, "live-host-grace resume failed: ${e.message}") }
+            }
+            try {
+                val resumed = JSObject()
+                resumed.put("reason", "RESUMED")
+                notifyListeners("live-host-grace-end", resumed)
+            } catch (_: Exception) {}
+            return
+        }
         if (!pauseCameraOnBackground) return
 
         if (!foreground) {
@@ -627,6 +692,47 @@ class LiveKitPlugin : Plugin() {
             }
         }
     }
+
+    /**
+     * Phase I.b — runs the same teardown as the original process-background
+     * branch, but after the 60s live-host grace window has expired with the
+     * app still backgrounded. Mirrors the immediate-teardown path so the
+     * "no host returned in 60s" outcome converges on the existing cleanup.
+     */
+    private suspend fun endLiveSessionAfterGrace(r: Room) {
+        try {
+            lastConnectArgs = null
+            stopReconnectWatchdog()
+            hardReconnectAttempts = 0
+            try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+            try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+            activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+            try { r.disconnect() } catch (_: Exception) {}
+            releaseRoomResources(r, "live-host-grace-expired")
+            try { com.merilive.app.rtc.RtcEngineManager.unbind("live-host-grace-expired", r) } catch (_: Throwable) {}
+            room = null
+            setKeepScreenOn(false)
+            setProximityMonitoringInternal(false)
+            applyAudioMode(false)
+            unregisterAudioDeviceListener()
+            unregisterHeadsetReceivers()
+            stopHeadsetMediaSession()
+            stopBluetoothScoInternal()
+            abandonAudioFocusInternal()
+            stopCallForegroundService()
+            CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
+            val data = JSObject()
+            data.put("reason", "LIVE_HOST_GRACE_EXPIRED")
+            notifyListeners("disconnected", data)
+        } catch (e: Exception) {
+            Log.w(TAG, "live-host-grace teardown failed: ${e.message}")
+        } finally {
+            liveHostGraceJob = null
+        }
+    }
+
 
     // ------------------------------------------------------------
     // Public API
@@ -951,10 +1057,18 @@ class LiveKitPlugin : Plugin() {
         // dynamics processing without affecting other rooms.
         val audioCapture: LocalAudioTrackOptions = when (args.audioProfile) {
             "music" -> LocalAudioTrackOptions(
+                // Phase I.b — DJ / karaoke / instrument hosts. ALL processing OFF.
+                // AEC=true causes comb-filter artifacts on music; NS destroys timbre;
+                // AGC compresses dynamics; HPF kills sub-bass. Industry consensus
+                // (Agora AUDIO_SCENARIO_GAME_STREAMING, nanocosmos, WebRTC community):
+                // music mode requires raw 48 kHz capture. We emit a JS-side
+                // "music-headphone-warning" event so a "🎧 Use headphones" toast
+                // appears when no wired/BT headset is detected — Bigo/Chamet style
+                // soft warning, never a hard block.
                 noiseSuppression = false,
-                echoCancellation = true,   // keep — phone speakers still echo
-                autoGainControl = false,   // preserve dynamics
-                highPassFilter = false,    // preserve sub-bass
+                echoCancellation = false,
+                autoGainControl = false,
+                highPassFilter = false,
                 typingNoiseDetection = false,
             )
             "broadcast" -> LocalAudioTrackOptions(
@@ -1085,6 +1199,24 @@ class LiveKitPlugin : Plugin() {
         setSpeakerphoneInternal(args.video)
         setProximityMonitoringInternal(!args.video)
         registerAudioDeviceListener()
+
+        // Phase I.b — music-mode headphone warning. With AEC/NS/AGC all off
+        // (raw 48 kHz capture for DJ/karaoke), speaker→mic bleed will feed
+        // back into the broadcast. Bigo/Chamet show a soft "🎧 Use headphones"
+        // hint — never a hard block. JS side renders the toast.
+        if (args.audioProfile == "music") {
+            try {
+                val hasHeadset = detectHeadsetConnected()
+                if (!hasHeadset) {
+                    val warn = JSObject()
+                    warn.put("reason", "MUSIC_MODE_NO_HEADSET")
+                    warn.put("message", "Use headphones for best music quality")
+                    notifyListeners("music-headphone-warning", warn)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "music-headphone check failed: ${e.message}")
+            }
+        }
         // Step 30 — wired-headset / SCO broadcast receivers + media-button MediaSession.
         registerHeadsetReceivers()
         if (headsetButtonsEnabled) startHeadsetMediaSession()
@@ -1134,6 +1266,9 @@ class LiveKitPlugin : Plugin() {
                 lastConnectArgs = null
                 stopReconnectWatchdog()
                 hardReconnectAttempts = 0
+                // Phase I.b — explicit End Live also cancels any pending grace.
+                try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
+                liveHostGraceJob = null
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
@@ -3404,6 +3539,31 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "applyAudioMode($active) failed: ${e.message}")
         }
     }
+
+    /**
+     * Phase I.b — true if a wired / USB / Bluetooth headset is connected.
+     * Used to decide whether the music-mode headphone warning should fire.
+     * Safe on all API levels; returns false when AudioManager is unavailable.
+     */
+    private fun detectHeadsetConnected(): Boolean {
+        val am = audioManager() ?: return false
+        return try {
+            val devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS) ?: return false
+            devices.any { d ->
+                d.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                d.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                d.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+                d.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                d.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    d.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "detectHeadsetConnected failed: ${e.message}")
+            false
+        }
+    }
+
 
     /**
      * Route audio to speakerphone (true) or earpiece/Bluetooth (false).
