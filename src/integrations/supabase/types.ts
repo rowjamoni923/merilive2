@@ -16654,6 +16654,7 @@ export type Database = {
         Args: { p_host_id: string }
         Returns: number
       }
+      accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       add_beans_to_host: {
         Args: {
@@ -20141,6 +20142,15 @@ export type Database = {
           p_password?: string
           p_thumbnail_url?: string
           p_title?: string
+        }
+        Returns: Json
+      }
+      start_pk_battle: {
+        Args: {
+          p_challenger_stream_id: string
+          p_duration_seconds?: number
+          p_opponent_id: string
+          p_opponent_stream_id: string
         }
         Returns: Json
       }

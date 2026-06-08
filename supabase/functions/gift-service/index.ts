@@ -126,6 +126,38 @@ Deno.serve(async (req) => {
     const diamondBonus = Number(result.diamond_bonus ?? 0)
     const isLucky = Boolean(result.is_lucky ?? false)
 
+    // PK Battle Step 2 — auto-score during active PK battle.
+    // If the receiver is currently in an accepted/active PK battle, mirror the
+    // gift to bill_pk_gift() so the server-authoritative score updates. This
+    // happens AFTER the main gift succeeded; failure here never rolls back
+    // the gift itself (best-effort, audit-logged via pk_battle_gifts row).
+    let pkScoreApplied: unknown = null
+    try {
+      const { data: battle } = await adminSupabase
+        .from('pk_battles')
+        .select('id, challenger_id, opponent_id, host1_id, host2_id, status')
+        .in('status', ['accepted', 'active'])
+        .or(
+          `challenger_id.eq.${receiverId},opponent_id.eq.${receiverId},host1_id.eq.${receiverId},host2_id.eq.${receiverId}`,
+        )
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (battle?.id) {
+        const { data: pkRes } = await adminSupabase.rpc('bill_pk_gift', {
+          p_battle_id: battle.id,
+          p_sender_id: user.id,
+          p_target_host_id: receiverId,
+          p_gift_id: giftId,
+          p_coin_amount: coinsSpent,
+        })
+        pkScoreApplied = pkRes
+      }
+    } catch (pkErr) {
+      console.warn('[gift-service] PK scoring side-effect failed:', pkErr)
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -137,6 +169,7 @@ Deno.serve(async (req) => {
         newBalance,
         diamondBonus,
         isLucky,
+        pkScore: pkScoreApplied,
       }),
       {
         status: 200,
