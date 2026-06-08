@@ -16765,6 +16765,10 @@ export type Database = {
       }
       accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
+      accept_seat_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: Json
+      }
       add_beans_to_host: {
         Args: {
           p_beans_amount: number
@@ -18973,6 +18977,10 @@ export type Database = {
       }
       decline_host_request: { Args: { p_request_id: string }; Returns: boolean }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
+      decline_seat_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: Json
+      }
       deduct_agency_wallet: {
         Args: { p_agency_id: string; p_amount: number }
         Returns: Json

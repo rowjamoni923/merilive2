@@ -98,6 +98,9 @@ import { ChametStyleGameRoom } from "@/components/party/ChametStyleGameRoom";
 import { ChametStyleVideoRoom } from "@/components/party/ChametStyleVideoRoom";
 import { UnifiedPartyRoom } from "@/components/party/UnifiedPartyRoom";
 import { GiftContributorsPanel } from "@/components/party/GiftContributorsPanel";
+import { SeatInvitePickerSheet } from "@/components/party/SeatInvitePickerSheet";
+import { SeatInviteResponseSheet } from "@/components/party/SeatInviteResponseSheet";
+import { useSeatInvitationInbox } from "@/hooks/useSeatInvitationInbox";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 // Room protection - blocks back button, auto-closes on network loss
 import { useRoomProtection } from "@/hooks/useRoomProtection";
@@ -243,6 +246,8 @@ const PartyRoom = () => {
   const [showRoomClosedModal, setShowRoomClosedModal] = useState(false);
   const roomClosedRef = useRef(false);
   const [showGiftContributors, setShowGiftContributors] = useState(false);
+  // Phase III.d — host-side seat invite picker target.
+  const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
@@ -681,6 +686,9 @@ const PartyRoom = () => {
   const isHost = room?.host_id === currentUser?.id;
   const isAdmin = myRole === 'admin' || isHost;
   const canManageUsers = isHost || isAdmin;
+
+  // Phase III.d — incoming seat invitations for the current user (audience).
+  const seatInvitationInbox = useSeatInvitationInbox(currentUser?.id ?? null);
 
   // Initialize WebRTC for multi-user connections
   const {
@@ -2471,7 +2479,10 @@ const PartyRoom = () => {
           })()
         }
         onInviteViewer={(userId) => {
-          toast.success(`Invitation sent to user!`);
+          if (!isHost) return;
+          const viewer = participants.find((p) => p.user_id === userId);
+          const name = viewer?.user?.display_name || 'Viewer';
+          setSeatInviteTarget({ id: userId, name });
         }}
         onKickViewer={(userId) => {
           kickUser(userId);
@@ -2529,7 +2540,49 @@ const PartyRoom = () => {
         />
       )}
 
+      {/* Phase III.d — Host: invite an audience member to a seat. */}
+      {seatInviteTarget && room?.id && currentUser?.id && (
+        <SeatInvitePickerSheet
+          open={!!seatInviteTarget}
+          onClose={() => setSeatInviteTarget(null)}
+          roomId={room.id}
+          inviterId={currentUser.id}
+          inviteeId={seatInviteTarget.id}
+          inviteeName={seatInviteTarget.name}
+          maxSeats={
+            room.room_type === 'audio'
+              ? adminPartyLimits.max_audio_participants
+              : room.room_type === 'game'
+                ? adminPartyLimits.max_game_participants
+                : adminPartyLimits.max_video_participants
+          }
+          occupiedSeats={Array.from(
+            new Set(
+              [0, ...participants
+                .map((p) => p.position)
+                .filter((s): s is number => typeof s === 'number')],
+            ),
+          )}
+        />
+      )}
+
+      {/* Phase III.d — Invitee: respond to seat invitation. */}
+      <SeatInviteResponseSheet
+        invitation={seatInvitationInbox.pending}
+        onAccept={seatInvitationInbox.accept}
+        onDecline={seatInvitationInbox.decline}
+        onDismiss={seatInvitationInbox.dismiss}
+        onAccepted={(invRoomId) => {
+          // If invitee accepted while on a different page, route them into the room.
+          if (invRoomId && invRoomId !== room?.id) {
+            navigate(`/party/${invRoomId}`);
+          }
+        }}
+      />
+
       {/* Floating reactions + raise-hand FABs removed — features available via bottom bar */}
+
+
 
 
 
