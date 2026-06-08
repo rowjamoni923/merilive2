@@ -218,7 +218,7 @@ export function useNativeCameraPermission() {
     const includeMicrophone = Boolean(options.includeMicrophone);
 
     // Fast path: already granted
-    if (globalPermissionGranted === true && (!includeMicrophone || globalMicrophoneGranted === true)) {
+    if (!isNativeApp && globalPermissionGranted === true && (!includeMicrophone || globalMicrophoneGranted === true)) {
       console.log('[Camera Permission] Already granted (cached)');
       return { granted: true, microphoneGranted: includeMicrophone ? true : undefined };
     }
