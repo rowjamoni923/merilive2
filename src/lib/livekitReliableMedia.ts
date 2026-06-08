@@ -1,5 +1,7 @@
 import { Room, Track, type LocalTrackPublication } from 'livekit-client';
 import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
+
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
 
