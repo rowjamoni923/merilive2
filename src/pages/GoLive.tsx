@@ -82,7 +82,7 @@ const GoLive = () => {
     streamRef.current = stream;
   }, [stream]);
   // Native camera permission hook
-  const { getCameraStream } = useNativeCameraPermission();
+  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
   
   // Feature level check hook
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
@@ -538,6 +538,22 @@ const GoLive = () => {
     }
     setShowPermissionPrompt(false);
 
+    if (isNativeAndroid) {
+      try {
+        const permission = await requestCameraPermission({ includeMicrophone: true });
+        if (!permission.granted) throw new Error(permission.error || 'Camera permission denied.');
+        setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+        playSound('notification');
+        return;
+      } catch (error: any) {
+        console.error("[GoLive] Native camera/mic permission error:", error?.name, error?.message || error);
+        recordClientError({ label: "GoLive.nativePermission", message: error instanceof Error ? error.message : String(error) });
+        setShowPermissionPrompt(true);
+        toast.error(error?.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
+        return;
+      }
+    }
+
     // Browser/Android WebView permission must be requested by the same user
     // tap. Do not run native probes, timeout waits, or a second permission
     // check before getUserMedia — that loses the browser gesture context.
@@ -561,6 +577,8 @@ const GoLive = () => {
 
   const handleCameraSwitch = async () => {
     try {
+      if (isNativeAndroid) return;
+
       // Pkg-audit Bug C: only stop the VIDEO tracks on camera flip — keep
       // the microphone track alive so the host's audio doesn't go silent
       // (Android WebView won't re-grant mic without a fresh user gesture).
@@ -644,7 +662,8 @@ const GoLive = () => {
       return;
     }
 
-    if (!streamRef.current?.getVideoTracks().some((track) => track.readyState === 'live')) {
+    const nativePermissionsReady = isNativeAndroid && permissionsGranted.camera && permissionsGranted.microphone;
+    if (!nativePermissionsReady && !streamRef.current?.getVideoTracks().some((track) => track.readyState === 'live')) {
       setShowPermissionPrompt(true);
       toast.error('Please allow camera and microphone first.');
       return;
@@ -731,11 +750,15 @@ const GoLive = () => {
       // Handoff policy:
       // - Web preview: preserve same MediaStream for zero-gap transition
       // - Native native beauty preview: release camera BEFORE entering LiveStream to avoid Android camera resource crash
-      if (isNativeAndroid && nativePreviewActive) {
+      if (isNativeAndroid) {
         preservePreviewForLiveRef.current = false;
-        clearPreparedHostPreviewStream();
+        clearPreparedHostPreviewStream({ stopTracks: true });
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+          setStream(null);
+        }
         await stopNativePreview();
-        await new Promise((resolve) => setTimeout(resolve, 800));
       } else {
         // Preserve the real WebView camera stream on Android when native preview
         // was unavailable/no-op. If native LiveKit is disabled or falls back to
