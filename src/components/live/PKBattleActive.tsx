@@ -96,7 +96,7 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("pk_battles")
         .select(
-          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id",
+          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, punishment_end_ts",
         )
         .eq("id", battleId)
         .maybeSingle();
