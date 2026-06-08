@@ -9823,6 +9823,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pk_battle_assets: {
+        Row: {
+          animation_type: string | null
+          animation_url: string | null
+          created_at: string
+          cue: string
+          duration_ms: number | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          sound_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          animation_type?: string | null
+          animation_url?: string | null
+          created_at?: string
+          cue: string
+          duration_ms?: number | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          sound_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          animation_type?: string | null
+          animation_url?: string | null
+          created_at?: string
+          cue?: string
+          duration_ms?: number | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          sound_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pk_battle_gifts: {
         Row: {
           battle_id: string

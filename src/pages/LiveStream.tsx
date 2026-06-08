@@ -4105,6 +4105,7 @@ const LiveStream = () => {
           opponentAvatar={pkBattleState.opponentInfo.avatar}
           opponentLevel={pkBattleState.opponentInfo.level}
           opponentId={pkBattleState.opponentInfo.id}
+          currentUserId={currentUserId}
           onBattleEnd={handlePKBattleEnd}
         />
       )}
