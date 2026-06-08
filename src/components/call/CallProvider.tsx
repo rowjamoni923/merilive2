@@ -114,6 +114,15 @@ export function CallProvider({ children }: CallProviderProps) {
     notifyMediaConnected,
   } = usePrivateCall(userId);
 
+  // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
+  // every time the caller's wallet or the call's per-minute rate changes.
+  // No-op on web / iOS / older APKs.
+  useNativeCallBillingSync({
+    userId,
+    callId: callState.callId,
+    callerId: callState.callerId ?? null,
+  });
+
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
 
   // Track host status based on incoming call
