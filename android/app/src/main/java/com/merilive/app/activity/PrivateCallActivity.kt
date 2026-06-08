@@ -184,7 +184,32 @@ class PrivateCallActivity : ComponentActivity() {
         registerResumeReceiver()
         wireUiToViewModel()
         wireBackPress()
+        attachResilienceController()
     }
+
+    /** Pkg500 Phase H — instantiate + attach the camera resilience controller. */
+    private fun attachResilienceController() {
+        try {
+            val freeze = findViewById<ImageView>(R.id.privateCallFreezeOverlay)
+            val banner = findViewById<android.widget.LinearLayout>(R.id.privateCallResilienceBanner)
+            val text = findViewById<TextView>(R.id.privateCallResilienceText)
+            val retry = findViewById<Button>(R.id.privateCallResilienceRetry)
+            val poor = findViewById<View>(R.id.privateCallRemotePoorOverlay)
+            resilienceController = CameraResilienceController(
+                activity = this,
+                remoteVideoContainer = remoteVideoContainer,
+                localPreviewContainer = localPreviewContainer,
+                freezeOverlay = freeze,
+                resilienceBanner = banner,
+                resilienceText = text,
+                resilienceRetry = retry,
+                remotePoorOverlay = poor,
+                localRendererProvider = { localRenderer },
+            ).also { it.attach() }
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachResilienceController: ${t.message}")
+        }
+
 
     private fun registerCloseReceiver() {
         val r = object : android.content.BroadcastReceiver() {
