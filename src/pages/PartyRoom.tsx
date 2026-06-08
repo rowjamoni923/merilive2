@@ -246,6 +246,8 @@ const PartyRoom = () => {
   const [showRoomClosedModal, setShowRoomClosedModal] = useState(false);
   const roomClosedRef = useRef(false);
   const [showGiftContributors, setShowGiftContributors] = useState(false);
+  // Phase III.d — host-side seat invite picker target.
+  const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
