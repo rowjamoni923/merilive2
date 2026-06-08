@@ -380,6 +380,7 @@ export function usePartyRoomWebRTC(
               audioProfile: 'broadcast',
               callType: 'Party Room',
               roomScope: 'party',
+              isHost: _isHost,
             });
 
             usingNativeRef.current = true;
