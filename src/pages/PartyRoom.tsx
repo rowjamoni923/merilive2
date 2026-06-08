@@ -2479,7 +2479,10 @@ const PartyRoom = () => {
           })()
         }
         onInviteViewer={(userId) => {
-          toast.success(`Invitation sent to user!`);
+          if (!isHost) return;
+          const viewer = participants.find((p) => p.user_id === userId);
+          const name = viewer?.user?.display_name || 'Viewer';
+          setSeatInviteTarget({ id: userId, name });
         }}
         onKickViewer={(userId) => {
           kickUser(userId);
