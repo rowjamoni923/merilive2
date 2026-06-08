@@ -543,6 +543,8 @@ class PrivateCallActivity : ComponentActivity() {
         detachAllRenderers(release = true)
         closeReceiver?.let { runCatching { unregisterReceiver(it) } }
         closeReceiver = null
+        billingReceiver?.let { runCatching { unregisterReceiver(it) } }
+        billingReceiver = null
         super.onDestroy()
     }
 
