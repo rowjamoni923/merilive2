@@ -458,6 +458,40 @@ class NativeCallPlugin : Plugin() {
         ret.put("ok", true)
         call.resolve(ret)
     }
+
+    /**
+     * Pkg500 Phase D — push the latest billing snapshot into the active
+     * PrivateCallActivity. JS calls this every time the server bills
+     * another minute, the caller recharges, or `viewer_rate_per_min`
+     * changes mid-call. Activity stores the values + ticks down 1Hz
+     * locally between pushes.
+     *
+     *   callId          String  — must match the active call
+     *   balance         Long    — current caller wallet balance in coins
+     *   ratePerMinute   Int     — coins charged per minute
+     */
+    @PluginMethod
+    fun updateInCallBilling(call: PluginCall) {
+        val callId = call.getString("callId").orEmpty()
+        val balance = call.getLong("balance") ?: -1L
+        val rate = call.getInt("ratePerMinute") ?: -1
+        if (balance < 0 || rate < 0) {
+            call.reject("missing_or_invalid_params")
+            return
+        }
+        try {
+            val i = android.content.Intent(ACTION_UPDATE_BILLING).apply {
+                setPackage(context.packageName)
+                putExtra("call_id", callId)
+                putExtra("balance", balance)
+                putExtra("rate_per_minute", rate)
+            }
+            context.sendBroadcast(i)
+        } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
 }
 
 
