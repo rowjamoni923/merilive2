@@ -152,6 +152,54 @@ class LiveKitPlugin : Plugin() {
         fun notifyPipModeChanged(isInPip: Boolean) {
             INSTANCE?.onPipModeChangedInternal(isInPip)
         }
+
+        /**
+         * Pkg500 Phase C — Native PrivateCallActivity entry point for camera
+         * flip. Bypasses the JS plugin bridge so the in-call beauty/camera
+         * controls don't pay a roundtrip through the WebView.
+         */
+        @JvmStatic
+        fun switchCameraFromNative() {
+            val inst = INSTANCE ?: return
+            val r = inst.room ?: return
+            inst.scope.launch {
+                try {
+                    val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.LocalVideoTrack
+                    track?.switchCamera()
+                } catch (e: Exception) {
+                    Log.w("LiveKitPlugin", "switchCameraFromNative failed: ${e.message}")
+                }
+            }
+        }
+
+        /**
+         * Pkg500 Phase C — Native PrivateCallActivity entry point for the
+         * beauty pipeline handoff. Runs the same release → settle → bridge
+         * flip sequence as the JS [setBeautyPipelineEnabled] method.
+         */
+        @JvmStatic
+        fun setBeautyPipelineEnabledFromNative(enabled: Boolean) {
+            val inst = INSTANCE ?: return
+            inst.scope.launch { inst.runBeautyHandoffInternal(enabled) }
+        }
+    }
+
+    internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
+        val r = room ?: return
+        try {
+            if (enabled) {
+                setNativeCameraEnabledWithOemRetry(r, false, "beauty-on-native")
+                kotlinx.coroutines.delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                BeautyPipelineBridge.setEnabled(true)
+            } else {
+                BeautyPipelineBridge.setEnabled(false)
+                kotlinx.coroutines.delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                setNativeCameraEnabledWithOemRetry(r, true, "beauty-off-native")
+            }
+        } catch (e: Exception) {
+            Log.w("LiveKitPlugin", "runBeautyHandoffInternal($enabled) failed: ${e.message}")
+        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
