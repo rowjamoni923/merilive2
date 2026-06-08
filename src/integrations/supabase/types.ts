@@ -10502,9 +10502,11 @@ export type Database = {
           host_rate_per_min: number | null
           host_rating: number | null
           id: string
+          is_reconnecting: boolean
           last_billed_minute: number
           last_billing_at: string | null
           platform_cut_percent: number | null
+          reconnecting_since: string | null
           settled_at: string | null
           started_at: string | null
           status: string
@@ -10537,9 +10539,11 @@ export type Database = {
           host_rate_per_min?: number | null
           host_rating?: number | null
           id?: string
+          is_reconnecting?: boolean
           last_billed_minute?: number
           last_billing_at?: string | null
           platform_cut_percent?: number | null
+          reconnecting_since?: string | null
           settled_at?: string | null
           started_at?: string | null
           status?: string
@@ -10572,9 +10576,11 @@ export type Database = {
           host_rate_per_min?: number | null
           host_rating?: number | null
           id?: string
+          is_reconnecting?: boolean
           last_billed_minute?: number
           last_billing_at?: string | null
           platform_cut_percent?: number | null
+          reconnecting_since?: string | null
           settled_at?: string | null
           started_at?: string | null
           status?: string
@@ -19851,6 +19857,10 @@ export type Database = {
       mark_all_notices_read: { Args: never; Returns: number }
       mark_call_delivered: {
         Args: { p_call_id: string; p_channel?: string; p_device_info?: Json }
+        Returns: Json
+      }
+      mark_call_reconnecting: {
+        Args: { p_call_id: string; p_reconnecting: boolean }
         Returns: Json
       }
       mark_conversation_read: {
