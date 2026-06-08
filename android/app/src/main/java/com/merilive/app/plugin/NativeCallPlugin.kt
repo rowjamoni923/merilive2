@@ -420,12 +420,8 @@ class NativeCallPlugin : Plugin() {
         ret.put("ok", true)
         call.resolve(ret)
     }
-
-    companion object Bridge {
-        const val ACTION_CLOSE_PRIVATE_CALL_ACTIVITY =
-            "com.merilive.app.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY"
-    }
 }
+
 
 
 
