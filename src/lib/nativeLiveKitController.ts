@@ -83,25 +83,17 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
-      // Never adopt a surviving live Room as a fresh host publish. If the host
-      // ended/minimized and returns through GoLive, reusing the old native room
-      // is what shows "already live" and can leave camera running in background.
+      // Never adopt a surviving Room for live / party / private call media.
+      // Professional Android apps keep exactly one visible native SDK media
+      // owner; stale adoption is what creates "already live" and background
+      // camera leaks after an explicit end/exit.
       try {
         const active = await NativeLiveKit.getActiveSession();
-        if (opts.broadcastMode === 'live' && active?.active) {
+        if (active?.active) {
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
           await new Promise((resolve) => setTimeout(resolve, 300));
-        } else if (active?.active && active.url && active.url === opts.url) {
-          this.connected = true;
-          if (opts.attachLocal !== false) await this.attachLocalWithRetry();
-          try { await NativeLiveKit.attachAllRemotes(); } catch { /* noop */ }
-          console.log('[NativeLiveKitController] adopted surviving session', {
-            ageMs: active.ageMs,
-            canHardReconnect: active.canHardReconnect,
-          });
-          return { sid: 'adopted', identity: 'adopted' };
         }
       } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
 
