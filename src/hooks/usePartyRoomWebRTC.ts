@@ -23,9 +23,9 @@ import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
-import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
-import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
+import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
@@ -39,9 +39,14 @@ import {
   applySelectiveSubscriptions,
   getSelectiveSubConfig,
 } from '@/lib/livekitSelectiveSubscription';
-import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
+import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
+import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { NativeLiveKit } from '@/plugins/NativeLiveKit';
+import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
+import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -51,6 +56,8 @@ interface PartyWebRTCState {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
   connectionState: ConnectionState;
+  isNativeMediaActive: boolean;
+  nativeParticipants: Map<string, { sid: string; identity: string }>;
 }
 
 const isVideoPartyType = (roomType: 'video' | 'audio' | 'game') => roomType === 'video' || roomType === 'game';
@@ -99,6 +106,8 @@ export function usePartyRoomWebRTC(
     isAudioEnabled: true,
     isVideoEnabled: true, // Auto-enable camera by default for 100% video experience
     connectionState: ConnectionState.Disconnected,
+    isNativeMediaActive: false,
+    nativeParticipants: new Map(),
   });
   const [restartNonce, setRestartNonce] = useState(0);
 
@@ -112,6 +121,44 @@ export function usePartyRoomWebRTC(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
+  const usingNativeRef = useRef(false);
+
+  const refreshNativeParticipants = useCallback(async () => {
+    if (!usingNativeRef.current) return;
+    const participants = await nativeLiveKitController.getRemoteParticipants();
+    if (deadRef.current) return;
+    const next = new Map<string, { sid: string; identity: string }>();
+    participants.forEach((p) => {
+      if (!p.identity) return;
+      next.set(p.identity, p);
+      const stripped = p.identity.replace(/^user[-_]/i, '').replace(/^party[-_]/i, '').replace(/^livekit[-_]/i, '');
+      next.set(stripped, p);
+      next.set(`user-${stripped}`, p);
+      next.set(`user_${stripped}`, p);
+    });
+    setState((prev) => ({ ...prev, nativeParticipants: next }));
+    nativeLiveKitController.attachAllRemotes().catch(() => {});
+  }, []);
+
+  useNativeLiveKitEvents(state.isNativeMediaActive, {
+    onParticipantConnected: () => { refreshNativeParticipants().catch(() => {}); },
+    onParticipantDisconnected: () => { refreshNativeParticipants().catch(() => {}); },
+    onConnectionState: (s) => {
+      if (s === 'reconnected') refreshNativeParticipants().catch(() => {});
+    },
+    onDisconnected: () => {
+      if (deadRef.current) return;
+      usingNativeRef.current = false;
+      setState((prev) => ({
+        ...prev,
+        isConnected: false,
+        isNativeMediaActive: false,
+        connectionState: ConnectionState.Disconnected,
+        nativeParticipants: new Map(),
+      }));
+    },
+  });
+  useNativeLiveKitLifecycle(state.isNativeMediaActive);
 
   const getRemoteAudioTrackKey = (
     identity: string,
@@ -182,11 +229,18 @@ export function usePartyRoomWebRTC(
     try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
     // Pkg133: drop reactions registration.
     try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeChatRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeGiftRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativeReactionRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterViewerCountRoom(roomId); } catch { /* ignore */ }
 
     if (tokenRefreshDetachRef.current) {
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
       tokenRefreshDetachRef.current = null;
+    }
+    if (usingNativeRef.current) {
+      nativeLiveKitController.disconnect().catch(() => {});
+      usingNativeRef.current = false;
     }
     if (roomRef.current) {
       // Pkg-fix: explicitly stop hardware tracks BEFORE room.disconnect so the
@@ -220,11 +274,19 @@ export function usePartyRoomWebRTC(
       isAudioEnabled: true,
       isVideoEnabled: true,
       connectionState: ConnectionState.Disconnected,
+      isNativeMediaActive: false,
+      nativeParticipants: new Map(),
     });
   }, [roomId]);
 
   const toggleAudio = useCallback(() => {
     if (!partyCanPublishRef.current) return;
+    if (usingNativeRef.current) {
+      const newEnabled = !state.isAudioEnabled;
+      nativeLiveKitController.setMicrophoneEnabled(newEnabled).catch(() => {});
+      setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
@@ -238,6 +300,12 @@ export function usePartyRoomWebRTC(
 
   const toggleVideo = useCallback(async () => {
     if (!partyCanPublishRef.current) return;
+    if (usingNativeRef.current) {
+      const newEnabled = !state.isVideoEnabled;
+      await nativeLiveKitController.setCameraEnabled(newEnabled).catch(() => {});
+      setState(prev => ({ ...prev, isVideoEnabled: newEnabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
@@ -283,6 +351,53 @@ export function usePartyRoomWebRTC(
     const init = async () => {
       try {
         console.log('[PartyLiveKit] Initializing for room:', roomId);
+
+        if (shouldUseNativeLiveKit({ feature: 'party-room' })) {
+          try {
+            await whenNativeLiveKitKillSwitchReady();
+            if (!shouldUseNativeLiveKit({ feature: 'party-room' })) throw new Error('native_livekit_disabled_after_settings_sync');
+            warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
+            const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+            if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
+
+            consumePreparedHostPreviewStream()?.getTracks().forEach((track) => { try { track.stop(); } catch {} });
+            await releaseAndroidWebViewCameraNow('party:native-before-connect');
+            try { await NativeLiveKit.setPreferredCodec({ codec: 'h264' }); } catch { /* noop */ }
+
+            await nativeLiveKitController.connectAndPublish({
+              url,
+              token,
+              video: partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current,
+              audio: partyCanPublish,
+              lens: 'front',
+              resolution: '720p',
+              attachLocal: partyCanPublish && isVideoPartyType(roomType),
+              audioProfile: 'broadcast',
+              callType: 'Party Room',
+              roomScope: 'party',
+            });
+
+            usingNativeRef.current = true;
+            registerNativeChatRoom('party', roomId);
+            registerNativeGiftRoom('party', roomId);
+            registerNativeReactionRoom('party', roomId);
+            await refreshNativeParticipants();
+            setState((prev) => ({
+              ...prev,
+              isConnected: true,
+              isAudioEnabled: partyCanPublish,
+              isVideoEnabled: partyCanPublish && isVideoPartyType(roomType),
+              connectionState: ConnectionState.Connected,
+              isNativeMediaActive: true,
+            }));
+            return;
+          } catch (nativeError) {
+            usingNativeRef.current = false;
+            await nativeLiveKitController.disconnect().catch(() => {});
+            console.error('[PartyLiveKit/Native] native party connect failed:', nativeError);
+            throw nativeError instanceof Error ? nativeError : new Error(String(nativeError));
+          }
+        }
 
         room = new Room({
           // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
@@ -904,6 +1019,25 @@ export function usePartyRoomWebRTC(
   // false (user left seat / kicked), mute both again immediately.
   useEffect(() => {
     const room = roomRef.current;
+    if (usingNativeRef.current) {
+      let cancelled = false;
+      (async () => {
+        try {
+          if (partyCanPublish) {
+            await nativeLiveKitController.setMicrophoneEnabled(true);
+            if (isVideoPartyType(roomType) && cameraReadyRef.current) await nativeLiveKitController.setCameraEnabled(true);
+            if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: true, isVideoEnabled: isVideoPartyType(roomType) }));
+          } else {
+            await nativeLiveKitController.setCameraEnabled(false);
+            await nativeLiveKitController.setMicrophoneEnabled(false);
+            if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: false, isVideoEnabled: false }));
+          }
+        } catch (err) {
+          console.warn('[PartyLiveKit/Native] seat media toggle failed:', err);
+        }
+      })();
+      return () => { cancelled = true; };
+    }
     if (!room || room.state !== 'connected') return;
     let cancelled = false;
     (async () => {

@@ -13,6 +13,7 @@ import { registerPlugin, Capacitor, type PluginListenerHandle } from '@capacitor
 
 export type Lens = 'front' | 'back';
 export type Resolution = '720p' | '1080p';
+export type NativeRoomScope = 'live' | 'party' | 'call';
 
 export interface ConnectOptions {
   url: string;
@@ -50,6 +51,8 @@ export interface ConnectOptions {
    * on the lockscreen — it is the #1 hybrid leak in WebView live apps.
    */
   broadcastMode?: 'call' | 'live';
+  /** Native room family. Used by Android lifecycle policy: live/party/call media never falls back to WebView RTC. */
+  roomScope?: NativeRoomScope;
 }
 
 export interface ParticipantEvent {
@@ -261,6 +264,11 @@ export interface ActiveSessionInfo {
   canHardReconnect: boolean;
 }
 
+export interface NativeParticipantInfo {
+  sid: string;
+  identity: string;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   /**
@@ -287,6 +295,8 @@ export interface NativeLiveKitPlugin {
    * or no FGS is running. Safe to call on every viewer-count realtime tick.
    */
   updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void>;
+  /** Snapshot of current remote participants for native-only render binding. */
+  getRemoteParticipants(): Promise<{ participants: NativeParticipantInfo[] }>;
   sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled?: boolean; skipped?: boolean; reason?: string } | void>;

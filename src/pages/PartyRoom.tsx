@@ -688,6 +688,8 @@ const PartyRoom = () => {
     peerStreams,
     isConnected,
     connectionState,
+    isNativeMediaActive,
+    nativeParticipants,
     isAudioEnabled,
     isVideoEnabled,
     toggleAudio,
@@ -2362,6 +2364,8 @@ const PartyRoom = () => {
         totalBeans={totalRoomBeans}
         isConnected={isConnected}
         connectionState={connectionState}
+        isNativeMediaActive={isNativeMediaActive}
+        nativeParticipants={nativeParticipants}
         onOpenGiftContributors={() => setShowGiftContributors(true)}
         currentUserId={currentUser?.id}
         localStream={localStream}

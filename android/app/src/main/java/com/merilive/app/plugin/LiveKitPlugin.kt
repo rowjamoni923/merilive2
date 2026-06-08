@@ -369,6 +369,8 @@ class LiveKitPlugin : Plugin() {
         // Phase I — "call" (default) → Android CallStyle ongoing-call FGS.
         //           "live" → Bigo/Chamet "🔴 LIVE · {viewers} watching" FGS.
         val broadcastMode: String = "call",
+        // Android-native room family. live/party/call must never fall back to WebView RTC.
+        val roomScope: String = "call",
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
@@ -528,6 +530,42 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Exception) {}
 
         val r = room ?: return
+        val scopeName = lastConnectArgs?.roomScope ?: "call"
+        if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
+            scope.launch {
+                try {
+                    Log.i(TAG, "Process background: ending native $scopeName media session")
+                    lastConnectArgs = null
+                    stopReconnectWatchdog()
+                    hardReconnectAttempts = 0
+                    try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                    activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+                    try { r.disconnect() } catch (_: Exception) {}
+                    releaseRoomResources(r, "process-background")
+                    try { com.merilive.app.rtc.RtcEngineManager.unbind("process-background", r) } catch (_: Throwable) {}
+                    room = null
+                    setKeepScreenOn(false)
+                    setProximityMonitoringInternal(false)
+                    applyAudioMode(false)
+                    unregisterAudioDeviceListener()
+                    unregisterHeadsetReceivers()
+                    stopHeadsetMediaSession()
+                    stopBluetoothScoInternal()
+                    abandonAudioFocusInternal()
+                    stopCallForegroundService()
+                    CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
+                    val data = JSObject()
+                    data.put("reason", "PROCESS_BACKGROUND")
+                    notifyListeners("disconnected", data)
+                } catch (e: Exception) {
+                    Log.w(TAG, "process-background cleanup failed: ${e.message}")
+                }
+            }
+            return
+        }
         if (!pauseCameraOnBackground) return
 
         if (!foreground) {
@@ -686,9 +724,11 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun connect(call: PluginCall) {
-        if (getPermissionState("camera") != PermissionState.GRANTED ||
-            getPermissionState("microphone") != PermissionState.GRANTED
-        ) {
+        val enableVideo = call.getBoolean("video", true) ?: true
+        val enableAudio = call.getBoolean("audio", true) ?: true
+        val needsCameraPermission = enableVideo && getPermissionState("camera") != PermissionState.GRANTED
+        val needsMicPermission = enableAudio && getPermissionState("microphone") != PermissionState.GRANTED
+        if (needsCameraPermission || needsMicPermission) {
             requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permsCallback")
             return
         }
@@ -700,8 +740,6 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        val enableVideo = call.getBoolean("video", true) ?: true
-        val enableAudio = call.getBoolean("audio", true) ?: true
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val callerName = call.getString("callerName", "") ?: ""
@@ -731,12 +769,20 @@ class LiveKitPlugin : Plugin() {
             else -> "call"
         }
 
+        val roomScopeRaw = call.getString("roomScope", null)
+        val roomScope = when (roomScopeRaw?.lowercase()) {
+            "live" -> "live"
+            "party" -> "party"
+            "call" -> "call"
+            else -> if (broadcastMode == "live") "live" else if (callType.contains("party", ignoreCase = true)) "party" else "call"
+        }
+
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
             callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
-            broadcastMode,
+            broadcastMode, roomScope,
         )
         hardReconnectAttempts = 0
 
@@ -779,23 +825,25 @@ class LiveKitPlugin : Plugin() {
         // NativeCameraPlugin can't race in and grab the hardware mid-connect.
         // Use force=true on reconnect because we already owned it and just
         // want to keep ownership across the teardown→rebuild.
-        val existingOwner = CameraOwnership.owner()
-        val isReentrantReconnect = isReconnect &&
-            (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
-        val ownerAcquired = CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
-        if (!ownerAcquired) {
-            throw IllegalStateException("Camera busy: held by $existingOwner")
+        if (args.video) {
+            val existingOwner = CameraOwnership.owner()
+            val isReentrantReconnect = isReconnect &&
+                (existingOwner == CameraOwnership.OWNER_LIVEKIT || existingOwner == null)
+            val ownerAcquired = CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT, force = isReentrantReconnect)
+            if (!ownerAcquired) {
+                throw IllegalStateException("Camera busy: held by $existingOwner")
+            }
+            val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
+            if (graceMs > 0L) {
+                Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
+                delay(graceMs)
+            }
+            // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
+            // HAL reports any camera is back online (typically within 100-800 ms);
+            // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
+            val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+            if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         }
-        val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
-        if (graceMs > 0L) {
-            Log.w(TAG, "OEM Camera2 release grace before LiveKit open: ${graceMs}ms")
-            delay(graceMs)
-        }
-        // Fix 1 — Dynamic Camera2 availability wait. Resolves as soon as the
-        // HAL reports any camera is back online (typically within 100-800 ms);
-        // capped at OEM_CAMERA_AVAILABILITY_WAIT_MS for stuck OEM builds.
-        val became = awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
-        if (!became) Log.w(TAG, "Camera2 availability callback timed out; proceeding after static grace")
         // Pkg415: detach renderers (without releasing EGL) BEFORE the old
         // room is torn down so the old VideoTracks' final null/invalid frame
         // can't repaint the renderer black for the reconnect race window.
@@ -1008,9 +1056,11 @@ class LiveKitPlugin : Plugin() {
         micIntentBeforeLoss = args.audio
         requestAudioFocusInternal()
 
-        // Step 14 — promote process to a foreground service so Android
-        // 14+ keeps mic/camera alive when the user backgrounds the app.
-        startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
+        // Step 14 — promote publishers only. Receive-only viewers must not
+        // show/hold a camera|microphone foreground service.
+        if (args.video || args.audio) {
+            startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
+        }
 
         // Step 25 — start the video stall watchdog for this session.
         startStallWatchdog()
@@ -1114,6 +1164,25 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 call.reject("sendData failed: ${e.message}")
             }
+        }
+    }
+
+    @PluginMethod
+    fun getRemoteParticipants(call: PluginCall) {
+        val r = room ?: return call.reject("Not connected")
+        try {
+            val arr = com.getcapacitor.JSArray()
+            r.remoteParticipants.values.forEach { participant ->
+                val item = JSObject()
+                item.put("sid", participant.sid.value)
+                item.put("identity", participant.identity?.value ?: "")
+                arr.put(item)
+            }
+            val ret = JSObject()
+            ret.put("participants", arr)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("getRemoteParticipants failed: ${e.message}")
         }
     }
 
@@ -1603,9 +1672,11 @@ class LiveKitPlugin : Plugin() {
 
     @PermissionCallback
     private fun permsCallback(call: PluginCall) {
-        if (getPermissionState("camera") == PermissionState.GRANTED &&
-            getPermissionState("microphone") == PermissionState.GRANTED
-        ) connect(call) else call.reject("Camera/Microphone permission denied")
+        val wantsVideo = call.getBoolean("video", true) ?: true
+        val wantsAudio = call.getBoolean("audio", true) ?: true
+        val cameraOk = !wantsVideo || getPermissionState("camera") == PermissionState.GRANTED
+        val micOk = !wantsAudio || getPermissionState("microphone") == PermissionState.GRANTED
+        if (cameraOk && micOk) connect(call) else call.reject("Camera/Microphone permission denied")
     }
 
     private fun attachRemoteRendererInternal(

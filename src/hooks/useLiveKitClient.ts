@@ -40,7 +40,7 @@ import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
-import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
@@ -227,6 +227,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   useNativeLiveKitEvents(nativeActive, {
     onDisconnected: (reason) => {
       console.log('[LiveKitClient/Native] disconnected:', reason);
+      if (reason === 'PROCESS_BACKGROUND' || reason === 'CLIENT_INITIATED') {
+        usingNativeRef.current = false;
+        setNativeActive(false);
+        setIsNativeMediaActive(false);
+        setIsJoined(false);
+        setConnectionState('DISCONNECTED');
+        return;
+      }
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
       toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
@@ -400,12 +408,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const startTime = performance.now();
     console.log(`[LiveKitClient] Joining channel: ${normalizedChannel} as ${config.role}`);
 
-    // 🛰️ Native Android publish path (Capacitor + LiveKit Android SDK).
-    // Only host broadcasts are routed natively for now; viewers stay on
-    // web livekit-client (audience playback inside the WebView is fine).
-    // Web/iOS gate=false → falls through to web Room flow below.
+    // 🛰️ Native Android live path (Capacitor + LiveKit Android SDK).
+    // Android hosts AND viewers use native LiveKit only; WebView RTC is dev/web fallback only.
     if (
-      config.role === 'host' &&
       !config.preloadedRoom &&
       shouldUseNativeLiveKit({ feature: 'live-broadcast' })
     ) {
@@ -415,7 +420,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           throw new Error('native_livekit_disabled_after_settings_sync');
         }
 
-        const roomType = 'host_stream';
+        const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
 
@@ -444,17 +449,18 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             await nativeLiveKitController.connectAndPublish({
               url,
               token,
-              video: true,
-              audio: true,
+              video: config.role === 'host',
+              audio: config.role === 'host',
               lens: 'front',
               resolution: '1080p',
-              attachLocal: true,
+              attachLocal: config.role === 'host',
               // Phase I — Bigo/Chamet-style LIVE foreground notification
               // ("🔴 LIVE · {viewers} watching" + "End Live" action) instead
               // of the call-style "Call in progress" UI used for 1:1 calls.
               broadcastMode: 'live',
               audioProfile: 'broadcast',
               callType: 'Live broadcast',
+              roomScope: 'live',
             });
             lastNativeErr = null;
             break;
@@ -475,7 +481,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
-        setCurrentRole('host');
+        setCurrentRole(config.role);
         setIsLoading(false);
         isJoiningRef.current = false;
         const joinTime = performance.now() - startTime;
@@ -1688,14 +1694,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.liveSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     // Lazy import to avoid pulling signaling code into non-live paths.
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitLiveSignaling');
         if (cancelled) return;
-        mod.registerStreamRoom(streamId, room);
+        if (room) mod.registerStreamRoom(streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeStreamRoom(streamId);
       } catch (e) {
         console.warn('[Pkg74] registerStreamRoom failed:', e);
       }
@@ -1704,9 +1710,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitLiveSignaling').then((mod) => {
         mod.unregisterStreamRoom(streamId);
+        mod.unregisterNativeStreamRoom(streamId);
       }).catch(() => {});
     };
-  }, [options.liveSignalingStreamId, isJoined]);
+  }, [options.liveSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg76: Bind streamId → Room for LiveKit-based gift_sent signaling.
   // Reuses the SAME Room as Pkg74 (DataReceived supports multiple listeners).
@@ -1714,16 +1721,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.giftSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     try {
-      registerGiftRoom('live', streamId, room);
+      if (room) registerGiftRoom('live', streamId, room);
+      else if (isNativeMediaActive) registerNativeGiftRoom('live', streamId);
     } catch (e) {
       console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
     }
     return () => {
       unregisterGiftRoom('live', streamId);
+      unregisterNativeGiftRoom('live', streamId);
     };
-  }, [options.giftSignalingStreamId, isJoined]);
+  }, [options.giftSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg77: Bind streamId → Room for INSTANT viewer count via LiveKit
   // ParticipantConnected/Disconnected. Same Room reused, zero new channels.
@@ -1756,13 +1764,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.chatSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitChatSignaling');
         if (cancelled) return;
-        mod.registerChatRoom('live', streamId, room);
+        if (room) mod.registerChatRoom('live', streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeChatRoom('live', streamId);
       } catch (e) {
         console.warn('[Pkg79] registerChatRoom(live) failed:', e);
       }
@@ -1771,9 +1779,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitChatSignaling').then((mod) => {
         mod.unregisterChatRoom('live', streamId);
+        mod.unregisterNativeChatRoom('live', streamId);
       }).catch(() => {});
     };
-  }, [options.chatSignalingStreamId, isJoined]);
+  }, [options.chatSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg82a: Bind streamId → Room for LiveKit-based viewer presence signaling.
   // Reuses the SAME Room (DataReceived + ParticipantDisconnected support
@@ -1782,13 +1791,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.liveEventsStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitLiveEventsSignaling');
         if (cancelled) return;
-        mod.registerLiveEventsRoom(streamId, room);
+        if (room) mod.registerLiveEventsRoom(streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeLiveEventsRoom(streamId);
       } catch (e) {
         console.warn('[Pkg82a] registerLiveEventsRoom failed:', e);
       }
@@ -1797,9 +1806,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitLiveEventsSignaling').then((mod) => {
         mod.unregisterLiveEventsRoom(streamId);
+        mod.unregisterNativeLiveEventsRoom(streamId);
       }).catch(() => {});
     };
-  }, [options.liveEventsStreamId, isJoined]);
+  }, [options.liveEventsStreamId, isJoined, isNativeMediaActive]);
 
   // Bind streamId → Room for LiveKit-based filter_update signaling.
   useEffect(() => {
@@ -2010,13 +2020,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.reactionsStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitReactions');
         if (cancelled) return;
-        mod.registerReactionRoom('live', streamId, room);
+        if (room) mod.registerReactionRoom('live', streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeReactionRoom('live', streamId);
       } catch (e) {
         console.warn('[Pkg133] registerReactionRoom(live) failed:', e);
       }
@@ -2025,9 +2035,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitReactions').then((mod) => {
         mod.unregisterReactionRoom('live', streamId);
+        mod.unregisterNativeReactionRoom('live', streamId);
       }).catch(() => {});
     };
-  }, [options.reactionsStreamId, isJoined]);
+  }, [options.reactionsStreamId, isJoined, isNativeMediaActive]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;

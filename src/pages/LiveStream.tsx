@@ -2899,6 +2899,7 @@ const LiveStream = () => {
     ?? Array.from(remoteUsers.values())[0];
   const remoteVideoTrack = firstRemoteUser?.videoTrack ?? null;
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
+  const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack;
   const showHostTransitionPreview = isHost && !localVideoTrack && !!hostTransitionPreviewStream;
   // Debug: Log remote video state changes
   useEffect(() => {
@@ -3206,7 +3207,7 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface ? 'transparent' : 'hsl(var(--background))' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface || showNativeViewerSurface ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
@@ -3280,7 +3281,7 @@ const LiveStream = () => {
               className="absolute inset-0 w-full h-full"
             />
           </div>
-        ) : showNativeHostSurface ? (
+        ) : showNativeHostSurface || showNativeViewerSurface ? (
           <div className="absolute inset-0 pointer-events-none bg-transparent" />
         ) : showHostTransitionPreview ? (
           <video 
