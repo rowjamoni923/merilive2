@@ -118,6 +118,7 @@ class NativeLiveKitController {
         audioProfile: opts.audioProfile ?? (opts.broadcastMode === 'live' ? 'broadcast' : undefined),
         broadcastMode: opts.broadcastMode,
         roomScope: opts.roomScope,
+        isHost: opts.isHost,
       };
 
       try {
