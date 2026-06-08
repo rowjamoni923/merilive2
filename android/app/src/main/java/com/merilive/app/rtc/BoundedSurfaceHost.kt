@@ -49,7 +49,6 @@ object BoundedSurfaceHost {
     fun attach(
         context: Context,
         webView: WebView,
-        eglBase: EglBase,
         room: Room?,
         viewId: String,
         kind: String,
@@ -66,7 +65,7 @@ object BoundedSurfaceHost {
         val entry = entries[viewId] ?: Entry(
             viewId = viewId,
             renderer = TextureViewRenderer(context).also {
-                try { it.init(eglBase.eglBaseContext, null) } catch (_: Exception) {}
+                try { room?.initVideoRenderer(it) } catch (_: Exception) {}
                 it.setEnableHardwareScaler(true)
                 it.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                 it.setMirror(mirror)
