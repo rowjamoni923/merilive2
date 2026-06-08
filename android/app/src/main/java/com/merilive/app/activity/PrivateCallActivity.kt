@@ -445,8 +445,11 @@ class PrivateCallActivity : ComponentActivity() {
     override fun onDestroy() {
         // Release renderers but DO NOT touch the Room (LiveKitPlugin owns it).
         detachAllRenderers(release = true)
+        closeReceiver?.let { runCatching { unregisterReceiver(it) } }
+        closeReceiver = null
         super.onDestroy()
     }
+
 
     private fun formatDuration(totalSec: Int): String {
         val m = totalSec / 60
