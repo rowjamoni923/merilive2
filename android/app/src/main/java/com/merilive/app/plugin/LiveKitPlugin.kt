@@ -2667,7 +2667,22 @@ class LiveKitPlugin : Plugin() {
         data.put("attempt", entry.attempts)
         data.put("state", state) // "stalled" | "failed"
         notifyListeners("video-stall", data)
+        // Pkg500 Phase H — in-process broadcast for PrivateCallActivity's
+        // CameraResilienceController. Same payload as the JS event.
+        try {
+            val ctx = context ?: return
+            val i = android.content.Intent(ACTION_VIDEO_STALL).apply {
+                setPackage(ctx.packageName)
+                putExtra("sid", entry.sid)
+                putExtra("isLocal", entry.isLocal)
+                putExtra("silentMs", silentMs)
+                putExtra("attempt", entry.attempts)
+                putExtra("state", state)
+            }
+            ctx.sendBroadcast(i)
+        } catch (_: Throwable) {}
     }
+
 
     @PluginMethod
     fun setStallWatchdogEnabled(call: PluginCall) {
