@@ -43,11 +43,23 @@ public class CallForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(true);
+        // Honest-private-call fix (S-1): OS-restart with null intent must NOT
+        // re-post a stale "Call in progress" ghost notification. Bail cleanly
+        // and switch the service to non-sticky so the OS won't keep relaunching.
+        if (intent == null) {
+            Log.w(TAG, "onStartCommand: null intent (OS restart) — stopping service");
+            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
             stopSelf();
             return START_NOT_STICKY;
         }
+        if (ACTION_STOP.equals(intent.getAction())) {
+            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
 
         String callerName = intent != null ? intent.getStringExtra("caller_name") : null;
         String callType = intent != null ? intent.getStringExtra("call_type") : null;
@@ -112,7 +124,10 @@ public class CallForegroundService extends Service {
             }, "CallFGS-avatar").start();
         }
 
-        return START_STICKY;
+        // Honest-private-call fix (S-1): non-sticky → OS won't relaunch with
+        // a null intent and re-post a phantom "Call in progress" notification.
+        return START_NOT_STICKY;
+
     }
 
     /**
