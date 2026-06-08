@@ -303,7 +303,12 @@ const LiveStream = () => {
     loserName: string;
     loserAvatar: string;
     loserScore: number;
+    mvpName?: string | null;
+    mvpAvatar?: string | null;
+    mvpCoins?: number | null;
   } | null>(null);
+  // PK Battle Step 4 (P2): keep punishment overlay alive after battle ends.
+  const [pkPunishment, setPKPunishment] = useState<{ battleId: string } | null>(null);
   
   // Random PK Match state
   const [randomPKRequest, setRandomPKRequest] = useState<{
