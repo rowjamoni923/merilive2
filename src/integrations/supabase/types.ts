@@ -9853,11 +9853,50 @@ export type Database = {
         }
         Relationships: []
       }
+      pk_battle_teams: {
+        Row: {
+          battle_id: string
+          id: string
+          joined_at: string
+          role: string
+          side: string
+          stream_id: string | null
+          user_id: string
+        }
+        Insert: {
+          battle_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          side: string
+          stream_id?: string | null
+          user_id: string
+        }
+        Update: {
+          battle_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          side?: string
+          stream_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pk_battle_teams_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "pk_battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pk_battles: {
         Row: {
           challenger_id: string | null
           challenger_score: number | null
           challenger_stream_id: string | null
+          competition_id: string | null
           connect_grace_seconds: number
           created_at: string | null
           duration_minutes: number | null
@@ -9870,6 +9909,7 @@ export type Database = {
           host2_score: number | null
           id: string
           min_host_level: number
+          mode: string
           mvp_user_id: string | null
           opponent_id: string | null
           opponent_score: number | null
@@ -9880,6 +9920,7 @@ export type Database = {
           status: string | null
           stream1_id: string | null
           stream2_id: string | null
+          team_size: number
           total_gift_value: number
           updated_at: string
           winner_id: string | null
@@ -9889,6 +9930,7 @@ export type Database = {
           challenger_id?: string | null
           challenger_score?: number | null
           challenger_stream_id?: string | null
+          competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
           duration_minutes?: number | null
@@ -9901,6 +9943,7 @@ export type Database = {
           host2_score?: number | null
           id?: string
           min_host_level?: number
+          mode?: string
           mvp_user_id?: string | null
           opponent_id?: string | null
           opponent_score?: number | null
@@ -9911,6 +9954,7 @@ export type Database = {
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          team_size?: number
           total_gift_value?: number
           updated_at?: string
           winner_id?: string | null
@@ -9920,6 +9964,7 @@ export type Database = {
           challenger_id?: string | null
           challenger_score?: number | null
           challenger_stream_id?: string | null
+          competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
           duration_minutes?: number | null
@@ -9932,6 +9977,7 @@ export type Database = {
           host2_score?: number | null
           id?: string
           min_host_level?: number
+          mode?: string
           mvp_user_id?: string | null
           opponent_id?: string | null
           opponent_score?: number | null
@@ -9942,12 +9988,21 @@ export type Database = {
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          team_size?: number
           total_gift_value?: number
           updated_at?: string
           winner_id?: string | null
           winner_user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pk_battles_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "pk_competitions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pk_competition_rewards: {
         Row: {
@@ -16123,6 +16178,30 @@ export type Database = {
         }
         Relationships: []
       }
+      pk_agency_leaderboard: {
+        Row: {
+          agency_id: string | null
+          losses: number | null
+          total_score: number | null
+          wins: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_hosts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_hosts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles_public: {
         Row: {
           age: number | null
@@ -19788,6 +19867,15 @@ export type Database = {
       pk_match_queue_join: { Args: { p_stream_id: string }; Returns: Json }
       pk_match_queue_leave: { Args: never; Returns: Json }
       pk_match_queue_poll: { Args: never; Returns: Json }
+      pk_team_invite: {
+        Args: {
+          p_battle_id: string
+          p_side: string
+          p_stream_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       place_game_bet: {
         Args: {
           p_amount: number
