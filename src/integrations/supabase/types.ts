@@ -2748,6 +2748,42 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_ledger: {
+        Row: {
+          call_id: string
+          caller_id: string
+          created_at: string
+          host_credited: number
+          host_id: string
+          id: number
+          minute_number: number
+          source: string
+          viewer_deducted: number
+        }
+        Insert: {
+          call_id: string
+          caller_id: string
+          created_at?: string
+          host_credited?: number
+          host_id: string
+          id?: number
+          minute_number: number
+          source?: string
+          viewer_deducted?: number
+        }
+        Update: {
+          call_id?: string
+          caller_id?: string
+          created_at?: string
+          host_credited?: number
+          host_id?: string
+          id?: number
+          minute_number?: number
+          source?: string
+          viewer_deducted?: number
+        }
+        Relationships: []
+      }
       blocked_ips: {
         Row: {
           blocked_at: string | null
@@ -10322,27 +10358,34 @@ export type Database = {
           caller_rating: number | null
           coins_per_minute: number | null
           coins_spent: number | null
+          connect_grace_seconds: number
           connected_at: string | null
           created_at: string
           duration_seconds: number | null
           e2ee_key: string | null
           end_reason: string | null
           ended_at: string | null
+          final_status: string | null
           host_earned: number | null
           host_earnings_amount: number | null
           host_earnings_credited: boolean | null
           host_earnings_credited_at: string | null
           host_earnings_credited_by: string | null
           host_id: string
+          host_rate_per_min: number | null
           host_rating: number | null
           id: string
+          last_billed_minute: number
           last_billing_at: string | null
+          platform_cut_percent: number | null
           settled_at: string | null
           started_at: string | null
           status: string
           stream_id: string | null
           total_coins_deducted: number | null
+          total_minutes_billed: number
           updated_at: string | null
+          viewer_rate_per_min: number | null
         }
         Insert: {
           admin_notes?: string | null
@@ -10350,27 +10393,34 @@ export type Database = {
           caller_rating?: number | null
           coins_per_minute?: number | null
           coins_spent?: number | null
+          connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           e2ee_key?: string | null
           end_reason?: string | null
           ended_at?: string | null
+          final_status?: string | null
           host_earned?: number | null
           host_earnings_amount?: number | null
           host_earnings_credited?: boolean | null
           host_earnings_credited_at?: string | null
           host_earnings_credited_by?: string | null
           host_id: string
+          host_rate_per_min?: number | null
           host_rating?: number | null
           id?: string
+          last_billed_minute?: number
           last_billing_at?: string | null
+          platform_cut_percent?: number | null
           settled_at?: string | null
           started_at?: string | null
           status?: string
           stream_id?: string | null
           total_coins_deducted?: number | null
+          total_minutes_billed?: number
           updated_at?: string | null
+          viewer_rate_per_min?: number | null
         }
         Update: {
           admin_notes?: string | null
@@ -10378,27 +10428,34 @@ export type Database = {
           caller_rating?: number | null
           coins_per_minute?: number | null
           coins_spent?: number | null
+          connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           e2ee_key?: string | null
           end_reason?: string | null
           ended_at?: string | null
+          final_status?: string | null
           host_earned?: number | null
           host_earnings_amount?: number | null
           host_earnings_credited?: boolean | null
           host_earnings_credited_at?: string | null
           host_earnings_credited_by?: string | null
           host_id?: string
+          host_rate_per_min?: number | null
           host_rating?: number | null
           id?: string
+          last_billed_minute?: number
           last_billing_at?: string | null
+          platform_cut_percent?: number | null
           settled_at?: string | null
           started_at?: string | null
           status?: string
           stream_id?: string | null
           total_coins_deducted?: number | null
+          total_minutes_billed?: number
           updated_at?: string | null
+          viewer_rate_per_min?: number | null
         }
         Relationships: []
       }
@@ -18430,6 +18487,7 @@ export type Database = {
         }
         Returns: Json
       }
+      bill_call_minute: { Args: { p_call_id: string }; Returns: Json }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -19144,6 +19202,12 @@ export type Database = {
       }
       get_background_unread_total: { Args: never; Returns: number }
       get_beans_per_usd: { Args: never; Returns: number }
+      get_billable_call_ids: {
+        Args: never
+        Returns: {
+          call_id: string
+        }[]
+      }
       get_call_e2ee_key: { Args: { _call_id: string }; Returns: string }
       get_conversations_with_details: {
         Args: { p_user_id: string }
