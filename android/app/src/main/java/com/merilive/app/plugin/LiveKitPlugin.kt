@@ -1685,6 +1685,7 @@ class LiveKitPlugin : Plugin() {
             if (releaseRenderers) try { renderer.release() } catch (_: Exception) {}
         }
         if (releaseRenderers) remoteRenderers.clear()
+        if (releaseRenderers) try { com.merilive.app.rtc.BoundedSurfaceHost.detachAll() } catch (_: Exception) {}
         webView?.setBackgroundColor(0xFF000000.toInt())
         (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
         webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
