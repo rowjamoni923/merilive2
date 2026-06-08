@@ -202,3 +202,40 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 5. `adb logcat | grep "DJ / karaoke"` — confirm music profile path executes; `dumpsys audio` shows MODE_NORMAL during music live.
 6. Throttle to 100 kbps → audio-only fallback fires as before.
 
+
+---
+
+## Phase II — PK Battle ✅ AUDIT + FIX (2026-06-08)
+
+**Research-first ✅** — sub-agent verified 13 industry params against Bigo / Chamet / Poppo / TikTok / Tencent TUILiveKit (sources in mem://features/pk-battle-research.md).
+
+**Audit result:** Memory said "100% broken"; reality is ~95% complete (6/6 server-authoritative pieces shipped across migrations 20260608014122 → 20260608020533). The only real gap was a single race-condition bug in the React accept handler.
+
+### Fixed this pass:
+- **R1 (BUG, P0)** `src/pages/LiveStream.tsx:2645` `handlePKRequestAccept` did a raw `supabase.from('pk_battles').update({status:'accepted', started_at:...})`, bypassing the SECURITY DEFINER `accept_pk_battle` RPC's SELECT FOR UPDATE and `already_handled` guard. Two concurrent accepts from two devices could double-stamp. Now calls `supabase.rpc('accept_pk_battle', { p_battle_id })` — race-free, server-clock started_at.
+
+### Confirmed already correct (no change needed):
+- Server-only score writer: `bill_pk_gift()` invoked from `gift-service` edge fn under service_role; clients only optimistically render and reconcile via `postgres_changes`.
+- Server timer: `started_at` stamped by RPC; `get_expired_pk_battles()` + `pk-battle-tick` edge fn (pg_cron 10s) drives `end_pk_battle()`.
+- 70/30 reward split: `end_pk_battle()` distributes `FLOOR(loser_score * 0.70)` across winning side via `pk_battle_teams` + writes `coin_transactions` rows.
+- Eligibility / level gating: `min_host_level=5` column default + check in `start_pk_battle`.
+- Realtime: client uses `postgres_changes` + 0ms optimistic bump (industry standard per-gift broadcast).
+- LiveKit dual-room: `usePKOpponentRoom` + `livekit-pk-opponent` profile matches Tencent TRTC reference.
+
+### Files edited (1):
+- `src/pages/LiveStream.tsx` (replaced raw client UPDATE with `accept_pk_battle` RPC + soft-fail logging)
+
+### Memory created:
+- `mem://features/pk-battle-research.md` (was referenced in index but file didn't exist — now contains the full audit + research table + sources)
+
+### Deferred cleanup (no user impact, defer until requested):
+- R2: Drop `pk_battle_gifts.receiver_id` dead column.
+- R3: Drop `pk_match_queue` table + 3 unused RPCs.
+- R4: MVP cash bonus — research confirms no platform does this; MVP is a badge/visibility reward only.
+- R5: ~10s cosmetic "TIME'S UP" lag before cron ticks — reduce cron interval to 5s only if users complain.
+
+### Verification (Lovable preview using owner account smdollarex923@gmail.com):
+1. Start live on owner account, send PK invite to another owner-test stream, accept on second device → only ONE accept succeeds; second returns `ok:false, error:'already_handled'`.
+2. During battle, send gift to either side → score updates on both clients within ~200ms (server `bill_pk_gift` + postgres_changes).
+3. Wait 5min → battle ends within 10s of timer expiry; winner side beans += 70% of loser score; `coin_transactions` row of type `pk_battle_reward` inserted.
+4. Punishment overlay shows for 90s after end on losing side.
