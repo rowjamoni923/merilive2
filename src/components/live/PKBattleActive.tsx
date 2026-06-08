@@ -475,6 +475,94 @@ export const PKBattleActive = ({
             />
           </div>
         </div>
+
+        {/* Step 4: Winner / Draw / Punishment overlay */}
+        <AnimatePresence>
+          {battleEnded && (
+            <motion.div
+              key="pk-result"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", damping: 22, stiffness: 280 }}
+              className="absolute inset-x-2 top-1 z-20 rounded-2xl px-3 py-2.5 flex items-center justify-between gap-3"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(76,29,149,0.92) 100%)",
+                border: "1px solid rgba(251,191,36,0.45)",
+                boxShadow:
+                  "0 14px 36px -10px rgba(251,191,36,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
+                backdropFilter: "blur(14px) saturate(140%)",
+                WebkitBackdropFilter: "blur(14px) saturate(140%)",
+              }}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {winnerUserId ? (
+                  <motion.div
+                    animate={{ rotate: [0, -8, 8, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ filter: "drop-shadow(0 0 10px rgba(251,191,36,0.9))" }}
+                  >
+                    <Trophy className="w-6 h-6 text-amber-400" />
+                  </motion.div>
+                ) : (
+                  <Swords className="w-6 h-6 text-white/70" />
+                )}
+                <div className="min-w-0">
+                  <p
+                    className="text-[10px] uppercase tracking-widest text-amber-300/90 font-semibold"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                  >
+                    {finalStatus === "draw"
+                      ? "Draw"
+                      : finalStatus === "forfeit_left" || finalStatus === "forfeit_disconnect"
+                        ? "Forfeit"
+                        : "Winner"}
+                  </p>
+                  <p className="text-white text-sm font-extrabold truncate" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                    {winnerUserId === challengerId
+                      ? challengerName
+                      : winnerUserId === opponentId
+                        ? opponentName
+                        : "—"}
+                  </p>
+                </div>
+              </div>
+
+              {mvpUserId && (
+                <div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
+                    border: "1px solid rgba(251,191,36,0.55)",
+                    boxShadow: "0 0 12px rgba(251,191,36,0.35)",
+                  }}
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
+                </div>
+              )}
+
+              {punishLeft > 0 && winnerUserId && (
+                <motion.div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(239,68,68,0.35), rgba(220,38,38,0.25))",
+                    border: "1px solid rgba(252,165,165,0.5)",
+                    boxShadow: "0 0 12px rgba(239,68,68,0.45)",
+                  }}
+                  animate={{ scale: [1, 1.04, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                >
+                  <Frown className="w-3.5 h-3.5 text-rose-200" />
+                  <span className="font-mono text-xs tabular-nums font-bold text-rose-100">
+                    {formatTime(punishLeft)}
+                  </span>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
