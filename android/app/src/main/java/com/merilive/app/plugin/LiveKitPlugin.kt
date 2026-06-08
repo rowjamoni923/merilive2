@@ -530,6 +530,42 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Exception) {}
 
         val r = room ?: return
+        val scopeName = lastConnectArgs?.roomScope ?: "call"
+        if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
+            scope.launch {
+                try {
+                    Log.i(TAG, "Process background: ending native $scopeName media session")
+                    lastConnectArgs = null
+                    stopReconnectWatchdog()
+                    hardReconnectAttempts = 0
+                    try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+                    try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+                    activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+                    try { r.disconnect() } catch (_: Exception) {}
+                    releaseRoomResources(r, "process-background")
+                    try { com.merilive.app.rtc.RtcEngineManager.unbind("process-background", r) } catch (_: Throwable) {}
+                    room = null
+                    setKeepScreenOn(false)
+                    setProximityMonitoringInternal(false)
+                    applyAudioMode(false)
+                    unregisterAudioDeviceListener()
+                    unregisterHeadsetReceivers()
+                    stopHeadsetMediaSession()
+                    stopBluetoothScoInternal()
+                    abandonAudioFocusInternal()
+                    stopCallForegroundService()
+                    CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
+                    val data = JSObject()
+                    data.put("reason", "PROCESS_BACKGROUND")
+                    notifyListeners("disconnected", data)
+                } catch (e: Exception) {
+                    Log.w(TAG, "process-background cleanup failed: ${e.message}")
+                }
+            }
+            return
+        }
         if (!pauseCameraOnBackground) return
 
         if (!foreground) {
