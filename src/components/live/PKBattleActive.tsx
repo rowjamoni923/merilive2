@@ -35,44 +35,66 @@ export const PKBattleActive = ({
 }: PKBattleActiveProps) => {
   const [challengerScore, setChallengerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
+  // PK Battle Step 3: timer is server-authoritative.
+  // We compute timeLeft from `started_at + duration_seconds - now()` on every
+  // tick rather than counting down locally. If the device clock drifts we
+  // re-anchor off the server timestamp on every Realtime UPDATE.
+  const [serverStartedAt, setServerStartedAt] = useState<number | null>(null);
+  const [serverDurationSec, setServerDurationSec] = useState<number>(300);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [battleEnded, setBattleEnded] = useState(false);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
 
-  // Pkg181: INSTANT score sync — 0ms perceived latency, NO polling.
-  //   1. Initial DB seed once (mid-battle rejoin safety).
-  //   2. Own-room gifts → LiveKit `livekit-gift-sent` event → optimistic bump (0ms).
-  //   3. Cross-room (opponent's room) gifts → Supabase Realtime UPDATE on the
-  //      single pk_battles row (bounded ≤180s, 1 channel per viewer, auto-cleanup
-  //      at battleEnd). PK battle is cross-room (challenger/opponent in separate
-  //      LiveKit rooms) so DataPackets can't cross — this single bounded row is
-  //      the correct source of truth and matches the "LiveKit + Supabase parallel"
-  //      rule (LiveKit where it can cover, Supabase Realtime where it can't).
-  // Replaces Pkg82e 5000ms setInterval poll completely. No setInterval anywhere.
+  // PK Battle Step 3 — REWORKED:
+  //   1. Seed from server-authoritative columns (challenger_score, opponent_score,
+  //      started_at, duration_seconds, status, winner_user_id, final_status).
+  //   2. Supabase Realtime on the bounded pk_battles row delivers server-side
+  //      score writes from bill_pk_gift() within ~200ms — no client writes.
+  //   3. Own-room LiveKit gift event still gives a 0ms optimistic bump for the
+  //      sender's HUD; the Realtime UPDATE reconciles to the server value shortly
+  //      after, so transient over/under-counts heal automatically.
+  //   4. Battle end is signalled by status='ended' + winner_user_id (uuid) set
+  //      by the server pk-battle-tick cron — client NEVER writes status/winner.
   useEffect(() => {
     if (battleEnded) return;
     let cancelled = false;
 
-    // 1. Seed once from DB
+    const applyRow = (row: {
+      challenger_score?: number | null;
+      opponent_score?: number | null;
+      started_at?: string | null;
+      duration_seconds?: number | null;
+      status?: string | null;
+      winner_user_id?: string | null;
+      final_status?: string | null;
+    }) => {
+      if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
+      if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
+      if (row.started_at) setServerStartedAt(new Date(row.started_at).getTime());
+      if (typeof row.duration_seconds === "number" && row.duration_seconds > 0) {
+        setServerDurationSec(row.duration_seconds);
+      }
+      if (row.status === "ended") {
+        setBattleEnded(true);
+        onBattleEnd(row.winner_user_id ?? null);
+      }
+    };
+
     const seedBattle = async () => {
       const { data } = await supabase
         .from("pk_battles")
-        .select("challenger_score, opponent_score, status, winner_id")
+        .select(
+          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id",
+        )
         .eq("id", battleId)
         .maybeSingle();
       if (cancelled || !data) return;
-      setChallengerScore(data.challenger_score || 0);
-      setOpponentScore(data.opponent_score || 0);
-      if (data.status === "completed") {
-        setBattleEnded(true);
-        onBattleEnd(data.winner_id);
-      }
+      applyRow(data);
     };
     seedBattle();
 
-    // 2. Cross-room source of truth: Supabase Realtime on single bounded row.
-    // guard-ok: pk-battle row sync, single row filter, bounded ≤180s, auto-cleanup
+    // guard-ok: pk-battle row sync, single row filter, bounded by battle lifetime, auto-cleanup
     const channel = supabase
       .channel(`pk_battle_row_${battleId}`)
       .on(
@@ -80,24 +102,12 @@ export const PKBattleActive = ({
         { event: "UPDATE", schema: "public", table: "pk_battles", filter: `id=eq.${battleId}` },
         (payload) => {
           if (cancelled) return;
-          const row = payload.new as {
-            challenger_score?: number;
-            opponent_score?: number;
-            status?: string;
-            winner_id?: string | null;
-          };
-          if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
-          if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
-          if (row.status === "completed") {
-            setBattleEnded(true);
-            onBattleEnd(row.winner_id ?? null);
-          }
+          applyRow(payload.new as Parameters<typeof applyRow>[0]);
         },
       )
       .subscribe();
 
-    // 3. Own-room LiveKit gift event → 0ms optimistic bump.
-    //    Supabase Realtime UPDATE reconciles shortly after DB write completes.
+    // 0ms optimistic UI bump from own-room LiveKit gift — server reconciles.
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
@@ -119,44 +129,21 @@ export const PKBattleActive = ({
   }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd]);
 
 
-  // Countdown timer
+  // PK Battle Step 3: derive timeLeft from server timestamps every second.
+  // No client-side battle ending — pk-battle-tick cron handles it server-side.
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          endBattle();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
+    if (battleEnded || !serverStartedAt) return;
+    const endTs = serverStartedAt + serverDurationSec * 1000;
+    const tick = () => {
+      const remainMs = endTs - Date.now();
+      setTimeLeft(Math.max(0, Math.ceil(remainMs / 1000)));
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [serverStartedAt, serverDurationSec, battleEnded]);
 
-  const endBattle = async () => {
-    if (battleEnded) return;
-    
-    const winnerId = challengerScore > opponentScore 
-      ? (isChallenger ? "challenger" : "opponent")
-      : challengerScore < opponentScore 
-      ? (isChallenger ? "opponent" : "challenger")
-      : null;
 
-    try {
-      await supabase
-        .from("pk_battles")
-        .update({
-          status: "completed",
-          ended_at: new Date().toISOString(),
-          winner_id: winnerId,
-        })
-        .eq("id", battleId);
-    } catch (error) {
-      console.error("Error ending battle:", error);
-    }
-  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
