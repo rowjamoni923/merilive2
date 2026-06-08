@@ -60,7 +60,7 @@
         <!-- Switch to main theme once splash dismisses -->
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
-    </style>
+
 
     <!-- Pkg500 Phase A — in-call action button (mic / flip / beauty / gift). -->
     <style name="PrivateCallActionButton">
