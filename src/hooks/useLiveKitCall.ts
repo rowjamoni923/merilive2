@@ -638,12 +638,27 @@ export function useLiveKitCall(
               clearTimeout(reconnectBudgetTimerRef.current);
               reconnectBudgetTimerRef.current = null;
             }
+            // Honest-private-call fix (F-11): tell usePrivateCall the
+            // reconnect is over so the duration timer resumes.
+            try {
+              window.dispatchEvent(new CustomEvent('livekit-call-reconnected', {
+                detail: { callId: callIdRef.current },
+              }));
+            } catch { /* ignore */ }
           } else if (connectionState === ConnectionState.Reconnecting) {
             // Honest-private-call fix (F-12 + F-13): make reconnect visible
             // to the UI and arm a 15s budget — if we haven't recovered by
             // then, force-end the call with reason `network` so we never
             // hang forever while billing keeps ticking.
             setState(p => ({ ...p, connectionState: 'connecting' as any, isConnected: false }));
+            // Honest-private-call fix (F-11): pause the visible duration
+            // counter while the call is reconnecting (server-side billing
+            // tick is separately governed by `connected_at`).
+            try {
+              window.dispatchEvent(new CustomEvent('livekit-call-reconnecting', {
+                detail: { callId: callIdRef.current },
+              }));
+            } catch { /* ignore */ }
             if (!reconnectBudgetTimerRef.current) {
               reconnectBudgetTimerRef.current = setTimeout(() => {
                 reconnectBudgetTimerRef.current = null;
