@@ -4123,6 +4123,15 @@ const LiveStream = () => {
         />
       )}
 
+      {/* PK Battle Punishment Overlay — loser-only, self-expires on punishment_end_ts */}
+      {pkPunishment && currentUserId && (
+        <PKPunishmentOverlay
+          battleId={pkPunishment.battleId}
+          currentUserId={currentUserId}
+          onComplete={() => setPKPunishment(null)}
+        />
+      )}
+
       {/* PK Battle Result */}
       {showPKResult && pkResult && (
         <PKBattleResult
@@ -4134,6 +4143,9 @@ const LiveStream = () => {
           loserName={pkResult.loserName}
           loserAvatar={pkResult.loserAvatar}
           loserScore={pkResult.loserScore}
+          mvpName={pkResult.mvpName}
+          mvpAvatar={pkResult.mvpAvatar}
+          mvpCoins={pkResult.mvpCoins}
           onClose={handleClosePKResult}
         />
       )}
