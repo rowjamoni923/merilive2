@@ -366,6 +366,40 @@ export const PKBattleResult = ({
               </motion.div>
             </div>
 
+            {isWinner && !isDraw && typeof rewardCoins === "number" && rewardCoins > 0 && (
+              <motion.div
+                className="mt-5 relative rounded-2xl overflow-hidden flex items-center justify-center gap-2 px-4 py-2.5"
+                initial={{ y: 14, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6, type: "spring", damping: 18, stiffness: 240 }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(34,197,94,0.22) 0%, rgba(16,185,129,0.14) 50%, rgba(34,197,94,0.22) 100%)",
+                  border: "1px solid rgba(34,197,94,0.5)",
+                  boxShadow:
+                    "0 10px 24px -8px rgba(34,197,94,0.45), 0 0 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
+                }}
+              >
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+                  Reward Earned
+                </span>
+                <span className="text-base" style={{ filter: "drop-shadow(0 1px 3px rgba(34,197,94,0.55))" }}>
+                  🪙
+                </span>
+                <span
+                  className="text-lg font-black tabular-nums"
+                  style={{
+                    background: "linear-gradient(180deg, #d1fae5 0%, #34d399 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    filter: "drop-shadow(0 0 8px rgba(34,197,94,0.5))",
+                  }}
+                >
+                  +{rewardCoins}
+                </span>
+              </motion.div>
+            )}
+
             {mvpName && (
               <motion.div
                 className="mt-5 relative rounded-2xl overflow-hidden"
