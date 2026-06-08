@@ -19232,6 +19232,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      force_run_weekly_agency_transfers: { Args: never; Returns: Json }
       game_cashout: {
         Args: {
           p_bet_id: string
