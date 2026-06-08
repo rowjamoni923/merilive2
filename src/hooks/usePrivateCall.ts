@@ -1444,6 +1444,14 @@ export function usePrivateCall(userId: string | null) {
       if (!activeId) return;
       if (detail?.callId && detail.callId !== activeId) return;
       reconnectingRef.current = true;
+      // Backend P1: tell the server to PAUSE billing while we reconnect.
+      // bill_call_minute() reads private_calls.is_reconnecting and skips.
+      supabase.rpc('mark_call_reconnecting', {
+        p_call_id: activeId,
+        p_reconnecting: true,
+      }).then(({ error }) => {
+        if (error) console.warn('[PrivateCall] mark_call_reconnecting(true) failed:', error.message);
+      });
     };
     const handleLiveKitReconnected = (event: Event) => {
       const detail = (event as CustomEvent).detail as { callId?: string } | undefined;
@@ -1451,7 +1459,15 @@ export function usePrivateCall(userId: string | null) {
       if (!activeId) return;
       if (detail?.callId && detail.callId !== activeId) return;
       reconnectingRef.current = false;
+      // Backend P1: resume server-side billing.
+      supabase.rpc('mark_call_reconnecting', {
+        p_call_id: activeId,
+        p_reconnecting: false,
+      }).then(({ error }) => {
+        if (error) console.warn('[PrivateCall] mark_call_reconnecting(false) failed:', error.message);
+      });
     };
+
 
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
