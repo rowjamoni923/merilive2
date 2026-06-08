@@ -1056,9 +1056,11 @@ class LiveKitPlugin : Plugin() {
         micIntentBeforeLoss = args.audio
         requestAudioFocusInternal()
 
-        // Step 14 — promote process to a foreground service so Android
-        // 14+ keeps mic/camera alive when the user backgrounds the app.
-        startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
+        // Step 14 — promote publishers only. Receive-only viewers must not
+        // show/hold a camera|microphone foreground service.
+        if (args.video || args.audio) {
+            startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
+        }
 
         // Step 25 — start the video stall watchdog for this session.
         startStallWatchdog()
