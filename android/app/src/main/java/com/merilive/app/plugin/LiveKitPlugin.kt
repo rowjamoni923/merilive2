@@ -575,6 +575,47 @@ class LiveKitPlugin : Plugin() {
 
         val r = room ?: return
         val scopeName = lastConnectArgs?.roomScope ?: "call"
+        val isLiveHost = scopeName == "live" && lastConnectArgs?.broadcastMode == "live"
+
+        // Phase I.b — Bigo/Chamet-class 60s background grace for live HOST.
+        // FGS keeps mic + Room alive; we only pause the camera so viewers see
+        // the frozen last keyframe with a "Host is away" hint (JS overlay).
+        // If the host returns before LIVE_HOST_BG_GRACE_MS, video resumes
+        // instantly. Otherwise we run the existing teardown path.
+        if (!foreground && isLiveHost) {
+            try {
+                liveHostGraceJob?.cancel()
+                val endsAtMs = System.currentTimeMillis() + LIVE_HOST_BG_GRACE_MS
+                val payload = JSObject()
+                payload.put("endsAtMs", endsAtMs)
+                payload.put("graceMs", LIVE_HOST_BG_GRACE_MS)
+                notifyListeners("live-host-grace-start", payload)
+            } catch (_: Exception) {}
+            // Pause camera (mic stays on so viewers keep hearing the host).
+            scope.launch {
+                try { setNativeCameraEnabledWithOemRetry(r, false, "live-host-grace") }
+                catch (e: Exception) { Log.w(TAG, "live-host-grace camera off failed: ${e.message}") }
+            }
+            liveHostGraceJob = scope.launch {
+                try {
+                    delay(LIVE_HOST_BG_GRACE_MS)
+                    if (processInBackground) {
+                        Log.i(TAG, "Live host grace expired — ending native live session")
+                        try {
+                            val expired = JSObject()
+                            expired.put("reason", "GRACE_EXPIRED")
+                            notifyListeners("live-host-grace-end", expired)
+                        } catch (_: Exception) {}
+                        endLiveSessionAfterGrace(r)
+                    }
+                } catch (_: kotlinx.coroutines.CancellationException) {
+                    // host returned in time — handled in foreground branch
+                }
+            }
+            return
+        }
+
+        // Viewers + party + private call → preserve existing immediate teardown.
         if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
             scope.launch {
                 try {
@@ -608,6 +649,22 @@ class LiveKitPlugin : Plugin() {
                     Log.w(TAG, "process-background cleanup failed: ${e.message}")
                 }
             }
+            return
+        }
+
+        // Foreground transition for live host: cancel grace, restore camera.
+        if (foreground && isLiveHost && liveHostGraceJob != null) {
+            try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
+            liveHostGraceJob = null
+            scope.launch {
+                try { setNativeCameraEnabledWithOemRetry(r, true, "live-host-grace-resume") }
+                catch (e: Exception) { Log.w(TAG, "live-host-grace resume failed: ${e.message}") }
+            }
+            try {
+                val resumed = JSObject()
+                resumed.put("reason", "RESUMED")
+                notifyListeners("live-host-grace-end", resumed)
+            } catch (_: Exception) {}
             return
         }
         if (!pauseCameraOnBackground) return
