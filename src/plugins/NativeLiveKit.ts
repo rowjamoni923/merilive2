@@ -281,6 +281,12 @@ export interface NativeLiveKitPlugin {
   getCameraOwner(): Promise<{ owner: string | null }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
+  /**
+   * Phase I — update the live-broadcast foreground notification with
+   * current viewer count and coin total. No-op when broadcastMode !== 'live'
+   * or no FGS is running. Safe to call on every viewer-count realtime tick.
+   */
+  updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void>;
   sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled?: boolean; skipped?: boolean; reason?: string } | void>;
