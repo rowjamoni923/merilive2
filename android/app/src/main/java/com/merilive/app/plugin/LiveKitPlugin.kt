@@ -1992,6 +1992,66 @@ class LiveKitPlugin : Plugin() {
                         val now = System.currentTimeMillis()
                         stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
                     }
+                    // N3b — active speakers (server-driven loudness ranking).
+                    // Mirrors Agora onAudioVolumeIndication / Bigo IBGLiveLink speaker
+                    // detection. Used by the UI to pulse mic-rings on the loudest seats.
+                    is RoomEvent.ActiveSpeakersChanged -> {
+                        val arr = com.getcapacitor.JSArray()
+                        event.speakers.forEach { p ->
+                            val item = JSObject()
+                            item.put("sid", p.sid.value)
+                            item.put("identity", p.identity?.value ?: "")
+                            item.put("audioLevel", p.audioLevel)
+                            item.put("isSpeaking", p.isSpeaking)
+                            item.put("isLocal", p == r.localParticipant)
+                            arr.put(item)
+                        }
+                        val data = JSObject()
+                        data.put("speakers", arr)
+                        notifyListeners("active-speakers-changed", data)
+                    }
+                    // N3b — participant metadata (per-user JSON blob: badge, level, role).
+                    is RoomEvent.ParticipantMetadataChanged -> {
+                        val data = JSObject()
+                        data.put("sid", event.participant.sid.value)
+                        data.put("identity", event.participant.identity?.value ?: "")
+                        data.put("metadata", event.participant.metadata ?: "")
+                        data.put("prevMetadata", event.prevMetadata ?: "")
+                        notifyListeners("participant-metadata-changed", data)
+                    }
+                    // N3b — participant name (display-name push from server-side update).
+                    is RoomEvent.ParticipantNameChanged -> {
+                        val data = JSObject()
+                        data.put("sid", event.participant.sid.value)
+                        data.put("identity", event.participant.identity?.value ?: "")
+                        data.put("name", event.participant.name ?: "")
+                        notifyListeners("participant-name-changed", data)
+                    }
+                    // N3b — room metadata (room-wide JSON: PK state, theme, banner).
+                    is RoomEvent.RoomMetadataChanged -> {
+                        val data = JSObject()
+                        data.put("metadata", event.newMetadata ?: "")
+                        data.put("prevMetadata", event.prevMetadata ?: "")
+                        notifyListeners("room-metadata-changed", data)
+                    }
+                    is RoomEvent.TranscriptionReceived -> {
+                        val segs = com.getcapacitor.JSArray()
+                        event.transcriptionSegments.forEach { s ->
+                            val item = JSObject()
+                            item.put("id", s.id)
+                            item.put("text", s.text)
+                            item.put("language", s.language)
+                            item.put("firstReceivedTime", s.firstReceivedTime)
+                            item.put("lastReceivedTime", s.lastReceivedTime)
+                            item.put("final", s.`final`)
+                            segs.put(item)
+                        }
+                        val data = JSObject()
+                        data.put("participantSid", event.participant?.sid?.value ?: "")
+                        data.put("participantIdentity", event.participant?.identity?.value ?: "")
+                        data.put("segments", segs)
+                        notifyListeners("transcription-received", data)
+                    }
                     else -> { /* ignore */ }
                 }
             }
@@ -4053,12 +4113,24 @@ class LiveKitPlugin : Plugin() {
 
     private fun resolvePublishCodec(): String? {
         val want = preferredCodec.lowercase()
-        if (want == "auto" || want.isBlank()) return null
+        val caps = probeCodecCapabilities()
+        // N3a — when JS leaves codec as "auto", pick the best HW-encoded codec.
+        // Industry standard for live streaming on Android (Bigo/Chamet/Olamet):
+        // H.264 baseline — universally HW-encoded since 2014, 30-40 % lower CPU
+        // than VP8 software, better quality per bit. Prefer AV1/VP9 only on
+        // newer SoCs that have HW encode. Last resort = SDK default (VP8 sw).
+        if (want == "auto" || want.isBlank()) {
+            return when {
+                caps.optJSONObject("h264")?.optBoolean("hwEncode") == true -> "h264"
+                caps.optJSONObject("vp9")?.optBoolean("hwEncode") == true -> "vp9"
+                caps.optJSONObject("av1")?.optBoolean("hwEncode") == true -> "av1"
+                else -> null
+            }
+        }
         if (want !in supportedCodecs) return null
         // Only honour the preference if MediaCodec can HW-encode it;
         // otherwise let the SDK fall back to its default to avoid a
         // software encoder pinning the CPU at 100 %.
-        val caps = probeCodecCapabilities()
         val hw = caps.optJSONObject(want)?.optBoolean("hwEncode", false) ?: false
         return if (hw) want else null
     }
