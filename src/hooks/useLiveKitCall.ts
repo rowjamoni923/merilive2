@@ -113,6 +113,12 @@ export function useLiveKitCall(
   useNativeLiveKitEvents(nativeActive, {
     onDisconnected: (reason) => {
       console.log('[LiveKitCall/Native] disconnected:', reason);
+      if (reason === 'PROCESS_BACKGROUND' || reason === 'CLIENT_INITIATED') {
+        usingNativeRef.current = false;
+        setNativeActive(false);
+        setState(p => ({ ...p, isConnected: false, isNativeMediaActive: false, connectionState: 'new' }));
+        return;
+      }
       if (deadRef.current) return;
       setState(p => ({ ...p, isConnected: false, connectionState: 'connecting' }));
       toast.loading('Restoring call…', { id: 'lk-reconnect' });
