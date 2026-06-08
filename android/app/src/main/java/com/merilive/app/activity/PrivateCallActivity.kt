@@ -586,7 +586,95 @@ class PrivateCallActivity : ComponentActivity() {
         closeReceiver = null
         billingReceiver?.let { runCatching { unregisterReceiver(it) } }
         billingReceiver = null
+        runCatching { audioRouter?.detach() }
+        audioRouter = null
         super.onDestroy()
+    }
+
+    // ------------------------------------------------------------------
+    // Phase E — Picture-in-Picture
+    // ------------------------------------------------------------------
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // User pressed Home while the call is connected → drop into PIP so
+        // the video keeps flowing in a floating window (WhatsApp pattern).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !inPipMode) {
+            val st = vm.state.value
+            if (st == PrivateCallViewModel.CallState.CONNECTED ||
+                st == PrivateCallViewModel.CallState.RECONNECTING
+            ) {
+                runCatching { enterPictureInPictureMode(buildPipParams()) }
+            }
+        }
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPipParams(): android.app.PictureInPictureParams {
+        val builder = android.app.PictureInPictureParams.Builder()
+            .setAspectRatio(android.util.Rational(9, 16))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+            builder.setSeamlessResizeEnabled(true)
+        }
+        return builder.build()
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: android.content.res.Configuration,
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        inPipMode = isInPictureInPictureMode
+        val hide = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        topOverlay.visibility = hide
+        bottomBar.visibility = hide
+        localPreviewContainer.visibility =
+            if (isInPictureInPictureMode) View.GONE
+            else if (vm.cameraEnabled.value) View.VISIBLE else View.INVISIBLE
+        if (isInPictureInPictureMode) {
+            lowBalanceBannerSlot.visibility = View.GONE
+        } else {
+            // Restore banner based on the current warning level.
+            renderLowBalanceBanner(vm.warningLevel.value)
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Phase E — End-screen handoff
+    // ------------------------------------------------------------------
+
+    private fun launchEndScreenAndFinish() {
+        try {
+            val id = vm.identity.value
+            val duration = vm.durationSec.value
+            val coinsSpent = estimateCoinsSpent(duration, vm.ratePerMinute.value)
+            if (id != null) {
+                val intent = PrivateCallEndActivity.newIntent(
+                    ctx = this,
+                    callId = id.callId,
+                    peerId = id.peerId,
+                    peerName = id.peerName,
+                    peerAvatar = id.peerAvatar,
+                    durationSec = duration,
+                    coinsSpent = coinsSpent,
+                    isCaller = id.isCaller,
+                    reason = vm.endReason,
+                )
+                startActivity(intent)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "launchEndScreenAndFinish: ${t.message}")
+        }
+        finishAndRemoveTask()
+    }
+
+    /** Conservative client-side estimate; server settle_private_call is truth. */
+    private fun estimateCoinsSpent(durationSec: Int, ratePerMinute: Int): Long {
+        if (durationSec <= 0 || ratePerMinute <= 0) return 0L
+        // Bill in whole minutes, rounded up (industry standard for paid calls).
+        val minutes = (durationSec + 59) / 60
+        return minutes.toLong() * ratePerMinute.toLong()
     }
 
 
