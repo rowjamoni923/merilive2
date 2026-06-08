@@ -1233,6 +1233,21 @@ export function usePrivateCall(userId: string | null) {
         return;
       }
 
+      // Phase 3B (Step 3): sync live caller balance from server-cron billing writes.
+      // bill_call_minute() updates last_billed_minute on each successful tick;
+      // the new viewer balance lives in profiles.coins, but we also surface the
+      // total_minutes_billed counter here so the in-call HUD never drifts.
+      if (row.caller_id === userId && currentCallIdRef.current === callId && !callEndedRef.current) {
+        const minutesBilled = typeof row.total_minutes_billed === 'number' ? row.total_minutes_billed : null;
+        const viewerRate = typeof row.viewer_rate_per_min === 'number' ? row.viewer_rate_per_min : null;
+        if (minutesBilled !== null && viewerRate !== null) {
+          setCallState(prev => ({
+            ...prev,
+            duration: Math.max(prev.duration, minutesBilled * 60),
+          }));
+        }
+      }
+
       if (!isTerminal(status)) return;
 
       const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
@@ -1249,6 +1264,16 @@ export function usePrivateCall(userId: string | null) {
       if (trackedCallId !== callId || callEndedRef.current || endedCallIdsRef.current.has(callId)) return;
 
       if (status === 'ended') {
+        // Phase 3B (Step 3): surface server-cron auto-end reasons to the caller UI.
+        const finalStatus = String(row.final_status || '');
+        const endReason = String(row.end_reason || '');
+        if (row.caller_id === userId && (finalStatus === 'insufficient_balance' || endReason === 'insufficient_coins')) {
+          toastRef.current({
+            title: 'Insufficient Diamonds',
+            description: 'Call ended automatically — please recharge to continue',
+            variant: 'destructive',
+          });
+        }
         softEndCallRef.current?.();
       } else {
         resetCallStateRef.current?.();
