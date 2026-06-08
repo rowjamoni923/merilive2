@@ -3541,6 +3541,31 @@ class LiveKitPlugin : Plugin() {
     }
 
     /**
+     * Phase I.b — true if a wired / USB / Bluetooth headset is connected.
+     * Used to decide whether the music-mode headphone warning should fire.
+     * Safe on all API levels; returns false when AudioManager is unavailable.
+     */
+    private fun detectHeadsetConnected(): Boolean {
+        val am = audioManager() ?: return false
+        return try {
+            val devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS) ?: return false
+            devices.any { d ->
+                d.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                d.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                d.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+                d.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                d.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    d.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "detectHeadsetConnected failed: ${e.message}")
+            false
+        }
+    }
+
+
+    /**
      * Route audio to speakerphone (true) or earpiece/Bluetooth (false).
      * Uses the modern setCommunicationDevice API on Android 12+ and falls
      * back to the legacy isSpeakerphoneOn flag on older devices.
