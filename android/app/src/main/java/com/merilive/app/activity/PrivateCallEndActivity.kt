@@ -72,6 +72,10 @@ class PrivateCallEndActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_private_call_end)
+        // L-4: register predictive-back-compatible handler.
+        onBackPressedDispatcher.addCallback(this, backHandler)
+
+
 
         val i = intent ?: run { finish(); return }
         callId = i.getStringExtra(EXTRA_CALL_ID).orEmpty()
@@ -175,11 +179,19 @@ class PrivateCallEndActivity : ComponentActivity() {
         } catch (t: Throwable) { Log.w(TAG, "broadcastRating: ${t.message}") }
     }
 
-    override fun onBackPressed() {
-        if (rating > 0) broadcastRating(rating)
-        broadcastAction("close")
-        super.onBackPressed()
+    // Honest-private-call fix (L-4): onBackPressed() override is deprecated on
+    // API 33+. With `enableOnBackInvokedCallback=true` in manifest, it doesn't
+    // fire reliably on Android 14 gesture-nav, silently dropping the rating
+    // broadcast on back-swipe. Migrated to OnBackPressedDispatcher.
+    private val backHandler = object : androidx.activity.OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (rating > 0) broadcastRating(rating)
+            broadcastAction("close")
+            isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
+
 
     private fun formatDuration(totalSec: Int): String {
         val h = totalSec / 3600

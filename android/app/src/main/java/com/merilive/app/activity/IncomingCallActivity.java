@@ -56,6 +56,10 @@ public class IncomingCallActivity extends AppCompatActivity {
             setTurnScreenOn(true);
             KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             if (km != null) km.requestDismissKeyguard(this, null);
+            // Honest-private-call fix (I-1): API 27+ path was missing
+            // FLAG_KEEP_SCREEN_ON, so a 15-30s screen-timeout could blank
+            // the display mid-ring before the user could answer.
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -63,6 +67,7 @@ public class IncomingCallActivity extends AppCompatActivity {
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+
 
         // Security - block screenshots
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
@@ -246,6 +251,17 @@ public class IncomingCallActivity extends AppCompatActivity {
             if (timeoutHandler != null && timeoutRunnable != null) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
             }
+            // Honest-private-call fix (I-2): fully stop & release the previous
+            // ringtone before the new call's ringing kicks in, otherwise the
+            // old Ringtone instance is overwritten while still streaming and
+            // two ringtones play simultaneously on rapid back-to-back calls.
+            try {
+                if (ringtone != null) {
+                    if (ringtone.isPlaying()) ringtone.stop();
+                    ringtone = null;
+                }
+            } catch (Throwable ignored) {}
+            stopRinging();
 
             callId = nid;
             String cid = intent.getStringExtra("caller_id");
@@ -257,6 +273,7 @@ public class IncomingCallActivity extends AppCompatActivity {
             String ct = intent.getStringExtra("call_type");
             if (ct != null && !ct.isEmpty()) callType = ct;
             actionDispatched = false;
+
 
             // Refresh visible UI for the new caller.
             try {

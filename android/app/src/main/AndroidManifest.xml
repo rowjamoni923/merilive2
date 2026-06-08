@@ -174,11 +174,13 @@
             android:exported="false"
             android:launchMode="singleTop"
             android:excludeFromRecents="true"
+            android:documentLaunchMode="never"
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:theme="@style/AppTheme.IncomingCall"
             android:taskAffinity=""
             android:screenOrientation="portrait" />
+
 
         <!-- Pkg500 Phase A — Native in-call surface for 1:1 paid video calls.
              singleTask + own task affinity so it never stacks on MainActivity;
@@ -258,11 +260,14 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".receiver.CallActionReceiver" android:exported="false">
-            <intent-filter>
-                <action android:name="DECLINE_CALL" />
-            </intent-filter>
-        </receiver>
+        <!-- Honest-private-call fix (M-1): removed dead `<action DECLINE_CALL/>`
+             intent-filter. All PendingIntents targeting this receiver use
+             explicit setClass; the unqualified action string never matched
+             the code's `com.merilive.app.DECLINE_CALL` constant and was a
+             dangling, misleading declaration. Receiver still works via
+             explicit broadcasts. -->
+        <receiver android:name=".receiver.CallActionReceiver" android:exported="false" />
+
 
         <!-- Pkg209 — inline reply + mark-as-read actions on DM notifications. -->
         <receiver android:name=".receiver.MessageActionReceiver" android:exported="false">

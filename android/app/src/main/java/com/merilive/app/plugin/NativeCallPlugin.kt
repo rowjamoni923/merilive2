@@ -92,8 +92,14 @@ class NativeCallPlugin : Plugin() {
             // Pkg-audit fix: real dedup — FCM can deliver the same intent twice
             // (notification action + activity button race, retry on poor net).
             // Drop if we've already acked this (callId,action) pair recently.
+            // Honest-private-call fix (X-1): never dedup the "presented" action.
+            // IncomingCallActivity.onNewIntent re-fires "presented" when a new
+            // call replaces an existing one in the same task, and the JS
+            // countdown depends on receiving every "presented" to re-anchor
+            // the timeout. Other actions (accept/decline/ended/timeout/busy)
+            // remain deduped to defend against double FCM delivery.
             val cid = callId ?: ""
-            if (cid.isNotEmpty() && action.isNotEmpty()) {
+            if (cid.isNotEmpty() && action.isNotEmpty() && action != "presented") {
                 val now = System.currentTimeMillis()
                 // Opportunistic eviction of stale entries.
                 val it = ackedActions.entries.iterator()
@@ -108,6 +114,7 @@ class NativeCallPlugin : Plugin() {
                     return
                 }
             }
+
 
             val payload = JSONObject().apply {
                 put("callId", cid)
@@ -462,6 +469,34 @@ class NativeCallPlugin : Plugin() {
             return
         }
         try {
+            // Honest-private-call fix (PA-1): start CallForegroundService
+            // BEFORE launching PrivateCallActivity. On Android 10+ a non-
+            // Activity context (this plugin call may originate while the
+            // WebView is backgrounded by Capacitor) cannot start an Activity
+            // without a foreground-service exemption. Starting the FGS first
+            // grants that exemption AND keeps the LiveKit Room/audio focus
+            // alive if the user backgrounds the call.
+            try {
+                val fgsIntent = android.content.Intent(context,
+                    com.merilive.app.service.CallForegroundService::class.java).apply {
+                    action = com.merilive.app.service.CallForegroundService.ACTION_START
+                    putExtra("call_id", callId)
+                    putExtra("caller_id", peerId)
+                    putExtra("caller_name", peerName)
+                    putExtra("caller_avatar", peerAvatar ?: "")
+                    putExtra("call_type", "video")
+                    putExtra("mode", "call")
+                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    context.startForegroundService(fgsIntent)
+                } else {
+                    context.startService(fgsIntent)
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w("NativeCallPlugin",
+                    "CallForegroundService start failed (BAL exemption may be lost): ${t.message}")
+            }
+
             val intent = com.merilive.app.activity.PrivateCallActivity.newIntent(
                 ctx = context,
                 callId = callId,
@@ -481,6 +516,7 @@ class NativeCallPlugin : Plugin() {
             call.reject("open_failed: ${t.message}")
         }
     }
+
 
     /**
      * Broadcast a request for the active PrivateCallActivity to finish

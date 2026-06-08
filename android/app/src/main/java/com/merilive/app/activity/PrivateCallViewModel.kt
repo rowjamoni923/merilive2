@@ -368,6 +368,16 @@ class PrivateCallViewModel : ViewModel() {
 
     private fun startPeerGrace() {
         if (peerGraceJob?.isActive == true) return
+        // Honest-private-call fix (X-3): if we're already in RECONNECTING
+        // state, the peer's ParticipantDisconnected is almost certainly a
+        // transient ICE restart rather than a real hangup. LiveKit's reconnect
+        // window can take 3-10s on weak networks; the 5s grace was too narrow
+        // and ended the call prematurely. Defer the grace timer until either
+        // (a) we leave RECONNECTING or (b) Reconnected fires with no peer.
+        if (_state.value == CallState.RECONNECTING) {
+            android.util.Log.i(TAG, "startPeerGrace deferred — in RECONNECTING state")
+            return
+        }
         peerGraceJob = viewModelScope.launch {
             delay(PEER_DISCONNECT_GRACE_MS)
             if (_state.value != CallState.ENDED && _state.value != CallState.ENDING) {
@@ -381,6 +391,7 @@ class PrivateCallViewModel : ViewModel() {
         peerGraceJob?.cancel()
         peerGraceJob = null
     }
+
 
     private fun startDurationTicker() {
         if (durationJob?.isActive == true) return
@@ -407,11 +418,18 @@ class PrivateCallViewModel : ViewModel() {
         durationJob = null
         peerGraceJob = null
         billingTickerJob = null
+        // Honest-private-call fix (L-3): null the published track flows BEFORE
+        // releasing the room reference. Otherwise PrivateCallActivity.onDestroy
+        // races with GC of `room` and may call removeRenderer on a tombstoned
+        // VideoTrack (NPE in native WebRTC on Pixel 6+).
+        _remoteVideo.value = null
+        _localVideo.value = null
         // DO NOT room?.disconnect() — Room is owned by LiveKitPlugin.
         // Activity will detach its renderers from tracks in onDestroy.
         room = null
         super.onCleared()
     }
+
 
     /** Exposed so the Activity can call track.add/removeRenderer directly. */
     fun currentRoom(): Room? = room
