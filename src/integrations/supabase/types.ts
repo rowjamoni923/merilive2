@@ -20291,6 +20291,10 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_call_rating: {
+        Args: { _call_id: string; _rating: number }
+        Returns: Json
+      }
       submit_manual_recharge_proof: {
         Args: {
           p_order_id: string
