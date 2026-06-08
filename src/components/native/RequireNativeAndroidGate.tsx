@@ -38,9 +38,9 @@ const FEATURE_COPY: Record<RequireNativeAndroidGateProps["feature"], { title: st
 };
 
 export function RequireNativeAndroidGate({ feature, children }: RequireNativeAndroidGateProps) {
+  const navigate = useNavigate();
   if (isNativeAndroidApp()) return <>{children}</>;
 
-  const navigate = useNavigate();
   const copy = FEATURE_COPY[feature];
 
   return (
