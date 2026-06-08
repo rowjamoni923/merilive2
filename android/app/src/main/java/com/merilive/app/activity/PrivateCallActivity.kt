@@ -117,7 +117,13 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
-    private lateinit var lowBalanceBannerSlot: FrameLayout
+
+    // Phase D — low-balance warning banner (parent slot is now a LinearLayout
+    // holding the warning icon/text + Recharge CTA, inflated directly into
+    // the layout XML so we don't pay a runtime inflate cost on every call).
+    private lateinit var lowBalanceBannerSlot: View
+    private lateinit var lowBalanceText: TextView
+    private lateinit var btnRecharge: Button
 
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
@@ -127,6 +133,8 @@ class PrivateCallActivity : ComponentActivity() {
 
     // Phase B — JS / server-side "close this Activity" signal.
     private var closeReceiver: android.content.BroadcastReceiver? = null
+    // Phase D — JS pushes billing updates (balance + rate per minute).
+    private var billingReceiver: android.content.BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
