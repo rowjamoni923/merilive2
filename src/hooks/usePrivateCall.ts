@@ -416,17 +416,14 @@ export function usePrivateCall(userId: string | null) {
       }
     }, 1000);
 
-    // Start caller billing only after media goes live (host never deducts)
-    const isCurrentUserHost = !!userId && callState.hostId === userId;
-    if (!isCurrentUserHost) {
-      void deductCoinsPerMinute(callId);
-
-      billingTimerRef.current = setInterval(() => {
-        if (!callEndedRef.current && currentCallIdRef.current === callId) {
-          void deductCoinsPerMinute(callId);
-        }
-      }, 60000);
-    }
+    // Phase 3B (Step 3): client-side per-minute billing REMOVED.
+    // Server cron `call-billing-tick` → `bill_call_minute()` is the single source
+    // of truth (idempotent UNIQUE(call_id, minute_number), FOR UPDATE SKIP LOCKED).
+    // Running a parallel client setInterval here re-introduced double-charge.
+    // Live coin counter now refreshes from the `private_calls` realtime UPDATE
+    // payload (caller-side handler below) when bill_call_minute writes
+    // last_billed_minute / total_minutes_billed.
+    void deductCoinsPerMinute; // keep symbol referenced for dev-tools/debug only
   }, [callState.status, callState.callId, callState.hostId, userId, deductCoinsPerMinute]);
 
   // Keep refs updated for stable subscription effect
