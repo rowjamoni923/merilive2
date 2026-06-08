@@ -183,11 +183,6 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
         String callLabel = "video".equals(callType) ? "📹 Video Call" : "📞 Audio Call";
 
-        Bitmap avatar = null;
-        if (callerAvatar != null && !callerAvatar.isEmpty()) {
-            avatar = loadBitmapFromUrl(callerAvatar);
-        }
-
         // Pkg-audit Tier-3: honour server-supplied ring_timeout_seconds instead
         // of hardcoded 30s. Clamp to [10s, 120s] to defend against bad payloads.
         long timeoutMs = 30_000L;
@@ -196,6 +191,61 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             if (parsed >= 10) timeoutMs = Math.min(parsed, 120L) * 1000L;
         } catch (NumberFormatException ignored) {}
 
+        // Honest-private-call fix (F-1): post the notification + start the
+        // full-screen activity FIRST, with no avatar. Avatar arrives a few
+        // hundred ms later via a re-notify with the same id, so the heads-up
+        // updates in place.
+        try {
+            postIncomingCallNotification(
+                callId, callerName, callType, callLabel,
+                fullScreenPI, acceptPI, declinePI, timeoutMs, /*avatar*/ null);
+        } catch (Throwable t) {
+            Log.w(TAG, "post(no-avatar) failed: " + t.getMessage());
+        }
+
+        com.merilive.app.plugin.NativeCallPlugin.dispatch(
+            this, callId, callerId, callerName, callType, "presented");
+        try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
+
+        try {
+            com.merilive.app.telecom.TelecomBridge.reportIncoming(
+                getApplicationContext(), callId, callerId, callerName, callType);
+        } catch (Throwable ignored) {}
+
+        // Off-thread avatar load + re-notify with the same id.
+        if (callerAvatar != null && !callerAvatar.isEmpty()) {
+            final String avatarUrl = callerAvatar;
+            final long timeoutMsFinal = timeoutMs;
+            AVATAR_LOADER.submit(() -> {
+                Bitmap loaded = loadBitmapFromUrl(avatarUrl);
+                if (loaded == null) return;
+                try {
+                    postIncomingCallNotification(
+                        callId, callerName, callType, callLabel,
+                        fullScreenPI, acceptPI, declinePI, timeoutMsFinal, loaded);
+                } catch (Throwable t) {
+                    Log.w(TAG, "post(with-avatar) failed: " + t.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * Honest-private-call fix (F-1) helper. Builds and posts the incoming-call
+     * notification. Called twice per ring: once immediately (avatar=null), then
+     * again after the async fetch resolves. Same id → in-place update.
+     */
+    private void postIncomingCallNotification(
+        String callId,
+        String callerName,
+        String callType,
+        String callLabel,
+        PendingIntent fullScreenPI,
+        PendingIntent acceptPI,
+        PendingIntent declinePI,
+        long timeoutMs,
+        Bitmap avatar
+    ) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
@@ -214,9 +264,6 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
 
-        // Step 31 — use the Android 12+ CallStyle which renders an
-        // honest CallKit-style heads-up (large avatar, swipe-to-answer
-        // on lock screen, integrates with the system call UI).
         boolean styleApplied = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             try {
@@ -244,25 +291,8 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         try {
             NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());
         } catch (SecurityException se) {
-            // POST_NOTIFICATIONS not granted on Android 13+. The
-            // full-screen intent below still presents the activity.
             Log.w(TAG, "notify rejected: " + se.getMessage());
         }
-
-        // Step 31 — surface presented event + start the activity for the
-        // (relatively common) case where the OS suppresses heads-up but
-        // honours full-screen intent (e.g. screen off, DND off).
-        com.merilive.app.plugin.NativeCallPlugin.dispatch(
-            this, callId, callerId, callerName, callType, "presented");
-        try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
-
-        // Pkg208 — also push this into Telecom so BT headset Answer button
-        // works + system call log is updated + audio focus is properly
-        // grabbed. Self-managed: our own UI above stays the visible surface.
-        try {
-            com.merilive.app.telecom.TelecomBridge.reportIncoming(
-                getApplicationContext(), callId, callerId, callerName, callType);
-        } catch (Throwable ignored) {}
     }
 
 
