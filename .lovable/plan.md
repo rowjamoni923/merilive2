@@ -1,83 +1,119 @@
-# Phase H — Camera Resilience Layer (Native Private Call)
+# Phase I — Native Live Streaming (Host Broadcast) — Chamet/Bigo Class
 
-Research-first done. Competitors (Chamet/Bigo/Olamet on Agora) use a tiered watchdog + audio-only fallback with last-frame freeze. We already have most of the plumbing; Phase H wires the missing UX + thermal layer **only inside PrivateCallActivity**. No web design change, no new tables, no edge functions.
+**Research-first:** ✅ Done. Full gap-analysis: `/mnt/documents/host-broadcast-gap-analysis.md`.
+**Audit:** ✅ Done. Confirmed gaps in `LiveKitPlugin.kt` (4790 lines, no publisher config / simulcast / codec / TURN) and `AndroidManifest.xml` (no dedicated live FGS — only `CallForegroundService` for private calls).
+**Web design:** SACRED — zero changes. All work is Android-native.
+**Memory rules applied:** research-first-mandatory ✅, professional-never-leak ✅, web-design-sacred-android-native-pro ✅, no-duplicate-native-systems ✅ (extend existing LiveKitPlugin, do NOT fork).
 
-## What already exists (DO NOT rebuild)
+---
 
-| Capability | Where | Status |
-|---|---|---|
-| Local + remote frame watchdog (5s warn / 12s hard) | `LiveKitPlugin.startStallWatchdog` | ✅ |
-| Soft recovery: stop+start camera capture | `LiveKitPlugin` line 2640 | ✅ |
-| OEM-aware camera retry (MIUI/ColorOS, 1200ms cooldown) | `setNativeCameraEnabledWithOemRetry` | ✅ |
-| Hard reconnect with exponential backoff (3/6/12s) | `reconnectWatchdogJob` | ✅ |
-| `video-stall` / `video-stall-failed` events to JS | LiveKitPlugin line 2669 | ✅ |
-| Thermal status listener (NONE→SHUTDOWN) | `ThermalBatteryPlugin` (Pkg441) | ✅ |
-| `thermalChange` event to JS | ThermalBatteryPlugin line 77 | ✅ |
+## Confirmed Gaps vs Chamet / Bigo / HiClub / Wejoy / Olamet (Agora baseline)
 
-## What Phase H adds (gaps vs. Chamet/Bigo)
+| # | Capability | Pro standard (cited) | Our state | Priority |
+|---|---|---|---|---|
+| 1 | Foreground Service for HOST | FGS `camera\|microphone` mandatory (Android 14+) — OS kills camera otherwise | ❌ Only `CallForegroundService` exists (private call only) | **P0** |
+| 2 | Publisher config | 720p / 30fps / H.264 / ~2 Mbps (Agora `STANDARD_BITRATE`) | ❌ LiveKit defaults (640×480 / VP8) | **P0** |
+| 3 | 3-layer simulcast | 720p@30 + 360p@15 + 180p@7 (libwebrtc default) | ❌ Not configured | **P0** |
+| 4 | Adaptive ladder | 720p→360p→180p→audio-only on RTT>400ms / loss>8% | ❌ Static | **P0** |
+| 5 | Camera resilience for host | Bigo "Camera paused" overlay + 3×3s retry, audio stays | ⚠️ Phase H controller exists, not wired to broadcast surface | **P0** |
+| 6 | Background grace period | 60s (Bigo) / 90s (Chamet), video pause + audio keep | ❌ Camera dies on HOME press | P1 |
+| 7 | Music-mode audio toggle | `MODE_NORMAL` + AEC/NS off for DJ/karaoke hosts | ❌ Always CallMode | P1 |
+| 8 | `SurfaceViewRenderer` for main feed | HW-composited, lowest latency; 8-instance recycle pool for guests | ⚠️ Unaudited | P1 |
+| 9 | Gift Choreographer sync | <100ms event→first-frame via `postFrameCallback` | ⚠️ Coroutine post (1-3 frame jitter) | P1 |
+| 10 | TURN + reconnect overlay | TURN mandatory for 4G symmetric NAT; <2s reconnect | ❌ No TURN configured | P1 |
 
-### 1. `CameraResilienceController.kt` (NEW, ~220 lines)
-A single coordinator owned by `PrivateCallActivity`. Subscribes to the existing native events (no new watchdog — reuses LiveKitPlugin's).
+---
 
-- **State machine**: `HEALTHY → DEGRADED → AUDIO_ONLY → RECOVERING`.
-- **`onVideoStall(local=true, sid)`** (from `video-stall` event): enter `DEGRADED`, show subtle "Poor connection" overlay on the affected tile (local or remote).
-- **`onVideoStallFailed(local=true)`** (from `video-stall-failed`): enter `AUDIO_ONLY` — freeze last bitmap from `SurfaceViewRenderer` into an `ImageView` overlay, show persistent banner "Camera unavailable — audio only", show "Tap to retry" chip every 30s.
-- **`onThermalChange("SEVERE")`** (from `thermalChange`): proactively `setCameraEnabled(false)` + show banner "Phone overheating — camera paused".
-- **`onThermalChange("MODERATE")`**: emit new `setVideoQuality("low")` call via existing LiveKit publisher ladder (360p/15fps) — already supported.
-- **Retry**: tap "Tap to retry" → call `LiveKit.setCameraEnabled(true)`; on success → `HEALTHY`. On 3 failed retries → permanent audio-only for this call.
+## Phase I Scope (P0 only — P1 = Phase I.b later)
 
-### 2. Permission-revoke dialog
-When camera restart fails with `SecurityException` / `CameraAccessException.CAMERA_DISABLED`:
-- Check `ContextCompat.checkSelfPermission(CAMERA)`.
-- If denied → show `MaterialAlertDialog` with deep-link to `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`.
-- Do NOT call `requestPermissions` mid-call (auto-denied on MIUI/ColorOS).
+### 1. NEW `LiveBroadcastService.kt` (~180 lines)
+Dedicated `ForegroundService` for HOST broadcast — separate from `CallForegroundService`.
+- `foregroundServiceType="camera|microphone"` in manifest
+- Persistent notification: `🔴 LIVE · {viewerCount} viewers · 💎 {coins}` with actions: Flip Camera, Mute, End
+- `MediaSessionCompat` with `STATE_PLAYING` for lock-screen LIVE indicator
+- `startForeground()` BEFORE `LiveKitPlugin.publishVideo()` (Android 14 ordering rule)
+- Stops cleanly on `Room.disconnect()` or notification "End" action
 
-### 3. UX layer in `activity_private_call.xml`
-- Add `ImageView @id/freeze_overlay` (gone by default, behind local renderer).
-- Add `LinearLayout @id/resilience_banner` (gone by default) with icon + text + "Retry" chip.
-- Add `ImageView @id/remote_poor_overlay` (gone, spinner on remote tile).
+### 2. `LiveKitPlugin.kt` extension (~120 line diff)
+Add HOST-specific publish path (viewer subscribe path untouched).
+- New method `startHostBroadcast(roomName, token, opts)`:
+  - `RoomOptions(adaptiveStream=true, dynacast=true)`
+  - `ConnectOptions(iceServers=[stun + TURN from env LIVEKIT_TURN_URL])`
+  - `VideoTrackPublishDefaults(videoCodec="h264", backupCodec=BackupVideoCodec("vp8"))`
+  - `simulcastLayers = [VideoPreset(320×180, 150k, 7fps), VideoPreset(640×360, 500k, 15fps)]` + source 720p = 3 layers
+  - `VideoTrackPublishOptions(videoEncoding=VideoEncoding(2_000_000, 30), degradationPreference=MAINTAIN_FRAMERATE)`
+- New `HostNetworkQualityMonitor` inner class (reuses existing `Room.getStats()` plumbing):
+  - Polls every 3s; computes RTT + loss from `RTCStats`
+  - Step-down ladder: 720p→360p→180p→audio-only based on thresholds
+  - Step-up after 15s sustained good network
+  - Emits `host-quality-changed` event to JS for HUD overlay (web HUD already exists, no design change)
+- Wire `CameraResilienceController` (Phase H) to host path — same freeze-frame / audio-only fallback, but with HOST-specific "Camera paused" overlay text
 
-All colors/typography reuse existing `bg_private_call_*` drawables — no design token changes.
+### 3. `AndroidManifest.xml` edit (~6 lines)
+```xml
+<service
+    android:name=".service.LiveBroadcastService"
+    android:exported="false"
+    android:foregroundServiceType="camera|microphone" />
+```
 
-### 4. Wire-up in `PrivateCallActivity.kt` (~40-line diff)
-- `onCreate`: instantiate `CameraResilienceController(this, binding, viewModel)`.
-- `onResume` / `onPause`: forward to controller for lifecycle.
-- Controller subscribes to LiveKit + ThermalBattery via `Capacitor.getBridge().getPlugin(...)` callback-style (no JS round-trip — direct Kotlin listener registration on the plugin instance).
+### 4. `NativeLiveBroadcast.ts` JS bridge (~80 lines, NEW)
+Thin Capacitor wrapper — `startHostBroadcast`, `stopHostBroadcast`, `setMusicMode` (stub for Phase I.b), event listeners for `host-quality-changed` / `host-camera-state`. Web no-op.
 
-### 5. Tiny `LiveKitPlugin.kt` addition (~30 lines)
-Expose two Kotlin-callable hooks the controller can subscribe to without going through JS:
-- `addNativeVideoStallListener(cb: (local, sid, severity) -> Unit)`
-- `addNativeRecoveryListener(cb: (sid) -> Unit)` — fires when frame count resumes after a stall.
+### 5. Wire-up in existing live-stream entry point (~10 line diff)
+`src/services/liveStreamService.ts` `startBroadcast()` — when `isNativeLiveBroadcastAvailable()` true, route through `NativeLiveBroadcast.startHostBroadcast()` instead of web `livekit-client`. Web preview path unchanged. Default flag = OFF until APK QA passes (professional-never-leak rule).
 
-These piggyback on the existing JS event emission — same data, second sink. JS path untouched.
+### 6. Secret needed
+`LIVEKIT_TURN_URL` (+ optional `LIVEKIT_TURN_USERNAME` / `LIVEKIT_TURN_PASSWORD`) — for 4G NAT traversal. **VPS-DEFERRED**: I will only add the JS/Kotlin code to *read* the secret; if TURN is not yet running on the VPS, the field stays empty and connection falls back to STUN-only (same as today, no regression).
 
-## Out of scope (deferred)
-
-- ❌ iOS — Phase H is Android-only (web design sacred).
-- ❌ Web — no change. Web preview will continue to show the existing call UI exactly as today.
-- ❌ Camera2 direct teardown — current `restartTrack()` + OEM retry is already sufficient per research.
-- ❌ LeakCanary wiring — separate QA phase.
+---
 
 ## Files
 
-**New (3):**
-- `android/app/src/main/java/com/merilive/app/activity/CameraResilienceController.kt`
-- `android/app/src/main/res/drawable/bg_private_call_resilience_banner.xml`
-- `android/app/src/main/res/drawable/ic_private_call_camera_off.xml`
+**New (2):**
+- `android/app/src/main/java/com/merilive/app/service/LiveBroadcastService.kt`
+- `src/plugins/NativeLiveBroadcast.ts`
 
 **Edited (3):**
-- `android/app/src/main/java/com/merilive/app/activity/PrivateCallActivity.kt` (+40 lines)
-- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+30 lines for native listeners)
-- `android/app/src/main/res/layout/activity_private_call.xml` (3 overlays added)
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+120 lines, new host method + monitor)
+- `android/app/src/main/AndroidManifest.xml` (+6 lines, service declaration)
+- `src/services/liveStreamService.ts` (+10 lines, route through native on Android)
 
-## Verification
+**Untouched:**
+- All React UI / HUD / chat / gift panel / web preview path
+- `CallForegroundService` (private call — keep single-owner)
+- Viewer-side rendering (Phase I.b will switch to `SurfaceViewRenderer` pool)
 
-- Owner-account test (post-APK-rebuild): start call → enable airplane mode for 6s → resilience banner appears → restore network → call recovers.
-- Owner-account test: cover camera lens with finger for 8s → stall fires → restart → if persistent fail → audio-only banner.
-- Cannot test in Lovable preview (web has no native LiveKit). **APK rebuild required.**
+---
 
-## Risk
+## Out of Scope (deferred to Phase I.b)
 
-LOW. All paths are additive; existing JS event flow untouched. If controller throws, try/catch swallows and call continues with current (already-good) behavior. If user is on web, the native controller never instantiates.
+- ❌ Music-mode toggle (P1)
+- ❌ Background grace-period countdown overlay (P1)
+- ❌ `SurfaceViewRenderer` recycle pool for multi-guest grids (P1)
+- ❌ Gift Choreographer sync (P1)
+- ❌ Reconnect overlay UX (P1 — reconnect itself works via LiveKit defaults)
+- ❌ iOS, Web design changes
+- ❌ VPS TURN server setup (user must enable separately)
 
-Want me to build it? Reply **"Build Phase H"** to proceed, or **"Tweak X"** to adjust scope.
+---
+
+## Verification (leak-check mandatory per professional-never-leak)
+
+1. APK rebuild required (Kotlin + manifest changes)
+2. Owner-account test (smdollarex923@gmail.com): start live → screen off 30s → return → camera resumes, notification shows viewer count
+3. Cover camera 8s → "Camera paused" overlay, audio continues, auto-recovers
+4. Throttle network to 200kbps → ladder steps 720p→360p→180p within 6s
+5. Side-by-side recording vs Chamet host screen — verify no visible "hybrid" tells
+
+---
+
+## Risk: LOW-MEDIUM
+- All changes additive + flag-gated (default OFF until QA)
+- Web preview untouched (no design leak risk)
+- LiveKitPlugin host method is NEW — viewer subscribe path 100% unchanged
+- Manifest FGS perms already granted
+
+---
+
+বল **"Build Phase I"** → execute। **"Tweak X"** → scope adjust।
