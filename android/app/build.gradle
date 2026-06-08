@@ -99,6 +99,10 @@ dependencies {
     // Phase 2A — ProcessLifecycleOwner for true app-level (not Activity-level) bg/fg detection.
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
+    // Pkg500 Phase A — ViewModel + Kotlin extensions for PrivateCallActivity scaffold.
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.activity:activity-ktx:1.8.2'
     implementation 'androidx.webkit:webkit:1.10.0'
 
     // Material Design

@@ -180,6 +180,25 @@
             android:taskAffinity=""
             android:screenOrientation="portrait" />
 
+        <!-- Pkg500 Phase A — Native in-call surface for 1:1 paid video calls.
+             singleTask + own task affinity so it never stacks on MainActivity;
+             excludeFromRecents so a paid call screen can't be reopened from
+             the recents tray after end. configChanges keeps the LiveKit Room
+             alive across orientation/keyboard/density changes (no rebuild). -->
+        <activity
+            android:name=".activity.PrivateCallActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/AppTheme.PrivateCall"
+            android:taskAffinity=":privatecall"
+            android:screenOrientation="portrait"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale" />
+
+
         <service android:name=".service.MeriFirebaseMessagingService" android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
