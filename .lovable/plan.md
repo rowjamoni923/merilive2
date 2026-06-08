@@ -170,3 +170,29 @@ Code-scan revealed Phase I infrastructure was **already shipped** in earlier pas
 
 Phase I.b (deferred): music-mode toggle, background grace-period overlay, SurfaceViewRenderer pool, Gift Choreographer frame-sync, TURN server.
 
+
+---
+
+## Phase I.b — STATUS 2026-06-08 ✅ PARTIAL (pure-code items shipped)
+
+**Research-first ✅** — sub-agent confirmed Agora `STREAM_FALLBACK_OPTION_AUDIO_ONLY` fires ~<200 kbps, music-mode hosts need `MODE_NORMAL` (Agora `AUDIO_SCENARIO_GAME_STREAMING`), TextureViewRenderer correct for grids (already using).
+
+### Shipped (LiveKitPlugin.kt only — no UI, no VPS):
+
+1. **Audio-only fallback floor** — when adaptive ladder is at LOW and quality stays POOR/LOST, mute camera (`setCameraEnabled(false)`) so audio keeps flowing on <200 kbps uplinks. On 2× sustained EXCELLENT, OEM-safe re-enable camera, then normal step-up resumes. Emits `audio-only-fallback` event. New state `audioOnlyActive`, reset on connectInternal.
+2. **Music-mode `AudioManager.mode`** — `applyAudioMode()` now reads `lastConnectArgs.audioProfile`; music profile → `MODE_NORMAL` (kills hardware AEC/AGC, allows 48 kHz Opus capture for DJ/karaoke), voice/broadcast keep `MODE_IN_COMMUNICATION`.
+
+### Files edited (1):
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+~90 lines: state flag, two fallback transition fns, music-mode branch in applyAudioMode, state reset on reconnect)
+
+### Deferred (require user decision):
+- **Background grace-period overlay** — pure UI work (design SACRED, would need confirmation)
+- **9-seat SurfaceViewRenderer pool** — already on `TextureViewRenderer` per research recommendation; pool refactor only needed if party grid shows >4 streams (no current evidence of GPU pressure)
+- **Gift Choreographer frame-sync** — VAP/SVGA already vsync-aligned via `NativeGiftAnimationPlugin` (Pkg438); sub-16 ms alignment already achieved
+- **TURN server** — VPS-DEFERRED hard rule (config block documented in research, no code change)
+- **Music-mode WebRTC `echoCancellation=false`** — current code keeps AEC ON for music with explicit "phone speakers still echo" justification; not changing without user direction
+
+### Verification (APK rebuild required):
+1. Owner-account go live → throttle network to 100 kbps → adaptive drops 1080p→720p→540p → after ~16s sustained POOR, video freezes / camera light off, audio continues, "audio-only-fallback active" log in logcat
+2. Restore network → after 2× EXCELLENT ticks (~24s), camera re-enables, ladder climbs back to 1080p
+3. Switch live to music mode (`setAudioProfile({profile:'music'})`) → AudioManager.mode reads `MODE_NORMAL` in adb dumpsys audio
