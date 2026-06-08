@@ -141,3 +141,32 @@ Thin Capacitor wrapper — `startHostBroadcast`, `stopHostBroadcast`, `setMusicM
 ---
 
 বল **"Build Phase I"** → execute। **"Tweak X"** → scope adjust।
+
+---
+
+## Phase I — STATUS 2026-06-08 ✅ COMPLETE (single React wire-up edit)
+
+Code-scan revealed Phase I infrastructure was **already shipped** in earlier passes (Step 14 / 20 / 22 / 32 / Pkg229):
+
+- ✅ `CallForegroundService.buildLiveNotification()` — 🔴 LIVE title, viewers · 💎 coins subtitle, "End Live" action, chronometer, non-CallStyle (no "Call in progress" leak), `PRIORITY_LOW`, `CATEGORY_SERVICE`. FGS type = `camera|microphone` only when `mode=live` (no `phoneCall`).
+- ✅ `LiveKitPlugin.connectInternal()` — 1080p H264 capture, `VideoEncoding(3 Mbps, 30 fps)` + simulcast top layer for live ceiling; `adaptiveStream=true`, `dynacast=true`; `audioProfile="broadcast"` → 64 kbps Opus RED-on DTX-off + AEC/NS/AGC/HPF.
+- ✅ `handleLocalQuality()` adaptive ladder — HIGH (1080p/4M) → MEDIUM (720p/1.8M) → LOW (540p/700k/24fps, simulcast dropped); 8s debounce, 2× sustained EXCELLENT for step-up.
+- ✅ `setPreferredCodec("h264")` pinned from `useLiveKitClient.ts:455` before host connect — entry-level Android HW encoder compatibility (Chamet/Bigo baseline).
+- ✅ `startCallForegroundService(... broadcastMode="live", viewerCount, coinCount)` — typed `ServiceCompat.startForeground(... CAMERA|MICROPHONE)` ordering before publish.
+- ✅ `@PluginMethod updateLiveStats()` — re-issues START intent so notification rebuilds with fresh stats (cheap, FGS already running).
+- ✅ JS bridge `NativeLiveKit.updateLiveStats` + `nativeLiveKitController.updateLiveStats` already exposed.
+
+**This pass — ONE addition only:** `src/pages/LiveStream.tsx` host `useEffect` that calls `nativeLiveKitController.updateLiveStats({ viewerCount, coinCount, title })` whenever `streamData.viewer_count` / `total_coins` / `title` changes. Guards: host-only, `isHostVerified`, not in end-summary. Web/iOS no-op (controller-level).
+
+**Files edited (1):**
+- `src/pages/LiveStream.tsx` (+22 lines, single useEffect after live-minutes tracker)
+
+**Verification required (APK rebuild):**
+1. Owner-account live-broadcast start → notification shows `🔴 LIVE · {title}` with "0 watching"
+2. Second device joins → notification updates to "1 watching" within Realtime tick
+3. Receive gift → coin count updates in notification
+4. Background app → camera + audio survive (FGS keeps them alive); notification stays
+5. End Live (from notification or in-app) → FGS stops, camera releases, OS indicator off
+
+Phase I.b (deferred): music-mode toggle, background grace-period overlay, SurfaceViewRenderer pool, Gift Choreographer frame-sync, TURN server.
+
