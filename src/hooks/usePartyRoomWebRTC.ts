@@ -42,6 +42,14 @@ import {
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
+import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { NativeLiveKit } from '@/plugins/NativeLiveKit';
+import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
+import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { registerNativeChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
+import { registerNativeGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerNativeReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -51,6 +59,8 @@ interface PartyWebRTCState {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
   connectionState: ConnectionState;
+  isNativeMediaActive: boolean;
+  nativeParticipants: Map<string, { sid: string; identity: string }>;
 }
 
 const isVideoPartyType = (roomType: 'video' | 'audio' | 'game') => roomType === 'video' || roomType === 'game';
