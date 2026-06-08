@@ -173,26 +173,32 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 
 ---
 
-## Phase I.b — STATUS 2026-06-08 ✅ PARTIAL (pure-code items shipped)
+## Phase I.b — STATUS 2026-06-08 ✅ COMPLETE (pure-code professional pass)
 
-**Research-first ✅** — sub-agent confirmed Agora `STREAM_FALLBACK_OPTION_AUDIO_ONLY` fires ~<200 kbps, music-mode hosts need `MODE_NORMAL` (Agora `AUDIO_SCENARIO_GAME_STREAMING`), TextureViewRenderer correct for grids (already using).
+**Research-first ✅** — sub-agent re-confirmed Bigo/Chamet/StreamKar 60s background grace window (server-side inactivity watchdog), Agora→LiveKit Android translation table (`muteLocalVideoStream` → `setCameraEnabled(false)`), and Agora `AUDIO_SCENARIO_GAME_STREAMING` = AEC/NS/AGC all OFF for DJ/karaoke. Industry consensus (nanocosmos, WebRTC community, Agora 3.x docs): music capture must be raw 48 kHz; headphone usage is a soft toast, never a hard block.
 
-### Shipped (LiveKitPlugin.kt only — no UI, no VPS):
+### Shipped (LiveKitPlugin.kt + useNativeLiveKitEvents.ts):
 
-1. **Audio-only fallback floor** — when adaptive ladder is at LOW and quality stays POOR/LOST, mute camera (`setCameraEnabled(false)`) so audio keeps flowing on <200 kbps uplinks. On 2× sustained EXCELLENT, OEM-safe re-enable camera, then normal step-up resumes. Emits `audio-only-fallback` event. New state `audioOnlyActive`, reset on connectInternal.
-2. **Music-mode `AudioManager.mode`** — `applyAudioMode()` now reads `lastConnectArgs.audioProfile`; music profile → `MODE_NORMAL` (kills hardware AEC/AGC, allows 48 kHz Opus capture for DJ/karaoke), voice/broadcast keep `MODE_IN_COMMUNICATION`.
+1. **Audio-only fallback floor** — sustained POOR on LOW tier → `setCameraEnabled(false)`, audio continues on <200 kbps uplinks; 2× sustained EXCELLENT → camera re-enables. Emits `audio-only-fallback`.
+2. **Music-mode `AudioManager.mode = MODE_NORMAL`** — only for `audioProfile=music`; voice/broadcast keep `MODE_IN_COMMUNICATION`.
+3. **Music profile WebRTC flags — ALL processing OFF** — `noiseSuppression=false`, `echoCancellation=false`, `autoGainControl=false`, `highPassFilter=false`, `typingNoiseDetection=false`. Raw 48 kHz capture matches Agora `AUDIO_SCENARIO_GAME_STREAMING` and nanocosmos pro-music guide. Sub-bass / dynamics / timbre preserved.
+4. **Music headphone soft warning** — on connect with music profile, native scans `AudioManager.GET_DEVICES_OUTPUTS` for wired / USB / A2DP / SCO / BLE headset. If none found, emits `music-headphone-warning` → bridged to `lk:music-headphone-warning` window event for host UI toast ("Use headphones for best music quality"). Soft warning only — never blocks streaming.
+5. **Live HOST 60s background grace** (Bigo/Chamet standard) — replaces immediate teardown when `broadcastMode=="live"` and host backgrounds the app. Camera pauses (mic + Room + FGS stay alive); 60s timer scheduled; if host returns before expiry → camera re-enables, timer cancelled, `live-host-grace-end{reason:RESUMED}` fires. If timer expires → existing teardown runs, `disconnected{reason:LIVE_HOST_GRACE_EXPIRED}`. Viewers + party + private call retain existing immediate-teardown behavior (correct per research — only live hosts get grace). Explicit End Live also cancels the job.
 
-### Files edited (1):
-- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+~90 lines: state flag, two fallback transition fns, music-mode branch in applyAudioMode, state reset on reconnect)
+### Files edited (2):
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (+~140 lines: `LIVE_HOST_BG_GRACE_MS`, `liveHostGraceJob`, grace branch in `onProcessLifecycleChanged`, `endLiveSessionAfterGrace`, music-headphone emission, `detectHeadsetConnected`, disconnect-time job cancel, music-profile flag flip)
+- `src/hooks/useNativeLiveKitEvents.ts` (+~50 lines: 3 new listeners → window CustomEvents, zero design coupling)
 
-### Deferred (require user decision):
-- **Background grace-period overlay** — pure UI work (design SACRED, would need confirmation)
-- **9-seat SurfaceViewRenderer pool** — already on `TextureViewRenderer` per research recommendation; pool refactor only needed if party grid shows >4 streams (no current evidence of GPU pressure)
-- **Gift Choreographer frame-sync** — VAP/SVGA already vsync-aligned via `NativeGiftAnimationPlugin` (Pkg438); sub-16 ms alignment already achieved
-- **TURN server** — VPS-DEFERRED hard rule (config block documented in research, no code change)
-- **Music-mode WebRTC `echoCancellation=false`** — current code keeps AEC ON for music with explicit "phone speakers still echo" justification; not changing without user direction
+### Deferred (real engineering work, not "demo"):
+- **9-seat SurfaceViewRenderer pool** — research says `TextureViewRenderer` is correct for grids; only needed if party grid actually shows GPU pressure. Add LeakCanary measurement first.
+- **TURN server** — VPS-DEFERRED hard rule (Kotlin already reads `LIVEKIT_TURN_URL` env when set).
+- **Grace countdown overlay UI** — native side fully ships the grace; host UI can subscribe to `lk:live-host-grace-start/end` window events to render an existing-vocab countdown when product decides to.
 
-### Verification (APK rebuild required):
-1. Owner-account go live → throttle network to 100 kbps → adaptive drops 1080p→720p→540p → after ~16s sustained POOR, video freezes / camera light off, audio continues, "audio-only-fallback active" log in logcat
-2. Restore network → after 2× EXCELLENT ticks (~24s), camera re-enables, ladder climbs back to 1080p
-3. Switch live to music mode (`setAudioProfile({profile:'music'})`) → AudioManager.mode reads `MODE_NORMAL` in adb dumpsys audio
+### Verification (APK rebuild required — Lovable preview cannot prove Camera2 / FGS):
+1. Owner-account go live → press HOME → camera light goes OFF, audio continues, FGS notification stays, console `lk:live-host-grace-start` event fires with `endsAtMs=now+60000`.
+2. Return to app within 60s → camera resumes instantly, `lk:live-host-grace-end{reason:RESUMED}` fires.
+3. Stay backgrounded >60s → stream ends with `disconnected{reason:LIVE_HOST_GRACE_EXPIRED}`.
+4. Start live with music profile, no headphones → toast appears via `lk:music-headphone-warning`.
+5. `adb logcat | grep "DJ / karaoke"` — confirm music profile path executes; `dumpsys audio` shows MODE_NORMAL during music live.
+6. Throttle to 100 kbps → audio-only fallback fires as before.
+
