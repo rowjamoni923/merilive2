@@ -107,6 +107,10 @@ export function useLiveKitCall(
   const callCameraPermissionMonitorRef = useRef<(() => void) | null>(null);
   const callRemoteVideoWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callRemoteVideoToastShownRef = useRef(false);
+  // Honest-private-call fix (F-12): 15s reconnect-budget timer. Armed on
+  // Reconnecting state, cleared on Connected, fires `livekit-call-network-lost`
+  // when exhausted so usePrivateCall can endCall('network').
+  const reconnectBudgetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -624,7 +628,38 @@ export function useLiveKitCall(
         room.on(RoomEvent.ConnectionStateChanged, (connectionState: ConnectionState) => {
           console.log('[LiveKitCall] Connection state:', connectionState);
           if (connectionState === ConnectionState.Connected) {
-            setState(p => ({ ...p, connectionState: 'connected' }));
+            setState(p => ({ ...p, connectionState: 'connected', isConnected: true }));
+            // Honest-private-call fix (F-13): surface reconnect end.
+            if (reconnectBudgetTimerRef.current) {
+              clearTimeout(reconnectBudgetTimerRef.current);
+              reconnectBudgetTimerRef.current = null;
+            }
+          } else if (connectionState === ConnectionState.Reconnecting) {
+            // Honest-private-call fix (F-12 + F-13): make reconnect visible
+            // to the UI and arm a 15s budget — if we haven't recovered by
+            // then, force-end the call with reason `network` so we never
+            // hang forever while billing keeps ticking.
+            setState(p => ({ ...p, connectionState: 'connecting' as any, isConnected: false }));
+            if (!reconnectBudgetTimerRef.current) {
+              reconnectBudgetTimerRef.current = setTimeout(() => {
+                reconnectBudgetTimerRef.current = null;
+                if (deadRef.current) return;
+                const r = roomRef.current;
+                if (!r) return;
+                if (r.state === ConnectionState.Connected) return;
+                console.warn('[LiveKitCall] Reconnect budget exhausted — forcing network end');
+                try {
+                  window.dispatchEvent(new CustomEvent('livekit-call-network-lost', {
+                    detail: { callId: callIdRef.current, reason: 'network' },
+                  }));
+                } catch { /* ignore */ }
+              }, 15000);
+            }
+          } else if (connectionState === ConnectionState.Disconnected) {
+            if (reconnectBudgetTimerRef.current) {
+              clearTimeout(reconnectBudgetTimerRef.current);
+              reconnectBudgetTimerRef.current = null;
+            }
           }
         });
 

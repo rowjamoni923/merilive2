@@ -209,7 +209,7 @@ class PrivateCallActivity : ComponentActivity() {
         } catch (t: Throwable) {
             Log.w(TAG, "attachResilienceController: ${t.message}")
         }
-
+    }
 
     private fun registerCloseReceiver() {
         val r = object : android.content.BroadcastReceiver() {
@@ -689,9 +689,21 @@ class PrivateCallActivity : ComponentActivity() {
             vm.state.value == PrivateCallViewModel.CallState.ENDING
         ) return
         vm.markEnding("user_hangup")
-        // Phase D will dispatch a NativeCall.dispatch("end") event so the JS
-        // layer can call settle_private_call + LiveKitPlugin.disconnect. For
-        // Phase B we just mark ended; the state collector will finish().
+        // Honest-private-call fix (L-2): bridge the user hangup to JS so
+        // settle_private_call runs and LiveKitPlugin.disconnect releases the
+        // Room. Without this dispatch the Room stays connected and billing
+        // never settles after the activity finishes.
+        runCatching {
+            val id = vm.identity.value
+            com.merilive.app.plugin.NativeCallPlugin.dispatch(
+                ctx = applicationContext,
+                callId = id?.callId,
+                callerId = id?.peerId,
+                callerName = id?.peerName,
+                callType = if (id?.isVideo == true) "video" else "audio",
+                action = "end",
+            )
+        }
         vm.markEnded()
     }
 

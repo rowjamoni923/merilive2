@@ -25,9 +25,35 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Constant-time string compare so a timing oracle can't enumerate the secret.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Honest-private-call fix (BE-P0-1): verify_jwt is false so pg_cron can hit
+  // this without minting a JWT. That means an anonymous POST can otherwise
+  // trigger a full billing pass against all live calls. Require the caller to
+  // present the service-role bearer (which pg_cron already sends) OR an
+  // explicit CRON_SECRET header.
+  const auth = req.headers.get("authorization") ?? "";
+  const cronSecretHeader = req.headers.get("x-cron-secret") ?? "";
+  const cronSecretEnv = Deno.env.get("CRON_SECRET") ?? "";
+  const authorized =
+    (auth.startsWith("Bearer ") && safeEqual(auth.slice(7), SERVICE_ROLE_KEY)) ||
+    (cronSecretEnv.length > 0 && safeEqual(cronSecretHeader, cronSecretEnv));
+  if (!authorized) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   const startedAt = Date.now();
