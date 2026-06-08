@@ -193,6 +193,21 @@ public class MainActivity extends BridgeActivity {
             }
         } catch (Throwable ignored) {}
 
+        // Phase 2B — install the WebView permission gate so any stray
+        // getUserMedia() inside the WebView while we're on a native-owned
+        // media route (/live, /private-call, /party, ...) is hard-denied.
+        // Prevents the Chamet-class Android-16 permission loop where the
+        // WebView fights LiveKitPlugin for the same Camera2 handle.
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().setWebChromeClient(
+                    new com.merilive.app.rtc.WebViewPermissionGate(getBridge())
+                );
+            }
+        } catch (Throwable t) {
+            android.util.Log.w("MainActivity", "WebViewPermissionGate install failed: " + t.getMessage());
+        }
+
         // Handle notification route on cold start
         handleNotificationRoute(getIntent());
     }
