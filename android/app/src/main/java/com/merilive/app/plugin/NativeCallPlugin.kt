@@ -45,6 +45,12 @@ class NativeCallPlugin : Plugin() {
     companion object {
         private const val TAG = "NativeCallPlugin"
 
+        /** Pkg500 Phase B — broadcast that asks PrivateCallActivity to finish. */
+        const val ACTION_CLOSE_PRIVATE_CALL_ACTIVITY =
+            "com.merilive.app.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY"
+
+
+
         // Pending actions queued before JS attaches a listener (cold-start).
         private val pending = ConcurrentLinkedQueue<JSONObject>()
 
@@ -324,6 +330,98 @@ class NativeCallPlugin : Plugin() {
         ret.put("callId", callId)
         call.resolve(ret)
     }
+
+    // ---- Pkg500 Phase B — Native PrivateCallActivity launcher --------------
+
+    /**
+     * Returns whether this APK has the native [com.merilive.app.activity.PrivateCallActivity].
+     * JS uses this to decide whether to open the native in-call surface or
+     * fall back to the existing web `/call/active` screen. Older APKs always
+     * return false so they keep the web path.
+     */
+    @PluginMethod
+    fun hasInCallActivity(call: PluginCall) {
+        val ret = JSObject()
+        val present = try {
+            Class.forName("com.merilive.app.activity.PrivateCallActivity")
+            true
+        } catch (_: Throwable) { false }
+        ret.put("available", present)
+        call.resolve(ret)
+    }
+
+    /**
+     * Launch the native PrivateCallActivity. Caller MUST have already
+     * connected LiveKitPlugin to the call room — the Activity adopts the
+     * existing Room via RtcEngineManager rather than opening its own
+     * Camera2 (single-camera contract, Pkg416). If no Room is active, the
+     * Activity bails out immediately and the JS web fallback keeps working.
+     *
+     * Required params:
+     *   callId        String
+     *   peerId        String  — peer's profile id
+     *   peerName      String
+     *   peerAvatar    String? — optional URL
+     *   isCaller      Boolean — true on caller side, false on host side
+     *   livekitUrl    String  — passed for telemetry / restart only
+     *   livekitToken  String  — passed for telemetry / restart only
+     */
+    @PluginMethod
+    fun openInCallActivity(call: PluginCall) {
+        val callId = call.getString("callId").orEmpty()
+        val peerId = call.getString("peerId").orEmpty()
+        val peerName = call.getString("peerName") ?: "Calling…"
+        val peerAvatar = call.getString("peerAvatar")
+        val isCaller = call.getBoolean("isCaller") ?: true
+        val livekitUrl = call.getString("livekitUrl").orEmpty()
+        val livekitToken = call.getString("livekitToken").orEmpty()
+
+        if (callId.isEmpty() || peerId.isEmpty() || livekitUrl.isEmpty() || livekitToken.isEmpty()) {
+            call.reject("missing_required_params")
+            return
+        }
+        try {
+            val intent = com.merilive.app.activity.PrivateCallActivity.newIntent(
+                ctx = context,
+                callId = callId,
+                peerId = peerId,
+                peerName = peerName,
+                peerAvatar = peerAvatar,
+                isCaller = isCaller,
+                livekitUrl = livekitUrl,
+                livekitToken = livekitToken,
+            )
+            context.startActivity(intent)
+            val ret = JSObject()
+            ret.put("opened", true)
+            ret.put("callId", callId)
+            call.resolve(ret)
+        } catch (t: Throwable) {
+            call.reject("open_failed: ${t.message}")
+        }
+    }
+
+    /**
+     * Broadcast a request for the active PrivateCallActivity to finish
+     * itself (server says call ended, peer hung up via web, etc). The
+     * Activity listens for this and calls finishAndRemoveTask().
+     */
+    @PluginMethod
+    fun closeInCallActivity(call: PluginCall) {
+        val callId = call.getString("callId").orEmpty()
+        try {
+            val i = android.content.Intent(ACTION_CLOSE_PRIVATE_CALL_ACTIVITY).apply {
+                setPackage(context.packageName)
+                putExtra("call_id", callId)
+            }
+            context.sendBroadcast(i)
+        } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
 }
+
+
 
 

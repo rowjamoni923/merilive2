@@ -1,44 +1,63 @@
 package com.merilive.app.activity
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.merilive.app.rtc.RtcEngineManager
+import io.livekit.android.events.RoomEvent
+import io.livekit.android.events.collect
+import io.livekit.android.room.Room
+import io.livekit.android.room.participant.LocalParticipant
+import io.livekit.android.room.participant.Participant
+import io.livekit.android.room.participant.RemoteParticipant
+import io.livekit.android.room.track.Track
+import io.livekit.android.room.track.VideoTrack
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
- * Pkg500 Phase A — PrivateCallViewModel
+ * Pkg500 PrivateCallViewModel — Phase A scaffold + Phase B LiveKit binding.
  *
- * Holds the lifecycle-bound state for [PrivateCallActivity]. Phase A scope is
- * STATE ONLY — no LiveKit, no Realtime, no billing subscription. Those are
- * wired in Phases B, D respectively. This file exists so the Activity can
- * already render its layout against real StateFlows, so Phase B/D/E only have
- * to wire data sources without touching the UI surface.
+ * Phase B contract (does NOT open its own Room — that would violate the
+ * single-camera contract in Pkg416 / CameraOwnership):
+ *  - Adopts the Room that `LiveKitPlugin` already connected before the
+ *    Activity was launched. JS layer is responsible for the connect
+ *    sequence (token issue → LiveKitPlugin.connect → NativeCall.openInCallActivity).
+ *  - Observes RoomEvents to surface remote/local video tracks and the
+ *    connection state to the Activity via StateFlow.
+ *  - When the remote peer disconnects, starts a 5-second grace timer
+ *    (handles ICE blips) then marks the call as ENDING. The Activity
+ *    finishes after the end-screen (Phase E).
+ *  - Does NOT call `room.disconnect()` in `onCleared` — Room lifetime is
+ *    owned by LiveKitPlugin / RtcEngineManager. We only release our
+ *    Activity-side observer + render attachments.
  *
- * Why a ViewModel instead of holding state in the Activity:
- *  - The LiveKit `Room` (Phase B) will live here so it survives configuration
- *    changes (orientation, keyboardHidden) and is torn down exactly once in
- *    [onCleared]. Activity-held Rooms leak on every rotation.
- *  - StateFlow + collect-in-lifecycle gives us a clean, cancellable bridge to
- *    the XML layout without re-creating subscriptions on every onStart.
- *  - Memory-leak research (Stream Video, LiveKit issue #545): the single
- *    safest pattern is "Room in ViewModel, disconnect in onCleared".
+ * Why this split:
+ *  - One process, one Camera2 owner (LiveKit). Avoids the white-screen
+ *    bug Pkg415/416 fixed.
+ *  - Existing reconnect / network-callback / stall watchdog logic in
+ *    `LiveKitPlugin` already covers the ICE / wifi-reconnect cases
+ *    flagged by the research subagent (LiveKit issue #545). No need to
+ *    duplicate.
+ *  - End-of-call settle (`settle_private_call` RPC) is dispatched by
+ *    JS via existing `usePrivateCall` hook, kept off the native path
+ *    so server contract changes don't force an APK rebuild.
  */
 class PrivateCallViewModel : ViewModel() {
 
-    /**
-     * High-level state machine. Phase B will drive transitions from LiveKit
-     * RoomEvents; Phase D will drive ENDING from server billing realtime.
-     */
-    enum class CallState {
-        IDLE,        // Activity created, intent parsed, nothing connected yet
-        CONNECTING,  // Phase B: room.connect() in flight
-        CONNECTED,   // Phase B: ICE done, remote video flowing
-        RECONNECTING,// Phase B: network blip; LiveKit auto-recover
-        ENDING,      // Phase D/E: insufficient balance / user hang-up grace
-        ENDED        // Finalised — Activity should finish() after end-screen
+    companion object {
+        private const val TAG = "PrivateCallVM"
+        /** Grace window after the peer disappears before we end the call. */
+        private const val PEER_DISCONNECT_GRACE_MS = 5_000L
     }
 
-    /** Call identity passed in from intent — immutable for the Activity lifetime. */
+    enum class CallState { IDLE, CONNECTING, CONNECTED, RECONNECTING, ENDING, ENDED }
+
     data class CallIdentity(
         val callId: String,
         val peerId: String,
@@ -55,19 +74,15 @@ class PrivateCallViewModel : ViewModel() {
     private val _state = MutableStateFlow(CallState.IDLE)
     val state: StateFlow<CallState> = _state.asStateFlow()
 
-    /** Seconds since call CONNECTED. Phase B will start the ticker; Phase D mirrors server. */
     private val _durationSec = MutableStateFlow(0)
     val durationSec: StateFlow<Int> = _durationSec.asStateFlow()
 
-    /** Caller-side wallet balance in coins (server-authoritative; Phase D). 0 when unknown. */
     private val _balanceCoins = MutableStateFlow<Long?>(null)
     val balanceCoins: StateFlow<Long?> = _balanceCoins.asStateFlow()
 
-    /** Per-minute deduction rate (server-provided). Phase D sets this. */
     private val _ratePerMinute = MutableStateFlow(0)
     val ratePerMinute: StateFlow<Int> = _ratePerMinute.asStateFlow()
 
-    /** UI toggles — survive rotation. */
     private val _micEnabled = MutableStateFlow(true)
     val micEnabled: StateFlow<Boolean> = _micEnabled.asStateFlow()
 
@@ -77,68 +92,255 @@ class PrivateCallViewModel : ViewModel() {
     private val _cameraFront = MutableStateFlow(true)
     val cameraFront: StateFlow<Boolean> = _cameraFront.asStateFlow()
 
-    /** Reason set by the side that initiated the hang-up. Read by end-screen (Phase E). */
+    /** Phase B — remote peer's video track, null until subscribed. */
+    private val _remoteVideo = MutableStateFlow<VideoTrack?>(null)
+    val remoteVideo: StateFlow<VideoTrack?> = _remoteVideo.asStateFlow()
+
+    /** Phase B — local participant's published camera track, null until published. */
+    private val _localVideo = MutableStateFlow<VideoTrack?>(null)
+    val localVideo: StateFlow<VideoTrack?> = _localVideo.asStateFlow()
+
     private var _endReason: String? = null
     val endReason: String? get() = _endReason
 
-    // ---- Setters used by the Activity / future phases -------------------
+    // --- Phase B internals ---------------------------------------------------
+
+    private var room: Room? = null
+    private var eventsJob: Job? = null
+    private var durationJob: Job? = null
+    private var peerGraceJob: Job? = null
+    @Volatile private var peerEverSeen: Boolean = false
+
+    // -------------------------------------------------------------------
+    // Phase A setters preserved
+    // -------------------------------------------------------------------
 
     fun bindIdentity(id: CallIdentity) {
         if (_identity.value == null) _identity.value = id
     }
 
-    fun setState(next: CallState) {
-        _state.value = next
-    }
-
-    fun setDuration(seconds: Int) {
-        _durationSec.value = seconds.coerceAtLeast(0)
-    }
-
-    fun setBalance(coins: Long?) {
-        _balanceCoins.value = coins
-    }
-
-    fun setRatePerMinute(rate: Int) {
-        _ratePerMinute.value = rate.coerceAtLeast(0)
-    }
+    fun setState(next: CallState) { _state.value = next }
+    fun setDuration(seconds: Int) { _durationSec.value = seconds.coerceAtLeast(0) }
+    fun setBalance(coins: Long?) { _balanceCoins.value = coins }
+    fun setRatePerMinute(rate: Int) { _ratePerMinute.value = rate.coerceAtLeast(0) }
 
     fun toggleMic(): Boolean {
         val next = !_micEnabled.value
         _micEnabled.value = next
-        // Phase B will route to localParticipant.setMicrophoneEnabled(next).
+        try {
+            room?.localParticipant?.let { lp ->
+                viewModelScope.launch { runCatching { lp.setMicrophoneEnabled(next) } }
+            }
+        } catch (t: Throwable) { Log.w(TAG, "toggleMic: ${t.message}") }
         return next
     }
 
     fun toggleCamera(): Boolean {
         val next = !_cameraEnabled.value
         _cameraEnabled.value = next
-        // Phase B will route to localParticipant.setCameraEnabled(next).
+        try {
+            room?.localParticipant?.let { lp ->
+                viewModelScope.launch { runCatching { lp.setCameraEnabled(next) } }
+            }
+        } catch (t: Throwable) { Log.w(TAG, "toggleCamera: ${t.message}") }
         return next
     }
 
     fun flipCamera() {
+        // Phase C will translate to localParticipant.setCameraPosition(...).
         _cameraFront.value = !_cameraFront.value
-        // Phase C will route to localParticipant.setCameraPosition(...).
     }
 
-    /** Marks the call as ending with a reason; final teardown happens in [onCleared]. */
     fun markEnding(reason: String) {
-        if (_state.value == CallState.ENDED) return
+        if (_state.value == CallState.ENDED || _state.value == CallState.ENDING) return
         _endReason = reason
         _state.value = CallState.ENDING
     }
 
-    fun markEnded() {
-        _state.value = CallState.ENDED
+    fun markEnded() { _state.value = CallState.ENDED }
+
+    // -------------------------------------------------------------------
+    // Phase B — attach to the Room LiveKitPlugin already connected.
+    // -------------------------------------------------------------------
+
+    /**
+     * Look up the active Room from RtcEngineManager and start observing.
+     * Returns false if no Room is currently bound — caller (Activity) should
+     * finish itself in that case because we have nothing to render.
+     */
+    fun attachToCurrentRoom(@Suppress("unused") appContext: Context): Boolean {
+        if (room != null) return true
+        val r = RtcEngineManager.currentRoom()
+        if (r == null) {
+            Log.w(TAG, "attachToCurrentRoom: no Room bound — LiveKitPlugin must connect first")
+            return false
+        }
+        room = r
+        _state.value = if (peerHasVideo(r)) CallState.CONNECTED else CallState.CONNECTING
+        observeRoom(r)
+        captureInitialTracks(r)
+        startDurationTicker()
+        return true
+    }
+
+    private fun observeRoom(r: Room) {
+        eventsJob?.cancel()
+        eventsJob = viewModelScope.launch {
+            runCatching {
+                r.events.collect { ev ->
+                    when (ev) {
+                        is RoomEvent.ParticipantConnected -> {
+                            if (ev.participant.identity?.value == _identity.value?.peerId) {
+                                cancelPeerGrace()
+                            }
+                        }
+
+                        is RoomEvent.ParticipantDisconnected -> {
+                            // Only react to the peer we are paired with.
+                            if (ev.participant.identity?.value == _identity.value?.peerId) {
+                                startPeerGrace()
+                            }
+                        }
+
+                        is RoomEvent.TrackSubscribed -> {
+                            val track = ev.track
+                            if (track is VideoTrack &&
+                                ev.participant.identity?.value == _identity.value?.peerId
+                            ) {
+                                peerEverSeen = true
+                                _remoteVideo.value = track
+                                cancelPeerGrace()
+                                if (_state.value == CallState.CONNECTING ||
+                                    _state.value == CallState.RECONNECTING
+                                ) {
+                                    _state.value = CallState.CONNECTED
+                                }
+                            }
+                        }
+
+                        is RoomEvent.TrackUnsubscribed -> {
+                            if (ev.participant.identity?.value == _identity.value?.peerId &&
+                                _remoteVideo.value === ev.track
+                            ) {
+                                _remoteVideo.value = null
+                            }
+                        }
+
+                        is RoomEvent.TrackPublished -> {
+                            // Local participant publishing camera → mirror to localVideo.
+                            captureLocalTrackIfPossible(r)
+                        }
+
+                        is RoomEvent.TrackUnpublished -> {
+                            captureLocalTrackIfPossible(r)
+                        }
+
+                        is RoomEvent.Reconnecting -> {
+                            if (_state.value != CallState.ENDING && _state.value != CallState.ENDED) {
+                                _state.value = CallState.RECONNECTING
+                            }
+                        }
+
+                        is RoomEvent.Reconnected -> {
+                            if (_state.value == CallState.RECONNECTING) {
+                                _state.value =
+                                    if (peerHasVideo(r)) CallState.CONNECTED else CallState.CONNECTING
+                            }
+                        }
+
+                        is RoomEvent.Disconnected -> {
+                            // The Plugin owns reconnect; if it gave up the
+                            // Room is dead and we should end the Activity.
+                            markEnding("room_disconnected")
+                            markEnded()
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }.onFailure { Log.w(TAG, "observeRoom: ${it.message}") }
+        }
+    }
+
+    private fun captureInitialTracks(r: Room) {
+        // Peer may have already been in the room when we attached.
+        val peerId = _identity.value?.peerId ?: return
+        val peer = r.remoteParticipants.values.firstOrNull { it.identity?.value == peerId }
+        if (peer != null) {
+            val track = peer.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+            if (track != null) {
+                peerEverSeen = true
+                _remoteVideo.value = track
+                _state.value = CallState.CONNECTED
+            }
+        }
+        captureLocalTrackIfPossible(r)
+    }
+
+    private fun captureLocalTrackIfPossible(r: Room) {
+        val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+        if (track !== _localVideo.value) _localVideo.value = track
+    }
+
+    private fun peerHasVideo(r: Room): Boolean {
+        val peerId = _identity.value?.peerId ?: return false
+        val peer = r.remoteParticipants.values.firstOrNull { it.identity?.value == peerId }
+        return peer?.getTrackPublication(Track.Source.CAMERA)?.track is VideoTrack
+    }
+
+    private fun startPeerGrace() {
+        if (peerGraceJob?.isActive == true) return
+        peerGraceJob = viewModelScope.launch {
+            delay(PEER_DISCONNECT_GRACE_MS)
+            if (_state.value != CallState.ENDED && _state.value != CallState.ENDING) {
+                markEnding("peer_left")
+                markEnded()
+            }
+        }
+    }
+
+    private fun cancelPeerGrace() {
+        peerGraceJob?.cancel()
+        peerGraceJob = null
+    }
+
+    private fun startDurationTicker() {
+        if (durationJob?.isActive == true) return
+        durationJob = viewModelScope.launch {
+            // 1 Hz local ticker — Phase D will overwrite from server billing
+            // events so this is only the "connecting/idle" display.
+            var s = 0
+            while (true) {
+                if (_state.value == CallState.CONNECTED) {
+                    s += 1
+                    _durationSec.value = s
+                }
+                delay(1_000)
+            }
+        }
     }
 
     override fun onCleared() {
-        // Phase B will:
-        //   - room?.disconnect()
-        //   - room = null
-        //   - cancel billing/realtime subscriptions
-        // Phase A leaves this empty by design; no resources are held yet.
+        eventsJob?.cancel()
+        durationJob?.cancel()
+        peerGraceJob?.cancel()
+        eventsJob = null
+        durationJob = null
+        peerGraceJob = null
+        // DO NOT room?.disconnect() — Room is owned by LiveKitPlugin.
+        // Activity will detach its renderers from tracks in onDestroy.
+        room = null
         super.onCleared()
     }
+
+    /** Exposed so the Activity can call track.add/removeRenderer directly. */
+    fun currentRoom(): Room? = room
+    fun currentLocalParticipant(): LocalParticipant? = room?.localParticipant
+    fun currentRemoteParticipant(): RemoteParticipant? {
+        val r = room ?: return null
+        val peerId = _identity.value?.peerId ?: return null
+        return r.remoteParticipants.values.firstOrNull { it.identity?.value == peerId }
+    }
+    @Suppress("unused")
+    fun anyParticipant(): Participant? = currentRemoteParticipant() ?: currentLocalParticipant()
 }

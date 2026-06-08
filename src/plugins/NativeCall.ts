@@ -80,11 +80,41 @@ export interface NativeCallPlugin {
   /** Tear down the Telecom connection (releases audio focus + closes log entry). */
   reportCallEnded(opts: { callId: string; remote?: boolean }): Promise<{ ok: boolean; callId: string }>;
 
+  // ---- Pkg500 Phase B — Native PrivateCallActivity launcher --------------
+  /**
+   * Returns whether this APK ships the native PrivateCallActivity. Older
+   * APKs return false so JS falls back to the existing /call/active web
+   * screen — guarantees zero breakage during the rollout.
+   */
+  hasInCallActivity(): Promise<{ available: boolean }>;
+  /**
+   * Launch the native PrivateCallActivity. Caller MUST have already
+   * connected LiveKitPlugin to the call room (single-camera contract,
+   * Pkg416). Activity adopts the existing Room via RtcEngineManager and
+   * bails out if none is bound.
+   */
+  openInCallActivity(opts: {
+    callId: string;
+    peerId: string;
+    peerName?: string;
+    peerAvatar?: string | null;
+    isCaller?: boolean;
+    livekitUrl: string;
+    livekitToken: string;
+  }): Promise<{ opened: boolean; callId: string }>;
+  /**
+   * Ask the active PrivateCallActivity to finish itself (server says call
+   * ended, peer hung up via web, low-balance grace expired, etc).
+   * Empty callId = close any active call Activity.
+   */
+  closeInCallActivity(opts: { callId?: string }): Promise<{ ok: boolean }>;
+
   addListener(
     eventName: 'call-action',
     cb: (e: NativeCallActionEvent) => void,
   ): Promise<PluginListenerHandle>;
 }
+
 
 export const NativeCall = registerPlugin<NativeCallPlugin>('NativeCall');
 
@@ -92,3 +122,22 @@ export const NativeCall = registerPlugin<NativeCallPlugin>('NativeCall');
 export function isNativeCallAvailable(): boolean {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
 }
+
+/**
+ * Pkg500 Phase B — true when this APK has the native PrivateCallActivity.
+ * Older APKs (pre-Pkg500) return false → JS keeps using the web fallback at
+ * /call/active. Cached per session so the branch is cheap.
+ */
+let _hasInCallCache: boolean | null = null;
+export async function hasNativeInCallActivity(): Promise<boolean> {
+  if (!isNativeCallAvailable()) return false;
+  if (_hasInCallCache !== null) return _hasInCallCache;
+  try {
+    const r = await NativeCall.hasInCallActivity();
+    _hasInCallCache = !!r?.available;
+  } catch {
+    _hasInCallCache = false;
+  }
+  return _hasInCallCache;
+}
+

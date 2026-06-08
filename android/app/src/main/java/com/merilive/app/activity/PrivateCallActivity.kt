@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -21,7 +23,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.merilive.app.R
+import io.livekit.android.renderer.TextureViewRenderer
+import io.livekit.android.room.track.VideoTrack
 import kotlinx.coroutines.launch
+
 
 /**
  * Pkg500 Phase A — PrivateCallActivity (scaffold)
@@ -63,10 +68,13 @@ import kotlinx.coroutines.launch
 class PrivateCallActivity : ComponentActivity() {
 
     companion object {
+        private const val TAG = "PrivateCallActivity"
+
         const val EXTRA_CALL_ID = "call_id"
         const val EXTRA_PEER_ID = "peer_id"
         const val EXTRA_PEER_NAME = "peer_name"
         const val EXTRA_PEER_AVATAR = "peer_avatar"
+
         const val EXTRA_IS_CALLER = "is_caller"
         const val EXTRA_LIVEKIT_URL = "livekit_url"
         const val EXTRA_LIVEKIT_TOKEN = "livekit_token"
@@ -111,6 +119,15 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnEnd: ImageButton
     private lateinit var lowBalanceBannerSlot: FrameLayout
 
+    // Phase B — renderers + track refs (managed alongside lifecycle).
+    private var remoteRenderer: TextureViewRenderer? = null
+    private var localRenderer: TextureViewRenderer? = null
+    private var attachedRemoteTrack: VideoTrack? = null
+    private var attachedLocalTrack: VideoTrack? = null
+
+    // Phase B — JS / server-side "close this Activity" signal.
+    private var closeReceiver: android.content.BroadcastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
         applyWindowFlags()
@@ -126,12 +143,43 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
+        // Phase B — adopt the Room that LiveKitPlugin already connected.
+        if (!vm.attachToCurrentRoom(applicationContext)) {
+            Log.w(TAG, "no active LiveKit Room — finishing")
+            finishAndRemoveTask()
+            return
+        }
+
+        registerCloseReceiver()
         wireUiToViewModel()
         wireBackPress()
-
-        // Phase A stops here. Phase B will call vm.startConnect() to bring
-        // LiveKit up; Phase D will subscribe Supabase Realtime for billing.
     }
+
+    private fun registerCloseReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                val incomingCallId = intent?.getStringExtra("call_id").orEmpty()
+                val myCallId = vm.identity.value?.callId.orEmpty()
+                // Empty incoming id = "close any active call activity"
+                if (incomingCallId.isEmpty() || incomingCallId == myCallId) {
+                    vm.markEnding("remote_close")
+                    vm.markEnded()
+                }
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        closeReceiver = r
+    }
+
+
 
     private fun applyWindowFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -273,14 +321,110 @@ class PrivateCallActivity : ComponentActivity() {
                             if (on) View.VISIBLE else View.INVISIBLE
                     }
                 }
+                // Phase B — mount remote / local video tracks into their
+                // TextureViewRenderers as soon as the ViewModel sees them.
+                launch {
+                    vm.remoteVideo.collect { track -> attachRemote(track) }
+                }
+                launch {
+                    vm.localVideo.collect { track -> attachLocal(track) }
+                }
             }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Phase B — TextureViewRenderer lifecycle
+    // ------------------------------------------------------------------
+
+    private fun ensureRemoteRenderer(): TextureViewRenderer {
+        remoteRenderer?.let { return it }
+        val r = TextureViewRenderer(this).apply {
+            setEnableHardwareScaler(true)
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+        }
+        remoteVideoContainer.addView(
+            r,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        remoteRenderer = r
+        return r
+    }
+
+    private fun ensureLocalRenderer(): TextureViewRenderer {
+        localRenderer?.let { return it }
+        val r = TextureViewRenderer(this).apply {
+            setEnableHardwareScaler(true)
+            // Local PiP is small + cropped to portrait — FILL avoids letterbox.
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            setMirror(true) // selfie convention
+        }
+        localPreviewContainer.addView(
+            r,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        localRenderer = r
+        return r
+    }
+
+    private fun attachRemote(track: VideoTrack?) {
+        // Detach previous if changed (or cleared).
+        attachedRemoteTrack?.let { prev ->
+            if (prev !== track) {
+                runCatching { remoteRenderer?.let { prev.removeRenderer(it) } }
+                attachedRemoteTrack = null
+            }
+        }
+        if (track == null) return
+        val r = ensureRemoteRenderer()
+        runCatching { track.addRenderer(r) }
+            .onFailure { Log.w(TAG, "attachRemote: ${it.message}") }
+        attachedRemoteTrack = track
+    }
+
+    private fun attachLocal(track: VideoTrack?) {
+        attachedLocalTrack?.let { prev ->
+            if (prev !== track) {
+                runCatching { localRenderer?.let { prev.removeRenderer(it) } }
+                attachedLocalTrack = null
+            }
+        }
+        if (track == null) return
+        val r = ensureLocalRenderer()
+        runCatching { track.addRenderer(r) }
+            .onFailure { Log.w(TAG, "attachLocal: ${it.message}") }
+        attachedLocalTrack = track
+    }
+
+    private fun detachAllRenderers(release: Boolean) {
+        runCatching {
+            attachedRemoteTrack?.let { t -> remoteRenderer?.let { t.removeRenderer(it) } }
+        }
+        runCatching {
+            attachedLocalTrack?.let { t -> localRenderer?.let { t.removeRenderer(it) } }
+        }
+        attachedRemoteTrack = null
+        attachedLocalTrack = null
+        if (release) {
+            runCatching { remoteRenderer?.release() }
+            runCatching { localRenderer?.release() }
+            (remoteRenderer?.parent as? ViewGroup)?.removeView(remoteRenderer)
+            (localRenderer?.parent as? ViewGroup)?.removeView(localRenderer)
+            remoteRenderer = null
+            localRenderer = null
         }
     }
 
     private fun wireBackPress() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Phase E: confirm dialog. Phase A: treat as End so users in
+                // Phase E: confirm dialog. Phase B: treat as End so users in
                 // testing can dismiss the scaffold cleanly.
                 onUserRequestedEnd()
             }
@@ -292,12 +436,20 @@ class PrivateCallActivity : ComponentActivity() {
             vm.state.value == PrivateCallViewModel.CallState.ENDING
         ) return
         vm.markEnding("user_hangup")
-        // Phase B/D will:
-        //   - call settle_private_call RPC
-        //   - room.disconnect()
-        // For Phase A we just mark ended so the state collector calls finish().
+        // Phase D will dispatch a NativeCall.dispatch("end") event so the JS
+        // layer can call settle_private_call + LiveKitPlugin.disconnect. For
+        // Phase B we just mark ended; the state collector will finish().
         vm.markEnded()
     }
+
+    override fun onDestroy() {
+        // Release renderers but DO NOT touch the Room (LiveKitPlugin owns it).
+        detachAllRenderers(release = true)
+        closeReceiver?.let { runCatching { unregisterReceiver(it) } }
+        closeReceiver = null
+        super.onDestroy()
+    }
+
 
     private fun formatDuration(totalSec: Int): String {
         val m = totalSec / 60
@@ -305,3 +457,4 @@ class PrivateCallActivity : ComponentActivity() {
         return "%02d:%02d".format(m, s)
     }
 }
+
