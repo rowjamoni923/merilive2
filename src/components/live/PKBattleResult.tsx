@@ -27,6 +27,9 @@ export const PKBattleResult = ({
   loserName,
   loserAvatar,
   loserScore,
+  mvpName,
+  mvpAvatar,
+  mvpCoins,
   onClose,
 }: PKBattleResultProps) => {
   return (
