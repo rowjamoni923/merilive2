@@ -400,12 +400,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const startTime = performance.now();
     console.log(`[LiveKitClient] Joining channel: ${normalizedChannel} as ${config.role}`);
 
-    // 🛰️ Native Android publish path (Capacitor + LiveKit Android SDK).
-    // Only host broadcasts are routed natively for now; viewers stay on
-    // web livekit-client (audience playback inside the WebView is fine).
-    // Web/iOS gate=false → falls through to web Room flow below.
+    // 🛰️ Native Android live path (Capacitor + LiveKit Android SDK).
+    // Android hosts AND viewers use native LiveKit only; WebView RTC is dev/web fallback only.
     if (
-      config.role === 'host' &&
       !config.preloadedRoom &&
       shouldUseNativeLiveKit({ feature: 'live-broadcast' })
     ) {
@@ -415,7 +412,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           throw new Error('native_livekit_disabled_after_settings_sync');
         }
 
-        const roomType = 'host_stream';
+        const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
 
@@ -444,17 +441,18 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             await nativeLiveKitController.connectAndPublish({
               url,
               token,
-              video: true,
-              audio: true,
+              video: config.role === 'host',
+              audio: config.role === 'host',
               lens: 'front',
               resolution: '1080p',
-              attachLocal: true,
+              attachLocal: config.role === 'host',
               // Phase I — Bigo/Chamet-style LIVE foreground notification
               // ("🔴 LIVE · {viewers} watching" + "End Live" action) instead
               // of the call-style "Call in progress" UI used for 1:1 calls.
               broadcastMode: 'live',
               audioProfile: 'broadcast',
               callType: 'Live broadcast',
+              roomScope: 'live',
             });
             lastNativeErr = null;
             break;
@@ -475,7 +473,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
-        setCurrentRole('host');
+        setCurrentRole(config.role);
         setIsLoading(false);
         isJoiningRef.current = false;
         const joinTime = performance.now() - startTime;
