@@ -89,6 +89,7 @@ import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
 import { PKBattleResult } from "@/components/live/PKBattleResult";
+import { PKPunishmentOverlay } from "@/components/live/PKPunishmentOverlay";
 import { PKRandomMatchNotification } from "@/components/live/PKRandomMatchNotification";
 import { UnifiedViewerPanel } from "@/features/shared/viewers";
 import { MusicPlayerPanel } from "@/components/live/MusicPlayerPanel";
