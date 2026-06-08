@@ -481,7 +481,9 @@ class LiveKitPlugin : Plugin() {
         // our own teardown path.
         try {
             val act = activity
-            if (act is androidx.lifecycle.LifecycleOwner) {
+            if (cameraXRegistered) {
+                Log.d(TAG, "CameraXProvider already registered — skip")
+            } else if (act is androidx.lifecycle.LifecycleOwner) {
                 val provider = livekit.org.webrtc.CameraXHelper.createCameraProvider(act)
                 if (provider.isSupported(context)) {
                     io.livekit.android.room.track.video.CameraCapturerUtils
