@@ -688,6 +688,8 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'audio-device-changed', cb: (e: AudioDeviceChangedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'audio-interruption', cb: (e: AudioInterruptionEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'connection-state', cb: (e: ConnectionStateEvent) => void): Promise<PluginListenerHandle>;
+  /** Phase 2A — ProcessLifecycleOwner-backed app foreground/background. Fires only on true app bg, NOT permission sheets / shade / PiP. */
+  addListener(eventName: 'app-foreground', cb: (e: { foreground: boolean }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'camera-state', cb: (e: CameraStateEvent) => void): Promise<PluginListenerHandle>;
