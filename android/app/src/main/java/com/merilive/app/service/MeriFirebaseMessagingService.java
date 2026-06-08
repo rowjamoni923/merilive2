@@ -205,7 +205,12 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
         com.merilive.app.plugin.NativeCallPlugin.dispatch(
             this, callId, callerId, callerName, callType, "presented");
-        try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
+        // Honest-private-call fix (B-1): removed dead `startActivity(fullScreenIntent)`.
+        // The FSI PendingIntent attached to the notification (line 261) is the
+        // only supported path to launch IncomingCallActivity from a background
+        // FCM service on API 29+ (BAL restrictions silently block direct
+        // startActivity here, so the call simply swallowed the exception).
+
 
         try {
             com.merilive.app.telecom.TelecomBridge.reportIncoming(
@@ -288,12 +293,29 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             if (avatar != null) builder.setLargeIcon(avatar);
         }
 
+        // Honest-private-call fix (B-2): on Android 14+ USE_FULL_SCREEN_INTENT
+        // is a restricted grant (ROLE_DIALER / explicit user opt-in). If the
+        // app isn't allowed, the FSI is silently downgraded to a heads-up —
+        // surface that as a warning so we can detect missed lock-screen rings.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            try {
+                android.app.NotificationManager nm =
+                    (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (nm != null && !nm.canUseFullScreenIntent()) {
+                    Log.w(TAG, "Full-screen-intent NOT granted on Android 14+ — " +
+                        "incoming-call UI will only show as heads-up. " +
+                        "Prompt user via Settings → Notifications → Full-screen.");
+                }
+            } catch (Throwable ignored) {}
+        }
+
         try {
             NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());
         } catch (SecurityException se) {
             Log.w(TAG, "notify rejected: " + se.getMessage());
         }
     }
+
 
 
     private void handleMessage(Map<String, String> data, String title, String body, String imageUrl, String iconEmoji) {
