@@ -5623,33 +5623,22 @@ class LiveKitPlugin : Plugin() {
                 scope.launch {
                     val buf = StringBuilder()
                     try {
-                        val flow = receiver.javaClass.getMethod("getFlow").invoke(receiver)
-                        // Use readAll() coroutine when available — single round-trip,
-                        // fewer JS events, parity with web TextStreamReceiver.
-                        val text = try {
-                            receiver.javaClass.getMethod("readAll").let { m ->
-                                val obj = receiver
-                                // suspend functions take a Continuation arg via reflection; easier
-                                // to fall back to flow collection when readAll is suspend-only.
-                                throw NoSuchMethodException("prefer-flow")
-                            }
-                        } catch (_: Throwable) { null }
-                        if (text != null) {
-                            buf.append(text)
-                        } else if (flow != null) {
-                            kotlinx.coroutines.flow.Flow::class.java
-                            val collectMethod = flow.javaClass.methods.firstOrNull { it.name == "collect" }
-                            // Easier path: cast to Flow<String> directly.
-                            @Suppress("UNCHECKED_CAST")
-                            (flow as? kotlinx.coroutines.flow.Flow<String>)?.collect { chunk ->
-                                buf.append(chunk)
-                                val ev = JSObject()
-                                ev.put("topic", topic)
-                                ev.put("streamId", streamId)
-                                ev.put("fromIdentity", identity)
-                                ev.put("chunk", chunk)
-                                notifyListeners("text-stream-chunk", ev)
-                            }
+                        // TextStreamReceiver.flow is a Flow<String>. Generic erasure
+                        // means an unchecked cast is the only viable path through
+                        // reflection-fetched property values; the SDK guarantees
+                        // the element type so this is safe.
+                        val flow = try {
+                            receiver.javaClass.getMethod("getFlow").invoke(receiver)
+                        } catch (t: Throwable) { null }
+                        @Suppress("UNCHECKED_CAST")
+                        (flow as? kotlinx.coroutines.flow.Flow<String>)?.collect { chunk ->
+                            buf.append(chunk)
+                            val ev = JSObject()
+                            ev.put("topic", topic)
+                            ev.put("streamId", streamId)
+                            ev.put("fromIdentity", identity)
+                            ev.put("chunk", chunk)
+                            notifyListeners("text-stream-chunk", ev)
                         }
                         val done = JSObject()
                         done.put("topic", topic)
