@@ -40,6 +40,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export type LiveEventType = 'viewer_joined' | 'viewer_left';
 
@@ -80,6 +81,8 @@ interface Entry {
 }
 
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 const FAMILY = 'live' as const;
 const LIVE_EVENT_TYPES: ReadonlySet<string> = new Set<LiveEventType>([
@@ -153,6 +156,30 @@ export function unregisterLiveEventsRoom(streamId: string | null | undefined) {
   registry.delete(streamId);
 }
 
+export function registerNativeLiveEventsRoom(streamId: string | null | undefined) {
+  if (!streamId || typeof window === 'undefined') return;
+  nativeRegistry.add(streamId);
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    const env = decodeEnvelope(payload);
+    if (!env || env.f !== FAMILY) return;
+    if (!LIVE_EVENT_TYPES.has(env.t)) return;
+    if (isDuplicateEnvelope(env.id)) return;
+    const p = (env.p ?? {}) as Partial<LiveEventPayload>;
+    if (!p || !nativeRegistry.has((p as any).streamId) || env.t !== p.type) return;
+    dispatchLiveEvent(p as LiveEventPayload, participantIdentity);
+  });
+}
+
+export function unregisterNativeLiveEventsRoom(streamId: string | null | undefined) {
+  if (!streamId) return;
+  nativeRegistry.delete(streamId);
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 /**
  * Publish a live event packet. Safe — never throws.
  * Returns true only when actually sent over LiveKit.
@@ -165,9 +192,8 @@ export async function publishLiveEvent(
 ): Promise<boolean> {
   if (!streamId) return false;
   const entry = registry.get(streamId);
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(streamId)) return false;
 
   let allowed = false;
   try {
@@ -182,9 +208,12 @@ export async function publishLiveEvent(
       FAMILY,
       payload.type,
       { ...payload, streamId, timestamp: payload.timestamp ?? Date.now() },
-      room.localParticipant?.identity,
+      room?.localParticipant?.identity ?? ('userId' in payload ? payload.userId : undefined),
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'presence' });
+    }
     // Pkg424: switched to reliable. Lossy mode was silently dropping viewer_joined
     // packets → entry animations + flying name banner + counter increment never
     // reached some viewers (user-reported "publicly সবার কাছে show করে না").
