@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pkg500 Phase C — single beauty-slider row reused 4× in the in-call
+    beauty bottom sheet. Label / value / slider pattern matches the
+    standard Chamet/Bigo beauty panel.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/rowLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:text="Smooth" />
+
+        <TextView
+            android:id="@+id/rowValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFD54F"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:text="0" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/rowSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="10" />
+</LinearLayout>
