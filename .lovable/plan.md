@@ -243,7 +243,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 
 ---
 
-## Phase III — Party Room professionalization (✅ III.a + III.b + III.c + III.d + III.e DONE 2026-06-08 (III.f next))
+## Phase III — Party Room professionalization (✅ III.a–III.f ALL DONE 2026-06-08)
 
 **Research-first ✅** — sub-agent verified industry patterns from Bigo Live (Multi-Guest 2026 guide, Room PK system), Chamet, AgoraIO-Usecase/Chatroom reference impl, Agora RTM docs, LiveKit maintainer (issues #3041, #3292). Codebase audit produced 10 P0–P2 gaps with file:line refs.
 
@@ -293,7 +293,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - Currently all party gifts route to `room.host.id` (`PartyRoom.tsx:2532`).
 - Industry: per-seat selection (Bigo/Chamet default). Add seat-picker to GiftPanel when context is party room.
 
-### Phase III.f — Audio profile (music/speech) for party rooms (DJ rooms)
+### Phase III.f — Audio profile (music/speech) for party rooms (DJ rooms) ✅ DONE 2026-06-08
 - `usePartyRoomWebRTC` uses LiveKit default speech. Add `audioProfile` prop ('voice'|'music') wired through token request → LiveKit `AudioPresets.music` (40 kbps) or `AudioPresets.speech` (24 kbps).
 
 ### Deferred (cleanup, no user impact)

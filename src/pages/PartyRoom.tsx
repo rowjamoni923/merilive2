@@ -714,7 +714,11 @@ const PartyRoom = () => {
     isHost,
     isHost || myPosition !== null,
     partyCameraReady,
-    room?.host?.id || null
+    room?.host?.id || null,
+    // Phase III.f — DB override wins; else audio rooms = voice (24kbps),
+    // video/game rooms = music (96kbps stereo) for DJ-grade sound.
+    ((room as any)?.audio_profile as 'voice' | 'music' | undefined)
+      ?? (room?.room_type === 'audio' ? 'voice' : 'music')
   );
 
   // Pkg444 Phase-6: auto-mute host/co-host mic on transient audio-focus

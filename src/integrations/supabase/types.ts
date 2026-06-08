@@ -9393,6 +9393,7 @@ export type Database = {
       party_rooms: {
         Row: {
           announcement: string | null
+          audio_profile: string | null
           background_id: string | null
           background_url: string | null
           country_code: string | null
@@ -9418,6 +9419,7 @@ export type Database = {
         }
         Insert: {
           announcement?: string | null
+          audio_profile?: string | null
           background_id?: string | null
           background_url?: string | null
           country_code?: string | null
@@ -9443,6 +9445,7 @@ export type Database = {
         }
         Update: {
           announcement?: string | null
+          audio_profile?: string | null
           background_id?: string | null
           background_url?: string | null
           country_code?: string | null

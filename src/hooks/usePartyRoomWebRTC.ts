@@ -92,7 +92,14 @@ export function usePartyRoomWebRTC(
    * Optional host user_id — when present, the selective-subscription engine
    * pins the host so they always stay at HIGH video quality even when silent.
    */
-  hostUserId: string | null = null
+  hostUserId: string | null = null,
+  /**
+   * Phase III.f — audio profile. 'music' (default) = 96kbps stereo opus
+   * via `AudioPresets.musicHighQuality` for DJ/video/game rooms.
+   * 'voice' = 24kbps mono via `AudioPresets.speech` for low-bandwidth
+   * voice-chat rooms. Existing callers keep music quality.
+   */
+  audioProfile: 'voice' | 'music' = 'music'
 ) {
   const partyCanPublishRef = useRef(partyCanPublish);
   partyCanPublishRef.current = partyCanPublish;
@@ -100,6 +107,8 @@ export function usePartyRoomWebRTC(
   cameraReadyRef.current = cameraReady;
   const hostUserIdRef = useRef(hostUserId);
   hostUserIdRef.current = hostUserId;
+  const audioProfileRef = useRef(audioProfile);
+  audioProfileRef.current = audioProfile;
   const [state, setState] = useState<PartyWebRTCState>({
     localStream: null,
     peerStreams: new Map(),
@@ -421,12 +430,14 @@ export function usePartyRoomWebRTC(
             resolution: VideoPresets.h1080.resolution,
             facingMode: 'user',
           },
-          // Pkg163: pro-grade voice (AEC+NS+AGC + 48kHz mono) for party rooms.
+          // Phase III.f: profile-aware audio. 'music' = 96kbps stereo opus
+          // (DJ/video/game rooms, default). 'voice' = 24kbps mono speech
+          // preset with DTX for low-bandwidth voice-chat rooms.
           audioCaptureDefaults: {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
-            channelCount: 1,
+            channelCount: audioProfileRef.current === 'music' ? 2 : 1,
             sampleRate: 48000,
           },
           publishDefaults: {
@@ -445,9 +456,14 @@ export function usePartyRoomWebRTC(
             // Pkg205 (M3): device-aware codec selection (Safari → H.264,
             // Chromium → AV1/VP9, H.264 backup preferred over VP8).
             ...pickOptimalCodecs(),
-            // Pkg163: high-quality voice opus + RED packet-loss resilience.
-            audioPreset: AudioPresets.musicHighQuality,
-            dtx: false,
+            // Phase III.f: music preset for DJ/video; speech preset for voice.
+            audioPreset: audioProfileRef.current === 'music'
+              ? AudioPresets.musicHighQuality
+              : AudioPresets.speech,
+            // DTX off for music (continuous audio); on for voice (saves uplink
+            // during silence — industry standard for voice-only rooms).
+            dtx: audioProfileRef.current !== 'music',
+            // RED packet-loss resilience always on (mobile networks).
             red: true,
           },
         });
