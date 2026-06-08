@@ -27,6 +27,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
+import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
