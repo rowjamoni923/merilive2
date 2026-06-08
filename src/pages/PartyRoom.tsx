@@ -2540,7 +2540,49 @@ const PartyRoom = () => {
         />
       )}
 
+      {/* Phase III.d — Host: invite an audience member to a seat. */}
+      {seatInviteTarget && room?.id && currentUser?.id && (
+        <SeatInvitePickerSheet
+          open={!!seatInviteTarget}
+          onClose={() => setSeatInviteTarget(null)}
+          roomId={room.id}
+          inviterId={currentUser.id}
+          inviteeId={seatInviteTarget.id}
+          inviteeName={seatInviteTarget.name}
+          maxSeats={
+            room.room_type === 'audio'
+              ? adminPartyLimits.max_audio_participants
+              : room.room_type === 'game'
+                ? adminPartyLimits.max_game_participants
+                : adminPartyLimits.max_video_participants
+          }
+          occupiedSeats={Array.from(
+            new Set(
+              [0, ...participants
+                .map((p) => p.position)
+                .filter((s): s is number => typeof s === 'number')],
+            ),
+          )}
+        />
+      )}
+
+      {/* Phase III.d — Invitee: respond to seat invitation. */}
+      <SeatInviteResponseSheet
+        invitation={seatInvitationInbox.pending}
+        onAccept={seatInvitationInbox.accept}
+        onDecline={seatInvitationInbox.decline}
+        onDismiss={seatInvitationInbox.dismiss}
+        onAccepted={(invRoomId) => {
+          // If invitee accepted while on a different page, route them into the room.
+          if (invRoomId && invRoomId !== room?.id) {
+            navigate(`/party/${invRoomId}`);
+          }
+        }}
+      />
+
       {/* Floating reactions + raise-hand FABs removed — features available via bottom bar */}
+
+
 
 
 
