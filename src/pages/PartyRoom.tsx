@@ -2182,17 +2182,35 @@ const PartyRoom = () => {
     }
   };
 
-  // Mute user (for admins/hosts)
+  // Mute user (for admins/hosts) — Phase III.b: DB-persist first so the mute
+  // survives reconnect, then push the LiveKit track-mute for instant effect.
   const muteUser = async (userId: string) => {
     if (!canManageUsers || !roomId) return;
     try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('party_mute_seat', {
+        p_room_id: roomId,
+        p_target_user_id: userId,
+        p_muted: true,
+      });
+      if (rpcErr || !(rpcRes as any)?.ok) {
+        const code = (rpcRes as any)?.error || rpcErr?.message || 'unknown';
+        console.warn('[PartyRoom] party_mute_seat failed:', code);
+        if (code === 'not_host') {
+          toast.error("Only the host can mute");
+          setSelectedParticipant(null);
+          return;
+        }
+        // participant_not_found / room_not_found → keep going, edge fn may still mute the live track
+      }
+
       const lkRoomName = `party_${roomId}`;
       const res = await hostMuteParticipantAudio({ roomName: lkRoomName, identity: userId, reason: 'host_mute' });
       if (res.success) {
         toast.success("User muted");
+        await fetchParticipants();
       } else {
         console.warn('[PartyRoom] LiveKit mute failed:', res.error);
-        toast.error("Failed to mute user");
+        toast.error("Mute saved but live track update failed");
       }
     } catch (e) {
       console.error('[PartyRoom] muteUser error:', e);
@@ -2200,6 +2218,7 @@ const PartyRoom = () => {
     }
     setSelectedParticipant(null);
   };
+
 
   // Share room - use production domain
   const shareRoom = async () => {
