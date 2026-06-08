@@ -40,7 +40,7 @@ import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
-import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
