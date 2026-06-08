@@ -37,17 +37,37 @@ export interface NativeLiveKitEventHandlers {
   onSignalQuality?: (quality: string) => void;
 }
 
+/**
+ * N3e — Bridge config. When passed, the hook also listens to the native
+ * `active-speakers-changed` / `participant-metadata-changed` /
+ * `room-metadata-changed` / `transcription-received` events and re-dispatches
+ * them as the SAME `livekit-active-speakers` / `livekit-participant-metadata`
+ * / `livekit-room-metadata` / `livekit-transcription` window CustomEvents the
+ * existing React consumer hooks already listen for. Lets all four LiveKit
+ * features work on native sessions without per-feature refactor.
+ */
+export interface NativeLiveKitBridgeOptions {
+  scope: 'call' | 'live' | 'party';
+  id: string;
+}
+
 
 /**
  * @param active  Only register listeners when the native session is in use.
  * @param handlers Optional callbacks. Stable refs preferred — captured once.
+ * @param bridge   Optional N3e bridge config (scope + id). When provided,
+ *                 native room/participant events are forwarded as the same
+ *                 window CustomEvents the JS-Room modules already emit.
  */
 export function useNativeLiveKitEvents(
   active: boolean,
   handlers: NativeLiveKitEventHandlers = {},
+  bridge?: NativeLiveKitBridgeOptions,
 ): void {
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
+  const bridgeRef = useRef(bridge);
+  bridgeRef.current = bridge;
 
   useEffect(() => {
     if (!active || !isNativeLiveKitAvailable()) return;
