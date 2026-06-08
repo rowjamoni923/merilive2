@@ -275,9 +275,10 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 - Host-transfer RPC `transfer_party_host` (shipped in III.a) UI = deferred to optional III.b2 sheet (low-priority, no user complaint yet).
 
 
-### Phase III.c — Party host 60s background grace (APK rebuild)
-- Extend `LIVE_HOST_BG_GRACE_MS` branch in `LiveKitPlugin.kt:580` to also cover `scopeName == "party" && isHost`.
-- Currently party hits immediate-teardown at line 621 → 0 grace.
+### Phase III.c — Party host 60s background grace ✅ DONE 2026-06-08 (APK rebuild required)
+- `ConnectArgs` gained `isHost: Boolean` (`LiveKitPlugin.kt:392`); JS passes `isHost` via `NativeLiveKit.ConnectOptions` → `nativeLiveKitController` → `usePartyRoomWebRTC` (uses existing `_isHost` param).
+- `onProcessLifecycleChanged` now treats `scopeName == "party" && lastConnectArgs.isHost` the same as live host: 60s grace (camera pauses, mic + Room stay alive via FGS), foreground returns cancel timer + resume camera, expiry runs `endLiveSessionAfterGrace`. Audience still hits immediate teardown.
+- Event payloads (`live-host-grace-start` / `live-host-grace-end`) now carry `scope` + `role` so JS overlays can label the right surface.
 
 ### Phase III.d — Seat invitation flow (client wiring)
 - `seat_invitations` table + RLS + trigger already shipped (`20260404013217.sql:479`) — zero client implementation.
