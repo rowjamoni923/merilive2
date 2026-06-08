@@ -1266,6 +1266,9 @@ class LiveKitPlugin : Plugin() {
                 lastConnectArgs = null
                 stopReconnectWatchdog()
                 hardReconnectAttempts = 0
+                // Phase I.b — explicit End Live also cancels any pending grace.
+                try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
+                liveHostGraceJob = null
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
