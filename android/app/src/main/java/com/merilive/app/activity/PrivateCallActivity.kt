@@ -706,8 +706,11 @@ class PrivateCallActivity : ComponentActivity() {
         resumeReceiver = null
         runCatching { audioRouter?.detach() }
         audioRouter = null
+        runCatching { resilienceController?.detach() }
+        resilienceController = null
         super.onDestroy()
     }
+
 
     // ------------------------------------------------------------------
     // Phase E — Picture-in-Picture
