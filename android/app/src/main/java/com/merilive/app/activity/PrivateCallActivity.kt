@@ -399,7 +399,33 @@ class PrivateCallActivity : ComponentActivity() {
                 launch {
                     vm.localVideo.collect { track -> attachLocal(track) }
                 }
+                // Phase D — low-balance banner. Reacts to warningLevel +
+                // secondsRemaining flows so the countdown ticks every second.
+                launch {
+                    vm.warningLevel.collect { lvl -> renderLowBalanceBanner(lvl) }
+                }
+                launch {
+                    vm.secondsRemaining.collect { _ ->
+                        renderLowBalanceBanner(vm.warningLevel.value)
+                    }
+                }
             }
+        }
+    }
+
+    private fun renderLowBalanceBanner(level: PrivateCallViewModel.WarningLevel) {
+        val secs = vm.secondsRemaining.value
+        if (level == PrivateCallViewModel.WarningLevel.NONE) {
+            lowBalanceBannerSlot.visibility = View.GONE
+            return
+        }
+        lowBalanceBannerSlot.visibility = View.VISIBLE
+        lowBalanceText.text = when (level) {
+            PrivateCallViewModel.WarningLevel.CRITICAL -> "Balance empty — call will end"
+            PrivateCallViewModel.WarningLevel.TEN -> "Only ${secs ?: 0}s left — recharge now"
+            PrivateCallViewModel.WarningLevel.THIRTY -> "Low balance: ${secs ?: 0}s remaining"
+            PrivateCallViewModel.WarningLevel.SIXTY -> "About 1 minute of balance left"
+            else -> ""
         }
     }
 
