@@ -1,8 +1,7 @@
 /**
- * useNativeLiveKitLifecycle — when a native Android LiveKit session is
- * active, pause the camera + mic publish while the app is backgrounded
- * (Android kills foreground camera access otherwise, leaving a frozen
- * track on the room) and restore on resume.
+ * useNativeLiveKitLifecycle — marks the WebView transparent while native
+ * Android LiveKit renders behind it. Background media teardown is owned by
+ * LiveKitPlugin so live/party/call never keep camera running off-screen.
  *
  * - Web/iOS / non-native session → no-op (`active=false` short-circuits).
  * - Listener handle is removed on unmount or when `active` flips false
@@ -45,10 +44,8 @@ export function useNativeLiveKitLifecycle(
 
     let cancelled = false;
     let handle: PluginListenerHandle | null = null;
-    // Native foreground service keeps camera/mic alive. We intentionally do
-    // not pause tracks on appStateChange because Android fires pause for
-    // permission sheets, notification shade, PiP transitions and WebView
-    // focus churn; toggling tracks there caused viewers to lose audio/video.
+    // Native plugin owns process-level teardown. JS only observes app-state
+    // changes so WebView never tries to run camera/mic lifecycle itself.
 
     const register = async () => {
       try {
@@ -57,9 +54,9 @@ export function useNativeLiveKitLifecycle(
         const h = await App.addListener('appStateChange', async ({ isActive }) => {
           try {
             if (!isActive) {
-              console.log('[useNativeLiveKitLifecycle] App inactive — keeping native LiveKit tracks alive');
+              console.log('[useNativeLiveKitLifecycle] App inactive — native plugin owns media teardown');
             } else {
-              console.log('[useNativeLiveKitLifecycle] App active — keeping existing native LiveKit session');
+              console.log('[useNativeLiveKitLifecycle] App active');
             }
           } catch (err) {
             console.warn('[useNativeLiveKitLifecycle] toggle failed:', err);
