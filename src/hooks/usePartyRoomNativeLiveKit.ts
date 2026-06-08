@@ -167,7 +167,7 @@ export function usePartyRoomNativeLiveKit(
         nativeParticipants: new Map(),
       }));
     },
-  });
+  }, roomId ? { scope: 'party', id: roomId } : undefined);
   useNativeLiveKitLifecycle(state.isNativeMediaActive);
 
   const getRemoteAudioTrackKey = (
