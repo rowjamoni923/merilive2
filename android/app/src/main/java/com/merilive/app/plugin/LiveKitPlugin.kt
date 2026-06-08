@@ -386,6 +386,9 @@ class LiveKitPlugin : Plugin() {
         val broadcastMode: String = "call",
         // Android-native room family. live/party/call must never fall back to WebView RTC.
         val roomScope: String = "call",
+        // Phase III.c — host flag. Live host (broadcastMode=live) and party host
+        // get a 60s background grace window before the room is torn down.
+        val isHost: Boolean = false,
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
