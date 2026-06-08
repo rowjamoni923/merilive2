@@ -119,7 +119,10 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
+        const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
         // Step 25 — stall watchdog tunables.
+
         private const val STALL_POLL_MS = 2_500L
         private const val STALL_WARN_MS = 7_000L
         private const val STALL_HARD_MS = 15_000L
