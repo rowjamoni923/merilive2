@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Crown, Trophy, Swords, X } from "lucide-react";
+import { Crown, Trophy, Swords, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PKBattleResultProps {
@@ -11,6 +11,10 @@ interface PKBattleResultProps {
   loserName: string;
   loserAvatar: string;
   loserScore: number;
+  /** PK Battle Step 4 (P2): top-gifter MVP recognition. Optional — only rendered when server set mvp_user_id. */
+  mvpName?: string | null;
+  mvpAvatar?: string | null;
+  mvpCoins?: number | null;
   onClose: () => void;
 }
 
@@ -23,6 +27,9 @@ export const PKBattleResult = ({
   loserName,
   loserAvatar,
   loserScore,
+  mvpName,
+  mvpAvatar,
+  mvpCoins,
   onClose,
 }: PKBattleResultProps) => {
   return (
@@ -355,6 +362,110 @@ export const PKBattleResult = ({
                 </div>
               </motion.div>
             </div>
+
+            {mvpName && (
+              <motion.div
+                className="mt-5 relative rounded-2xl overflow-hidden"
+                initial={{ y: 16, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ delay: 0.65, type: "spring", damping: 18, stiffness: 240 }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,119,6,0.12) 50%, rgba(251,191,36,0.18) 100%)",
+                  border: "1px solid rgba(251,191,36,0.45)",
+                  boxShadow:
+                    "0 10px 28px -8px rgba(251,191,36,0.45), 0 0 18px rgba(251,191,36,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%)",
+                    animation: "giftSendShine 3.2s ease-in-out infinite",
+                  }}
+                />
+                <div className="relative flex items-center gap-3 px-3 py-2.5">
+                  <div className="relative shrink-0">
+                    <motion.div
+                      className="w-11 h-11 rounded-full overflow-hidden"
+                      style={{
+                        border: "2px solid #fbbf24",
+                        boxShadow:
+                          "0 0 0 2px rgba(251,191,36,0.35), 0 0 14px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.22)",
+                      }}
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      {mvpAvatar ? (
+                        <img
+                          loading="lazy"
+                          decoding="async"
+                          src={mvpAvatar}
+                          alt={mvpName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center">
+                          <Sparkles className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                    </motion.div>
+                    <motion.div
+                      className="absolute -top-2.5 left-1/2 -translate-x-1/2"
+                      animate={{ y: [0, -2, 0], rotate: [0, -5, 0, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      style={{
+                        filter:
+                          "drop-shadow(0 2px 6px rgba(251,191,36,0.8)) drop-shadow(0 0 10px rgba(251,191,36,0.5))",
+                      }}
+                    >
+                      <Crown className="w-4 h-4 text-amber-400" />
+                    </motion.div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="text-[10px] font-extrabold uppercase tracking-[0.18em]"
+                        style={{
+                          background:
+                            "linear-gradient(90deg, #fde68a 0%, #fbbf24 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        MVP Gifter
+                      </span>
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                    </div>
+                    <p
+                      className="text-white text-sm font-extrabold truncate"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {mvpName}
+                    </p>
+                  </div>
+                  {typeof mvpCoins === "number" && mvpCoins > 0 && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-base" style={{ filter: "drop-shadow(0 1px 3px rgba(251,191,36,0.55))" }}>
+                        🪙
+                      </span>
+                      <span
+                        className="text-base font-extrabold tabular-nums"
+                        style={{
+                          background: "linear-gradient(180deg, #fef3c7 0%, #fbbf24 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          filter: "drop-shadow(0 0 8px rgba(251,191,36,0.5))",
+                        }}
+                      >
+                        {mvpCoins}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             <motion.div
               className="mt-6"
