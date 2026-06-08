@@ -179,6 +179,79 @@
             android:text="Recharge" />
     </LinearLayout>
 
+    <!-- Pkg500 Phase H — Camera resilience overlays.
+         freezeOverlay holds the last good local frame while in AUDIO_ONLY.
+         resilienceBanner shows status + optional Retry chip.
+         remotePoorOverlay is a small spinner anchored to the remote tile. -->
+    <ImageView
+        android:id="@+id/privateCallFreezeOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="Last camera frame"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/privateCallRemotePoorOverlay"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="#FFFFFFFF"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/privateCallResilienceBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="168dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_private_call_resilience_banner"
+        android:elevation="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/ic_private_call_camera_off"
+            android:contentDescription="Camera unavailable" />
+
+        <TextView
+            android:id="@+id/privateCallResilienceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Camera reconnecting…" />
+
+        <Button
+            android:id="@+id/privateCallResilienceRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:minWidth="0dp"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:background="@drawable/bg_private_call_recharge_btn"
+            android:text="Retry"
+            android:visibility="gone" />
+    </LinearLayout>
+
+
     <!-- Bottom action bar. Six circular buttons inside a translucent scrim. -->
     <LinearLayout
         android:id="@+id/privateCallBottomBar"
