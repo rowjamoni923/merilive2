@@ -73,6 +73,19 @@ export function attachLiveKitTokenRefresh(
     } catch (err) {
       console.warn(`[${label}] failed to apply token to room:`, err);
     }
+    // N3d — also push the new token to the native plugin so a future native
+    // hard-reconnect uses it. No-op on web/iOS (gate returns false).
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { NativeLiveKit, isNativeLiveKitAvailable } = require('@/plugins/NativeLiveKit');
+      if (isNativeLiveKitAvailable()) {
+        NativeLiveKit.refreshToken({ token }).catch((err: unknown) => {
+          console.warn(`[${label}] native refreshToken failed:`, err);
+        });
+      }
+    } catch {
+      // require failed — non-native build, ignore
+    }
   };
 
   const doRefresh = async (reason: 'scheduled' | 'reconnecting') => {

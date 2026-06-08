@@ -355,6 +355,17 @@ export interface NativeLiveKitPlugin {
   setAudioProfile(opts: { profile: 'voice' | 'broadcast' | 'music' }): Promise<{ profile: string }>;
 
   /**
+   * N3d — Push a freshly-issued JWT into the active native session so the
+   * NEXT hard-reconnect uses it (livekit-android has no public client-side
+   * token-swap API; mirrors Bigo/Agora `renewToken` semantics).
+   */
+  refreshToken(opts: { token: string }): Promise<{
+    applied: boolean;
+    willUseOnReconnect: boolean;
+    reason?: string;
+  }>;
+
+  /**
    * N3c — Cap the simulcast layer the SFU forwards for a given remote video
    * track. Industry standard: LOW for off-screen seats / PiP / low-end devices,
    * HIGH for focused tile / active speaker. Saves 40-60 % bandwidth vs HIGH.
