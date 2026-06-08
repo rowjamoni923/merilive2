@@ -724,9 +724,11 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun connect(call: PluginCall) {
-        if (getPermissionState("camera") != PermissionState.GRANTED ||
-            getPermissionState("microphone") != PermissionState.GRANTED
-        ) {
+        val enableVideo = call.getBoolean("video", true) ?: true
+        val enableAudio = call.getBoolean("audio", true) ?: true
+        val needsCameraPermission = enableVideo && getPermissionState("camera") != PermissionState.GRANTED
+        val needsMicPermission = enableAudio && getPermissionState("microphone") != PermissionState.GRANTED
+        if (needsCameraPermission || needsMicPermission) {
             requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permsCallback")
             return
         }
@@ -738,8 +740,6 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        val enableVideo = call.getBoolean("video", true) ?: true
-        val enableAudio = call.getBoolean("audio", true) ?: true
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val callerName = call.getString("callerName", "") ?: ""
