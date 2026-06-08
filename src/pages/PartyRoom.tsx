@@ -687,6 +687,9 @@ const PartyRoom = () => {
   const isAdmin = myRole === 'admin' || isHost;
   const canManageUsers = isHost || isAdmin;
 
+  // Phase III.d — incoming seat invitations for the current user (audience).
+  const seatInvitationInbox = useSeatInvitationInbox(currentUser?.id ?? null);
+
   // Initialize WebRTC for multi-user connections
   const {
     localStream,
