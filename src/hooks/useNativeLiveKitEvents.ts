@@ -220,6 +220,113 @@ export function useNativeLiveKitEvents(
         if (cancelled) { graceEnd.remove(); return; }
         subs.push(graceEnd);
 
+        // N3e — Native → window CustomEvent bridge for the 4 metadata-class
+        // RoomEvents (active speakers, participant metadata, room metadata,
+        // transcription). Mirrors the detail shapes already produced by the
+        // JS-Room registrars in livekitActiveSpeaker / livekitMetadata /
+        // livekitRoomMetadata / livekitTranscription, so existing consumer
+        // React hooks `just work` on native sessions.
+        const getBridge = () => bridgeRef.current;
+
+        const activeSpeakers = await NativeLiveKit.addListener(
+          'active-speakers-changed' as any,
+          (e: any) => {
+            const b = getBridge(); if (!b) return;
+            try {
+              const identities: string[] = [];
+              const levels: Record<string, number> = {};
+              for (const s of (e?.speakers ?? [])) {
+                if (!s?.identity) continue;
+                identities.push(s.identity);
+                levels[s.identity] = typeof s.audioLevel === 'number' ? s.audioLevel : 0;
+              }
+              window.dispatchEvent(new CustomEvent('livekit-active-speakers', {
+                detail: { scope: b.scope, id: b.id, identities, levels },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { activeSpeakers.remove(); return; }
+        subs.push(activeSpeakers);
+
+        const safeParseJson = (raw: string | undefined): Record<string, unknown> | null => {
+          if (!raw) return null;
+          try { const v = JSON.parse(raw); return v && typeof v === 'object' ? v : null; }
+          catch { return null; }
+        };
+
+        const participantMeta = await NativeLiveKit.addListener(
+          'participant-metadata-changed' as any,
+          (e: any) => {
+            const b = getBridge(); if (!b) return;
+            try {
+              window.dispatchEvent(new CustomEvent('livekit-participant-metadata', {
+                detail: {
+                  scope: b.scope,
+                  id: b.id,
+                  identity: e?.identity ?? '',
+                  metadata: safeParseJson(e?.metadata),
+                  raw: e?.metadata,
+                },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { participantMeta.remove(); return; }
+        subs.push(participantMeta);
+
+        const roomMeta = await NativeLiveKit.addListener(
+          'room-metadata-changed' as any,
+          (e: any) => {
+            const b = getBridge(); if (!b) return;
+            try {
+              const raw: string = e?.metadata ?? '';
+              window.dispatchEvent(new CustomEvent('livekit-room-metadata', {
+                detail: {
+                  scope: b.scope,
+                  id: b.id,
+                  raw,
+                  metadata: safeParseJson(raw),
+                },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { roomMeta.remove(); return; }
+        subs.push(roomMeta);
+
+        const transcription = await NativeLiveKit.addListener(
+          'transcription-received' as any,
+          (e: any) => {
+            const b = getBridge(); if (!b) return;
+            try {
+              const segs = (e?.segments ?? []).map((s: any) => ({
+                id: s.id,
+                text: s.text,
+                language: s.language,
+                final: !!s.final,
+                // Native exposes firstReceivedTime/lastReceivedTime (long, ms);
+                // forward as start/end for parity with the JS-Room schema.
+                startTime: typeof s.firstReceivedTime === 'number' ? s.firstReceivedTime : undefined,
+                endTime: typeof s.lastReceivedTime === 'number' ? s.lastReceivedTime : undefined,
+              }));
+              window.dispatchEvent(new CustomEvent('livekit-transcription', {
+                detail: {
+                  scope: b.scope,
+                  id: b.id,
+                  roomName: b.id,
+                  identity: e?.participantIdentity || undefined,
+                  segments: segs,
+                },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { transcription.remove(); return; }
+        subs.push(transcription);
+
+
+
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
       }
