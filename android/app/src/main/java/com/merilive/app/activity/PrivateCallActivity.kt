@@ -176,6 +176,7 @@ class PrivateCallActivity : ComponentActivity() {
 
         registerCloseReceiver()
         registerBillingReceiver()
+        registerResumeReceiver()
         wireUiToViewModel()
         wireBackPress()
     }
