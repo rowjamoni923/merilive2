@@ -17,7 +17,6 @@
  */
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
-import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 
 export const NativeLiveKitRouteSurvivor = () => {
@@ -35,18 +34,9 @@ export const NativeLiveKitRouteSurvivor = () => {
     if (navType === 'POP') return;
     if (!isNativeLiveKitAvailable()) return;
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const active = await nativeLiveKitController.getActiveSession();
-        if (cancelled || !active?.active) return;
-        await nativeLiveKitController.setSurviveActivityDestroy(true);
-      } catch {
-        /* swallow — survivor is best-effort */
-      }
-    })();
-
-    return () => { cancelled = true; };
+    // Professional no-leak policy: live/party/call sessions must end on
+    // explicit page exit/background teardown. Never preserve a hidden native
+    // Room across route changes; that is how stale camera sessions survive.
   }, [location.pathname, navType]);
 
   return null;
