@@ -82,3 +82,10 @@ project_id = "ayjdlvuurscxucatbbah"
     verify_jwt = false
   [functions.swift-pay-poll-deposits]
     verify_jwt = false
+  # Phase 3B Step 2 — call billing
+  # call-billing-tick is invoked by pg_cron (no JWT). call-start requires caller JWT.
+  [functions.call-billing-tick]
+    verify_jwt = false
+  [functions.call-start]
+    verify_jwt = true
+
