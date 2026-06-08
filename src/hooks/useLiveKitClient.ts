@@ -1686,14 +1686,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.liveSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     // Lazy import to avoid pulling signaling code into non-live paths.
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitLiveSignaling');
         if (cancelled) return;
-        mod.registerStreamRoom(streamId, room);
+        if (room) mod.registerStreamRoom(streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeStreamRoom(streamId);
       } catch (e) {
         console.warn('[Pkg74] registerStreamRoom failed:', e);
       }
@@ -1702,9 +1702,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitLiveSignaling').then((mod) => {
         mod.unregisterStreamRoom(streamId);
+        mod.unregisterNativeStreamRoom(streamId);
       }).catch(() => {});
     };
-  }, [options.liveSignalingStreamId, isJoined]);
+  }, [options.liveSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg76: Bind streamId → Room for LiveKit-based gift_sent signaling.
   // Reuses the SAME Room as Pkg74 (DataReceived supports multiple listeners).
@@ -1712,16 +1713,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.giftSignalingStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     try {
-      registerGiftRoom('live', streamId, room);
+      if (room) registerGiftRoom('live', streamId, room);
+      else if (isNativeMediaActive) registerNativeGiftRoom('live', streamId);
     } catch (e) {
       console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
     }
     return () => {
       unregisterGiftRoom('live', streamId);
+      unregisterNativeGiftRoom('live', streamId);
     };
-  }, [options.giftSignalingStreamId, isJoined]);
+  }, [options.giftSignalingStreamId, isJoined, isNativeMediaActive]);
 
   // Pkg77: Bind streamId → Room for INSTANT viewer count via LiveKit
   // ParticipantConnected/Disconnected. Same Room reused, zero new channels.
