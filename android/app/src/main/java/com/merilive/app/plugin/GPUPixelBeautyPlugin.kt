@@ -32,13 +32,53 @@ class GPUPixelBeautyPlugin : Plugin() {
 
     companion object {
         private const val TAG = "GPUPixelBeauty"
+
+        // Pkg500 Phase C — native PrivateCallActivity needs to drive the
+        // same filter graph without going through the JS bridge. Latest
+        // loaded plugin instance is exposed so the in-call beauty sheet
+        // (and any future native UI) can call setLevel* directly.
+        @Volatile internal var INSTANCE: GPUPixelBeautyPlugin? = null
+
+        /** True when init() has run and filter handles are alive. */
+        @JvmStatic fun isReady(): Boolean = INSTANCE?.initialized == true
+
+        @JvmStatic fun setSmoothLevel(level0to10: Float) {
+            INSTANCE?.beauty?.SetProperty("skin_smoothing", normalize(level0to10))
+        }
+        @JvmStatic fun setWhiteLevel(level0to10: Float) {
+            INSTANCE?.beauty?.SetProperty("whiteness", normalize(level0to10))
+        }
+        @JvmStatic fun setThinFaceLevel(level0to10: Float) {
+            INSTANCE?.reshape?.SetProperty("thin_face", normalize(level0to10))
+        }
+        @JvmStatic fun setBigEyeLevel(level0to10: Float) {
+            INSTANCE?.reshape?.SetProperty("big_eye", normalize(level0to10))
+        }
+        @JvmStatic fun setLipstickLevel(level0to10: Float) {
+            INSTANCE?.lipstick?.SetProperty("blend_level", normalize(level0to10))
+        }
+        @JvmStatic fun setBlusherLevel(level0to10: Float) {
+            INSTANCE?.blusher?.SetProperty("blend_level", normalize(level0to10))
+        }
+
+        private fun normalize(v: Float): Float = v.coerceIn(0f, 10f) / 10f
     }
 
-    private var beauty: GPUPixelFilter? = null
-    private var reshape: GPUPixelFilter? = null
-    private var lipstick: GPUPixelFilter? = null
-    private var blusher: GPUPixelFilter? = null
-    private var initialized = false
+    internal var beauty: GPUPixelFilter? = null
+    internal var reshape: GPUPixelFilter? = null
+    internal var lipstick: GPUPixelFilter? = null
+    internal var blusher: GPUPixelFilter? = null
+    internal var initialized = false
+
+    override fun load() {
+        super.load()
+        INSTANCE = this
+    }
+
+    override fun handleOnDestroy() {
+        if (INSTANCE === this) INSTANCE = null
+        super.handleOnDestroy()
+    }
 
     @PluginMethod
     fun init(call: PluginCall) {
