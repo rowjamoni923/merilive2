@@ -36,14 +36,16 @@ export const PKBattleActive = ({
 }: PKBattleActiveProps) => {
   const [challengerScore, setChallengerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
-  // PK Battle Step 3: timer is server-authoritative.
-  // We compute timeLeft from `started_at + duration_seconds - now()` on every
-  // tick rather than counting down locally. If the device clock drifts we
-  // re-anchor off the server timestamp on every Realtime UPDATE.
   const [serverStartedAt, setServerStartedAt] = useState<number | null>(null);
   const [serverDurationSec, setServerDurationSec] = useState<number>(300);
   const [timeLeft, setTimeLeft] = useState(0);
   const [battleEnded, setBattleEnded] = useState(false);
+  // Step 4 — server-only fields surfaced for UI
+  const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
+  const [mvpUserId, setMvpUserId] = useState<string | null>(null);
+  const [finalStatus, setFinalStatus] = useState<string | null>(null);
+  const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
+  const [punishLeft, setPunishLeft] = useState(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
 
