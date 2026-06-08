@@ -238,6 +238,10 @@ export function usePartyRoomWebRTC(
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
       tokenRefreshDetachRef.current = null;
     }
+    if (usingNativeRef.current) {
+      nativeLiveKitController.disconnect().catch(() => {});
+      usingNativeRef.current = false;
+    }
     if (roomRef.current) {
       // Pkg-fix: explicitly stop hardware tracks BEFORE room.disconnect so the
       // camera LED / busy state clears immediately on Android WebView. Without
