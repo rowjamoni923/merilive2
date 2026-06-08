@@ -35,6 +35,14 @@ interface AttachOptions {
   refreshLeadSeconds?: number;
   /** Optional label for debug logs. */
   label?: string;
+  /**
+   * N3d follow-up — when running on the native plugin and the SDK has no
+   * public token-swap API, force a brief reconnect to apply the fresh JWT.
+   * Defaults to true on native (proactive rotation). The reconnect fires
+   * ~30 s before the OLD token expires IF a fresh one was applied this
+   * cycle. Web is unaffected (engine.client.token swap is sufficient).
+   */
+  forceNativeReconnectOnRotate?: boolean;
 }
 
 export function attachLiveKitTokenRefresh(
