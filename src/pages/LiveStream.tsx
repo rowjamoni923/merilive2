@@ -624,6 +624,29 @@ const LiveStream = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
+  // Phase I — push viewer/coin counts into the native LIVE foreground-service
+  // notification ("🔴 LIVE · {viewers} watching · 💎 {coins}"). Bigo/Chamet
+  // pattern: notification stays fresh while host is broadcasting. No-op on
+  // web/iOS and when broadcastMode !== 'live' (controller / plugin guards).
+  // Debounced via React batching; updateLiveStats is cheap (single intent).
+  useEffect(() => {
+    if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
+    const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
+    const coinCount: number = Number(
+      streamData?.total_coins ?? streamData?.coin_count ?? 0
+    ) || 0;
+    const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+        if (cancelled) return;
+        await nativeLiveKitController.updateLiveStats({ viewerCount, coinCount, title });
+      } catch { /* noop — web / non-live */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_coins, streamData?.coin_count, streamData?.title, hostInfo?.name]);
+
   // ========== Pkg105: HOST HARD-BLOCK (LiveKit track-subscription permissions) ==========
   // Host-only. Fetches `blocked_users` (where blocker_id = host) on mount + when
   // admin or another tab pushes `blocked_users` via Pkg37 `admin-table-update`.
