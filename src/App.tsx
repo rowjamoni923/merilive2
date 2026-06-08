@@ -1204,6 +1204,7 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <RouteTransitionHost />
+              <NativeLiveKitRouteSurvivor />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
               {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
