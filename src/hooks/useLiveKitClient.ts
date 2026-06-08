@@ -421,16 +421,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
 
     // 🛰️ Native Android live path (Capacitor + LiveKit Android SDK).
-    // Android hosts AND viewers use native LiveKit only; WebView RTC is dev/web fallback only.
+    // Android hosts AND viewers use native LiveKit only; there is no WebView RTC fallback.
     if (
       !config.preloadedRoom &&
       shouldUseNativeLiveKit({ feature: 'live-broadcast' })
     ) {
       try {
         await whenNativeLiveKitKillSwitchReady();
-        if (!shouldUseNativeLiveKit({ feature: 'live-broadcast' })) {
-          throw new Error('native_livekit_disabled_after_settings_sync');
-        }
+        if (!shouldUseNativeLiveKit({ feature: 'live-broadcast' })) throw new Error('native_livekit_required');
 
         const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
