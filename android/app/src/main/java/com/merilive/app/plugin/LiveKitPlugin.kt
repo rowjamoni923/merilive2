@@ -366,6 +366,9 @@ class LiveKitPlugin : Plugin() {
         //                 typing OFF (preserve dynamics), hardware AEC/NS
         //                 OFF, stereo, MediaAudioType (no comm-mode squash).
         val audioProfile: String,
+        // Phase I — "call" (default) → Android CallStyle ongoing-call FGS.
+        //           "live" → Bigo/Chamet "🔴 LIVE · {viewers} watching" FGS.
+        val broadcastMode: String = "call",
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
