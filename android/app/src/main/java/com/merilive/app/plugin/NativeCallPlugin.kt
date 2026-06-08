@@ -45,6 +45,12 @@ class NativeCallPlugin : Plugin() {
     companion object {
         private const val TAG = "NativeCallPlugin"
 
+        /** Pkg500 Phase B — broadcast that asks PrivateCallActivity to finish. */
+        const val ACTION_CLOSE_PRIVATE_CALL_ACTIVITY =
+            "com.merilive.app.ACTION_CLOSE_PRIVATE_CALL_ACTIVITY"
+
+
+
         // Pending actions queued before JS attaches a listener (cold-start).
         private val pending = ConcurrentLinkedQueue<JSONObject>()
 
