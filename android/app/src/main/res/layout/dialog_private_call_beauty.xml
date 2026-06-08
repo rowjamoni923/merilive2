@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pkg500 Phase C — In-call beauty bottom sheet.
+
+    Five rows: master Enable switch + four 0-10 sliders (Smooth / White /
+    ThinFace / BigEye). Sliders are no-ops unless GPUPixelBeauty.isReady()
+    AND the pipeline is enabled (Switch ON). Levels persist in
+    PRIVATE_CALL_BEAUTY_PREFS so reopening the call resumes the last look.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1A1A1A"
+    android:paddingTop="16dp"
+    android:paddingBottom="28dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+
+    <View
+        android:layout_width="44dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="14dp"
+        android:background="#33FFFFFF" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Beauty filter"
+            android:textColor="@android:color/white"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/beautyEnableSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/beautyStatusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:textColor="#99FFFFFF"
+        android:textSize="12sp"
+        android:text="Tap to enable. Camera will briefly reload." />
+
+    <!-- Smooth -->
+    <include layout="@layout/include_private_call_beauty_row"
+        android:id="@+id/rowSmooth" />
+    <include layout="@layout/include_private_call_beauty_row"
+        android:id="@+id/rowWhite" />
+    <include layout="@layout/include_private_call_beauty_row"
+        android:id="@+id/rowThinFace" />
+    <include layout="@layout/include_private_call_beauty_row"
+        android:id="@+id/rowBigEye" />
+
+</LinearLayout>

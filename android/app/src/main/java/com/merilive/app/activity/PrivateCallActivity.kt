@@ -150,6 +150,11 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
+        // Phase C — restore saved beauty levels into GPUPixel filter graph
+        // so reopening a call resumes the user's last "look" without
+        // needing to open the beauty sheet again.
+        runCatching { PrivateCallBeautySheet.restoreLevelsIfReady(this) }
+
         registerCloseReceiver()
         wireUiToViewModel()
         wireBackPress()
@@ -237,7 +242,9 @@ class PrivateCallActivity : ComponentActivity() {
         }
         btnFlip.setOnClickListener { vm.flipCamera() }
         btnBeauty.setOnClickListener {
-            // Phase C — open beauty sheet. Stub for now.
+            // Phase C — open native beauty bottom sheet (4 GPUPixel sliders
+            // + master enable switch). All level changes apply in real time.
+            PrivateCallBeautySheet.show(this)
         }
         btnGift.setOnClickListener {
             // Phase D/E — open gift sheet without leaving the Activity.

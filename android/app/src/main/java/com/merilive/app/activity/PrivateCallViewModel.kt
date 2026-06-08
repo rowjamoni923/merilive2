@@ -147,8 +147,16 @@ class PrivateCallViewModel : ViewModel() {
     }
 
     fun flipCamera() {
-        // Phase C will translate to localParticipant.setCameraPosition(...).
+        // Phase C — actually flip the physical camera via LiveKit's
+        // LocalVideoTrack.switchCamera(). We route through the LiveKitPlugin
+        // static helper so the same camera-ownership / Camera2 retry plumbing
+        // that JS uses applies here, instead of opening Camera2 ourselves.
         _cameraFront.value = !_cameraFront.value
+        try {
+            com.merilive.app.plugin.LiveKitPlugin.switchCameraFromNative()
+        } catch (t: Throwable) {
+            Log.w(TAG, "flipCamera: ${t.message}")
+        }
     }
 
     fun markEnding(reason: String) {
