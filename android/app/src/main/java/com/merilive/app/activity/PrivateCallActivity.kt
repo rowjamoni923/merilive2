@@ -116,6 +116,12 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnEnd: ImageButton
     private lateinit var lowBalanceBannerSlot: FrameLayout
 
+    // Phase B — renderers + track refs (managed alongside lifecycle).
+    private var remoteRenderer: TextureViewRenderer? = null
+    private var localRenderer: TextureViewRenderer? = null
+    private var attachedRemoteTrack: VideoTrack? = null
+    private var attachedLocalTrack: VideoTrack? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
         applyWindowFlags()
@@ -131,12 +137,17 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
+        // Phase B — adopt the Room that LiveKitPlugin already connected.
+        if (!vm.attachToCurrentRoom(applicationContext)) {
+            Log.w(TAG, "no active LiveKit Room — finishing")
+            finishAndRemoveTask()
+            return
+        }
+
         wireUiToViewModel()
         wireBackPress()
-
-        // Phase A stops here. Phase B will call vm.startConnect() to bring
-        // LiveKit up; Phase D will subscribe Supabase Realtime for billing.
     }
+
 
     private fun applyWindowFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
