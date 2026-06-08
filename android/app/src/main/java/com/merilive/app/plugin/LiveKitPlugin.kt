@@ -3108,13 +3108,24 @@ class LiveKitPlugin : Plugin() {
     // exactly like WhatsApp / Messenger.
     // ------------------------------------------------------------
 
-    private fun startCallForegroundService(callerName: String, callType: String) {
+    private fun startCallForegroundService(
+        callerName: String,
+        callType: String,
+        broadcastMode: String = "call",
+        viewerCount: Int = -1,
+        coinCount: Long = -1L,
+    ) {
         val ctx = context ?: return
         try {
             val intent = Intent(ctx, CallForegroundService::class.java).apply {
                 action = CallForegroundService.ACTION_START
-                putExtra("caller_name", callerName.ifBlank { "Live session" })
+                putExtra("caller_name", callerName.ifBlank {
+                    if (broadcastMode == "live") "Live broadcast" else "Live session"
+                })
                 putExtra("call_type", callType.ifBlank { "Call" })
+                putExtra("mode", broadcastMode)
+                if (viewerCount >= 0) putExtra("viewer_count", viewerCount)
+                if (coinCount >= 0L) putExtra("coin_count", coinCount)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 ctx.startForegroundService(intent)
@@ -3124,6 +3135,32 @@ class LiveKitPlugin : Plugin() {
         } catch (e: Exception) {
             Log.w(TAG, "startCallForegroundService failed: ${e.message}")
         }
+    }
+
+    /**
+     * Phase I — Update the live-broadcast FGS notification with current
+     * viewer count and coin total. Re-issues the START intent so the
+     * service rebuilds the notification (cheap; FGS itself is already
+     * running). No-op when no live broadcast is active.
+     */
+    @PluginMethod
+    fun updateLiveStats(call: PluginCall) {
+        val args = lastConnectArgs
+        if (args == null || args.broadcastMode != "live") {
+            call.resolve()
+            return
+        }
+        val viewerCount = call.getInt("viewerCount", -1) ?: -1
+        val coinCount = call.getLong("coinCount", -1L) ?: -1L
+        val title = call.getString("title", "") ?: ""
+        startCallForegroundService(
+            callerName = if (title.isNotBlank()) title else args.callerName,
+            callType = args.callType,
+            broadcastMode = "live",
+            viewerCount = viewerCount,
+            coinCount = coinCount,
+        )
+        call.resolve()
     }
 
     private fun stopCallForegroundService() {
