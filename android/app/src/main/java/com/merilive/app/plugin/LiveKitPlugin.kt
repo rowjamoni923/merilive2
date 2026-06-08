@@ -1128,6 +1128,25 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getRemoteParticipants(call: PluginCall) {
+        val r = room ?: return call.reject("Not connected")
+        try {
+            val arr = com.getcapacitor.JSArray()
+            r.remoteParticipants.values.forEach { participant ->
+                val item = JSObject()
+                item.put("sid", participant.sid.value)
+                item.put("identity", participant.identity?.value ?: "")
+                arr.put(item)
+            }
+            val ret = JSObject()
+            ret.put("participants", arr)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("getRemoteParticipants failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
     fun setMicrophoneEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", true) ?: true
         val r = room ?: return call.reject("Not connected")
