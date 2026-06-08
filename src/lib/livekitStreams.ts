@@ -270,7 +270,16 @@ export async function sendText(
   const enabled = await isLiveKitEnabled('streams');
   if (!enabled) throw new Error('streams_disabled');
   const entry = registry.get(key(scope, id));
-  if (!entry) throw new Error('room_not_registered');
+  if (!entry) {
+    // Pure native fallback (no JS Room).
+    const sent = await trySendNativeText({
+      text,
+      topic: opts.topic,
+      destinationIdentities: opts.destinationIdentities,
+    });
+    if (!sent) throw new Error('room_not_registered');
+    return null;
+  }
   const info = await entry.room.localParticipant.sendText(text, {
     topic: opts.topic,
     destinationIdentities: opts.destinationIdentities,
