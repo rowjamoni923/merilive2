@@ -352,6 +352,53 @@ export function usePartyRoomWebRTC(
       try {
         console.log('[PartyLiveKit] Initializing for room:', roomId);
 
+        if (shouldUseNativeLiveKit({ feature: 'party-room' })) {
+          try {
+            await whenNativeLiveKitKillSwitchReady();
+            if (!shouldUseNativeLiveKit({ feature: 'party-room' })) throw new Error('native_livekit_disabled_after_settings_sync');
+            warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
+            const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+            if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
+
+            consumePreparedHostPreviewStream()?.getTracks().forEach((track) => { try { track.stop(); } catch {} });
+            await releaseAndroidWebViewCameraNow('party:native-before-connect');
+            try { await NativeLiveKit.setPreferredCodec({ codec: 'h264' }); } catch { /* noop */ }
+
+            await nativeLiveKitController.connectAndPublish({
+              url,
+              token,
+              video: partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current,
+              audio: partyCanPublish,
+              lens: 'front',
+              resolution: '720p',
+              attachLocal: partyCanPublish && isVideoPartyType(roomType),
+              audioProfile: 'broadcast',
+              callType: 'Party Room',
+              roomScope: 'party',
+            });
+
+            usingNativeRef.current = true;
+            registerNativeChatRoom('party', roomId);
+            registerNativeGiftRoom('party', roomId);
+            registerNativeReactionRoom('party', roomId);
+            await refreshNativeParticipants();
+            setState((prev) => ({
+              ...prev,
+              isConnected: true,
+              isAudioEnabled: partyCanPublish,
+              isVideoEnabled: partyCanPublish && isVideoPartyType(roomType),
+              connectionState: ConnectionState.Connected,
+              isNativeMediaActive: true,
+            }));
+            return;
+          } catch (nativeError) {
+            usingNativeRef.current = false;
+            await nativeLiveKitController.disconnect().catch(() => {});
+            console.error('[PartyLiveKit/Native] native party connect failed:', nativeError);
+            throw nativeError instanceof Error ? nativeError : new Error(String(nativeError));
+          }
+        }
+
         room = new Room({
           // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
           // Viewer auto-receives only the simulcast layer matching visible video size + bandwidth.
