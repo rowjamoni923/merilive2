@@ -465,6 +465,11 @@ export function CallProvider({ children }: CallProviderProps) {
           immediately on cold start. */}
       {userId ? <GlobalNotificationsMount /> : null}
 
+      {/* Pkg500 Phase G — global host for the inline in-call gift sheet.
+          Opens when the native PrivateCallActivity's Gift button broadcasts
+          via `useNativeCallBillingSync` → `open-call-gift-sheet` event. */}
+      {userId ? <GlobalCallGiftSheet /> : null}
+
       {typeof document !== 'undefined'
         ? createPortal(incomingCallModalNode, document.body)
         : incomingCallModalNode}
