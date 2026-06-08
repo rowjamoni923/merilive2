@@ -403,9 +403,10 @@ class PrivateCallActivity : ComponentActivity() {
                         tvCallState.visibility =
                             if (tvCallState.text.isNullOrEmpty()) View.GONE else View.VISIBLE
                         if (st == PrivateCallViewModel.CallState.ENDED) {
-                            // Phase E will show end-screen Activity first. For
-                            // Phase A scaffold, just finish.
-                            finishAndRemoveTask()
+                            // Phase E — slide in the post-call summary screen
+                            // (duration / coins / rating / gift / recharge)
+                            // before finishing the in-call surface.
+                            launchEndScreenAndFinish()
                         }
                     }
                 }
