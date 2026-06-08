@@ -1,5 +1,7 @@
 import { Room, Track, type LocalTrackPublication } from 'livekit-client';
 import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
+
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
 
@@ -95,6 +97,13 @@ export async function publishReliableLocalMedia(
   },
 ): Promise<{ localStream: MediaStream; videoPublication?: LocalTrackPublication; audioPublication?: LocalTrackPublication }> {
   const { needVideo, needAudio, preparedStream, processVideoTrack } = options;
+  // Native Android owns the camera/mic via LiveKitPlugin — never run WebView
+  // getUserMedia here. Live/Party/Call hooks already throw `native_livekit_required`
+  // before reaching this path on Android, but fail-closed for safety.
+  if (isNativeAndroidApp()) {
+    throw new Error('native_livekit_required');
+  }
+
   const preparedTracks = preparedStream?.getTracks().filter(isLive) ?? [];
   const preparedHasVideo = preparedTracks.some((track) => track.kind === 'video');
   const preparedHasAudio = preparedTracks.some((track) => track.kind === 'audio');
