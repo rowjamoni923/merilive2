@@ -19,6 +19,7 @@ import {
   type NativeAudioDevice,
   type ConnectionStateEvent,
   type AudioInterruptionEvent,
+  type NativeRoomScope,
 } from '@/plugins/NativeLiveKit';
 import type { PluginListenerHandle } from '@capacitor/core';
 
@@ -39,6 +40,8 @@ export interface NativeJoinOptions {
   audioProfile?: 'voice' | 'broadcast' | 'music';
   /** Phase I — "live" swaps the FGS notification to Bigo/Chamet LIVE style. */
   broadcastMode?: 'call' | 'live';
+  /** Android native media family; no WebView camera/WebRTC fallback for live/party/call. */
+  roomScope?: NativeRoomScope;
 }
 
 class NativeLiveKitController {
@@ -120,6 +123,7 @@ class NativeLiveKitController {
         // Phase I — default to "broadcast" audio + "live" notification for hosts.
         audioProfile: opts.audioProfile ?? (opts.broadcastMode === 'live' ? 'broadcast' : undefined),
         broadcastMode: opts.broadcastMode,
+        roomScope: opts.roomScope,
       };
 
       try {
@@ -261,6 +265,16 @@ class NativeLiveKitController {
     if (!this.connected) return;
     try { await NativeLiveKit.attachAllRemotes(); } catch (e) {
       console.warn('[NativeLiveKitController] attachAllRemotes failed:', e);
+    }
+  }
+
+  async getRemoteParticipants(): Promise<Array<{ sid: string; identity: string }>> {
+    if (!this.connected) return [];
+    try {
+      const result = await NativeLiveKit.getRemoteParticipants();
+      return Array.isArray(result?.participants) ? result.participants : [];
+    } catch {
+      return [];
     }
   }
 
