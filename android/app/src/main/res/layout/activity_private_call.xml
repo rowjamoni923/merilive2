@@ -45,6 +45,7 @@
     <!-- Top overlay (peer info + duration + balance). Scrim gradient keeps
          text readable over any background. -->
     <LinearLayout
+        android:id="@+id/privateCallTopOverlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
