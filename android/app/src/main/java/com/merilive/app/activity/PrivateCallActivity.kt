@@ -134,6 +134,11 @@ class PrivateCallActivity : ComponentActivity() {
     @Volatile private var speakerOn: Boolean = true
     @Volatile private var inPipMode: Boolean = false
 
+    // Phase H — camera resilience controller (last-frame freeze, audio-only
+    // fallback banner, thermal-aware throttling, permission-revoke deep link).
+    private var resilienceController: CameraResilienceController? = null
+
+
     // Phase B — renderers + track refs (managed alongside lifecycle).
     private var remoteRenderer: TextureViewRenderer? = null
     private var localRenderer: TextureViewRenderer? = null
