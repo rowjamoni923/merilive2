@@ -1368,10 +1368,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // user's next join attempt block forever on this teardown.
       if (usingNativeRef.current) {
         try {
-          await Promise.race([
-            nativeLiveKitController.disconnect(),
-            new Promise((resolve) => setTimeout(resolve, 3000)),
-          ]);
+          await nativeLiveKitController.disconnect();
         } catch { /* noop */ }
         usingNativeRef.current = false;
         setNativeActive(false);

@@ -1,9 +1,16 @@
-# Phase I — Native Live Streaming (Host Broadcast) — Chamet/Bigo Class
+# Camera / Video Icon / Background Camera Audit — 2026-06-08
 
-**Research-first:** ✅ Done. Full gap-analysis: `/mnt/documents/host-broadcast-gap-analysis.md`.
-**Audit:** ✅ Done. Confirmed gaps in `LiveKitPlugin.kt` (4790 lines, no publisher config / simulcast / codec / TURN) and `AndroidManifest.xml` (no dedicated live FGS — only `CallForegroundService` for private calls).
-**Web design:** SACRED — zero changes. All work is Android-native.
-**Memory rules applied:** research-first-mandatory ✅, professional-never-leak ✅, web-design-sacred-android-native-pro ✅, no-duplicate-native-systems ✅ (extend existing LiveKitPlugin, do NOT fork).
+**Research-first:** ✅ Done. Sources checked: Android foreground-service camera/microphone requirements, LiveKit Android lifecycle/background camera freeze reports, Android WebView autoplay/inline video behavior.
+**Professional baseline:** one active camera owner per device; Android native LiveKit for host broadcast; viewer side is receive-only; no camera/flash controls on viewer; no browser/native video play icon during a live tile.
+**Current verified root causes:**
+1. GoLive Android permission path still used WebView `getUserMedia`, creating a second camera pipeline before native LiveKit.
+2. GoLive preserved WebView preview tracks into `/live`, forcing native path to stop/release them and adding Camera2 handoff races.
+3. `nativeLiveKitController` adopted surviving live sessions on same URL, causing stale "already live" state and possible background camera after explicit end/re-entry.
+4. LiveKitVideoPlayer already hides native video controls; remaining icon symptom is from WebView preview / fallback surfaces, not a professional viewer control.
+
+**Fix applied:** native Android GoLive now requests Android runtime camera/mic permission only (no WebView camera stream), does not preserve WebView preview into native live, and fresh live host publish disconnects any surviving native room before starting.
+
+**Still requires APK rebuild + owner-device test:** start live → end live → camera LED/indicator off → re-enter GoLive → no "already live" → host preview/viewer video clean; party room still needs separate native publisher phase if user wants zero WebView camera there.
 
 ---
 
