@@ -347,10 +347,9 @@ class CameraResilienceController(
     private fun captureLastFrameAndFreeze() {
         try {
             val r = localRendererProvider() ?: return
-            // TextureView.getBitmap is cheap and returns the last drawn frame.
-            val tv = (r as? android.view.TextureView)
-                ?: r.findViewById<android.view.TextureView>(android.R.id.content)
-                ?: return
+            // LiveKit's TextureViewRenderer extends android.view.TextureView,
+            // so getBitmap() returns the last rendered frame at near-zero cost.
+            val tv = r as? android.view.TextureView ?: return
             val w = tv.width.coerceAtMost(360)
             val h = tv.height.coerceAtMost(640)
             if (w <= 0 || h <= 0) return
@@ -363,6 +362,7 @@ class CameraResilienceController(
             Log.w(TAG, "captureLastFrameAndFreeze: ${t.message}")
         }
     }
+
 
     private fun clearFreeze() {
         freezeOverlay.visibility = View.GONE
