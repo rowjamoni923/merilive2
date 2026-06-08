@@ -402,9 +402,11 @@ class PrivateCallViewModel : ViewModel() {
         eventsJob?.cancel()
         durationJob?.cancel()
         peerGraceJob?.cancel()
+        billingTickerJob?.cancel()
         eventsJob = null
         durationJob = null
         peerGraceJob = null
+        billingTickerJob = null
         // DO NOT room?.disconnect() — Room is owned by LiveKitPlugin.
         // Activity will detach its renderers from tracks in onDestroy.
         room = null
