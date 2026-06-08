@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Crown, Swords, Timer } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
-// PK Battle Step 3: client no longer writes battle state, so the local
-// `toast`/`isChallenger` ending logic is gone. Server pk-battle-tick cron
-// is the single writer of status/winner/MVP/punishment.
+// PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
+// mvp_user_id + punishment_end_ts. Client only renders these fields.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 
 interface PKBattleActiveProps {
@@ -37,14 +36,16 @@ export const PKBattleActive = ({
 }: PKBattleActiveProps) => {
   const [challengerScore, setChallengerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
-  // PK Battle Step 3: timer is server-authoritative.
-  // We compute timeLeft from `started_at + duration_seconds - now()` on every
-  // tick rather than counting down locally. If the device clock drifts we
-  // re-anchor off the server timestamp on every Realtime UPDATE.
   const [serverStartedAt, setServerStartedAt] = useState<number | null>(null);
   const [serverDurationSec, setServerDurationSec] = useState<number>(300);
   const [timeLeft, setTimeLeft] = useState(0);
   const [battleEnded, setBattleEnded] = useState(false);
+  // Step 4 — server-only fields surfaced for UI
+  const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
+  const [mvpUserId, setMvpUserId] = useState<string | null>(null);
+  const [finalStatus, setFinalStatus] = useState<string | null>(null);
+  const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
+  const [punishLeft, setPunishLeft] = useState(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
 
@@ -70,6 +71,8 @@ export const PKBattleActive = ({
       status?: string | null;
       winner_user_id?: string | null;
       final_status?: string | null;
+      mvp_user_id?: string | null;
+      punishment_end_ts?: string | null;
     }) => {
       if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
       if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
@@ -77,6 +80,12 @@ export const PKBattleActive = ({
       if (typeof row.duration_seconds === "number" && row.duration_seconds > 0) {
         setServerDurationSec(row.duration_seconds);
       }
+      if (row.mvp_user_id !== undefined) setMvpUserId(row.mvp_user_id ?? null);
+      if (row.final_status !== undefined) setFinalStatus(row.final_status ?? null);
+      if (row.punishment_end_ts !== undefined) {
+        setPunishmentEndTs(row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null);
+      }
+      if (row.winner_user_id !== undefined) setWinnerUserId(row.winner_user_id ?? null);
       if (row.status === "ended") {
         setBattleEnded(true);
         onBattleEnd(row.winner_user_id ?? null);
@@ -87,7 +96,7 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("pk_battles")
         .select(
-          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id",
+          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, punishment_end_ts",
         )
         .eq("id", battleId)
         .maybeSingle();
@@ -145,6 +154,20 @@ export const PKBattleActive = ({
     return () => clearInterval(timer);
   }, [serverStartedAt, serverDurationSec, battleEnded]);
 
+  // Step 4: punishment countdown for the loser side (server-anchored).
+  useEffect(() => {
+    if (!punishmentEndTs) {
+      setPunishLeft(0);
+      return;
+    }
+    const tick = () => {
+      const remainMs = punishmentEndTs - Date.now();
+      setPunishLeft(Math.max(0, Math.ceil(remainMs / 1000)));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [punishmentEndTs]);
 
 
   const formatTime = (seconds: number) => {
@@ -452,6 +475,94 @@ export const PKBattleActive = ({
             />
           </div>
         </div>
+
+        {/* Step 4: Winner / Draw / Punishment overlay */}
+        <AnimatePresence>
+          {battleEnded && (
+            <motion.div
+              key="pk-result"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", damping: 22, stiffness: 280 }}
+              className="absolute inset-x-2 top-1 z-20 rounded-2xl px-3 py-2.5 flex items-center justify-between gap-3"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(76,29,149,0.92) 100%)",
+                border: "1px solid rgba(251,191,36,0.45)",
+                boxShadow:
+                  "0 14px 36px -10px rgba(251,191,36,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
+                backdropFilter: "blur(14px) saturate(140%)",
+                WebkitBackdropFilter: "blur(14px) saturate(140%)",
+              }}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {winnerUserId ? (
+                  <motion.div
+                    animate={{ rotate: [0, -8, 8, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ filter: "drop-shadow(0 0 10px rgba(251,191,36,0.9))" }}
+                  >
+                    <Trophy className="w-6 h-6 text-amber-400" />
+                  </motion.div>
+                ) : (
+                  <Swords className="w-6 h-6 text-white/70" />
+                )}
+                <div className="min-w-0">
+                  <p
+                    className="text-[10px] uppercase tracking-widest text-amber-300/90 font-semibold"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                  >
+                    {finalStatus === "draw"
+                      ? "Draw"
+                      : finalStatus === "forfeit_left" || finalStatus === "forfeit_disconnect"
+                        ? "Forfeit"
+                        : "Winner"}
+                  </p>
+                  <p className="text-white text-sm font-extrabold truncate" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                    {winnerUserId === challengerId
+                      ? challengerName
+                      : winnerUserId === opponentId
+                        ? opponentName
+                        : "—"}
+                  </p>
+                </div>
+              </div>
+
+              {mvpUserId && (
+                <div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
+                    border: "1px solid rgba(251,191,36,0.55)",
+                    boxShadow: "0 0 12px rgba(251,191,36,0.35)",
+                  }}
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
+                </div>
+              )}
+
+              {punishLeft > 0 && winnerUserId && (
+                <motion.div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(239,68,68,0.35), rgba(220,38,38,0.25))",
+                    border: "1px solid rgba(252,165,165,0.5)",
+                    boxShadow: "0 0 12px rgba(239,68,68,0.45)",
+                  }}
+                  animate={{ scale: [1, 1.04, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                >
+                  <Frown className="w-3.5 h-3.5 text-rose-200" />
+                  <span className="font-mono text-xs tabular-nums font-bold text-rose-100">
+                    {formatTime(punishLeft)}
+                  </span>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
