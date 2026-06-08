@@ -579,6 +579,8 @@ export function UnifiedPartyRoom({
   isVideoOff = false,
   isConnected,
   connectionState,
+  isNativeMediaActive = false,
+  nativeParticipants = new Map(),
   onMicToggle,
   onVideoToggle,
   onRequestSeat,
@@ -1666,6 +1668,8 @@ export function UnifiedPartyRoom({
                 isMyself={seat?.id === currentUserId}
                 localStream={localStream}
                 peerStream={seat && getPeerStream ? getPeerStream(seat.id) : null}
+                nativeParticipant={seat ? nativeParticipants.get(seat.id) ?? null : null}
+                isNativeMediaActive={isNativeMediaActive}
                 hostCountryFlag={hostCountryFlag}
                 hostCountryCode={hostCountryCode}
                 totalRoomBeans={totalBeans}
