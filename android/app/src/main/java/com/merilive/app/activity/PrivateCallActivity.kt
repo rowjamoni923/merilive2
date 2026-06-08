@@ -144,6 +144,8 @@ class PrivateCallActivity : ComponentActivity() {
     private var closeReceiver: android.content.BroadcastReceiver? = null
     // Phase D — JS pushes billing updates (balance + rate per minute).
     private var billingReceiver: android.content.BroadcastReceiver? = null
+    // Phase G — JS asks us to exit PIP + come back to the foreground.
+    private var resumeReceiver: android.content.BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Window flags BEFORE super so the first frame is already protected.
@@ -174,6 +176,7 @@ class PrivateCallActivity : ComponentActivity() {
 
         registerCloseReceiver()
         registerBillingReceiver()
+        registerResumeReceiver()
         wireUiToViewModel()
         wireBackPress()
     }
@@ -231,6 +234,57 @@ class PrivateCallActivity : ComponentActivity() {
             registerReceiver(r, filter)
         }
         billingReceiver = r
+    }
+
+    /**
+     * Pkg500 Phase G — JS-side asks the call surface to come back to the
+     * foreground after an inline sheet (gift, recharge) closes. We exit
+     * PIP (if we're in it) and re-launch our own task so we land on top
+     * of the WebView again, restoring the fullscreen call.
+     */
+    private fun registerResumeReceiver() {
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        inPipMode
+                    ) {
+                        // The official way to leave PIP is to restart the
+                        // activity in standard mode via a fresh intent.
+                        val i = Intent(this@PrivateCallActivity, PrivateCallActivity::class.java)
+                            .addFlags(
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                            )
+                        startActivity(i)
+                    } else {
+                        moveTaskToFront()
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "resumeReceiver: ${t.message}")
+                }
+            }
+        }
+        val filter = android.content.IntentFilter(
+            com.merilive.app.plugin.NativeCallPlugin.ACTION_RESUME_PRIVATE_CALL
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(r, filter)
+        }
+        resumeReceiver = r
+    }
+
+    private fun moveTaskToFront() {
+        try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE)
+                as? android.app.ActivityManager
+            am?.moveTaskToFront(taskId, 0)
+        } catch (t: Throwable) {
+            Log.w(TAG, "moveTaskToFront: ${t.message}")
+        }
     }
 
     /**
@@ -331,8 +385,12 @@ class PrivateCallActivity : ComponentActivity() {
             PrivateCallBeautySheet.show(this)
         }
         btnGift.setOnClickListener {
-            // Inline gift sheet — Phase E follow-up. For now broadcast a
-            // request so JS can open the existing gift sheet behind the call.
+            // Pkg500 Phase G — inline in-call gift sheet.
+            //  1) Broadcast gift_inline → JS GlobalCallGiftSheet opens
+            //  2) Enter PIP so the call shrinks to a floating window
+            //  3) Bring MainActivity (WebView) to the front so the sheet
+            //     is visible. JS calls resumeInCallActivity() when the
+            //     sheet closes and the call expands back to fullscreen.
             try {
                 val callId = vm.identity.value?.callId.orEmpty()
                 val peerId = vm.identity.value?.peerId.orEmpty()
@@ -344,8 +402,36 @@ class PrivateCallActivity : ComponentActivity() {
                 }
                 sendBroadcast(i)
             } catch (_: Throwable) {}
+            enterPipForInlineSheet()
+            bringMainTaskToFront()
         }
         btnEnd.setOnClickListener { onUserRequestedEnd() }
+    }
+
+    /** Pkg500 Phase G — enter PIP for an inline sheet handoff (gift, recharge). */
+    private fun enterPipForInlineSheet() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || inPipMode) return
+        val st = vm.state.value
+        if (st != PrivateCallViewModel.CallState.CONNECTED &&
+            st != PrivateCallViewModel.CallState.RECONNECTING
+        ) return
+        runCatching { enterPictureInPictureMode(buildPipParams()) }
+    }
+
+    /** Pkg500 Phase G — surface MainActivity (WebView) on top of PIP. */
+    private fun bringMainTaskToFront() {
+        try {
+            val launch = packageManager.getLaunchIntentForPackage(packageName)
+                ?: return
+            launch.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                    or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
+            startActivity(launch)
+        } catch (t: Throwable) {
+            Log.w(TAG, "bringMainTaskToFront: ${t.message}")
+        }
     }
 
     private fun renderSpeakerButton() {
@@ -586,6 +672,8 @@ class PrivateCallActivity : ComponentActivity() {
         closeReceiver = null
         billingReceiver?.let { runCatching { unregisterReceiver(it) } }
         billingReceiver = null
+        resumeReceiver?.let { runCatching { unregisterReceiver(it) } }
+        resumeReceiver = null
         runCatching { audioRouter?.detach() }
         audioRouter = null
         super.onDestroy()

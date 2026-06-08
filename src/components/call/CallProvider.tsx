@@ -8,6 +8,7 @@ import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@/plugins/NativeCall';
+import { GlobalCallGiftSheet } from './GlobalCallGiftSheet';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
@@ -464,6 +465,11 @@ export function CallProvider({ children }: CallProviderProps) {
           gate — so incoming-call notification rows reach usePrivateCall
           immediately on cold start. */}
       {userId ? <GlobalNotificationsMount /> : null}
+
+      {/* Pkg500 Phase G — global host for the inline in-call gift sheet.
+          Opens when the native PrivateCallActivity's Gift button broadcasts
+          via `useNativeCallBillingSync` → `open-call-gift-sheet` event. */}
+      {userId ? <GlobalCallGiftSheet /> : null}
 
       {typeof document !== 'undefined'
         ? createPortal(incomingCallModalNode, document.body)

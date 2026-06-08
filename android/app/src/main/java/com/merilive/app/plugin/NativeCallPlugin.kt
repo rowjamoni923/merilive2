@@ -61,6 +61,10 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_CALL_END_ACTION =
             "com.merilive.app.ACTION_CALL_END_ACTION"
 
+        /** Pkg500 Phase G — JS → PrivateCallActivity: exit PIP + foreground. */
+        const val ACTION_RESUME_PRIVATE_CALL =
+            "com.merilive.app.ACTION_RESUME_PRIVATE_CALL"
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
@@ -490,6 +494,26 @@ class NativeCallPlugin : Plugin() {
             val i = android.content.Intent(ACTION_CLOSE_PRIVATE_CALL_ACTIVITY).apply {
                 setPackage(context.packageName)
                 putExtra("call_id", callId)
+            }
+            context.sendBroadcast(i)
+        } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
+
+    /**
+     * Pkg500 Phase G — bring the existing PrivateCallActivity back to the
+     * foreground after an inline sheet (gift / recharge) opened in the
+     * WebView. Broadcasts ACTION_RESUME_PRIVATE_CALL; the Activity
+     * receives it and calls moveTaskToFront / exits PIP. Safe no-op when
+     * no PrivateCallActivity is running.
+     */
+    @PluginMethod
+    fun resumeInCallActivity(call: PluginCall) {
+        try {
+            val i = android.content.Intent(ACTION_RESUME_PRIVATE_CALL).apply {
+                setPackage(context.packageName)
             }
             context.sendBroadcast(i)
         } catch (_: Throwable) {}
