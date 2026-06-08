@@ -100,6 +100,7 @@ import { UnifiedPartyRoom } from "@/components/party/UnifiedPartyRoom";
 import { GiftContributorsPanel } from "@/components/party/GiftContributorsPanel";
 import { SeatInvitePickerSheet } from "@/components/party/SeatInvitePickerSheet";
 import { SeatInviteResponseSheet } from "@/components/party/SeatInviteResponseSheet";
+import PartyGiftSeatPicker, { type PartyGiftSeatPickerSeat } from "@/components/party/PartyGiftSeatPicker";
 import { useSeatInvitationInbox } from "@/hooks/useSeatInvitationInbox";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 // Room protection - blocks back button, auto-closes on network loss
@@ -248,6 +249,8 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // Phase III.e — per-seat gift target (null = default to host on open).
+  const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
@@ -2589,7 +2592,47 @@ const PartyRoom = () => {
 
       {/* Gift Panel */}
       <AnimatePresence>
-        {showGiftPanel && (
+        {showGiftPanel && (() => {
+          // Phase III.e — derive seated participants (host + speakers) for the gift target picker.
+          const hostId = room?.host?.id ?? room?.host_id ?? null;
+          const seatedMap = new Map<string, PartyGiftSeatPickerSeat>();
+          participants.forEach((p) => {
+            const uid = p.user_id;
+            if (!uid) return;
+            const seatNumber = typeof p.position === 'number' ? p.position : -1;
+            if (seatNumber < 0) return; // only seated participants
+            seatedMap.set(uid, {
+              userId: uid,
+              displayName: p.user?.display_name ?? null,
+              avatarUrl: p.user?.avatar_url ?? null,
+              seatNumber,
+              isHost: uid === hostId,
+            });
+          });
+          // Always include host (even if missing from participants list yet).
+          if (hostId && !seatedMap.has(hostId)) {
+            seatedMap.set(hostId, {
+              userId: hostId,
+              displayName: room?.host?.display_name ?? null,
+              avatarUrl: room?.host?.avatar_url ?? null,
+              seatNumber: 0,
+              isHost: true,
+            });
+          }
+          const seats = Array.from(seatedMap.values());
+          const effectiveRecipientId = giftRecipientId && seatedMap.has(giftRecipientId)
+            ? giftRecipientId
+            : hostId;
+          return (
+          <>
+          <div className="fixed left-0 right-0 bottom-[60vh] z-[60] pointer-events-auto">
+            <PartyGiftSeatPicker
+              seats={seats}
+              selectedUserId={effectiveRecipientId}
+              onSelect={(uid) => setGiftRecipientId(uid)}
+              selfUserId={currentUser?.id ?? null}
+            />
+          </div>
           <GiftPanel
             isOpen={showGiftPanel}
             onClose={() => setShowGiftPanel(false)}
@@ -2598,7 +2641,10 @@ const PartyRoom = () => {
               const sendingRoom = roomRef.current || room;
               const sendingUserId = sendingUser?.id;
               const sendingRoomId = sendingRoom?.id;
-              const receiverId = sendingRoom?.host?.id;
+              const fallbackReceiverId = sendingRoom?.host?.id;
+              const receiverId = (effectiveRecipientId && effectiveRecipientId !== sendingUserId)
+                ? effectiveRecipientId
+                : fallbackReceiverId;
               if (!sendingUserId || !receiverId || !sendingRoomId) return;
               
               // CRITICAL: Prevent self-gifting
@@ -2759,7 +2805,9 @@ const PartyRoom = () => {
             }}
             userCoins={userCoins}
           />
-        )}
+          </>
+          );
+        })()}
       </AnimatePresence>
 
       {/* Music Player */}
