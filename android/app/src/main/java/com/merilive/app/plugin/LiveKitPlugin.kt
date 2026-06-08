@@ -2022,18 +2022,10 @@ class LiveKitPlugin : Plugin() {
         inBackground = true
         try {
             detachAllRenderersInternal()
-
-            if (pauseCameraOnBackground) {
-                val r = room ?: return
-                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
-                if (cameraOnBeforeBackground) {
-                    scope.launch {
-                        try { setNativeCameraEnabledWithOemRetry(r, false, "background-pause") }
-                        catch (e: Exception) { Log.w(TAG, "pause camera failed: ${e.message}") }
-                    }
-                }
-            }
+            // Phase 2A — camera toggle moved to onProcessLifecycleChanged
+            // (ProcessLifecycleOwner-backed). Activity-level events fire
+            // for permission sheets / notification shade / PiP transitions
+            // and would otherwise cause noisy camera flapping.
         } catch (e: Exception) {
             Log.w(TAG, "handleOnPause cleanup failed", e)
         }
