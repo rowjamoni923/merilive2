@@ -19,6 +19,11 @@
  */
 import type { Room } from 'livekit-client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import {
+  trySendNativeText,
+  tryRegisterNativeTextStreamHandler,
+  tryUnregisterNativeTextStreamHandler,
+} from './livekitNativeMessaging';
 
 export type StreamScope = 'call' | 'live' | 'party';
 
