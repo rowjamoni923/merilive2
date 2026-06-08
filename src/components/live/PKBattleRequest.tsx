@@ -43,19 +43,18 @@ export const PKBattleRequest = ({
   const handleAccept = async () => {
     setResponding(true);
     try {
-      const { error } = await supabase
-        .from("pk_battles")
-        .update({
-          status: "accepted",
-          started_at: new Date().toISOString(),
-        })
-        .eq("id", battleId);
-
-      if (error) throw error;
+      // PK Battle Step 3: server-side accept (FOR UPDATE lock, only opponent
+      // can accept, status validated, started_at stamped on the server).
+      // Replaces the forgeable client UPDATE that let anyone flip status.
+      const { data, error } = await supabase.rpc("accept_pk_battle", { p_battle_id: battleId });
+      const payload = (data ?? {}) as { ok?: boolean; error?: string };
+      if (error || !payload.ok) {
+        throw new Error(payload.error || error?.message || "Accept failed");
+      }
       onAccept();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accepting PK:", error);
-      toast.error("Failed to accept PK Battle");
+      toast.error(error?.message === "already_handled" ? "This battle was already handled" : "Failed to accept PK Battle");
     } finally {
       setResponding(false);
     }
@@ -64,6 +63,9 @@ export const PKBattleRequest = ({
   const handleDecline = async () => {
     setResponding(true);
     try {
+      // Decline = status flip only the opponent is allowed to perform.
+      // Server-side is enforced by existing RLS on pk_battles (opponent_id =
+      // auth.uid()). No score is touched; cron leaves this row in 'declined'.
       const { error } = await supabase
         .from("pk_battles")
         .update({ status: "declined" })
