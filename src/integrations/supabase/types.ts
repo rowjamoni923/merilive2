@@ -10097,33 +10097,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pk_match_queue: {
-        Row: {
-          expires_at: string
-          host_level: number
-          joined_at: string
-          level_bracket: number
-          stream_id: string
-          user_id: string
-        }
-        Insert: {
-          expires_at?: string
-          host_level?: number
-          joined_at?: string
-          level_bracket?: number
-          stream_id: string
-          user_id: string
-        }
-        Update: {
-          expires_at?: string
-          host_level?: number
-          joined_at?: string
-          level_bracket?: number
-          stream_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       pk_participants: {
         Row: {
           competition_id: string
