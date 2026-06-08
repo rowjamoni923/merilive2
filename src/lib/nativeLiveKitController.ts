@@ -35,6 +35,10 @@ export interface NativeJoinOptions {
   callerName?: string;
   /** Step 14 — e.g. "Video Call", "Voice Call", "Live broadcast". */
   callType?: string;
+  /** Phase F — audio profile (voice / broadcast / music). Defaults inferred from broadcastMode. */
+  audioProfile?: 'voice' | 'broadcast' | 'music';
+  /** Phase I — "live" swaps the FGS notification to Bigo/Chamet LIVE style. */
+  broadcastMode?: 'call' | 'live';
 }
 
 class NativeLiveKitController {
