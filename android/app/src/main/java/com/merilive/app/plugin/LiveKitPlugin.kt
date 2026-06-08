@@ -1199,6 +1199,24 @@ class LiveKitPlugin : Plugin() {
         setSpeakerphoneInternal(args.video)
         setProximityMonitoringInternal(!args.video)
         registerAudioDeviceListener()
+
+        // Phase I.b — music-mode headphone warning. With AEC/NS/AGC all off
+        // (raw 48 kHz capture for DJ/karaoke), speaker→mic bleed will feed
+        // back into the broadcast. Bigo/Chamet show a soft "🎧 Use headphones"
+        // hint — never a hard block. JS side renders the toast.
+        if (args.audioProfile == "music") {
+            try {
+                val hasHeadset = detectHeadsetConnected()
+                if (!hasHeadset) {
+                    val warn = JSObject()
+                    warn.put("reason", "MUSIC_MODE_NO_HEADSET")
+                    warn.put("message", "Use headphones for best music quality")
+                    notifyListeners("music-headphone-warning", warn)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "music-headphone check failed: ${e.message}")
+            }
+        }
         // Step 30 — wired-headset / SCO broadcast receivers + media-button MediaSession.
         registerHeadsetReceivers()
         if (headsetButtonsEnabled) startHeadsetMediaSession()
