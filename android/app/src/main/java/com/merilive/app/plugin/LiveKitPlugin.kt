@@ -1010,7 +1010,7 @@ class LiveKitPlugin : Plugin() {
 
         // Step 14 — promote process to a foreground service so Android
         // 14+ keeps mic/camera alive when the user backgrounds the app.
-        startCallForegroundService(args.callerName, args.callType)
+        startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
 
         // Step 25 — start the video stall watchdog for this session.
         startStallWatchdog()
