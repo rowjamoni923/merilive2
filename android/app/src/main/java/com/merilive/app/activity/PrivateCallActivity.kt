@@ -243,6 +243,9 @@ class PrivateCallActivity : ComponentActivity() {
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
+        lowBalanceText = findViewById(R.id.privateCallLowBalanceText)
+        btnRecharge = findViewById(R.id.privateCallBtnRecharge)
+        btnRecharge.setOnClickListener { onRechargeRequested() }
 
         btnMic.setOnClickListener {
             val on = vm.toggleMic()
