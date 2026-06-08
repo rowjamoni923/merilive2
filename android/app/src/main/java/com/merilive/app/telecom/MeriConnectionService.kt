@@ -99,8 +99,12 @@ class MeriConnectionService : ConnectionService() {
     ) {
         val callId = request?.extras?.getString(TelecomBridge.EXTRA_CALL_ID).orEmpty()
         Log.w(TAG, "onCreateIncomingConnectionFailed callId=$callId")
-        // Surface as decline so JS state machine ends the call.
-        NativeCallPlugin.dispatch(applicationContext, callId, "", "", "video", "decline")
+        // Honest-private-call fix (C-1): this is system-side rejection (another
+        // PSTN call in progress, no PhoneAccount enabled, OEM block) — NOT a
+        // user decline. Dispatching "decline" would record a user-initiated
+        // rejection on the server. Use a distinct "busy" action so JS can
+        // route to the failed-incoming path without billing/penalising the user.
+        NativeCallPlugin.dispatch(applicationContext, callId, "", "", "video", "busy")
         remove(callId)
     }
 
@@ -108,9 +112,11 @@ class MeriConnectionService : ConnectionService() {
         connectionManagerPhoneAccount: PhoneAccountHandle?,
         request: ConnectionRequest?,
     ): Connection {
-        // Self-managed outgoing — currently not used (we initiate calls
-        // from JS first, then call reportOutgoingCall in Pkg208a). Stub
-        // out a basic connection so Telecom doesn't crash if invoked.
+        // Self-managed outgoing: JS owns the LiveKit connect flow and will
+        // call TelecomBridge.reportConnected() once the callee accepts. We
+        // mint a Connection in DIALING, then arm a safety timer so an
+        // abandoned dial doesn't sit in Telecom's state machine forever
+        // (audit C-3 — previous build never reached setActive on outgoing).
         val extras = request?.extras
         val callId = extras?.getString(TelecomBridge.EXTRA_CALL_ID).orEmpty()
         val callerId = extras?.getString(TelecomBridge.EXTRA_CALLER_ID).orEmpty()
@@ -121,11 +127,28 @@ class MeriConnectionService : ConnectionService() {
             setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
+            connectionCapabilities = Connection.CAPABILITY_MUTE
         }
         if (callId.isNotEmpty()) put(callId, conn)
+        // C-3: arm a 90s outgoing-dial watchdog. If JS never promotes to
+        // ACTIVE (callee never accepts / ringer times out), tear down the
+        // Telecom connection cleanly so it doesn't show as "dialing forever"
+        // in the system call log or strand audio focus.
+        try {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val c = getConnection(callId) ?: return@postDelayed
+                if (c.state == Connection.STATE_DIALING) {
+                    try { c.setDisconnected(DisconnectCause(DisconnectCause.CANCELED)) } catch (_: Throwable) {}
+                    try { c.destroy() } catch (_: Throwable) {}
+                    remove(callId)
+                    Log.w(TAG, "Outgoing dial watchdog fired — torn down callId=$callId")
+                }
+            }, 90_000L)
+        } catch (_: Throwable) {}
         return conn
     }
 }
+
 
 /**
  * Per-call Connection. Forwards hardware button events (BT headset

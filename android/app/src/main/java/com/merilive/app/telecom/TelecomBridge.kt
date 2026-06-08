@@ -35,6 +35,7 @@ object TelecomBridge {
     const val EXTRA_CALL_TYPE = "merilive.callType"
 
     @Volatile private var registered = false
+    private val registrationLock = Any()
 
     @JvmStatic
     fun isSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -49,37 +50,42 @@ object TelecomBridge {
     }
 
     /**
-     * Idempotent. Registers a SELF_MANAGED PhoneAccount the first time
-     * and silently no-ops on subsequent calls. Safe to call from app
-     * boot AND from FCM handler (race-tolerant via the `registered`
-     * gate + Telecom's own dedup).
+     * Idempotent. Registers a SELF_MANAGED PhoneAccount the first time and
+     * no-ops on subsequent calls. Honest-private-call fix (C-2): wrapped in
+     * a synchronized block so two threads (app boot + FCM handler arriving
+     * in the same ms) cannot both fall through the `registered == false`
+     * check and double-register.
      */
     @SuppressLint("MissingPermission")
     @JvmStatic
     fun ensurePhoneAccount(ctx: Context): Boolean {
         if (!isSupported()) return false
         if (registered) return true
-        val tm = ctx.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
-        val h = handle(ctx) ?: return false
-        try {
-            val capabilities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                PhoneAccount.CAPABILITY_SELF_MANAGED or
-                    PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING or
-                    PhoneAccount.CAPABILITY_VIDEO_CALLING
-            } else 0
-            val account = PhoneAccount.builder(h, "MeriLive")
-                .setCapabilities(capabilities)
-                .setShortDescription("MeriLive video & voice calls")
-                .build()
-            tm.registerPhoneAccount(account)
-            registered = true
-            Log.d(TAG, "PhoneAccount registered: $PHONE_ACCOUNT_ID")
-            return true
-        } catch (t: Throwable) {
-            Log.w(TAG, "registerPhoneAccount failed: ${t.message}")
-            return false
+        synchronized(registrationLock) {
+            if (registered) return true
+            val tm = ctx.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
+            val h = handle(ctx) ?: return false
+            try {
+                val capabilities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    PhoneAccount.CAPABILITY_SELF_MANAGED or
+                        PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING or
+                        PhoneAccount.CAPABILITY_VIDEO_CALLING
+                } else 0
+                val account = PhoneAccount.builder(h, "MeriLive")
+                    .setCapabilities(capabilities)
+                    .setShortDescription("MeriLive video & voice calls")
+                    .build()
+                tm.registerPhoneAccount(account)
+                registered = true
+                Log.d(TAG, "PhoneAccount registered: $PHONE_ACCOUNT_ID")
+                return true
+            } catch (t: Throwable) {
+                Log.w(TAG, "registerPhoneAccount failed: ${t.message}")
+                return false
+            }
         }
     }
+
 
     /**
      * Tell Telecom about an incoming call. The framework calls back
