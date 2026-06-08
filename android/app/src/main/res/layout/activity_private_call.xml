@@ -178,7 +178,14 @@
             android:text="Recharge" />
     </LinearLayout>
 
-    <!-- Bottom action bar. Five circular buttons inside a translucent scrim. -->
+    <!-- Wrapper around all overlays/controls so PIP mode can hide everything
+         except the remote video with a single visibility toggle. -->
+    <FrameLayout
+        android:id="@+id/privateCallOverlayRoot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <!-- Bottom action bar. Six circular buttons inside a translucent scrim. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -188,8 +195,8 @@
         android:gravity="center"
         android:paddingTop="24dp"
         android:paddingBottom="36dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <ImageButton
             android:id="@+id/privateCallBtnMic"
@@ -198,7 +205,17 @@
             android:contentDescription="Mute microphone" />
 
         <Space
-            android:layout_width="12dp"
+            android:layout_width="8dp"
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnSpeaker"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/stat_sys_speakerphone"
+            android:contentDescription="Toggle speaker" />
+
+        <Space
+            android:layout_width="8dp"
             android:layout_height="wrap_content" />
 
         <ImageButton
@@ -208,7 +225,7 @@
             android:contentDescription="Flip camera" />
 
         <Space
-            android:layout_width="12dp"
+            android:layout_width="8dp"
             android:layout_height="wrap_content" />
 
         <ImageButton
@@ -218,7 +235,7 @@
             android:contentDescription="Beauty filter" />
 
         <Space
-            android:layout_width="12dp"
+            android:layout_width="8dp"
             android:layout_height="wrap_content" />
 
         <ImageButton
@@ -228,7 +245,7 @@
             android:contentDescription="Send gift" />
 
         <Space
-            android:layout_width="12dp"
+            android:layout_width="8dp"
             android:layout_height="wrap_content" />
 
         <ImageButton
@@ -237,4 +254,5 @@
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:contentDescription="End call" />
     </LinearLayout>
+    </FrameLayout>
 </FrameLayout>
