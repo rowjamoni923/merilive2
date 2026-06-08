@@ -32,6 +32,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export interface StreamEndedPayload {
   streamId: string;
@@ -54,6 +55,8 @@ interface Entry {
 
 // streamId → Room + DataReceived handler
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 function makeHandler(streamId: string) {
   return (payload: Uint8Array, participant?: RemoteParticipant) => {
@@ -79,6 +82,19 @@ function makeHandler(streamId: string) {
       );
     }
   };
+}
+
+function dispatchStreamEnvelope(streamId: string, payload: Uint8Array, participantIdentity?: string) {
+  if (typeof window === 'undefined') return;
+  const env = decodeEnvelope(payload);
+  if (!env || env.f !== 'live') return;
+  if (isDuplicateEnvelope(env.id)) return;
+  if (env.t !== 'stream_ended') return;
+  const p = (env.p ?? {}) as Partial<StreamEndedPayload>;
+  if (p.streamId && p.streamId !== streamId) return;
+  window.dispatchEvent(new CustomEvent<StreamEndedDetail>('livekit-stream-ended', {
+    detail: { streamId, endedBy: p.endedBy || env.s || 'unknown', hostName: p.hostName, reason: p.reason, sender: participantIdentity },
+  }));
 }
 
 /** Bind a streamId to its LiveKit Room so we can publish/receive Pkg74 packets. */
@@ -110,6 +126,24 @@ export function unregisterStreamRoom(streamId: string | null | undefined) {
   registry.delete(streamId);
 }
 
+export function registerNativeStreamRoom(streamId: string | null | undefined) {
+  if (!streamId || typeof window === 'undefined') return;
+  nativeRegistry.add(streamId);
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    for (const id of nativeRegistry) dispatchStreamEnvelope(id, payload, participantIdentity);
+  });
+}
+
+export function unregisterNativeStreamRoom(streamId: string | null | undefined) {
+  if (!streamId) return;
+  nativeRegistry.delete(streamId);
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 /**
  * Publish a `stream_ended` packet to every viewer.
  * Returns `true` only when actually sent. Never throws.
@@ -121,9 +155,8 @@ export async function publishStreamEnded(
 ): Promise<boolean> {
   if (!streamId) return false;
   const entry = registry.get(streamId);
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(streamId)) return false;
 
   let allowed = false;
   try {
@@ -138,9 +171,12 @@ export async function publishStreamEnded(
       'live',
       'stream_ended',
       { streamId, ...payload },
-      room.localParticipant?.identity,
+      room?.localParticipant?.identity ?? payload.endedBy,
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'live' });
+    }
     await room.localParticipant.publishData(bytes, { reliable: true });
     return true;
   } catch (err) {
