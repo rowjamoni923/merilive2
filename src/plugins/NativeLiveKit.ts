@@ -846,6 +846,21 @@ export interface NativeLiveKitPlugin {
     eventName: 'ptt-state',
     cb: (e: { enabled: boolean; micOpen: boolean; reason: 'enabled' | 'disabled' | 'press' | 'release' }) => void,
   ): Promise<PluginListenerHandle>;
+  /** N3f — incoming RPC invocation. JS must respond via `respondToRpc({requestId, result|errorMessage})`. */
+  addListener(
+    eventName: 'rpc-invocation',
+    cb: (e: { method: string; requestId: string; callerIdentity: string; payload: string; responseTimeout: number }) => void,
+  ): Promise<PluginListenerHandle>;
+  /** N3f — incremental text-stream chunk. */
+  addListener(
+    eventName: 'text-stream-chunk',
+    cb: (e: { topic: string; streamId: string; fromIdentity: string; chunk: string }) => void,
+  ): Promise<PluginListenerHandle>;
+  /** N3f — text stream closed by sender (or failed mid-flight). */
+  addListener(
+    eventName: 'text-stream-complete',
+    cb: (e: { topic: string; streamId: string; fromIdentity: string; text?: string; attributes?: Record<string, string>; error?: string }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
