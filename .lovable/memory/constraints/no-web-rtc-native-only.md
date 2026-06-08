@@ -21,8 +21,9 @@ For **live stream**, **party room**, and **private call** — the media path (ca
 - ❌ Browser `navigator.mediaDevices.getUserMedia()` for live-stream/party/call media
 - ❌ WebRTC `RTCPeerConnection` in JS for these flows
 - ❌ Adding "just a quick WebRTC patch" because "Lovable preview needs it"
-- ❌ Calling `usePartyRoomWebRTC`, `useLiveStreamWebRTC`, `usePrivateCallWebRTC` from a new code path without native gate
-- ❌ Patching the existing JS WebRTC hooks for new features — they are **frozen** (audit-only / fallback only)
+- ❌ Calling any JS hook for media without going through `shouldUseNativeLiveKit()` gate
+- ❌ Patching legacy JS media hooks for new features — they are **frozen** (audit-only / fallback only)
+- ❌ **Using the word "WebRTC" in any new file name, identifier, hook name, variable, or comment.** Use "NativeLiveKit" / "LiveKit (Android native)" instead. Locked 2026-06-08 by owner after full rename sweep — see "Naming rule" below.
 
 **MANDATORY for production code path on Android:**
 - ✅ All live/party/call media goes through `LiveKitNativePlugin.kt` (Kotlin)
