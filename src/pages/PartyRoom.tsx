@@ -100,6 +100,7 @@ import { UnifiedPartyRoom } from "@/components/party/UnifiedPartyRoom";
 import { GiftContributorsPanel } from "@/components/party/GiftContributorsPanel";
 import { SeatInvitePickerSheet } from "@/components/party/SeatInvitePickerSheet";
 import { SeatInviteResponseSheet } from "@/components/party/SeatInviteResponseSheet";
+import PartyGiftSeatPicker, { type PartyGiftSeatPickerSeat } from "@/components/party/PartyGiftSeatPicker";
 import { useSeatInvitationInbox } from "@/hooks/useSeatInvitationInbox";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 // Room protection - blocks back button, auto-closes on network loss
