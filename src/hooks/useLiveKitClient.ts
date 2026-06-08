@@ -227,6 +227,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   useNativeLiveKitEvents(nativeActive, {
     onDisconnected: (reason) => {
       console.log('[LiveKitClient/Native] disconnected:', reason);
+      if (reason === 'PROCESS_BACKGROUND' || reason === 'CLIENT_INITIATED') {
+        usingNativeRef.current = false;
+        setNativeActive(false);
+        setIsNativeMediaActive(false);
+        setIsJoined(false);
+        setConnectionState('DISCONNECTED');
+        return;
+      }
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
       toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
