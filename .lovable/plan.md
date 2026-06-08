@@ -25,6 +25,7 @@
 4. `nativeLiveKitController` could adopt a surviving non-live session. Fixed: every fresh live/party/call connect tears down any surviving native Room first, preventing stale/background camera sessions.
 5. `NativeLiveKitRouteSurvivor` could preserve hidden native Rooms across route changes. Fixed: survival is disabled by policy.
 6. Private call native connect now explicitly sends `roomScope: 'call'` and `audioProfile: 'voice'`, and the hook fails closed instead of opening web camera when native is unavailable.
+7. Private-call start/accept prewarm still cached `getUserMedia` streams for fallback. Fixed: removed WebView media prewarm/cache; native LiveKit opens camera/mic itself.
 
 **Guarantee boundary:** I can guarantee the code path no longer intentionally uses WebView camera for Android live/party/private-call media. I cannot honestly guarantee physical Camera2 release until APK rebuild + real Android owner-account test verifies OS camera indicator, because browser preview cannot prove native hardware ownership.
 
