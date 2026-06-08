@@ -1406,9 +1406,22 @@ export function usePrivateCall(userId: string | null) {
       activateCallerConnectedState(detail.callId);
     };
 
+    // Honest-private-call fix (F-12): reconnect-budget exhaustion → force end.
+    const handleLiveKitNetworkLost = (event: Event) => {
+      if (isCleanedUp) return;
+      const detail = (event as CustomEvent).detail as { callId?: string; reason?: string } | undefined;
+      const activeId = callState.callId;
+      if (!activeId) return;
+      if (detail?.callId && detail.callId !== activeId) return;
+      if (callEndedRef.current) return;
+      console.warn('[PrivateCall] LiveKit network lost — ending call with reason=network');
+      endCall('network').catch(() => {});
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
       window.addEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
+      window.addEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
     }
 
     return () => {
@@ -1417,9 +1430,10 @@ export function usePrivateCall(userId: string | null) {
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
+        window.removeEventListener('livekit-call-network-lost', handleLiveKitNetworkLost);
       }
     };
-  }, [userId]);
+  }, [userId, callState.callId, endCall]);
 
   return {
     callState,
