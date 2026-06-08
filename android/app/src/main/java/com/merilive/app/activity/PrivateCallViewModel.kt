@@ -83,6 +83,21 @@ class PrivateCallViewModel : ViewModel() {
     private val _ratePerMinute = MutableStateFlow(0)
     val ratePerMinute: StateFlow<Int> = _ratePerMinute.asStateFlow()
 
+    /**
+     * Pkg500 Phase D — seconds caller can still afford at the current rate.
+     * Computed locally as `floor(balance / rate * 60)` and ticked down 1Hz
+     * between JS resyncs (which arrive each time the server bills another
+     * minute). When the server rebills we resync from the JS push and the
+     * local ticker realigns — never drifts more than one server interval.
+     */
+    private val _secondsRemaining = MutableStateFlow<Int?>(null)
+    val secondsRemaining: StateFlow<Int?> = _secondsRemaining.asStateFlow()
+
+    enum class WarningLevel { NONE, SIXTY, THIRTY, TEN, CRITICAL }
+
+    private val _warningLevel = MutableStateFlow(WarningLevel.NONE)
+    val warningLevel: StateFlow<WarningLevel> = _warningLevel.asStateFlow()
+
     private val _micEnabled = MutableStateFlow(true)
     val micEnabled: StateFlow<Boolean> = _micEnabled.asStateFlow()
 
@@ -121,8 +136,63 @@ class PrivateCallViewModel : ViewModel() {
 
     fun setState(next: CallState) { _state.value = next }
     fun setDuration(seconds: Int) { _durationSec.value = seconds.coerceAtLeast(0) }
-    fun setBalance(coins: Long?) { _balanceCoins.value = coins }
-    fun setRatePerMinute(rate: Int) { _ratePerMinute.value = rate.coerceAtLeast(0) }
+    fun setBalance(coins: Long?) { _balanceCoins.value = coins; recomputeRemaining() }
+    fun setRatePerMinute(rate: Int) { _ratePerMinute.value = rate.coerceAtLeast(0); recomputeRemaining() }
+
+    /**
+     * Pkg500 Phase D — single update from JS for every billing-relevant
+     * change (per-minute server tick, manual recharge, refund). Resyncs
+     * balance + rate atomically and re-anchors the local 1Hz ticker so the
+     * banner countdown never drifts.
+     */
+    fun setBilling(balanceCoins: Long, ratePerMinute: Int) {
+        _balanceCoins.value = balanceCoins.coerceAtLeast(0)
+        _ratePerMinute.value = ratePerMinute.coerceAtLeast(0)
+        recomputeRemaining()
+        startBillingTickerIfNeeded()
+    }
+
+    private fun recomputeRemaining() {
+        val bal = _balanceCoins.value ?: return
+        val rate = _ratePerMinute.value
+        if (rate <= 0) {
+            _secondsRemaining.value = null
+            _warningLevel.value = WarningLevel.NONE
+            return
+        }
+        val secs = ((bal.toDouble() / rate.toDouble()) * 60.0).toInt().coerceAtLeast(0)
+        _secondsRemaining.value = secs
+        _warningLevel.value = when {
+            secs <= 0 -> WarningLevel.CRITICAL
+            secs <= 10 -> WarningLevel.TEN
+            secs <= 30 -> WarningLevel.THIRTY
+            secs <= 60 -> WarningLevel.SIXTY
+            else -> WarningLevel.NONE
+        }
+    }
+
+    private var billingTickerJob: Job? = null
+    private fun startBillingTickerIfNeeded() {
+        if (billingTickerJob?.isActive == true) return
+        billingTickerJob = viewModelScope.launch {
+            while (true) {
+                delay(1_000)
+                val secs = _secondsRemaining.value ?: continue
+                val rate = _ratePerMinute.value
+                if (rate <= 0) continue
+                if (_state.value != CallState.CONNECTED) continue
+                val next = (secs - 1).coerceAtLeast(0)
+                _secondsRemaining.value = next
+                _warningLevel.value = when {
+                    next <= 0 -> WarningLevel.CRITICAL
+                    next <= 10 -> WarningLevel.TEN
+                    next <= 30 -> WarningLevel.THIRTY
+                    next <= 60 -> WarningLevel.SIXTY
+                    else -> WarningLevel.NONE
+                }
+            }
+        }
+    }
 
     fun toggleMic(): Boolean {
         val next = !_micEnabled.value
