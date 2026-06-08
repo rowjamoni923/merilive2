@@ -67,7 +67,12 @@ serve(async (req) => {
     let skipped = 0;
     let ended = 0;
     let failed = 0;
+    let signalled = 0;
     const details: Array<Record<string, unknown>> = [];
+
+    // Phase 3 Step 3 — Realtime signals for low-balance + force-end.
+    // Channel convention: call_signaling:<call_id>
+    const signals: Array<{ topic: string; event: string; payload: Record<string, unknown> }> = [];
 
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
@@ -86,12 +91,79 @@ serve(async (req) => {
         continue;
       }
       const payload = data as { billed?: boolean; reason?: string; call_ended?: boolean } | null;
+
+      if (payload?.call_ended) {
+        ended++;
+        signals.push({
+          topic: `call_signaling:${callId}`,
+          event: "signal",
+          payload: {
+            action: "force_end",
+            reason: payload?.reason ?? "insufficient_balance",
+            call_id: callId,
+            ts: Date.now(),
+          },
+        });
+        continue;
+      }
+
       if (payload?.billed) {
         billed++;
-      } else if (payload?.call_ended) {
-        ended++;
+        // Compute remaining minutes for viewer to broadcast low-balance warning
+        const { data: callRow } = await admin
+          .from("private_calls")
+          .select("caller_id,viewer_rate_per_min")
+          .eq("id", callId)
+          .maybeSingle();
+        if (callRow?.caller_id && callRow?.viewer_rate_per_min) {
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("coins")
+            .eq("id", callRow.caller_id)
+            .maybeSingle();
+          const coins = Number(prof?.coins ?? 0);
+          const rate = Number(callRow.viewer_rate_per_min);
+          const remainingMinutes = rate > 0 ? Math.floor(coins / rate) : 0;
+          // Industry pattern: pre-warn at 2 min, critical at 1 min.
+          if (remainingMinutes <= 2) {
+            signals.push({
+              topic: `call_signaling:${callId}`,
+              event: "signal",
+              payload: {
+                action: "low_balance",
+                remaining_minutes: remainingMinutes,
+                remaining_seconds: remainingMinutes * 60,
+                severity: remainingMinutes <= 1 ? "critical" : "warning",
+                call_id: callId,
+                ts: Date.now(),
+              },
+            });
+          }
+        }
       } else {
         skipped++;
+      }
+    }
+
+    // 3) Stateless broadcast via Supabase Realtime HTTP API
+    if (signals.length > 0) {
+      try {
+        const resp = await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({ messages: signals }),
+        });
+        if (resp.ok) {
+          signalled = signals.length;
+        } else {
+          console.error("[billing-tick] broadcast failed", resp.status, await resp.text());
+        }
+      } catch (e) {
+        console.error("[billing-tick] broadcast threw", e);
       }
     }
 
@@ -103,6 +175,7 @@ serve(async (req) => {
         skipped,
         ended,
         failed,
+        signalled,
         took_ms: Date.now() - startedAt,
         details: failed > 0 ? details : undefined,
       }),
