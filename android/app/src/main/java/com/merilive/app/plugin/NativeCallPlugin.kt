@@ -189,6 +189,38 @@ class NativeCallPlugin : Plugin() {
         } catch (_: Throwable) {}
     }
 
+    // Pkg500 Phase E — PrivateCallEndActivity emits gift / recharge / rate /
+    // close / wallet / go_live / gift_inline. Forward to JS as a single
+    // `call-end-action` event so the existing in-app sheets can open behind.
+    private var callEndActionReceiver: android.content.BroadcastReceiver? = null
+    private fun registerCallEndActionReceiver() {
+        if (callEndActionReceiver != null) return
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: android.content.Intent?) {
+                intent ?: return
+                val payload = JSObject()
+                payload.put("callId", intent.getStringExtra("call_id").orEmpty())
+                payload.put("peerId", intent.getStringExtra("peer_id").orEmpty())
+                payload.put("action", intent.getStringExtra("action").orEmpty())
+                if (intent.hasExtra("rating")) {
+                    payload.put("rating", intent.getIntExtra("rating", 0))
+                }
+                payload.put("ts", System.currentTimeMillis())
+                try { notifyListeners("call-end-action", payload, true) } catch (_: Throwable) {}
+            }
+        }
+        val filter = android.content.IntentFilter(ACTION_CALL_END_ACTION)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                context.registerReceiver(r, filter)
+            }
+            callEndActionReceiver = r
+        } catch (_: Throwable) {}
+    }
+
     private fun flushPending() {
         if (pending.isEmpty()) return
         try {
