@@ -51,7 +51,7 @@ export {
 } from '@/features/shared/room';
 
 // Party Hooks
-export { usePartyRoomWebRTC } from '@/hooks/usePartyRoomWebRTC';
+export { usePartyRoomNativeLiveKit } from '@/hooks/usePartyRoomNativeLiveKit';
 export { useVoiceActivityDetection } from '@/hooks/useVoiceActivityDetection';
 export { useSignalingSocket } from '@/hooks/useSignalingSocket';
 

@@ -172,7 +172,7 @@ export function pickOptimalCodecs(opts: PickOptions = {}): CodecChoice {
   }
 
   // 3. Firefox → VP9 primary (Firefox AV1 encode is gated/unstable in
-  //    WebRTC as of 2026), H.264 backup.
+  //    LiveKit (Android native) as of 2026), H.264 backup.
   if (platform === 'firefox') {
     if (supportsVP9Encode()) return { videoCodec: 'vp9', backupCodec: chosenBackup };
     return { videoCodec: 'h264' };

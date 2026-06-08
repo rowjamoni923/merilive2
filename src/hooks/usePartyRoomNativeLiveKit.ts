@@ -1,5 +1,5 @@
 /**
- * usePartyRoomWebRTC – Now powered by LiveKit (API-compatible replacement).
+ * usePartyRoomNativeLiveKit – Now powered by LiveKit (API-compatible replacement).
  * Handles multi-user voice/video for party rooms.
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -50,7 +50,7 @@ import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { toast } from 'sonner';
 
-interface PartyWebRTCState {
+interface PartyNativeLiveKitState {
   localStream: MediaStream | null;
   peerStreams: Map<string, MediaStream>;
   isConnected: boolean;
@@ -72,7 +72,7 @@ const releaseWebViewCameraIfAndroid = () => {
   releaseAndroidWebViewCamera('party-room');
 };
 
-export function usePartyRoomWebRTC(
+export function usePartyRoomNativeLiveKit(
   roomId: string | null,
   userId: string | null,
   roomType: 'video' | 'audio' | 'game',
@@ -109,7 +109,7 @@ export function usePartyRoomWebRTC(
   hostUserIdRef.current = hostUserId;
   const audioProfileRef = useRef(audioProfile);
   audioProfileRef.current = audioProfile;
-  const [state, setState] = useState<PartyWebRTCState>({
+  const [state, setState] = useState<PartyNativeLiveKitState>({
     localStream: null,
     peerStreams: new Map(),
     isConnected: false,

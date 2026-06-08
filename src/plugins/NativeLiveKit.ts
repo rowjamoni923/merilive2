@@ -1,7 +1,7 @@
 /**
  * NativeLiveKit — JS bridge to the Android LiveKit plugin.
  *
- * Backed by io.livekit:livekit-android 2.7.0 + native WebRTC.
+ * Backed by io.livekit:livekit-android 2.7.0 + native LiveKit (Android native).
  * Replaces browser getUserMedia inside Live and Private Call when running
  * on Capacitor Android. Falls back to web (livekit-client) elsewhere.
  *
@@ -181,7 +181,7 @@ export interface RtcStatsEvent {
   simulcast: boolean;
   /** Encoder cap for the current tier (bps). */
   maxBitrate: number;
-  /** Physical network underneath WebRTC right now. */
+  /** Physical network underneath LiveKit (Android native) right now. */
   networkType: NetworkType;
   /** Step 27 data-saver mode (forces LOW on cellular when true). */
   dataSaver: boolean;
@@ -696,7 +696,7 @@ export interface NativeLiveKitPlugin {
   /**
    * Soft probe — returns supported:false on builds where the native
    * noise-suppression module is missing, so the UI can hide the toggle.
-   * Backed by WebRTC AudioProcessing NS (and, where available, the
+   * Backed by LiveKit (Android native) AudioProcessing NS (and, where available, the
    * LiveKit Android SDK's enhanced noise filter).
    */
   isNoiseCancellationSupported(): Promise<{ supported: boolean }>;

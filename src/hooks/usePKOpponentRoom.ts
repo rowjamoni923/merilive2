@@ -12,7 +12,7 @@
  *   Viewers →  Their host's room (sub)    +  Opponent room (subscribe-only)
  *
  * No Supabase Realtime channels. Bounded lifetime = battle ≤180s = max 1 extra
- * WebRTC connection per client. Disconnects automatically on PK end.
+ * LiveKit (Android native) connection per client. Disconnects automatically on PK end.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {

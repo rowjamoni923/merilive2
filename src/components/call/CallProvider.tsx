@@ -475,7 +475,7 @@ export function CallProvider({ children }: CallProviderProps) {
         ? createPortal(incomingCallModalNode, document.body)
         : incomingCallModalNode}
 
-      {/* Active Call Screen with WebRTC - lazy loaded to defer livekit bundle */}
+      {/* Active Call Screen with LiveKit (Android native) - lazy loaded to defer livekit bundle */}
       {shouldShowActiveCall && (
         <Suspense fallback={null}>
           <ActiveCallScreen

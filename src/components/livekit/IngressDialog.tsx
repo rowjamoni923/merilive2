@@ -136,7 +136,7 @@ export function IngressDialog({ open, onClose, streamId }: Props) {
                   onClick={() => setInputType("whip")}
                   disabled={loading}
                 >
-                  WHIP (WebRTC)
+                  WHIP (LiveKit (Android native))
                 </Button>
               </div>
               <Button

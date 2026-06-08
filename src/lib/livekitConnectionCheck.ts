@@ -5,7 +5,7 @@
  * (wss://livekit.merilive.xyz) so the user can diagnose, before going live,
  * whether their network can:
  *   - reach the WebSocket signal endpoint
- *   - establish a WebRTC PeerConnection
+ *   - establish a LiveKit (Android native) PeerConnection
  *   - traverse via TURN when direct UDP fails
  *   - publish audio and video
  *   - re-establish after a forced reconnect

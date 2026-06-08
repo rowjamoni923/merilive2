@@ -10,7 +10,7 @@
  *
  * Persists choice in localStorage. Honors the Pkg123 server kill-switch
  * inside applyNoiseCancellation. Native Android keeps the 2-way On/Off
- * (Kotlin module routes through WebRTC NS — BVC not supported natively).
+ * (Kotlin module routes through LiveKit (Android native) NS — BVC not supported natively).
  *
  * Zero new Supabase channels, polls, or cross-user reads.
  */

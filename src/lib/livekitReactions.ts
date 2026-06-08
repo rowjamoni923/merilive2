@@ -9,7 +9,7 @@
  *  - Pure client lib — ZERO new edge fn, migration, Supabase channels, polls,
  *    or cross-user DB reads.
  *  - Reuses the LiveKit Room that useLiveKitCall / useLiveKitClient /
- *    usePartyRoomWebRTC already maintain.
+ *    usePartyRoomNativeLiveKit already maintain.
  *  - Kill-switch: `app_settings.livekit_signaling_enabled.reactions`
  *    (default ON; admin can flip OFF for instant rollback).
  *  - 400ms client dedupe via shared `isDuplicateEnvelope`.

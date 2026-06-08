@@ -11,7 +11,7 @@
  * bitrate + simulcast, this maximizes effective resolution per device.
  *
  * Also exposes `applyMotionHint` to tag published camera tracks with
- * `contentHint='motion'` — tells WebRTC to prefer framerate over fidelity
+ * `contentHint='motion'` — tells LiveKit (Android native) to prefer framerate over fidelity
  * during congestion (right call for live faces + beauty filter motion).
  */
 import type { LocalVideoTrack, LocalTrackPublication, Room } from 'livekit-client';

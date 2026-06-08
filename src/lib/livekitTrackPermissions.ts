@@ -18,7 +18,7 @@
  *   setHostBlocklist('live', streamId, new Set(blockedUserIds));
  *
  * The host's LiveKit Room is registered automatically by the existing
- * `useLiveKitClient` (live), `useLiveKitCall` (call), and `usePartyRoomWebRTC`
+ * `useLiveKitClient` (live), `useLiveKitCall` (call), and `usePartyRoomNativeLiveKit`
  * (party) hooks through `registerTrackPermissionRoom(scope, id, room)`.
  */
 

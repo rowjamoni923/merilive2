@@ -4,7 +4,7 @@
  * Industry-standard background-noise removal (used by Zoom, Discord, Bigo).
  * Wraps a published LocalAudioTrack with `@livekit/krisp-noise-filter`.
  *
- * - Web-only (WASM). Native Android uses LiveKit's built-in WebRTC NS/AEC/AGC.
+ * - Web-only (WASM). Native Android uses LiveKit's built-in LiveKit (Android native) NS/AEC/AGC.
  * - Lazy dynamic import — does NOT pull WASM into main bundle.
  * - Kill switch: `app_settings.livekit_signaling_enabled.noiseFilter` (default true).
  * - Idempotent: applying twice on same track is a no-op.
@@ -21,7 +21,7 @@ export async function applyKrispNoiseFilter(track: LocalAudioTrack | null | unde
     if (!track) return false;
     if (appliedTracks.has(track as any)) return true;
 
-    // Native Android: skip (uses native WebRTC noise suppression).
+    // Native Android: skip (uses native LiveKit (Android native) noise suppression).
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent || '';
       if (/merilive-android-native|capacitor/i.test(ua)) return false;

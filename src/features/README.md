@@ -78,7 +78,7 @@ import { ProfessionalChatMessage, EmojiPicker } from '@/features/shared';
 | **Home** | `/home/` | Home page, user cards, banners |
 | **Live** | `/live/` | Go Live, stream viewing, PK battles |
 | **Party** | `/party/` | Audio/Video/Game rooms |
-| **Call** | `/call/` | Private calling, WebRTC |
+| **Call** | `/call/` | Private calling, LiveKit (Android native) |
 | **Chat** | `/chat/` | Direct messages |
 | **Profile** | `/profile/` | User profiles |
 | **Agency** | `/agency/` | Agency dashboard |

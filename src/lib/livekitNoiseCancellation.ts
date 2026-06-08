@@ -13,7 +13,7 @@
  * - Krisp wasm + worklet runs off the main thread; CPU cost is small.
  *
  * Used by: useLiveKitClient (live), useLiveKitCall (private call),
- *          usePartyRoomWebRTC (party host audio). Caller toggles on/off and
+ *          usePartyRoomNativeLiveKit (party host audio). Caller toggles on/off and
  *          we apply / remove the processor on the existing LocalAudioTrack —
  *          no track re-publish needed.
  */
@@ -37,7 +37,7 @@ export interface NoiseCancellationOptions {
 
 /**
  * Detect support. Native Android routes to the Kotlin noise-suppression
- * module (WebRTC AudioProcessing NS + LiveKit Android SDK filter where
+ * module (LiveKit (Android native) AudioProcessing NS + LiveKit Android SDK filter where
  * available). Web requires AudioContext + AudioWorklet + WASM + secure ctx.
  */
 export function isNoiseCancellationSupported(): boolean {

@@ -21,8 +21,9 @@ For **live stream**, **party room**, and **private call** — the media path (ca
 - ❌ Browser `navigator.mediaDevices.getUserMedia()` for live-stream/party/call media
 - ❌ WebRTC `RTCPeerConnection` in JS for these flows
 - ❌ Adding "just a quick WebRTC patch" because "Lovable preview needs it"
-- ❌ Calling `usePartyRoomWebRTC`, `useLiveStreamWebRTC`, `usePrivateCallWebRTC` from a new code path without native gate
-- ❌ Patching the existing JS WebRTC hooks for new features — they are **frozen** (audit-only / fallback only)
+- ❌ Calling any JS hook for media without going through `shouldUseNativeLiveKit()` gate
+- ❌ Patching legacy JS media hooks for new features — they are **frozen** (audit-only / fallback only)
+- ❌ **Using the word "WebRTC" in any new file name, identifier, hook name, variable, or comment.** Use "NativeLiveKit" / "LiveKit (Android native)" instead. Locked 2026-06-08 by owner after full rename sweep — see "Naming rule" below.
 
 **MANDATORY for production code path on Android:**
 - ✅ All live/party/call media goes through `LiveKitNativePlugin.kt` (Kotlin)
@@ -77,6 +78,25 @@ Before EVERY task touching live/party/call/media:
 3. If I think "small patch in JS hook is OK" → I MUST stop and ask the user first.
 4. APK rebuild required after every native plugin change → say so honestly, do not claim verified.
 
+## Naming rule (locked 2026-06-08 — full rename sweep done)
+
+The word **"WebRTC"** is **banned** in our own code. Use these names instead:
+
+| Old (banned) | New (use this) |
+|---|---|
+| `usePartyRoomWebRTC` | `usePartyRoomNativeLiveKit` |
+| `cleanupWebRTC` | `cleanupNativeLiveKit` |
+| `PartyWebRTCState` | `PartyNativeLiveKitState` |
+| `livekitWebrtcStats.ts` | `livekitNativeStats.ts` |
+| event `'livekit-webrtc-stats'` | `'livekit-native-stats'` |
+| comments `"WebRTC"` | `"LiveKit (Android native)"` or `"native LiveKit"` |
+
+**ONLY two places "webrtc" is still allowed** (external — cannot rename without breaking server / third-party API):
+1. Supabase edge function URL path `/functions/v1/webrtc-signaling` (used by `useSignalingSocket.ts` and `liveStreamService.ts`). The edge function is deployed under that name; renaming requires create-new + redeploy + delete-old + DNS-equivalent risk. Defer to a dedicated migration task.
+2. Third-party API method `ConnectionCheck.checkWebRTC()` from livekit-client (used in `livekitConnectionCheck.ts`) — SDK-owned, not ours.
+
+Everywhere else: **if you see "WebRTC", rename it.** New files MUST NOT contain the word.
+
 ## Override
 
 Only the owner can override, with exact phrase: **"skip native rule this time for X"**. Even then, the override is single-task scoped and the JS code added MUST be marked `// TEMPORARY — native port pending` with a TODO comment.
@@ -84,3 +104,4 @@ Only the owner can override, with exact phrase: **"skip native rule this time fo
 ## If I violate this rule
 
 Trust is destroyed. Owner has stated explicitly that WebRTC patches "নষ্ট হয়ে যাবে" the whole professional build. This rule is non-negotiable.
+

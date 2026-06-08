@@ -28,7 +28,7 @@ describe("media surfaces — room-name parity", () => {
   });
 
   it("party room: hook uses `party_<roomId>` for both publisher and audience", () => {
-    const hook = read("src/hooks/usePartyRoomWebRTC.ts");
+    const hook = read("src/hooks/usePartyRoomNativeLiveKit.ts");
     expect(hook).toMatch(/`party_\$\{roomId\}`/);
     // No alternative party room-name pattern leaks.
     const otherShape = hook.match(/`party[_-][a-z]+_\$\{/g) || [];
@@ -45,7 +45,7 @@ describe("media surfaces — subscription handlers wired", () => {
   const SURFACES: { name: string; path: string; needsParticipantConnected: boolean }[] = [
     { name: "live stream / call (useLiveKitClient)", path: "src/hooks/useLiveKitClient.ts", needsParticipantConnected: true },
     { name: "private call (useLiveKitCall)", path: "src/hooks/useLiveKitCall.ts", needsParticipantConnected: false },
-    { name: "audio/video/game party (usePartyRoomWebRTC)", path: "src/hooks/usePartyRoomWebRTC.ts", needsParticipantConnected: true },
+    { name: "audio/video/game party (usePartyRoomNativeLiveKit)", path: "src/hooks/usePartyRoomNativeLiveKit.ts", needsParticipantConnected: true },
   ];
 
   it.each(SURFACES)(
@@ -67,7 +67,7 @@ describe("media surfaces — subscription handlers wired", () => {
   );
 
   it("party hook detaches remote audio on participant leave (no double-audio on reconnect)", () => {
-    const src = read("src/hooks/usePartyRoomWebRTC.ts");
+    const src = read("src/hooks/usePartyRoomNativeLiveKit.ts");
     expect(src).toMatch(/detachAudioForIdentity\(participant\.identity\)/);
     expect(src).toMatch(/RoomEvent\.ParticipantDisconnected/);
   });
