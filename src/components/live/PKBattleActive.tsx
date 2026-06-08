@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { Crown, Swords, Timer } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+// PK Battle Step 3: client no longer writes battle state, so the local
+// `toast`/`isChallenger` ending logic is gone. Server pk-battle-tick cron
+// is the single writer of status/winner/MVP/punishment.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 
 interface PKBattleActiveProps {
