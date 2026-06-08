@@ -2117,6 +2117,10 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 Log.w(TAG, "survival-mode destroy partial cleanup failure: ${e.message}")
             }
+            // Phase 2A — drop our ProcessLifecycle subscription; the new
+            // plugin instance will re-subscribe in its own load().
+            try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
+            unsubscribeAppLifecycle = null
             if (INSTANCE === this) INSTANCE = null
             return
         }
