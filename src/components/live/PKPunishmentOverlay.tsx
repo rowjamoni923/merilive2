@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Frown, Skull } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { memoryBus } from "@/lib/memoryBus";
 
 /**
- * PK Battle Step 4 (P2 polish) — Punishment Overlay
+ * PK Battle Step 4 (P2 polish + P3 leak guards) — Punishment Overlay
  *
  * Renders a full-tile semi-transparent punishment treatment over the LOSING
  * host's video for the server-anchored `punishment_end_ts` window (industry
@@ -15,7 +16,18 @@ import { supabase } from "@/integrations/supabase/client";
  *    `pk_battles` (single-row bounded Realtime subscription).
  *  - Component self-unmounts when timer hits 0 (via onComplete).
  *  - Pure UI — never writes any column.
+ *
+ * P3 leak guards:
+ *  - HARD_CAP_MS (180s) — clamps any pathological `punishment_end_ts` so a bad
+ *    server row can never strand the overlay + Realtime channel on the tile.
+ *  - SEED_TIMEOUT_MS (12s) — if the row never delivers a `punishment_end_ts`
+ *    (missing column / dropped Realtime), self-clear instead of leaking.
+ *  - Memory pressure (critical/complete onTrimMemory) → immediate teardown.
+ *  - All timers + the channel are stored in refs and torn down on unmount.
  */
+const HARD_CAP_MS = 180_000; // 3 min absolute ceiling (industry max ~120s)
+const SEED_TIMEOUT_MS = 12_000;
+
 interface PKPunishmentOverlayProps {
   battleId: string;
   currentUserId: string;
@@ -32,10 +44,14 @@ export const PKPunishmentOverlay = ({
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [endTs, setEndTs] = useState<number | null>(null);
   const [secsLeft, setSecsLeft] = useState(0);
+  // Latch onComplete so leak-guard callbacks don't depend on parent identity.
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
-  // Seed + Realtime
+  // Seed + Realtime (+ seed timeout leak guard)
   useEffect(() => {
     let cancelled = false;
+    const mountedAt = Date.now();
     const apply = (row: {
       winner_user_id?: string | null;
       final_status?: string | null;
@@ -45,7 +61,14 @@ export const PKPunishmentOverlay = ({
       if (row.winner_user_id !== undefined) setWinnerUserId(row.winner_user_id ?? null);
       if (row.final_status !== undefined) setFinalStatus(row.final_status ?? null);
       if (row.punishment_end_ts !== undefined) {
-        setEndTs(row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null);
+        const raw = row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null;
+        if (raw && Number.isFinite(raw)) {
+          // P3 hard cap: clamp pathological values (server bug, clock skew).
+          const ceiling = mountedAt + HARD_CAP_MS;
+          setEndTs(Math.min(raw, ceiling));
+        } else {
+          setEndTs(null);
+        }
       }
     };
 
@@ -68,8 +91,27 @@ export const PKPunishmentOverlay = ({
       )
       .subscribe();
 
+    // P3 seed timeout: if row never produced an endTs, release.
+    const seedGuard = setTimeout(() => {
+      if (cancelled) return;
+      setEndTs((cur) => {
+        if (cur == null) {
+          // No server anchor → don't hold a Realtime channel forever.
+          onCompleteRef.current?.();
+        }
+        return cur;
+      });
+    }, SEED_TIMEOUT_MS);
+
+    // P3 memory pressure: drop overlay + channel under LMK pressure.
+    const offMem = memoryBus.onUrgentTrim(() => {
+      onCompleteRef.current?.();
+    });
+
     return () => {
       cancelled = true;
+      clearTimeout(seedGuard);
+      offMem();
       supabase.removeChannel(ch);
     };
   }, [battleId]);
@@ -80,12 +122,12 @@ export const PKPunishmentOverlay = ({
     const tick = () => {
       const remain = Math.max(0, Math.ceil((endTs - Date.now()) / 1000));
       setSecsLeft(remain);
-      if (remain <= 0) onComplete();
+      if (remain <= 0) onCompleteRef.current?.();
     };
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
-  }, [endTs, onComplete]);
+  }, [endTs]);
 
   // Only loser sees the punishment treatment. Draws / forfeits → no overlay.
   const isLoser =
