@@ -20,9 +20,19 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // P1: expire stale pending invites (>30s old) so hosts aren't permanently
+    // blocked from new PK requests when an opponent ignores a ring.
+    let invitesExpired = 0
+    try {
+      const { data: expRes } = await supabase.rpc('expire_stale_pk_invites')
+      if (typeof expRes === 'number') invitesExpired = expRes
+    } catch (e) {
+      console.warn('[pk-battle-tick] expire_stale_pk_invites failed:', e)
+    }
+
     const { data: expired, error: listErr } = await supabase.rpc('get_expired_pk_battles')
     if (listErr) {
-      return new Response(JSON.stringify({ ok: false, error: listErr.message }), {
+      return new Response(JSON.stringify({ ok: false, error: listErr.message, invitesExpired }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -30,7 +40,7 @@ Deno.serve(async (req) => {
 
     const ids: string[] = (expired ?? []).map((r: { battle_id: string }) => r.battle_id)
     if (ids.length === 0) {
-      return new Response(JSON.stringify({ ok: true, ended: 0 }), {
+      return new Response(JSON.stringify({ ok: true, ended: 0, invitesExpired }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -47,7 +57,7 @@ Deno.serve(async (req) => {
 
     const ended = results.filter((r) => r.ok).length
     const failed = results.filter((r) => !r.ok)
-    return new Response(JSON.stringify({ ok: true, ended, failed, results }), {
+    return new Response(JSON.stringify({ ok: true, ended, failed, results, invitesExpired }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
