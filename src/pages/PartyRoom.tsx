@@ -1931,29 +1931,37 @@ const PartyRoom = () => {
     ));
 
     try {
-      // STEP 1: First assign the seat to the participant
-      // This is the CRITICAL step that makes the user visible on the seat
-      const { error: seatError } = await supabase
-        .from('party_room_participants')
-        .update({ 
-          seat_number: request.seat_position, 
-          role: 'speaker',
-          // Ensure left_at is null so user stays in room
-          left_at: null
-        })
-        .eq('room_id', roomId)
-        .eq('user_id', request.requester_id);
+      // Phase III.a: atomic server-side approval via RPC.
+      // Replaces the previous raw `party_room_participants` UPDATE which had
+      // no row-lock and let two hosts double-occupy the same seat. The RPC
+      // takes SELECT FOR UPDATE on (request, room, seat slot) and returns
+      // {ok:false, error:'seat_taken'|'already_handled'|'not_host'|...} on
+      // conflict so we can reconcile state without trusting client guesses.
+      const { data: rpcData, error: rpcError } = await supabase.rpc('approve_seat_request', {
+        p_request_id: request.id,
+      });
 
-      if (seatError) {
-        console.error('[PartyRoom] ❌ Error assigning seat:', seatError);
-        recordClientError({ label: "PartyRoom.approveSeatRequest", message: seatError instanceof Error ? seatError.message : String(seatError) });
-        toast.error('Failed to assign seat');
+      const result = rpcData as { ok?: boolean; error?: string } | null;
+
+      if (rpcError || !result?.ok) {
+        const reason = result?.error || rpcError?.message || 'unknown';
+        console.error('[PartyRoom] ❌ approve_seat_request failed:', reason, rpcError);
+        recordClientError({ label: 'PartyRoom.approveSeatRequest', message: reason });
+        if (reason === 'seat_taken') {
+          toast.error('Seat already taken');
+        } else if (reason === 'already_handled') {
+          // Silently reconcile — another device already approved/rejected
+        } else if (reason === 'not_host') {
+          toast.error('Only the host can approve seats');
+        } else {
+          toast.error('Failed to assign seat');
+        }
         await fetchSeatRequests();
         await fetchParticipants();
         return;
       }
 
-      console.log('[PartyRoom] ✅ Seat assigned to user:', request.requester_id, 'at position:', request.seat_position);
+      console.log('[PartyRoom] ✅ Seat assigned via RPC:', request.requester_id, 'pos:', request.seat_position);
 
       // Bug-fix #2 (party-publish hole): server-side promote to publisher.
       // The livekit-token edge function now issues canPublish=false to non-
@@ -1970,17 +1978,6 @@ const PartyRoom = () => {
         console.warn('[PartyRoom] promoteToSpeaker threw:', e);
       }
 
-
-      // STEP 2: Update the request status to approved
-      const { error: updateError } = await supabase
-        .from('seat_requests')
-        .update({ status: 'approved', responded_at: new Date().toISOString() })
-        .eq('id', request.id);
-
-      if (updateError) {
-        console.error('[PartyRoom] ⚠️ Error updating seat request status (seat already assigned):', updateError);
-        recordClientError({ label: "PartyRoom.approveSeatRequest", message: updateError instanceof Error ? updateError.message : String(updateError) });
-      }
 
       // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
       // DB status update remains for persistence/late-join REST snapshots.
