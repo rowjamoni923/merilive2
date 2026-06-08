@@ -317,9 +317,12 @@ The original 3-camera / 3-beauty / multi-audio "duplicate" fear was inaccurate:
 - [x] Installed in `MainActivity.onCreate` after `super.onCreate` via `getBridge().getWebView().setWebChromeClient(...)`, wrapped in try/catch so a Bridge init race never crashes the app.
 - [ ] APK rebuild required to validate (verify on Android 16 device: `adb logcat | grep WebViewPermGate` should show DENY entries when the WebView attempts getUserMedia on /live, and `CameraManager` should NOT show a permission loop).
 
-### Phase 2C — JS Lifecycle Sync
-- [ ] Create `src/hooks/useRtcLifecycle.ts` — listen `onCameraPaused`/`onCameraResumed`
-- [ ] Create `src/components/CameraPausedOverlay.tsx` — "Camera paused" UI on bg
+### Phase 2C — JS Lifecycle Sync ✅
+- [x] `src/hooks/useRtcLifecycle.ts` — thin React hook around `NativeLiveKit.addListener('app-foreground', ...)`. Returns `{ foreground, hasBackgrounded }`. Safe no-op on web/iOS (defaults to `foreground:true`). One source of truth so call sites don't duplicate Capacitor listener boilerplate.
+- [x] `src/components/CameraPausedOverlay.tsx` — absolute-positioned overlay (z-40, `bg-background/90 backdrop-blur-sm`) with `VideoOff` icon + "Camera paused" / "Return to the app to resume." copy. English-only strings (project rule). Props: `pauseOnBackground` (default true; set false on Live host to keep streaming while backgrounded), `label`, `hint`. Uses design tokens only — no raw colors.
+- [x] Only triggers AFTER first true bg transition (`hasBackgrounded` gate) so it never flashes on initial mount; fades out in 200 ms when foreground returns.
+- [ ] Mount on `/private-call` viewport (Phase 3A native Activity will own this; until then keep the WebView screen safe).
+- [ ] APK rebuild required to validate end-to-end (web preview stays in `foreground:true`).
 
 ### ✅ Success Criteria
 - [ ] Lock screen 2min → unlock → camera resumes <500ms ✓
