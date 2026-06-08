@@ -220,6 +220,10 @@ export function useLiveKitCall(
       clearInterval(callRemoteVideoWatchdogRef.current);
       callRemoteVideoWatchdogRef.current = null;
     }
+    if (reconnectBudgetTimerRef.current) {
+      clearTimeout(reconnectBudgetTimerRef.current);
+      reconnectBudgetTimerRef.current = null;
+    }
     callRemoteVideoToastShownRef.current = false;
 
     // Pkg73: drop call-signaling registration before tearing the room down.
