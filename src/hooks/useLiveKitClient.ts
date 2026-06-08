@@ -2012,13 +2012,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const streamId = options.reactionsStreamId;
     if (!streamId || !isJoined) return;
     const room = roomRef.current;
-    if (!room) return;
     let cancelled = false;
     (async () => {
       try {
         const mod = await import('@/lib/livekitReactions');
         if (cancelled) return;
-        mod.registerReactionRoom('live', streamId, room);
+        if (room) mod.registerReactionRoom('live', streamId, room);
+        else if (isNativeMediaActive) mod.registerNativeReactionRoom('live', streamId);
       } catch (e) {
         console.warn('[Pkg133] registerReactionRoom(live) failed:', e);
       }
@@ -2027,9 +2027,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       cancelled = true;
       import('@/lib/livekitReactions').then((mod) => {
         mod.unregisterReactionRoom('live', streamId);
+        mod.unregisterNativeReactionRoom('live', streamId);
       }).catch(() => {});
     };
-  }, [options.reactionsStreamId, isJoined]);
+  }, [options.reactionsStreamId, isJoined, isNativeMediaActive]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
