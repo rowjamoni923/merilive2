@@ -488,6 +488,7 @@ class LiveKitPlugin : Plugin() {
                 if (provider.isSupported(context)) {
                     io.livekit.android.room.track.video.CameraCapturerUtils
                         .registerCameraProvider(provider)
+                    cameraXRegistered = true
                     Log.i(TAG, "CameraXProvider registered — CameraXCapturer is now the default")
                 } else {
                     Log.w(TAG, "CameraXProvider.isSupported=false on this device — staying on Camera2Capturer")
