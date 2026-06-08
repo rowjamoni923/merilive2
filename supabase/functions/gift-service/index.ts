@@ -169,6 +169,7 @@ Deno.serve(async (req) => {
         newBalance,
         diamondBonus,
         isLucky,
+        pkScore: pkScoreApplied,
       }),
       {
         status: 200,
