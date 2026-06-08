@@ -1,5 +1,5 @@
 /**
- * Pkg199 — WebRTC stats collector for diagnostics overlay.
+ * Pkg199 — LiveKit (Android native) stats collector for diagnostics overlay.
  *
  * Wraps RTCPeerConnection.getStats() polled on-demand only when a caller
  * subscribes. Aggregates per-direction bitrates, RTT, jitter, packet loss,
@@ -10,7 +10,7 @@
  * and the polling stops on `stopStatsCollection(...)`. No global timers, no
  * Supabase, no $1400-rule impact. Default cadence 2s (configurable 500–10000ms).
  *
- * Dispatches: 'livekit-webrtc-stats' { scope, id, snapshot }
+ * Dispatches: 'livekit-native-stats' { scope, id, snapshot }
  * Also returns a direct unsubscribe.
  */
 
@@ -62,7 +62,7 @@ interface RunState {
 
 const running = new Map<string, RunState>();
 const key = (scope: QualityScope, id: string) => `${scope}_${id}`;
-const STATS_EVENT = 'livekit-webrtc-stats';
+const STATS_EVENT = 'livekit-native-stats';
 
 function getPeerConnections(room: Room): RTCPeerConnection[] {
   const pcs: RTCPeerConnection[] = [];

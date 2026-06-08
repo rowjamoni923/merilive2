@@ -40,7 +40,7 @@ export interface NativeJoinOptions {
   audioProfile?: 'voice' | 'broadcast' | 'music';
   /** Phase I — "live" swaps the FGS notification to Bigo/Chamet LIVE style. */
   broadcastMode?: 'call' | 'live';
-  /** Android native media family; no WebView camera/WebRTC fallback for live/party/call. */
+  /** Android native media family; no WebView camera/LiveKit (Android native) fallback for live/party/call. */
   roomScope?: NativeRoomScope;
   /** Phase III.c — party/live host flag for 60s background grace. */
   isHost?: boolean;

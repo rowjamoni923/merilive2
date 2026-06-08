@@ -563,7 +563,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           resolution: captureRes,
           facingMode: 'user',
         },
-        // Pkg163: Chamet/Bigo-parity professional voice — full WebRTC voice processing
+        // Pkg163: Chamet/Bigo-parity professional voice — full LiveKit (Android native) voice processing
         // chain ON (AEC+NS+AGC) at 48kHz mono. Krisp BVC layer applied on top (livekitNoiseFilter).
         audioCaptureDefaults: {
           echoCancellation: true,
@@ -1103,7 +1103,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // Pkg103: apply Krisp noise filter to whichever mic we just published
           import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
-          // Pkg204: tag camera track with contentHint='motion' — tells WebRTC
+          // Pkg204: tag camera track with contentHint='motion' — tells LiveKit (Android native)
           // to prefer framerate over fidelity during congestion (Bigo/TikTok-grade
           // perceptual upgrade for live faces + beauty filter motion).
           import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});

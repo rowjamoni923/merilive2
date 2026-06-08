@@ -14,7 +14,7 @@
  * - Track-processors run in a Web Worker; CPU cost stays off the main thread.
  *
  * Used by: useLiveKitClient (live), useLiveKitCall (private call),
- *          usePartyRoomWebRTC (party host video). Caller picks the mode via
+ *          usePartyRoomNativeLiveKit (party host video). Caller picks the mode via
  *          a simple UI toggle and we apply / remove the processor on the
  *          existing LocalVideoTrack — no track re-publish needed.
  */

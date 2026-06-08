@@ -19,7 +19,7 @@
  *
  * Cost guards ($1400 protection — NEVER violate):
  *  - NO new Supabase Realtime channels (reuses LiveKit Room already
- *    maintained by usePartyRoomWebRTC).
+ *    maintained by usePartyRoomNativeLiveKit).
  *  - NO setInterval / polling.
  *  - NO cross-user profile reads (sender packs display metadata into
  *    the envelope; receivers render directly).

@@ -17,11 +17,11 @@
  *      host LiveKit Room is still `connected`).
  *   2. party_rooms UPDATE (is_active=false, ended_at).
  *   3. party_room_participants left_at update.
- *   4. cleanupWebRTC disconnects the Room.
+ *   4. cleanupNativeLiveKit disconnects the Room.
  *
  * Cost guards ($1400 protection):
  *  - NO new Supabase Realtime channels (uses the LiveKit Room that
- *    usePartyRoomWebRTC already maintains for audio/video).
+ *    usePartyRoomNativeLiveKit already maintains for audio/video).
  *  - NO setInterval / polling inside this module.
  *  - NO cross-user profile reads.
  *  - Per-feature kill-switch: `app_settings.livekit_signaling_enabled.party`.

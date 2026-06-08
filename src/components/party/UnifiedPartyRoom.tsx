@@ -817,7 +817,7 @@ export function UnifiedPartyRoom({
   // Pkg81b: `unified-room-viewers-${roomId}` Supabase channel DELETED.
   // Viewer list now refreshes off LiveKit `participant_joined` /
   // `participant_left` window events dispatched by livekitPartyEventsSignaling
-  // (registered once per room in usePartyRoomWebRTC). Late-join state =
+  // (registered once per room in usePartyRoomNativeLiveKit). Late-join state =
   // initial fetchRealtimeViewers() on mount; PartyRoom keeps a 20s REST
   // safety poll for native packet-loss recovery.
   useEffect(() => {
@@ -991,7 +991,7 @@ export function UnifiedPartyRoom({
     // (moderation/audit/history), then publishes a `chat_message` DataPacket
     // via livekitChatSignaling. Receivers listen to the `livekit-chat-message`
     // window event dispatched by registerChatRoom('party', roomId, room) —
-    // which is wired in usePartyRoomWebRTC. ZERO Supabase Realtime channels.
+    // which is wired in usePartyRoomNativeLiveKit. ZERO Supabase Realtime channels.
     const handleLiveKitChat = (ev: Event) => {
       const data = (ev as CustomEvent<ChatMessageDetail>).detail;
       if (!data || data.scope !== 'party' || data.id !== roomId) return;

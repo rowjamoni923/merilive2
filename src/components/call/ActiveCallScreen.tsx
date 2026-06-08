@@ -182,7 +182,7 @@ export function ActiveCallScreen({
   // Sound hook - must be before useEffects that use it
   const { playSound, startRingtone, stopRingtone } = useSound();
 
-  // WebRTC hook
+  // LiveKit (Android native) hook
   const {
     localStream,
     remoteStream,
@@ -523,7 +523,7 @@ export function ActiveCallScreen({
   useEffect(() => {
     if (!isOpen || callEnded) return;
     if (connectionState === 'failed' || connectionState === 'closed') {
-      console.log('[ActiveCall] ☠️ WebRTC died - auto-ending call (NO reconnect)');
+      console.log('[ActiveCall] ☠️ LiveKit (Android native) died - auto-ending call (NO reconnect)');
       handleEndCall();
     }
   }, [connectionState, isOpen, callEnded]);

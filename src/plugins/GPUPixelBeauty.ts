@@ -104,7 +104,7 @@ export async function setBeautyEnabled(enabled: boolean) {
     const r: any = await GPUPixelBeauty.setEnabled({ enabled });
     // Pkg418: when LiveKit owns the camera the native plugin returns
     // `{ deferred: true }` (it cannot safely flip the GPUPixel Camera2
-    // session under a live WebRTC capture — would race CAMERA_IN_USE).
+    // session under a live LiveKit (Android native) capture — would race CAMERA_IN_USE).
     // Route through LiveKit's coordinated setBeautyPipelineEnabled which
     // does camera-disable → 150ms wait → bridge-flip → camera-enable, so
     // the broadcast pipeline really turns on/off instead of silently

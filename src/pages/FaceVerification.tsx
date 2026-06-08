@@ -906,7 +906,7 @@ const FaceVerification = () => {
         setFaceStream(null);
       }
 
-      // Use WebRTC <video> preview as the permanent source of truth. The native
+      // Use LiveKit (Android native) <video> preview as the permanent source of truth. The native
       // CameraX bridge can capture frames, but it does not reliably paint inside
       // the WebView layer on all Android builds, which caused the blank oval seen
       // in live face scan. getCameraStream already handles permission internally —

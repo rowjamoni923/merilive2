@@ -52,7 +52,7 @@ export async function startPreConnectAudio(
     if (!lp) return null;
 
     // 3rd arg is RoomConnectOptions-style; preConnectBuffer:true tells the SDK
-    // to start the media pipeline and stash chunks until WebRTC is ready.
+    // to start the media pipeline and stash chunks until LiveKit (Android native) is ready.
     const pub = await lp.setMicrophoneEnabled(true, audioOpts, {
       preConnectBuffer: true,
     } as any);

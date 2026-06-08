@@ -150,7 +150,7 @@ const GoLive = () => {
 
   // Wrapper: start native camera with permission check
   const startNativePreview = useCallback(async () => {
-    // Streaming/live preview must use WebRTC/LiveKit camera only. The
+    // Streaming/live preview must use LiveKit (Android native)/LiveKit camera only. The
     // NativeCamera CameraX plugin is reserved for Face Verification; opening
     // it here creates the exact Camera2 ownership race that produces ColorOS
     // white screens and `handleResized abandoned` surfaces during handoff.

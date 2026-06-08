@@ -58,7 +58,7 @@ import { getAppSetting } from "@/utils/appSettingsCache";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
+import { usePartyRoomNativeLiveKit } from "@/hooks/usePartyRoomNativeLiveKit";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage } from "@/lib/livekitChatSignaling";
@@ -693,7 +693,7 @@ const PartyRoom = () => {
   // Phase III.d — incoming seat invitations for the current user (audience).
   const seatInvitationInbox = useSeatInvitationInbox(currentUser?.id ?? null);
 
-  // Initialize WebRTC for multi-user connections
+  // Initialize LiveKit (Android native) for multi-user connections
   const {
     localStream,
     peerStreams,
@@ -705,9 +705,9 @@ const PartyRoom = () => {
     isVideoEnabled,
     toggleAudio,
     toggleVideo,
-    cleanup: cleanupWebRTC,
+    cleanup: cleanupNativeLiveKit,
     getPeerStream,
-  } = usePartyRoomWebRTC(
+  } = usePartyRoomNativeLiveKit(
     mediaReady ? roomId || null : null,
     currentUser?.id || null,
     room?.room_type || 'video',
@@ -998,7 +998,7 @@ const PartyRoom = () => {
       roomClosedRef.current = true;
       playSound('notification');
       setShowRoomClosedModal(true);
-      cleanupWebRTC();
+      cleanupNativeLiveKit();
       setTimeout(() => {
         if (isMountedRef.current) navigate('/');
       }, 3000);
@@ -1238,7 +1238,7 @@ const PartyRoom = () => {
           if (!isHostNow && !roomClosedRef.current && isMountedRef.current) {
             roomClosedRef.current = true;
             setShowRoomClosedModal(true);
-            cleanupWebRTC();
+            cleanupNativeLiveKit();
             setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
           }
         }
@@ -1257,7 +1257,7 @@ const PartyRoom = () => {
         if (explicitLeaveRef.current) {
           await leaveRoomForCleanup(roomId);
         }
-        cleanupWebRTC();
+        cleanupNativeLiveKit();
       })();
       // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
       if (participantChannel) supabase.removeChannel(participantChannel);
@@ -1270,7 +1270,7 @@ const PartyRoom = () => {
       if (joinBroadcastChannel) supabase.removeChannel(joinBroadcastChannel);
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
-    }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC]);
+    }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupNativeLiveKit]);
 
   useEffect(() => {
     if (!roomId || isHost) return;
@@ -1281,7 +1281,7 @@ const PartyRoom = () => {
       console.log('[PartyRoom] Room detected closed by party_rooms realtime');
       playSound('notification');
       setShowRoomClosedModal(true);
-      cleanupWebRTC();
+      cleanupNativeLiveKit();
       setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
     };
 
@@ -1301,7 +1301,7 @@ const PartyRoom = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(roomCloseChannel); };
-  }, [roomId, isHost, cleanupWebRTC, navigate]);
+  }, [roomId, isHost, cleanupNativeLiveKit, navigate]);
 
 
   // Pkg187: Removed 20s room-status safety poll. LiveKit `room_state_changed` + `livekit-party-closed` events already deliver instant room-close to all viewers. Zero functional loss, $1400-rule safe.
@@ -1724,7 +1724,7 @@ const PartyRoom = () => {
 
         // 2) Release camera/mic immediately so host hardware is freed and
         // any next media app gets audio focus back. DB writes follow.
-        try { cleanupWebRTC(); } catch (e) { console.warn('[PartyRoom] cleanupWebRTC failed:', e); }
+        try { cleanupNativeLiveKit(); } catch (e) { console.warn('[PartyRoom] cleanupNativeLiveKit failed:', e); }
 
         // 3) Mark room inactive in database
         const { error: updateError } = await supabase
@@ -1749,7 +1749,7 @@ const PartyRoom = () => {
         // Pkg78: closeChannel removed; no cleanup needed.
       } else {
         // Regular participant leaving — release local mic/cam first.
-        try { cleanupWebRTC(); } catch (e) { console.warn('[PartyRoom] cleanupWebRTC failed:', e); }
+        try { cleanupNativeLiveKit(); } catch (e) { console.warn('[PartyRoom] cleanupNativeLiveKit failed:', e); }
         await supabase
           .from('party_room_participants')
           .update({ left_at: new Date().toISOString(), seat_number: null })
@@ -2424,7 +2424,7 @@ const PartyRoom = () => {
         onClose={async () => {
           explicitLeaveRef.current = true;
           await leaveRoom();
-          cleanupWebRTC();
+          cleanupNativeLiveKit();
           navigate('/');
         }}
         getPeerStream={getPeerStream}
