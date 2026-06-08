@@ -306,3 +306,34 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 2. Two devices simultaneously approve same seat → only one succeeds, second returns RPC error `seat_taken`.
 3. Open party room background picker → selected `gradient_css` background renders correctly.
 4. Call `transfer_party_host` RPC manually → `party_rooms.host_id` updates atomically; old host becomes `speaker`, new host becomes `host`.
+
+---
+
+## 🚨 Phase N — Native LiveKit Android Port (locked 2026-06-08 by owner)
+
+**MANDATE:** Live stream + party room + private call media path = native `io.livekit:livekit-android` Kotlin SDK ONLY. WebView `livekit-client` JS path = FROZEN, only Lovable browser preview fallback. Re-verify: zero top-50 live apps (Bigo/Chamet/Tango/Olamet/Hollah/HiiClub/WeJoy/MICO/Likee/TikTok Live) use WebView WebRTC. See mem://constraints/no-web-rtc-native-only.
+
+### Why
+- WebView has no Camera2 direct access → soft encoder, 40-60% CPU
+- WebView cannot hold `FOREGROUND_SERVICE_CAMERA/_MICROPHONE` → root cause of "video icon stuck on" / camera-not-releasing bug
+- No platform AEC tuning, thermal throttle 30% earlier
+- 100ms verdict: WebView WebRTC unsuitable for production mobile video
+
+### Phases (each = APK rebuild)
+
+- [ ] **N1 — Plugin foundation.** `LiveKitNativePlugin.kt` + `LiveKitNative.ts` shim. Methods: connect, disconnect, setMicEnabled, setCameraEnabled, switchCamera. Events: participantConnected/Disconnected, trackSubscribed/Unsubscribed, activeSpeakersChanged, connectionQuality, disconnected. Gradle: `implementation("io.livekit:livekit-android:2.24.1")`. Foreground service stub. `shouldUseNativeLiveKit()` gate already exists — re-wire.
+- [ ] **N2 — Video rendering.** Native `TextureViewRenderer` overlay anchored under WebView via `Bridge.getWebView().addView()`. JS `attachRemoteView({sid, frame:{x,y,w,h}})`. Local preview mirror. DPI-aware. Replaces WebView `<video>` for production path.
+- [ ] **N3 — Live Stream native port.** `useLiveStreamWebRTC` → native plugin behind gate. Host publish (camera + mic + simulcast 180p/540p/source). Viewer subscribe. Selective subscription. JS hook becomes preview-only fallback. Verify on owner APK.
+- [ ] **N4 — Party Room native port.** `usePartyRoomWebRTC` → native plugin. Multi-seat publish/subscribe, active speaker, mute persistence, seat invitations. Re-apply III.f audio profile in native `LocalAudioTrack` config.
+- [ ] **N5 — Private Call native port.** Private call media → native plugin. 1-on-1, ring → accept → connect via existing FCM data path. Camera switch, mute, end.
+- [ ] **N6 — DataPacket bridging.** All `livekit*Signaling` JS modules (gifts/chat/reactions/party events/active speaker/metadata/room metadata) → native `room.localParticipant.publishData()` + `dataReceived` event bridge. Topic dispatch in JS.
+- [ ] **N7 — Foreground service hardening.** `FOREGROUND_SERVICE_CAMERA` + `_MICROPHONE` declared, native lifecycle owns mic/cam. Background 60s grace (III.c) moved fully native. `AudioSwitchHandler` for BT/wired routing. Phone-call interruption.
+- [ ] **N8 — Kill-switch + JS cleanup.** Per-device flag rollout 10% → 50% → 100%. Once stable: DELETE WebRTC body of `usePartyRoomWebRTC`, `useLiveStreamWebRTC`, `usePrivateCallWebRTC`. Keep `livekit-client` import ONLY as Lovable browser preview fallback.
+
+### Hard rules during port
+- Design SACRED — media plane only, no UI/copy/animation edits
+- JS WebRTC hooks FROZEN — no new features, no fixes except security
+- Every phase = APK rebuild — never claim "verified" without owner APK test
+- Web fallback gated — `shouldUseNativeLiveKit()` returns true on Android APK
+- DataPacket parity required before flipping any flow
+- Coordinate with `ProCamera` arbiter + face-verify + Camera2 handoff (no double-open)
