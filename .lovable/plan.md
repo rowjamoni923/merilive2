@@ -243,7 +243,7 @@ Phase I.b (deferred): music-mode toggle, background grace-period overlay, Surfac
 
 ---
 
-## Phase III — Party Room professionalization (✅ III.a + III.b + III.c DONE 2026-06-08 (III.d–III.f next))
+## Phase III — Party Room professionalization (✅ III.a + III.b + III.c + III.d DONE 2026-06-08 (III.e–III.f next))
 
 **Research-first ✅** — sub-agent verified industry patterns from Bigo Live (Multi-Guest 2026 guide, Room PK system), Chamet, AgoraIO-Usecase/Chatroom reference impl, Agora RTM docs, LiveKit maintainer (issues #3041, #3292). Codebase audit produced 10 P0–P2 gaps with file:line refs.
 
