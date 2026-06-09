@@ -270,6 +270,16 @@ const Auth = () => {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
 
+  // Phase 1 Auth audit (2026-06-09): industry-standard 60s resend countdown.
+  // Shared across email-login OTP, email-signup OTP, and WhatsApp phone OTP.
+  const [resendCountdown, setResendCountdown] = useState(0);
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const id = setInterval(() => setResendCountdown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [resendCountdown]);
+  const startResendCountdown = () => setResendCountdown(60);
+
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
     try {
       const response = error?.context;
@@ -424,7 +434,10 @@ const Auth = () => {
       let recoveryTimeout: ReturnType<typeof setTimeout> | null = null;
       try {
         const timeoutPromise = new Promise<never>((_, reject) => {
-          recoveryTimeout = setTimeout(() => reject(new Error('auth_session_check_timeout')), 4500);
+          // Phase 1 Auth audit (2026-06-09): tightened from 4500ms → 2000ms.
+          // Play Console flags TTID ≥ 5000ms; competitors target < 2000ms cold.
+          // The full-screen "Restoring your session…" loader was blocking UI up to 4.5s.
+          recoveryTimeout = setTimeout(() => reject(new Error('auth_session_check_timeout')), 2000);
         });
         // Only check if user already has an active Supabase session
         const { data: { session } } = await Promise.race([
