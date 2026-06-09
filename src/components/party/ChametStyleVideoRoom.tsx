@@ -374,7 +374,7 @@ export function ChametStyleVideoRoom({
 
       {/* Video Grid - 2x2 Layout matching Chamet — fixed equal seat sizes */}
       <main className="relative z-10 flex-1 px-2 py-2">
-        <div className="grid grid-cols-2 gap-1.5 w-full max-w-md mx-auto">
+        <div className={cn("grid gap-1.5 w-full max-w-md mx-auto", gridColsClass)}>
           {seatGrid.map((participant, index) => {
             const isMyself = participant?.id === currentUserId;
             const isEmpty = !participant;
