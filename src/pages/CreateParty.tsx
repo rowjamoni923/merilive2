@@ -50,30 +50,31 @@ const isEligiblePartyHost = (profile?: {
   return Boolean(profile?.is_host) || String(profile?.host_status ?? "").toLowerCase() === "approved" || normalizedGender === "female";
 };
 
-// Shooting Star Component
-const ShootingStar = ({ delay = 0 }: { delay: number }) => (
-  <motion.div
-    className="absolute w-1 h-1 bg-white rounded-full"
-    style={{
-      top: `${Math.random() * 30}%`,
-      left: `${Math.random() * 100}%`,
-    }}
-    initial={{ opacity: 0, x: 0, y: 0 }}
-    animate={{
-      opacity: [0, 1, 0],
-      x: [0, 100],
-      y: [0, 100],
-    }}
-    transition={{
-      duration: 1.5,
-      delay: delay,
-      repeat: Infinity,
-      repeatDelay: Math.random() * 5 + 3,
-    }}
-  >
-    <div className="absolute w-20 h-0.5 bg-gradient-to-r from-white to-transparent -left-20 top-0" />
-  </motion.div>
-);
+// Shooting Star Component — PR-2.4: position/repeatDelay frozen via useMemo
+// (was re-randomized on EVERY parent render → unnecessary motion thrash).
+const ShootingStar = ({ delay = 0 }: { delay: number }) => {
+  const stable = useMemo(() => ({
+    top: `${Math.random() * 30}%`,
+    left: `${Math.random() * 100}%`,
+    repeatDelay: Math.random() * 5 + 3,
+  }), []);
+  return (
+    <motion.div
+      className="absolute w-1 h-1 bg-white rounded-full"
+      style={{ top: stable.top, left: stable.left }}
+      initial={{ opacity: 0, x: 0, y: 0 }}
+      animate={{ opacity: [0, 1, 0], x: [0, 100], y: [0, 100] }}
+      transition={{
+        duration: 1.5,
+        delay,
+        repeat: Infinity,
+        repeatDelay: stable.repeatDelay,
+      }}
+    >
+      <div className="absolute w-20 h-0.5 bg-gradient-to-r from-white to-transparent -left-20 top-0" />
+    </motion.div>
+  );
+};
 
 const CreateParty = () => {
   const navigate = useNavigate();

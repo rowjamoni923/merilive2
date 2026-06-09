@@ -109,29 +109,27 @@ interface ProfessionalAudioRoomProps {
   joinMessages?: JoinMessage[];
 }
 
-// Shooting Star Component
-const ShootingStar = ({ delay }: { delay: number }) => (
-  <motion.div
-    initial={{ x: "100%", y: "-10%", opacity: 0 }}
-    animate={{ 
-      x: "-20%", 
-      y: "120%", 
-      opacity: [0, 1, 1, 0]
-    }}
-    transition={{ 
-      duration: 2.5, 
-      delay,
-      repeat: Infinity,
-      repeatDelay: 8 + Math.random() * 5
-    }}
-    className="absolute w-[2px] h-16 bg-gradient-to-b from-white via-white/80 to-transparent rotate-[45deg] pointer-events-none"
-    style={{
-      left: `${Math.random() * 80 + 10}%`,
-      top: `${Math.random() * 30}%`,
-      boxShadow: '0 0 6px 2px rgba(255,255,255,0.3)'
-    }}
-  />
-);
+// Shooting Star Component — PR-2.4: randoms frozen via useMemo.
+const ShootingStar = ({ delay }: { delay: number }) => {
+  const stable = useMemo(() => ({
+    left: `${Math.random() * 80 + 10}%`,
+    top: `${Math.random() * 30}%`,
+    repeatDelay: 8 + Math.random() * 5,
+  }), []);
+  return (
+    <motion.div
+      initial={{ x: "100%", y: "-10%", opacity: 0 }}
+      animate={{ x: "-20%", y: "120%", opacity: [0, 1, 1, 0] }}
+      transition={{ duration: 2.5, delay, repeat: Infinity, repeatDelay: stable.repeatDelay }}
+      className="absolute w-[2px] h-16 bg-gradient-to-b from-white via-white/80 to-transparent rotate-[45deg] pointer-events-none"
+      style={{
+        left: stable.left,
+        top: stable.top,
+        boxShadow: '0 0 6px 2px rgba(255,255,255,0.3)'
+      }}
+    />
+  );
+};
 
 // Premium Host Frame with Crown - LUXURY SIZE
 const PremiumHostFrame = ({ 
