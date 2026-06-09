@@ -14,7 +14,13 @@ import {
   Mic,
   Search,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  X,
+  Hash,
+  Diamond,
+  ShieldAlert,
+  ChevronRight,
+  KeyRound
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
