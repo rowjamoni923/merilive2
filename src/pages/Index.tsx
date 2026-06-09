@@ -537,9 +537,15 @@ const Index = () => {
           <img 
             src={(() => {
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
-              return (user.isLive && normalizedLiveThumb)
-                ? enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 })
-                : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
+              if (user.isLive && normalizedLiveThumb) {
+                return enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 });
+              }
+              // Phase 3 Home audit (2026-06-09): industry-standard CDN-resize for
+              // non-live avatars too. Card renders ~180dp × 3.5dpr ≈ 630px, so
+              // width:400 (×2 retina = 800px) is plenty + cuts bandwidth ~70%.
+              // Avoids serving full-resolution 1080p uploaded avatars on G35.
+              const avatar = resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
+              return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
             })()}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover bg-muted"
