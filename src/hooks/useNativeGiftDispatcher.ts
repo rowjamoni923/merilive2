@@ -109,10 +109,9 @@ export function useNativeGiftDispatcher() {
         const detail = (ev as CustomEvent<GiftSentDetail>).detail;
         if (!detail?.giftId) return;
         const ctx = ctxRef.current;
-        const matches = detail.force === undefined ? (
+        const matches =
           (ctx.streamId && detail.id === ctx.streamId && detail.scope === 'live') ||
-          (ctx.roomId && detail.id === ctx.roomId && detail.scope === 'party')
-        ) : true;
+          (ctx.roomId && detail.id === ctx.roomId && detail.scope === 'party');
         if (!matches) return;
         const key = `${detail.giftId}:${detail.senderId || ''}:${detail.timestamp || ''}`;
         if (!markDispatched(key)) return;
