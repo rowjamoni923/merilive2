@@ -421,6 +421,7 @@ const PartyRoom = () => {
           avatar_url: out.primary.avatarUrl,
         },
       } as ChatMessage]);
+
     },
   });
 
