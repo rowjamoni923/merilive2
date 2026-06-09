@@ -341,7 +341,8 @@ const CreateParty = () => {
         p_name: defaultName,
         p_room_type: mode,
         p_game_mode: mode === 'game' ? selectedGame : null,
-        p_password: null,
+        p_password: roomPassword.trim() ? roomPassword.trim() : null,
+        p_entry_fee: Math.max(0, Math.floor(Number(roomEntryFee) || 0)),
       });
 
       if (error) throw error;
