@@ -782,14 +782,21 @@ const Discover = () => {
                         )}
                       </div>
 
-                      {/* Entry fee if any */}
-                      {room.entry_fee > 0 && (
-                        <div className="mt-1">
+                      {/* Entry fee & room code */}
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        {room.entry_fee > 0 && (
                           <Badge variant="outline" className="text-[9px] px-1 py-0 text-money border-accent/40">
-                            💰 {room.entry_fee}
+                            <Diamond className="w-2.5 h-2.5 mr-0.5" />
+                            {room.entry_fee}
                           </Badge>
-                        </div>
-                      )}
+                        )}
+                        {room.room_code && (
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 text-info border-info/40">
+                            <Hash className="w-2.5 h-2.5 mr-0.5" />
+                            {room.room_code}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
