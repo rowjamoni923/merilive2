@@ -164,13 +164,16 @@ export const PKBattleActive = ({
   useEffect(() => {
     if (timeLeft === 0 && battleId && !battleEnded && !hasRequestedEndRef.current) {
       hasRequestedEndRef.current = true;
-      supabase.rpc("request_pk_battle_end", { p_battle_id: battleId })
-        .then(({ data, error }) => {
+      (async () => {
+        try {
+          const { data, error } = await supabase.rpc("request_pk_battle_end", { p_battle_id: battleId });
           if (error) console.warn("[PK] request_pk_battle_end failed:", error);
           else if (data?.ok) console.log("[PK] request_pk_battle_end:", data);
           else console.log("[PK] request_pk_battle_end declined:", data?.reason);
-        })
-        .catch((e) => console.warn("[PK] request_pk_battle_end exception:", e));
+        } catch (e) {
+          console.warn("[PK] request_pk_battle_end exception:", e);
+        }
+      })();
     }
   }, [timeLeft, battleId, battleEnded]);
 
