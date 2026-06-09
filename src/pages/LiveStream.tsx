@@ -458,7 +458,28 @@ const LiveStream = () => {
     roomId: id ?? 'unknown',
     roomType: 'live',
     selfUserId: currentUserId,
+    onWelcomeRow: (out) => {
+      // Phase 5: coalesced welcome chat row (Bigo/Chamet parity).
+      // Single arrival → "Alice joined the live room ✨"
+      // Burst       → "Alice and 7 others joined the live room ✨"
+      const suffix =
+        out.othersCount <= 0
+          ? 'entered the live room ✨'
+          : out.othersCount === 1
+            ? 'and 1 other entered the live room ✨'
+            : `and ${out.othersCount} others entered the live room ✨`;
+      setMessages(prev => [...prev, {
+        id: `welcome_${out.primary.userId}_${Date.now()}`,
+        user: out.primary.userName,
+        initial: (out.primary.userName || '?').charAt(0),
+        message: suffix,
+        color: 'text-green-400',
+        userLevel: out.primary.userLevel,
+        userAvatar: out.primary.avatarUrl,
+      }]);
+    },
   });
+
 
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
