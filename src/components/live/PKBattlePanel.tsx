@@ -58,17 +58,12 @@ export const PKBattlePanel = ({
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
 
-  // Pkg82d: track pending invites (direct + random) so the window-event
-  // listener can route incoming pk_invite_accepted / pk_invite_declined /
-  // pk_random_accepted notifications back to the right handler WITHOUT
-  // opening any Supabase Realtime channel.
+  // Pkg82d: direct-invite reply listener stays here (panel-scoped). The random
+  // match flow has been lifted to LiveStream (R6a) so it can survive panel close.
   const pendingDirectRef = useRef<Map<string, LiveHost>>(new Map());
   // P4 audit: per-invite TTL timer so a dropped accept/decline reply never
-  // leaks the pending entry forever (prevented a future invite for the same
-  // battleId from auto-resolving against stale state).
+  // leaks the pending entry forever.
   const pendingDirectTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const pendingRandomRef = useRef<boolean>(false);
-  const randomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,7 +71,6 @@ export const PKBattlePanel = ({
     }
   }, [isOpen]);
 
-  // Pkg82d: single window-event bridge for ALL PK reply signals.
   useEffect(() => {
     const handler = async (ev: Event) => {
       const detail = (ev as CustomEvent).detail as any;
@@ -100,58 +94,15 @@ export const PKBattlePanel = ({
           if (t) { clearTimeout(t); pendingDirectTimersRef.current.delete(data.battleId); }
           toast.error(`${opponent.display_name} declined the PK request`);
         }
-      } else if (detail.type === "pk_random_accepted" && pendingRandomRef.current) {
-        pendingRandomRef.current = false;
-        if (randomTimeoutRef.current) {
-          clearTimeout(randomTimeoutRef.current);
-          randomTimeoutRef.current = null;
-        }
-        // Acceptor info comes from the notification payload.
-        const acceptorId = data.fromUserId;
-        const acceptorName = data.fromName || "Host";
-        const acceptorAvatar = data.fromAvatar || "";
-        const acceptorLevel = data.fromLevel || 1;
-        const acceptorStreamId = data.fromStreamId || "";
-
-        // PK Battle Step 5: replace the racey two-call create+accept
-        // (which always failed because accept_pk_battle requires
-        // auth.uid() = opponent_id) with the atomic
-        // start_pk_battle_random RPC — single round-trip, server-side
-        // anti-collusion + level gate + auto-activate.
-        const { data: createRes, error: createErr } = await supabase.rpc("start_pk_battle_random", {
-          p_opponent_id: acceptorId,
-          p_challenger_stream_id: currentStreamId,
-          p_opponent_stream_id: acceptorStreamId,
-          p_duration_seconds: 300,
-        });
-        const createPayload = (createRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
-
-        if (createErr || !createPayload.ok || !createPayload.battle_id) {
-          toast.error(createPayload.error || "PK battle could not be created");
-          return;
-        }
-        const battleId = createPayload.battle_id;
-
-        toast.success(`${acceptorName} accepted your PK!`);
-        onBattleStarted(battleId, {
-          id: acceptorId,
-          display_name: acceptorName,
-          avatar_url: acceptorAvatar,
-          user_level: acceptorLevel,
-          gender: "female",
-          stream_id: acceptorStreamId,
-          viewer_count: 0,
-        });
       }
     };
 
     window.addEventListener("pk-notification", handler);
     return () => window.removeEventListener("pk-notification", handler);
-  }, [currentUserId, currentStreamId, onBattleStarted]);
+  }, [onBattleStarted]);
 
   useEffect(() => {
     return () => {
-      if (randomTimeoutRef.current) clearTimeout(randomTimeoutRef.current);
       pendingDirectTimersRef.current.forEach((t) => clearTimeout(t));
       pendingDirectTimersRef.current.clear();
       pendingDirectRef.current.clear();
