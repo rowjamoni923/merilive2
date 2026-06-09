@@ -60,6 +60,7 @@ import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomNativeLiveKit } from "@/hooks/usePartyRoomNativeLiveKit";
+import { useActiveSpeakers } from "@/hooks/useActiveSpeakers";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage } from "@/lib/livekitChatSignaling";
@@ -751,6 +752,12 @@ const PartyRoom = () => {
     ((room as any)?.audio_profile as 'voice' | 'music' | undefined)
       ?? (room?.room_type === 'audio' ? 'voice' : 'music')
   );
+
+  // Pkg98: Real-time active speaker set, powered by LiveKit's server-side
+  // RoomEvent.ActiveSpeakersChanged (registered inside usePartyRoomNativeLiveKit).
+  // ~500ms hangover, sub-200ms latency — same UX Bigo/Chamet ship via Agora's
+  // onAudioVolumeIndication. Replaces the previously hardcoded isSpeaking flags.
+  const activeSpeakers = useActiveSpeakers('party', roomId || null);
 
   // Pkg444 Phase-6: auto-mute host/co-host mic on transient audio-focus
   // loss (phone call, alarm, voice assistant). Restored on focus regain
@@ -2508,7 +2515,7 @@ const PartyRoom = () => {
           level: Math.max(room.host.host_level || 0, room.host.user_level || 1),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
-          isSpeaking: true,
+          isSpeaking: room.host?.id ? activeSpeakers.has(room.host.id) : false,
           // Mic/cam flags must reflect the HOST's own publishing state.
           // Viewers don't publish, so using their local !isAudioEnabled/!isVideoEnabled
           // would falsely flag the host as muted/video-off and render the avatar
@@ -2533,7 +2540,7 @@ const PartyRoom = () => {
             level: p.user?.user_level || 1,
             countryFlag: '🌍',
             beansCount: seatBeansReceived[p.user_id] || 0,
-            isSpeaking: false,
+            isSpeaking: activeSpeakers.has(p.user_id),
             isMuted: false,
             isVideoOff: false,
             isHost: false,
