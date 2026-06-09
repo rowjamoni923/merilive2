@@ -1,125 +1,99 @@
-# Party Room — Professional Fix Plan (Chamet/Bigo parity)
+# PR-2.5 — Party Room Functional Gaps (Research-Locked)
 
-UI/design unchanged. Only business logic, security, DB, real-time, native polish.
-22 findings from research + code audit. 3 phases. Honest gap list at end.
+Implements items 4-10 flagged in the honest audit. All numbers below come from the just-completed competitor research (Chamet/Bigo/Poppo/Tencent TRTC SDK).
 
----
+## Locked industry numbers
 
-## PHASE PR-1 — Security + Critical (Lovable only, no APK)
+| Feature | Value | Source |
+|---|---|---|
+| Host reconnect grace | **60s** | TRTC default, Bigo behavior |
+| Seat invitation TTL | **30s** | TRTC `applyForSeat(..., 30, ...)` |
+| Mute-all | Server-enforced, no self-unmute | Bigo/Poppo |
+| Seat lock | Per-seat, 3 flags (taken/audio/video) | TRTC `lock_seat` API |
+| Gift split default | Host 60%, speakers split 40% equally | Industry pattern |
+| Room search | By room code + country, no age/gender | Bigo/Chamet |
+| Entry refund | **None** — preview-before-pay UX | Universal across apps |
 
-Pure SQL migration + 1 edge function + small RPC wiring on client.
+## Scope (7 fixes, 1 deliberate skip)
 
-### Migration 1: `party_room_security_hardening`
-1. **Tighten `party_room_participants` UPDATE RLS** (P2-5 self-escalation hole) — block role/seat_number self-update; only allow `left_at`, `is_muted` self-update via column whitelist trigger.
-2. **Tighten SELECT RLS** (P1-6) — limit to `authenticated`, only active rooms.
-3. **`promote_party_participant(p_room_id, p_user_id, p_role)`** SECURITY DEFINER RPC (P0-3) — host-only, updates target row, logs to `admin_logs`.
-4. **`reject_seat_request(p_request_id)`** SECURITY DEFINER RPC (P0-4) — host/admin only, atomic.
-5. **`kick_party_participant(p_room_id, p_user_id, p_reason, p_duration_minutes)`** SECURITY DEFINER RPC (P0-1) — sets `left_at` AND inserts `live_bans` row, atomic.
-6. **`enter_party_room` fix** (P2-6) — `ON CONFLICT (room_id, user_id) DO UPDATE SET left_at=NULL, joined_at=now(), role='host'` for host fast-path.
-7. **`send_gift` validation** (P1-9) — add `receiver_in_room` check inside gift RPC.
-8. **Seat request rate-limit trigger** (P1-8) — unique partial index `(room_id, requester_id) WHERE status='pending'`, returns nice error.
+### #4 Host transfer on disconnect
+- New column: `party_rooms.host_reconnect_deadline TIMESTAMPTZ`
+- Edit `trg_party_host_crash_detection`: instead of closing room, set deadline = `now() + 60s`. Spawn a `pg_cron` job (or rely on next participant event) that, on expiry, promotes lowest-numbered occupied non-host speaker to host (`UPDATE party_rooms SET host_id = ...`, swap roles). If no speakers, close room.
+- New RPC `transfer_party_host(p_room_id, p_new_host_id)` for manual transfer button (host-only).
+- React: host's own dashboard gets "Transfer Host" item in existing host menu (no new design).
 
-### Edge function: `party-room` (WebSocket) host-change DB sync
-- P0-6: When in-memory host change happens, call `transfer_party_host` RPC via service client so DB matches WS state.
+### #5 Mute-all
+- New column: `party_room_participants.muted_by_host BOOLEAN DEFAULT false`
+- New RPC `mute_all_speakers(p_room_id)` + `unmute_all_speakers(p_room_id)` (host-only, sets flag on all non-host occupied seats).
+- LiveKit metadata broadcast on flag change → clients call `setMicrophoneEnabled(false)` and disable the mic toggle button while flag true. No re-request after unmute.
+- React: existing host moderation panel gets "Mute All" / "Unmute All" toggle.
 
-### Client wiring (PartyRoom.tsx)
-- Replace `kickUser` direct UPDATE → call `kick_party_participant` RPC.
-- Replace `promoteToAdmin`/`demoteFromAdmin` → call `promote_party_participant` RPC.
-- Replace `rejectSeatRequest` direct UPDATE → call `reject_seat_request` RPC + `demoteToAudience()`.
-- Client cooldown 30s on `requestSeat`.
+### #6 Seat lock (per-seat, TRTC pattern)
+- New table `party_room_seat_locks` (room_id, seat_number, is_locked, forbid_audio, forbid_video, locked_by, locked_at).
+- RPC `set_seat_lock(p_room_id, p_seat, p_locked, p_forbid_audio, p_forbid_video)` (host-only). Locking an occupied seat first kicks the occupant via existing `kick_from_seat` logic.
+- `enter_seat`/`request_seat` RPCs check lock → return `SEAT_LOCKED` error.
+- React: empty-seat long-press context menu adds "Lock seat". Locked seat renders existing `Lock` icon overlay.
 
-**Verification (owner test account):** kick → re-join blocked, viewer self-promote attempt rejected, password room shows prompt (after PR-2), promote toast accurate.
+### #7 Room search by code + country filter (skip add gender/age per research)
+- New column: `party_rooms.room_code TEXT UNIQUE` (6-char alphanumeric, auto-generated on create).
+- Index: `CREATE INDEX ON party_rooms(room_code)` + full-text on `title`.
+- PartyRooms lobby page: add search input (room code or title) + country dropdown filter using existing host country data.
 
----
+### #8 Per-seat bean attribution edge case
+- Fix `seatBeansReceived` aggregation in PartyRoom.tsx: when host equals a former-speaker (post-transfer), use `host_id` from current room state at credit-time, not from the original gift transaction sender path. Add a unit-style assertion in the LiveKit fast-path.
+- Implement gift split RPC `record_party_gift_split(p_room_id, p_sender_id, p_total_beans)`:
+  - Read `party_rooms.gift_split_config JSONB` (new column, default `{"host_pct":60,"speakers_pct":40}`).
+  - Split atomically: host gets host_pct, occupied non-host seats split speakers_pct equally; unoccupied seat shares pool back to host.
+  - Writes one row per receiver into `gift_transactions` so existing `seatBeansReceived` aggregation Just Works.
 
-## PHASE PR-2 — Broken features + UX professionalism (Lovable only)
+### #9 Seat invitation expiry (30s)
+- Add column: `seat_invitations.expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + interval '30 seconds'`
+- Add pg_cron (or recurring edge fn) cleanup: every 60s, `UPDATE seat_invitations SET status='expired' WHERE status='pending' AND expires_at < now()`
+- `accept_seat_invitation` RPC: reject if `expires_at < now()`.
+- React: existing invitation modal already has a banner — add a 30s countdown ring (Motion `transition.duration: 30`) and auto-close on expiry.
 
-### A. Host crash detection (P0-2) — ✅ already wired
-Realtime `party_rooms` UPDATE channel (`party-room-end-${roomId}`) already auto-closes viewers on `is_active=false` / `ended_at` set + LiveKit `room_state_changed` packet (PartyRoom.tsx 1275-1304, 1236-1244). No further work.
+### #10 Entry fee refund grace
+- **DECISION: skip the 30s refund I'd previously promised.** Research is unanimous: NO competitor refunds. The professional pattern is preview-before-pay.
+- Instead: add a 2-step entry confirmation dialog in PartyRooms lobby card. Step 1 = preview card (host name, topic, current speakers, seat count). Step 2 = "Pay X beans & join" explicit confirm. Coin debit happens only on step-2 tap.
+- This matches Chamet/Bigo UX exactly and is the honest professional answer.
 
-### B. Password prompt on join — ✅ done (PR-2.1)
-`enter_party_room` already supports `p_password`. PartyRoom intercepts `Password required` / `Invalid password` errors and shows an `AlertDialog` with password input → retries `joinRoom(pwd)`. `Insufficient coins for entry fee` shows toast + bounces to lobby.
+## Migration plan (one file)
 
-### B-create. Password + Entry Fee on creation — ✅ done (PR-2.2)
-Migrated `create_party_room(p_entry_fee int default 0)` (0-100000 cap). CreateParty.tsx now has a Lock-icon button next to the Wand2 effects button → opens a `Dialog` with Password + Entry Fee inputs. State stored locally; passed to the RPC on `Let's Party`. Active settings show an amber dot + ring on the Lock button.
+```text
+1. ALTER party_rooms ADD host_reconnect_deadline, room_code, gift_split_config
+2. ALTER party_room_participants ADD muted_by_host
+3. ALTER seat_invitations ADD expires_at
+4. CREATE TABLE party_room_seat_locks (+ GRANT + RLS + policies)
+5. Backfill room_code for existing rooms
+6. New RPCs: transfer_party_host, mute_all_speakers, unmute_all_speakers,
+   set_seat_lock, record_party_gift_split
+7. Update trg_party_host_crash_detection to defer-and-promote
+8. pg_cron job: expire_stale_seat_invitations every 60s
+9. pg_cron job: party_host_reconnect_timeout every 30s
+```
 
-### C. Invite-to-seat real implementation (P1-1) — ✅ already wired
-`seat_invitations` table + `accept_seat_invitation` / `decline_seat_invitation` RPCs + `useSeatInvitationInbox` + `SeatInvitePickerSheet` + `SeatInviteResponseSheet` are all live. No further work.
+## React changes (no design changes, only behavior)
 
-### D. LiveKit join timing (P1-12) — ✅ done (PR-2.1)
-`joinRoom` now stashes the `participant_joined` payload in `pendingJoinPublishRef`; a dedicated effect flushes it the moment `isConnected` flips true. Eliminates the 1-3s "join packet dropped before SFU connected" race.
+- `src/pages/PartyRoom.tsx` — wire mute-all, seat lock context menu, transfer host menu item, fix seatBeansReceived host edge case, listen to `room_state_changed` for new flags
+- `src/pages/PartyRooms.tsx` — search input + country filter + 2-step entry confirm dialog
+- `src/components/party/SeatInvitePickerSheet.tsx` — already exists, no change
+- New shared util `src/features/party/giftSplit.ts` — pure-function helper, mirrors the RPC for optimistic UI
 
-### E. VAD memory leak (P1-2) — ✅ done (PR-2.1)
-`useVoiceActivityDetection` now stores `{source, analyser}` pairs and calls `source.disconnect()` + `analyser.disconnect()` before every rebuild and on unmount. Fixes orphan `MediaStreamAudioSourceNode`s on long sessions.
+## Out of scope (deliberate)
+- Entry fee refund (research says NO — preview-before-pay instead, which IS in scope)
+- Age/gender lobby filter (research: not used on any competitor party-room lobby)
+- PartyRoom.tsx split refactor (item #11 from audit — separate PR)
+- APK rebuild / device testing (gate-blocked; honest "needs APK" callout at end)
 
-### F. Optimistic update race (P1-3) — ✅ done (PR-2.1)
-`approveSeatRequest` now hides the request row optimistically but only grants the seat AFTER `approve_seat_request` RPC returns `ok:true`. Eliminates phantom-speaker flicker on `seat_taken` / `already_handled` rejections.
+## Verification plan (honest)
+- `bunx tsc --noEmit` after each major change
+- Supabase linter pass after migration
+- Owner account login → /party-rooms lobby smoke (preview is web, gated — I'll get as far as the gate then call out APK-required for in-room flows)
+- Mark each item ✅/⚠️ with reason in plan.md
 
-### G. Per-seat bean attribution (P2-4) — ⏭️ deferred to PR-2.2
-Needs gift handler refactor + UI counter wiring; left for next pass.
-
-### H. Dead code cleanup — ⏭️ deferred to PR-2.2
-`useSignalingSocket`, dead camera state, `ChametStyleVideoRoom`/`GameRoom`, `Math.random()` in `ShootingStar`, redundant `fetchParticipants()` calls.
-
-### I. WS edge function eviction resilience (P1-7) — ⏭️ deferred
-LiveKit already authoritative; ws function is deprecation candidate.
-
-**Verification (owner test):** locked room → password modal retry; viewer join → banner shows within 200ms of LiveKit connect (no more 1-3s gap); seat approve race → no phantom speaker on conflict; long audio room → no AudioContext source leak in DevTools heap.
-
-
----
-
-## PHASE PR-3 — Android Native (APK rebuild required, honest)
-
-**Cannot be done from Lovable.** Lists exactly what user must build native-side.
-
-### A. Foreground service for background audio (P2-7)
-Kotlin: `PartyAudioForegroundService` with `foregroundServiceType="microphone"` — started on LiveKit connect, stopped on disconnect. Persistent notification "In Party Room — Tap to return". Fixes Android 8+ killing mic after ~60s background. Manifest `FOREGROUND_SERVICE_MICROPHONE` permission.
-
-### B. Native VAP gift player (P2-8)
-Tencent VAP SDK plugin already exists per Pkg438 memory. Wire gift dispatcher to route premium gift IDs through `NativeGiftAnimation.try*` helpers instead of WebView SVGA/Lottie players for hardware composite over camera/voice.
-
-**Lovable side prep (still in PR-2):** I'll add a `useNativeGiftRouter` hook that detects native plugin availability and forwards; WebView fallback automatic on web.
-
----
-
-## PHASE PR-4 (separate plan, not now)
-
-- PK/games wiring to seat state (P2-3) — needs full design discussion
-- LiveKit Egress recording for compliance (P2-10)
-- `party_room_bans` per-room ban table (P2-2)
-- Server-side chat moderation trigger (P2-1)
-- WS edge function full deprecation (P1-7 follow-up)
-
----
-
-## Honest Gaps Disclosure
-
-After PR-1 + PR-2 + PR-3 complete:
-- ✅ All security holes closed
-- ✅ Host crash handled <2s
-- ✅ Password + entry fee live
-- ✅ Invite-to-seat works
-- ✅ Per-seat bean economy
-- ✅ Background mic survives (APK rebuild)
-- ✅ Native gift polish (APK rebuild)
-- ⚠️ PK matchmaking still uses level 5 gate from PK research, not wired to party seats yet → PR-4
-- ⚠️ No session recording for moderation review → PR-4
-- ⚠️ Chat moderation still relies on Comprehend client-side (LiveKit chat unfiltered) → PR-4
-
----
-
-## Execution Order
-
-Each migration call requires user approval, so I'll batch:
-1. **PR-1 migration + edge function** → approve → wire client → owner test.
-2. **PR-2 part A-D** (host-crash, password, invite, join timing) → owner test.
-3. **PR-2 part E-I** (cleanup + per-seat beans + dead code) → owner test.
-4. **PR-3 prep** (router hook only — full native work needs your dev env).
-
-Confirm proceed and I start PR-1 migration immediately.
-## PR-2.3 — Per-seat bean attribution + cleanup (DONE 2026-06-09)
-- Added `seatBeansReceived` state (receiver_id → beans earned). Populated from initial gift_transactions fetch, LiveKit fast-path, postgres safety-net, and optimistic send.
-- Co-host seat cards now show their own earned beans (Chamet/Bigo parity); host card still shows room-wide total via `totalRoomBeans`.
-- Dead-code: removed unused `useSignalingSocket` export + deleted `src/hooks/useSignalingSocket.ts` (zero consumers).
-- tsc clean.
+## Estimated touch
+- 1 migration (~250 lines SQL)
+- ~150 lines added to PartyRoom.tsx
+- ~120 lines added to PartyRooms.tsx
+- ~80 lines new giftSplit util
+- 1 pg_cron pair
