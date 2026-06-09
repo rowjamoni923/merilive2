@@ -669,6 +669,7 @@ class LiveKitPlugin : Plugin() {
                     setProximityMonitoringInternal(false)
                     applyAudioMode(false)
                     unregisterAudioDeviceListener()
+                    stopAudioLevelPoll() // Phase 6
                     unregisterHeadsetReceivers()
                     stopHeadsetMediaSession()
                     stopBluetoothScoInternal()
