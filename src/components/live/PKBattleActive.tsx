@@ -63,6 +63,29 @@ export const PKBattleActive = ({
   //      after, so transient over/under-counts heal automatically.
   //   4. Battle end is signalled by status='ended' + winner_user_id (uuid) set
   //      by the server pk-battle-tick cron — client NEVER writes status/winner.
+  // P2 bundle — score-update coalescing. Burst gifting can produce dozens of
+  // Realtime UPDATE events + LiveKit gift events in <100ms. We buffer the
+  // latest known values into refs and flush at most once per animation frame
+  // (~60Hz) so React renders + bar animations never flood the main thread.
+  const pendingChallengerRef = useRef<number | null>(null);
+  const pendingOpponentRef = useRef<number | null>(null);
+  const flushScheduledRef = useRef(false);
+  const scheduleFlush = useRef(() => {
+    if (flushScheduledRef.current) return;
+    flushScheduledRef.current = true;
+    requestAnimationFrame(() => {
+      flushScheduledRef.current = false;
+      if (pendingChallengerRef.current !== null) {
+        setChallengerScore(pendingChallengerRef.current);
+        pendingChallengerRef.current = null;
+      }
+      if (pendingOpponentRef.current !== null) {
+        setOpponentScore(pendingOpponentRef.current);
+        pendingOpponentRef.current = null;
+      }
+    });
+  }).current;
+
   useEffect(() => {
     if (battleEnded) return;
     let cancelled = false;
@@ -78,8 +101,17 @@ export const PKBattleActive = ({
       mvp_user_id?: string | null;
       punishment_end_ts?: string | null;
     }) => {
-      if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
-      if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
+      // Coalesced score updates (P2). Stash latest and flush on next frame.
+      if (typeof row.challenger_score === "number") {
+        pendingChallengerRef.current = row.challenger_score;
+      }
+      if (typeof row.opponent_score === "number") {
+        pendingOpponentRef.current = row.opponent_score;
+      }
+      if (pendingChallengerRef.current !== null || pendingOpponentRef.current !== null) {
+        scheduleFlush();
+      }
+      // Non-score fields are low-frequency — apply synchronously.
       if (row.started_at) setServerStartedAt(new Date(row.started_at).getTime());
       if (typeof row.duration_seconds === "number" && row.duration_seconds > 0) {
         setServerDurationSec(row.duration_seconds);
@@ -123,15 +155,20 @@ export const PKBattleActive = ({
       .subscribe();
 
     // 0ms optimistic UI bump from own-room LiveKit gift — server reconciles.
+    // P2: optimistic bumps also go through the rAF buffer to share the throttle.
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
       const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
       if (!coins) return;
       if (challengerId && detail.receiverId === challengerId) {
-        setChallengerScore((s) => s + coins);
+        const base = pendingChallengerRef.current ?? challengerScore;
+        pendingChallengerRef.current = base + coins;
+        scheduleFlush();
       } else if (opponentId && detail.receiverId === opponentId) {
-        setOpponentScore((s) => s + coins);
+        const base = pendingOpponentRef.current ?? opponentScore;
+        pendingOpponentRef.current = base + coins;
+        scheduleFlush();
       }
     };
     window.addEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
@@ -141,7 +178,8 @@ export const PKBattleActive = ({
       supabase.removeChannel(channel);
       window.removeEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
     };
-  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd]);
+  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd, challengerScore, opponentScore, scheduleFlush]);
+
 
 
   // PK Battle Step 3: derive timeLeft from server timestamps every second.
