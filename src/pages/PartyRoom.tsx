@@ -2627,6 +2627,7 @@ const PartyRoom = () => {
           roomName={`party_${room.id}`}
           identity={moderateTarget.id}
           displayName={moderateTarget.name}
+          partyRoomId={room.id}
         />
       )}
 

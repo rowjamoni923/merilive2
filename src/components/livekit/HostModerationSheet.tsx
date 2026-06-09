@@ -25,7 +25,13 @@ import {
   Loader2,
   Volume2,
   VolumeX,
+  Crown,
 } from "lucide-react";
+import {
+  muteAllSpeakers,
+  unmuteAllSpeakers,
+  transferPartyHost,
+} from "@/features/party/hostModerationActions";
 import {
   promoteToSpeaker,
   demoteToAudience,
@@ -48,6 +54,8 @@ interface Props {
   identity: string | null | undefined;
   /** Pretty name for the dialog header. */
   displayName?: string;
+  /** PR-2.5: Party room UUID — enables server-side mute-all + transfer-host RPCs. */
+  partyRoomId?: string | null;
 }
 
 type ActionKind =
@@ -58,7 +66,8 @@ type ActionKind =
   | "lock_mic"
   | "kick"
   | "mute_all"
-  | "unmute_all";
+  | "unmute_all"
+  | "transfer_host";
 
 const ERROR_MAP: Record<string, string> = {
   update_permission_disabled: "Promote/demote is disabled by admin.",
@@ -73,6 +82,7 @@ export const HostModerationSheet = ({
   roomName,
   identity,
   displayName,
+  partyRoomId,
 }: Props) => {
   const [busy, setBusy] = useState<ActionKind | null>(null);
 
@@ -124,10 +134,31 @@ export const HostModerationSheet = ({
           break;
         case "mute_all":
           res = await hostMuteAllAudio({ roomName, reason });
+          // PR-2.5: also enforce in DB so users cannot self-unmute until host releases.
+          if (res.success && partyRoomId) {
+            const dbRes = await muteAllSpeakers(partyRoomId);
+            if (!dbRes.ok) console.warn('[HostModerationSheet] mute_all DB enforce failed:', dbRes.error);
+          }
           break;
         case "unmute_all":
           res = await hostUnmuteAllAudio({ roomName, reason });
+          if (res.success && partyRoomId) {
+            const dbRes = await unmuteAllSpeakers(partyRoomId);
+            if (!dbRes.ok) console.warn('[HostModerationSheet] unmute_all DB enforce failed:', dbRes.error);
+          }
           break;
+        case "transfer_host": {
+          // PR-2.5: server-authoritative host transfer (Party rooms only).
+          if (!partyRoomId) {
+            res = { success: false, error: 'transfer_host_party_only' };
+            break;
+          }
+          const dbRes = await transferPartyHost(partyRoomId, identity!);
+          res = dbRes.ok
+            ? { success: true }
+            : { success: false, error: (dbRes as { error: string }).error };
+          break;
+        }
       }
 
       if (res!.success) {
@@ -146,7 +177,9 @@ export const HostModerationSheet = ({
                       ? "Participant kicked"
                       : kind === "mute_all"
                         ? "Muted everyone"
-                        : "Unmuted everyone",
+                        : kind === "unmute_all"
+                          ? "Unmuted everyone"
+                          : "Host transferred",
         );
         if (!isRoomWide) onClose();
       } else {
@@ -264,6 +297,14 @@ export const HostModerationSheet = ({
             label="Lock Microphone"
             sub="Keep on stage but block their mic"
           />
+          {partyRoomId && identity && (
+            <Item
+              kind="transfer_host"
+              icon={<Crown className="w-5 h-5 text-yellow-500" />}
+              label="Transfer Host"
+              sub="Make this person the new room host"
+            />
+          )}
           <Item
             kind="kick"
             icon={<UserX className="w-5 h-5 text-red-500" />}
