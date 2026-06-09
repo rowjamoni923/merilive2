@@ -18716,16 +18716,28 @@ export type Database = {
         Returns: Json
       }
       bill_call_minute: { Args: { p_call_id: string }; Returns: Json }
-      bill_pk_gift: {
-        Args: {
-          p_battle_id: string
-          p_coin_amount: number
-          p_gift_id: string
-          p_sender_id: string
-          p_target_host_id: string
-        }
-        Returns: Json
-      }
+      bill_pk_gift:
+        | {
+            Args: {
+              p_battle_id: string
+              p_coin_amount: number
+              p_gift_id: string
+              p_sender_id: string
+              p_target_host_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_battle_id: string
+              p_coin_amount: number
+              p_gift_id: string
+              p_sender_id: string
+              p_stream_id?: string
+              p_target_host_id: string
+            }
+            Returns: Json
+          }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -20278,6 +20290,7 @@ export type Database = {
         }
         Returns: Json
       }
+      request_pk_battle_end: { Args: { p_battle_id: string }; Returns: Json }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }
         Returns: Json

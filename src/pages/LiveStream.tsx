@@ -1036,7 +1036,7 @@ const LiveStream = () => {
           .from("pk_battles")
           .select("id, challenger_id, opponent_id, challenger_stream_id, opponent_stream_id, challenger_score, opponent_score, status")
           .or(`challenger_stream_id.eq.${id},opponent_stream_id.eq.${id}`)
-          .eq("status", "accepted")
+          .in("status", ["accepted", "active"])
           .order("started_at", { ascending: false })
           .limit(1)
           .maybeSingle();

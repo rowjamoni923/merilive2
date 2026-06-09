@@ -151,6 +151,7 @@ Deno.serve(async (req) => {
           p_target_host_id: receiverId,
           p_gift_id: giftId,
           p_coin_amount: coinsSpent,
+          p_stream_id: streamId ?? null,
         })
         pkScoreApplied = pkRes
       }
