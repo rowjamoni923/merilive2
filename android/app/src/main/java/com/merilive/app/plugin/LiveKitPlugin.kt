@@ -2069,13 +2069,23 @@ class LiveKitPlugin : Plugin() {
         val sid = participant.sid.value
         val track = participant.getTrackPublication(Track.Source.CAMERA)
             ?.track as? io.livekit.android.room.track.VideoTrack ?: return false
+        // Stall watchdog must cover this track regardless of who owns
+        // the surface (legacy renderer vs NativeVideoView).
+        installStallSink(track, key = sid, sid = sid, isLocal = false)
+        // If a <NativeVideoView /> has already claimed this sid, do NOT
+        // mount the legacy full-screen renderer on top — two renderers
+        // bound to the same VideoTrack fight for the EGL surface on
+        // Mali / PowerVR devices and the viewer goes permanently black.
+        if (com.merilive.app.rtc.BoundedSurfaceHost.ownsRemote(sid)) {
+            Log.d(TAG, "attachRemoteRendererInternal: sid=$sid owned by NativeVideoView — legacy mount skipped")
+            return true
+        }
         val renderer = remoteRenderers[sid] ?: createRenderer().also { remoteRenderers[sid] = it }
         return try {
             r.initVideoRenderer(renderer)
             try { track.removeRenderer(renderer) } catch (_: Exception) {}
             track.addRenderer(renderer)
             mountBehindWebView(renderer)
-            installStallSink(track, key = sid, sid = sid, isLocal = false)
             true
         } catch (e: Exception) {
             Log.w(TAG, "attachRemoteRendererInternal failed for $sid: ${e.message}")
@@ -2177,7 +2187,11 @@ class LiveKitPlugin : Plugin() {
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-subscribed", data)
                         if (event.track.kind == Track.Kind.VIDEO) {
-                            activity?.runOnUiThread { attachRemoteRendererInternal(r, event.participant) }
+                            activity?.runOnUiThread {
+                                // Late-bind any NativeVideoView placeholder waiting for this sid first.
+                                try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                                attachRemoteRendererInternal(r, event.participant)
+                            }
                         }
                     }
                     is RoomEvent.TrackUnsubscribed -> {

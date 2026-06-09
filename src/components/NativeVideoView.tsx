@@ -44,9 +44,13 @@ export const NativeVideoView = ({
   const lastBoundsRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
   const attachedRef = useRef(false);
 
-  // Sync DOM bounds → native renderer bounds. ResizeObserver covers
-  // layout shifts; rAF loop covers scroll/transform animation frames
-  // cheaply (only sends when bounds actually change).
+  // Sync DOM bounds → native renderer bounds.
+  //
+  // Professional pattern (Agora / Bigo): never push bounds every animation
+  // frame — it floods the JS↔native bridge and starves the main thread,
+  // which can itself cause frame stalls. We listen to layout-affecting
+  // signals (ResizeObserver, scroll, orientation, transitionend) and
+  // throttle pushes to ~10/s, only sending when bounds actually changed.
   useLayoutEffect(() => {
     if (!isNativeLiveKitAvailable()) return;
     if (kind === 'remote' && !sid) return;
@@ -56,22 +60,23 @@ export const NativeVideoView = ({
     if (!el) return;
 
     let cancelled = false;
-    let rafId = 0;
+    let pendingTimer: number | null = null;
+    let inflight = false;
 
     const readBounds = () => {
       const r = el.getBoundingClientRect();
       return { x: r.left, y: r.top, w: r.width, h: r.height };
     };
 
-    const pushBounds = async (force = false) => {
+    const doPush = async (force: boolean) => {
+      if (cancelled || inflight) return;
       const b = readBounds();
       if (b.w < 1 || b.h < 1) return;
       const prev = lastBoundsRef.current;
       if (!force && prev && prev.x === b.x && prev.y === b.y && prev.w === b.w && prev.h === b.h) {
         return;
       }
-      lastBoundsRef.current = b;
-
+      inflight = true;
       try {
         if (!attachedRef.current) {
           if (kind === 'local') {
@@ -86,37 +91,53 @@ export const NativeVideoView = ({
           }
           if (cancelled) return;
           attachedRef.current = true;
+          lastBoundsRef.current = b;
           onAttached?.();
         } else {
           await NativeLiveKit.updateSurfaceBounds({
             viewId, x: b.x, y: b.y, width: b.w, height: b.h,
           });
+          lastBoundsRef.current = b;
         }
-      } catch (e) {
-        // Plugin not loaded / Room not connected yet — keep trying via RO/raf.
+      } catch {
+        // Plugin not loaded / Room not connected yet — keep trying on next signal.
+      } finally {
+        inflight = false;
       }
     };
 
-    pushBounds(true);
+    const schedule = (force = false) => {
+      if (cancelled) return;
+      if (pendingTimer != null) return; // throttle: at most one push per window
+      pendingTimer = window.setTimeout(() => {
+        pendingTimer = null;
+        void doPush(force);
+      }, 100); // ~10 Hz — matches Bigo/Agora native overlay reposition rate
+    };
 
-    const ro = new ResizeObserver(() => { pushBounds(); });
+    // Initial attach pushed immediately (not throttled) so the user
+    // sees video as fast as the track is available.
+    void doPush(true);
+
+    const ro = new ResizeObserver(() => schedule());
     ro.observe(el);
 
-    const tick = () => {
-      if (cancelled) return;
-      pushBounds();
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-
-    const onScroll = () => pushBounds();
+    const onScroll = () => schedule();
+    const onOrientation = () => schedule(true);
+    const onTransitionEnd = () => schedule();
     window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    window.addEventListener('resize', onOrientation, { passive: true });
+    window.addEventListener('orientationchange', onOrientation, { passive: true });
+    el.addEventListener('transitionend', onTransitionEnd);
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(rafId);
+      if (pendingTimer != null) window.clearTimeout(pendingTimer);
       ro.disconnect();
       window.removeEventListener('scroll', onScroll, { capture: true } as any);
+      window.removeEventListener('resize', onOrientation);
+      window.removeEventListener('orientationchange', onOrientation);
+      el.removeEventListener('transitionend', onTransitionEnd);
       if (attachedRef.current) {
         NativeLiveKit.detachSurface({ viewId }).catch(() => { /* noop */ });
         attachedRef.current = false;
