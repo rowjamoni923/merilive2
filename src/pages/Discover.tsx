@@ -353,25 +353,38 @@ const Discover = () => {
   };
 
 
-  const filteredRooms = rooms.filter(room => {
-    // Country filter
-    if (selectedCountry !== "all") {
-      if (!room.host?.country_code || room.host.country_code !== selectedCountry) return false;
+  const filteredRooms = useMemo(() => {
+    const list = rooms.filter(room => {
+      // Country filter
+      if (selectedCountry !== "all") {
+        if (!room.host?.country_code || room.host.country_code !== selectedCountry) return false;
+      }
+      // Tab filter
+      if (activeTab === "video" && room.room_type !== "video") return false;
+      if (activeTab === "audio" && room.room_type !== "audio") return false;
+      if (activeTab === "game" && room.room_type !== "game") return false;
+      // Search filter (AND, not OR). PR-2.5: also match by room_code.
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const name = room.name?.toLowerCase() || "";
+        const host = room.host?.display_name?.toLowerCase() || "";
+        const code = room.room_code?.toLowerCase() || "";
+        if (!name.includes(q) && !host.includes(q) && !code.includes(q)) return false;
+      }
+      return true;
+    });
+    // PR-2.5: when searching by code, exact matches float to top.
+    const q = searchQuery.trim().toLowerCase();
+    if (q && q.length >= 4) {
+      return list.sort((a, b) => {
+        const aExact = a.room_code?.toLowerCase() === q ? 1 : 0;
+        const bExact = b.room_code?.toLowerCase() === q ? 1 : 0;
+        if (aExact !== bExact) return bExact - aExact;
+        return b.current_participants - a.current_participants;
+      });
     }
-    // Tab filter
-    if (activeTab === "video" && room.room_type !== "video") return false;
-    if (activeTab === "audio" && room.room_type !== "audio") return false;
-    if (activeTab === "game" && room.room_type !== "game") return false;
-    // Search filter (AND, not OR). PR-2.5: also match by room_code.
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const name = room.name?.toLowerCase() || "";
-      const host = room.host?.display_name?.toLowerCase() || "";
-      const code = room.room_code?.toLowerCase() || "";
-      if (!name.includes(q) && !host.includes(q) && !code.includes(q)) return false;
-    }
-    return true;
-  });
+    return list.sort((a, b) => b.current_participants - a.current_participants);
+  }, [rooms, selectedCountry, activeTab, searchQuery]);
 
 
   // Pkg428 Phase-9 — native Glide prefetch for first-screen room host avatars.
