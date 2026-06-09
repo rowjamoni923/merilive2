@@ -360,6 +360,20 @@ export function CallProvider({ children }: CallProviderProps) {
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
         return;
       }
+
+      // Telecom hold / unhold (call-waiting). Native side already mutes the
+      // LiveKit local mic + camera; here we just broadcast a window event so
+      // any active in-call web UI can update its mic/camera toggle visuals
+      // and show a "On hold" banner. The LiveKit room stays connected.
+      if (event.action === 'hold' || event.action === 'unhold') {
+        try {
+          window.dispatchEvent(new CustomEvent('merilive:call-hold-changed', {
+            detail: { callId: event.callId, held: event.action === 'hold', ts: event.ts },
+          }));
+        } catch (_) {}
+        await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+        return;
+      }
     };
 
     let listener: { remove: () => Promise<void> } | null = null;
