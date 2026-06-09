@@ -209,42 +209,14 @@ export const PKBattlePanel = ({
     }
   };
 
-  // Random PK Match — broadcasts to ALL live female hosts via FCM (Pkg82d).
-  const sendRandomPKRequest = async () => {
+  // R6a: random match flow lives in LiveStream now. Panel just delegates,
+  // then closes — the parent renders a floating "Searching… [Cancel]" pill.
+  const handleRandomMatchClick = async () => {
+    if (!onStartRandomMatch || isRandomSearching) return;
     setSendingRandom(true);
     try {
-      pendingRandomRef.current = true;
-
-      const { data, error } = await supabase.functions.invoke("pk-invite-deliver", {
-        body: {
-          kind: "random_invite",
-          fromUserId: currentUserId,
-          fromName: currentUserName,
-          fromAvatar: currentUserAvatar,
-          fromLevel: currentUserLevel,
-          fromStreamId: currentStreamId,
-        },
-      });
-
-      if (error) throw error;
-      const delivered = (data as any)?.delivered ?? 0;
-      toast.success(
-        delivered > 0
-          ? `Random PK request sent to ${delivered} live host${delivered > 1 ? "s" : ""}!`
-          : "No live hosts available right now"
-      );
-
-      // Auto-clear pending flag after 25s — matches the prior cleanup window.
-      randomTimeoutRef.current = setTimeout(() => {
-        pendingRandomRef.current = false;
-        randomTimeoutRef.current = null;
-      }, 25000);
-
+      await Promise.resolve(onStartRandomMatch());
       onClose();
-    } catch (error) {
-      console.error("Error sending random PK:", error);
-      toast.error("Failed to send random PK request");
-      pendingRandomRef.current = false;
     } finally {
       setSendingRandom(false);
     }
