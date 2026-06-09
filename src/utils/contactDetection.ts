@@ -7,6 +7,36 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// ─── F6: Unicode hardening ─────────────────────────────────────────────
+// Industry research (Chamet / Bigo / Holla / Telegram anti-spam): the most
+// common bypass tricks for contact-info filters are:
+//   1. Fullwidth digits    "０１７１２..."     (U+FF10-FF19)
+//   2. Mathematical bold   "𝟎𝟏𝟕𝟏𝟐..."        (U+1D7CE…)
+//   3. Keycap emoji        "0️⃣1️⃣7️⃣..."   (digit + VS16 + U+20E3)
+//   4. Zero-width joiners  "0​1​7​1​2..."    (U+200B/200C/200D/FEFF/2060)
+//   5. Combining marks     "0̲1̲7̲1̲2̲..."    (U+0300-036F overlay)
+//   6. Tag characters      "0󠀁1󠀁7..."        (U+E0020-E007F)
+// NFKC normalization handles (1)+(2). We strip the rest explicitly so the
+// downstream digit-script converter and phone regexes see a clean string.
+const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF\u180E]/g;
+const VARIATION_SELECTORS_RE = /[\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
+const COMBINING_MARKS_RE = /[\u0300-\u036F\u20D0-\u20FF]/g; // includes U+20E3 keycap
+const TAG_CHARS_RE = /[\u{E0020}-\u{E007F}]/gu;
+const CONTROL_RE = /[\u0000-\u0008\u000B-\u001F\u007F]/g;
+
+function normalizeForDetection(text: string): string {
+  if (!text) return '';
+  let s = text;
+  try { s = s.normalize('NFKC'); } catch { /* old runtimes */ }
+  s = s
+    .replace(ZERO_WIDTH_RE, '')
+    .replace(VARIATION_SELECTORS_RE, '')
+    .replace(TAG_CHARS_RE, '')
+    .replace(COMBINING_MARKS_RE, '')
+    .replace(CONTROL_RE, '');
+  return s;
+}
+
 // ─── Multi-script numeral conversion ───────────────────────────────────
 function convertToEnglishDigits(text: string): string {
   let result = text;
