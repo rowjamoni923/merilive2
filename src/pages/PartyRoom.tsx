@@ -2833,6 +2833,13 @@ const PartyRoom = () => {
                 ...prev,
                 [sendingUserId]: (prev[sendingUserId] || 0) + totalCost,
               }));
+              // PR-2.3 (G) — credit the receiving seat instantly
+              if (optimisticReceiverBeans > 0) {
+                setSeatBeansReceived(prev => ({
+                  ...prev,
+                  [receiverId]: (prev[receiverId] || 0) + optimisticReceiverBeans,
+                }));
+              }
               
               // Gift animation is already playing - no toast needed
               
