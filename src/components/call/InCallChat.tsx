@@ -115,7 +115,7 @@ export const InCallChat = memo(({
     let textToSend = originalText;
     const detection = detectContactInfo(originalText);
     if (detection.hasViolation) {
-      textToSend = maskContactContent(originalText);
+      textToSend = maskContactContent(originalText, detection);
       detectAndProcessViolation(userId, originalText, 'private_call', callId)
         .then((res) => {
           if (res.detected) {
