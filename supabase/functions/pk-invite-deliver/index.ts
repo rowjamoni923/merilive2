@@ -1,18 +1,15 @@
 /**
- * Pkg82d: FCM-only PK invite delivery.
- * Replaces the 3 Supabase Realtime channels (pk_incoming_${userId},
- * pk_random_match broadcast, pk_battle_${battleId} postgres_changes) for
- * cross-host PK signaling. Inserts notification rows; the master
- * `trigger_push_on_notification` DB trigger (Pkg32) fans out FCM pushes,
- * and `useNotifications` (whitelisted realtime sub) bridges to a
- * `window 'pk-notification'` event for in-app handling.
+ * Pkg82d + R6a: FCM-only PK invite delivery with random-match race hardening.
  *
  * kinds:
- *   direct_invite   — challenger → single opponent (battleId already exists)
- *   random_invite   — challenger → all live female hosts (broadcast)
- *   random_accept   — acceptor   → original challenger
- *   accept          — opponent   → challenger (direct invite accepted)
- *   decline         — opponent   → challenger (direct invite declined)
+ *   direct_invite        — challenger → single opponent
+ *   random_invite        — challenger → eligible live female hosts (broadcast, sessionId-tagged)
+ *   random_accept        — acceptor   → original challenger (passes invite_session_id through)
+ *   random_battle_ready  — challenger → winning acceptor with battleId (kills 3.6s poll)
+ *   random_taken         — challenger → losing acceptors of same session ("match taken")
+ *   random_cancel        — challenger → all original recipients ("host cancelled")
+ *   accept               — opponent   → challenger (direct invite accepted)
+ *   decline              — opponent   → challenger (direct invite declined)
  */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -24,7 +21,15 @@ const corsHeaders = {
 };
 
 interface Body {
-  kind: "direct_invite" | "random_invite" | "random_accept" | "accept" | "decline";
+  kind:
+    | "direct_invite"
+    | "random_invite"
+    | "random_accept"
+    | "random_battle_ready"
+    | "random_taken"
+    | "random_cancel"
+    | "accept"
+    | "decline";
   battleId?: string;
   toUserId?: string;
   fromUserId: string;
@@ -33,7 +38,11 @@ interface Body {
   fromLevel?: number;
   fromStreamId?: string;
   toStreamId?: string;
+  inviteSessionId?: string;
+  winnerUserId?: string; // for random_taken
 }
+
+const RANDOM_INVITE_COOLDOWN_MS = 30_000;
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -93,7 +102,7 @@ serve(async (req: Request): Promise<Response> => {
       if (prof?.user_level) fromLevel = Number(prof.user_level) || 1;
     }
 
-    const baseData = {
+    const baseData: Record<string, unknown> = {
       battleId: body.battleId ?? null,
       fromUserId: body.fromUserId,
       fromName,
@@ -104,14 +113,12 @@ serve(async (req: Request): Promise<Response> => {
       ts: Date.now(),
     };
 
-    const rows: Array<{ user_id: string; type: string; title: string; message: string; data: any }> = [];
+    type Row = { user_id: string; type: string; title: string; message: string; data: any };
+    const rows: Row[] = [];
 
     if (body.kind === "direct_invite") {
       if (!body.toUserId || !body.battleId) {
-        return new Response(JSON.stringify({ error: "toUserId and battleId required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonErr("toUserId and battleId required", 400);
       }
       rows.push({
         user_id: body.toUserId,
@@ -120,16 +127,52 @@ serve(async (req: Request): Promise<Response> => {
         message: `${fromName} wants to PK with you`,
         data: baseData,
       });
+
     } else if (body.kind === "random_invite") {
-      // Fan out to every currently-live female host except sender
+      // R6a: generate session id + filter ineligible hosts
+      const sessionId = crypto.randomUUID();
+      baseData.invite_session_id = sessionId;
+
+      // 1) All currently-live female hosts (excluding sender)
       const { data: streams } = await admin
         .from("live_streams")
-        .select("host_id, id, profiles!live_streams_host_id_fkey(gender)")
+        .select("host_id, profiles!live_streams_host_id_fkey(gender)")
         .eq("is_active", true)
         .neq("host_id", body.fromUserId);
-      const hostIds = ((streams ?? []) as any[])
+      let hostIds = ((streams ?? []) as any[])
         .filter((s) => s.profiles?.gender === "female")
         .map((s) => s.host_id as string);
+
+      if (hostIds.length === 0) {
+        return jsonOk({ delivered: 0, sessionId });
+      }
+
+      // 2) Exclude hosts currently in an active/pending PK battle
+      const { data: busyBattles } = await admin
+        .from("pk_battles")
+        .select("challenger_id, opponent_id, status")
+        .in("status", ["pending", "accepted", "active"])
+        .or(
+          `challenger_id.in.(${hostIds.join(",")}),opponent_id.in.(${hostIds.join(",")})`
+        );
+      const busy = new Set<string>();
+      for (const b of (busyBattles ?? []) as any[]) {
+        if (b.challenger_id) busy.add(b.challenger_id);
+        if (b.opponent_id) busy.add(b.opponent_id);
+      }
+      hostIds = hostIds.filter((id) => !busy.has(id));
+
+      // 3) Exclude hosts who received a pk_random_invite within the last 30s (cooldown)
+      const cutoffIso = new Date(Date.now() - RANDOM_INVITE_COOLDOWN_MS).toISOString();
+      const { data: recent } = await admin
+        .from("notifications")
+        .select("user_id")
+        .eq("type", "pk_random_invite")
+        .gte("created_at", cutoffIso)
+        .in("user_id", hostIds);
+      const recentSet = new Set<string>(((recent ?? []) as any[]).map((r) => r.user_id as string));
+      hostIds = hostIds.filter((id) => !recentSet.has(id));
+
       for (const uid of hostIds) {
         rows.push({
           user_id: uid,
@@ -139,26 +182,89 @@ serve(async (req: Request): Promise<Response> => {
           data: baseData,
         });
       }
-    } else if (body.kind === "random_accept") {
-      if (!body.toUserId) {
-        return new Response(JSON.stringify({ error: "toUserId required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+
+      const { error: insErr } = rows.length
+        ? await admin.from("notifications").insert(rows)
+        : { error: null };
+      if (insErr) {
+        console.error("[pk-invite-deliver] random_invite insert failed:", insErr);
+        return jsonErr(insErr.message, 500);
       }
+      return jsonOk({ delivered: rows.length, sessionId });
+
+    } else if (body.kind === "random_accept") {
+      if (!body.toUserId) return jsonErr("toUserId required", 400);
+      const data = { ...baseData };
+      if (body.inviteSessionId) data.invite_session_id = body.inviteSessionId;
       rows.push({
         user_id: body.toUserId,
         type: "pk_random_accepted",
         title: "PK Accepted",
         message: `${fromName} accepted your random PK`,
-        data: baseData,
+        data,
       });
+
+    } else if (body.kind === "random_battle_ready") {
+      if (!body.toUserId || !body.battleId) {
+        return jsonErr("toUserId and battleId required", 400);
+      }
+      const data = { ...baseData };
+      if (body.inviteSessionId) data.invite_session_id = body.inviteSessionId;
+      rows.push({
+        user_id: body.toUserId,
+        type: "pk_random_battle_ready",
+        title: "PK Battle Ready",
+        message: `Battle vs ${fromName} is starting`,
+        data,
+      });
+
+    } else if (body.kind === "random_taken") {
+      if (!body.inviteSessionId) return jsonErr("inviteSessionId required", 400);
+      // Find all original recipients of this session and notify everyone EXCEPT winner
+      const { data: recipients } = await admin
+        .from("notifications")
+        .select("user_id, data")
+        .eq("type", "pk_random_invite")
+        .filter("data->>invite_session_id", "eq", body.inviteSessionId);
+      const winnerId = body.winnerUserId ?? null;
+      const seen = new Set<string>();
+      for (const r of (recipients ?? []) as any[]) {
+        const uid = r.user_id as string;
+        if (!uid || uid === winnerId || seen.has(uid)) continue;
+        seen.add(uid);
+        rows.push({
+          user_id: uid,
+          type: "pk_random_taken",
+          title: "Match Taken",
+          message: "Another host accepted the PK first",
+          data: { ...baseData, invite_session_id: body.inviteSessionId, winnerUserId: winnerId },
+        });
+      }
+
+    } else if (body.kind === "random_cancel") {
+      if (!body.inviteSessionId) return jsonErr("inviteSessionId required", 400);
+      const { data: recipients } = await admin
+        .from("notifications")
+        .select("user_id")
+        .eq("type", "pk_random_invite")
+        .filter("data->>invite_session_id", "eq", body.inviteSessionId);
+      const seen = new Set<string>();
+      for (const r of (recipients ?? []) as any[]) {
+        const uid = r.user_id as string;
+        if (!uid || seen.has(uid)) continue;
+        seen.add(uid);
+        rows.push({
+          user_id: uid,
+          type: "pk_random_cancelled",
+          title: "Request Cancelled",
+          message: `${fromName} cancelled the PK request`,
+          data: { ...baseData, invite_session_id: body.inviteSessionId },
+        });
+      }
+
     } else if (body.kind === "accept" || body.kind === "decline") {
       if (!body.toUserId || !body.battleId) {
-        return new Response(JSON.stringify({ error: "toUserId and battleId required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonErr("toUserId and battleId required", 400);
       }
       rows.push({
         user_id: body.toUserId,
@@ -170,39 +276,38 @@ serve(async (req: Request): Promise<Response> => {
             : `${fromName} declined your PK request`,
         data: baseData,
       });
+
     } else {
-      return new Response(JSON.stringify({ error: "unknown kind" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonErr("unknown kind", 400);
     }
 
     if (rows.length === 0) {
-      return new Response(JSON.stringify({ ok: true, delivered: 0 }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonOk({ delivered: 0 });
     }
 
     const { error: insErr } = await admin.from("notifications").insert(rows);
     if (insErr) {
       console.error("[pk-invite-deliver] insert failed:", insErr);
-      return new Response(JSON.stringify({ error: insErr.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonErr(insErr.message, 500);
     }
 
-    return new Response(JSON.stringify({ ok: true, delivered: rows.length }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonOk({ delivered: rows.length });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("[pk-invite-deliver]", e);
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonErr(msg, 500);
   }
 });
+
+function jsonOk(payload: Record<string, unknown>) {
+  return new Response(JSON.stringify({ ok: true, ...payload }), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+function jsonErr(error: string, status: number) {
+  return new Response(JSON.stringify({ ok: false, error }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}

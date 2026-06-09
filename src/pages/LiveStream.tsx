@@ -319,8 +319,24 @@ const LiveStream = () => {
     challengerAvatar: string;
     challengerLevel: number;
     challengerStreamId: string;
+    inviteSessionId: string | null;
   } | null>(null);
   const [showRandomPKNotification, setShowRandomPKNotification] = useState(false);
+  // R6a: challenger-side searching state — survives panel close so the
+  // pk_random_accepted listener fires even when the picker sheet is gone.
+  const [randomPKSearching, setRandomPKSearching] = useState<{ sessionId: string } | null>(null);
+  const randomPKProcessedRef = useRef<Set<string>>(new Set());
+  const randomPKTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup random-PK timer on unmount
+  useEffect(() => {
+    return () => {
+      if (randomPKTimeoutRef.current) {
+        clearTimeout(randomPKTimeoutRef.current);
+        randomPKTimeoutRef.current = null;
+      }
+    };
+  }, []);
   
   const connectionInitiated = useRef(false);
   const mountedRef = useRef(true);
@@ -2006,7 +2022,7 @@ const LiveStream = () => {
   useEffect(() => {
     if (!currentUserId || !isHost) return;
 
-    const handler = (ev: Event) => {
+    const handler = async (ev: Event) => {
       const detail = (ev as CustomEvent).detail as any;
       if (!detail || typeof detail.type !== "string") return;
       const data = detail.data ?? {};
@@ -2031,17 +2047,150 @@ const LiveStream = () => {
           challengerAvatar: data.fromAvatar || "",
           challengerLevel: data.fromLevel || 1,
           challengerStreamId: data.fromStreamId || "",
+          inviteSessionId: data.invite_session_id || null,
         });
         setShowRandomPKNotification(true);
+
+      } else if (detail.type === "pk_random_accepted") {
+        // R6a — challenger side: first acceptor wins. Subsequent accepts are
+        // deduped via randomPKProcessedRef (session-scoped). On success we
+        // fan out random_taken to losing acceptors.
+        const sessionId: string | null = data.invite_session_id || null;
+        if (!randomPKSearching || (sessionId && sessionId !== randomPKSearching.sessionId)) return;
+        const dedupKey = sessionId || `nosession:${data.fromUserId}`;
+        if (randomPKProcessedRef.current.has(dedupKey)) return;
+        randomPKProcessedRef.current.add(dedupKey);
+
+        // Clear searching state + timer
+        if (randomPKTimeoutRef.current) {
+          clearTimeout(randomPKTimeoutRef.current);
+          randomPKTimeoutRef.current = null;
+        }
+        setRandomPKSearching(null);
+
+        const acceptorId = data.fromUserId;
+        const acceptorName = data.fromName || "Host";
+        const acceptorAvatar = data.fromAvatar || "";
+        const acceptorLevel = data.fromLevel || 1;
+        const acceptorStreamId = data.fromStreamId || "";
+
+        try {
+          const { data: createRes, error: createErr } = await supabase.rpc(
+            "start_pk_battle_random",
+            {
+              p_opponent_id: acceptorId,
+              p_challenger_stream_id: id || "",
+              p_opponent_stream_id: acceptorStreamId,
+              p_duration_seconds: 300,
+            }
+          );
+          const payload = (createRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
+          if (createErr || !payload.ok || !payload.battle_id) {
+            toast.error(payload.error || "PK battle could not be created");
+            return;
+          }
+          const battleId = payload.battle_id;
+
+          // Push battleId to winning acceptor (kills the 3.6s poll)
+          if (hostInfo) {
+            supabase.functions.invoke("pk-invite-deliver", {
+              body: {
+                kind: "random_battle_ready",
+                battleId,
+                toUserId: acceptorId,
+                fromUserId: currentUserId,
+                fromName: hostInfo.name,
+                fromAvatar: hostInfo.avatar,
+                fromLevel: hostInfo.level,
+                fromStreamId: id || "",
+                inviteSessionId: sessionId,
+              },
+            }).catch((e) => console.warn("[LiveStream] random_battle_ready push failed:", e));
+          }
+
+          // Notify losing acceptors
+          if (sessionId) {
+            supabase.functions.invoke("pk-invite-deliver", {
+              body: {
+                kind: "random_taken",
+                fromUserId: currentUserId,
+                fromName: hostInfo?.name,
+                inviteSessionId: sessionId,
+                winnerUserId: acceptorId,
+              },
+            }).catch((e) => console.warn("[LiveStream] random_taken fan-out failed:", e));
+          }
+
+          toast.success(`${acceptorName} accepted your PK!`);
+          handlePKBattleStarted(battleId, {
+            id: acceptorId,
+            display_name: acceptorName,
+            avatar_url: acceptorAvatar,
+            user_level: acceptorLevel,
+            stream_id: acceptorStreamId,
+          });
+        } catch (err) {
+          console.error("[LiveStream] random PK create failed:", err);
+          toast.error("PK battle could not be created");
+        }
+
+      } else if (detail.type === "pk_random_battle_ready") {
+        // R6a — acceptor side: challenger has confirmed battle creation.
+        if (!data.battleId || !hostInfo || !currentUserId) return;
+        if (pkBattleState.isActive) return;
+        const challengerId = data.fromUserId;
+        const challengerName = data.fromName || "Host";
+        const challengerAvatar = data.fromAvatar || "";
+        const challengerLevel = data.fromLevel || 1;
+        const challengerStreamId = data.fromStreamId || "";
+        setPKBattleState({
+          isActive: true,
+          battleId: data.battleId,
+          isChallenger: false,
+          challengerInfo: {
+            name: challengerName,
+            avatar: challengerAvatar,
+            level: challengerLevel,
+            id: challengerId,
+            streamId: challengerStreamId,
+          },
+          opponentInfo: {
+            name: hostInfo.name,
+            avatar: hostInfo.avatar,
+            level: hostInfo.level,
+            id: currentUserId,
+            streamId: id || "",
+          },
+        });
+        setShowRandomPKNotification(false);
+        setRandomPKRequest(null);
+
+      } else if (detail.type === "pk_random_taken") {
+        // R6a — acceptor side: another host won this session.
+        const sessionId: string | null = data.invite_session_id || null;
+        if (showRandomPKNotification && randomPKRequest && (!sessionId || randomPKRequest.inviteSessionId === sessionId)) {
+          setShowRandomPKNotification(false);
+          setRandomPKRequest(null);
+          toast.info("Match taken by another host");
+        }
+
+      } else if (detail.type === "pk_random_cancelled") {
+        // R6a — acceptor side: challenger cancelled the search.
+        const sessionId: string | null = data.invite_session_id || null;
+        if (showRandomPKNotification && randomPKRequest && (!sessionId || randomPKRequest.inviteSessionId === sessionId)) {
+          setShowRandomPKNotification(false);
+          setRandomPKRequest(null);
+          toast.info(`${data.fromName || "Host"} cancelled the PK request`);
+        }
+
       } else if (detail.type === "pk_invite_accepted" || detail.type === "pk_invite_declined") {
         // Reply to direct-invite sent FROM this host — handled in PKBattlePanel
-        // via the same window event (no Supabase channel needed).
       }
     };
 
     window.addEventListener("pk-notification", handler);
     return () => window.removeEventListener("pk-notification", handler);
-  }, [currentUserId, isHost, pkBattleState.isActive, showPKRequest]);
+  }, [currentUserId, isHost, pkBattleState.isActive, showPKRequest, randomPKSearching, randomPKRequest, showRandomPKNotification, hostInfo, id]);
 
 
   // Keep host preview visible while publishing starts (no second play flash)
@@ -2755,9 +2904,10 @@ const LiveStream = () => {
     if (!randomPKRequest || !hostInfo || !currentUserId || !id) return;
 
     setShowRandomPKNotification(false);
+    const sessionId = randomPKRequest.inviteSessionId;
 
-    // Pkg82d: send `random_accept` via pk-invite-deliver (FCM) — replaces
-    // `pk_random_match` Supabase broadcast bus.
+    // R6a: just notify the challenger; battle creation + battleId arrives
+    // back via pk_random_battle_ready FCM (no client polling).
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
         body: {
@@ -2768,60 +2918,13 @@ const LiveStream = () => {
           fromAvatar: hostInfo.avatar,
           fromLevel: hostInfo.level,
           fromStreamId: id,
+          inviteSessionId: sessionId,
         },
       });
     } catch (err) {
       console.warn("[LiveStream] pk-invite-deliver random_accept failed:", err);
+      toast.error("Failed to accept PK request");
     }
-
-    // Challenger receives FCM and creates the pk_battles row with status='accepted'
-    // (see PKBattlePanel sendRandomPKRequest handler). P4 audit: replaced the
-    // single 2s setTimeout (which left the acceptor stranded with no PK state
-    // whenever the challenger RPC took > 2s) with a bounded poll —
-    // 6 attempts × 600ms = up to 3.6s.
-    const acceptorChallengerId = randomPKRequest.challengerId;
-    const acceptorChallengerName = randomPKRequest.challengerName;
-    const acceptorChallengerAvatar = randomPKRequest.challengerAvatar;
-    const acceptorChallengerLevel = randomPKRequest.challengerLevel;
-    (async () => {
-      for (let attempt = 0; attempt < 6; attempt++) {
-        await new Promise((r) => setTimeout(r, 600));
-        const { data: battle } = await supabase
-          .from("pk_battles")
-          .select("id, challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
-          .or(
-            `and(challenger_id.eq.${acceptorChallengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${acceptorChallengerId})`
-          )
-          .eq("status", "accepted")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (battle) {
-          setPKBattleState({
-            isActive: true,
-            battleId: battle.id,
-            isChallenger: false,
-            challengerInfo: {
-              name: acceptorChallengerName,
-              avatar: acceptorChallengerAvatar,
-              level: acceptorChallengerLevel,
-              id: acceptorChallengerId,
-              streamId: battle.challenger_stream_id || "",
-            },
-            opponentInfo: {
-              name: hostInfo.name,
-              avatar: hostInfo.avatar,
-              level: hostInfo.level,
-              id: currentUserId,
-              streamId: battle.opponent_stream_id || "",
-            },
-          });
-          return;
-        }
-      }
-      console.warn("[LiveStream] random PK accept: challenger battle row never appeared after 3.6s");
-    })();
 
     setRandomPKRequest(null);
   };
@@ -2831,6 +2934,93 @@ const LiveStream = () => {
     setShowRandomPKNotification(false);
     setRandomPKRequest(null);
   };
+
+  // R6a — challenger-side random match search (lifted from PKBattlePanel
+  // so the listener survives the panel closing). Returns true on success so
+  // the panel can close + clear its local "sending" state.
+  const startRandomPKSearch = async () => {
+    if (!currentUserId || !hostInfo || !id) {
+      toast.error("Stream not ready");
+      return;
+    }
+    if (randomPKSearching) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_invite",
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
+          fromStreamId: id,
+        },
+      });
+      if (error) throw error;
+      const payload = (data ?? {}) as { delivered?: number; sessionId?: string };
+      const delivered = payload.delivered ?? 0;
+      const sessionId = payload.sessionId || "";
+
+      if (!sessionId || delivered === 0) {
+        toast.info("No eligible live hosts available right now");
+        return;
+      }
+
+      toast.success(
+        `Random PK request sent to ${delivered} host${delivered > 1 ? "s" : ""}`
+      );
+
+      setRandomPKSearching({ sessionId });
+
+      // 25s no-accept timeout → toast + auto-clear
+      if (randomPKTimeoutRef.current) clearTimeout(randomPKTimeoutRef.current);
+      randomPKTimeoutRef.current = setTimeout(() => {
+        randomPKTimeoutRef.current = null;
+        setRandomPKSearching((cur) => {
+          if (!cur || cur.sessionId !== sessionId) return cur;
+          toast.info("No host accepted — try again");
+          // Best-effort dismiss any still-open invitations
+          supabase.functions
+            .invoke("pk-invite-deliver", {
+              body: {
+                kind: "random_cancel",
+                fromUserId: currentUserId,
+                fromName: hostInfo.name,
+                inviteSessionId: sessionId,
+              },
+            })
+            .catch(() => {});
+          return null;
+        });
+      }, 25000);
+    } catch (err) {
+      console.error("[LiveStream] startRandomPKSearch failed:", err);
+      toast.error("Failed to send random PK request");
+    }
+  };
+
+  const cancelRandomPKSearch = async () => {
+    const session = randomPKSearching;
+    if (!session || !currentUserId || !hostInfo) return;
+    if (randomPKTimeoutRef.current) {
+      clearTimeout(randomPKTimeoutRef.current);
+      randomPKTimeoutRef.current = null;
+    }
+    setRandomPKSearching(null);
+    try {
+      await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_cancel",
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          inviteSessionId: session.sessionId,
+        },
+      });
+      toast.info("Random PK request cancelled");
+    } catch (err) {
+      console.warn("[LiveStream] random_cancel failed:", err);
+    }
+  };
+
 
   const handlePKBattleEnd = async (winnerId: string | null) => {
     if (!pkBattleState.challengerInfo || !pkBattleState.opponentInfo) return;
@@ -4120,7 +4310,26 @@ const LiveStream = () => {
         currentUserAvatar={hostInfo?.avatar || ""}
         currentUserLevel={hostInfo?.level || 1}
         onBattleStarted={handlePKBattleStarted}
+        onStartRandomMatch={startRandomPKSearch}
+        isRandomSearching={!!randomPKSearching}
       />
+
+      {/* R6a — Random PK Searching pill (challenger side) */}
+      {randomPKSearching && !pkBattleState.isActive && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[55] pointer-events-auto">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/15 bg-black/70 backdrop-blur-md shadow-lg">
+            <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            <span className="text-white text-xs font-semibold">Searching for opponent…</span>
+            <button
+              onClick={cancelRandomPKSearch}
+              className="ml-1 px-2 py-0.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {/* Incoming PK Request */}
       {showPKRequest && incomingPKRequest && (

@@ -19,7 +19,7 @@ export const PKRandomMatchNotification = ({
   onAccept,
   onDecline,
 }: PKRandomMatchNotificationProps) => {
-  const [countdown, setCountdown] = useState(20);
+  const [countdown, setCountdown] = useState(15);
   const [responding, setResponding] = useState(false);
 
   useEffect(() => {
@@ -165,7 +165,7 @@ export const PKRandomMatchNotification = ({
               className="h-full bg-gradient-to-r from-amber-400 to-pink-500"
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
-              transition={{ duration: 20, ease: "linear" }}
+              transition={{ duration: 15, ease: "linear" }}
             />
           </div>
         </motion.div>

@@ -30,6 +30,10 @@ interface PKBattlePanelProps {
   currentUserAvatar: string;
   currentUserLevel: number;
   onBattleStarted: (battleId: string, opponentInfo: LiveHost) => void;
+  // R6a: random-match flow lifted to LiveStream so the listener survives
+  // panel close, plus the challenger can cancel and see a "Searching…" pill.
+  onStartRandomMatch?: () => void;
+  isRandomSearching?: boolean;
 }
 
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
@@ -43,6 +47,8 @@ export const PKBattlePanel = ({
   currentUserAvatar,
   currentUserLevel,
   onBattleStarted,
+  onStartRandomMatch,
+  isRandomSearching = false,
 }: PKBattlePanelProps) => {
   const [liveHosts, setLiveHosts] = useState<LiveHost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,17 +58,12 @@ export const PKBattlePanel = ({
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
 
-  // Pkg82d: track pending invites (direct + random) so the window-event
-  // listener can route incoming pk_invite_accepted / pk_invite_declined /
-  // pk_random_accepted notifications back to the right handler WITHOUT
-  // opening any Supabase Realtime channel.
+  // Pkg82d: direct-invite reply listener stays here (panel-scoped). The random
+  // match flow has been lifted to LiveStream (R6a) so it can survive panel close.
   const pendingDirectRef = useRef<Map<string, LiveHost>>(new Map());
   // P4 audit: per-invite TTL timer so a dropped accept/decline reply never
-  // leaks the pending entry forever (prevented a future invite for the same
-  // battleId from auto-resolving against stale state).
+  // leaks the pending entry forever.
   const pendingDirectTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const pendingRandomRef = useRef<boolean>(false);
-  const randomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -70,7 +71,6 @@ export const PKBattlePanel = ({
     }
   }, [isOpen]);
 
-  // Pkg82d: single window-event bridge for ALL PK reply signals.
   useEffect(() => {
     const handler = async (ev: Event) => {
       const detail = (ev as CustomEvent).detail as any;
@@ -94,58 +94,15 @@ export const PKBattlePanel = ({
           if (t) { clearTimeout(t); pendingDirectTimersRef.current.delete(data.battleId); }
           toast.error(`${opponent.display_name} declined the PK request`);
         }
-      } else if (detail.type === "pk_random_accepted" && pendingRandomRef.current) {
-        pendingRandomRef.current = false;
-        if (randomTimeoutRef.current) {
-          clearTimeout(randomTimeoutRef.current);
-          randomTimeoutRef.current = null;
-        }
-        // Acceptor info comes from the notification payload.
-        const acceptorId = data.fromUserId;
-        const acceptorName = data.fromName || "Host";
-        const acceptorAvatar = data.fromAvatar || "";
-        const acceptorLevel = data.fromLevel || 1;
-        const acceptorStreamId = data.fromStreamId || "";
-
-        // PK Battle Step 5: replace the racey two-call create+accept
-        // (which always failed because accept_pk_battle requires
-        // auth.uid() = opponent_id) with the atomic
-        // start_pk_battle_random RPC — single round-trip, server-side
-        // anti-collusion + level gate + auto-activate.
-        const { data: createRes, error: createErr } = await supabase.rpc("start_pk_battle_random", {
-          p_opponent_id: acceptorId,
-          p_challenger_stream_id: currentStreamId,
-          p_opponent_stream_id: acceptorStreamId,
-          p_duration_seconds: 300,
-        });
-        const createPayload = (createRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
-
-        if (createErr || !createPayload.ok || !createPayload.battle_id) {
-          toast.error(createPayload.error || "PK battle could not be created");
-          return;
-        }
-        const battleId = createPayload.battle_id;
-
-        toast.success(`${acceptorName} accepted your PK!`);
-        onBattleStarted(battleId, {
-          id: acceptorId,
-          display_name: acceptorName,
-          avatar_url: acceptorAvatar,
-          user_level: acceptorLevel,
-          gender: "female",
-          stream_id: acceptorStreamId,
-          viewer_count: 0,
-        });
       }
     };
 
     window.addEventListener("pk-notification", handler);
     return () => window.removeEventListener("pk-notification", handler);
-  }, [currentUserId, currentStreamId, onBattleStarted]);
+  }, [onBattleStarted]);
 
   useEffect(() => {
     return () => {
-      if (randomTimeoutRef.current) clearTimeout(randomTimeoutRef.current);
       pendingDirectTimersRef.current.forEach((t) => clearTimeout(t));
       pendingDirectTimersRef.current.clear();
       pendingDirectRef.current.clear();
@@ -252,42 +209,14 @@ export const PKBattlePanel = ({
     }
   };
 
-  // Random PK Match — broadcasts to ALL live female hosts via FCM (Pkg82d).
-  const sendRandomPKRequest = async () => {
+  // R6a: random match flow lives in LiveStream now. Panel just delegates,
+  // then closes — the parent renders a floating "Searching… [Cancel]" pill.
+  const handleRandomMatchClick = async () => {
+    if (!onStartRandomMatch || isRandomSearching) return;
     setSendingRandom(true);
     try {
-      pendingRandomRef.current = true;
-
-      const { data, error } = await supabase.functions.invoke("pk-invite-deliver", {
-        body: {
-          kind: "random_invite",
-          fromUserId: currentUserId,
-          fromName: currentUserName,
-          fromAvatar: currentUserAvatar,
-          fromLevel: currentUserLevel,
-          fromStreamId: currentStreamId,
-        },
-      });
-
-      if (error) throw error;
-      const delivered = (data as any)?.delivered ?? 0;
-      toast.success(
-        delivered > 0
-          ? `Random PK request sent to ${delivered} live host${delivered > 1 ? "s" : ""}!`
-          : "No live hosts available right now"
-      );
-
-      // Auto-clear pending flag after 25s — matches the prior cleanup window.
-      randomTimeoutRef.current = setTimeout(() => {
-        pendingRandomRef.current = false;
-        randomTimeoutRef.current = null;
-      }, 25000);
-
+      await Promise.resolve(onStartRandomMatch());
       onClose();
-    } catch (error) {
-      console.error("Error sending random PK:", error);
-      toast.error("Failed to send random PK request");
-      pendingRandomRef.current = false;
     } finally {
       setSendingRandom(false);
     }
@@ -528,8 +457,8 @@ export const PKBattlePanel = ({
           >
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={sendRandomPKRequest}
-              disabled={sendingRandom}
+              onClick={handleRandomMatchClick}
+              disabled={sendingRandom || isRandomSearching}
               className="w-full h-12 relative overflow-hidden text-white font-bold rounded-2xl text-base flex items-center justify-center gap-2 disabled:opacity-70"
               style={{
                 background: 'linear-gradient(95deg, #f59e0b 0%, #f97316 50%, #ec4899 100%)',
@@ -544,13 +473,13 @@ export const PKBattlePanel = ({
                   animation: 'giftSendShine 2.6s ease-in-out infinite',
                 }}
               />
-              {sendingRandom ? (
+              {sendingRandom || isRandomSearching ? (
                 <Loader2 className="w-5 h-5 animate-spin relative z-10" />
               ) : (
                 <Shuffle className="w-5 h-5 relative z-10" />
               )}
               <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-                {sendingRandom ? "Sending..." : "Random Match"}
+                {isRandomSearching ? "Searching..." : sendingRandom ? "Sending..." : "Random Match"}
               </span>
             </motion.button>
             <div className="flex items-center justify-center gap-1.5">
