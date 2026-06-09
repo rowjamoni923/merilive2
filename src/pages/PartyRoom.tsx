@@ -678,6 +678,12 @@ const PartyRoom = () => {
           const coins = Number(row.total_coins ?? row.coin_amount ?? 0);
           if (beans > 0) {
             setTotalRoomBeans(prev => prev + beans);
+            if (row.receiver_id) {
+              setSeatBeansReceived(prev => ({
+                ...prev,
+                [row.receiver_id]: (prev[row.receiver_id] || 0) + beans,
+              }));
+            }
             const cuid = currentUserRef.current?.id;
             if (row.receiver_id === cuid) {
               try {
