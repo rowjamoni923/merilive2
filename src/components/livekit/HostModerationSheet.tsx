@@ -297,6 +297,14 @@ export const HostModerationSheet = ({
             label="Lock Microphone"
             sub="Keep on stage but block their mic"
           />
+          {partyRoomId && identity && (
+            <Item
+              kind="transfer_host"
+              icon={<Crown className="w-5 h-5 text-yellow-500" />}
+              label="Transfer Host"
+              sub="Make this person the new room host"
+            />
+          )}
           <Item
             kind="kick"
             icon={<UserX className="w-5 h-5 text-red-500" />}
