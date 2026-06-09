@@ -1969,49 +1969,8 @@ const PartyRoom = () => {
       return;
     }
     // (Legacy host auto-join branch removed — handled by sheet → hostMoveToSeat.)
-    if (false) {
-      try {
-        // Directly update participant position (host auto-joins)
-        const { error: seatError } = await supabase
-          .from('party_room_participants')
-          .update({ seat_number: position, role: 'speaker' })
-          .eq('room_id', roomId)
-          .eq('user_id', currentUser.id);
+    // (Legacy host auto-join body removed — see hostMoveToSeat / EmptySeatHostActionsSheet.)
 
-        if (seatError) {
-          console.error('[PartyRoom] Host seat assignment error:', seatError);
-          recordClientError({ label: "PartyRoom.seatTaken", message: seatError instanceof Error ? seatError.message : String(seatError) });
-          toast.error("Failed to join seat");
-          return;
-        }
-
-        // Update local state immediately
-        setParticipants(prev => prev.map(p => 
-          p.user_id === currentUser.id 
-            ? { ...p, position: position, role: 'speaker' }
-            : p
-        ));
-        setMyPosition(position);
-        setShowSeatSelector(false);
-        void publishPartyEvent(roomId, {
-          type: 'seat_action',
-          roomId,
-          action: 'approved',
-          requester_id: currentUser.id,
-          seat_position: position,
-          request_id: `host-move-${currentUser.id}-${Date.now()}`,
-          timestamp: Date.now(),
-        });
-        
-        console.log('[PartyRoom] Host auto-joined seat:', position);
-        return;
-      } catch (error) {
-        console.error('[PartyRoom] Host seat error:', error);
-        recordClientError({ label: "PartyRoom.seatTaken", message: error instanceof Error ? error.message : String(error) });
-        toast.error("Failed to join seat");
-        return;
-      }
-    }
 
     // REGULAR USER: Request seat (needs host approval)
     // Check if already has a pending request
