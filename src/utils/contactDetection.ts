@@ -386,10 +386,14 @@ export function detectContactInfo(text: string): DetectionResult {
     return { hasViolation: false, detectedContent: '', pattern: '', allMatches: [] };
   }
 
+  // ★ Step 0 (F6 Unicode hardening): NFKC + strip zero-width / variation
+  // selectors / combining marks / tag chars so bypasses like "𝟎𝟏𝟕" /
+  // "０１７" / "0️⃣1️⃣7️⃣" / "0​1​7" cannot slip past the regex layer.
+  const normalized = normalizeForDetection(text);
   const allMatches: string[] = [];
 
   // ★ Step 1: Convert all numeral scripts + number words to English digits
-  let processedText = convertToEnglishDigits(text);
+  let processedText = convertToEnglishDigits(normalized);
   processedText = convertNumberWords(processedText);
 
   // ★ Step 2: Check for phone numbers on CONVERTED text
