@@ -162,7 +162,7 @@ export const InCallChat = memo(({
       messageId: msgId,
       userId,
       displayName: actualName,
-      message: text,
+      message: textToSend,
       messageType: 'text',
       timestamp: msg.timestamp,
     };
@@ -171,7 +171,7 @@ export const InCallChat = memo(({
       messageId: msgId,
       userId,
       displayName: actualName,
-      message: text,
+      message: textToSend,
       messageType: 'text',
       timestamp: msg.timestamp,
     });
