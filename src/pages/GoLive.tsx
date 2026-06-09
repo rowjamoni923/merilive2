@@ -867,10 +867,14 @@ const GoLive = () => {
               }}
             >
               {userProfile?.avatar_url ? (
-                <img loading="lazy" decoding="async" 
-                  src={userProfile.avatar_url} 
-                  alt={userProfile.display_name || "User"} 
-                  className="w-full h-full object-contain" />
+                <img
+                  loading="eager"
+                  decoding="sync"
+                  {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
+                  src={enhanceThumbnail(userProfile.avatar_url, { width: 96, quality: 85 })}
+                  alt={userProfile.display_name || "User"}
+                  className="w-full h-full object-contain"
+                />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-white" />
