@@ -225,10 +225,15 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     queueRef.current = kept;
   }
 
+  // Phase 5: remember whether last dispatch was premium so the next drain
+  // waits the longer `premiumEntryGapMs` window.
+  const lastWasPremiumRef = { current: false } as { current: boolean };
+
   function scheduleDrain() {
     if (drainTimerRef.current) return;
     const now = Date.now();
-    const wait = Math.max(0, lastDispatchAtRef.current + minEntryGapMs - now);
+    const gap = lastWasPremiumRef.current ? premiumEntryGapMs : minEntryGapMs;
+    const wait = Math.max(0, lastDispatchAtRef.current + gap - now);
     drainTimerRef.current = setTimeout(drainOnce, wait);
   }
 
@@ -245,6 +250,7 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     const [next] = q.splice(bestIdx, 1);
 
     lastDispatchAtRef.current = Date.now();
+    lastWasPremiumRef.current = hasPremium(next.params);
     try {
       inner.addEntryAnimation(next.params);
     } catch (e) {
@@ -253,6 +259,7 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
 
     if (queueRef.current.length > 0) scheduleDrain();
   }
+
 
   /**
    * Strip premium full-screen URLs from a payload, leaving the flying
