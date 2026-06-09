@@ -118,3 +118,8 @@ Each migration call requires user approval, so I'll batch:
 4. **PR-3 prep** (router hook only — full native work needs your dev env).
 
 Confirm proceed and I start PR-1 migration immediately.
+## PR-2.3 — Per-seat bean attribution + cleanup (DONE 2026-06-09)
+- Added `seatBeansReceived` state (receiver_id → beans earned). Populated from initial gift_transactions fetch, LiveKit fast-path, postgres safety-net, and optimistic send.
+- Co-host seat cards now show their own earned beans (Chamet/Bigo parity); host card still shows room-wide total via `totalRoomBeans`.
+- Dead-code: removed unused `useSignalingSocket` export + deleted `src/hooks/useSignalingSocket.ts` (zero consumers).
+- tsc clean.

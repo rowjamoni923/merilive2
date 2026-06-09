@@ -53,7 +53,7 @@ export {
 // Party Hooks
 export { usePartyRoomNativeLiveKit } from '@/hooks/usePartyRoomNativeLiveKit';
 export { useVoiceActivityDetection } from '@/hooks/useVoiceActivityDetection';
-export { useSignalingSocket } from '@/hooks/useSignalingSocket';
+// PR-2.3 cleanup: useSignalingSocket export removed — unused (zero consumers).
 
 // Games (used in party game rooms)
 export { default as GameBoard } from '@/components/games/GameBoard';

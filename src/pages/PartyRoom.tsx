@@ -259,8 +259,12 @@ const PartyRoom = () => {
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
-  // Per-participant beans tracking (sender_id -> beans earned for host)
+  // Per-participant SENT coin totals (sender_id -> total coins spent in this room)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
+  // PR-2.3 (G) — Per-seat RECEIVED beans (receiver_id -> beans earned).
+  // Mirrors Chamet/Bigo: each co-host seat shows their own earnings, host
+  // card keeps showing room-wide total via `totalRoomBeans`.
+  const [seatBeansReceived, setSeatBeansReceived] = useState<Record<string, number>>({});
   
   // Dynamic background state - synced via real-time from DB
   const [currentBackground, setCurrentBackground] = useState<{
@@ -602,7 +606,7 @@ const PartyRoom = () => {
       try {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('coin_amount, receiver_beans, sender_id')
+          .select('coin_amount, receiver_beans, sender_id, receiver_id')
           .eq('party_room_id', roomId);
 
         if (error) {
@@ -616,19 +620,27 @@ const PartyRoom = () => {
           const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100)), 0);
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
-          
-          // Per-participant gift contribution tracking
+
+          // Per-participant gift contribution tracking (sender -> coins spent)
           const perUser: Record<string, number> = {};
+          // PR-2.3 (G) — per-seat received beans (receiver -> beans earned)
+          const perReceiver: Record<string, number> = {};
           data.forEach(tx => {
             if (tx.sender_id) {
               perUser[tx.sender_id] = (perUser[tx.sender_id] || 0) + (tx.coin_amount || 0);
             }
+            if (tx.receiver_id) {
+              const b = tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100);
+              perReceiver[tx.receiver_id] = (perReceiver[tx.receiver_id] || 0) + b;
+            }
           });
           setParticipantBeans(perUser);
+          setSeatBeansReceived(perReceiver);
         } else {
           console.log('[PartyRoom] No gift transactions for this room yet');
           setTotalRoomBeans(0);
           setParticipantBeans({});
+          setSeatBeansReceived({});
         }
       } catch (err) {
         console.error('[PartyRoom] Exception fetching beans:', err);
@@ -666,6 +678,12 @@ const PartyRoom = () => {
           const coins = Number(row.total_coins ?? row.coin_amount ?? 0);
           if (beans > 0) {
             setTotalRoomBeans(prev => prev + beans);
+            if (row.receiver_id) {
+              setSeatBeansReceived(prev => ({
+                ...prev,
+                [row.receiver_id]: (prev[row.receiver_id] || 0) + beans,
+              }));
+            }
             const cuid = currentUserRef.current?.id;
             if (row.receiver_id === cuid) {
               try {
@@ -1067,6 +1085,12 @@ const PartyRoom = () => {
 
       if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
       setTotalRoomBeans(prev => prev + broadcastBeans);
+      if (giftData.receiverId && broadcastBeans > 0) {
+        setSeatBeansReceived(prev => ({
+          ...prev,
+          [giftData.receiverId!]: (prev[giftData.receiverId!] || 0) + broadcastBeans,
+        }));
+      }
       if (giftData.senderId) {
         setParticipantBeans(prev => ({
           ...prev,
@@ -2434,7 +2458,7 @@ const PartyRoom = () => {
             avatarUrl: p.user?.avatar_url || undefined,
             level: p.user?.user_level || 1,
             countryFlag: '🌍',
-            beansCount: participantBeans[p.user_id] || 0,
+            beansCount: seatBeansReceived[p.user_id] || 0,
             isSpeaking: false,
             isMuted: false,
             isVideoOff: false,
@@ -2809,6 +2833,13 @@ const PartyRoom = () => {
                 ...prev,
                 [sendingUserId]: (prev[sendingUserId] || 0) + totalCost,
               }));
+              // PR-2.3 (G) — credit the receiving seat instantly
+              if (optimisticReceiverBeans > 0) {
+                setSeatBeansReceived(prev => ({
+                  ...prev,
+                  [receiverId]: (prev[receiverId] || 0) + optimisticReceiverBeans,
+                }));
+              }
               
               // Gift animation is already playing - no toast needed
               
