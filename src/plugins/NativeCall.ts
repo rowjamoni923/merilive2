@@ -23,7 +23,12 @@ export type NativeCallAction =
   // Pkg-audit Phase-A: emitted by MeriConnection.onDisconnect when the user
   // ends an ALREADY-active call from a BT headset / system controls / lock-
   // screen. Distinct from 'decline' (pre-accept reject).
-  | 'ended';
+  | 'ended'
+  // Telecom hold / unhold — fired when the OS pauses our VoIP call for a
+  // PSTN call-waiting interrupt (and resumes after the PSTN call ends).
+  // Native side already mutes local mic + camera; JS just updates UI state.
+  | 'hold'
+  | 'unhold';
 
 export interface NativeCallActionEvent {
   callId: string;

@@ -12,6 +12,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.merilive.app.plugin.NativeCallPlugin
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Pkg208 — Self-Managed ConnectionService.
@@ -82,12 +85,18 @@ class MeriConnectionService : ConnectionService() {
                 TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
-            // Pkg-audit Tier-3: self-managed connections must NOT advertise
-            // CAPABILITY_HOLD / CAPABILITY_SUPPORT_HOLD — Telecom rejects
-            // those caps for PROPERTY_SELF_MANAGED on strict AOSP devices
-            // (API 28+) with SecurityException. Only CAPABILITY_MUTE is
-            // safe here. We don't expose hold to JS anyway.
-            connectionCapabilities = Connection.CAPABILITY_MUTE
+            // Telecom hold support — required so OS can pause our VoIP call when a
+            // PSTN call comes in (call-waiting) and resume after the PSTN call ends.
+            // Some strict OEMs reject HOLD caps for SELF_MANAGED — try/catch keeps
+            // the call alive even if the cap is refused (we just lose system-driven
+            // hold on that device).
+            connectionCapabilities = try {
+                Connection.CAPABILITY_MUTE or
+                    Connection.CAPABILITY_HOLD or
+                    Connection.CAPABILITY_SUPPORT_HOLD
+            } catch (_: Throwable) {
+                Connection.CAPABILITY_MUTE
+            }
         }
         if (callId.isNotEmpty()) put(callId, conn)
         return conn
@@ -127,7 +136,13 @@ class MeriConnectionService : ConnectionService() {
             setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
-            connectionCapabilities = Connection.CAPABILITY_MUTE
+            connectionCapabilities = try {
+                Connection.CAPABILITY_MUTE or
+                    Connection.CAPABILITY_HOLD or
+                    Connection.CAPABILITY_SUPPORT_HOLD
+            } catch (_: Throwable) {
+                Connection.CAPABILITY_MUTE
+            }
         }
         if (callId.isNotEmpty()) put(callId, conn)
         // C-3: arm a 90s outgoing-dial watchdog. If JS never promotes to
@@ -215,5 +230,55 @@ class MeriConnection(
         // Self-managed — Android tells us "go show your full-screen UI now".
         // No-op: MeriFirebaseMessagingService already launched
         // IncomingCallActivity + posted the CallStyle notification.
+    }
+
+    /**
+     * Telecom asks us to hold (typical trigger: a PSTN call comes in while
+     * our VoIP call is active — call-waiting). We must:
+     *   1) Mark the Connection HELD so the system can route audio to the
+     *      other call.
+     *   2) Mute local mic + camera so the held call stops uploading media.
+     *   3) Notify JS so the in-call UI can reflect the held state.
+     * Remote media keeps flowing — LiveKit handles the subscriber side.
+     */
+    override fun onHold() {
+        super.onHold()
+        try { setOnHold() } catch (_: Throwable) {}
+        try {
+            val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+            val lp = room?.localParticipant
+            if (lp != null) {
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    runCatching { lp.setMicrophoneEnabled(false) }
+                    if (callType == "video") {
+                        runCatching { lp.setCameraEnabled(false) }
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "hold")
+    }
+
+    /**
+     * Telecom resumes us after the interrupting call ends or the user manually
+     * unholds from system controls. Restore mic (and camera for video calls)
+     * and tell JS to re-enable any UI state we toggled on hold.
+     */
+    override fun onUnhold() {
+        super.onUnhold()
+        try { setActive() } catch (_: Throwable) {}
+        try {
+            val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+            val lp = room?.localParticipant
+            if (lp != null) {
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    runCatching { lp.setMicrophoneEnabled(true) }
+                    if (callType == "video") {
+                        runCatching { lp.setCameraEnabled(true) }
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "unhold")
     }
 }
