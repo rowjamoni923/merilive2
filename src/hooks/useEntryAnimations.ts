@@ -51,14 +51,31 @@ export interface AddEntryParams {
   rankCode?: string; // NEW: To trigger cinematic overlays (e.g., 'duke', 'king')
 }
 
+/**
+ * Phase 3 industry caps (Bigo / Chamet / Poppo parity):
+ *   - At most 3 flying name bars visible simultaneously (vertically stacked).
+ *   - Anything past 3 sits in a pending queue and pops in as a slot frees.
+ *   - The pending queue is hard-capped at 20 — beyond that we drop the
+ *     oldest (the burst is so large the user only cares about freshness).
+ *   - `nameBarOverflowCount` exposes the pending depth so the renderer can
+ *     show a "+N more" chip alongside the visible stack.
+ */
+export const MAX_VISIBLE_NAMEBARS = 3;
+export const MAX_PENDING_NAMEBARS = 20;
+
 export function useEntryAnimations() {
   // Full-screen animations (Vehicle / Entrance)
   const [entryAnimations, setEntryAnimations] = useState<EntryAnimation[]>([]);
-  // Compact banner animations (Entry Name Bar) - INDEPENDENT from full-screen
+  // Compact banner animations (Entry Name Bar) - INDEPENDENT from full-screen.
+  // `nameBarAnimations` is the VISIBLE slice (≤ MAX_VISIBLE_NAMEBARS); waiting
+  // entries sit in `pendingNameBarsRef` and feed in as visible slots free up.
   const [nameBarAnimations, setNameBarAnimations] = useState<NameBarAnimation[]>([]);
-  
+  const [nameBarOverflowCount, setNameBarOverflowCount] = useState(0);
+  const pendingNameBarsRef = useRef<NameBarAnimation[]>([]);
+
   // Track recently processed payload signatures (prevents exact duplicates from broadcast + fallback)
   const shownAnimationsRef = useRef<Map<string, number>>(new Map());
+  
   
   /**
    * Add entry animation to queue
