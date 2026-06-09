@@ -8,6 +8,8 @@ import {
   publishChatMessage,
   type ChatMessageDetail,
 } from "@/lib/livekitChatSignaling";
+import { detectAndProcessViolation, detectContactInfo, maskContactContent } from "@/utils/contactDetection";
+import { toast } from "@/hooks/use-toast";
 
 interface ChatMessage {
   id: string;
