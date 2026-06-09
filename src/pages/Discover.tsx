@@ -96,8 +96,12 @@ const Discover = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  // PR-2.5: preview-before-pay dialog state for paid rooms.
+  // PR-2.5: preview-before-enter dialog state for ALL rooms (Chamet/Bigo pattern).
   const [entryPreview, setEntryPreview] = useState<PartyRoom | null>(null);
+  // PR-2.5: dedicated room-code quick-join dialog.
+  const [roomCodeDialogOpen, setRoomCodeDialogOpen] = useState(false);
+  const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [joiningByCode, setJoiningByCode] = useState(false);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
