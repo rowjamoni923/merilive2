@@ -398,7 +398,9 @@ const Discover = () => {
         .slice(0, 24)
         .map((r) => {
           const a = r.host?.avatar_url;
-          return a ? normalizeProfileMediaUrl(a) || a : null;
+          const full = a ? (normalizeProfileMediaUrl(a) || a) : null;
+          // Prefetch the SAME CDN-resized URL the card renders, so cache hits.
+          return full ? (cdnAvatar(full, 180, 80) || full) : null;
         })
         .filter((u): u is string => !!u),
     [filteredRooms]
