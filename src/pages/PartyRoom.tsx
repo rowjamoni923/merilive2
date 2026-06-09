@@ -60,6 +60,7 @@ import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomNativeLiveKit } from "@/hooks/usePartyRoomNativeLiveKit";
+import { useActiveSpeakers } from "@/hooks/useActiveSpeakers";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage } from "@/lib/livekitChatSignaling";
