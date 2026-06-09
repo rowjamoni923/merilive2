@@ -63,6 +63,7 @@ export const PKBattlePanel = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [sendingRequest, setSendingRequest] = useState<string | null>(null);
   const [sendingRandom, setSendingRandom] = useState(false);
+  const [pkDuration, setPkDuration] = useState<number>(300);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
 
@@ -171,7 +172,7 @@ export const PKBattlePanel = ({
         p_opponent_id: opponent.id,
         p_challenger_stream_id: currentStreamId,
         p_opponent_stream_id: opponent.stream_id,
-        p_duration_seconds: 300,
+        p_duration_seconds: pkDuration,
       });
       const payload = (rpcRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
 
