@@ -19832,6 +19832,15 @@ export type Database = {
         Args: { p_stream_id: string }
         Returns: number
       }
+      kick_party_participant: {
+        Args: {
+          p_ban_minutes?: number
+          p_reason?: string
+          p_room_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       leaderboard_period_start: {
         Args: { p_period_type: string }
         Returns: string
@@ -20162,6 +20171,7 @@ export type Database = {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
         Returns: Json
       }
+      reject_seat_request: { Args: { p_request_id: string }; Returns: Json }
       release_agency_withdrawal_claim: {
         Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
