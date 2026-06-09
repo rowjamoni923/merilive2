@@ -22,10 +22,19 @@ import kotlin.math.roundToInt
  * (so the existing transparent-WebView z-stack still works). Each
  * surface is addressed by a JS-allocated string viewId.
  *
- * This host owns NO Room / Camera2 / mic state. It defers the actual
- * track ↔ renderer wiring to [SurfaceLifecycleManager]. The plugin is
- * expected to ensure the host runs on the main thread and to pass in
- * the current [Room] for track lookup.
+ * Professional hardening (Chamet / Bigo parity):
+ *  - **No double-bind:** each Entry remembers its currently bound
+ *    VideoTrack. Re-attach calls become no-ops at the SDK level; they
+ *    never call `addRenderer` twice on the same (track, renderer) pair
+ *    which on some OEM EGL stacks (Mali / PowerVR) silently halts the
+ *    decoded frame stream (the "viewer permanent blank" bug).
+ *  - **Serial sid swap:** when an entry's sid changes we remove the
+ *    renderer from the old track before adding it to the new one, so
+ *    we never leave the renderer attached to two tracks (race that
+ *    produced the "wrong feed for a frame, then black" flash).
+ *  - **Ownership registry:** [ownsRemote] lets the plugin's legacy
+ *    `attachRemoteRendererInternal` skip mounting a competing renderer
+ *    for the same sid (EGL fight = permanent blank on viewer side).
  */
 object BoundedSurfaceHost {
     private const val TAG = "BoundedSurfaceHost"
@@ -35,9 +44,16 @@ object BoundedSurfaceHost {
         val renderer: TextureViewRenderer,
         var kind: String,            // "local" | "remote"
         var sid: String?,            // remote video-track sid (null for local)
+        var boundTrack: VideoTrack?, // currently bound — prevents double addRenderer
     )
 
     private val entries = ConcurrentHashMap<String, Entry>()
+    /** Remote sids currently mounted via NativeVideoView. */
+    private val ownedRemoteSids = java.util.Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+
+    /** Plugin queries this so it doesn't mount a competing legacy renderer for the same track. */
+    @JvmStatic
+    fun ownsRemote(sid: String): Boolean = ownedRemoteSids.contains(sid)
 
     /**
      * Ensure a renderer exists for [viewId], position it at the given
@@ -72,7 +88,20 @@ object BoundedSurfaceHost {
             },
             kind = kind,
             sid = sid,
+            boundTrack = null,
         ).also { entries[viewId] = it }
+
+        // Detect sid swap so we can release the previous owned slot first.
+        val sidChanged = entry.kind != kind || entry.sid != sid
+        if (sidChanged) {
+            entry.boundTrack?.let { old ->
+                try { old.removeRenderer(entry.renderer) } catch (_: Exception) {}
+            }
+            entry.boundTrack = null
+            entry.sid?.let { prevSid -> if (entry.kind == "remote") ownedRemoteSids.remove(prevSid) }
+            entry.kind = kind
+            entry.sid = sid
+        }
 
         // Locate the requested track on the current Room.
         val track: VideoTrack? = when (kind) {
@@ -87,16 +116,21 @@ object BoundedSurfaceHost {
             else -> null
         }
 
-        // Rebind track only if it changed.
-        if (track != null) {
-            try { track.addRenderer(entry.renderer) } catch (e: Exception) {
+        // Bind only when the target track actually differs from the bound one.
+        if (track != null && track !== entry.boundTrack) {
+            entry.boundTrack?.let { prev ->
+                try { prev.removeRenderer(entry.renderer) } catch (_: Exception) {}
+            }
+            try {
+                track.addRenderer(entry.renderer)
+                entry.boundTrack = track
+                if (kind == "remote" && sid != null) ownedRemoteSids.add(sid)
+            } catch (e: Exception) {
                 Log.w(TAG, "addRenderer($viewId) failed: ${e.message}")
             }
-        } else {
-            Log.w(TAG, "attach($viewId): no VideoTrack for kind=$kind sid=$sid yet — will mount empty")
+        } else if (track == null) {
+            Log.d(TAG, "attach($viewId): no VideoTrack yet for kind=$kind sid=$sid — will mount empty")
         }
-        entry.kind = kind
-        entry.sid = sid
 
         // Mount behind WebView (index 0 of root).
         val r = entry.renderer
@@ -107,7 +141,6 @@ object BoundedSurfaceHost {
                 Log.w(TAG, "addView($viewId) failed: ${e.message}")
                 return false
             }
-            // Make sure WebView itself is transparent so the renderer shows through.
             try {
                 webView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
@@ -115,7 +148,7 @@ object BoundedSurfaceHost {
         }
         applyBounds(r, x, y, width, height, cssPxPerDp)
         r.visibility = View.VISIBLE
-        return track != null
+        return entry.boundTrack != null
     }
 
     fun updateBounds(
@@ -131,6 +164,11 @@ object BoundedSurfaceHost {
     fun detach(viewId: String): Boolean {
         val entry = entries.remove(viewId) ?: return false
         val r = entry.renderer
+        entry.boundTrack?.let { t ->
+            try { t.removeRenderer(r) } catch (_: Exception) {}
+        }
+        entry.boundTrack = null
+        entry.sid?.let { if (entry.kind == "remote") ownedRemoteSids.remove(it) }
         (r.parent as? ViewGroup)?.let {
             try { it.removeView(r) } catch (_: Exception) {}
         }
@@ -141,6 +179,38 @@ object BoundedSurfaceHost {
     fun detachAll() {
         val keys = entries.keys.toList()
         for (k in keys) detach(k)
+        ownedRemoteSids.clear()
+    }
+
+    /**
+     * Re-bind any orphaned NativeVideoView entries against the current
+     * Room. Called by the plugin after `TrackSubscribed` so a placeholder
+     * that mounted *before* its track arrived can latch on without the JS
+     * layer having to remount.
+     */
+    @JvmStatic
+    fun rebindForRoom(room: Room) {
+        for ((viewId, entry) in entries) {
+            if (entry.boundTrack != null) continue
+            val track: VideoTrack? = when (entry.kind) {
+                "local" -> room.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+                "remote" -> {
+                    val targetSid = entry.sid ?: continue
+                    room.remoteParticipants.values
+                        .firstOrNull { p -> p.sid.value == targetSid || p.videoTrackPublications.any { it.first.sid == targetSid } }
+                        ?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+                }
+                else -> null
+            } ?: continue
+            try {
+                track.addRenderer(entry.renderer)
+                entry.boundTrack = track
+                if (entry.kind == "remote" && entry.sid != null) ownedRemoteSids.add(entry.sid!!)
+                Log.d(TAG, "rebindForRoom: late-bound $viewId → ${entry.kind}/${entry.sid}")
+            } catch (e: Exception) {
+                Log.w(TAG, "rebindForRoom($viewId) failed: ${e.message}")
+            }
+        }
     }
 
     private fun applyBounds(
