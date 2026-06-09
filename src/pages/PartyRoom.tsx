@@ -2731,6 +2731,20 @@ const PartyRoom = () => {
         />
       )}
 
+      {/* PR-2.5 — Host empty-seat actions (Move / Lock / Unlock). */}
+      {emptySeatTarget !== null && room?.id && isHost && (
+        <EmptySeatHostActionsSheet
+          open={emptySeatTarget !== null}
+          onClose={() => setEmptySeatTarget(null)}
+          roomId={room.id}
+          seatNumber={emptySeatTarget}
+          isLocked={!!seatLocks[emptySeatTarget]}
+          onMoveHere={() => { void hostMoveToSeat(emptySeatTarget); }}
+        />
+      )}
+
+
+
       {/* PR-2 (P0-5) — Password prompt for locked party rooms. */}
       <AlertDialog open={passwordPrompt.show} onOpenChange={(open) => { if (!open) { setPasswordPrompt({ show: false }); navigate('/party-rooms'); } }}>
         <AlertDialogContent>
