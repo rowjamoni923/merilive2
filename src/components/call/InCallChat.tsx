@@ -107,8 +107,29 @@ export const InCallChat = memo(({
   }, [callId, isOpen, userId]);
 
   const sendMessage = async () => {
-    const text = input.trim();
-    if (!text || !callId || !userId) return;
+    const originalText = input.trim();
+    if (!originalText || !callId || !userId) return;
+
+    // F2: Client-side contact detection — mask before broadcast and trigger
+    // server-side penalty pipeline (host-only; non-hosts pass through).
+    let textToSend = originalText;
+    const detection = detectContactInfo(originalText);
+    if (detection.hasViolation) {
+      textToSend = maskContactContent(originalText);
+      detectAndProcessViolation(userId, originalText, 'private_call', callId)
+        .then((res) => {
+          if (res.detected) {
+            toast({
+              title: "Contact sharing blocked",
+              description: res.isBanned
+                ? "Your account has been suspended for repeated violations."
+                : "Phone numbers and contact info are not allowed.",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((err) => console.error('[InCallChat] detection error:', err));
+    }
 
     let actualName = userName;
     if (userName === "You") {
@@ -127,9 +148,10 @@ export const InCallChat = memo(({
       id: msgId,
       senderId: userId,
       senderName: actualName,
-      message: text,
+      message: textToSend,
       timestamp: Date.now(),
     };
+
 
     setMessages((prev) => [...prev, msg]);
     setInput("");
