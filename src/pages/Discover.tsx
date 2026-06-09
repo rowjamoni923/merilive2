@@ -491,10 +491,10 @@ const Discover = () => {
             </Button>
           </div>
 
-          {/* Search */}
-          <div className="px-4 mt-1">
+          {/* Search + Room Code Quick-Join */}
+          <div className="px-4 mt-1 flex items-center gap-2">
             <div
-              className="relative rounded-full"
+              className="relative flex-1 rounded-full"
               style={{
                 background: 'rgba(255,255,255,0.18)',
                 boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.18)',
@@ -504,10 +504,30 @@ const Discover = () => {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search rooms or hosts..."
-                className="w-full pl-9 h-9 bg-transparent border-transparent text-on-dark placeholder:text-on-dark-faint rounded-full text-sm focus-visible:ring-0 focus-visible:border-transparent"
+                placeholder="Search rooms, hosts, or code..."
+                className="w-full pl-9 pr-8 h-9 bg-transparent border-transparent text-on-dark placeholder:text-on-dark-faint rounded-full text-sm focus-visible:ring-0 focus-visible:border-transparent"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-on-dark-faint hover:text-on-dark"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
+            <Button
+              size="icon"
+              className="rounded-full h-9 w-9 shrink-0 text-on-dark"
+              style={{
+                background: 'rgba(255,255,255,0.22)',
+                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
+              onClick={() => setRoomCodeDialogOpen(true)}
+              title="Join by room code"
+            >
+              <KeyRound className="w-4 h-4" />
+            </Button>
           </div>
         </header>
       </div>
