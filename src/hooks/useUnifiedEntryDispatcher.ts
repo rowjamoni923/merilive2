@@ -50,8 +50,22 @@ export interface UnifiedEntryDispatcherOptions {
   userDedupWindowMs?: number;
   /** Min gap between two queue dispatches. Default 500 ms (Bigo/Chamet). */
   minEntryGapMs?: number;
+  /**
+   * Phase 5: extra gap AFTER a premium full-screen entry (vehicle/entrance)
+   * so the next animation doesn't overlap a 3-4s dragon/car cinematic.
+   * Default 3500 ms — covers BIGO/Chamet vehicle spans without starving
+   * commoner entries. Flying-name-bar-only entries fall back to
+   * `minEntryGapMs`.
+   */
+  premiumEntryGapMs?: number;
   /** Buffer depth past which identical-rank entries collapse. Default 3. */
   coalesceDepthThreshold?: number;
+  /**
+   * Phase 5: when true (default), every fresh-user dispatch also pushes
+   * a welcome row into the chat coalescer — no per-call-site change
+   * needed. Set false to opt out and rely on explicit `withWelcome`.
+   */
+  welcomeOnEveryEntry?: boolean;
   /**
    * Phase 4 (WeJoy / Crush Live parity): when true, premium full-screen
    * effects (vehicle + entrance) are HELD during active gameplay and
@@ -73,6 +87,7 @@ export interface UnifiedEntryDispatcherOptions {
   /** Hard cap on suppressed queue; oldest dropped past this. Default 10. */
   suppressedMaxQueue?: number;
 }
+
 
 export interface PushEntryParams extends AddEntryParams {
   withWelcome?: boolean;
@@ -122,11 +137,14 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     welcomeWindowMs = 500,
     userDedupWindowMs = 60_000,
     minEntryGapMs = 500,
+    premiumEntryGapMs = 3500,
     coalesceDepthThreshold = 3,
+    welcomeOnEveryEntry = true,
     suppressPremiumDuringGame = roomType === 'game_party',
     suppressedAutoFlushMs = 30_000,
     suppressedMaxQueue = 10,
   } = opts;
+
 
   const inner = useEntryAnimations();
 
@@ -207,10 +225,15 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     queueRef.current = kept;
   }
 
+  // Phase 5: remember whether last dispatch was premium so the next drain
+  // waits the longer `premiumEntryGapMs` window.
+  const lastWasPremiumRef = { current: false } as { current: boolean };
+
   function scheduleDrain() {
     if (drainTimerRef.current) return;
     const now = Date.now();
-    const wait = Math.max(0, lastDispatchAtRef.current + minEntryGapMs - now);
+    const gap = lastWasPremiumRef.current ? premiumEntryGapMs : minEntryGapMs;
+    const wait = Math.max(0, lastDispatchAtRef.current + gap - now);
     drainTimerRef.current = setTimeout(drainOnce, wait);
   }
 
@@ -227,6 +250,7 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     const [next] = q.splice(bestIdx, 1);
 
     lastDispatchAtRef.current = Date.now();
+    lastWasPremiumRef.current = hasPremium(next.params);
     try {
       inner.addEntryAnimation(next.params);
     } catch (e) {
@@ -235,6 +259,7 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
 
     if (queueRef.current.length > 0) scheduleDrain();
   }
+
 
   /**
    * Strip premium full-screen URLs from a payload, leaving the flying
@@ -337,7 +362,11 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     }
     // else: dedup window still active — silently swallow.
 
-    if (params.withWelcome && coalescerRef.current) {
+    // Phase 5: welcome chat coalescer fires on every fresh-user entry by
+    // default, so individual call sites no longer need to thread state.
+    const shouldWelcome =
+      isFreshUser && (params.withWelcome || welcomeOnEveryEntry);
+    if (shouldWelcome && coalescerRef.current && params.displayName) {
       coalescerRef.current.push({
         id: `welcome_${params.userId}_${now}`,
         userId: params.userId,
@@ -346,7 +375,8 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
         avatarUrl: params.avatarUrl,
       });
     }
-  }, [userDedupWindowMs, minEntryGapMs, coalesceDepthThreshold, suppressedAutoFlushMs, suppressedMaxQueue, inner]);
+  }, [userDedupWindowMs, minEntryGapMs, premiumEntryGapMs, coalesceDepthThreshold, welcomeOnEveryEntry, suppressedAutoFlushMs, suppressedMaxQueue, inner]);
+
 
   const flushWelcome = useCallback(() => {
     coalescerRef.current?.flush();
