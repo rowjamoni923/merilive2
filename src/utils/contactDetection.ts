@@ -351,33 +351,35 @@ export interface DetectionResult {
  */
 export function maskContactContent(text: string, detection: DetectionResult): string {
   if (!detection.hasViolation) return text;
-  
-  let masked = text;
-  
-  // Mask all digits (any script)
+
+  // F6: normalize first so fullwidth / math-bold / keycap / zero-width
+  // bypasses are flattened before we mask. Peers never see the trick form.
+  let masked = normalizeForDetection(text);
+
+  // Mask all digits (any script, after normalization)
   masked = masked.replace(/[0-9০-৯०-९٠-٩۰-۹]+/g, '***');
-  
+
   // Mask social media platform names (case insensitive)
   for (const { keyword } of SOCIAL_MEDIA_NAME_ONLY) {
     const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     masked = masked.replace(new RegExp(escaped, 'gi'), '***');
   }
-  
+
   // Mask URLs
   for (const pattern of URL_PATTERNS) {
     const freshPattern = new RegExp(pattern.source, pattern.flags);
     masked = masked.replace(freshPattern, '***');
   }
-  
+
   // Mask emails
   masked = masked.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '***');
-  
+
   // Mask number words
   for (const word of Object.keys(numberWords)) {
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     masked = masked.replace(new RegExp(escaped, 'gi'), '***');
   }
-  
+
   return masked;
 }
 
