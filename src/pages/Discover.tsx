@@ -21,6 +21,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { toast } from "sonner";
@@ -74,6 +84,8 @@ const Discover = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  // PR-2.5: preview-before-pay dialog state for paid rooms.
+  const [entryPreview, setEntryPreview] = useState<PartyRoom | null>(null);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
