@@ -1605,6 +1605,72 @@ const PartyRoom = () => {
     };
   }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification, addEntryAnimation]);
 
+  // ─────────────────────────────────────────────────────────────
+  // PR-2.5: per-seat lock state — read once + subscribe to changes.
+  // Source of truth: public.party_room_seat_locks (host-managed).
+  // ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('party_room_seat_locks')
+        .select('seat_number, is_locked')
+        .eq('room_id', roomId);
+      if (cancelled) return;
+      if (error) {
+        console.warn('[PartyRoom] seat_locks load failed:', error.message);
+        return;
+      }
+      const next: Record<number, boolean> = {};
+      for (const row of (data ?? []) as Array<{ seat_number: number; is_locked: boolean }>) {
+        if (row.is_locked) next[row.seat_number] = true;
+      }
+      setSeatLocks(next);
+    };
+    load();
+
+    const ch = supabase
+      .channel(`party-seat-locks-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'party_room_seat_locks', filter: `room_id=eq.${roomId}` },
+        (payload: any) => {
+          const row = payload.new || payload.old || {};
+          const seat: number | undefined = row.seat_number;
+          if (typeof seat !== 'number') return;
+          if (payload.eventType === 'DELETE') {
+            setSeatLocks(prev => {
+              if (!prev[seat]) return prev;
+              const { [seat]: _drop, ...rest } = prev;
+              return rest;
+            });
+          } else {
+            const locked = !!(payload.new && payload.new.is_locked);
+            setSeatLocks(prev => {
+              if (!locked) {
+                if (!prev[seat]) return prev;
+                const { [seat]: _drop, ...rest } = prev;
+                return rest;
+              }
+              if (prev[seat]) return prev;
+              return { ...prev, [seat]: true };
+            });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      try { supabase.removeChannel(ch); } catch { /* ignore */ }
+    };
+  }, [roomId]);
+
+
+
+
 
 
 
