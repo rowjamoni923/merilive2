@@ -119,3 +119,13 @@ User provides SSH/build access → build → ship to test device → I fix any c
 - ✅ **Approve plan as-is** → I start Phase 4 (Private Call 10 Android files) immediately with research subagent
 - 🔧 **Re-order** → bolun কোন Phase আগে চান (e.g., Live streaming আগে?)
 - ➕ **Add** → কিছু missing থাকলে বলুন
+
+## ✅ Phase 5 — Live Streaming (Android) — DONE 2026-06-09
+Research-first audit found `LiveKitPlugin.kt` already implements adaptiveStream, dynacast, AUDIOFOCUS_GAIN, setCommunicationDevice, hard-reconnect, network handoff, adaptive tier ladder, GPUPixel EGL sharing, codec preference (VP8 default). 4 industry-standard gaps closed:
+
+- **F-5.1** Explicit 3-layer simulcast ladder `[H180, H360, +top]` for live rooms (was relying on SDK defaults). Matches WebRTC `simulcast.cc` reference + Bigo/Chamet ladder.
+- **F-5.2** `autoSubscribe` plumbed through ConnectArgs — viewer paginated/grid rooms can pass `false` (HiiClub/Olamet pattern); default `true` preserves 1-broadcaster + private call.
+- **F-5.3** Tightened hard-reconnect backoff `250/500/1000/2000/4000/8000 ms` with ±100ms jitter (was 3/6/12s — too coarse). 6 attempts in ~16s budget vs old 3 attempts in 21s.
+- **F-5.4** `DisconnectReason.TOKEN_EXPIRED` now emits dedicated `token-expired` event and skips blind hard-reconnect (which would re-fail with stale JWT). JS must call `refreshToken()` + `reconnectNow()`.
+
+APK rebuild required for these to ship. Research saved at `.lovable/memory/features/android-call-research-2026-06-09.md`.

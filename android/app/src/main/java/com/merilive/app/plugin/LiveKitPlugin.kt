@@ -119,6 +119,10 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        // Phase 5 — hard-reconnect backoff ladder (ms).
+        // 250 → 500 → 1000 → 2000 → 4000 → 8000 (6 attempts, ~16 s budget),
+        // matches WebRTC / Chamet / Bigo industry default. Jitter added at call site.
+        private val HARD_RECONNECT_BACKOFFS_MS = longArrayOf(250L, 500L, 1_000L, 2_000L, 4_000L, 8_000L)
         @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
@@ -389,6 +393,10 @@ class LiveKitPlugin : Plugin() {
         // Phase III.c — host flag. Live host (broadcastMode=live) and party host
         // get a 60s background grace window before the room is torn down.
         val isHost: Boolean = false,
+        // Phase 5 — pure viewer rooms with paginated/grid tiles (HiiClub/Olamet pattern)
+        // pass autoSubscribe=false; JS then calls setSubscribed(true) only on visible tiles.
+        // Defaults to true for backward-compat (1-broadcaster live and private call).
+        val autoSubscribe: Boolean = true,
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
@@ -938,13 +946,17 @@ class LiveKitPlugin : Plugin() {
         }
 
         val isHostFlag = call.getBoolean("isHost", false) ?: false
+        // Phase 5 — viewer paginated rooms can opt-out of autoSubscribe to
+        // save bandwidth (HiiClub/Olamet pattern). Default true preserves
+        // existing 1-broadcaster and private-call behaviour.
+        val autoSubscribeFlag = call.getBoolean("autoSubscribe", true) ?: true
 
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
             callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
-            broadcastMode, roomScope, isHostFlag,
+            broadcastMode, roomScope, isHostFlag, autoSubscribeFlag,
         )
         hardReconnectAttempts = 0
 
@@ -1045,9 +1057,18 @@ class LiveKitPlugin : Plugin() {
         // Step 32 — bias publish-side codec when JS pinned a preference.
         // Falls back to "auto" → SDK chooses (VP8 default on libwebrtc).
         val codecForPublish: String? = resolvePublishCodec()
+        // Phase 5 — explicit 3-layer simulcast ladder for live rooms
+        // (Chamet/Bigo/WebRTC reference): H180 (~150kbps) + H360 (~500kbps)
+        // + top camera layer (1080p ~3Mbps). Layers must be ordered
+        // smallest→largest; the top is appended by the SDK from the capture
+        // resolution. 720p call rooms stay single-layer (peer-to-peer).
+        val simulcastLayers: List<VideoPreset169> =
+            if (args.resolution != "720p") listOf(VideoPreset169.H180, VideoPreset169.H360)
+            else emptyList()
         val publishDefaults = VideoTrackPublishDefaults(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
+            videoSimulcastLayers = simulcastLayers,
             videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
         negotiatedCodec = codecForPublish ?: "auto"
@@ -1164,7 +1185,7 @@ class LiveKitPlugin : Plugin() {
 
         attachEventListeners(newRoom)
 
-        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
+        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
 
         // Phase 1A — publish to Application-scope observer so future
         // callers (re-entry to live/call screen) can detect an active
@@ -2098,12 +2119,21 @@ class LiveKitPlugin : Plugin() {
                         notifyListeners("disconnected", data)
                         // Server-initiated / network drop — release the screen-on flag too.
                         setKeepScreenOn(false)
-                        // Step 26 — escalate to a hard reconnect when the
-                        // SDK's auto-recovery has fully given up. Skip when
-                        // the user (or our disconnect()) initiated it.
-                        if (resilienceEnabled && lastConnectArgs != null &&
+                        // Phase 5 — TOKEN_EXPIRED is terminal: the cached JWT
+                        // is stale, so blind hard-reconnect will fail again.
+                        // Emit a dedicated event and let JS call refreshToken()
+                        // + reconnectNow() with a fresh token. (Chamet/Bigo pattern.)
+                        if (event.reason.name.equals("TOKEN_EXPIRED", ignoreCase = true)) {
+                            val expiredData = JSObject()
+                            expiredData.put("reason", "TOKEN_EXPIRED")
+                            notifyListeners("token-expired", expiredData)
+                            Log.w(TAG, "Disconnected: TOKEN_EXPIRED — JS must refresh token before reconnect")
+                        } else if (resilienceEnabled && lastConnectArgs != null &&
                             !isClientInitiatedDisconnect(event.reason.name)
                         ) {
+                            // Step 26 — escalate to a hard reconnect when the
+                            // SDK's auto-recovery has fully given up. Skip when
+                            // the user (or our disconnect()) initiated it.
                             scheduleHardReconnect("disconnected:${event.reason.name}")
                         }
                     }
@@ -2837,7 +2867,7 @@ class LiveKitPlugin : Plugin() {
         val windowStart = if (reconnectingSinceMs > 0) reconnectingSinceMs
                           else System.currentTimeMillis()
         if (System.currentTimeMillis() - windowStart > 60_000L ||
-            hardReconnectAttempts >= 3
+            hardReconnectAttempts >= HARD_RECONNECT_BACKOFFS_MS.size
         ) {
             val data = JSObject()
             data.put("state", "lost")
@@ -2855,8 +2885,12 @@ class LiveKitPlugin : Plugin() {
             // to launch a second hard-reconnect coroutine.
             var willRetry = false
             try {
-                // Exponential backoff — 3 s, 6 s, 12 s.
-                val backoffMs = 3_000L * (1L shl hardReconnectAttempts)
+                // Phase 5 — tightened backoff ladder (Chamet/Bigo/WebRTC pattern):
+                // 250ms → 500ms → 1s → 2s → 4s → 8s with ±100ms jitter to avoid
+                // thundering-herd reconnect storms when the SFU restarts.
+                val baseMs = HARD_RECONNECT_BACKOFFS_MS[hardReconnectAttempts]
+                val jitterMs = (-100..100).random().toLong()
+                val backoffMs = (baseMs + jitterMs).coerceAtLeast(100L)
                 Log.w(TAG, "Hard reconnect attempt ${hardReconnectAttempts + 1} in ${backoffMs}ms (trigger=$trigger)")
                 delay(backoffMs)
                 hardReconnectAttempts += 1
