@@ -2030,30 +2030,31 @@ const PartyRoom = () => {
     }
   };
 
-  // Host rejects seat request
+  // Host rejects seat request (PR-1: atomic SECURITY DEFINER RPC)
   const rejectSeatRequest = async (request: SeatRequest) => {
     if (!isHost) return;
 
-    // Mark as recently processed to prevent realtime refetch from bringing it back
     recentlyProcessedRequestsRef.current.add(request.id);
-
-    // Immediately update local state (optimistic)
     setSeatRequests(prev => prev.filter(r => r.id !== request.id));
 
     try {
-      const { error } = await supabase
-        .from('seat_requests')
-        .update({ status: 'rejected', responded_at: new Date().toISOString() })
-        .eq('id', request.id);
+      const { data: rpcData, error: rpcError } = await supabase.rpc('reject_seat_request', {
+        p_request_id: request.id,
+      });
 
-      if (error) {
-        console.error('[PartyRoom] Error rejecting seat request:', error);
-        recordClientError({ label: "PartyRoom.rejectSeatRequest", message: error instanceof Error ? error.message : String(error) });
+      const result = rpcData as { ok?: boolean; error?: string } | null;
+      if (rpcError || !result?.ok) {
+        const reason = result?.error || rpcError?.message || 'unknown';
+        console.error('[PartyRoom] reject_seat_request failed:', reason);
+        recordClientError({ label: 'PartyRoom.rejectSeatRequest', message: reason });
+        if (reason !== 'already_handled') {
+          toast.error('Failed to reject seat request');
+        }
         await fetchSeatRequests();
         return;
       }
-      
-      // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
+
+      // Notify requester via LiveKit DataPacket
       void publishPartyEvent(roomId, {
         type: 'seat_action',
         roomId,
@@ -2062,20 +2063,22 @@ const PartyRoom = () => {
         request_id: request.id,
         timestamp: Date.now(),
       });
-      
-      console.log('[PartyRoom] Seat rejected for request:', request.id);
-      
-      // Clean up the tracking after a delay
+
+      try {
+        const bc = (window as any).__partySeatBroadcast?.[roomId];
+        if (bc) void bc.send({ type: 'broadcast', event: 'seat_event', payload: { kind: 'rejected', request_id: request.id, requester_id: request.requester_id } });
+      } catch { /* ignore */ }
+
       setTimeout(() => {
         recentlyProcessedRequestsRef.current.delete(request.id);
       }, 3000);
-
     } catch (error) {
       console.error('Error rejecting seat:', error);
-      recordClientError({ label: "PartyRoom.broadcastChannel", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: 'PartyRoom.rejectSeatRequest', message: error instanceof Error ? error.message : String(error) });
       await fetchSeatRequests();
     }
   };
+
 
   // Host invites someone to a seat
   const inviteToSeat = async (userId: string, position: number) => {
@@ -2165,37 +2168,43 @@ const PartyRoom = () => {
         console.warn('[PartyRoom] LiveKit kick threw:', e);
       }
 
-      // Remove user from seat AND room
-      await supabase
-        .from('party_room_participants')
-        .update({ 
-          left_at: new Date().toISOString(), 
-          seat_number: null,
-          role: 'audience'
-        })
-        .eq('room_id', roomId)
-        .eq('user_id', userId);
-      
-      // Also cancel any pending seat requests from this user
-      await supabase
-        .from('seat_requests')
-        .update({ status: 'cancelled' })
-        .eq('room_id', roomId)
-        .eq('requester_id', userId)
-        .eq('status', 'pending');
-      
-      toast.success("User removed from room");
+      // PR-1: Atomic kick + ban via SECURITY DEFINER RPC.
+      // Replaces the previous raw UPDATE which let kicked users instantly
+      // rejoin (no ban row was created). The RPC sets left_at, cancels
+      // pending seat requests, and inserts a live_bans row (default 60min)
+      // so enter_party_room rejects them on rejoin.
+      const { data: kickData, error: kickError } = await supabase.rpc('kick_party_participant', {
+        p_room_id: roomId,
+        p_user_id: userId,
+        p_reason: 'Kicked by host',
+        p_ban_minutes: 60,
+      });
+
+      const kickResult = kickData as { ok?: boolean; error?: string } | null;
+      if (kickError || !kickResult?.ok) {
+        const reason = kickResult?.error || kickError?.message || 'unknown';
+        console.error('[PartyRoom] kick_party_participant failed:', reason);
+        recordClientError({ label: 'PartyRoom.kickUser', message: reason });
+        if (reason === 'not_host') toast.error('Only the host can kick users');
+        else if (reason === 'cannot_kick_host') toast.error('Host cannot be kicked');
+        else if (reason === 'not_in_room') toast.info('User is no longer in the room');
+        else toast.error('Failed to remove user');
+        return;
+      }
+
+      toast.success('User removed and banned (1h)');
       await fetchParticipants();
       await fetchSeatRequests();
       setSelectedParticipant(null);
-      
-      console.log('[PartyRoom] ✅ User kicked successfully');
+
+      console.log('[PartyRoom] ✅ User kicked + banned successfully');
     } catch (error) {
       console.error('Error kicking user:', error);
       recordClientError({ label: "PartyRoom.rank", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to remove user");
     }
   };
+
 
   // Mute user (for admins/hosts) — Phase III.b: DB-persist first so the mute
   // survives reconnect, then push the LiveKit track-mute for instant effect.
