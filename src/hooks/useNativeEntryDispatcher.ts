@@ -19,6 +19,7 @@ import {
   tryEnqueueNativeEntry,
 } from '@/plugins/NativeEntryAnimation';
 import { resolveEntryForUser } from '@/native/entryAssetCache';
+import { setNativeEntryPipelineActive } from '@/utils/nativeAnimRuntime';
 
 interface DispatchDetail {
   userId: string;
@@ -78,6 +79,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
       if (!isNativeEntryAnimFlagOn()) return;
       const ok = await isNativeEntryAnimationAvailable();
       if (cancelled || !ok) return;
+      setNativeEntryPipelineActive(true);
 
       const onWindow = (ev: Event) => {
         const detail = (ev as CustomEvent<DispatchDetail>).detail;
@@ -119,6 +121,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
 
     return () => {
       cancelled = true;
+      setNativeEntryPipelineActive(false);
       if (channel) { try { supabase.removeChannel(channel); } catch { /* ignore */ } }
       if (removeWindow) removeWindow();
     };
