@@ -49,6 +49,29 @@ const numberWordMappings: Record<string, string> = {
   'cinq': '5', 'sept': '7', 'huit': '8', 'neuf': '9',
 };
 
+// F6 Unicode hardening (server-side mirror of src/utils/contactDetection.ts).
+// NFKC normalizes fullwidth ("０１７…") + mathematical bold ("𝟎𝟏𝟕…") digits.
+// Then we strip zero-width joiners, variation selectors (kills "0️⃣"-style
+// keycap emoji digits), combining marks (incl. U+20E3 keycap), tag chars
+// (U+E0020-E007F) and control bytes so the regex pass sees a clean string.
+const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF\u180E]/g;
+const VARIATION_SELECTORS_RE = /[\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
+const COMBINING_MARKS_RE = /[\u0300-\u036F\u20D0-\u20FF]/g;
+const TAG_CHARS_RE = /[\u{E0020}-\u{E007F}]/gu;
+const CONTROL_RE = /[\u0000-\u0008\u000B-\u001F\u007F]/g;
+
+function normalizeForDetection(text: string): string {
+  if (!text) return '';
+  let s = text;
+  try { s = s.normalize('NFKC'); } catch { /* ignore */ }
+  return s
+    .replace(ZERO_WIDTH_RE, '')
+    .replace(VARIATION_SELECTORS_RE, '')
+    .replace(TAG_CHARS_RE, '')
+    .replace(COMBINING_MARKS_RE, '')
+    .replace(CONTROL_RE, '');
+}
+
 // Convert all numeral systems to standard digits
 function normalizeNumerals(text: string): string {
   const numeralSystems: Record<string, string> = {
