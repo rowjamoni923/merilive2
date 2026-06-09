@@ -1762,9 +1762,21 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
+                // FIX-B (freeze-frame): tell JS to show a poster overlay on
+                // top of the local renderer while the hardware swaps lens.
+                // TextureViewRenderer holds the last frame natively, so the
+                // poster only needs to mask the 100-800 ms encoder restart
+                // gap on slow OEMs. Resumed event fires after first frame.
+                try {
+                    val ev = JSObject(); ev.put("reason", "switch-camera")
+                    notifyListeners("local-video-muting", ev)
+                } catch (_: Throwable) {}
                 val videoTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? io.livekit.android.room.track.LocalVideoTrack
                 videoTrack?.switchCamera()
+                // Arm a one-shot "first frame after switch" emit via the stall
+                // sink: simplest signal is the local entry's frameCount tick.
+                armLocalResumeBeacon("switch-camera")
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("switchCamera failed: ${e.message}")
@@ -1775,12 +1787,40 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun attachLocal(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
-        activity?.runOnUiThread {
-            try {
+        // FIX-A — slow-OEM (MIUI/ColorOS/HyperOS) local camera publish can
+        // take 400-2500 ms after the Room connects. The old code rejected
+        // immediately with "No local camera track yet" and the host preview
+        // stayed permanently black. Retry with backoff for up to ~3 s so the
+        // placeholder always latches once the track is finally published.
+        scope.launch {
+            val deadline = System.currentTimeMillis() + 3_000L
+            var attempt = 0
+            while (true) {
                 val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? io.livekit.android.room.track.VideoTrack
-                if (track == null) { call.reject("No local camera track yet"); return@runOnUiThread }
+                if (track != null) {
+                    mountLocalRendererOnUi(r, track, call)
+                    return@launch
+                }
+                if (System.currentTimeMillis() >= deadline) {
+                    call.reject("attachLocal: camera track not published within 3s")
+                    return@launch
+                }
+                attempt += 1
+                // 80, 120, 180, 270, 400, 600… capped at 600 ms
+                val backoff = (80L * Math.pow(1.5, attempt.toDouble())).toLong().coerceAtMost(600L)
+                kotlinx.coroutines.delay(backoff)
+            }
+        }
+    }
 
+    private fun mountLocalRendererOnUi(
+        r: Room,
+        track: io.livekit.android.room.track.VideoTrack,
+        call: PluginCall,
+    ) {
+        activity?.runOnUiThread {
+            try {
                 localRenderer?.let { old ->
                     try { track.removeRenderer(old) } catch (_: Exception) {}
                     (old.parent as? ViewGroup)?.removeView(old)
@@ -1794,8 +1834,7 @@ class LiveKitPlugin : Plugin() {
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
                 // Fix 4 — Surface validity check. If the renderer didn't make
                 // it into the window tree (Z-order race vs WebView, parent
-                // detached during reconnect), re-mount once. Without this the
-                // camera is technically streaming but the user sees black.
+                // detached during reconnect), re-mount once.
                 renderer.postDelayed({
                     try {
                         if (localRenderer === renderer && !renderer.isAttachedToWindow) {
@@ -1809,6 +1848,27 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 call.reject("attachLocal failed: ${e.message}")
             }
+        }
+    }
+
+    // FIX-B helper — wait up to 2 s for the local stall sink to see a fresh
+    // frame, then emit `local-video-resumed`. JS overlay listens for this
+    // event to hide its poster.
+    @Volatile private var resumeBeaconJob: kotlinx.coroutines.Job? = null
+    private fun armLocalResumeBeacon(reason: String) {
+        resumeBeaconJob?.cancel()
+        resumeBeaconJob = scope.launch {
+            val before = stallTable["local"]?.frameCount ?: 0L
+            val deadline = System.currentTimeMillis() + 2_000L
+            while (System.currentTimeMillis() < deadline) {
+                val now = stallTable["local"]?.frameCount ?: 0L
+                if (now > before) break
+                kotlinx.coroutines.delay(33L)
+            }
+            try {
+                val ev = JSObject(); ev.put("reason", reason)
+                notifyListeners("local-video-resumed", ev)
+            } catch (_: Throwable) {}
         }
     }
 
