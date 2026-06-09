@@ -157,7 +157,32 @@ JS-only change. No APK rebuild needed. Owner-account testable on `/live/:id` and
 
 ---
 
+## ✅ Phase 4 — Private Call (Android) — DONE 2026-06-09
+
+Final source audit overruled half of the original gap list — most items already shipped. **5 real fixes landed:**
+
+- **L-5** `MeriFirebaseMessagingService.postIncomingCallNotification` — now actually gates `setFullScreenIntent()` behind `canUseFullScreenIntent()` (was unconditional + warning-only). On Android 14+ when FSI is denied (Google Play auto-revoke since Jan 2025) the notification ships as a clean high-priority heads-up via CallStyle instead of paying the silent-downgrade cost.
+- **L-7** `PrivateCallActivity` — added `onResume`/`onPause` renderer lifecycle. `onPause` detaches (but does not release) renderers when NOT in PIP — frees GPU + battery while backgrounded; PIP keeps frames flowing. `onResume` re-attaches the latest track via the StateFlow snapshot (idempotent).
+- **L-8** `PrivateCallActivity` — AOSP InCallUI proximity wakelock pattern. `PROXIMITY_SCREEN_OFF_WAKE_LOCK` acquired only when CONNECTED/RECONNECTING + on earpiece (`!speakerOn && !externalDevice`). Released on speaker/BT/wired/ended/paused. Capability-checked via `isWakeLockLevelSupported()` so tablets without the sensor stay null-safe. Re-evaluated on every state transition + speaker-button tap + onResume.
+- **L-9b** `NotificationHelper.createNotificationChannels` — `setAllowBubbles(false)` on the call channel (API 29+) so `CallStyle` can never spawn a duplicate floating bubble that the user can't dismiss without ending the call.
+- **L-10** `useLiveKitCall.ts` — reconnect-budget timer bumped from 15s → 30s. Industry-standard for ICE-restart recovery on flaky mobile networks (GetStream / Agora / LiveKit production refs); 15s was force-ending calls that would have recovered around 18–25s.
+
+**Already shipped (verified, no edit needed):**
+- F-1 off-thread avatar load (line 35-41 of `MeriFirebaseMessagingService.java`)
+- L-3 / L-4 `setCommunicationDevice` + `AudioDeviceCallback` BT/wired handover (`CallAudioRouter.kt`)
+- L-6 `START_NOT_STICKY` + `STOP_FOREGROUND_REMOVE` (`CallForegroundService.java`)
+- L-9 `NotificationCompat.CallStyle.forIncomingCall` on API 31+ (line 295 of `MeriFirebaseMessagingService.java`)
+- AndroidManifest permissions + service types for API 34 (verified)
+
+**Verify:** JS change (L-10) testable in preview with owner account. Android-native changes (L-5, L-7, L-8, L-9b) require APK rebuild — code-level diff verified, runtime confirmation pending build.
+
+**Sources cited:** AOSP FSI limits, Fora Soft call notification guide 2026, AOSP InCallUI ProximitySensor.java, GetStream reconnect budget docs, LiveKit AudioSwitchHandler ref.
+
+---
+
+## (Original Phase 4 in-progress section — kept for trace)
 ## 🔧 Phase 4 — Private Call (Android) — IN PROGRESS 2026-06-09
+
 
 Research-first subagent completed. Audit subagent pending. File-structure audit revealed many plan items are **already implemented** in the Capacitor `android/` directory (not `native-kotlin/`). Corrected gap list:
 
