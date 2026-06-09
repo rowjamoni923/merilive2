@@ -218,6 +218,28 @@ export function ActiveCallScreen({
     },
   });
 
+  // F7 — Voice moderation for private calls. Reuses the LiveKit local audio
+  // MediaStream (no second mic open). Runs for BOTH parties — either side
+  // sharing contact info is penalized identically to text/F6.
+  useLiveVoiceMonitor({
+    enabled: isOpen && isConnected,
+    userId,
+    context: "call",
+    sourceId: callId,
+    isMicEnabled: isAudioEnabled,
+    getMediaStream: () => localStream,
+    onViolation: ({ matches, beansDeducted, violationNumber }) => {
+      const matchPreview = matches.slice(0, 2).join(", ");
+      toast.error(
+        `Contact info detected in call: ${matchPreview}` +
+          (beansDeducted ? ` • -${beansDeducted} beans` : "") +
+          (violationNumber ? ` • violation #${violationNumber}` : ""),
+      );
+    },
+  });
+
+
+
 
 
 
