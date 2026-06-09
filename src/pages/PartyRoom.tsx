@@ -1085,6 +1085,12 @@ const PartyRoom = () => {
 
       if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
       setTotalRoomBeans(prev => prev + broadcastBeans);
+      if (giftData.receiverId && broadcastBeans > 0) {
+        setSeatBeansReceived(prev => ({
+          ...prev,
+          [giftData.receiverId!]: (prev[giftData.receiverId!] || 0) + broadcastBeans,
+        }));
+      }
       if (giftData.senderId) {
         setParticipantBeans(prev => ({
           ...prev,
