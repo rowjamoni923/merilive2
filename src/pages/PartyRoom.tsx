@@ -415,7 +415,7 @@ const PartyRoom = () => {
         user_id: out.primary.userId,
         message: suffix,
         created_at: new Date().toISOString(),
-        type: 'system',
+        type: 'join',
         user: {
           display_name: out.primary.userName,
           avatar_url: out.primary.avatarUrl,
