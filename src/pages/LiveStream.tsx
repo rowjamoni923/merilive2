@@ -450,6 +450,7 @@ const LiveStream = () => {
   const {
     entryAnimations,
     nameBarAnimations,
+    nameBarOverflowCount,
     addEntryAnimation,
     removeEntryAnimation,
     removeNameBarAnimation,
@@ -3562,17 +3563,29 @@ const LiveStream = () => {
       </AnimatePresence>
 
       {/* ==================== ENTRY NAME BAR (Compact Banner) ====================
-          Queue-based: shows ONE at a time, next plays after current completes */}
-      {nameBarAnimations.length > 0 && (
+          Phase 3: up to 3 concurrent stacked; "+N more" chip for overflow.
+          Bigo / Chamet parity — a viewer burst never floods one-at-a-time. */}
+      {nameBarAnimations.map((nb, idx) => (
         <EntryNameBarAnimation
-          key={nameBarAnimations[0].id}
-          userId={nameBarAnimations[0].userId}
-          userName={nameBarAnimations[0].displayName}
-          userLevel={nameBarAnimations[0].level}
-          avatarUrl={nameBarAnimations[0].avatarUrl}
-          animationUrl={nameBarAnimations[0].animationUrl}
-          onComplete={() => removeNameBarAnimation(nameBarAnimations[0].id)}
+          key={nb.id}
+          userId={nb.userId}
+          userName={nb.displayName}
+          userLevel={nb.level}
+          avatarUrl={nb.avatarUrl}
+          animationUrl={nb.animationUrl}
+          bottomPosition={`${12 + idx * 7}%`}
+          onComplete={() => removeNameBarAnimation(nb.id)}
         />
+      ))}
+      {nameBarOverflowCount > 0 && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[91] pointer-events-none"
+          style={{ bottom: `${12 + nameBarAnimations.length * 7}%` }}
+        >
+          <div className="px-3 py-1 rounded-full bg-black/55 backdrop-blur-md border border-white/15 text-white text-[11px] font-semibold shadow-lg">
+            +{nameBarOverflowCount} more
+          </div>
+        </div>
       )}
 
 
