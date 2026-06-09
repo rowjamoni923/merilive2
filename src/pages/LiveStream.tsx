@@ -4300,7 +4300,26 @@ const LiveStream = () => {
         currentUserAvatar={hostInfo?.avatar || ""}
         currentUserLevel={hostInfo?.level || 1}
         onBattleStarted={handlePKBattleStarted}
+        onStartRandomMatch={startRandomPKSearch}
+        isRandomSearching={!!randomPKSearching}
       />
+
+      {/* R6a — Random PK Searching pill (challenger side) */}
+      {randomPKSearching && !pkBattleState.isActive && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[55] pointer-events-auto">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/15 bg-black/70 backdrop-blur-md shadow-lg">
+            <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            <span className="text-white text-xs font-semibold">Searching for opponent…</span>
+            <button
+              onClick={cancelRandomPKSearch}
+              className="ml-1 px-2 py-0.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {/* Incoming PK Request */}
       {showPKRequest && incomingPKRequest && (
