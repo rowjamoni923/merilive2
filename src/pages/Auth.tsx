@@ -2666,15 +2666,15 @@ const Auth = () => {
                 )}
               </Button>
               
-              {/* Resend Code */}
+              {/* Resend Code — industry-standard 60s countdown (Phase 1 audit 2026-06-09) */}
               <div className="text-center space-y-2">
                 <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendEmailOtp}
-                  disabled={otpLoading}
+                  disabled={otpLoading || resendCountdown > 0}
                   className="text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
-                  Resend Code
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
                 </button>
               </div>
             </div>
@@ -2794,7 +2794,9 @@ const Auth = () => {
               
               <div className="text-center space-y-2">
                 <p className="text-slate-500 text-sm">Didn't receive the code?</p>
-                <button onClick={handleResendOtp} disabled={otpLoading} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">Resend Code</button>
+                <button onClick={handleResendOtp} disabled={otpLoading || resendCountdown > 0} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+                </button>
               </div>
             </div>
           </div>
@@ -3059,10 +3061,10 @@ const Auth = () => {
                 <p className="text-slate-600 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
-                  disabled={phoneOtpLoading}
+                  disabled={phoneOtpLoading || resendCountdown > 0}
                   className="text-emerald-700 text-sm font-semibold hover:text-emerald-800 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
-                  Resend WhatsApp Code
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend WhatsApp Code"}
                 </button>
               </div>
             </div>
