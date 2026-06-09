@@ -20,6 +20,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
 import { ChametStyleSettingsPanel } from "@/components/party/ChametStyleSettingsPanel";
@@ -91,6 +94,11 @@ const CreateParty = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
+  // PR-2.2 — Optional room access controls (password + entry fee in coins).
+  // Stored in local state; passed to `create_party_room` RPC on submit.
+  const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
+  const [roomPassword, setRoomPassword] = useState('');
+  const [roomEntryFee, setRoomEntryFee] = useState<number>(0);
   const preserveStreamRef = useRef(false);
   const isNativeAndroid = isNativeAndroidApp();
   useEffect(() => {
@@ -336,7 +344,8 @@ const CreateParty = () => {
         p_name: defaultName,
         p_room_type: mode,
         p_game_mode: mode === 'game' ? selectedGame : null,
-        p_password: null,
+        p_password: roomPassword.trim() ? roomPassword.trim() : null,
+        p_entry_fee: Math.max(0, Math.floor(Number(roomEntryFee) || 0)),
       });
 
       if (error) throw error;
@@ -785,6 +794,22 @@ const CreateParty = () => {
             <Wand2 className="w-7 h-7 text-white" />
           </motion.button>
 
+          {/* PR-2.2 — Room Lock / Entry Fee Button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowRoomLockSheet(true)}
+            className={cn(
+              "w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-amber-200/60 relative",
+              (roomPassword.trim() || roomEntryFee > 0) && "ring-2 ring-amber-300/80"
+            )}
+            aria-label="Room access"
+          >
+            <Lock className="w-6 h-6 text-white" />
+            {(roomPassword.trim() || roomEntryFee > 0) && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-300 border border-purple-900" />
+            )}
+          </motion.button>
+
           {/* Let's Party Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -849,6 +874,61 @@ const CreateParty = () => {
         }}
         selectedGame={selectedGame}
       />
+
+      {/* PR-2.2 — Room Lock & Entry Fee Sheet */}
+      <Dialog open={showRoomLockSheet} onOpenChange={setShowRoomLockSheet}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Room Access</DialogTitle>
+            <DialogDescription>
+              Optionally protect the room with a password or charge an entry fee in coins.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="room-password">Password (optional)</Label>
+              <Input
+                id="room-password"
+                type="text"
+                inputMode="text"
+                maxLength={64}
+                placeholder="Leave empty for an open room"
+                value={roomPassword}
+                onChange={(e) => setRoomPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="room-entry-fee">Entry fee (coins)</Label>
+              <Input
+                id="room-entry-fee"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={100000}
+                step={10}
+                placeholder="0 = free entry"
+                value={roomEntryFee || ''}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setRoomEntryFee(Number.isFinite(v) ? Math.max(0, Math.min(100000, Math.floor(v))) : 0);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">Viewers pay this from their coin balance to join.</p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => { setRoomPassword(''); setRoomEntryFee(0); setShowRoomLockSheet(false); }}
+            >
+              Clear
+            </Button>
+            <Button onClick={() => setShowRoomLockSheet(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
 
       {/* Settings Panel (Effects, Beauty, Stickers) */}
       <ChametStyleSettingsPanel

@@ -38,8 +38,10 @@ Pure SQL migration + 1 edge function + small RPC wiring on client.
 Realtime `party_rooms` UPDATE channel (`party-room-end-${roomId}`) already auto-closes viewers on `is_active=false` / `ended_at` set + LiveKit `room_state_changed` packet (PartyRoom.tsx 1275-1304, 1236-1244). No further work.
 
 ### B. Password prompt on join — ✅ done (PR-2.1)
-`enter_party_room` already supports `p_password`. PartyRoom now intercepts `Password required` / `Invalid password` errors and shows an `AlertDialog` with password input → retries `joinRoom(pwd)`. `Insufficient coins for entry fee` shows toast + bounces to lobby.
-⚠️ **Create-side password input + entry fee field on CreateParty.tsx still TODO** — needs migration to extend `create_party_room` RPC with `p_entry_fee` (left for PR-2.2).
+`enter_party_room` already supports `p_password`. PartyRoom intercepts `Password required` / `Invalid password` errors and shows an `AlertDialog` with password input → retries `joinRoom(pwd)`. `Insufficient coins for entry fee` shows toast + bounces to lobby.
+
+### B-create. Password + Entry Fee on creation — ✅ done (PR-2.2)
+Migrated `create_party_room(p_entry_fee int default 0)` (0-100000 cap). CreateParty.tsx now has a Lock-icon button next to the Wand2 effects button → opens a `Dialog` with Password + Entry Fee inputs. State stored locally; passed to the RPC on `Let's Party`. Active settings show an amber dot + ring on the Lock button.
 
 ### C. Invite-to-seat real implementation (P1-1) — ✅ already wired
 `seat_invitations` table + `accept_seat_invitation` / `decline_seat_invitation` RPCs + `useSeatInvitationInbox` + `SeatInvitePickerSheet` + `SeatInviteResponseSheet` are all live. No further work.
