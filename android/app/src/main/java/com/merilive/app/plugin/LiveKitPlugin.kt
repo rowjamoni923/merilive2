@@ -2810,6 +2810,7 @@ class LiveKitPlugin : Plugin() {
                 stopStatsCollector()
                 unregisterNetworkCallback()
                 unregisterAudioDeviceListener()
+                stopAudioLevelPoll() // Phase 6
                 unregisterHeadsetReceivers()
                 stopHeadsetMediaSession()
                 // Renderers + Activity-scoped GPU pipelines must rebuild.
