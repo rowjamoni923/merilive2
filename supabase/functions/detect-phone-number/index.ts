@@ -49,6 +49,29 @@ const numberWordMappings: Record<string, string> = {
   'cinq': '5', 'sept': '7', 'huit': '8', 'neuf': '9',
 };
 
+// F6 Unicode hardening (server-side mirror of src/utils/contactDetection.ts).
+// NFKC normalizes fullwidth ("０１７…") + mathematical bold ("𝟎𝟏𝟕…") digits.
+// Then we strip zero-width joiners, variation selectors (kills "0️⃣"-style
+// keycap emoji digits), combining marks (incl. U+20E3 keycap), tag chars
+// (U+E0020-E007F) and control bytes so the regex pass sees a clean string.
+const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF\u180E]/g;
+const VARIATION_SELECTORS_RE = /[\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
+const COMBINING_MARKS_RE = /[\u0300-\u036F\u20D0-\u20FF]/g;
+const TAG_CHARS_RE = /[\u{E0020}-\u{E007F}]/gu;
+const CONTROL_RE = /[\u0000-\u0008\u000B-\u001F\u007F]/g;
+
+function normalizeForDetection(text: string): string {
+  if (!text) return '';
+  let s = text;
+  try { s = s.normalize('NFKC'); } catch { /* ignore */ }
+  return s
+    .replace(ZERO_WIDTH_RE, '')
+    .replace(VARIATION_SELECTORS_RE, '')
+    .replace(TAG_CHARS_RE, '')
+    .replace(COMBINING_MARKS_RE, '')
+    .replace(CONTROL_RE, '');
+}
+
 // Convert all numeral systems to standard digits
 function normalizeNumerals(text: string): string {
   const numeralSystems: Record<string, string> = {
@@ -186,38 +209,42 @@ const spokenNumberPatterns = [
 
 function detectPhoneNumber(text: string): { detected: boolean; matches: string[]; confidence: string } {
   const matches: string[] = [];
-  
+
+  // Step 0 (F6): NFKC + strip zero-width / variation-selector / combining /
+  // tag chars so fullwidth, math-bold, keycap-emoji and ZWJ bypasses can't
+  // slip past the numeral converter below.
+  const normalized = normalizeForDetection(text);
+
   // Step 1: Normalize all numerals to standard digits
-  let processedText = normalizeNumerals(text);
-  
+  let processedText = normalizeNumerals(normalized);
+
   // Step 2: Convert number words to digits
   processedText = convertNumberWords(processedText);
-  
+
   // Step 3: Check main phone patterns on processed text
   for (const pattern of phonePatterns) {
     const found = processedText.match(pattern);
     if (found) {
       for (const match of found) {
         const digitsOnly = match.replace(/\D/g, '');
-        // Valid phone numbers have 7-15 digits
         if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
           matches.push(match);
         }
       }
     }
   }
-  
-  // Step 4: Check obfuscation patterns on ORIGINAL text (to catch language-specific patterns)
+
+  // Step 4: Check obfuscation patterns on NORMALIZED text (language-specific)
   for (const pattern of obfuscationPatterns) {
-    const found = text.match(pattern);
+    const found = normalized.match(pattern);
     if (found) {
       matches.push(...found);
     }
   }
-  
-  // Step 5: Check spoken number patterns
+
+  // Step 5: Check spoken number patterns on NORMALIZED text
   for (const pattern of spokenNumberPatterns) {
-    const found = text.match(pattern);
+    const found = normalized.match(pattern);
     if (found) {
       matches.push(...found);
     }
