@@ -108,7 +108,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
       const onWindow = (ev: Event) => {
         const detail = (ev as CustomEvent<DispatchDetail>).detail;
         if (!detail?.userId) return;
-        void dispatchEntry(detail.userId, !!detail.force);
+        void dispatchEntry(detail.userId, ctxKeyOf(ctxRef.current), !!detail.force);
       };
       window.addEventListener('merilive:native-entry-dispatch', onWindow as EventListener);
       removeWindow = () =>
@@ -125,7 +125,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
             if (row.viewer_id === currentUserId) return; // skip self
             const ctx = ctxRef.current;
             if (!ctx.streamId || row.stream_id !== ctx.streamId) return;
-            void dispatchEntry(row.viewer_id);
+            void dispatchEntry(row.viewer_id, ctxKeyOf(ctx));
           },
         )
         .on(
@@ -137,7 +137,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
             if (row.user_id === currentUserId) return;
             const ctx = ctxRef.current;
             if (!ctx.roomId || row.room_id !== ctx.roomId) return;
-            void dispatchEntry(row.user_id);
+            void dispatchEntry(row.user_id, ctxKeyOf(ctx));
           },
         )
         .subscribe();
