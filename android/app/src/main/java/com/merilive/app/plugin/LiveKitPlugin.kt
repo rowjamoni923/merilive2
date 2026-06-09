@@ -401,6 +401,14 @@ class LiveKitPlugin : Plugin() {
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
     private var reconnectingSinceMs: Long = 0L
+    // Phase 6 — 150ms audio-level poll job. LiveKit server emits
+    // ActiveSpeakers only ~once per second (too slow for smooth seat-ring
+    // animation). Industry standard (Yalla/MICO/Bigo) is a 150–200ms client
+    // poll of Participant.audioLevel for fine-grained ring pulse, with
+    // ActiveSpeakers reserved for the "currently speaking" badge.
+    private var audioLevelPollJob: Job? = null
+    private var lastLocalSpeaking: Boolean = false
+    private var lastLocalVadOnsetMs: Long = 0L
     private var hardReconnectAttempts: Int = 0
     private var hardReconnectInProgress: Boolean = false
     private var resilienceEnabled: Boolean = true
@@ -540,6 +548,7 @@ class LiveKitPlugin : Plugin() {
                 try { attachEventListeners(handle.room) } catch (t: Throwable) {
                     Log.w(TAG, "adopt: attachEventListeners failed: ${t.message}")
                 }
+                try { startAudioLevelPoll(handle.room) } catch (_: Throwable) {} // Phase 6
                 // Phase 1A.2 step 2 — restart the listeners + watchdogs that
                 // survival-mode destroy had to unregister (because they hold
                 // a reference to the old plugin's `this`). The Room itself
@@ -660,6 +669,7 @@ class LiveKitPlugin : Plugin() {
                     setProximityMonitoringInternal(false)
                     applyAudioMode(false)
                     unregisterAudioDeviceListener()
+                    stopAudioLevelPoll() // Phase 6
                     unregisterHeadsetReceivers()
                     stopHeadsetMediaSession()
                     stopBluetoothScoInternal()
@@ -741,6 +751,7 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            stopAudioLevelPoll() // Phase 6
             unregisterHeadsetReceivers()
             stopHeadsetMediaSession()
             stopBluetoothScoInternal()
@@ -1184,6 +1195,7 @@ class LiveKitPlugin : Plugin() {
         room = newRoom
 
         attachEventListeners(newRoom)
+        startAudioLevelPoll(newRoom) // Phase 6 — fine-grained ring + BGM-duck VAD
 
         newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
 
@@ -1341,6 +1353,7 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
                 unregisterAudioDeviceListener()
+                stopAudioLevelPoll() // Phase 6 — cease seat-ring poll on teardown
                 // Step 30 — release headset receivers + media-button session.
                 unregisterHeadsetReceivers()
                 stopHeadsetMediaSession()
@@ -2078,6 +2091,76 @@ class LiveKitPlugin : Plugin() {
         return attached
     }
 
+    // Phase 6 — start a 150ms poll that emits per-participant audio levels
+    // for smooth seat-ring animation. Also emits a `local-vad-changed` event
+    // so a host's BGM player (JS-side ExoPlayer wrapper) can duck to -20dB
+    // within 50ms of voice onset and restore 500ms after silence (Bigo/Hollah
+    // standard). Cheap: a few floats over <16 participants every 150ms.
+    private fun startAudioLevelPoll(r: Room) {
+        stopAudioLevelPoll()
+        audioLevelPollJob = scope.launch {
+            val speakThreshold = 0.08f         // ~-21 dBFS, industry default
+            val silenceHoldMs = 500L           // restore BGM 500ms after silence
+            while (kotlinx.coroutines.isActive) {
+                try {
+                    val arr = com.getcapacitor.JSArray()
+                    // Local participant
+                    val local = r.localParticipant
+                    val localLevel = try { local.audioLevel } catch (_: Throwable) { 0f }
+                    val localItem = JSObject()
+                    localItem.put("sid", local.sid.value)
+                    localItem.put("identity", local.identity?.value ?: "")
+                    localItem.put("audioLevel", localLevel)
+                    localItem.put("isLocal", true)
+                    arr.put(localItem)
+                    // Remote participants
+                    for (p in r.remoteParticipants.values) {
+                        val lvl = try { p.audioLevel } catch (_: Throwable) { 0f }
+                        val item = JSObject()
+                        item.put("sid", p.sid.value)
+                        item.put("identity", p.identity?.value ?: "")
+                        item.put("audioLevel", lvl)
+                        item.put("isLocal", false)
+                        arr.put(item)
+                    }
+                    val payload = JSObject()
+                    payload.put("levels", arr)
+                    notifyListeners("seat-audio-levels", payload)
+                    // Local VAD edge detection for BGM duck/restore.
+                    val nowSpeaking = localLevel > speakThreshold
+                    val nowMs = System.currentTimeMillis()
+                    if (nowSpeaking && !lastLocalSpeaking) {
+                        lastLocalSpeaking = true
+                        lastLocalVadOnsetMs = nowMs
+                        val ev = JSObject()
+                        ev.put("speaking", true)
+                        ev.put("level", localLevel)
+                        notifyListeners("local-vad-changed", ev)
+                    } else if (!nowSpeaking && lastLocalSpeaking &&
+                               nowMs - lastLocalVadOnsetMs > silenceHoldMs) {
+                        lastLocalSpeaking = false
+                        val ev = JSObject()
+                        ev.put("speaking", false)
+                        ev.put("level", localLevel)
+                        notifyListeners("local-vad-changed", ev)
+                    } else if (nowSpeaking) {
+                        lastLocalVadOnsetMs = nowMs
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "audioLevelPoll iteration failed: ${t.message}")
+                }
+                delay(150L)
+            }
+        }
+    }
+
+    private fun stopAudioLevelPoll() {
+        audioLevelPollJob?.cancel()
+        audioLevelPollJob = null
+        lastLocalSpeaking = false
+        lastLocalVadOnsetMs = 0L
+    }
+
     private fun attachEventListeners(r: Room) {
         eventJob?.cancel()
         eventJob = scope.launch {
@@ -2727,6 +2810,7 @@ class LiveKitPlugin : Plugin() {
                 stopStatsCollector()
                 unregisterNetworkCallback()
                 unregisterAudioDeviceListener()
+                stopAudioLevelPoll() // Phase 6
                 unregisterHeadsetReceivers()
                 stopHeadsetMediaSession()
                 // Renderers + Activity-scoped GPU pipelines must rebuild.
@@ -2791,6 +2875,7 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            stopAudioLevelPoll() // Phase 6
             // Step 30 — tear down headset receivers + media-button session.
             unregisterHeadsetReceivers()
             stopHeadsetMediaSession()
@@ -3924,6 +4009,19 @@ class LiveKitPlugin : Plugin() {
 
     private fun setAudioDeviceInternal(type: String): Boolean {
         val am = audioManager() ?: return false
+        // Phase 6 — music profile MUST NOT route through BT SCO (HFP caps at
+        // 16 kHz wideband; music sounds muffled to listeners). Force A2DP for
+        // output + reject SCO mic; fall back to speaker if no wired/USB device.
+        // Pitfall documented by Agora MUSIC_HIGH_QUALITY scenarios.
+        if (type == "bluetooth" && lastConnectArgs?.audioProfile == "music") {
+            Log.w(TAG, "BT SCO blocked for music profile (HFP narrowband) — falling back to speaker")
+            val data = JSObject()
+            data.put("requested", "bluetooth")
+            data.put("fallback", "speaker")
+            data.put("reason", "music_profile_sco_unsupported")
+            notifyListeners("audio-route-blocked", data)
+            return setAudioDeviceInternal("speaker")
+        }
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val device = am.availableCommunicationDevices.firstOrNull { matchesType(it.type, type) }
