@@ -869,6 +869,35 @@ const LiveStream = () => {
     },
   });
 
+  // P1 bundle — PK loser audio mute. PKBattleActive dispatches `pk:loser-mic`
+  // when this host loses; we force-mute the mic for the punishment window and
+  // restore previous state when it expires. Host can still manually unmute via
+  // the action sheet (we don't lock the toggle — visual punishment is enough).
+  useEffect(() => {
+    if (!isHost) return;
+    let restoreTo: boolean | null = null;
+    const handler = (ev: Event) => {
+      const d = (ev as CustomEvent).detail as { muted?: boolean } | undefined;
+      if (!d) return;
+      if (d.muted) {
+        restoreTo = !isHostMicMuted; // remember whether mic was on
+        if (!isHostMicMuted) {
+          setIsHostMicMuted(true);
+          try { void toggleAudio(false); } catch { /* ignore */ }
+        }
+      } else {
+        if (restoreTo === true && isHostMicMuted) {
+          setIsHostMicMuted(false);
+          try { void toggleAudio(true); } catch { /* ignore */ }
+        }
+        restoreTo = null;
+      }
+    };
+    window.addEventListener("pk:loser-mic", handler);
+    return () => window.removeEventListener("pk:loser-mic", handler);
+  }, [isHost, isHostMicMuted, toggleAudio]);
+
+
 
 
   // Pkg100: PK Cross-room Audio Bridge — secondary subscribe-only connection

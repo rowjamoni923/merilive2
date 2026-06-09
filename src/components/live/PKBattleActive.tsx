@@ -212,6 +212,27 @@ export const PKBattleActive = ({
     punishmentEndTs,
   });
 
+  // P1 bundle — loser audio mute during punishment window (industry standard).
+  // When this client is the loser host, dispatch a window event so LiveStream
+  // mutes our mic until `punishment_end_ts`. Viewer clients ignore (no mic).
+  useEffect(() => {
+    if (!battleEnded || !winnerUserId || !punishmentEndTs || !currentUserId) return;
+    if (currentUserId !== challengerId && currentUserId !== opponentId) return; // viewer
+    if (currentUserId === winnerUserId) return; // winner
+    const msLeft = punishmentEndTs - Date.now();
+    if (msLeft <= 0) return;
+    window.dispatchEvent(
+      new CustomEvent("pk:loser-mic", { detail: { muted: true, durationMs: msLeft, battleId } })
+    );
+    const t = setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent("pk:loser-mic", { detail: { muted: false, battleId } })
+      );
+    }, msLeft);
+    return () => clearTimeout(t);
+  }, [battleEnded, winnerUserId, punishmentEndTs, currentUserId, challengerId, opponentId, battleId]);
+
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
