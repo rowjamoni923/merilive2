@@ -33,3 +33,4 @@ Chamet-class live streaming app. NEVER use polling/visibility-refresh in place o
 - [Pkg438 Native gift+entry animation Phase A](mem://features/pkg438-native-gift-entry-animation-phase-a) — DONE 2026-06-06. Android-only foundation. Phase B (JS dispatcher) → Plan Phase 5.
 - [Pkg425 Trader wallet history + instant UI](mem://features/pkg425-trader-wallet-history-instant) — DONE 2026-06-06.
 - [Pkg424 instant-play warmup](mem://features/pkg424-instant-play-warmup) — DONE 2026-06-05.
+- [Home banner industry numbers](mem://features/home-banner-competitor-numbers.md) — 2026-06-09. M3/W3C/web.dev specs: 2:1 ratio, 5s auto-scroll, pause-no-resume (WCAG 2.2.2), max 5 dots, WebP q=80, CDN 750/1080/1440, eager+high for 1st / lazy+low for rest (mixing kills LCP), shimmer 1200ms, max 10 banners, 48dp tap. Banner taxonomy + proof-upload flow. Phase 4 done = LCP fix + a11y.

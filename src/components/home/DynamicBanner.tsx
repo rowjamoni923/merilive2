@@ -91,6 +91,11 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
 
   if (loading || banners.length === 0) return null;
 
+  // Top banner is above-the-fold (LCP candidate) → eager + high priority.
+  // Middle banner is below-the-fold → lazy. Mixing lazy + fetchpriority="high"
+  // makes the browser ignore the priority hint (Chrome/WebKit spec).
+  const isAboveFold = position === 'top';
+
   return (
     <>
       <div className="space-y-2">
@@ -100,13 +105,17 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             onClick={() => handleBannerClick(banner)}
             className={`rounded-2xl overflow-hidden ${banner.image_url ? '' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
+            role={banner.link_url ? 'button' : undefined}
+            aria-label={banner.link_url ? banner.title : undefined}
           >
             {banner.image_url ? (
-              <img loading="lazy" decoding="async"
+              <img
+                loading={isAboveFold ? 'eager' : 'lazy'}
+                decoding={isAboveFold ? 'sync' : 'async'}
                 src={bannerCdn(banner.image_url)}
                 alt={banner.title}
                 // @ts-expect-error – fetchpriority is a standard HTML hint
-                fetchpriority="high"
+                fetchpriority={isAboveFold ? 'high' : 'low'}
                 className="block w-full h-auto rounded-2xl"
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
