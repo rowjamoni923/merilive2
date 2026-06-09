@@ -416,9 +416,3 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
 }
 
 export default useUnifiedEntryDispatcher;
-    forgetUser,
-    clearAll,
-  }), [inner, pushEntry, flushWelcome, forgetUser, clearAll]);
-}
-
-export default useUnifiedEntryDispatcher;
