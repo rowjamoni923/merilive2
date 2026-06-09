@@ -52,6 +52,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getAppSetting } from "@/utils/appSettingsCache";
@@ -249,6 +250,12 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // PR-2 (P0-5): password prompt modal state when enter_party_room rejects with
+  // 'Password required' / 'Invalid password'. Lets viewers retry without
+  // bouncing back to the lobby.
+  const [passwordPrompt, setPasswordPrompt] = useState<{ show: boolean; error?: string }>({ show: false });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
@@ -1571,7 +1578,15 @@ const PartyRoom = () => {
 
 
 
-  const joinRoom = async () => {
+  // PR-2 (P1-12): defer participant_joined LiveKit publish until the SDK is
+  // actually connected. Previously we published immediately after the DB
+  // enter_party_room call, while LiveKit was still negotiating — the packet
+  // was silently dropped and viewers saw a 1-3s gap before the join banner.
+  // Now joinRoom stashes the payload in this ref and an effect flushes it
+  // the moment isConnected flips true.
+  const pendingJoinPublishRef = useRef<null | (() => void)>(null);
+
+  const joinRoom = async (passwordOverride: string | null = null) => {
     if (!roomId || !currentUser) return;
 
     try {
@@ -1579,7 +1594,7 @@ const PartyRoom = () => {
       const userName = currentUser.profile?.display_name || 'User';
       const userLevel = currentUser.profile?.user_level || 1;
       const avatarUrl = normalizeProfileMediaUrl(currentUser.profile?.avatar_url) || currentUser.profile?.avatar_url || undefined;
-      
+
       // First, leave all other active rooms to prevent stale participant records
       await supabase
         .from('party_room_participants')
@@ -1587,15 +1602,28 @@ const PartyRoom = () => {
         .eq('user_id', currentUser.id)
         .is('left_at', null)
         .neq('room_id', roomId);
-      
+
       const { error: enterError } = await supabase.rpc('enter_party_room', {
         p_room_id: roomId,
-        p_password: null,
+        p_password: passwordOverride,
       });
-      if (enterError) throw enterError;
-      
+      if (enterError) {
+        // PR-2 (P0-5): translate password errors into a retry modal instead
+        // of bouncing the viewer back to the lobby.
+        const msg = String(enterError.message || '');
+        if (/Password required/i.test(msg) || /Invalid password/i.test(msg)) {
+          setPasswordPrompt({ show: true, error: /Invalid/i.test(msg) ? 'Incorrect password — try again' : undefined });
+          return;
+        }
+        if (/Insufficient coins for entry fee/i.test(msg)) {
+          toast.error('Not enough coins for this room\'s entry fee');
+          navigate('/party-rooms');
+          return;
+        }
+        throw enterError;
+      }
+
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
-      // Only viewers (and other participants) see entry banners + animations.
       if (isHostUser) {
         console.log('[PartyRoom] 🏠 Host opened own room — skipping self-entry notification/animation/broadcast');
         await fetchParticipants();
@@ -1609,27 +1637,20 @@ const PartyRoom = () => {
         userAvatar: avatarUrl,
         userLevel,
       });
-      
-      // ⚡ INSTANT BROADCAST: Tell ALL other participants about this join immediately
-      // This fires BEFORE postgres_changes reaches other clients (sub-100ms vs 1-3s)
-      
+
       console.log('[PartyRoom] 🚀 Self joined - checking for equipped entry animation:', userName, 'Level:', userLevel);
-      
+
       // FRESH fetch of profile to ensure we have latest equipped_entrance_id
-      // This is critical because user might have just equipped an animation on VIP page
       const { data: freshProfile } = await supabase
         .from('profiles') // guard-ok: owner-only self equipped-asset fetch
         .select('equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
         .eq('id', currentUser.id)
         .single();
 
-      
       const entranceId = freshProfile?.equipped_entrance_id || currentUser.profile?.equipped_entrance_id;
       const nameBarId = freshProfile?.equipped_entry_name_bar_id || currentUser.profile?.equipped_entry_name_bar_id;
       const vehicleId = freshProfile?.equipped_vehicle_id || currentUser.profile?.equipped_vehicle_id;
-      
-      console.log('[PartyRoom] 🔍 FRESH Profile equipped IDs:', { entranceId, nameBarId, vehicleId });
-      
+
       const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl, rankCode } = await fetchUserEntryAnimations(
         entranceId,
         nameBarId,
@@ -1637,10 +1658,7 @@ const PartyRoom = () => {
         userLevel,
         currentUser.id
       );
-      
-      console.log('[PartyRoom] 📍 Animation fetch result:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
-      
-      console.log('[PartyRoom] 🚗 Dispatching self entry/namebar:', { selfEntranceUrl, selfNameBarUrl, selfVehicleUrl, rankCode });
+
       // TRIGGER entry/namebar for SELF using UNIFIED system (like gifts)
       addEntryAnimation({
         userId: currentUser.id,
@@ -1653,10 +1671,11 @@ const PartyRoom = () => {
         soundUrl: selfEntranceSound || undefined,
         rankCode: rankCode || undefined,
       });
-      
-      // Pkg80: LiveKit DataPacket replaces Supabase `join_broadcast_party_*`
-      // channel. Sub-50ms fanout; DB row remains for REST snapshot/history.
-      void publishPartyEvent(roomId, {
+
+      // PR-2 (P1-12): stash payload; effect below publishes once LiveKit
+      // reports isConnected. Avoids the prior race where this packet went
+      // out before the SFU was ready and was dropped server-side.
+      const publishPayload: ParticipantJoinedPayload = {
         type: 'participant_joined',
         roomId,
         userId: currentUser.id,
@@ -1669,16 +1688,29 @@ const PartyRoom = () => {
         vehicleAnimationUrl: selfVehicleUrl || null,
         rankCode: rankCode || null,
         timestamp: Date.now(),
-      }).then((sent) => {
-        if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);
-      });
-      
+      } as ParticipantJoinedPayload;
+      pendingJoinPublishRef.current = () => {
+        void publishPartyEvent(roomId, publishPayload).then((sent) => {
+          if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);
+        });
+      };
+
       await fetchParticipants();
     } catch (error) {
       console.error('Error joining room:', error);
       recordClientError({ label: "PartyRoom.joinBroadcastChannel", message: error instanceof Error ? error.message : String(error) });
     }
   };
+
+  // PR-2 (P1-12): flush deferred participant_joined publish when LiveKit
+  // signals connected. One-shot per joinRoom call.
+  useEffect(() => {
+    if (!isConnected) return;
+    const flush = pendingJoinPublishRef.current;
+    if (!flush) return;
+    pendingJoinPublishRef.current = null;
+    flush();
+  }, [isConnected]);
 
   useEffect(() => {
     if (!room?.id || !currentUser?.id) return;
@@ -1688,6 +1720,22 @@ const PartyRoom = () => {
     joinedRoomKeyRef.current = joinKey;
     void joinRoom();
   }, [room?.id, currentUser?.id]);
+
+  // PR-2 (P0-5): retry handler invoked from password prompt modal.
+  const handlePasswordSubmit = async () => {
+    if (!passwordInput.trim() || passwordSubmitting) return;
+    setPasswordSubmitting(true);
+    try {
+      // Allow re-entry by clearing the join key so joinRoom re-runs.
+      joinedRoomKeyRef.current = null;
+      const pwd = passwordInput;
+      setPasswordPrompt({ show: false });
+      setPasswordInput('');
+      await joinRoom(pwd);
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
 
   // Helper function to connect video stream to element
   const connectVideoStream = (element: HTMLVideoElement | null, stream: MediaStream | null) => {
@@ -1937,21 +1985,15 @@ const PartyRoom = () => {
     // Mark as recently processed to prevent realtime refetch from bringing it back
     recentlyProcessedRequestsRef.current.add(request.id);
 
-    // Immediately update local state for faster UI update (optimistic)
+    // PR-2 (P1-3): hide the request row optimistically (low-risk UI), but
+    // DO NOT optimistically grant the seat. We previously mutated
+    // participants → speaker BEFORE the RPC, so on rejection (seat_taken /
+    // already_handled / not_host) two clients flickered a phantom speaker.
+    // Seat-grant now happens only after the RPC returns ok:true.
     setSeatRequests(prev => prev.filter(r => r.id !== request.id));
-    setParticipants(prev => prev.map(p => 
-      p.user_id === request.requester_id 
-        ? { ...p, position: request.seat_position, role: 'speaker' }
-        : p
-    ));
 
     try {
       // Phase III.a: atomic server-side approval via RPC.
-      // Replaces the previous raw `party_room_participants` UPDATE which had
-      // no row-lock and let two hosts double-occupy the same seat. The RPC
-      // takes SELECT FOR UPDATE on (request, room, seat slot) and returns
-      // {ok:false, error:'seat_taken'|'already_handled'|'not_host'|...} on
-      // conflict so we can reconcile state without trusting client guesses.
       const { data: rpcData, error: rpcError } = await supabase.rpc('approve_seat_request', {
         p_request_id: request.id,
       });
@@ -1975,6 +2017,14 @@ const PartyRoom = () => {
         await fetchParticipants();
         return;
       }
+
+      // PR-2 (P1-3): seat granted server-side — NOW apply local optimistic
+      // promote so the UI reflects truth instantly while Realtime catches up.
+      setParticipants(prev => prev.map(p =>
+        p.user_id === request.requester_id
+          ? { ...p, position: request.seat_position, role: 'speaker' }
+          : p
+      ));
 
       console.log('[PartyRoom] ✅ Seat assigned via RPC:', request.requester_id, 'pos:', request.seat_position);
 
@@ -2581,6 +2631,38 @@ const PartyRoom = () => {
           )}
         />
       )}
+
+      {/* PR-2 (P0-5) — Password prompt for locked party rooms. */}
+      <AlertDialog open={passwordPrompt.show} onOpenChange={(open) => { if (!open) { setPasswordPrompt({ show: false }); navigate('/party-rooms'); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>This room is locked</AlertDialogTitle>
+            <AlertDialogDescription>
+              {passwordPrompt.error ?? 'Enter the room password to join.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            placeholder="Room password"
+            autoFocus
+            onKeyDown={(e) => { if (e.key === 'Enter') void handlePasswordSubmit(); }}
+            disabled={passwordSubmitting}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={passwordSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void handlePasswordSubmit(); }}
+              disabled={passwordSubmitting || !passwordInput.trim()}
+            >
+              {passwordSubmitting ? 'Joining…' : 'Join'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       {/* Phase III.d — Invitee: respond to seat invitation. */}
       <SeatInviteResponseSheet

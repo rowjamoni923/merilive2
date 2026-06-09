@@ -34,44 +34,36 @@ Pure SQL migration + 1 edge function + small RPC wiring on client.
 
 ## PHASE PR-2 — Broken features + UX professionalism (Lovable only)
 
-### A. Host crash detection (P0-2)
-Restore lightweight `party_rooms.is_active` Realtime subscription for non-host (NOT polling — use existing `party-room-participants-realtime` channel, add `party_rooms` UPDATE filter). When `is_active=false` arrives, viewers see "Host left" toast + auto-leave after 5s.
+### A. Host crash detection (P0-2) — ✅ already wired
+Realtime `party_rooms` UPDATE channel (`party-room-end-${roomId}`) already auto-closes viewers on `is_active=false` / `ended_at` set + LiveKit `room_state_changed` packet (PartyRoom.tsx 1275-1304, 1236-1244). No further work.
 
-### B. Password + Entry Fee (P0-5, P0-7)
-- `CreateParty.tsx`: add Password input (optional) + Entry Fee coins input (optional) → pass to `create_party_room`.
-- `PartyRoom.tsx`: catch `password required` / `entry_fee_required` error → show shadcn `AlertDialog` modal → re-call `enter_party_room` with password OR confirm coin deduction.
-- Show `🔒` badge + entry fee chip on locked room cards in lobby.
+### B. Password prompt on join — ✅ done (PR-2.1)
+`enter_party_room` already supports `p_password`. PartyRoom now intercepts `Password required` / `Invalid password` errors and shows an `AlertDialog` with password input → retries `joinRoom(pwd)`. `Insufficient coins for entry fee` shows toast + bounces to lobby.
+⚠️ **Create-side password input + entry fee field on CreateParty.tsx still TODO** — needs migration to extend `create_party_room` RPC with `p_entry_fee` (left for PR-2.2).
 
-### C. Invite-to-seat real implementation (P1-1)
-- New `seat_invitations` insert with 30s expiry.
-- LiveKit DataPacket `seat_invite` → receiver gets shadcn modal "Host invited you to seat N — Accept/Decline (30s)".
-- Accept → `approve_seat_request`-style RPC `accept_seat_invite`. Decline / timeout → auto-cleanup.
-- `useSeatInvitationInbox` already wired on receive side; complete the dispatch.
+### C. Invite-to-seat real implementation (P1-1) — ✅ already wired
+`seat_invitations` table + `accept_seat_invitation` / `decline_seat_invitation` RPCs + `useSeatInvitationInbox` + `SeatInvitePickerSheet` + `SeatInviteResponseSheet` are all live. No further work.
 
-### D. LiveKit join timing (P1-12)
-Reorder: set `mediaReady=true` first → wait for LiveKit `isConnected` via effect → THEN `publishPartyEvent('participant_joined')`. Removes 1.5s join-notification delay.
+### D. LiveKit join timing (P1-12) — ✅ done (PR-2.1)
+`joinRoom` now stashes the `participant_joined` payload in `pendingJoinPublishRef`; a dedicated effect flushes it the moment `isConnected` flips true. Eliminates the 1-3s "join packet dropped before SFU connected" race.
 
-### E. VAD memory leak (P1-2)
-`useVoiceActivityDetection.ts`: store `{source, analyser}` pairs, `source.disconnect()` + `analyser.disconnect()` before rebuild on `peerStreams` change.
+### E. VAD memory leak (P1-2) — ✅ done (PR-2.1)
+`useVoiceActivityDetection` now stores `{source, analyser}` pairs and calls `source.disconnect()` + `analyser.disconnect()` before every rebuild and on unmount. Fixes orphan `MediaStreamAudioSourceNode`s on long sessions.
 
-### F. Optimistic update race (P1-3)
-Move seat-grant optimistic update to AFTER `approve_seat_request` RPC returns `ok:true`. On failure, no rollback needed.
+### F. Optimistic update race (P1-3) — ✅ done (PR-2.1)
+`approveSeatRequest` now hides the request row optimistically but only grants the seat AFTER `approve_seat_request` RPC returns `ok:true`. Eliminates phantom-speaker flicker on `seat_taken` / `already_handled` rejections.
 
-### G. Per-seat bean attribution (P2-4)
-`speaker_beans: Record<userId, number>` state — gifts with `receiverId` matching a seated speaker route to that speaker's bean counter; only host-targeted or seat-less gifts go to host pot.
+### G. Per-seat bean attribution (P2-4) — ⏭️ deferred to PR-2.2
+Needs gift handler refactor + UI counter wiring; left for next pass.
 
-### H. Dead code cleanup
-- Remove `useSignalingSocket` export (P1-5).
-- Remove 6 dead camera `useState`s in `ProfessionalAudioRoom` (P1-11).
-- Delete `ChametStyleVideoRoom` + `ChametStyleGameRoom` if unmounted (P2-9, ~1.5K LOC bundle saving) — verify first.
-- Replace dedup `useEffect` with insert-time dedup in `PartyRoom.tsx` (P1-4).
-- Fix `Math.random()` in `ShootingStar` style props → `useMemo` (P1-10).
-- Remove redundant `fetchParticipants()` after RPC (P1-13).
+### H. Dead code cleanup — ⏭️ deferred to PR-2.2
+`useSignalingSocket`, dead camera state, `ChametStyleVideoRoom`/`GameRoom`, `Math.random()` in `ShootingStar`, redundant `fetchParticipants()` calls.
 
-### I. WS edge function eviction resilience (P1-7)
-On cold-start join, edge function loads room state from DB instead of assuming empty Map. Mark for deprecation comment — LiveKit handles all real-time now.
+### I. WS edge function eviction resilience (P1-7) — ⏭️ deferred
+LiveKit already authoritative; ws function is deprecation candidate.
 
-**Verification:** Host force-close → viewers see toast in <2s. Locked room → password modal. Entry fee → coins deducted atomically. Invite-to-seat → modal on receiver. Bean counter per seat correct on gift.
+**Verification (owner test):** locked room → password modal retry; viewer join → banner shows within 200ms of LiveKit connect (no more 1-3s gap); seat approve race → no phantom speaker on conflict; long audio room → no AudioContext source leak in DevTools heap.
+
 
 ---
 
