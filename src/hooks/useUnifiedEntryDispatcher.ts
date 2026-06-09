@@ -116,12 +116,16 @@ interface QueuedEntry {
 export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
   const {
     roomId,
+    roomType,
     selfUserId,
     onWelcomeRow,
     welcomeWindowMs = 500,
     userDedupWindowMs = 60_000,
     minEntryGapMs = 500,
     coalesceDepthThreshold = 3,
+    suppressPremiumDuringGame = roomType === 'game_party',
+    suppressedAutoFlushMs = 30_000,
+    suppressedMaxQueue = 10,
   } = opts;
 
   const inner = useEntryAnimations();
@@ -133,6 +137,13 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
   const queueRef = useRef<QueuedEntry[]>([]);
   const lastDispatchAtRef = useRef<number>(0);
   const drainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Phase 4 suppression: premium full-screen effects held during gameplay,
+  // released by `flushSuppressed()` (host) or by the auto-flush watchdog.
+  const suppressPremiumRef = useRef<boolean>(suppressPremiumDuringGame);
+  const suppressedQueueRef = useRef<QueuedEntry[]>([]);
+  const suppressedFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   // ---- Welcome coalescer lifecycle ----
   useEffect(() => {
