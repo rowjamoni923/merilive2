@@ -3,6 +3,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
+import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
