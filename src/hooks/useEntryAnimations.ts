@@ -183,11 +183,32 @@ export function useEntryAnimations() {
       console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR (owned asset) for:', params.displayName);
 
       setNameBarAnimations(prev => {
+        // Drop duplicates for the same user (a multi-source race could
+        // get past the dispatcher's userId dedup window after a slot
+        // already opened — final safety net).
         if (prev.some(e => e.userId === params.userId)) {
-          console.log('[useEntryAnimations] ⏭️ NameBar already queued for user:', params.displayName);
+          console.log('[useEntryAnimations] ⏭️ NameBar already visible for user:', params.displayName);
           return prev;
         }
-        return [...prev, newNameBar];
+        if (pendingNameBarsRef.current.some(e => e.userId === params.userId)) {
+          console.log('[useEntryAnimations] ⏭️ NameBar already pending for user:', params.displayName);
+          return prev;
+        }
+
+        if (prev.length < MAX_VISIBLE_NAMEBARS) {
+          // Slot available — show immediately.
+          return [...prev, newNameBar];
+        }
+
+        // All 3 visible slots busy — queue it.
+        const pending = pendingNameBarsRef.current;
+        pending.push(newNameBar);
+        // Hard cap: drop oldest if the burst overflows the buffer.
+        while (pending.length > MAX_PENDING_NAMEBARS) {
+          pending.shift();
+        }
+        setNameBarOverflowCount(pending.length);
+        return prev;
       });
     }
 
@@ -207,11 +228,22 @@ export function useEntryAnimations() {
   }, []);
   
   /**
-   * Remove name bar animation from queue
+   * Remove name bar animation from queue. When a visible slot frees up,
+   * promote the next pending entry (FIFO) so the stack stays at most
+   * MAX_VISIBLE_NAMEBARS deep and the overflow counter stays accurate.
    */
   const removeNameBarAnimation = useCallback((id: string) => {
     console.log('[useEntryAnimations] ➖ Removing namebar animation:', id);
-    setNameBarAnimations(prev => prev.filter(e => e.id !== id));
+    setNameBarAnimations(prev => {
+      const next = prev.filter(e => e.id !== id);
+      const pending = pendingNameBarsRef.current;
+      while (next.length < MAX_VISIBLE_NAMEBARS && pending.length > 0) {
+        const promoted = pending.shift()!;
+        next.push(promoted);
+      }
+      setNameBarOverflowCount(pending.length);
+      return next;
+    });
   }, []);
   
   /**
@@ -220,12 +252,15 @@ export function useEntryAnimations() {
   const clearAllAnimations = useCallback(() => {
     setEntryAnimations([]);
     setNameBarAnimations([]);
+    pendingNameBarsRef.current = [];
+    setNameBarOverflowCount(0);
     shownAnimationsRef.current.clear();
   }, []);
   
   return {
     entryAnimations,
     nameBarAnimations,
+    nameBarOverflowCount,
     addEntryAnimation,
     removeEntryAnimation,
     removeNameBarAnimation,
