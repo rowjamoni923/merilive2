@@ -129,3 +129,11 @@ Research-first audit found `LiveKitPlugin.kt` already implements adaptiveStream,
 - **F-5.4** `DisconnectReason.TOKEN_EXPIRED` now emits dedicated `token-expired` event and skips blind hard-reconnect (which would re-fail with stale JWT). JS must call `refreshToken()` + `reconnectNow()`.
 
 APK rebuild required for these to ship. Research saved at `.lovable/memory/features/android-call-research-2026-06-09.md`.
+
+## ✅ Phase 6 — Party Room (Android) — DONE 2026-06-09
+Research-first audit found ~90% of party-room foundation already shipped: voice/broadcast/music `LocalAudioTrackOptions` with correct AP3 toggles (NS/AEC/AGC OFF for music — Agora MUSIC_HIGH_QUALITY pattern), Opus per-profile bitrates (32/64/128 kbps + DTX/RED), `ActiveSpeakersChanged` emission, `setCommunicationDevice` API 31+, `AudioDeviceCallback` BT handover, AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK plumbing, push-to-talk + spatial audio (Step 35), party-host 60s background grace. 2 industry-standard gaps closed:
+
+- **F-6.1** `setAudioDeviceInternal` now blocks `bluetooth` requests when `audioProfile == "music"` (BT SCO/HFP caps at 16 kHz wideband — music sounds muffled to listeners). Falls back to speaker + emits `audio-route-blocked` event (`reason: music_profile_sco_unsupported`). A2DP output remains usable independently.
+- **F-6.2** Added 150ms `Participant.audioLevel` poll loop emitting per-participant `seat-audio-levels` (smooth ring animation — Yalla/MICO/Bigo standard; LiveKit server-side ActiveSpeakers fires only ~1s, too coarse for ring pulse). Also emits `local-vad-changed { speaking, level }` with threshold 0.08f and 500ms silence hold — JS BGM player can duck to -20dB on `speaking:true` and restore on `speaking:false` per Bigo/Hollah ducking curve. Poll started on connect + adopt, stopped on all teardown paths (disconnect, destroy, process-background, live-host-grace).
+
+APK rebuild required. JS-side BGM ducking integration is a follow-up (no native BGM player yet; event fires harmlessly until consumed).
