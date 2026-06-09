@@ -50,8 +50,22 @@ export interface UnifiedEntryDispatcherOptions {
   userDedupWindowMs?: number;
   /** Min gap between two queue dispatches. Default 500 ms (Bigo/Chamet). */
   minEntryGapMs?: number;
+  /**
+   * Phase 5: extra gap AFTER a premium full-screen entry (vehicle/entrance)
+   * so the next animation doesn't overlap a 3-4s dragon/car cinematic.
+   * Default 3500 ms — covers BIGO/Chamet vehicle spans without starving
+   * commoner entries. Flying-name-bar-only entries fall back to
+   * `minEntryGapMs`.
+   */
+  premiumEntryGapMs?: number;
   /** Buffer depth past which identical-rank entries collapse. Default 3. */
   coalesceDepthThreshold?: number;
+  /**
+   * Phase 5: when true (default), every fresh-user dispatch also pushes
+   * a welcome row into the chat coalescer — no per-call-site change
+   * needed. Set false to opt out and rely on explicit `withWelcome`.
+   */
+  welcomeOnEveryEntry?: boolean;
   /**
    * Phase 4 (WeJoy / Crush Live parity): when true, premium full-screen
    * effects (vehicle + entrance) are HELD during active gameplay and
@@ -73,6 +87,7 @@ export interface UnifiedEntryDispatcherOptions {
   /** Hard cap on suppressed queue; oldest dropped past this. Default 10. */
   suppressedMaxQueue?: number;
 }
+
 
 export interface PushEntryParams extends AddEntryParams {
   withWelcome?: boolean;
