@@ -81,24 +81,65 @@ export function useNativeGiftDispatcher() {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let removeWindow: (() => void) | null = null;
+    let removeLiveKit: (() => void) | null = null;
+    // Per-tx dedup: livekit-gift-sent fires ~0ms, gift_transactions Realtime
+    // fires 200-500ms later for the SAME gift. Track recently-dispatched giftId+senderId
+    // for 3s to play exactly once.
+    const recentlyDispatched = new Map<string, number>();
+    const markDispatched = (key: string) => {
+      const now = Date.now();
+      const last = recentlyDispatched.get(key) ?? 0;
+      if (now - last < 3000) return false;
+      recentlyDispatched.set(key, now);
+      if (recentlyDispatched.size > 256) {
+        for (const [k, t] of recentlyDispatched) if (now - t > 10_000) recentlyDispatched.delete(k);
+      }
+      return true;
+    };
 
     (async () => {
       if (!isNativeGiftAnimFlagOn()) return;
       const ok = await isNativeGiftAnimationAvailable();
       if (cancelled || !ok) return;
       enabledRef.current = true;
+      setNativeGiftPipelineActive(true);
 
-      // Window event bridge
+      // (1) Zero-latency LiveKit bridge — matches the optimistic <50ms web path.
+      const onLiveKit = (ev: Event) => {
+        const detail = (ev as CustomEvent<GiftSentDetail>).detail;
+        if (!detail?.giftId) return;
+        const ctx = ctxRef.current;
+        const matches = detail.force === undefined ? (
+          (ctx.streamId && detail.id === ctx.streamId && detail.scope === 'live') ||
+          (ctx.roomId && detail.id === ctx.roomId && detail.scope === 'party')
+        ) : true;
+        if (!matches) return;
+        const key = `${detail.giftId}:${detail.senderId || ''}:${detail.timestamp || ''}`;
+        if (!markDispatched(key)) return;
+        void dispatchOne({
+          giftId: detail.giftId,
+          quantity: detail.count ?? 1,
+          senderId: detail.senderId,
+          receiverId: detail.receiverId,
+        });
+      };
+      window.addEventListener('livekit-gift-sent', onLiveKit as EventListener);
+      removeLiveKit = () =>
+        window.removeEventListener('livekit-gift-sent', onLiveKit as EventListener);
+
+      // (2) Manual escape-hatch window event
       const onWindow = (ev: Event) => {
         const detail = (ev as CustomEvent<DispatchDetail>).detail;
         if (!detail?.giftId) return;
+        const key = `${detail.giftId}:${detail.senderId || ''}:manual`;
+        if (!markDispatched(key)) return;
         void dispatchOne(detail);
       };
       window.addEventListener('merilive:native-gift-dispatch', onWindow as EventListener);
       removeWindow = () =>
         window.removeEventListener('merilive:native-gift-dispatch', onWindow as EventListener);
 
-      // Realtime bridge
+      // (3) Realtime bridge — safety net for gifts that bypass LiveKit signaling.
       channel = supabase
         .channel('native-gift-dispatcher')
         .on(
@@ -119,6 +160,8 @@ export function useNativeGiftDispatcher() {
               (ctx.streamId && row.stream_id === ctx.streamId) ||
               (ctx.roomId && row.room_id === ctx.roomId);
             if (!matches) return;
+            const key = `${row.gift_id}:${row.sender_id || ''}:rt`;
+            if (!markDispatched(key)) return;
             void dispatchOne({
               giftId: row.gift_id,
               quantity: row.quantity ?? 1,
@@ -135,8 +178,10 @@ export function useNativeGiftDispatcher() {
     return () => {
       cancelled = true;
       enabledRef.current = false;
+      setNativeGiftPipelineActive(false);
       if (channel) { try { supabase.removeChannel(channel); } catch { /* ignore */ } }
       if (removeWindow) removeWindow();
+      if (removeLiveKit) removeLiveKit();
     };
   }, []);
 }
