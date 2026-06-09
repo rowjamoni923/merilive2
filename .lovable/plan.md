@@ -1,73 +1,121 @@
-# PK R6 — Random Match Race Fix (Pragmatic Hardening)
+# Android-Native Pro Pass — 4 Phase Master Plan
 
-## Research summary (verified)
+ভাই কথা ১০০% clear। নিচে honest, scoped plan। প্রতিটা Phase-এ **research → audit → code → verify** order — memory-locked research-first rule অনুযায়ী।
 
-| Concern | Industry standard (Tencent / ZEGO / Chamet / Bigo / Poppo) | Our current | Verdict |
-|---|---|---|---|
-| Acceptor invite countdown | 10–30s (Tencent BattleStore `timeout:30`, ZEGO 1–600s) | 20s UI | OK, tighten to 15s |
-| Post-accept settle window | Server-authoritative state machine (atomic `UPDATE ... WHERE status='invited' RETURNING`) | 6 × 600ms = 3.6s poll, silent fail | **Broken** |
-| Losing acceptors when first wins | Push `onBattleRequestCancelled` / row-status push → overlay auto-dismisses | **Nothing** — others stuck 20s | **Broken** |
-| Requester feedback on zero accept | `onBattleRequestTimeout` callback → toast | Silent `pendingRandomRef=false` after 25s | **Broken** |
-| Requester cancel | Universal first-class API (every SDK) | None | Missing |
-| Eligibility filter | Active stream + level + region + recent-opponent + not-already-in-PK | Only `is_active + gender=female` | Weak |
-| Race prevention | Atomic DB claim (Postgres `UPDATE...RETURNING`, Redis `SETNX`) | Boolean ref `pendingRandomRef` — client-side only | Weak but works for first-wins |
+> **Design rule:** Web React UI (WebView) zero change। শুধু performance/resilience path Android native।
+> **Strings rule:** All toasts/labels English।
+> **Verify rule:** Owner account (smdollarex923@gmail.com) দিয়ে যেটা Lovable-side verifiable সেটা verify। Android-only changes = "APK rebuild needed" honest tag।
 
-Sources: Tencent TUI/BattleStore docs, ZEGOCLOUD PK Battles docs, Redis official matchmaking tutorial (Mar 2026), Chamet/Poppo/Bigo guides (bittopup, enjoygm), TikTok LIVE Match. Full citations in research log.
+---
 
-Architectural note: industry standard for *random* PK is **pool-based** (both hosts opt-in, server pairs). Our current is **broadcast-invite-based**. Full pool rebuild is a Phase R6b project — for now we harden the existing broadcast model so it stops silently breaking.
+## Phase 4 — Private Call (Android, 10 files)
 
-## Scope of this phase (R6a)
+**Scope (already audited in `.lovable/private-call-android-audit.md`):**
 
-Six surgical fixes — pure Lovable code (edge fn + React), no APK rebuild, no schema change.
+| Tag | File / area | Fix |
+|---|---|---|
+| F-1 | `MeriFirebaseMessagingService.kt` | Avatar bitmap fetch off FCM thread → post notification first, update icon async |
+| L-3 | `CallAudioRouter.kt` | Drop deprecated `setSpeakerphoneOn` (API 31+) → `setCommunicationDevice()` with `AudioDeviceInfo` |
+| L-4 | `CallAudioRouter.kt` | Bluetooth SCO handover (`registerAudioDeviceCallback` + auto-route on BT connect/disconnect) |
+| L-5 | `IncomingCallActivity.kt` | `canUseFullScreenIntent()` check (Android 14+) → fallback to high-priority heads-up |
+| L-6 | `PrivateCallForegroundService.kt` | `START_STICKY` → `START_NOT_STICKY` + proper `stopForeground(STOP_FOREGROUND_REMOVE)` (kills ghost notification) |
+| L-7 | `PrivateCallActivity.kt` | Camera2 release on `onPause` (not `onDestroy`) — fixes black-screen on resume |
+| L-8 | `NativeCallPlugin.kt` | Proximity wakelock leak — release on `onStop` |
+| L-9 | `CallNotificationManager.kt` | Notification channel importance + `setAllowBubbles(false)` for stealth |
+| L-10 | `CallResilienceController.kt` | Network-loss budget aligned with JS side (15s) + JNI bridge to surface state to React |
+| (bonus) | `AndroidManifest.xml` | `USE_FULL_SCREEN_INTENT` runtime gating + `FOREGROUND_SERVICE_PHONE_CALL` for API 34 |
 
-### Fix 1 — Atomic server-side claim (kill the 3.6s poll)
-- **Today**: acceptor sends `random_accept` FCM → challenger receives event → challenger calls `start_pk_battle_random` RPC → acceptor polls `pk_battles` for 3.6s hoping the row appears.
-- **New**: in `pk-invite-deliver` `random_accept` kind, do the RPC server-side using service role on behalf of the *challenger* (after verifying the original challenger is still in their stream). Insert the battle row, *then* push `pk_random_accepted` FCM with `battleId` already populated. Acceptor doesn't need to poll — battleId arrives in the push payload.
-- Both sides switch to the existing `pk_battles` Realtime sub (already used by `useNotifications`) to drive UI.
+**Research-first (auto):** subagent on Chamet/Bigo/Poppo Android call audio routing + FSI permission patterns (Agora → LiveKit translation).
 
-### Fix 2 — First-wins atomic gate
-- Add a unique partial index / advisory lock in `pk-invite-deliver` `random_accept`: only the **first** acceptor's request creates a battle; subsequent acceptors get `{ ok: false, reason: 'taken' }` synchronously.
-- Use Postgres advisory lock keyed on `hash(challenger_id)` — no schema migration needed.
+**Verify:** code-level diff + lint। Real verify = APK rebuild needed (honest)।
 
-### Fix 3 — Notify losing acceptors
-- When a `random_accept` wins, `pk-invite-deliver` fans out a `pk_random_taken` notification to all *other* hosts that received the original `random_invite` (track via `notifications.data.invite_session_id` set on the random_invite fan-out).
-- Acceptors receive `pk-notification` event with `type === 'pk_random_taken'` → dismiss `PKRandomMatchNotification` + toast "Match taken by another host".
+---
 
-### Fix 4 — Requester feedback on no accept
-- Challenger-side: when `pendingRandomRef` 25s timer expires with no accept, show toast "No host accepted — try again" (today: silent).
+## Phase 5 — Live Streaming (Android native paths)
 
-### Fix 5 — Requester cancel button
-- Add small "Cancel" button on challenger-side waiting state inside `PKBattlePanel` (currently the panel closes immediately on send — change to keep an inline "Searching… [Cancel]" pill).
-- Cancel calls new `pk-invite-deliver` kind `random_cancel` → fans out `pk_random_cancelled` to all original recipients → their notifications dismiss with toast "Host cancelled the request".
+**Audit first** — identify which Android files touch LiveKit publisher/subscriber, Camera2, GPUPixel, foreground service for live. Likely files:
+- `LiveStreamForegroundService.kt`
+- `LiveKitPublisherPlugin.kt` / `LiveKitSubscriberPlugin.kt`
+- `Camera2Manager.kt` + GPUPixel beauty pipeline
+- `LiveStreamActivity.kt` (if exists)
 
-### Fix 6 — Eligibility filter
-- In `pk-invite-deliver` `random_invite`, exclude hosts who are:
-  - currently in `pk_battles` with `status IN ('invited','accepted','live')`
-  - recipient of a `pk_random_invite` notification in the last 30s (cooldown to prevent spam)
-- Also tighten countdown UI 20s → 15s to match industry median.
+**Likely fixes (pre-audit guess, confirmed after research):**
+1. Publisher: simulcast layers + dynamic bitrate (LiveKit `RoomOptions.publishDefaults`) per Chamet pattern
+2. Subscriber: adaptive stream + auto-track-subscription off for hidden viewers (save bandwidth — Chamet-class)
+3. Camera2: surface texture pool + GPUPixel preview-frame reuse (no realloc per frame)
+4. Foreground service: type `camera|microphone` (API 34 required), proper notification channel
+5. Reconnect: exponential backoff aligned with JS `useLiveKitRoom` (currently mismatched)
+6. Audio focus: request `AUDIOFOCUS_GAIN` on publisher, transient-may-duck on viewer
 
-## Files
+**Research-first:** subagent on Bigo/Chamet broadcaster Android stack (Agora pub/sub config → LiveKit `RoomOptions`/`TrackPublishOptions`).
 
-**Edited**
-- `supabase/functions/pk-invite-deliver/index.ts` — Fix 1, 2, 3, 5, 6 (new kinds: `random_cancel`; server-side battle creation in `random_accept`; advisory lock; fan-out filters; `invite_session_id` tagging)
-- `src/pages/LiveStream.tsx` — Fix 1 (remove 3.6s poll, use battleId from push payload); Fix 3 (`pk_random_taken` handler dismisses notification)
-- `src/components/live/PKBattlePanel.tsx` — Fix 4 (no-accept toast); Fix 5 (cancel button + `random_cancel` invoke); update pendingRandomRef to store `invite_session_id`
-- `src/components/live/PKRandomMatchNotification.tsx` — countdown 20→15s
+---
 
-**New**
-- (none — all DB work uses existing tables + advisory locks)
+## Phase 6 — Party Room (Android native paths)
 
-## Out of scope (deferred R6b)
-- Pool-based opt-in matchmaking (both hosts press "Find Opponent", server pairs)
-- Level-bucket / region matching
-- Recent-opponent 30-min blacklist table
-- Sequential auto-retry up to 3 attempts
-- Decline-rate metric for pool ranking
+**Audit first** — likely files:
+- `PartyRoomForegroundService.kt`
+- `PartyRoomAudioPlugin.kt` (8-seat audio mixer)
+- Per-seat audio level metering bridge
 
-These are the bigger architectural shift. R6a fixes the bleeding; R6b is the rebuild.
+**Likely fixes:**
+1. 8-seat audio mixer: WebRTC AGC + NS + AEC tuned for music (lower NS aggressiveness)
+2. Seat-level VAD events throttled to 200ms (currently every frame)
+3. Foreground service type `microphone`
+4. Bluetooth headset auto-route for hosts on seat
+5. Background music ducking when speaker active
 
-## Verification
-- Owner test account: create PK request from one stream, accept from second account, confirm battle starts without 3.6s gap.
-- Two-acceptor race: open three preview tabs (1 challenger + 2 hosts), confirm second acceptor sees "Match taken" toast.
-- No-accept timeout: send random invite to empty pool, confirm "No host accepted" toast after 25s.
-- Cancel: send invite, hit cancel, confirm receiving hosts' notifications disappear.
+**Research-first:** Bigo Live multi-guest / Poppo party room audio routing.
+
+---
+
+## Phase 7 — Viewer-side Professional Upgrade
+
+**This is biggest research phase.** Scope (cross-cuts Live + Party + Private Call viewer experience):
+
+### 7a — In-screen chat/message option
+- How Chamet/Bigo render chat overlay: bottom-anchored, max-height 35vh, gradient mask on top, auto-scroll with "new message" pill
+- Pagination: keep last 50 in DOM, virtualize older
+- Mention/reply UX, gift-message inline rendering, system messages styling
+- **Current state audit** → gap list → JS-only fixes (Phase 7 is mostly React, design preserved as-is unless gap)
+
+### 7b — Viewer join system
+- Soft join (lurker mode) vs broadcast join (system message + entry animation)
+- Throttle: ≥level X gets entry animation, others silent (Chamet pattern)
+- Server-side dedupe: same user re-join within 60s = no system message
+- "Viewer count" debouncing (don't flicker on every join/leave)
+- Verify against current `stream_viewers` upsert + Realtime sub
+
+### 7c — Entry animation system
+- Industry-standard naming already enforced (Premium Entry / Standard Entry / Flying Name Bar / Vehicle Entrance / Welcome Chat)
+- Queue priority + cooldown per user (15s) — prevents spam
+- VIP/Noble tier always-show vs normal users one-per-session
+- Android native dispatcher (Phase A done) → Phase B JS shim wire-up
+- Cross-room consistency: Live + Party + (newly added) Private Call viewer entrance
+
+**Research-first:** subagent on Chamet/Bigo/Poppo/HiiClub viewer overlay UX with screenshots/docs cited.
+
+---
+
+## Phase 8 (last, on user request) — APK build + error iteration
+
+User provides SSH/build access → build → ship to test device → I fix any compile/runtime errors that surface।
+
+---
+
+## Execution rules I'll honor
+
+1. **Each phase: research subagent first** (Chamet/Bigo/Poppo/Olamet citations), update `.lovable/plan.md` with verified numbers, THEN code
+2. **No web UI redesign** without explicit ask
+3. **English-only strings** in code
+4. **Owner account verify** every Lovable-side change; "APK rebuild needed" tag for pure-Android
+5. **Honest gap report** at end of each phase — no false "100% done" claims
+6. **One phase at a time** — finish + verify, then ask "next?" before starting the following phase
+
+---
+
+## I need your confirm on:
+
+- ✅ **Approve plan as-is** → I start Phase 4 (Private Call 10 Android files) immediately with research subagent
+- 🔧 **Re-order** → bolun কোন Phase আগে চান (e.g., Live streaming আগে?)
+- ➕ **Add** → কিছু missing থাকলে বলুন
