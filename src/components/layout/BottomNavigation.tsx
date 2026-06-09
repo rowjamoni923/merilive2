@@ -368,7 +368,11 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   />
 
                   {item.path === '/profile' && unreadCounts.total > 0 && (
-                    <span
+                    <motion.span
+                      key={unreadCounts.total}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 600, damping: 14 }}
                       className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-white text-[8px] font-bold rounded-full flex items-center justify-center z-20"
                       style={{
                         background: 'linear-gradient(135deg,#ef4444,#ec4899)',
@@ -376,7 +380,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       }}
                     >
                       {formatBadgeCount(unreadCounts.total)}
-                    </span>
+                    </motion.span>
                   )}
                 </div>
 
