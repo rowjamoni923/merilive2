@@ -299,6 +299,8 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
     );
   };
 
+  if (skipForNative) return null;
+
   return (
     <div 
       className="pointer-events-none overflow-hidden"
