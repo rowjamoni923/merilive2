@@ -389,6 +389,10 @@ class LiveKitPlugin : Plugin() {
         // Phase III.c — host flag. Live host (broadcastMode=live) and party host
         // get a 60s background grace window before the room is torn down.
         val isHost: Boolean = false,
+        // Phase 5 — pure viewer rooms with paginated/grid tiles (HiiClub/Olamet pattern)
+        // pass autoSubscribe=false; JS then calls setSubscribed(true) only on visible tiles.
+        // Defaults to true for backward-compat (1-broadcaster live and private call).
+        val autoSubscribe: Boolean = true,
     )
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
