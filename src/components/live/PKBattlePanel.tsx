@@ -30,6 +30,10 @@ interface PKBattlePanelProps {
   currentUserAvatar: string;
   currentUserLevel: number;
   onBattleStarted: (battleId: string, opponentInfo: LiveHost) => void;
+  // R6a: random-match flow lifted to LiveStream so the listener survives
+  // panel close, plus the challenger can cancel and see a "Searching…" pill.
+  onStartRandomMatch?: () => void;
+  isRandomSearching?: boolean;
 }
 
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
@@ -43,6 +47,8 @@ export const PKBattlePanel = ({
   currentUserAvatar,
   currentUserLevel,
   onBattleStarted,
+  onStartRandomMatch,
+  isRandomSearching = false,
 }: PKBattlePanelProps) => {
   const [liveHosts, setLiveHosts] = useState<LiveHost[]>([]);
   const [loading, setLoading] = useState(true);
