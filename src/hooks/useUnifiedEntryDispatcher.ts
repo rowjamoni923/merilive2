@@ -236,6 +236,52 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     if (queueRef.current.length > 0) scheduleDrain();
   }
 
+  /**
+   * Strip premium full-screen URLs from a payload, leaving the flying
+   * name bar + welcome chat metadata intact. Used when game suppression
+   * is active so the gamer still sees "who arrived" without a dragon
+   * covering the Ludo board.
+   */
+  function stripPremium(p: PushEntryParams): PushEntryParams {
+    return {
+      ...p,
+      vehicleAnimationUrl: undefined,
+      entranceUrl: undefined,
+      soundUrl: undefined,
+    };
+  }
+
+  function hasPremium(p: PushEntryParams): boolean {
+    return !!(p.vehicleAnimationUrl || p.entranceUrl);
+  }
+
+  function armSuppressedAutoFlush() {
+    if (suppressedFlushTimerRef.current) return;
+    suppressedFlushTimerRef.current = setTimeout(() => {
+      suppressedFlushTimerRef.current = null;
+      flushSuppressedInternal('auto');
+    }, suppressedAutoFlushMs);
+  }
+
+  function flushSuppressedInternal(reason: 'auto' | 'manual') {
+    const held = suppressedQueueRef.current;
+    if (held.length === 0) return;
+    console.log(
+      `[UnifiedEntryDispatcher] 🎮 Flushing ${held.length} suppressed premium entr${held.length === 1 ? 'y' : 'ies'} (${reason})`,
+    );
+    // Merge held entries back into the main priority queue. They'll be
+    // ordered by rank during drain, so a Duke held during the round
+    // still cuts the line at flush time.
+    for (const q of held) queueRef.current.push(q);
+    suppressedQueueRef.current = [];
+    if (suppressedFlushTimerRef.current) {
+      clearTimeout(suppressedFlushTimerRef.current);
+      suppressedFlushTimerRef.current = null;
+    }
+    coalesceIfOverloaded();
+    scheduleDrain();
+  }
+
   const pushEntry = useCallback((params: PushEntryParams) => {
     if (!params?.userId) return;
 
@@ -243,24 +289,51 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     const lastSeen = userSeenRef.current.get(params.userId);
     const isFreshUser = !lastSeen || now - lastSeen > userDedupWindowMs;
 
-    // Always record latest seen-at so a quiet user's re-entry resets fresh
-    // after the window elapses.
     userSeenRef.current.set(params.userId, now);
 
     if (isFreshUser) {
-      // Drop any already-queued entry for the same user (newer payload
-      // wins — typically the richer Realtime broadcast supersedes the
-      // bare LiveKit ParticipantConnected payload).
+      // Drop any already-queued entry for the same user (newer payload wins).
       queueRef.current = queueRef.current.filter(
         (q) => q.params.userId !== params.userId,
       );
-      queueRef.current.push({
-        params,
-        rank: rankOf(params),
-        enqueuedAt: now,
-      });
-      coalesceIfOverloaded();
-      scheduleDrain();
+      suppressedQueueRef.current = suppressedQueueRef.current.filter(
+        (q) => q.params.userId !== params.userId,
+      );
+
+      const premiumHeld = suppressPremiumRef.current && hasPremium(params);
+
+      if (premiumHeld) {
+        // Park the premium portion; immediately play the lightweight
+        // flying name bar (if any) via a stripped payload.
+        suppressedQueueRef.current.push({
+          params,
+          rank: rankOf(params),
+          enqueuedAt: now,
+        });
+        while (suppressedQueueRef.current.length > suppressedMaxQueue) {
+          suppressedQueueRef.current.shift();
+        }
+        armSuppressedAutoFlush();
+
+        const lite = stripPremium(params);
+        if (lite.entryNameBarUrl) {
+          queueRef.current.push({
+            params: lite,
+            rank: rankOf(lite),
+            enqueuedAt: now,
+          });
+          coalesceIfOverloaded();
+          scheduleDrain();
+        }
+      } else {
+        queueRef.current.push({
+          params,
+          rank: rankOf(params),
+          enqueuedAt: now,
+        });
+        coalesceIfOverloaded();
+        scheduleDrain();
+      }
     }
     // else: dedup window still active — silently swallow.
 
@@ -273,10 +346,29 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
         avatarUrl: params.avatarUrl,
       });
     }
-  }, [userDedupWindowMs, minEntryGapMs, coalesceDepthThreshold, inner]);
+  }, [userDedupWindowMs, minEntryGapMs, coalesceDepthThreshold, suppressedAutoFlushMs, suppressedMaxQueue, inner]);
 
   const flushWelcome = useCallback(() => {
     coalescerRef.current?.flush();
+  }, []);
+
+  /**
+   * Phase 4: host calls this at round end / `between_rounds` to release
+   * any premium entries held while gameplay was active. Safe to call
+   * even when nothing is held.
+   */
+  const flushSuppressed = useCallback(() => {
+    flushSuppressedInternal('manual');
+  }, []);
+
+  /**
+   * Phase 4: runtime toggle so a game panel can flip suppression on
+   * `round_start` and off at `round_end`. Turning OFF automatically
+   * flushes any held entries.
+   */
+  const setSuppressPremium = useCallback((on: boolean) => {
+    suppressPremiumRef.current = on;
+    if (!on) flushSuppressedInternal('manual');
   }, []);
 
   const forgetUser = useCallback((userId: string) => {
@@ -284,14 +376,22 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     queueRef.current = queueRef.current.filter(
       (q) => q.params.userId !== userId,
     );
+    suppressedQueueRef.current = suppressedQueueRef.current.filter(
+      (q) => q.params.userId !== userId,
+    );
   }, []);
 
   const clearAll = useCallback(() => {
     userSeenRef.current.clear();
     queueRef.current = [];
+    suppressedQueueRef.current = [];
     if (drainTimerRef.current) {
       clearTimeout(drainTimerRef.current);
       drainTimerRef.current = null;
+    }
+    if (suppressedFlushTimerRef.current) {
+      clearTimeout(suppressedFlushTimerRef.current);
+      suppressedFlushTimerRef.current = null;
     }
     coalescerRef.current?.dispose();
     inner.clearAllAnimations();
@@ -308,6 +408,14 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     /** Back-compat alias so existing call sites keep working. */
     addEntryAnimation: pushEntry,
     flushWelcome,
+    flushSuppressed,
+    setSuppressPremium,
+    forgetUser,
+    clearAll,
+  }), [inner, pushEntry, flushWelcome, flushSuppressed, setSuppressPremium, forgetUser, clearAll]);
+}
+
+export default useUnifiedEntryDispatcher;
     forgetUser,
     clearAll,
   }), [inner, pushEntry, flushWelcome, forgetUser, clearAll]);
