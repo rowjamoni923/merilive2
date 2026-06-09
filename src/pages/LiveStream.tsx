@@ -99,7 +99,7 @@ import { cn } from "@/lib/utils";
 // UNIFIED ENTRY ANIMATION - Same architecture as Gift System
 import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
 import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
-import { useEntryAnimations } from "@/hooks/useEntryAnimations";
+import { useUnifiedEntryDispatcher } from "@/hooks/useUnifiedEntryDispatcher";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { CallButton } from "@/components/call/CallButton";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
@@ -447,13 +447,17 @@ const LiveStream = () => {
   // ==================== UNIFIED ENTRY ANIMATION SYSTEM ====================
   // Same queue-based architecture as Gift System
   // Shows ONE animation at a time, priority: Vehicle > Entrance > NameBar
-  const { 
-    entryAnimations, 
+  const {
+    entryAnimations,
     nameBarAnimations,
-    addEntryAnimation, 
+    addEntryAnimation,
     removeEntryAnimation,
     removeNameBarAnimation,
-  } = useEntryAnimations();
+  } = useUnifiedEntryDispatcher({
+    roomId: id ?? 'unknown',
+    roomType: 'live',
+    selfUserId: currentUserId,
+  });
 
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
