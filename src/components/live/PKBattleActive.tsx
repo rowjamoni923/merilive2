@@ -145,7 +145,7 @@ export const PKBattleActive = ({
 
 
   // PK Battle Step 3: derive timeLeft from server timestamps every second.
-  // No client-side battle ending — pk-battle-tick cron handles it server-side.
+  // When timer hits 0, call request_pk_battle_end for instant server sync (R5 fix).
   useEffect(() => {
     if (battleEnded || !serverStartedAt) return;
     const endTs = serverStartedAt + serverDurationSec * 1000;
@@ -157,6 +157,22 @@ export const PKBattleActive = ({
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [serverStartedAt, serverDurationSec, battleEnded]);
+
+  // R5: when client timer reaches 0, nudge the server to end immediately
+  // instead of waiting for the 10s cron tick.
+  const hasRequestedEndRef = useRef(false);
+  useEffect(() => {
+    if (timeLeft === 0 && battleId && !battleEnded && !hasRequestedEndRef.current) {
+      hasRequestedEndRef.current = true;
+      supabase.rpc("request_pk_battle_end", { p_battle_id: battleId })
+        .then(({ data, error }) => {
+          if (error) console.warn("[PK] request_pk_battle_end failed:", error);
+          else if (data?.ok) console.log("[PK] request_pk_battle_end:", data);
+          else console.log("[PK] request_pk_battle_end declined:", data?.reason);
+        })
+        .catch((e) => console.warn("[PK] request_pk_battle_end exception:", e));
+    }
+  }, [timeLeft, battleId, battleEnded]);
 
   // Step 4: punishment countdown for the loser side (server-anchored).
   // P3 leak guard: clamp pathological `punishment_end_ts` values (server bug
