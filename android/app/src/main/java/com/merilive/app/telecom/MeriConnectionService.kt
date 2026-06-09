@@ -228,4 +228,54 @@ class MeriConnection(
         // No-op: MeriFirebaseMessagingService already launched
         // IncomingCallActivity + posted the CallStyle notification.
     }
+
+    /**
+     * Telecom asks us to hold (typical trigger: a PSTN call comes in while
+     * our VoIP call is active — call-waiting). We must:
+     *   1) Mark the Connection HELD so the system can route audio to the
+     *      other call.
+     *   2) Mute local mic + camera so the held call stops uploading media.
+     *   3) Notify JS so the in-call UI can reflect the held state.
+     * Remote media keeps flowing — LiveKit handles the subscriber side.
+     */
+    override fun onHold() {
+        super.onHold()
+        try { setOnHold() } catch (_: Throwable) {}
+        try {
+            val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+            val lp = room?.localParticipant
+            if (lp != null) {
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    runCatching { lp.setMicrophoneEnabled(false) }
+                    if (callType == "video") {
+                        runCatching { lp.setCameraEnabled(false) }
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "hold")
+    }
+
+    /**
+     * Telecom resumes us after the interrupting call ends or the user manually
+     * unholds from system controls. Restore mic (and camera for video calls)
+     * and tell JS to re-enable any UI state we toggled on hold.
+     */
+    override fun onUnhold() {
+        super.onUnhold()
+        try { setActive() } catch (_: Throwable) {}
+        try {
+            val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+            val lp = room?.localParticipant
+            if (lp != null) {
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    runCatching { lp.setMicrophoneEnabled(true) }
+                    if (callType == "video") {
+                        runCatching { lp.setCameraEnabled(true) }
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+        NativeCallPlugin.dispatch(ctx, callId, callerId, callerName, callType, "unhold")
+    }
 }
