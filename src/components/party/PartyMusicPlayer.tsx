@@ -47,8 +47,15 @@ export const PartyMusicPlayer = ({ isOpen, onClose, isHost }: PartyMusicPlayerPr
   const [duration, setDuration] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  // F-6.1 — BGM ducking. Native `lk:local-vad-changed` fires when the host
+  // speaks (Bigo/Hollah pattern). We drop the music to ~10% of the user-set
+  // volume while speaking, restore on silence. The slider value is preserved;
+  // only the underlying audio.volume is ducked.
+  const [isDucked, setIsDucked] = useState(false);
+  const userVolumeRef = useRef(80);
 
   const currentTrack = currentTrackIndex !== null ? tracks[currentTrackIndex] : null;
+
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
