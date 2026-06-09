@@ -402,7 +402,28 @@ const PartyRoom = () => {
         ? 'game_party'
         : 'video_party',
     selfUserId: currentUser?.id,
+    onWelcomeRow: (out) => {
+      // Phase 5: coalesced welcome chat row (Bigo/Chamet parity).
+      const suffix =
+        out.othersCount <= 0
+          ? 'joined the room ✨'
+          : out.othersCount === 1
+            ? 'and 1 other joined the room ✨'
+            : `and ${out.othersCount} others joined the room ✨`;
+      setMessages(prev => [...prev, {
+        id: `welcome_${out.primary.userId}_${Date.now()}`,
+        user_id: out.primary.userId,
+        message: suffix,
+        created_at: new Date().toISOString(),
+        type: 'system',
+        user: {
+          display_name: out.primary.userName,
+          avatar_url: out.primary.avatarUrl,
+        },
+      } as ChatMessage]);
+    },
   });
+
   
   // Bigo-style flying join notifications for party room
   const { 
