@@ -466,7 +466,7 @@ export function detectContactInfo(text: string): DetectionResult {
   for (const keyword of CONTACT_KEYWORDS) {
     if (lowerText.includes(keyword.toLowerCase())) {
       const hasNumber = /\d{5,}/.test(processedText);
-      const hasHandle = /@[a-zA-Z0-9._]+/.test(text);
+      const hasHandle = /@[a-zA-Z0-9._]+/.test(normalized);
       if (hasNumber || hasHandle) {
         return {
           hasViolation: true,
