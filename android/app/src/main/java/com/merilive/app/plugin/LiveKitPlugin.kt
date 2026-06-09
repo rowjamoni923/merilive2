@@ -2863,7 +2863,7 @@ class LiveKitPlugin : Plugin() {
         val windowStart = if (reconnectingSinceMs > 0) reconnectingSinceMs
                           else System.currentTimeMillis()
         if (System.currentTimeMillis() - windowStart > 60_000L ||
-            hardReconnectAttempts >= 3
+            hardReconnectAttempts >= HARD_RECONNECT_BACKOFFS_MS.size
         ) {
             val data = JSObject()
             data.put("state", "lost")
@@ -2881,8 +2881,12 @@ class LiveKitPlugin : Plugin() {
             // to launch a second hard-reconnect coroutine.
             var willRetry = false
             try {
-                // Exponential backoff — 3 s, 6 s, 12 s.
-                val backoffMs = 3_000L * (1L shl hardReconnectAttempts)
+                // Phase 5 — tightened backoff ladder (Chamet/Bigo/WebRTC pattern):
+                // 250ms → 500ms → 1s → 2s → 4s → 8s with ±100ms jitter to avoid
+                // thundering-herd reconnect storms when the SFU restarts.
+                val baseMs = HARD_RECONNECT_BACKOFFS_MS[hardReconnectAttempts]
+                val jitterMs = (-100..100).random().toLong()
+                val backoffMs = (baseMs + jitterMs).coerceAtLeast(100L)
                 Log.w(TAG, "Hard reconnect attempt ${hardReconnectAttempts + 1} in ${backoffMs}ms (trigger=$trigger)")
                 delay(backoffMs)
                 hardReconnectAttempts += 1
