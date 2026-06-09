@@ -119,6 +119,10 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        // Phase 5 — hard-reconnect backoff ladder (ms).
+        // 250 → 500 → 1000 → 2000 → 4000 → 8000 (6 attempts, ~16 s budget),
+        // matches WebRTC / Chamet / Bigo industry default. Jitter added at call site.
+        private val HARD_RECONNECT_BACKOFFS_MS = longArrayOf(250L, 500L, 1_000L, 2_000L, 4_000L, 8_000L)
         @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
