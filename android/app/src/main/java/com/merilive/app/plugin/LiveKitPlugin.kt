@@ -401,6 +401,14 @@ class LiveKitPlugin : Plugin() {
     private var lastConnectArgs: ConnectArgs? = null
     private var reconnectWatchdogJob: Job? = null
     private var reconnectingSinceMs: Long = 0L
+    // Phase 6 — 150ms audio-level poll job. LiveKit server emits
+    // ActiveSpeakers only ~once per second (too slow for smooth seat-ring
+    // animation). Industry standard (Yalla/MICO/Bigo) is a 150–200ms client
+    // poll of Participant.audioLevel for fine-grained ring pulse, with
+    // ActiveSpeakers reserved for the "currently speaking" badge.
+    private var audioLevelPollJob: Job? = null
+    private var lastLocalSpeaking: Boolean = false
+    private var lastLocalVadOnsetMs: Long = 0L
     private var hardReconnectAttempts: Int = 0
     private var hardReconnectInProgress: Boolean = false
     private var resilienceEnabled: Boolean = true
