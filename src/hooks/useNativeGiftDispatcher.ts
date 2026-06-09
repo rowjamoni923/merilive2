@@ -27,6 +27,8 @@ import {
   tryEnqueueNativeGift,
 } from '@/plugins/NativeGiftAnimation';
 import { resolveGiftAsset } from '@/native/giftAssetCache';
+import { setNativeGiftPipelineActive } from '@/utils/nativeAnimRuntime';
+import type { GiftSentDetail } from '@/lib/livekitGiftSignaling';
 
 interface DispatchDetail {
   giftId: string;
