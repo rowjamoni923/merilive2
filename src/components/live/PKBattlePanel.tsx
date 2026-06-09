@@ -457,8 +457,8 @@ export const PKBattlePanel = ({
           >
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={sendRandomPKRequest}
-              disabled={sendingRandom}
+              onClick={handleRandomMatchClick}
+              disabled={sendingRandom || isRandomSearching}
               className="w-full h-12 relative overflow-hidden text-white font-bold rounded-2xl text-base flex items-center justify-center gap-2 disabled:opacity-70"
               style={{
                 background: 'linear-gradient(95deg, #f59e0b 0%, #f97316 50%, #ec4899 100%)',
@@ -473,13 +473,13 @@ export const PKBattlePanel = ({
                   animation: 'giftSendShine 2.6s ease-in-out infinite',
                 }}
               />
-              {sendingRandom ? (
+              {sendingRandom || isRandomSearching ? (
                 <Loader2 className="w-5 h-5 animate-spin relative z-10" />
               ) : (
                 <Shuffle className="w-5 h-5 relative z-10" />
               )}
               <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-                {sendingRandom ? "Sending..." : "Random Match"}
+                {isRandomSearching ? "Searching..." : sendingRandom ? "Sending..." : "Random Match"}
               </span>
             </motion.button>
             <div className="flex items-center justify-center gap-1.5">
