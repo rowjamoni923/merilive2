@@ -12,6 +12,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.merilive.app.plugin.NativeCallPlugin
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Pkg208 — Self-Managed ConnectionService.
