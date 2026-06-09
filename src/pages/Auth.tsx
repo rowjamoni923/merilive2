@@ -2096,6 +2096,7 @@ const Auth = () => {
         title: "Code Resent",
         description: `A new verification code has been sent to ${email}`,
       });
+      startResendCountdown();
     } catch (error: any) {
       toast({
         title: "Error",
