@@ -60,6 +60,11 @@ Last audited: 2026-06-08 (Phase II audit). Original memory said "100% broken" �
 ## Fixed 2026-06-08 (Phase II)
 - ✅ R1 (BUG, P0): `LiveStream.tsx` direct-invite accept used raw client UPDATE → race window allowed double-accept from two devices. Replaced with `accept_pk_battle` RPC. Race-free under SELECT FOR UPDATE.
 
+## Fixed 2026-06-09 (P0 bundle)
+- ✅ Tie tolerance: `end_pk_battle` treats `|challenger_score - opponent_score| ≤ 10` as draw (rounding window). Configurable via `_tie_tolerance` local.
+- ✅ Duration presets [180/300/600]s: segmented selector in `PKBattlePanel` → forwarded to both `start_pk_battle` (direct) and `start_pk_battle_random` via `randomPKSearching.durationSeconds`.
+- ✅ Per-user PK stats: `profiles.pk_wins / pk_losses / pk_draws / pk_current_streak / pk_longest_streak / pk_total_battles`. Auto-updated in `end_pk_battle`. **UI card NOT added yet** (design-sacred — awaiting explicit OK).
+
 ## Deferred (low-priority cleanup)
 - R2: Drop `pk_battle_gifts.receiver_id` dead column
 - R3: Drop unused `pk_match_queue` table + 3 RPCs
