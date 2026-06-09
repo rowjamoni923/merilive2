@@ -392,6 +392,8 @@ const EntryBarAnimation = ({
     bottom: 'bottom-32',
   };
 
+  if (skipForNative) return null;
+
   return (
     <AnimatePresence>
       {isVisible && (
