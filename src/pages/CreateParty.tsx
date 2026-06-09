@@ -794,6 +794,22 @@ const CreateParty = () => {
             <Wand2 className="w-7 h-7 text-white" />
           </motion.button>
 
+          {/* PR-2.2 — Room Lock / Entry Fee Button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowRoomLockSheet(true)}
+            className={cn(
+              "w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-amber-200/60 relative",
+              (roomPassword.trim() || roomEntryFee > 0) && "ring-2 ring-amber-300/80"
+            )}
+            aria-label="Room access"
+          >
+            <Lock className="w-6 h-6 text-white" />
+            {(roomPassword.trim() || roomEntryFee > 0) && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-300 border border-purple-900" />
+            )}
+          </motion.button>
+
           {/* Let's Party Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
