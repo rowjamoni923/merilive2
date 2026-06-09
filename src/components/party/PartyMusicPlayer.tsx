@@ -47,8 +47,15 @@ export const PartyMusicPlayer = ({ isOpen, onClose, isHost }: PartyMusicPlayerPr
   const [duration, setDuration] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  // F-6.1 — BGM ducking. Native `lk:local-vad-changed` fires when the host
+  // speaks (Bigo/Hollah pattern). We drop the music to ~10% of the user-set
+  // volume while speaking, restore on silence. The slider value is preserved;
+  // only the underlying audio.volume is ducked.
+  const [isDucked, setIsDucked] = useState(false);
+  const userVolumeRef = useRef(80);
 
   const currentTrack = currentTrackIndex !== null ? tracks[currentTrackIndex] : null;
+
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,13 +145,32 @@ export const PartyMusicPlayer = ({ isOpen, onClose, isHost }: PartyMusicPlayerPr
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
+    userVolumeRef.current = newVolume;
     if (audioRef.current) {
-      audioRef.current.volume = newVolume / 100;
+      // Preserve duck state — apply 10% scale while ducked.
+      audioRef.current.volume = (isDucked ? newVolume * 0.1 : newVolume) / 100;
     }
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
     }
   };
+
+  // F-6.1 — listen for native VAD transitions and duck/restore BGM. Web
+  // sessions never receive `lk:local-vad-changed` so this is a no-op there.
+  useEffect(() => {
+    const onVad = (ev: Event) => {
+      const speaking = !!(ev as CustomEvent).detail?.speaking;
+      setIsDucked(speaking);
+      if (audioRef.current && !isMuted) {
+        const target = speaking ? userVolumeRef.current * 0.1 : userVolumeRef.current;
+        audioRef.current.volume = target / 100;
+      }
+    };
+    window.addEventListener('lk:local-vad-changed', onVad);
+    return () => window.removeEventListener('lk:local-vad-changed', onVad);
+  }, [isMuted]);
+
+
 
   // Toggle mute
   const toggleMute = () => {

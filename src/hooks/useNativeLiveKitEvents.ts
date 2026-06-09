@@ -348,6 +348,68 @@ export function useNativeLiveKitEvents(
         if (cancelled) { participantName.remove(); return; }
         subs.push(participantName);
 
+        // F-5.4 — SFU rejected the current JWT (DisconnectReason.TOKEN_EXPIRED).
+        // Hard-reconnect with a stale JWT would re-fail, so the token-refresh
+        // helper listens for this window event and triggers fetch + reconnectNow.
+        const tokenExpired = await NativeLiveKit.addListener(
+          'token-expired' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:token-expired', {
+                detail: { reason: e?.reason ?? 'token-expired' },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { tokenExpired.remove(); return; }
+        subs.push(tokenExpired);
+
+        // F-6.1 — local-mic VAD transition (smoothed, 500ms silence hold).
+        // BGM players (PartyMusicPlayer) duck to ~-20dB while speaking:true.
+        const localVad = await NativeLiveKit.addListener(
+          'local-vad-changed' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:local-vad-changed', {
+                detail: { speaking: !!e?.speaking, level: typeof e?.level === 'number' ? e.level : 0 },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { localVad.remove(); return; }
+        subs.push(localVad);
+
+        // F-6.2 — per-participant audio levels (150ms poll) for seat ring pulse.
+        const seatLevels = await NativeLiveKit.addListener(
+          'seat-audio-levels' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:seat-audio-levels', {
+                detail: { levels: e?.levels ?? {} },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { seatLevels.remove(); return; }
+        subs.push(seatLevels);
+
+        // F-6.1 — BT SCO request rejected because audioProfile=music
+        // (SCO caps at 16 kHz). Native fell back to speaker; surface for UI toast.
+        const routeBlocked = await NativeLiveKit.addListener(
+          'audio-route-blocked' as any,
+          (e: any) => {
+            try {
+              window.dispatchEvent(new CustomEvent('lk:audio-route-blocked', {
+                detail: { reason: e?.reason, requested: e?.requested, fallback: e?.fallback },
+              }));
+            } catch { /* noop */ }
+          },
+        );
+        if (cancelled) { routeBlocked.remove(); return; }
+        subs.push(routeBlocked);
+
+
+
 
 
       } catch (err) {
