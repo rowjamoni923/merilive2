@@ -1,39 +1,26 @@
 /**
- * useUnifiedEntryDispatcher — Phase 1 of the entrance-effects pro-rebuild.
+ * useUnifiedEntryDispatcher — Phase 1 + Phase 2 of the entrance-effects
+ * pro-rebuild.
  *
- * Goal (Chamet / Bigo / Poppo parity): every room type (Live Stream,
- * Audio Party, Video Party, Game Party) must funnel ALL of its entry-event
- * sources through ONE dispatcher so an arriving viewer triggers AT MOST
- * ONE Premium Entry Effect + ONE Flying Name Bar, regardless of how many
- * code paths discover them in parallel.
+ * Phase 1 (G2 fix): single funnel + userId dedup across LiveKit / Realtime /
+ * initial-fetch races so an arriving viewer triggers AT MOST one Premium
+ * Entry Effect + one Flying Name Bar.
  *
- * Background (audit gap G2):
- *   `LiveStream.tsx` calls `addEntryAnimation` from three places:
- *     1. initial viewers fetch (cold mount, full payload)
- *     2. LiveKit `ParticipantConnected` (instant, partial payload — no URLs)
- *     3. Supabase Realtime `stream_viewers` insert broadcast (full payload)
- *   `PartyRoom.tsx` has FOUR call sites.
- *   The existing `useEntryAnimations` signature dedup only catches
- *   *identical* payloads, so paths 2 and 3 (different URL completeness)
- *   each fire their own animation → user sees the same entry twice.
+ * Phase 2 (G3 fix — Bigo/Chamet/Poppo parity): rank-priority queue.
+ *   - Incoming entries are buffered, not fired immediately.
+ *   - A 0.5 s flush tick (industry "min entry gap") drains the buffer one
+ *     entry at a time, highest rank first (king → duke → marquis → baron →
+ *     knight → noble → none).
+ *   - When buffer depth exceeds 3, identical-rank entries collapse: only
+ *     the most recent per rank survives. This prevents a 10-viewer Lv2
+ *     burst from monopolising the screen for 30 s and ensures a single
+ *     Duke arrival cuts the line. (Phase 3 adds visible "+N others"
+ *     overflow on the flying name bar.)
+ *   - Vehicle-equipped entries are bumped up one rank tier — Bigo treats
+ *     a vehicle as a soft Duke even if the user has no Noble title.
  *
- * Fix: this dispatcher remembers `userId` keys for a long window (default
- * 60 s — Bigo / Chamet stay quiet for the full Noble entry cooldown) and
- * collapses any subsequent call for the same userId. A richer follow-up
- * payload (e.g. realtime broadcast brings the entranceUrl that LiveKit
- * didn't have) is allowed to *upgrade* the first animation in flight, but
- * never to enqueue a second one.
- *
- * Returned shape is a drop-in superset of `useEntryAnimations` so call
- * sites only need to swap the import + the hook call.
- *
- * Phase 1 scope: dedup only.
- *   Phase 2 = rank-priority queue,
- *   Phase 3 = name-bar 3-cap + "+N others" overflow,
- *   Phase 4 = game-round suppression,
- *   Phase 5 = welcome chat coalescer wiring (uses `coalescer` ref below),
- *   Phase 6 = server-batched viewer count.
- * Those phases extend this hook without breaking the public API.
+ * Phase 5 hook (welcome chat coalescer) and Phase 4 hook (game-round
+ * suppression) extend this dispatcher without breaking the public API.
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -54,35 +41,56 @@ export type EntryRoomType =
   | 'game_party';
 
 export interface UnifiedEntryDispatcherOptions {
-  /** Stable room identifier — used to namespace the user-dedup map so re-mounts (same user re-enters another room) don't get blocked. */
   roomId: string;
-  /** Which room type — drives Phase 4 game-suppression hooks (no-op in Phase 1). */
   roomType: EntryRoomType;
-  /** Current logged-in user — coalescer bypasses self-joins for instant local feedback. */
   selfUserId?: string | null;
-  /**
-   * Phase 5 hook: receives coalesced welcome-row payloads. Pass `undefined`
-   * in Phase 1 — the coalescer still exists internally but emits nowhere.
-   */
   onWelcomeRow?: (out: CoalescedJoin) => void;
-  /** Welcome burst window (ms). Defaults to 500 ms — Whatnot-style sliding window. */
   welcomeWindowMs?: number;
-  /**
-   * How long to remember a userId after pushing their entry. Subsequent
-   * pushes for the same userId within this window collapse silently
-   * (animation already played / queued). Default 60 s, matching the
-   * Noble re-entry cooldown observed on Bigo.
-   */
+  /** How long to remember a userId after pushing. Default 60 s. */
   userDedupWindowMs?: number;
+  /** Min gap between two queue dispatches. Default 500 ms (Bigo/Chamet). */
+  minEntryGapMs?: number;
+  /** Buffer depth past which identical-rank entries collapse. Default 3. */
+  coalesceDepthThreshold?: number;
 }
 
 export interface PushEntryParams extends AddEntryParams {
-  /**
-   * When true, also enqueue a welcome chat row via the internal
-   * coalescer. Leave undefined to keep welcome handling at the call
-   * site (Phase 1 default — call sites still own their chat dispatch).
-   */
   withWelcome?: boolean;
+}
+
+/**
+ * Industry rank → numeric priority. Higher = dispatched first.
+ * Mirrors Bigo / Chamet Noble tiers. Unknown / missing codes fall to 0.
+ * Vehicle-equipped entries get a +1 soft bump (handled at enqueue time).
+ */
+const RANK_PRIORITY: Record<string, number> = {
+  king: 60,
+  emperor: 60,
+  duke: 50,
+  marquis: 40,
+  earl: 35,
+  count: 35,
+  baron: 30,
+  viscount: 25,
+  knight: 20,
+  noble: 15,
+};
+
+function rankOf(p: PushEntryParams): number {
+  const code = (p.rankCode || '').toLowerCase().trim();
+  const base = RANK_PRIORITY[code] ?? 0;
+  // Vehicle-equipped → soft +5 (puts a vehicled commoner above a plain knight,
+  // below a plain duke). Bigo treats vehicle assets as visual nobility.
+  const vehicleBoost = p.vehicleAnimationUrl ? 5 : 0;
+  // Owning a flying name bar is a smaller signal — +1 tiebreaker only.
+  const nameBarBoost = p.entryNameBarUrl ? 1 : 0;
+  return base + vehicleBoost + nameBarBoost;
+}
+
+interface QueuedEntry {
+  params: PushEntryParams;
+  rank: number;
+  enqueuedAt: number;
 }
 
 export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
@@ -92,27 +100,28 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     onWelcomeRow,
     welcomeWindowMs = 500,
     userDedupWindowMs = 60_000,
+    minEntryGapMs = 500,
+    coalesceDepthThreshold = 3,
   } = opts;
 
   const inner = useEntryAnimations();
 
-  // userId -> last accepted-at ms. Persists across the lifetime of the
-  // room mount; namespaced implicitly because the hook re-creates on
-  // roomId change (consumers should pass a stable roomId).
   const userSeenRef = useRef<Map<string, number>>(new Map());
-
-  // The coalescer is created lazily and re-created if the welcome
-  // sink or window changes. It is safe to dispose on unmount.
   const coalescerRef = useRef<JoinCoalescer | null>(null);
 
+  // Phase 2 priority queue + drain machinery
+  const queueRef = useRef<QueuedEntry[]>([]);
+  const lastDispatchAtRef = useRef<number>(0);
+  const drainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ---- Welcome coalescer lifecycle ----
   useEffect(() => {
-    // Tear down any previous instance before installing a new one.
     coalescerRef.current?.dispose();
     coalescerRef.current = createJoinMessageCoalescer({
       windowMs: welcomeWindowMs,
       selfUserId: selfUserId ?? null,
       onEmit: (out) => {
-        try { onWelcomeRow?.(out); } catch { /* swallow — chat rows are best-effort */ }
+        try { onWelcomeRow?.(out); } catch { /* swallow */ }
       },
     });
     return () => {
@@ -122,20 +131,80 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     };
   }, [welcomeWindowMs, selfUserId, onWelcomeRow]);
 
-  // Reset the dedup map whenever we hop rooms — a viewer who saw your
-  // entry in Room A should still see it again when you walk into Room B.
+  // Reset state when hopping rooms.
   useEffect(() => {
     userSeenRef.current.clear();
-    return () => userSeenRef.current.clear();
+    queueRef.current = [];
+    if (drainTimerRef.current) {
+      clearTimeout(drainTimerRef.current);
+      drainTimerRef.current = null;
+    }
+    return () => {
+      userSeenRef.current.clear();
+      queueRef.current = [];
+      if (drainTimerRef.current) {
+        clearTimeout(drainTimerRef.current);
+        drainTimerRef.current = null;
+      }
+    };
   }, [roomId]);
 
   /**
-   * Single funnel for entry effects + welcome rows. Idempotent per
-   * `userId` within `userDedupWindowMs`. The inner `useEntryAnimations`
-   * still runs its own 5 s payload-signature dedup as a second line of
-   * defence (handles same-user re-entry within the long window when a
-   * room intentionally allows it, e.g. PK Battle merge).
+   * Collapse identical-rank entries when the buffer is overloaded. Keeps
+   * the most recently enqueued per rank (Bigo: "newest arrival wins the
+   * slot, older identical-rank arrivals merge into overflow"). Higher /
+   * lower rank entries are NEVER dropped — only ties are coalesced.
+   * Phase 3 will surface the dropped count as "+N others" on the bar.
    */
+  function coalesceIfOverloaded() {
+    const q = queueRef.current;
+    if (q.length <= coalesceDepthThreshold) return;
+    const seenRanks = new Set<number>();
+    const kept: QueuedEntry[] = [];
+    // Walk newest → oldest so newer arrivals win the slot.
+    for (let i = q.length - 1; i >= 0; i--) {
+      const item = q[i];
+      if (seenRanks.has(item.rank) && q.length > coalesceDepthThreshold) {
+        // Drop this older identical-rank entry. (Phase 3 will increment
+        // an overflow counter on the surviving entry of the same rank.)
+        continue;
+      }
+      seenRanks.add(item.rank);
+      kept.push(item);
+    }
+    kept.reverse();
+    queueRef.current = kept;
+  }
+
+  function scheduleDrain() {
+    if (drainTimerRef.current) return;
+    const now = Date.now();
+    const wait = Math.max(0, lastDispatchAtRef.current + minEntryGapMs - now);
+    drainTimerRef.current = setTimeout(drainOnce, wait);
+  }
+
+  function drainOnce() {
+    drainTimerRef.current = null;
+    const q = queueRef.current;
+    if (q.length === 0) return;
+
+    // Pick highest rank; on tie, oldest first (FIFO within rank).
+    let bestIdx = 0;
+    for (let i = 1; i < q.length; i++) {
+      if (q[i].rank > q[bestIdx].rank) bestIdx = i;
+    }
+    const [next] = q.splice(bestIdx, 1);
+
+    lastDispatchAtRef.current = Date.now();
+    try {
+      inner.addEntryAnimation(next.params);
+    } catch (e) {
+      console.warn('[UnifiedEntryDispatcher] inner dispatch failed', e);
+    }
+
+    if (queueRef.current.length > 0) scheduleDrain();
+  }
+
   const pushEntry = useCallback((params: PushEntryParams) => {
     if (!params?.userId) return;
 
@@ -143,15 +212,26 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     const lastSeen = userSeenRef.current.get(params.userId);
     const isFreshUser = !lastSeen || now - lastSeen > userDedupWindowMs;
 
+    // Always record latest seen-at so a quiet user's re-entry resets fresh
+    // after the window elapses.
+    userSeenRef.current.set(params.userId, now);
+
     if (isFreshUser) {
-      userSeenRef.current.set(params.userId, now);
-      inner.addEntryAnimation(params);
-    } else {
-      // Suppress duplicate — multi-source race (LiveKit + Realtime + fetch
-      // all firing for the same arrival). Still record the latest seen-at
-      // so a quiet user's re-entry resets fresh after the window elapses.
-      userSeenRef.current.set(params.userId, now);
+      // Drop any already-queued entry for the same user (newer payload
+      // wins — typically the richer Realtime broadcast supersedes the
+      // bare LiveKit ParticipantConnected payload).
+      queueRef.current = queueRef.current.filter(
+        (q) => q.params.userId !== params.userId,
+      );
+      queueRef.current.push({
+        params,
+        rank: rankOf(params),
+        enqueuedAt: now,
+      });
+      coalesceIfOverloaded();
+      scheduleDrain();
     }
+    // else: dedup window still active — silently swallow.
 
     if (params.withWelcome && coalescerRef.current) {
       coalescerRef.current.push({
@@ -162,34 +242,38 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
         avatarUrl: params.avatarUrl,
       });
     }
-  }, [inner, userDedupWindowMs]);
+  }, [userDedupWindowMs, minEntryGapMs, coalesceDepthThreshold, inner]);
 
-  /** Manually flush the welcome coalescer (e.g. before navigating away). */
   const flushWelcome = useCallback(() => {
     coalescerRef.current?.flush();
   }, []);
 
-  /** Forget a single user's dedup mark — used by tests / room reset flows. */
   const forgetUser = useCallback((userId: string) => {
     userSeenRef.current.delete(userId);
+    queueRef.current = queueRef.current.filter(
+      (q) => q.params.userId !== userId,
+    );
   }, []);
 
   const clearAll = useCallback(() => {
     userSeenRef.current.clear();
+    queueRef.current = [];
+    if (drainTimerRef.current) {
+      clearTimeout(drainTimerRef.current);
+      drainTimerRef.current = null;
+    }
     coalescerRef.current?.dispose();
     inner.clearAllAnimations();
   }, [inner]);
 
   return useMemo(() => ({
-    // Drop-in superset of useEntryAnimations
     entryAnimations: inner.entryAnimations,
     nameBarAnimations: inner.nameBarAnimations,
     removeEntryAnimation: inner.removeEntryAnimation,
     removeNameBarAnimation: inner.removeNameBarAnimation,
     hasActiveAnimation: inner.hasActiveAnimation,
-    // Phase-1 unified funnel
     pushEntry,
-    /** Back-compat alias so existing call sites keep working during the cut-over. */
+    /** Back-compat alias so existing call sites keep working. */
     addEntryAnimation: pushEntry,
     flushWelcome,
     forgetUser,
