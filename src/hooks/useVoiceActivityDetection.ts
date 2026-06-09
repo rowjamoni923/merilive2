@@ -19,7 +19,11 @@ export function useVoiceActivityDetection({
   const [silenceDuration, setSilenceDuration] = useState(0);
   
   const audioContextRef = useRef<AudioContext | null>(null);
-  const analyzersRef = useRef<Map<string, AnalyserNode>>(new Map());
+  // PR-2 (P1-2): track {source, analyser} pairs so we can disconnect both
+  // before rebuilding. Previously only AnalyserNode was tracked, leaving
+  // orphan MediaStreamSourceNodes pinned to the AudioContext on every
+  // peerStreams change — classic mobile WebView memory leak on long rooms.
+  const nodesRef = useRef<Map<string, { source: MediaStreamAudioSourceNode; analyser: AnalyserNode }>>(new Map());
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastVoiceTimeRef = useRef<number>(Date.now());
@@ -27,13 +31,21 @@ export function useVoiceActivityDetection({
   // Threshold for voice detection (0-255, typically 10-30 is good)
   const VOICE_THRESHOLD = 15;
 
+  const disconnectAll = useCallback(() => {
+    nodesRef.current.forEach(({ source, analyser }) => {
+      try { source.disconnect(); } catch { /* ignore */ }
+      try { analyser.disconnect(); } catch { /* ignore */ }
+    });
+    nodesRef.current.clear();
+  }, []);
+
   const checkVoiceActivity = useCallback(() => {
     if (!enabled) return false;
 
     let hasVoice = false;
     const dataArray = new Uint8Array(256);
 
-    analyzersRef.current.forEach((analyser) => {
+    nodesRef.current.forEach(({ analyser }) => {
       analyser.getByteFrequencyData(dataArray);
       const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
       if (average > VOICE_THRESHOLD) {
@@ -55,8 +67,7 @@ export function useVoiceActivityDetection({
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.3;
       source.connect(analyser);
-      analyzersRef.current.set(id, analyser);
-      console.log('[VoiceActivity] Analyzer setup for:', id);
+      nodesRef.current.set(id, { source, analyser });
     } catch (error) {
       console.error('[VoiceActivity] Error setting up analyzer:', error);
     }
@@ -66,8 +77,8 @@ export function useVoiceActivityDetection({
   useEffect(() => {
     if (!enabled) return;
 
-    // Clear old analyzers
-    analyzersRef.current.clear();
+    // PR-2 (P1-2): properly disconnect previous nodes before rebuilding.
+    disconnectAll();
 
     // Setup for local stream
     if (localStream) {
@@ -84,9 +95,7 @@ export function useVoiceActivityDetection({
         setupAnalyzer(stream, peerId);
       }
     });
-
-    console.log('[VoiceActivity] Total analyzers:', analyzersRef.current.size);
-  }, [localStream, peerStreams, enabled, setupAnalyzer]);
+  }, [localStream, peerStreams, enabled, setupAnalyzer, disconnectAll]);
 
   // Voice activity check loop
   useEffect(() => {
