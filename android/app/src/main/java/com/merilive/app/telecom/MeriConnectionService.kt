@@ -82,12 +82,18 @@ class MeriConnectionService : ConnectionService() {
                 TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
-            // Pkg-audit Tier-3: self-managed connections must NOT advertise
-            // CAPABILITY_HOLD / CAPABILITY_SUPPORT_HOLD — Telecom rejects
-            // those caps for PROPERTY_SELF_MANAGED on strict AOSP devices
-            // (API 28+) with SecurityException. Only CAPABILITY_MUTE is
-            // safe here. We don't expose hold to JS anyway.
-            connectionCapabilities = Connection.CAPABILITY_MUTE
+            // Telecom hold support — required so OS can pause our VoIP call when a
+            // PSTN call comes in (call-waiting) and resume after the PSTN call ends.
+            // Some strict OEMs reject HOLD caps for SELF_MANAGED — try/catch keeps
+            // the call alive even if the cap is refused (we just lose system-driven
+            // hold on that device).
+            connectionCapabilities = try {
+                Connection.CAPABILITY_MUTE or
+                    Connection.CAPABILITY_HOLD or
+                    Connection.CAPABILITY_SUPPORT_HOLD
+            } catch (_: Throwable) {
+                Connection.CAPABILITY_MUTE
+            }
         }
         if (callId.isNotEmpty()) put(callId, conn)
         return conn
