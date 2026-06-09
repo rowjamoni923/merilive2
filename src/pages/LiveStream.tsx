@@ -319,8 +319,14 @@ const LiveStream = () => {
     challengerAvatar: string;
     challengerLevel: number;
     challengerStreamId: string;
+    inviteSessionId: string | null;
   } | null>(null);
   const [showRandomPKNotification, setShowRandomPKNotification] = useState(false);
+  // R6a: challenger-side searching state — survives panel close so the
+  // pk_random_accepted listener fires even when the picker sheet is gone.
+  const [randomPKSearching, setRandomPKSearching] = useState<{ sessionId: string } | null>(null);
+  const randomPKProcessedRef = useRef<Set<string>>(new Set());
+  const randomPKTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const connectionInitiated = useRef(false);
   const mountedRef = useRef(true);
