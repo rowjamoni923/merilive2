@@ -1,36 +1,42 @@
-# Plan — Phase 2: Bottom Navigation (Home / Party / Create / Reels / Profile)
+# Plan — Phase 3: Home Page (Search / Popular / Live / New / Follow / Leaderboard / Country / Premium Card)
 
 Started + done 2026-06-09.
 
-## Research (mem://features/bottom-nav-competitor-numbers will be created)
-10 apps surveyed (Chamet/Bigo/Olamet/Poppo/Hollah/HiiClub/WeJoy/CrushLive/TikTok/Likee). 100% of them use 5 tabs with center raised FAB. Material 3 spec: nav 80dp, FAB 56dp, icon 24dp/32dp container, pill 64×32, anim 150-300ms FastOutSlowIn, badge dot 6dp / count 16-18dp red w/ Overshoot 250ms, haptic VIRTUAL_KEY light + CONTEXT_CLICK medium on center, instant tab switch via show/hide (not replace) preserving scroll state.
+## Research (mem://features/home-page-competitor-numbers)
+10 apps surveyed. Key consensus: 2-col 3:4 grid · sticky pill/underline tabs · bottom-sheet country picker · 20-item pages · shimmer skeletons · 2-3 pooled ExoPlayer · dwell-gated preview · BlurHash · CDN resize per card · TTI target < 3.5s on G35.
 
-## Audit vs current src/components/layout/BottomNavigation.tsx
+## Audit vs current src/pages/Index.tsx (896 lines, very mature)
 
 | # | Spec | Ours | Status |
 |---|------|------|--------|
-| 1 | 5 tabs | ✅ Home/Party/+/Reels/Profile | MATCH |
-| 2 | Center FAB raised 4-8dp | ✅ -mt-6 (24px raise) | EXCEEDS |
-| 3 | Center 56dp target | ✅ 58×58 | MATCH |
-| 4 | Center opens bottom sheet | ✅ Go Live / Create Party action menu | MATCH |
-| 5 | Center no label | ⚠️ Shows "Create" gold text | DESIGN-SACRED, SKIP |
-| 6 | Icon 24dp | ⚠️ 22dp | DESIGN-SACRED, SKIP |
-| 7 | Active pill 64×32 | ✅ shared layoutId pink pill | MATCH |
-| 8 | Active anim 150-300ms FastOutSlowIn | ✅ spring 380/30 (~200ms) | MATCH |
-| 9 | Badge red 16-18dp | ✅ gradient red, 16px | MATCH |
-| 10 | **Badge appear Overshoot 250ms** | ❌ instant pop, no scale-in | **FIX NOW** |
-| 11 | Haptic light tab / medium center | ✅ hapticFeedback('light')/('medium') | MATCH |
-| 12 | Safe-area + gesture inset | ✅ env(safe-area-inset-bottom) | MATCH |
-| 13 | Instant switch + scroll preserve | ⚠️ React Router (default re-render) | DEFER to per-page Phase 3+ |
-| 14 | Route prefetch | ✅ pointerdown + hover | EXCEEDS |
-| 15 | Native router shell badge sync | ✅ NativeRouterShell.setBadge | EXCEEDS |
+| 1 | Search bar 48-56dp debounce 300-500ms recent×5 | Icon-only, navigates to /search page (matches Hollah/CrushLive minimal) | MATCH (minimal variant) |
+| 2 | Sticky tab chips Popular/Live/New/Follow | ✅ Pill chips, sticky header | MATCH |
+| 3 | 2-col 3:4 grid | ✅ `grid-cols-2 gap-2` + `aspect-[3/4]` | MATCH |
+| 4 | Live MP4 preview dwell-gated | ❌ Static image only | DEFER (design-sacred + G35 perf risk) |
+| 5 | Hero card carousel 3-5s | DynamicBanner (positional, mature) | MATCH |
+| 6 | Country bottom-sheet 4-col flags | ⚠️ Horizontal chip row | DESIGN-SACRED — skip |
+| 7 | Leaderboard daily/weekly/monthly podium | Separate /leaderboard page | OUT OF SCOPE this phase |
+| 8 | Pull-to-refresh haptic | ✅ NativePullToRefresh | MATCH |
+| 9 | Infinite scroll 20-item pages | ⚠️ RPC returns all eligible (sessionStorage instant cache) | DEFER — needs RPC pagination |
+| 10 | CDN resize per-card 360-400px WebP | ⚠️ Live thumb=600px ✅; **avatars served raw** | **FIX NOW** |
+| 11 | BlurHash placeholder | ❌ Skeleton bg only | DEFER (needs blurhash field) |
+| 12 | Realtime debounce ≤200ms perception | ✅ 150ms live/call/party, 1500ms heartbeat (intentional batch) | EXCEEDS |
+| 13 | Native image prefetch (Glide-equiv) | ✅ useNativeImagePrefetch first-screen | EXCEEDS |
+| 14 | Native feed mirror (RecyclerView) | ✅ NativeFeed plugin flag-gated | EXCEEDS |
+| 15 | LiveKit token warmup on prefetch | ✅ warmLiveKitToken on host scan + click | EXCEEDS |
+| 16 | First-screen `fetchpriority=high` + sync decode | ✅ first 12 high/sync, rest auto/async | MATCH |
+| 17 | GPU contain | ✅ `contain: 'layout style paint'` | MATCH |
+| 18 | Skeleton loaders | ✅ HomeFeedSkeleton | MATCH |
+| 19 | sessionStorage instant cache | ✅ index-hosts-instant-cache-v2 | EXCEEDS |
 
-## Fix applied
-Badge: wrap in motion.span with `initial={{scale:0}} animate={{scale:1}}` + spring (Overshoot equiv) so unread badge bounces in instead of instant pop. Pure functional, zero visual style change.
+## Fix applied (web, design-sacred)
+**Avatar CDN resize (#10):** Wrapped non-live avatar path with `enhanceThumbnail({ width: 400, quality: 85 })`. Live thumb was already enhanced. Cuts ~70% bandwidth on non-live cards. Visual identical (weserv CDN, retina-aware 2× delivery = 800px).
 
-## Deferred
-- Tab state preservation (#13) → handled inside Phase 3+ per-page (Home/Party/Reels keep-alive).
-- Center label / icon size (#5,6) → design-sacred, user-locked decision.
+## Deferred (needs broader change)
+- MP4 animated preview (#4) — requires HLS player pool + dwell logic + G35 testing
+- Country bottom-sheet (#6) — design-sacred decision
+- Pagination/infinite scroll (#9) — requires `get_public_home_hosts_v2` RPC signature change
+- BlurHash (#11) — requires DB column + upload-time hash generation
 
 ## Verification
-Owner preview: tap Profile tab, send a message to test account, badge should now scale-in with bounce.
+Owner preview: scroll home feed → non-live host avatars should now load through weserv CDN (faster on G35, identical visually). Check Network tab for `images.weserv.nl?url=...` requests on UserCard `<img>`.
