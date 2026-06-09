@@ -607,6 +607,26 @@ const LiveStream = () => {
     onStreamEnd: handleStreamEndCallback,
   });
 
+  // F7 — Voice moderation (host-only). Records 20s mic chunks every 30s,
+  // transcribes via ElevenLabs Scribe v2 and runs the F6 contact detector.
+  useLiveVoiceMonitor({
+    enabled: isHost && isHostVerified && !showLiveEndSummary,
+    userId: currentUserId,
+    context: "live",
+    sourceId: id ?? null,
+    isVerified: isHostVerified,
+    isMicEnabled: !isHostMicMuted,
+    onViolation: ({ matches, beansDeducted, violationNumber }) => {
+      const matchPreview = matches.slice(0, 2).join(", ");
+      toast.error(
+        `Contact info detected in voice: ${matchPreview}` +
+          (beansDeducted ? ` • -${beansDeducted} beans` : "") +
+          (violationNumber ? ` • violation #${violationNumber}` : ""),
+      );
+    },
+  });
+
+
   // ========== PERIODIC LIVE MINUTES TRACKER (every 60 seconds) ==========
   // ⚠️ CRITICAL: Do NOT add `streamData` to deps — it re-fetches on viewer/gift/music
   // changes and would reset the interval + lastTrackedMinuteRef, breaking task progress.
