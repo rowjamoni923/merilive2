@@ -21,7 +21,7 @@ import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemot
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
-import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
@@ -271,7 +271,6 @@ export function usePartyRoomNativeLiveKit(
       roomRef.current = null;
     }
 
-    destroyBeautyProcessor();
     releaseWebViewCameraIfAndroid();
     void releaseAndroidWebViewCameraNow('party-room:cleanup-force');
     detachAllAudio();
@@ -550,7 +549,6 @@ export function usePartyRoomNativeLiveKit(
                 needVideo: needsVideo,
                 needAudio: true,
                 preparedStream,
-                processVideoTrack: needsVideo ? processTrackWithBeauty : undefined,
               });
 
               await new Promise((resolve) => setTimeout(resolve, 250));

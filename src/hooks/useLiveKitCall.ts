@@ -41,7 +41,7 @@ import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 
-import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
@@ -951,24 +951,6 @@ export function useLiveKitCall(
         // Pkg204: contentHint='motion' on camera track — smoother under congestion.
         import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
 
-        // Apply Tencent Beauty to camera track (Web only, graceful fallback)
-        try {
-          const cameraPub = Array.from(room.localParticipant.trackPublications.values())
-            .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
-          if (cameraPub?.track) {
-            const originalTrack = (cameraPub.track as any).mediaStreamTrack as MediaStreamTrack;
-            if (originalTrack && originalTrack.readyState === 'live') {
-              const beautifiedTrack = await processTrackWithBeauty(originalTrack);
-              if (beautifiedTrack !== originalTrack) {
-                await room.localParticipant.unpublishTrack(cameraPub.track, false);
-                await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-                console.log('[LiveKitCall] ✅ Beauty filter applied to call');
-              }
-            }
-          }
-        } catch (beautyErr) {
-          console.warn('[LiveKitCall] Beauty processing skipped:', beautyErr);
-        }
 
         // Build local MediaStream
         const localMs = new MediaStream();

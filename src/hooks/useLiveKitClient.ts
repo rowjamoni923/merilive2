@@ -18,7 +18,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
-import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { NativeLiveKit } from '@/plugins/NativeLiveKit';
@@ -1116,45 +1116,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             if (prefs.audiooutput) room.switchActiveDevice('audiooutput', prefs.audiooutput).catch(() => {});
           }).catch(() => {});
 
-          // Apply Tencent Beauty to the published camera track (Web only)
-          // This handles the enableCameraAndMicrophone / setCameraEnabled path
-          if (!hasPreloadedVideo) {
-            const cameraPub = Array.from(room.localParticipant.trackPublications.values())
-              .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
-            if (cameraPub?.track) {
-              const originalTrack = (cameraPub.track as any).mediaStreamTrack as MediaStreamTrack;
-              if (originalTrack && originalTrack.readyState === 'live') {
-                const beautifiedTrack = await processTrackWithBeauty(originalTrack);
-                if (beautifiedTrack !== originalTrack) {
-                  // Replace the published track with the beauty-processed one.
-                  // CRITICAL: pass `false` as the second arg to unpublishTrack so LiveKit
-                  // does NOT call stop() on the underlying camera MediaStreamTrack.
-                  // The beauty pipeline keeps reading that exact track as its source —
-                  // stopping it would freeze the canvas captureStream and viewers would
-                  // see a black/frozen face for the entire stream.
-                  try {
-                    await room.localParticipant.unpublishTrack(cameraPub.track, false);
-                    const replacementPub = await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-                    // Pkg-audit Bug H: if the beauty publish returned no track,
-                    // fall back to the original camera publication so the host
-                    // preview never goes blank while we're still broadcasting.
-                    if (replacementPub?.track) {
-                      setLocalVideoTrack(replacementPub.track);
-                    } else if (cameraPub.track) {
-                      setLocalVideoTrack(cameraPub.track);
-                    }
-                    console.log('[LiveKitClient] ✅ Replaced camera track with beauty-processed track');
-                  } catch (e) {
-                    console.warn('[LiveKitClient] Beauty track replacement failed, using original:', e);
-                    // Defense-in-depth: re-anchor preview to the original track
-                    if (cameraPub.track) setLocalVideoTrack(cameraPub.track);
-                  }
-
-                }
-              }
-            }
-
-          }
 
           // Extract local tracks & set contentHint for crystal clear sharpness
           room.localParticipant.trackPublications.forEach(pub => {
@@ -1363,7 +1324,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     try {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
-      destroyBeautyProcessor();
       if (tokenRefreshDetachRef.current) {
         try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
         tokenRefreshDetachRef.current = null;
