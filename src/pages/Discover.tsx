@@ -977,8 +977,3 @@ const Discover = () => {
 };
 
 export default Discover;
-    </div>
-  );
-};
-
-export default Discover;
