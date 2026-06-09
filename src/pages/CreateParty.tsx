@@ -875,6 +875,61 @@ const CreateParty = () => {
         selectedGame={selectedGame}
       />
 
+      {/* PR-2.2 — Room Lock & Entry Fee Sheet */}
+      <Dialog open={showRoomLockSheet} onOpenChange={setShowRoomLockSheet}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Room Access</DialogTitle>
+            <DialogDescription>
+              Optionally protect the room with a password or charge an entry fee in coins.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="room-password">Password (optional)</Label>
+              <Input
+                id="room-password"
+                type="text"
+                inputMode="text"
+                maxLength={64}
+                placeholder="Leave empty for an open room"
+                value={roomPassword}
+                onChange={(e) => setRoomPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="room-entry-fee">Entry fee (coins)</Label>
+              <Input
+                id="room-entry-fee"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={100000}
+                step={10}
+                placeholder="0 = free entry"
+                value={roomEntryFee || ''}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setRoomEntryFee(Number.isFinite(v) ? Math.max(0, Math.min(100000, Math.floor(v))) : 0);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">Viewers pay this from their coin balance to join.</p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => { setRoomPassword(''); setRoomEntryFee(0); setShowRoomLockSheet(false); }}
+            >
+              Clear
+            </Button>
+            <Button onClick={() => setShowRoomLockSheet(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
+
       {/* Settings Panel (Effects, Beauty, Stickers) */}
       <ChametStyleSettingsPanel
         isOpen={showSettingsPanel}
