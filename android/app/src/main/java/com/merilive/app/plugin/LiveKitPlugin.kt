@@ -3501,7 +3501,7 @@ class LiveKitPlugin : Plugin() {
             while (true) {
                 delay(statsIntervalMs)
                 if (room == null) break
-                if (inBackground) continue
+                if (inBackground || processInBackground) continue
                 emitRtcStatsSnapshot()
             }
         }
