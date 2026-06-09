@@ -362,7 +362,11 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     }
     // else: dedup window still active — silently swallow.
 
-    if (params.withWelcome && coalescerRef.current) {
+    // Phase 5: welcome chat coalescer fires on every fresh-user entry by
+    // default, so individual call sites no longer need to thread state.
+    const shouldWelcome =
+      isFreshUser && (params.withWelcome || welcomeOnEveryEntry);
+    if (shouldWelcome && coalescerRef.current && params.displayName) {
       coalescerRef.current.push({
         id: `welcome_${params.userId}_${now}`,
         userId: params.userId,
@@ -371,7 +375,8 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
         avatarUrl: params.avatarUrl,
       });
     }
-  }, [userDedupWindowMs, minEntryGapMs, coalesceDepthThreshold, suppressedAutoFlushMs, suppressedMaxQueue, inner]);
+  }, [userDedupWindowMs, minEntryGapMs, premiumEntryGapMs, coalesceDepthThreshold, welcomeOnEveryEntry, suppressedAutoFlushMs, suppressedMaxQueue, inner]);
+
 
   const flushWelcome = useCallback(() => {
     coalescerRef.current?.flush();
