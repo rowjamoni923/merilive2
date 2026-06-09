@@ -21,6 +21,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { toast } from "sonner";
@@ -74,6 +84,8 @@ const Discover = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  // PR-2.5: preview-before-pay dialog state for paid rooms.
+  const [entryPreview, setEntryPreview] = useState<PartyRoom | null>(null);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
@@ -269,8 +281,16 @@ const Discover = () => {
       return;
     }
 
+    // PR-2.5: preview-before-pay (Chamet/Bigo pattern). Show host, fee, mood, etc.
+    // and require explicit confirm before the entry fee is debited on join.
+    if (room.entry_fee > 0) {
+      setEntryPreview(room);
+      return;
+    }
+
     navigate(`/party/${room.id}`);
   };
+
 
   const filteredRooms = rooms.filter(room => {
     // Country filter
@@ -281,15 +301,17 @@ const Discover = () => {
     if (activeTab === "video" && room.room_type !== "video") return false;
     if (activeTab === "audio" && room.room_type !== "audio") return false;
     if (activeTab === "game" && room.room_type !== "game") return false;
-    // Search filter (AND, not OR)
+    // Search filter (AND, not OR). PR-2.5: also match by room_code.
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const name = room.name?.toLowerCase() || "";
       const host = room.host?.display_name?.toLowerCase() || "";
-      if (!name.includes(q) && !host.includes(q)) return false;
+      const code = room.room_code?.toLowerCase() || "";
+      if (!name.includes(q) && !host.includes(q) && !code.includes(q)) return false;
     }
     return true;
   });
+
 
   // Pkg428 Phase-9 — native Glide prefetch for first-screen room host avatars.
   const nativePrefetchUrls = useMemo(
@@ -688,6 +710,50 @@ const Discover = () => {
         activeTab="/discover" 
         onTabChange={handleTabChange} 
       />
+
+      {/* PR-2.5 — Preview-before-pay confirmation for paid entry rooms (Chamet/Bigo pattern). */}
+      <AlertDialog open={!!entryPreview} onOpenChange={(open) => { if (!open) setEntryPreview(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Join "{entryPreview?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={entryPreview?.host?.avatar_url || undefined} />
+                    <AvatarFallback>{entryPreview?.host?.display_name?.[0] || "H"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-foreground">
+                      {entryPreview?.host?.display_name || "Host"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {entryPreview?.host?.country_flag || "🌍"} · {entryPreview?.current_participants ?? 0}/{entryPreview?.max_participants ?? 0} in room
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-amber-700 dark:text-amber-300">
+                  Entry fee: <strong>{entryPreview?.entry_fee} 💰</strong> — this will be deducted from your balance.
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (entryPreview) {
+                  const target = entryPreview.id;
+                  setEntryPreview(null);
+                  navigate(`/party/${target}`);
+                }
+              }}
+            >
+              Pay {entryPreview?.entry_fee} & Join
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

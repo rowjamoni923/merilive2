@@ -101,6 +101,7 @@ import { UnifiedPartyRoom } from "@/components/party/UnifiedPartyRoom";
 import { GiftContributorsPanel } from "@/components/party/GiftContributorsPanel";
 import { SeatInvitePickerSheet } from "@/components/party/SeatInvitePickerSheet";
 import { SeatInviteResponseSheet } from "@/components/party/SeatInviteResponseSheet";
+import { EmptySeatHostActionsSheet } from "@/components/party/EmptySeatHostActionsSheet";
 import PartyGiftSeatPicker, { type PartyGiftSeatPickerSeat } from "@/components/party/PartyGiftSeatPicker";
 import { useSeatInvitationInbox } from "@/hooks/useSeatInvitationInbox";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
@@ -250,6 +251,11 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // PR-2.5: per-seat lock map (seat_number -> isLocked) sourced from
+  // public.party_room_seat_locks via Supabase Realtime.
+  const [seatLocks, setSeatLocks] = useState<Record<number, boolean>>({});
+  // PR-2.5: host action sheet target when host taps an empty seat.
+  const [emptySeatTarget, setEmptySeatTarget] = useState<number | null>(null);
   // PR-2 (P0-5): password prompt modal state when enter_party_room rejects with
   // 'Password required' / 'Invalid password'. Lets viewers retry without
   // bouncing back to the lobby.
@@ -1599,6 +1605,72 @@ const PartyRoom = () => {
     };
   }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification, addEntryAnimation]);
 
+  // ─────────────────────────────────────────────────────────────
+  // PR-2.5: per-seat lock state — read once + subscribe to changes.
+  // Source of truth: public.party_room_seat_locks (host-managed).
+  // ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('party_room_seat_locks')
+        .select('seat_number, is_locked')
+        .eq('room_id', roomId);
+      if (cancelled) return;
+      if (error) {
+        console.warn('[PartyRoom] seat_locks load failed:', error.message);
+        return;
+      }
+      const next: Record<number, boolean> = {};
+      for (const row of (data ?? []) as Array<{ seat_number: number; is_locked: boolean }>) {
+        if (row.is_locked) next[row.seat_number] = true;
+      }
+      setSeatLocks(next);
+    };
+    load();
+
+    const ch = supabase
+      .channel(`party-seat-locks-${roomId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'party_room_seat_locks', filter: `room_id=eq.${roomId}` },
+        (payload: any) => {
+          const row = payload.new || payload.old || {};
+          const seat: number | undefined = row.seat_number;
+          if (typeof seat !== 'number') return;
+          if (payload.eventType === 'DELETE') {
+            setSeatLocks(prev => {
+              if (!prev[seat]) return prev;
+              const { [seat]: _drop, ...rest } = prev;
+              return rest;
+            });
+          } else {
+            const locked = !!(payload.new && payload.new.is_locked);
+            setSeatLocks(prev => {
+              if (!locked) {
+                if (!prev[seat]) return prev;
+                const { [seat]: _drop, ...rest } = prev;
+                return rest;
+              }
+              if (prev[seat]) return prev;
+              return { ...prev, [seat]: true };
+            });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      try { supabase.removeChannel(ch); } catch { /* ignore */ }
+    };
+  }, [roomId]);
+
+
+
+
 
 
 
@@ -1842,6 +1914,43 @@ const PartyRoom = () => {
     }
   };
 
+  // PR-2.5: extracted so EmptySeatHostActionsSheet "Move here" can call it.
+  const hostMoveToSeat = async (position: number) => {
+    if (!roomId || !currentUser) return;
+    try {
+      const { error: seatError } = await supabase
+        .from('party_room_participants')
+        .update({ seat_number: position, role: 'speaker' })
+        .eq('room_id', roomId)
+        .eq('user_id', currentUser.id);
+
+      if (seatError) {
+        console.error('[PartyRoom] Host seat assignment error:', seatError);
+        recordClientError({ label: 'PartyRoom.seatTaken', message: seatError.message });
+        toast.error('Failed to join seat');
+        return;
+      }
+      setParticipants(prev => prev.map(p =>
+        p.user_id === currentUser.id ? { ...p, position, role: 'speaker' } : p
+      ));
+      setMyPosition(position);
+      setShowSeatSelector(false);
+      void publishPartyEvent(roomId, {
+        type: 'seat_action',
+        roomId,
+        action: 'approved',
+        requester_id: currentUser.id,
+        seat_position: position,
+        request_id: `host-move-${currentUser.id}-${Date.now()}`,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      console.error('[PartyRoom] Host seat error:', error);
+      recordClientError({ label: 'PartyRoom.seatTaken', message: error instanceof Error ? error.message : String(error) });
+      toast.error('Failed to join seat');
+    }
+  };
+
   // Request to take a seat (for non-hosts)
   const requestSeat = async (position: number) => {
     if (!roomId || !currentUser || !room) return;
@@ -1853,50 +1962,15 @@ const PartyRoom = () => {
       return;
     }
 
-    // HOST AUTO-JOIN: If user is the host, directly assign seat without request
+    // PR-2.5: Host taps empty seat → open Chamet/Bigo-style action sheet
+    // (Move here / Lock / Unlock) instead of auto-joining silently.
     if (isHost) {
-      try {
-        // Directly update participant position (host auto-joins)
-        const { error: seatError } = await supabase
-          .from('party_room_participants')
-          .update({ seat_number: position, role: 'speaker' })
-          .eq('room_id', roomId)
-          .eq('user_id', currentUser.id);
-
-        if (seatError) {
-          console.error('[PartyRoom] Host seat assignment error:', seatError);
-          recordClientError({ label: "PartyRoom.seatTaken", message: seatError instanceof Error ? seatError.message : String(seatError) });
-          toast.error("Failed to join seat");
-          return;
-        }
-
-        // Update local state immediately
-        setParticipants(prev => prev.map(p => 
-          p.user_id === currentUser.id 
-            ? { ...p, position: position, role: 'speaker' }
-            : p
-        ));
-        setMyPosition(position);
-        setShowSeatSelector(false);
-        void publishPartyEvent(roomId, {
-          type: 'seat_action',
-          roomId,
-          action: 'approved',
-          requester_id: currentUser.id,
-          seat_position: position,
-          request_id: `host-move-${currentUser.id}-${Date.now()}`,
-          timestamp: Date.now(),
-        });
-        
-        console.log('[PartyRoom] Host auto-joined seat:', position);
-        return;
-      } catch (error) {
-        console.error('[PartyRoom] Host seat error:', error);
-        recordClientError({ label: "PartyRoom.seatTaken", message: error instanceof Error ? error.message : String(error) });
-        toast.error("Failed to join seat");
-        return;
-      }
+      setEmptySeatTarget(position);
+      return;
     }
+    // (Legacy host auto-join branch removed — handled by sheet → hostMoveToSeat.)
+    // (Legacy host auto-join body removed — see hostMoveToSeat / EmptySeatHostActionsSheet.)
+
 
     // REGULAR USER: Request seat (needs host approval)
     // Check if already has a pending request
@@ -2656,6 +2730,20 @@ const PartyRoom = () => {
           )}
         />
       )}
+
+      {/* PR-2.5 — Host empty-seat actions (Move / Lock / Unlock). */}
+      {emptySeatTarget !== null && room?.id && isHost && (
+        <EmptySeatHostActionsSheet
+          open={emptySeatTarget !== null}
+          onClose={() => setEmptySeatTarget(null)}
+          roomId={room.id}
+          seatNumber={emptySeatTarget}
+          isLocked={!!seatLocks[emptySeatTarget]}
+          onMoveHere={() => { void hostMoveToSeat(emptySeatTarget); }}
+        />
+      )}
+
+
 
       {/* PR-2 (P0-5) — Password prompt for locked party rooms. */}
       <AlertDialog open={passwordPrompt.show} onOpenChange={(open) => { if (!open) { setPasswordPrompt({ show: false }); navigate('/party-rooms'); } }}>
