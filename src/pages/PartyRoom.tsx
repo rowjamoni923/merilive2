@@ -390,6 +390,7 @@ const PartyRoom = () => {
   const {
     entryAnimations,
     nameBarAnimations,
+    nameBarOverflowCount,
     addEntryAnimation,
     removeEntryAnimation,
     removeNameBarAnimation,
