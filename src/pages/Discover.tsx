@@ -65,6 +65,9 @@ interface PartyRoom {
   current_participants: number;
   is_private: boolean;
   room_code: string;
+  mood: string | null;
+  description: string | null;
+  welcome_message: string | null;
   host: {
     id: string;
     display_name: string | null;
