@@ -450,6 +450,7 @@ const LiveStream = () => {
   const {
     entryAnimations,
     nameBarAnimations,
+    nameBarOverflowCount,
     addEntryAnimation,
     removeEntryAnimation,
     removeNameBarAnimation,
