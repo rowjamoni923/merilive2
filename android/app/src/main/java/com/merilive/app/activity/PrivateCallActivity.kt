@@ -530,6 +530,11 @@ class PrivateCallActivity : ComponentActivity() {
                         }
                         tvCallState.visibility =
                             if (tvCallState.text.isNullOrEmpty()) View.GONE else View.VISIBLE
+                        // L-8: re-evaluate proximity wakelock on every state
+                        // change (CONNECTING→CONNECTED arms it on earpiece,
+                        // any→ENDED releases it).
+                        updateProximityWakeLock()
+
                         if (st == PrivateCallViewModel.CallState.ENDED) {
                             // Phase E — slide in the post-call summary screen
                             // (duration / coins / rating / gift / recharge)
