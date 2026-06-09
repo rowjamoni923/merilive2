@@ -942,13 +942,17 @@ class LiveKitPlugin : Plugin() {
         }
 
         val isHostFlag = call.getBoolean("isHost", false) ?: false
+        // Phase 5 — viewer paginated rooms can opt-out of autoSubscribe to
+        // save bandwidth (HiiClub/Olamet pattern). Default true preserves
+        // existing 1-broadcaster and private-call behaviour.
+        val autoSubscribeFlag = call.getBoolean("autoSubscribe", true) ?: true
 
         // Step 26 — cache args so reconnectInternal() / hard-reconnect
         // watchdog can rebuild the room without re-prompting JS.
         lastConnectArgs = ConnectArgs(
             url, token, enableVideo, enableAudio, lens, resolution,
             callerName, callType, e2eeOn, e2eeSharedKey, audioProfile,
-            broadcastMode, roomScope, isHostFlag,
+            broadcastMode, roomScope, isHostFlag, autoSubscribeFlag,
         )
         hardReconnectAttempts = 0
 
