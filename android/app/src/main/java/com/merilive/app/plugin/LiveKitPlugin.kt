@@ -1192,6 +1192,7 @@ class LiveKitPlugin : Plugin() {
         room = newRoom
 
         attachEventListeners(newRoom)
+        startAudioLevelPoll(newRoom) // Phase 6 — fine-grained ring + BGM-duck VAD
 
         newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
 
