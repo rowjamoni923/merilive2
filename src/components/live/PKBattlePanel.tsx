@@ -334,6 +334,43 @@ export const PKBattlePanel = ({
                 }}
               />
             </div>
+
+            {/* Duration presets (P0 bundle) */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <span className="text-[11px] text-white/55 font-medium mr-0.5">Duration</span>
+              <div
+                className="flex items-center gap-1 p-1 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                }}
+              >
+                {PK_DURATION_PRESETS.map((p) => {
+                  const active = pkDuration === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPkDuration(p.value)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-[11px] font-bold transition-colors",
+                        active ? "text-black" : "text-white/70 hover:text-white"
+                      )}
+                      style={
+                        active
+                          ? {
+                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                              boxShadow: '0 2px 8px -2px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+                            }
+                          : undefined
+                      }
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <ScrollArea 
