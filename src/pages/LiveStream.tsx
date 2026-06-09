@@ -941,25 +941,29 @@ const LiveStream = () => {
     intervalMs: 15_000,
     onWarning: (resp) => {
       const a = resp.result?.alerts?.[0];
-      if (a === 'looking_away') toast.warning('আপনি ক্যামেরা থেকে দূরে তাকিয়ে আছেন');
-      else if (a === 'low_quality') toast.warning('ভিডিও কোয়ালিটি কম — আলো বাড়ান');
+      if (a === 'looking_away') toast.warning('You are looking away from the camera');
+      else if (a === 'low_quality') toast.warning('Video quality is low — improve your lighting');
     },
     onCritical: (resp) => {
-      const a = resp.result?.alerts?.[0] ?? 'নিয়ম লঙ্ঘন';
+      const a = resp.result?.alerts?.[0] ?? 'rule_violation';
       const msg =
-        a === 'face_lost' ? 'মুখ দেখা যাচ্ছে না — সামনে আসুন'
-        : a === 'sleeping' ? 'ঘুমিয়ে পড়েছেন? জেগে উঠুন'
-        : a === 'multiple_faces' ? 'একাধিক মুখ — নিয়ম ভঙ্গ'
-        : a === 'identity_mismatch' ? 'অন্য ব্যক্তি detect হয়েছে'
-        : a.startsWith('moderation:') ? 'অনুপযুক্ত content detect হয়েছে'
-        : 'সতর্কতা — admin notified';
-      toast.error(msg, { description: `Strike ${resp.strikes ?? '?'}/3 — ৩বার হলে stream auto-end` });
+        a === 'face_lost' ? 'Your face is not visible — come back in front of the camera'
+        : a === 'sleeping' ? 'You appear to be sleeping — wake up'
+        : a === 'multiple_faces' ? 'Multiple faces detected — rule violation'
+        : a === 'identity_mismatch' ? 'A different person was detected on camera'
+        : a === 'moderation:nudity' || a === 'moderation:erotica' ? 'Explicit content detected'
+        : a === 'moderation:weapon' ? 'Weapon detected on camera'
+        : a === 'moderation:drugs' ? 'Drug-related content detected'
+        : a === 'moderation:gore' || a === 'moderation:violence' ? 'Violent / graphic content detected'
+        : a.startsWith('moderation:') ? 'Inappropriate content detected'
+        : 'Warning — admin notified';
+      toast.error(msg, { description: `Strike ${resp.strikes ?? '?'}/3 — 3 strikes will auto-end your stream` });
     },
     onForceEnd: (resp) => {
       toast.error('Stream auto-ended', {
         description: resp.result?.alerts?.includes('identity_mismatch')
-          ? 'অন্য ব্যক্তি detect — instant end'
-          : '৩বার নিয়ম ভঙ্গ — auto-end',
+          ? 'A different person was detected — instant end'
+          : '3 rule violations — auto-ended',
       });
       console.log('[FrameMonitor] Auto-ending stream due to', resp.result?.alerts);
       handleEndStream();

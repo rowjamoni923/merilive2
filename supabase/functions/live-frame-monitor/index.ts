@@ -281,7 +281,7 @@ serve(async (req) => {
         severity,
         action,
         strikes,
-        result: { ...result, alerts, identity_match: identityMatch },
+        result: { ...result, alerts, identity_match: identityMatch, sightengine: sightengineScores },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
