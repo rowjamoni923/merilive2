@@ -2875,6 +2875,7 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            stopAudioLevelPoll() // Phase 6
             // Step 30 — tear down headset receivers + media-button session.
             unregisterHeadsetReceivers()
             stopHeadsetMediaSession()
