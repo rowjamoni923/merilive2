@@ -154,11 +154,16 @@ export function useVoiceActivityDetection({
   // Cleanup audio context on unmount
   useEffect(() => {
     return () => {
+      // PR-2 (P1-2): disconnect every source/analyser before closing context.
+      nodesRef.current.forEach(({ source, analyser }) => {
+        try { source.disconnect(); } catch { /* ignore */ }
+        try { analyser.disconnect(); } catch { /* ignore */ }
+      });
+      nodesRef.current.clear();
       if (audioContextRef.current) {
-        audioContextRef.current.close();
+        try { audioContextRef.current.close(); } catch { /* ignore */ }
         audioContextRef.current = null;
       }
-      analyzersRef.current.clear();
     };
   }, []);
 
