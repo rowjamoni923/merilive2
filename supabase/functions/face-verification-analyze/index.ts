@@ -809,6 +809,12 @@ serve(async (req) => {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
+      } else if (hardAutoReject === "banned_face") {
+        rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "liveness_failed") {
+        rReason = "Liveness check failed. We detected that the submitted video may not be from a live person (e.g. photo, screen recording, or video replay). Please record a fresh, well-lit video of your own face following the on-screen instructions.";
+      } else if (hardAutoReject === "replay_suspected") {
+        rReason = `Replay detected. Your head did not turn enough between the front, left, and right captures (yaw deltas L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°). Please follow the on-screen prompts and turn your head clearly to each side.`;
       } else if (hardAutoReject === "photo_mismatch") {
         if (noFaceInAvatar) {
           rReason = "Verification failed: No clear face detected in your profile photo. Please upload a clear face photo as your profile picture and try again.";
@@ -839,8 +845,8 @@ serve(async (req) => {
         JSON.stringify({
           ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: "gender_mismatch" },
-          blocker: "gender_mismatch",
+          autoFinalize: { success: false, reason: hardAutoReject },
+          blocker: hardAutoReject,
           declaredGender,
           expectedGender,
           detectedGender: detectedGenderForDecision,
