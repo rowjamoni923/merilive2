@@ -16,6 +16,7 @@ import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import CinematicEntranceOverlay from "./CinematicEntranceOverlay";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
+import { isNativeEntryPipelineActive } from "@/utils/nativeAnimRuntime";
 
 export interface EntryAnimation {
   id: string;
@@ -50,6 +51,9 @@ const getAnimationType = (url?: string): 'svga' | 'lottie' | 'pag' | 'vap' | 'vi
 };
 
 const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnimationProps) => {
+  // Pkg438 Phase C: suppress WebView render when native entry pipeline is live.
+  const skipForNative = isNativeEntryPipelineActive();
+
   const [showAnimation, setShowAnimation] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [svgaError, setSvgaError] = useState(false);
@@ -62,6 +66,14 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
   // CRITICAL FIX: Store onComplete in ref to prevent stale closures
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+
+  useEffect(() => {
+    if (skipForNative && !completedRef.current) {
+      completedRef.current = true;
+      try { onCompleteRef.current?.(); } catch { /* ignore */ }
+    }
+  }, [skipForNative]);
+
   
   const displayAnimationUrl = useMemo(() => entry.animationUrl, [entry.animationUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
@@ -286,6 +298,8 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
       </motion.div>
     );
   };
+
+  if (skipForNative) return null;
 
   return (
     <div 

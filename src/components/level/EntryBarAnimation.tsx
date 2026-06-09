@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getEquippedPrivilegesForUser } from "@/hooks/useUserPrivileges";
 import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { playSoundUrl, playSynthSequence } from "@/utils/soundPlayer";
+import { isNativeEntryPipelineActive } from "@/utils/nativeAnimRuntime";
 
 interface UserInfo {
   displayName: string;
@@ -272,10 +273,21 @@ const EntryBarAnimation = ({
   showDuration = 3500,
   position = 'center'
 }: EntryBarAnimationProps) => {
+  // Pkg438 Phase C: suppress WebView render when native entry pipeline is live.
+  const skipForNative = isNativeEntryPipelineActive();
+  const completedRef = useRef(false);
+
   const [isVisible, setIsVisible] = useState(true);
   const [user, setUser] = useState<UserInfo | null>(userInfo || null);
   const [customEntryBar, setCustomEntryBar] = useState<EntryBarData | null>(null);
   const soundPlayedRef = useRef(false);
+
+  useEffect(() => {
+    if (skipForNative && !completedRef.current) {
+      completedRef.current = true;
+      try { onComplete?.(); } catch { /* ignore */ }
+    }
+  }, [skipForNative, onComplete]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -379,6 +391,8 @@ const EntryBarAnimation = ({
     center: 'top-1/3',
     bottom: 'bottom-32',
   };
+
+  if (skipForNative) return null;
 
   return (
     <AnimatePresence>
