@@ -216,6 +216,21 @@ serve(async (req) => {
       // postgres_changes get an instant push. Best-effort; missing table /
       // perms never break the live moderation pipeline.
       try {
+        // F4 2026-06-09: take the worse of provider + Sightengine for each
+        // numeric signal so admin dashboards reflect the actual peak risk.
+        const nsfwScore = Math.max(
+          Number(result.nsfw_score ?? 0),
+          Number(sightengineScores?.nudity_raw ?? 0),
+          Number(sightengineScores?.nudity_sexual_activity ?? 0),
+          Number(sightengineScores?.nudity_sexual_display ?? 0),
+        );
+        const violenceScore = Math.max(
+          Number(result.violence_score ?? 0),
+          Number(sightengineScores?.violence ?? 0),
+          Number(sightengineScores?.gore ?? 0),
+        );
+        const weaponsDetected = Boolean(result.weapons_detected) || Number(sightengineScores?.weapon ?? 0) >= 0.6;
+        const drugsDetected = Boolean(result.drugs_detected) || Number(sightengineScores?.drugs ?? 0) >= 0.7;
         await sb.from("live_frame_alerts").insert({
           user_id: body.userId,
           context: body.context ?? "live_stream",
@@ -225,10 +240,10 @@ serve(async (req) => {
           alerts,
           face_present: result.face_present,
           face_count: result.face_count,
-          nsfw_score: result.nsfw_score ?? null,
-          violence_score: result.violence_score ?? null,
-          weapons_detected: result.weapons_detected ?? false,
-          drugs_detected: result.drugs_detected ?? false,
+          nsfw_score: nsfwScore || null,
+          violence_score: violenceScore || null,
+          weapons_detected: weaponsDetected,
+          drugs_detected: drugsDetected,
         });
       } catch (e) {
         console.warn("[live-frame-monitor] log insert failed:", e);
