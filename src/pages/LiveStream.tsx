@@ -327,6 +327,16 @@ const LiveStream = () => {
   const [randomPKSearching, setRandomPKSearching] = useState<{ sessionId: string } | null>(null);
   const randomPKProcessedRef = useRef<Set<string>>(new Set());
   const randomPKTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup random-PK timer on unmount
+  useEffect(() => {
+    return () => {
+      if (randomPKTimeoutRef.current) {
+        clearTimeout(randomPKTimeoutRef.current);
+        randomPKTimeoutRef.current = null;
+      }
+    };
+  }, []);
   
   const connectionInitiated = useRef(false);
   const mountedRef = useRef(true);
