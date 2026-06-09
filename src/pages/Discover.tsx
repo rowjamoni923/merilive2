@@ -281,8 +281,16 @@ const Discover = () => {
       return;
     }
 
+    // PR-2.5: preview-before-pay (Chamet/Bigo pattern). Show host, fee, mood, etc.
+    // and require explicit confirm before the entry fee is debited on join.
+    if (room.entry_fee > 0) {
+      setEntryPreview(room);
+      return;
+    }
+
     navigate(`/party/${room.id}`);
   };
+
 
   const filteredRooms = rooms.filter(room => {
     // Country filter
@@ -293,15 +301,17 @@ const Discover = () => {
     if (activeTab === "video" && room.room_type !== "video") return false;
     if (activeTab === "audio" && room.room_type !== "audio") return false;
     if (activeTab === "game" && room.room_type !== "game") return false;
-    // Search filter (AND, not OR)
+    // Search filter (AND, not OR). PR-2.5: also match by room_code.
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const name = room.name?.toLowerCase() || "";
       const host = room.host?.display_name?.toLowerCase() || "";
-      if (!name.includes(q) && !host.includes(q)) return false;
+      const code = room.room_code?.toLowerCase() || "";
+      if (!name.includes(q) && !host.includes(q) && !code.includes(q)) return false;
     }
     return true;
   });
+
 
   // Pkg428 Phase-9 — native Glide prefetch for first-screen room host avatars.
   const nativePrefetchUrls = useMemo(
