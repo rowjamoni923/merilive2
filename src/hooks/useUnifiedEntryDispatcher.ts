@@ -427,6 +427,78 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     inner.clearAllAnimations();
   }, [inner]);
 
+  // ---- Phase 6: global event bridge ----
+  // Any component (game board, host control, moderation) can drive the
+  // dispatcher without prop-drilling by firing window events scoped by
+  // roomId. Also auto-forgets users on viewer/participant leave so the
+  // counting + minus + re-entry welcome flows stay accurate across
+  // live / audio party / video party / game party.
+  useEffect(() => {
+    if (!roomId) return;
+
+    const matches = (detail: any): boolean => {
+      if (!detail) return false;
+      // accept either {roomId} or scoped LiveKit event payloads
+      if (detail.roomId && detail.roomId === roomId) return true;
+      if (detail.streamId && detail.streamId === roomId) return true;
+      const p = detail.payload;
+      if (p?.roomId && p.roomId === roomId) return true;
+      if (p?.streamId && p.streamId === roomId) return true;
+      return false;
+    };
+
+    const onSuppress = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (!matches(d)) return;
+      suppressPremiumRef.current = !!d.on;
+      if (!d.on) flushSuppressedInternal('manual');
+    };
+    const onFlush = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (!matches(d)) return;
+      flushSuppressedInternal('manual');
+    };
+    const onForget = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (!matches(d) || !d.userId) return;
+      userSeenRef.current.delete(d.userId);
+      queueRef.current = queueRef.current.filter((q) => q.params.userId !== d.userId);
+      suppressedQueueRef.current = suppressedQueueRef.current.filter(
+        (q) => q.params.userId !== d.userId,
+      );
+    };
+
+    // Auto-forget on leave from existing LiveKit event channels so the
+    // count/minus side of the system stays in lockstep with the entry side.
+    const onLiveKitLeave = (evt: Event) => {
+      const d = (evt as CustomEvent).detail;
+      if (!matches(d)) return;
+      const p = d?.payload;
+      if (!p) return;
+      if (p.type !== 'viewer_left' && p.type !== 'participant_left') return;
+      if (!p.userId) return;
+      userSeenRef.current.delete(p.userId);
+      queueRef.current = queueRef.current.filter((q) => q.params.userId !== p.userId);
+      suppressedQueueRef.current = suppressedQueueRef.current.filter(
+        (q) => q.params.userId !== p.userId,
+      );
+    };
+
+    window.addEventListener('entry-effects:suppress', onSuppress as EventListener);
+    window.addEventListener('entry-effects:flush', onFlush as EventListener);
+    window.addEventListener('entry-effects:forget-user', onForget as EventListener);
+    window.addEventListener('livekit-live-event', onLiveKitLeave as EventListener);
+    window.addEventListener('livekit-party-event', onLiveKitLeave as EventListener);
+
+    return () => {
+      window.removeEventListener('entry-effects:suppress', onSuppress as EventListener);
+      window.removeEventListener('entry-effects:flush', onFlush as EventListener);
+      window.removeEventListener('entry-effects:forget-user', onForget as EventListener);
+      window.removeEventListener('livekit-live-event', onLiveKitLeave as EventListener);
+      window.removeEventListener('livekit-party-event', onLiveKitLeave as EventListener);
+    };
+  }, [roomId]);
+
   return useMemo(() => ({
     entryAnimations: inner.entryAnimations,
     nameBarAnimations: inner.nameBarAnimations,
@@ -444,5 +516,6 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     clearAll,
   }), [inner, pushEntry, flushWelcome, flushSuppressed, setSuppressPremium, forgetUser, clearAll]);
 }
+
 
 export default useUnifiedEntryDispatcher;
