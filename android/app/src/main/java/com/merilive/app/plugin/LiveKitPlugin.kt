@@ -2187,7 +2187,11 @@ class LiveKitPlugin : Plugin() {
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-subscribed", data)
                         if (event.track.kind == Track.Kind.VIDEO) {
-                            activity?.runOnUiThread { attachRemoteRendererInternal(r, event.participant) }
+                            activity?.runOnUiThread {
+                                // Late-bind any NativeVideoView placeholder waiting for this sid first.
+                                try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                                attachRemoteRendererInternal(r, event.participant)
+                            }
                         }
                     }
                     is RoomEvent.TrackUnsubscribed -> {
