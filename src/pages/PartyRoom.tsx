@@ -2632,6 +2632,38 @@ const PartyRoom = () => {
         />
       )}
 
+      {/* PR-2 (P0-5) — Password prompt for locked party rooms. */}
+      <AlertDialog open={passwordPrompt.show} onOpenChange={(open) => { if (!open) { setPasswordPrompt({ show: false }); navigate('/party-rooms'); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>This room is locked</AlertDialogTitle>
+            <AlertDialogDescription>
+              {passwordPrompt.error ?? 'Enter the room password to join.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            placeholder="Room password"
+            autoFocus
+            onKeyDown={(e) => { if (e.key === 'Enter') void handlePasswordSubmit(); }}
+            disabled={passwordSubmitting}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={passwordSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void handlePasswordSubmit(); }}
+              disabled={passwordSubmitting || !passwordInput.trim()}
+            >
+              {passwordSubmitting ? 'Joining…' : 'Join'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+
       {/* Phase III.d — Invitee: respond to seat invitation. */}
       <SeatInviteResponseSheet
         invitation={seatInvitationInbox.pending}
