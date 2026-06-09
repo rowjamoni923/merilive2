@@ -19117,6 +19117,7 @@ export type Database = {
             }
             Returns: Json
           }
+      detect_contact_in_text: { Args: { p_text: string }; Returns: Json }
       diagnose_helper_payment_visibility: {
         Args: { _country_code: string }
         Returns: Json
