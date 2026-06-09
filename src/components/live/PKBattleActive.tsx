@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
