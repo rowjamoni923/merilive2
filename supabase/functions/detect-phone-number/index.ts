@@ -209,38 +209,42 @@ const spokenNumberPatterns = [
 
 function detectPhoneNumber(text: string): { detected: boolean; matches: string[]; confidence: string } {
   const matches: string[] = [];
-  
+
+  // Step 0 (F6): NFKC + strip zero-width / variation-selector / combining /
+  // tag chars so fullwidth, math-bold, keycap-emoji and ZWJ bypasses can't
+  // slip past the numeral converter below.
+  const normalized = normalizeForDetection(text);
+
   // Step 1: Normalize all numerals to standard digits
-  let processedText = normalizeNumerals(text);
-  
+  let processedText = normalizeNumerals(normalized);
+
   // Step 2: Convert number words to digits
   processedText = convertNumberWords(processedText);
-  
+
   // Step 3: Check main phone patterns on processed text
   for (const pattern of phonePatterns) {
     const found = processedText.match(pattern);
     if (found) {
       for (const match of found) {
         const digitsOnly = match.replace(/\D/g, '');
-        // Valid phone numbers have 7-15 digits
         if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
           matches.push(match);
         }
       }
     }
   }
-  
-  // Step 4: Check obfuscation patterns on ORIGINAL text (to catch language-specific patterns)
+
+  // Step 4: Check obfuscation patterns on NORMALIZED text (language-specific)
   for (const pattern of obfuscationPatterns) {
-    const found = text.match(pattern);
+    const found = normalized.match(pattern);
     if (found) {
       matches.push(...found);
     }
   }
-  
-  // Step 5: Check spoken number patterns
+
+  // Step 5: Check spoken number patterns on NORMALIZED text
   for (const pattern of spokenNumberPatterns) {
-    const found = text.match(pattern);
+    const found = normalized.match(pattern);
     if (found) {
       matches.push(...found);
     }
