@@ -270,6 +270,16 @@ const Auth = () => {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
 
+  // Phase 1 Auth audit (2026-06-09): industry-standard 60s resend countdown.
+  // Shared across email-login OTP, email-signup OTP, and WhatsApp phone OTP.
+  const [resendCountdown, setResendCountdown] = useState(0);
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const id = setInterval(() => setResendCountdown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [resendCountdown]);
+  const startResendCountdown = () => setResendCountdown(60);
+
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
     try {
       const response = error?.context;
@@ -424,7 +434,10 @@ const Auth = () => {
       let recoveryTimeout: ReturnType<typeof setTimeout> | null = null;
       try {
         const timeoutPromise = new Promise<never>((_, reject) => {
-          recoveryTimeout = setTimeout(() => reject(new Error('auth_session_check_timeout')), 4500);
+          // Phase 1 Auth audit (2026-06-09): tightened from 4500ms → 2000ms.
+          // Play Console flags TTID ≥ 5000ms; competitors target < 2000ms cold.
+          // The full-screen "Restoring your session…" loader was blocking UI up to 4.5s.
+          recoveryTimeout = setTimeout(() => reject(new Error('auth_session_check_timeout')), 2000);
         });
         // Only check if user already has an active Supabase session
         const { data: { session } } = await Promise.race([
@@ -1232,6 +1245,7 @@ const Auth = () => {
       });
 
       setAuthStep("email_otp");
+      startResendCountdown();
     } catch (error: any) {
       console.error("Email OTP error:", error);
       recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
@@ -1580,6 +1594,7 @@ const Auth = () => {
         description: `Verification code sent to ${displayPhone} via WhatsApp`,
       });
       setAuthStep("phone_otp");
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1786,6 +1801,7 @@ const Auth = () => {
       if (error) throw error;
       await recordAttempt(`otp:${phoneDigits}`, false);
       toast({ title: "Code Resent", description: `New code sent to ${displayPhone} via WhatsApp` });
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleResendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1819,6 +1835,7 @@ const Auth = () => {
         title: "Code Resent",
         description: `A new verification code has been sent to ${normalizedEmail}`,
       });
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleResendEmailOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${normalizedEmail}`, false);
@@ -1899,6 +1916,7 @@ const Auth = () => {
       
       // Show OTP verification step - account will be created AFTER verification
       setAuthStep("otp_verify");
+      startResendCountdown();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -2078,6 +2096,7 @@ const Auth = () => {
         title: "Code Resent",
         description: `A new verification code has been sent to ${email}`,
       });
+      startResendCountdown();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -2647,15 +2666,15 @@ const Auth = () => {
                 )}
               </Button>
               
-              {/* Resend Code */}
+              {/* Resend Code — industry-standard 60s countdown (Phase 1 audit 2026-06-09) */}
               <div className="text-center space-y-2">
                 <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendEmailOtp}
-                  disabled={otpLoading}
+                  disabled={otpLoading || resendCountdown > 0}
                   className="text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
-                  Resend Code
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
                 </button>
               </div>
             </div>
@@ -2775,7 +2794,9 @@ const Auth = () => {
               
               <div className="text-center space-y-2">
                 <p className="text-slate-500 text-sm">Didn't receive the code?</p>
-                <button onClick={handleResendOtp} disabled={otpLoading} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">Resend Code</button>
+                <button onClick={handleResendOtp} disabled={otpLoading || resendCountdown > 0} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+                </button>
               </div>
             </div>
           </div>
@@ -3040,10 +3061,10 @@ const Auth = () => {
                 <p className="text-slate-600 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
-                  disabled={phoneOtpLoading}
+                  disabled={phoneOtpLoading || resendCountdown > 0}
                   className="text-emerald-700 text-sm font-semibold hover:text-emerald-800 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
-                  Resend WhatsApp Code
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend WhatsApp Code"}
                 </button>
               </div>
             </div>
