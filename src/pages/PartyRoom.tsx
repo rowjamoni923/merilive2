@@ -753,6 +753,12 @@ const PartyRoom = () => {
       ?? (room?.room_type === 'audio' ? 'voice' : 'music')
   );
 
+  // Pkg98: Real-time active speaker set, powered by LiveKit's server-side
+  // RoomEvent.ActiveSpeakersChanged (registered inside usePartyRoomNativeLiveKit).
+  // ~500ms hangover, sub-200ms latency — same UX Bigo/Chamet ship via Agora's
+  // onAudioVolumeIndication. Replaces the previously hardcoded isSpeaking flags.
+  const activeSpeakers = useActiveSpeakers('party', roomId || null);
+
   // Pkg444 Phase-6: auto-mute host/co-host mic on transient audio-focus
   // loss (phone call, alarm, voice assistant). Restored on focus regain
   // only if the user hadn't already muted themselves.
