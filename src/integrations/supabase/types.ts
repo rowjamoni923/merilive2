@@ -18734,28 +18734,17 @@ export type Database = {
         Returns: Json
       }
       bill_call_minute: { Args: { p_call_id: string }; Returns: Json }
-      bill_pk_gift:
-        | {
-            Args: {
-              p_battle_id: string
-              p_coin_amount: number
-              p_gift_id: string
-              p_sender_id: string
-              p_target_host_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_battle_id: string
-              p_coin_amount: number
-              p_gift_id: string
-              p_sender_id: string
-              p_stream_id?: string
-              p_target_host_id: string
-            }
-            Returns: Json
-          }
+      bill_pk_gift: {
+        Args: {
+          p_battle_id: string
+          p_coin_amount: number
+          p_gift_id: string
+          p_sender_id: string
+          p_stream_id?: string
+          p_target_host_id: string
+        }
+        Returns: Json
+      }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -20022,9 +20011,6 @@ export type Database = {
         Args: { p_room_id: string }
         Returns: undefined
       }
-      pk_match_queue_join: { Args: { p_stream_id: string }; Returns: Json }
-      pk_match_queue_leave: { Args: never; Returns: Json }
-      pk_match_queue_poll: { Args: never; Returns: Json }
       pk_team_invite: {
         Args: {
           p_battle_id: string
