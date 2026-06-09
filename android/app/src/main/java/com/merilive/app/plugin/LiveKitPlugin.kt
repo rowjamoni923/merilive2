@@ -548,6 +548,7 @@ class LiveKitPlugin : Plugin() {
                 try { attachEventListeners(handle.room) } catch (t: Throwable) {
                     Log.w(TAG, "adopt: attachEventListeners failed: ${t.message}")
                 }
+                try { startAudioLevelPoll(handle.room) } catch (_: Throwable) {} // Phase 6
                 // Phase 1A.2 step 2 — restart the listeners + watchdogs that
                 // survival-mode destroy had to unregister (because they hold
                 // a reference to the old plugin's `this`). The Room itself
