@@ -2458,7 +2458,7 @@ const PartyRoom = () => {
             avatarUrl: p.user?.avatar_url || undefined,
             level: p.user?.user_level || 1,
             countryFlag: '🌍',
-            beansCount: participantBeans[p.user_id] || 0,
+            beansCount: seatBeansReceived[p.user_id] || 0,
             isSpeaking: false,
             isMuted: false,
             isVideoOff: false,
