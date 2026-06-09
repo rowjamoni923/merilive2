@@ -52,6 +52,26 @@ export interface UnifiedEntryDispatcherOptions {
   minEntryGapMs?: number;
   /** Buffer depth past which identical-rank entries collapse. Default 3. */
   coalesceDepthThreshold?: number;
+  /**
+   * Phase 4 (WeJoy / Crush Live parity): when true, premium full-screen
+   * effects (vehicle + entrance) are HELD during active gameplay and
+   * batch-flushed at `flushSuppressed()` (host should call at round end /
+   * between rounds). Flying name bars + welcome chat continue normally
+   * — gamers still see who arrived, just no dragon over the Ludo board.
+   *
+   * Auto-defaults to `true` for `roomType === 'game_party'`. Callers can
+   * force `false` (always play premium, even mid-round) or wire round
+   * state by toggling at runtime via the returned `setSuppressPremium`.
+   */
+  suppressPremiumDuringGame?: boolean;
+  /**
+   * Safety net: held premium entries auto-flush after this many ms even
+   * if no one calls `flushSuppressed`. Default 30 s — long enough to
+   * cover one Ludo turn, short enough that no viewer feels "ghosted".
+   */
+  suppressedAutoFlushMs?: number;
+  /** Hard cap on suppressed queue; oldest dropped past this. Default 10. */
+  suppressedMaxQueue?: number;
 }
 
 export interface PushEntryParams extends AddEntryParams {
