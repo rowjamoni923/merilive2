@@ -5,6 +5,7 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { cn } from "@/lib/utils";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
+import { isNativeGiftPipelineActive } from "@/utils/nativeAnimRuntime";
 
 
 // Lazy load remaining specialty players
@@ -146,6 +147,12 @@ const FullScreenGiftAnimation = ({
   quantity, 
   onComplete 
 }: FullScreenGiftAnimationProps) => {
+  // Pkg438 Phase C: when the NativeGiftAnimation pipeline is live on Android,
+  // suppress the WebView full-screen render to avoid double-play. The native
+  // overlay already played at <50ms via the LiveKit bridge. We still fire
+  // onComplete so any caller-side queue advances.
+  const skipForNative = isNativeGiftPipelineActive();
+
   const [isVisible, setIsVisible] = useState(true);
   const [lottieData, setLottieData] = useState<object | null>(null);
   const [currentCount, setCurrentCount] = useState(0);
@@ -156,6 +163,14 @@ const FullScreenGiftAnimation = ({
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (skipForNative && !completedRef.current) {
+      completedRef.current = true;
+      try { onComplete(); } catch { /* ignore */ }
+    }
+  }, [skipForNative, onComplete]);
+
 
   // Detect animation type
   const getAnimationType = (url?: string): 'svga' | 'vap' | 'lottie' | 'video' | 'image' | 'none' => {
