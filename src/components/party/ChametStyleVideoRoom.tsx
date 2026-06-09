@@ -209,14 +209,22 @@ export function ChametStyleVideoRoom({
   // Combine external and local messages
   const chatMessages = [...externalChatMessages, ...localChatMessages];
 
-  // Create 4 seat grid positions (2 columns x 2 rows) like Chamet
-  const seatGrid = Array.from({ length: 4 }, (_, i) => {
+  // Dynamic seat grid — supports up to 9 seats (3x3) like Chamet/Bigo video party.
+  // Falls back to 4 (2x2) when admin caps the room smaller.
+  const totalSeats = Math.max(1, Math.min(maxSeats || 4, 9));
+  const seatGrid = Array.from({ length: totalSeats }, (_, i) => {
     if (i === 0 && hostInfo) {
       return { ...hostInfo, position: 0 };
     }
     const participant = participants.find(p => p.position === i);
     return participant || null;
   });
+
+  // Column count: 1→1col, 2→2col, 3-4→2col, 5-9→3col (industry-standard video party grid).
+  const gridColsClass =
+    totalSeats <= 1 ? 'grid-cols-1' :
+    totalSeats <= 4 ? 'grid-cols-2' :
+    'grid-cols-3';
 
 
   // Add floating heart animation
@@ -366,7 +374,7 @@ export function ChametStyleVideoRoom({
 
       {/* Video Grid - 2x2 Layout matching Chamet — fixed equal seat sizes */}
       <main className="relative z-10 flex-1 px-2 py-2">
-        <div className="grid grid-cols-2 gap-1.5 w-full max-w-md mx-auto">
+        <div className={cn("grid gap-1.5 w-full max-w-md mx-auto", gridColsClass)}>
           {seatGrid.map((participant, index) => {
             const isMyself = participant?.id === currentUserId;
             const isEmpty = !participant;
