@@ -1674,7 +1674,7 @@ const PartyRoom = () => {
       // PR-2 (P1-12): stash payload; effect below publishes once LiveKit
       // reports isConnected. Avoids the prior race where this packet went
       // out before the SFU was ready and was dropped server-side.
-      const publishPayload: PartyEventDetail = {
+      const publishPayload: ParticipantJoinedPayload = {
         type: 'participant_joined',
         roomId,
         userId: currentUser.id,
