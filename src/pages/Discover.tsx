@@ -297,14 +297,59 @@ const Discover = () => {
       return;
     }
 
-    // PR-2.5: preview-before-pay (Chamet/Bigo pattern). Show host, fee, mood, etc.
-    // and require explicit confirm before the entry fee is debited on join.
-    if (room.entry_fee > 0) {
-      setEntryPreview(room);
+    // PR-2.5: ALWAYS show preview-before-enter for ALL rooms (Chamet/Bigo pattern).
+    // This gives users a moment to see host, fee, mood, participant count, etc.
+    setEntryPreview(room);
+  };
+
+  const handleJoinFromPreview = () => {
+    if (!entryPreview) return;
+    const target = entryPreview.id;
+    setEntryPreview(null);
+    navigate(`/party/${target}`);
+  };
+
+  // PR-2.5: dedicated room-code quick-join (Bigo/Chamet style).
+  const joinByRoomCode = async () => {
+    const code = roomCodeInput.trim().toUpperCase();
+    if (!code || code.length < 4) {
+      toast.error("Enter a valid room code (4+ characters)");
       return;
     }
-
-    navigate(`/party/${room.id}`);
+    setJoiningByCode(true);
+    try {
+      const { data, error } = await supabase
+        .from('party_rooms')
+        .select('*')
+        .eq('room_code', code)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        toast.error("No active room found with that code");
+        return;
+      }
+      // Fetch host profile
+      const { data: host } = await supabase
+        .from('profiles_public')
+        .select('id, display_name, avatar_url, user_level, host_level, country_flag, country_code')
+        .eq('id', data.host_id)
+        .single();
+      const room: PartyRoom = {
+        ...data,
+        host: host || null,
+        current_participants: 0,
+        is_private: !!data.password_hash,
+      } as PartyRoom;
+      setRoomCodeDialogOpen(false);
+      setRoomCodeInput("");
+      // Run same join flow (checks + preview)
+      await joinRoom(room);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to find room");
+    } finally {
+      setJoiningByCode(false);
+    }
   };
 
 
