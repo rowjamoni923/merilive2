@@ -259,8 +259,12 @@ const PartyRoom = () => {
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
-  // Per-participant beans tracking (sender_id -> beans earned for host)
+  // Per-participant SENT coin totals (sender_id -> total coins spent in this room)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
+  // PR-2.3 (G) — Per-seat RECEIVED beans (receiver_id -> beans earned).
+  // Mirrors Chamet/Bigo: each co-host seat shows their own earnings, host
+  // card keeps showing room-wide total via `totalRoomBeans`.
+  const [seatBeansReceived, setSeatBeansReceived] = useState<Record<string, number>>({});
   
   // Dynamic background state - synced via real-time from DB
   const [currentBackground, setCurrentBackground] = useState<{
