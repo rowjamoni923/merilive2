@@ -1687,7 +1687,7 @@ const PartyRoom = () => {
         vehicleAnimationUrl: selfVehicleUrl || null,
         rankCode: rankCode || null,
         timestamp: Date.now(),
-      } as PartyEventDetail;
+      } as ParticipantJoinedPayload;
       pendingJoinPublishRef.current = () => {
         void publishPartyEvent(roomId, publishPayload).then((sent) => {
           if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);
