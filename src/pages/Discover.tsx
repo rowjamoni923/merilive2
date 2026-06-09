@@ -812,49 +812,171 @@ const Discover = () => {
         onTabChange={handleTabChange} 
       />
 
-      {/* PR-2.5 — Preview-before-pay confirmation for paid entry rooms (Chamet/Bigo pattern). */}
-      <AlertDialog open={!!entryPreview} onOpenChange={(open) => { if (!open) setEntryPreview(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Join "{entryPreview?.name}"?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={entryPreview?.host?.avatar_url || undefined} />
-                    <AvatarFallback>{entryPreview?.host?.display_name?.[0] || "H"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">
-                      {entryPreview?.host?.display_name || "Host"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {entryPreview?.host?.country_flag || "🌍"} · {entryPreview?.current_participants ?? 0}/{entryPreview?.max_participants ?? 0} in room
-                    </span>
+      {/* PR-2.5 — Rich preview-before-enter for ALL rooms (Chamet/Bigo pattern). */}
+      <Dialog open={!!entryPreview} onOpenChange={(open) => { if (!open) setEntryPreview(null); }}>
+        <DialogContent className="sm:max-w-sm p-0 overflow-hidden gap-0">
+          {entryPreview && (
+            <>
+              {/* Hero image / background */}
+              <div className="relative h-40">
+                {(entryPreview.background_url || entryPreview.host?.avatar_url) ? (
+                  <img
+                    src={normalizeProfileMediaUrl(entryPreview.background_url || entryPreview.host?.avatar_url) || undefined}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={cn("w-full h-full bg-gradient-to-br", getRoomTypeColor(entryPreview.room_type))} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                
+                {/* Top badges */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                  <Badge className={cn("border-0 text-on-dark text-[10px] bg-gradient-to-r", getRoomTypeColor(entryPreview.room_type))}>
+                    {(() => { const Icon = getRoomTypeIcon(entryPreview.room_type); return <Icon className="w-3 h-3 mr-1" />; })()}
+                    {entryPreview.room_type}
+                  </Badge>
+                  {entryPreview.is_private && (
+                    <Badge variant="secondary" className="text-[10px] bg-card/90 backdrop-blur-sm">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Private
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Host avatar floating bottom-center */}
+                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
+                  <div className="rounded-full p-[3px] bg-gradient-to-br from-secondary to-primary"
+                    style={{ boxShadow: '0 8px 24px -6px rgba(79,70,229,0.45), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+                  >
+                    <Avatar className="w-16 h-16 border-4 border-background">
+                      <AvatarImage src={normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-primary text-on-dark text-lg">
+                        {entryPreview.host?.display_name?.[0] || "H"}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                 </div>
-                <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-amber-700 dark:text-amber-300">
-                  Entry fee: <strong>{entryPreview?.entry_fee} 💰</strong> — this will be deducted from your balance.
+              </div>
+
+              {/* Body */}
+              <div className="px-5 pt-9 pb-5">
+                <div className="text-center mb-4">
+                  <h3 className="font-bold text-base text-foreground truncate">{entryPreview.name}</h3>
+                  <div className="flex items-center justify-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{entryPreview.host?.display_name || "Host"}</span>
+                    {entryPreview.host?.country_flag && <span>{entryPreview.host.country_flag}</span>}
+                    <LevelBadge level={entryPreview.host?.user_level || 1} size="sm" showIcon className="text-[9px] px-1 py-0" />
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="font-semibold text-foreground">{entryPreview.current_participants}</span>
+                    <span>/ {entryPreview.max_participants ?? 0}</span>
+                  </div>
+                  {entryPreview.min_level > 1 && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                      <ShieldAlert className="w-3.5 h-3.5 text-warning" />
+                      <span>Min Lv.{entryPreview.min_level}</span>
+                    </div>
+                  )}
+                  {entryPreview.room_code && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                      <Hash className="w-3.5 h-3.5 text-info" />
+                      <span className="font-mono">{entryPreview.room_code}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mood / description */}
+                {(entryPreview.mood || entryPreview.description) && (
+                  <div className="text-center text-xs text-muted-foreground mb-4 px-2">
+                    {entryPreview.mood && <span className="font-medium text-foreground">{entryPreview.mood}</span>}
+                    {entryPreview.mood && entryPreview.description && <span className="mx-1">·</span>}
+                    {entryPreview.description}
+                  </div>
+                )}
+
+                {/* Welcome message */}
+                {entryPreview.welcome_message && (
+                  <div className="rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 px-3 py-2 text-xs text-center text-foreground/80 mb-4">
+                    {entryPreview.welcome_message}
+                  </div>
+                )}
+
+                {/* Fee warning */}
+                {entryPreview.entry_fee > 0 && (
+                  <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-300 mb-4 text-center">
+                    Entry fee <strong>{entryPreview.entry_fee} <Diamond className="w-3 h-3 inline -mt-0.5" /></strong> will be deducted.
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1 h-10 text-sm" onClick={() => setEntryPreview(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 h-10 text-sm bg-gradient-primary text-on-dark"
+                    style={{ boxShadow: '0 8px 20px -8px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.35)' }}
+                    onClick={handleJoinFromPreview}
+                  >
+                    {entryPreview.entry_fee > 0 ? (
+                      <span className="flex items-center gap-1">
+                        Pay {entryPreview.entry_fee} <Diamond className="w-3.5 h-3.5" /> & Join
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        Join Room <ChevronRight className="w-4 h-4" />
+                      </span>
+                    )}
+                  </Button>
                 </div>
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (entryPreview) {
-                  const target = entryPreview.id;
-                  setEntryPreview(null);
-                  navigate(`/party/${target}`);
-                }
-              }}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* PR-2.5 — Room Code Quick-Join Dialog */}
+      <Dialog open={roomCodeDialogOpen} onOpenChange={setRoomCodeDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-primary" />
+              Join by Room Code
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={roomCodeInput}
+                onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
+                placeholder="Enter room code (e.g. A1B2C3)"
+                className="pl-9 h-10 font-mono uppercase"
+                maxLength={12}
+                onKeyDown={(e) => { if (e.key === 'Enter') void joinByRoomCode(); }}
+              />
+            </div>
+            <Button
+              className="w-full h-10 bg-gradient-primary text-on-dark"
+              disabled={joiningByCode || !roomCodeInput.trim()}
+              onClick={() => void joinByRoomCode()}
             >
-              Pay {entryPreview?.entry_fee} & Join
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {joiningByCode ? "Searching..." : "Join Room"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Discover;
     </div>
   );
 };
