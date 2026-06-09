@@ -419,10 +419,10 @@ export function detectContactInfo(text: string): DetectionResult {
     };
   }
 
-  // ★ Step 3: Check for URLs/links (social media links)
+  // ★ Step 3: Check for URLs/links (social media links) — use normalized text
   for (const pattern of URL_PATTERNS) {
     pattern.lastIndex = 0;
-    const matches = text.match(pattern);
+    const matches = normalized.match(pattern);
     if (matches && matches.length > 0) {
       return {
         hasViolation: true,
@@ -433,11 +433,11 @@ export function detectContactInfo(text: string): DetectionResult {
     }
   }
 
-  // ★ Step 4: Check for social media handles with numbers
+  // ★ Step 4: Check for social media handles with numbers (normalized)
   for (const { platform, patterns } of SOCIAL_MEDIA_PATTERNS) {
     for (const pattern of patterns) {
       pattern.lastIndex = 0;
-      const matches = text.match(pattern);
+      const matches = normalized.match(pattern);
       if (matches && matches.length > 0) {
         return {
           hasViolation: true,
@@ -449,10 +449,10 @@ export function detectContactInfo(text: string): DetectionResult {
     }
   }
 
-  // ★ Step 5: Check for social media platform NAMES ALONE (any language)
-  const lowerText = text.toLowerCase();
+  // ★ Step 5: Check for social media platform NAMES ALONE (any language) — normalized
+  const lowerText = normalized.toLowerCase();
   for (const { keyword, platform } of SOCIAL_MEDIA_NAME_ONLY) {
-    if (lowerText.includes(keyword.toLowerCase()) || text.includes(keyword)) {
+    if (lowerText.includes(keyword.toLowerCase()) || normalized.includes(keyword)) {
       return {
         hasViolation: true,
         detectedContent: keyword,
