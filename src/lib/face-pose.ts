@@ -5,7 +5,11 @@
 export const POSE_BASE = {
   CENTER_YAW: 22,
   CENTER_PITCH: 22,
-  TURN_YAW: 14,
+  // F3 hardening (2026-06-09): raise turn threshold from 14° → 22° to match
+  // Holla / Olamet / Bigo bank-grade liveness (industry min 22-28°). With
+  // adaptive calibration padY*0.7 this can stretch to ~28° on noisy cameras
+  // while still rejecting tiny-yaw replay attacks.
+  TURN_YAW: 22,
   TILT_PITCH: 10,
   HOLD_SEC: 0.6,
   STEP_WINDOW: 8,

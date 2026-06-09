@@ -95,11 +95,24 @@ function saveCalibration(c: PoseCalibration) {
 // Single English-only instruction set (per global English policy).
 // `checkPose` is preserved for any external callers but the live loop uses
 // `evaluatePose(id, pose, calibration)` so thresholds stay in sync.
-const getLocalizedInstructions = (_countryName?: string) => [
-  { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
-  { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
-  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
-];
+// F3 hardening (2026-06-09): the L/R order is randomized per session in
+// `faceInstructions` (below). Center always stays first as the calibration
+// anchor; the side challenges are shuffled to defeat 15-second pre-recorded
+// replay attacks that assume the fixed center→left→right script.
+const FACE_INSTRUCTION_DEFS = {
+  center: { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
+  left:   { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
+  right:  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
+} as const;
+
+const buildRandomizedFaceInstructions = () => {
+  const sides = Math.random() < 0.5
+    ? [FACE_INSTRUCTION_DEFS.left, FACE_INSTRUCTION_DEFS.right]
+    : [FACE_INSTRUCTION_DEFS.right, FACE_INSTRUCTION_DEFS.left];
+  return [FACE_INSTRUCTION_DEFS.center, ...sides];
+};
+
+const getLocalizedInstructions = (_countryName?: string) => buildRandomizedFaceInstructions();
 
 // Single English-only message set.
 const getLocalizedMessages = (_countryName?: string) => ({
