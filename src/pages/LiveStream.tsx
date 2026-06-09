@@ -324,7 +324,7 @@ const LiveStream = () => {
   const [showRandomPKNotification, setShowRandomPKNotification] = useState(false);
   // R6a: challenger-side searching state — survives panel close so the
   // pk_random_accepted listener fires even when the picker sheet is gone.
-  const [randomPKSearching, setRandomPKSearching] = useState<{ sessionId: string } | null>(null);
+  const [randomPKSearching, setRandomPKSearching] = useState<{ sessionId: string; durationSeconds: number } | null>(null);
   const randomPKProcessedRef = useRef<Set<string>>(new Set());
   const randomPKTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -2081,7 +2081,7 @@ const LiveStream = () => {
               p_opponent_id: acceptorId,
               p_challenger_stream_id: id || "",
               p_opponent_stream_id: acceptorStreamId,
-              p_duration_seconds: 300,
+              p_duration_seconds: randomPKSearching?.durationSeconds ?? 300,
             }
           );
           const payload = (createRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
@@ -2938,7 +2938,7 @@ const LiveStream = () => {
   // R6a — challenger-side random match search (lifted from PKBattlePanel
   // so the listener survives the panel closing). Returns true on success so
   // the panel can close + clear its local "sending" state.
-  const startRandomPKSearch = async () => {
+  const startRandomPKSearch = async (durationSeconds: number = 300) => {
     if (!currentUserId || !hostInfo || !id) {
       toast.error("Stream not ready");
       return;
@@ -2969,7 +2969,7 @@ const LiveStream = () => {
         `Random PK request sent to ${delivered} host${delivered > 1 ? "s" : ""}`
       );
 
-      setRandomPKSearching({ sessionId });
+      setRandomPKSearching({ sessionId, durationSeconds });
 
       // 25s no-accept timeout → toast + auto-clear
       if (randomPKTimeoutRef.current) clearTimeout(randomPKTimeoutRef.current);

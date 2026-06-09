@@ -32,9 +32,17 @@ interface PKBattlePanelProps {
   onBattleStarted: (battleId: string, opponentInfo: LiveHost) => void;
   // R6a: random-match flow lifted to LiveStream so the listener survives
   // panel close, plus the challenger can cancel and see a "Searching…" pill.
-  onStartRandomMatch?: () => void;
+  // P0 bundle: duration chosen in panel is forwarded so both direct invites
+  // and random match honor the selection.
+  onStartRandomMatch?: (durationSeconds: number) => void;
   isRandomSearching?: boolean;
 }
+
+const PK_DURATION_PRESETS = [
+  { value: 180, label: "3 min" },
+  { value: 300, label: "5 min" },
+  { value: 600, label: "10 min" },
+] as const;
 
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 
@@ -55,6 +63,7 @@ export const PKBattlePanel = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [sendingRequest, setSendingRequest] = useState<string | null>(null);
   const [sendingRandom, setSendingRandom] = useState(false);
+  const [pkDuration, setPkDuration] = useState<number>(300);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
 
@@ -163,7 +172,7 @@ export const PKBattlePanel = ({
         p_opponent_id: opponent.id,
         p_challenger_stream_id: currentStreamId,
         p_opponent_stream_id: opponent.stream_id,
-        p_duration_seconds: 300,
+        p_duration_seconds: pkDuration,
       });
       const payload = (rpcRes ?? {}) as { ok?: boolean; battle_id?: string; error?: string };
 
@@ -215,7 +224,7 @@ export const PKBattlePanel = ({
     if (!onStartRandomMatch || isRandomSearching) return;
     setSendingRandom(true);
     try {
-      await Promise.resolve(onStartRandomMatch());
+      await Promise.resolve(onStartRandomMatch(pkDuration));
       onClose();
     } finally {
       setSendingRandom(false);
@@ -324,6 +333,43 @@ export const PKBattlePanel = ({
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                 }}
               />
+            </div>
+
+            {/* Duration presets (P0 bundle) */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <span className="text-[11px] text-white/55 font-medium mr-0.5">Duration</span>
+              <div
+                className="flex items-center gap-1 p-1 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                }}
+              >
+                {PK_DURATION_PRESETS.map((p) => {
+                  const active = pkDuration === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPkDuration(p.value)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-[11px] font-bold transition-colors",
+                        active ? "text-black" : "text-white/70 hover:text-white"
+                      )}
+                      style={
+                        active
+                          ? {
+                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                              boxShadow: '0 2px 8px -2px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+                            }
+                          : undefined
+                      }
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

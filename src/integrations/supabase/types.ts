@@ -10739,6 +10739,12 @@ export type Database = {
           phone_number: string | null
           phone_verified: boolean | null
           phone_violation_count: number | null
+          pk_current_streak: number
+          pk_draws: number
+          pk_longest_streak: number
+          pk_losses: number
+          pk_total_battles: number
+          pk_wins: number
           previous_bubble_id: string | null
           previous_entrance_id: string | null
           previous_entry_banner_id: string | null
@@ -10859,6 +10865,12 @@ export type Database = {
           phone_number?: string | null
           phone_verified?: boolean | null
           phone_violation_count?: number | null
+          pk_current_streak?: number
+          pk_draws?: number
+          pk_longest_streak?: number
+          pk_losses?: number
+          pk_total_battles?: number
+          pk_wins?: number
           previous_bubble_id?: string | null
           previous_entrance_id?: string | null
           previous_entry_banner_id?: string | null
@@ -10979,6 +10991,12 @@ export type Database = {
           phone_number?: string | null
           phone_verified?: boolean | null
           phone_violation_count?: number | null
+          pk_current_streak?: number
+          pk_draws?: number
+          pk_longest_streak?: number
+          pk_losses?: number
+          pk_total_battles?: number
+          pk_wins?: number
           previous_bubble_id?: string | null
           previous_entrance_id?: string | null
           previous_entry_banner_id?: string | null
@@ -19226,6 +19244,12 @@ export type Database = {
           phone_number: string | null
           phone_verified: boolean | null
           phone_violation_count: number | null
+          pk_current_streak: number
+          pk_draws: number
+          pk_longest_streak: number
+          pk_losses: number
+          pk_total_battles: number
+          pk_wins: number
           previous_bubble_id: string | null
           previous_entrance_id: string | null
           previous_entry_banner_id: string | null
