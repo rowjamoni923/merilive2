@@ -224,7 +224,7 @@ export const PKBattlePanel = ({
     if (!onStartRandomMatch || isRandomSearching) return;
     setSendingRandom(true);
     try {
-      await Promise.resolve(onStartRandomMatch());
+      await Promise.resolve(onStartRandomMatch(pkDuration));
       onClose();
     } finally {
       setSendingRandom(false);
