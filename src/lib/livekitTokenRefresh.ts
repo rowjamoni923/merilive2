@@ -175,6 +175,31 @@ export function attachLiveKitTokenRefresh(
   room.on(RoomEvent.Reconnecting, onReconnecting);
   room.on(RoomEvent.SignalReconnecting, onReconnecting);
 
+  // F-5.4 — native plugin emits `lk:token-expired` when the SFU drops the
+  // session with DisconnectReason.TOKEN_EXPIRED. Stale-JWT reconnect would
+  // re-fail, so fetch a fresh token then trigger an immediate native reconnect.
+  const onTokenExpired = () => {
+    if (disposed) return;
+    void (async () => {
+      try {
+        const fresh = await refetch();
+        if (!fresh?.token || disposed) return;
+        applyTokenToRoom(fresh.token, fresh.ttl ?? ttlSeconds);
+        const mod = await import('@/plugins/NativeLiveKit');
+        if (mod.isNativeLiveKitAvailable()) {
+          await mod.NativeLiveKit.reconnectNow().catch(() => undefined);
+          console.info(`[${label}] token-expired → reconnect issued`);
+        }
+        scheduleNext(fresh.ttl ?? ttlSeconds);
+      } catch (err) {
+        console.warn(`[${label}] token-expired handler failed:`, err);
+      }
+    })();
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('lk:token-expired', onTokenExpired);
+  }
+
   scheduleNext(ttlSeconds);
 
   return () => {
@@ -189,5 +214,9 @@ export function attachLiveKitTokenRefresh(
     } catch {
       /* ignore */
     }
+    if (typeof window !== 'undefined') {
+      try { window.removeEventListener('lk:token-expired', onTokenExpired); } catch { /* noop */ }
+    }
   };
 }
+
