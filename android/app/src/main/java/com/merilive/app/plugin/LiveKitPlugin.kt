@@ -3353,7 +3353,13 @@ class LiveKitPlugin : Plugin() {
             while (true) {
                 delay(STALL_POLL_MS)
                 if (room == null) break
-                if (inBackground) continue   // Step 24 detached renderers — frames legitimately stop.
+                // FIX-C — skip while either Activity OR process is in
+                // background. Without the process-level guard, a hosted
+                // PiP / pulled-down notification shade let the watchdog
+                // race the OS Camera2 pause and trigger a phantom
+                // "stall recovery" that re-published the camera into a
+                // half-resumed surface — black frame on return.
+                if (inBackground || processInBackground) continue
                 checkForStalls()
             }
         }
