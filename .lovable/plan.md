@@ -1,6 +1,6 @@
 # Android-Native Pro Pass — 4 Phase Master Plan
 
-ভাই কথা ১০০% clear। নিচে honest, scoped plan। প্রতিটা Phase-এ **research → audit → code → verify** order — memory-locked research-first rule অনুযায়ী।
+ভাই কথা 100% clear। নিচে honest, scoped plan। প্রতিটা Phase-এ **research → audit → code → verify** order — memory-locked research-first rule অনুযায়ী।
 
 > **Design rule:** Web React UI (WebView) zero change। শুধু performance/resilience path Android native।
 > **Strings rule:** All toasts/labels English।
@@ -154,3 +154,40 @@ Research-first audit found the WebView viewer stack is ~95% already at industry 
   - Both gates must pass; per-room map GC'd at >500 entries / >2× cooldown age.
 
 JS-only change. No APK rebuild needed. Owner-account testable on `/live/:id` and `/party/:id` routes.
+
+---
+
+## 🔧 Phase 4 — Private Call (Android) — IN PROGRESS 2026-06-09
+
+Research-first subagent completed. Audit subagent pending. File-structure audit revealed many plan items are **already implemented** in the Capacitor `android/` directory (not `native-kotlin/`). Corrected gap list:
+
+### Already done (verified from source)
+- **L-3 / L-4 (Audio routing API 31+, Bluetooth SCO handover)** — `CallAudioRouter.kt` already uses `setCommunicationDevice()` on API 31+ and registers `AudioDeviceCallback` for mid-call BT/wired handover. Source verified, no changes needed.
+- **L-6 (Ghost notification / START_STICKY)** — `CallForegroundService.java` already returns `START_NOT_STICKY` and calls `stopForeground(STOP_FOREGROUND_REMOVE)` on stop. Source verified, no changes needed.
+- **AndroidManifest permissions + service types** — Already declares `FOREGROUND_SERVICE_PHONE_CALL`, `FOREGROUND_SERVICE_CAMERA`, `FOREGROUND_SERVICE_MICROPHONE`, `USE_FULL_SCREEN_INTENT`. Source verified, no changes needed.
+
+### Real gaps to close (6 items)
+
+| # | Tag | File | Gap | Fix |
+|---|---|---|---|---|
+| 1 | F-1 | `MeriFirebaseMessagingService.kt` | `loadBitmapFromUrl()` runs synchronously on FCM thread for big-image notifications; blocks FCM delivery | Move bitmap fetch to `kotlinx.coroutines` async; post text notification first, update with bitmap when ready |
+| 2 | L-5 | `IncomingCallService.kt` | No `canUseFullScreenIntent()` runtime check before `setFullScreenIntent()` on API 34+ | Add `NotificationManager.canUseFullScreenIntent()` gate; fallback to heads-up only when denied |
+| 3 | L-7 | `PrivateCallActivity.kt` | No `onPause`/`onResume` renderer lifecycle; only detaches in `onDestroy` | Add `onPause` → `detachAllRenderers(release=false)`, `onResume` → re-attach tracks |
+| 4 | L-8 | `PrivateCallActivity.kt` | No proximity wakelock; uses `FLAG_KEEP_SCREEN_ON` which stays on even at ear | Add `PROXIMITY_SCREEN_OFF_WAKE_LOCK` managed by audio route (enable when earpiece, disable when speaker/BT) |
+| 5 | L-9 | `IncomingCallService.kt` | No `Notification.CallStyle` for API 31+; channel missing `setAllowBubbles(false)` | Use `NotificationCompat.CallStyle.forIncomingCall()` on API 31+; add `setAllowBubbles(false)` to channel |
+| 6 | L-10 | `src/hooks/useLiveKitCall.ts` | Reconnect budget timer is 15s (line 113) | Bump to 30s per industry standard (GetStream / Agora / LiveKit production recommendation) |
+
+### JS P1 batch already present in tree (no new code needed)
+- Low-balance banner — already in `PrivateCallActivity.kt:573-587`
+- Billing pause on reconnect — already in `usePrivateCall.ts:422` (`reconnectingRef.current` gate)
+- `billingStartedRef` before-RPC — already in `usePrivateCall.ts:293`
+
+### Backend P1 batch deferred to Phase 4B
+- `accept/end` RPC `FOR UPDATE` row locks, `end_reason` CHECK constraint, `call_events` INSERT policy — these are DB migration work, not Android native. Will be handled in a separate DB pass if user requests.
+
+**Sources:**
+- Android FSI limits: https://source.android.com/docs/core/permissions/fsi-limits
+- Fora Soft call notification guide: https://www.forasoft.com/blog/article/how-to-make-a-custom-android-call-notification-455
+- AOSP InCallUI ProximitySensor: https://android.googlesource.com/platform/packages/apps/InCallUI/+/refs/tags/android-n-iot-preview-2/src/com/android/incallui/ProximitySensor.java
+- GetStream reconnect budget: https://getstream.io/video/docs/react-native/ui-cookbook/network-disruption/
+- LiveKit AudioSwitchHandler: https://docs.livekit.io/client-sdk-android/livekit-android-sdk/io.livekit.android.audio/-audio-switch-handler/
