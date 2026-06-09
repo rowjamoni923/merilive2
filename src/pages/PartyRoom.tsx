@@ -2515,7 +2515,7 @@ const PartyRoom = () => {
           level: Math.max(room.host.host_level || 0, room.host.user_level || 1),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
-          isSpeaking: true,
+          isSpeaking: room.host?.id ? activeSpeakers.has(room.host.id) : false,
           // Mic/cam flags must reflect the HOST's own publishing state.
           // Viewers don't publish, so using their local !isAudioEnabled/!isVideoEnabled
           // would falsely flag the host as muted/video-off and render the avatar
@@ -2540,7 +2540,7 @@ const PartyRoom = () => {
             level: p.user?.user_level || 1,
             countryFlag: '🌍',
             beansCount: seatBeansReceived[p.user_id] || 0,
-            isSpeaking: false,
+            isSpeaking: activeSpeakers.has(p.user_id),
             isMuted: false,
             isVideoOff: false,
             isHost: false,
