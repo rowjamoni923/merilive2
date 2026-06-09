@@ -32,9 +32,17 @@ interface PKBattlePanelProps {
   onBattleStarted: (battleId: string, opponentInfo: LiveHost) => void;
   // R6a: random-match flow lifted to LiveStream so the listener survives
   // panel close, plus the challenger can cancel and see a "Searching…" pill.
-  onStartRandomMatch?: () => void;
+  // P0 bundle: duration chosen in panel is forwarded so both direct invites
+  // and random match honor the selection.
+  onStartRandomMatch?: (durationSeconds: number) => void;
   isRandomSearching?: boolean;
 }
+
+const PK_DURATION_PRESETS = [
+  { value: 180, label: "3 min" },
+  { value: 300, label: "5 min" },
+  { value: 600, label: "10 min" },
+] as const;
 
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 
