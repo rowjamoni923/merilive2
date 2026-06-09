@@ -18945,15 +18945,26 @@ export type Database = {
         }
         Returns: string
       }
-      create_party_room: {
-        Args: {
-          p_game_mode?: string
-          p_name: string
-          p_password?: string
-          p_room_type: string
-        }
-        Returns: string
-      }
+      create_party_room:
+        | {
+            Args: {
+              p_game_mode?: string
+              p_name: string
+              p_password?: string
+              p_room_type: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_entry_fee?: number
+              p_game_mode?: string
+              p_name: string
+              p_password?: string
+              p_room_type: string
+            }
+            Returns: string
+          }
       create_sub_agent: {
         Args: {
           _agency_id: string
