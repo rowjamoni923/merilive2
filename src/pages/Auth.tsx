@@ -1245,6 +1245,7 @@ const Auth = () => {
       });
 
       setAuthStep("email_otp");
+      startResendCountdown();
     } catch (error: any) {
       console.error("Email OTP error:", error);
       recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
@@ -1593,6 +1594,7 @@ const Auth = () => {
         description: `Verification code sent to ${displayPhone} via WhatsApp`,
       });
       setAuthStep("phone_otp");
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1799,6 +1801,7 @@ const Auth = () => {
       if (error) throw error;
       await recordAttempt(`otp:${phoneDigits}`, false);
       toast({ title: "Code Resent", description: `New code sent to ${displayPhone} via WhatsApp` });
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleResendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1832,6 +1835,7 @@ const Auth = () => {
         title: "Code Resent",
         description: `A new verification code has been sent to ${normalizedEmail}`,
       });
+      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleResendEmailOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${normalizedEmail}`, false);
@@ -1912,6 +1916,7 @@ const Auth = () => {
       
       // Show OTP verification step - account will be created AFTER verification
       setAuthStep("otp_verify");
+      startResendCountdown();
     } catch (error: any) {
       toast({
         title: "Error",
