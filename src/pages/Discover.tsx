@@ -710,6 +710,50 @@ const Discover = () => {
         activeTab="/discover" 
         onTabChange={handleTabChange} 
       />
+
+      {/* PR-2.5 — Preview-before-pay confirmation for paid entry rooms (Chamet/Bigo pattern). */}
+      <AlertDialog open={!!entryPreview} onOpenChange={(open) => { if (!open) setEntryPreview(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Join "{entryPreview?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={entryPreview?.host?.avatar_url || undefined} />
+                    <AvatarFallback>{entryPreview?.host?.display_name?.[0] || "H"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-foreground">
+                      {entryPreview?.host?.display_name || "Host"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {entryPreview?.host?.country_flag || "🌍"} · {entryPreview?.current_participants ?? 0}/{entryPreview?.max_participants ?? 0} in room
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-amber-700 dark:text-amber-300">
+                  Entry fee: <strong>{entryPreview?.entry_fee} 💰</strong> — this will be deducted from your balance.
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (entryPreview) {
+                  const target = entryPreview.id;
+                  setEntryPreview(null);
+                  navigate(`/party/${target}`);
+                }
+              }}
+            >
+              Pay {entryPreview?.entry_fee} & Join
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
