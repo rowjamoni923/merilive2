@@ -2086,6 +2086,76 @@ class LiveKitPlugin : Plugin() {
         return attached
     }
 
+    // Phase 6 — start a 150ms poll that emits per-participant audio levels
+    // for smooth seat-ring animation. Also emits a `local-vad-changed` event
+    // so a host's BGM player (JS-side ExoPlayer wrapper) can duck to -20dB
+    // within 50ms of voice onset and restore 500ms after silence (Bigo/Hollah
+    // standard). Cheap: a few floats over <16 participants every 150ms.
+    private fun startAudioLevelPoll(r: Room) {
+        stopAudioLevelPoll()
+        audioLevelPollJob = scope.launch {
+            val speakThreshold = 0.08f         // ~-21 dBFS, industry default
+            val silenceHoldMs = 500L           // restore BGM 500ms after silence
+            while (kotlinx.coroutines.isActive) {
+                try {
+                    val arr = com.getcapacitor.JSArray()
+                    // Local participant
+                    val local = r.localParticipant
+                    val localLevel = try { local.audioLevel } catch (_: Throwable) { 0f }
+                    val localItem = JSObject()
+                    localItem.put("sid", local.sid.value)
+                    localItem.put("identity", local.identity?.value ?: "")
+                    localItem.put("audioLevel", localLevel)
+                    localItem.put("isLocal", true)
+                    arr.put(localItem)
+                    // Remote participants
+                    for (p in r.remoteParticipants.values) {
+                        val lvl = try { p.audioLevel } catch (_: Throwable) { 0f }
+                        val item = JSObject()
+                        item.put("sid", p.sid.value)
+                        item.put("identity", p.identity?.value ?: "")
+                        item.put("audioLevel", lvl)
+                        item.put("isLocal", false)
+                        arr.put(item)
+                    }
+                    val payload = JSObject()
+                    payload.put("levels", arr)
+                    notifyListeners("seat-audio-levels", payload)
+                    // Local VAD edge detection for BGM duck/restore.
+                    val nowSpeaking = localLevel > speakThreshold
+                    val nowMs = System.currentTimeMillis()
+                    if (nowSpeaking && !lastLocalSpeaking) {
+                        lastLocalSpeaking = true
+                        lastLocalVadOnsetMs = nowMs
+                        val ev = JSObject()
+                        ev.put("speaking", true)
+                        ev.put("level", localLevel)
+                        notifyListeners("local-vad-changed", ev)
+                    } else if (!nowSpeaking && lastLocalSpeaking &&
+                               nowMs - lastLocalVadOnsetMs > silenceHoldMs) {
+                        lastLocalSpeaking = false
+                        val ev = JSObject()
+                        ev.put("speaking", false)
+                        ev.put("level", localLevel)
+                        notifyListeners("local-vad-changed", ev)
+                    } else if (nowSpeaking) {
+                        lastLocalVadOnsetMs = nowMs
+                    }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "audioLevelPoll iteration failed: ${t.message}")
+                }
+                delay(150L)
+            }
+        }
+    }
+
+    private fun stopAudioLevelPoll() {
+        audioLevelPollJob?.cancel()
+        audioLevelPollJob = null
+        lastLocalSpeaking = false
+        lastLocalVadOnsetMs = 0L
+    }
+
     private fun attachEventListeners(r: Room) {
         eventJob?.cancel()
         eventJob = scope.launch {
