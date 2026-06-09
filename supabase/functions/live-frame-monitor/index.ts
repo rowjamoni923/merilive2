@@ -106,6 +106,59 @@ serve(async (req) => {
       });
     }
 
+    // ── Sightengine NSFW pass (F4 2026-06-09) ──────────────────────────
+    // Industry-standard explicit-content detection. Runs in parallel with the
+    // identity-monitor provider above. Best-effort: failures never break the
+    // monitoring pipeline. Adds Sightengine scores into the response so the
+    // 3-strike rule below can fire on Sightengine-only NSFW (e.g. when the
+    // identity provider misses adult content).
+    let sightengineScores: Record<string, number> | null = null;
+    let sightengineAlerts: string[] = [];
+    const seUser = Deno.env.get("SIGHTENGINE_API_USER");
+    const seSecret = Deno.env.get("SIGHTENGINE_API_SECRET");
+    if (seUser && seSecret) {
+      try {
+        const form = new FormData();
+        const binStr = atob(body.imageBase64);
+        const bytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+        form.append("media", new Blob([bytes], { type: "image/jpeg" }), "frame.jpg");
+        form.append("models", "nudity-2.1,weapon,recreational_drug,offensive-2.0,gore-2.0,violence");
+        form.append("api_user", seUser);
+        form.append("api_secret", seSecret);
+        const seResp = await fetch("https://api.sightengine.com/1.0/check.json", {
+          method: "POST",
+          body: form,
+        });
+        const seData = await seResp.json();
+        if (seData?.status === "success") {
+          const nudity = seData.nudity || {};
+          sightengineScores = {
+            nudity_raw: Number(nudity.raw ?? 0),
+            nudity_sexual_activity: Number(nudity.sexual_activity ?? 0),
+            nudity_sexual_display: Number(nudity.sexual_display ?? 0),
+            nudity_erotica: Number(nudity.erotica ?? 0),
+            weapon: typeof seData.weapon === "number" ? seData.weapon : Number(seData.weapon?.classes ? Math.max(...Object.values(seData.weapon.classes as Record<string, number>)) : 0),
+            drugs: Number(seData.recreational_drug?.prob ?? seData.drugs ?? 0),
+            offensive: Number(seData.offensive?.prob ?? 0),
+            gore: Number(seData.gore?.prob ?? 0),
+            violence: Number(seData.violence?.prob ?? 0),
+          };
+          // Industry thresholds (Bigo/Holla parity)
+          if (sightengineScores.nudity_raw >= 0.5 || sightengineScores.nudity_sexual_activity >= 0.5 || sightengineScores.nudity_sexual_display >= 0.5)
+            sightengineAlerts.push("moderation:nudity");
+          if (sightengineScores.nudity_erotica >= 0.7) sightengineAlerts.push("moderation:erotica");
+          if (sightengineScores.weapon >= 0.6) sightengineAlerts.push("moderation:weapon");
+          if (sightengineScores.drugs >= 0.7) sightengineAlerts.push("moderation:drugs");
+          if (sightengineScores.gore >= 0.6) sightengineAlerts.push("moderation:gore");
+          if (sightengineScores.violence >= 0.75) sightengineAlerts.push("moderation:violence");
+          if (sightengineScores.offensive >= 0.7) sightengineAlerts.push("moderation:offensive");
+        }
+      } catch (e) {
+        console.warn("[live-frame-monitor] sightengine skipped:", e instanceof Error ? e.message : e);
+      }
+    }
+
     // ── Identity check (best-effort) ───────────────────────────────────
     // If a face is present, confirm it matches the verified user. If the
     // top match belongs to someone else, treat as identity_mismatch.
@@ -130,7 +183,11 @@ serve(async (req) => {
       }
     }
 
-    const alerts = [...(result.alerts || [])];
+    // Merge alerts from both providers; dedup.
+    const alerts = Array.from(new Set([
+      ...(result.alerts || []),
+      ...sightengineAlerts,
+    ]));
     if (identityMatch === false) alerts.push("identity_mismatch");
 
     // ── Classify severity ──────────────────────────────────────────────
