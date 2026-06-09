@@ -3924,6 +3924,19 @@ class LiveKitPlugin : Plugin() {
 
     private fun setAudioDeviceInternal(type: String): Boolean {
         val am = audioManager() ?: return false
+        // Phase 6 — music profile MUST NOT route through BT SCO (HFP caps at
+        // 16 kHz wideband; music sounds muffled to listeners). Force A2DP for
+        // output + reject SCO mic; fall back to speaker if no wired/USB device.
+        // Pitfall documented by Agora MUSIC_HIGH_QUALITY scenarios.
+        if (type == "bluetooth" && lastConnectArgs?.audioProfile == "music") {
+            Log.w(TAG, "BT SCO blocked for music profile (HFP narrowband) — falling back to speaker")
+            val data = JSObject()
+            data.put("requested", "bluetooth")
+            data.put("fallback", "speaker")
+            data.put("reason", "music_profile_sco_unsupported")
+            notifyListeners("audio-route-blocked", data)
+            return setAudioDeviceInternal("speaker")
+        }
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val device = am.availableCommunicationDevices.firstOrNull { matchesType(it.type, type) }
