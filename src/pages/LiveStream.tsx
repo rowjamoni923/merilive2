@@ -99,7 +99,7 @@ import { cn } from "@/lib/utils";
 // UNIFIED ENTRY ANIMATION - Same architecture as Gift System
 import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
 import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
-import { useEntryAnimations } from "@/hooks/useEntryAnimations";
+import { useUnifiedEntryDispatcher } from "@/hooks/useUnifiedEntryDispatcher";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { CallButton } from "@/components/call/CallButton";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
