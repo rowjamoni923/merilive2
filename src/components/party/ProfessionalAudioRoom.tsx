@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
