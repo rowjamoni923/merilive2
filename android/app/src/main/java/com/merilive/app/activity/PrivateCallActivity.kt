@@ -134,9 +134,17 @@ class PrivateCallActivity : ComponentActivity() {
     @Volatile private var speakerOn: Boolean = true
     @Volatile private var inPipMode: Boolean = false
 
+    // Honest-private-call fix (L-8) — Proximity wakelock for earpiece mode.
+    // AOSP InCallUI pattern: acquire PROXIMITY_SCREEN_OFF_WAKE_LOCK while the
+    // call is connected and the user is on earpiece (speaker OFF, no BT/wired).
+    // Release when routed to speaker/BT/wired or when the call ends so the
+    // screen doesn't stay blanked. Null-safe on devices without the sensor.
+    private var proximityWakeLock: android.os.PowerManager.WakeLock? = null
+
     // Phase H — camera resilience controller (last-frame freeze, audio-only
     // fallback banner, thermal-aware throttling, permission-revoke deep link).
     private var resilienceController: CameraResilienceController? = null
+
 
 
     // Phase B — renderers + track refs (managed alongside lifecycle).
@@ -409,7 +417,11 @@ class PrivateCallActivity : ComponentActivity() {
             val next = !speakerOn
             speakerOn = audioRouter?.applySpeaker(next) ?: next
             renderSpeakerButton()
+            // L-8: proximity wakelock follows the audio route — on for earpiece,
+            // off for speaker/BT/wired. Avoids screen-blank when face is far.
+            updateProximityWakeLock()
         }
+
         btnFlip.setOnClickListener { vm.flipCamera() }
         btnBeauty.setOnClickListener {
             PrivateCallBeautySheet.show(this)
@@ -720,8 +732,102 @@ class PrivateCallActivity : ComponentActivity() {
         audioRouter = null
         runCatching { resilienceController?.detach() }
         resilienceController = null
+        releaseProximityWakeLock(screenOnImmediately = true)
         super.onDestroy()
     }
+
+    // ------------------------------------------------------------------
+    // L-7 / L-8 — Activity lifecycle: renderer + proximity-wakelock
+    // ------------------------------------------------------------------
+
+    override fun onResume() {
+        super.onResume()
+        // L-7: re-attach the latest tracks to their renderers. Phase B's
+        // collect flows handle initial mount; this path covers the case where
+        // the user returned from a paused state (background, screen-off, PIP→
+        // fullscreen) and the previous detach in onPause cleared the renderer
+        // bindings. attach* is idempotent — same track + same renderer no-op.
+        runCatching { attachRemote(vm.remoteVideo.value) }
+        runCatching { attachLocal(vm.localVideo.value) }
+        // L-8: re-acquire proximity wakelock if we're on earpiece while
+        // returning to foreground. Safe no-op on speaker/BT.
+        updateProximityWakeLock()
+    }
+
+    override fun onPause() {
+        // L-7: detach (but DO NOT release) renderers so frame callbacks stop
+        // firing while we're not visible. This frees GPU + reduces battery
+        // without tearing down the WebRTC tracks (LiveKitPlugin still owns
+        // them). When PIP is active we keep renderers attached so video keeps
+        // flowing in the floating window — Chamet/WhatsApp pattern.
+        if (!inPipMode) {
+            runCatching { detachAllRenderers(release = false) }
+        }
+        // L-8: always release proximity wakelock when paused so the screen
+        // can turn on for incoming notifications / system UI.
+        releaseProximityWakeLock(screenOnImmediately = false)
+        super.onPause()
+    }
+
+    /**
+     * L-8 — AOSP InCallUI ProximitySensor pattern. Acquire the proximity
+     * wakelock only while the user is on earpiece during a live call;
+     * release on speaker / BT / wired / ended. Null-safe on tablets and
+     * foldables that don't support the sensor.
+     */
+    private fun updateProximityWakeLock() {
+        try {
+            val st = vm.state.value
+            val callLive = st == PrivateCallViewModel.CallState.CONNECTED ||
+                st == PrivateCallViewModel.CallState.RECONNECTING
+            val onEarpiece = !speakerOn &&
+                audioRouter?.isExternalAudioDeviceConnected() != true
+            if (callLive && onEarpiece) {
+                acquireProximityWakeLock()
+            } else {
+                releaseProximityWakeLock(screenOnImmediately = true)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "updateProximityWakeLock: ${t.message}")
+        }
+    }
+
+    private fun acquireProximityWakeLock() {
+        if (proximityWakeLock?.isHeld == true) return
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+                ?: return
+            if (!pm.isWakeLockLevelSupported(
+                    android.os.PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) {
+                return
+            }
+            if (proximityWakeLock == null) {
+                proximityWakeLock = pm.newWakeLock(
+                    android.os.PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
+                    "MeriLive:PrivateCallProximity"
+                )
+                proximityWakeLock?.setReferenceCounted(false)
+            }
+            proximityWakeLock?.acquire(60 * 60 * 1000L) // 1h safety cap
+        } catch (t: Throwable) {
+            Log.w(TAG, "acquireProximityWakeLock: ${t.message}")
+        }
+    }
+
+    private fun releaseProximityWakeLock(screenOnImmediately: Boolean) {
+        try {
+            val wl = proximityWakeLock ?: return
+            if (!wl.isHeld) return
+            val flag = if (screenOnImmediately) {
+                android.os.PowerManager.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY
+            } else 0
+            wl.release(flag)
+        } catch (t: Throwable) {
+            Log.w(TAG, "releaseProximityWakeLock: ${t.message}")
+        }
+    }
+
+
 
 
     // ------------------------------------------------------------------
