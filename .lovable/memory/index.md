@@ -1,56 +1,35 @@
----
-name: Web Design / Android Functionality Split
-Description: Owner-locked 2026-06-09. Permanent architectural rule: Web = design ONLY, Android = all professional functionality.
-type: constraint
----
+# Project Memory
 
-# Web = Design ONLY / Android = ALL Professional Functionality
+## Core
+Chamet-class live streaming app. NEVER use polling/visibility-refresh in place of realtime. LiveKit for in-room, Supabase Realtime for everything else — both stay. Supabase = full backend (Auth/DB/Storage/Edge), never migrate to VPS. **LiveKit SFU ALREADY self-hosted on user's VPS at wss://livekit.merilive.xyz — NOT LiveKit Cloud.** No migration work needed. Always re-verify LIVEKIT_URL before discussing migration/cost.
+**VPS work DEFERRED** — do NOT propose VPS docker/ssh/config tasks unless user explicitly asks. Pure Lovable code (React/edge fn/DB) is fine. See mem://preferences/vps-deferred.
+**🚫 WEB GIFT animation components remain FORBIDDEN** (FullScreenGiftAnimation, FlyingGiftAnimation, GiftEmojiAnimation, VAPPlayer, gift sound, gift panel, public-gift-media). Gift = Android-native only (Pkg438). **✅ WEB ENTRY animation components UNBLOCKED 2026-06-07** — UnifiedEntryAnimation, EntryBarAnimation, useEntryAnimations, flying name, welcome chat message are now permitted (silent on web). See mem://constraints/never-touch-gift-entry-animations.
+**🌐 ENGLISH-ONLY UI STRINGS** — All toasts/labels/messages/errors in app code MUST be English, never Bangla. National app. Reply to user in Bangla in chat but never in code. See mem://preferences/english-only-ui-strings.
+**📋 MIGRATION PLAN MANDATORY** — Before ANY live/call/party/RTC/camera/animation task, READ `.lovable/plan.md` first, locate the phase, follow listed files only, then tick `[x]` when done. No plan-skip allowed. See mem://preferences/follow-migration-plan.
+**📱 ANDROID-ONLY FOREVER** — 99% users Android. Web is NOT a delivery target, only preview/dev. All RTC/animation/payment/camera SDKs must be Android-native (livekit-android, native VAP, Camera2, FCM, Play Billing). NEVER propose web-first or "JS-now, native-later" for live/call/party/billing. See mem://preferences/android-only-forever.
+**💰 ALL RATES ADMIN-CONFIGURABLE** — Call price, platform cut, agency %, sub-agency %, bonus tiers, grace seconds — ALL read from admin-controlled DB tables (`agency_policy_settings`, `app_settings`, `call_price_settings`, `host_levels` etc.). NEVER hardcode 35%/65%/2%/70-coins. Agency commission = small % of host earnings paid from company's cut (NOT cutting host further). See mem://preferences/admin-configurable-rates.
+**🧹 NO DUPLICATE NATIVE SYSTEMS** — Single-owner plugin for camera (LiveKitPlugin), audio focus (AudioFocusPlugin), gift SFX (GiftAudioMixer), beauty (ONE pipeline only), call lifecycle. NEVER create parallel plugins for same hardware/pipeline. Audit existing before adding. Delete only after reference-check (production has 10K+ users). See mem://preferences/no-duplicate-native-systems.
+**🔍 GOOGLE-RESEARCH-BEFORE-FIX** — For any non-trivial live/call/party/RTC/billing/animation work, research Bigo/Chamet/StreamKar/PoPo/CrushLive/HiClub/Wejoy industry standard FIRST, then code. See mem://preferences/google-research-before-fix.
+**🏆 PROFESSIONAL NEVER-LEAK** — Every shipped surface must match Chamet/Bigo/HiClub/Wejoy/Olamet pro standard. No half-pro, no "good enough", no debug toasts, no partial polish visible to users. Gate incomplete work behind OFF flags. Mandatory leak-check (side-by-side vs competitor) before any phase marked done. See mem://preferences/professional-never-leak.
+**🏆🏆🏆 100-PHASE PRO AUDIT MANDATE (locked 2026-06-09 by owner)** — Owner explicit: "যদি phase 100টাও লাগে, সমস্ত কিছু professional ভাবে করতে হবে।" Every page/screen/section (Auth, Work, Home, Create, Profile, Reels, Agency, Top-up, Bill, Live host/viewer, Party host/viewer, Private Call, Gift, Message, Level, Shop, VIP, Invitation, Settings, Support AI, Call Price, Call History, Offline toggle, etc.) MUST go through 6-step per-phase checklist: (1) Google + competitor research (Chamet/Bigo/Olamet/Poppo/Crush Live/Hollah/HiiClub/WeJoy), (2) Android-first audit (lag/flicker/cut-off/blur on mid-range Helio G35-class), (3) gap list in plan.md, (4) fix with web-design-sacred, (5) owner-account verify or honest "APK rebuild needed", (6) memory update with locked numbers + competitor citations. Auth flow non-negotiables: start button → Gmail/Phone/Gender = instant transition, no white flash, no lag, no blur. 99% users Android — every decision Android-first. No "small enough to skip research". See mem://preferences/pro-audit-100-phases.md.
+**🎨➡️📱 WEB = DESIGN ONLY / ANDROID = ALL PROFESSIONAL FUNCTIONALITY (locked 2026-06-09 by owner)** — CRITICAL ARCHITECTURAL RULE: Web/React layer = PURE DESIGN ONLY. NEVER use web layer for "professionalization" of functionality (performance, animation smoothness, native SDK bridges, payment flows, camera handling, haptics, transitions). ALL professional functionality (60fps guarantee, instant transitions, native SDK integration, Camera2, LiveKit Android, Play Billing, FCM, VAP/SVGA/Lottie, haptics, offline resilience) lives ONLY in Android native code (Kotlin/Java/C++ plugins). Web layer changes limited to: visual layout, CSS styling, text labels, icons, colors, spacing. When a phase audit finds a "professional gap", the FIX always goes to Android native — NEVER to web layer "optimizations". Web preview may show design/layout but never represents final Android experience. See mem://preferences/web-design-android-functionality-split.
+**🚨🚨🚨 ABSOLUTE RULE — NO WEBRTC, NATIVE LIVEKIT ANDROID ONLY (locked 2026-06-08 by owner)** — Live stream + party room + private call media path (camera/mic/encode/decode/transport) MUST use native `io.livekit:livekit-android` Kotlin SDK via Capacitor plugin. **FORBIDDEN: `livekit-client` JS, `new Room()`, `getUserMedia`, `RTCPeerConnection`, any WebView WebRTC for production media path.** **NAMING BAN (locked 2026-06-08 after full rename sweep):** the word "WebRTC" is BANNED in any new file name, identifier, hook, variable, or comment we write. Use `NativeLiveKit` / `LiveKit (Android native)` / `native LiveKit`. Old identifiers already renamed: `usePartyRoomWebRTC`→`usePartyRoomNativeLiveKit`, `cleanupWebRTC`→`cleanupNativeLiveKit`, `PartyWebRTCState`→`PartyNativeLiveKitState`, `livekitWebrtcStats`→`livekitNativeStats`, event `livekit-webrtc-stats`→`livekit-native-stats`. ONLY allowed remaining "webrtc" uses (external, cannot rename): edge function URL `/functions/v1/webrtc-signaling` and third-party SDK method `ConnectionCheck.checkWebRTC()`. Reason: zero top-50 live apps (Bigo/Chamet/Tango/Olamet/Hollah/HiiClub/WeJoy/MICO/Likee/TikTok Live) use WebView WebRTC — all native Agora/ZEGO/in-house. WebView has no Camera2 direct access, no `FOREGROUND_SERVICE_CAMERA/_MICROPHONE` (= root cause of "video icon stuck on" bug), no platform AEC, 40-60% CPU vs 15-25% native. If I think "small JS WebRTC patch is OK" → STOP and ask owner first. APK rebuild required after every native plugin change — say so honestly. See mem://constraints/no-web-rtc-native-only and mem://features/native-livekit-android-port-plan for 8-phase port (N1–N8).
 
-**Locked 2026-06-09 by owner explicit confirmation.**
-
-## Rule
-
-| Layer | Responsibility | What we do there |
-|---|---|---|
-| **Web / React** | **DESIGN ONLY** | Visual layout, CSS styling, text labels, icons, colors, spacing, responsive breakpoints, dark/light theme tokens, static image assets. |
-| **Android Native** | **ALL PROFESSIONAL FUNCTIONALITY** | 60fps rendering, instant transitions (<100ms), native SDK bridges, Camera2 direct access, LiveKit Android (`io.livekit:livekit-android`), Play Billing, FCM push, VAP/SVGA/Lottie decoders, SoundPool/GiftAudioMixer, haptic feedback, offline resilience, background services (`FOREGROUND_SERVICE_CAMERA`), hardware-accelerated beauty filters, AEC/NS/AGC, memory management, battery optimization, thermal throttling handling. |
-
-## What "professionalization" means
-
-When a phase audit identifies a gap between our app and Chamet/Bigo/Olamet pro standard, the gap is ALWAYS filled by **Android native code**, NEVER by web layer "optimizations".
-
-### Examples of CORRECT fixes
-- Auth transition lag → Android native Activity transition override + pre-warmed WebView
-- Gift animation stutter → Native VAP/SVGA decoder thread (Pkg438) + priority queue
-- Camera delay in live → Camera2 direct pipeline in LiveKit Android
-- Payment flow jank → Native Play Billing bottom sheet + instant local receipt validation
-- Offline resilience → Native SQLite cache + WorkManager sync queue
-- Call audio echo → Native AEC in LiveKit Android audio pipeline
-
-### Examples of FORBIDDEN fixes
-- "Optimize" React render cycle to reduce auth lag → NO, fix in Android transition
-- Add web-layer CSS animation for gift → NO, native VAP only
-- Use JS `getUserMedia` for camera → NO, Camera2 via LiveKit Android
-- Web-based payment UI "polish" → NO, native Play Billing UI
-- JS haptic polyfill → NO, native Vibrator service
-
-## Web Preview Disclaimer
-
-Web preview (Lovable preview URL) shows **design/layout only**. It NEVER represents the final Android experience. A smooth web preview does NOT mean the Android app is professional. Final verification is ALWAYS on Android device or native emulator.
-
-## Audit Checklist Addition
-
-For every phase in the 16-phase / 100-phase audit:
-- [ ] Research: How do Chamet/Bigo/Olamet implement this on Android native?
-- [ ] Gap identified: What is missing in OUR Android native code?
-- [ ] Fix: Add/Modify Android native plugin/Activity/Service ONLY
-- [ ] Web check: Did any web change sneak in? Revert if yes.
-- [ ] Verify: Test on Android device (or honest "APK rebuild needed")
-
-## Why this rule exists
-
-99% of users are on Android. WebView performance is 40-60% CPU vs 15-25% native. Camera2, AEC, haptics, foreground services, and hardware decoders are unavailable or broken in WebView. Every top-50 live app (Bigo, Chamet, Tango, Olamet, MICO, Likee) uses native Android for core functionality. We match them by going native, not by polishing web.
-
-## Override
-
-Only owner can override. If I (AI) ever think "a small web fix is fine here" → I MUST ask owner first. No self-override allowed.
+## Memories
+- [🏆 16-phase pro audit roadmap](mem://preferences/pro-audit-16-phase-roadmap.md) — OWNER-LOCKED 2026-06-09. Exact ordered phase list (1 Auth → 2 BottomNav → 3 Home → 4 Banners → 5 Party → 6 Create/Live/viewer → 7 Reels → 8 Profile menu → 9 Profile details → 10 Recharge/Wallet/Beans → 11 Messaging/Calls infra → 12 VIP/Shop → 13 Agency → 14 Invitation/Tasks → 15 Settings/Support → 16 Private Call). Each phase auto-fires 6-step checklist. Zero gap, zero leak.
+- [🏆 100-phase pro audit mandate](mem://preferences/pro-audit-100-phases.md) — HIGHEST PRIORITY (2026-06-09). 6-step per-phase checklist (research → Android audit → gap → fix → owner-verify → memory update). No "small enough to skip".
+- [🎨➡️📱 Web Design / Android Functionality Split](mem://preferences/web-design-android-functionality-split) — OWNER-LOCKED 2026-06-09. Web = design ONLY (layout, colors, text, icons). Android = ALL professional functionality (60fps, transitions, Camera2, LiveKit Android, Play Billing, FCM, VAP/SVGA, haptics, offline resilience, foreground services). When audit finds a gap, fix always goes to Android native. NEVER "optimize" web layer for professional feel. See full rule.
+- [🚨 NO WebRTC — Native LiveKit Android only](mem://constraints/no-web-rtc-native-only) — HARDEST RULE. Live/party/call media MUST use io.livekit:livekit-android Kotlin SDK. Zero WebView WebRTC for production media. JS hooks frozen as preview fallback only.
+- [Native LiveKit Android port plan](mem://features/native-livekit-android-port-plan) — 8-phase migration (N1 plugin foundation → N2 video render → N3 live → N4 party → N5 private call → N6 DataPacket → N7 foreground service → N8 kill-switch + JS cleanup). Owner-locked 2026-06-08.
+- [Follow migration plan](mem://preferences/follow-migration-plan) — MANDATORY: read `.lovable/plan.md` before any live/call/party/RTC/camera/animation work; tick `[x]` on completion.
+- [Android-only forever](mem://preferences/android-only-forever) — Hard rule: native Android SDK for every RTC/animation/payment/camera path. Web = preview only, NOT a target platform.
+- [Admin-configurable rates](mem://preferences/admin-configurable-rates) — All percentages/rates from DB config tables, never hardcoded. Agency commission paid from company cut, not from host.
+- [No duplicate native systems](mem://preferences/no-duplicate-native-systems) — Single-owner rule for camera/audio/beauty/call plugins. Audit + reference-check before deleting any plugin (10K+ production users).
+- [Google research before fix](mem://preferences/google-research-before-fix) — Spawn research subagent / websearch on pro apps before non-trivial RTC/billing/animation code.
+- [Owner test account](mem://preferences/test-account.md) — Always-available preview login (smdollarex923@gmail.com) for end-to-end self-testing.
+- [Phase 0.5 Native Plugin Audit](mem://features/phase-0.5-native-plugin-audit) — DONE 2026-06-07. Deleted Pkg435 NativeAudioEnginePlugin + NativeVideoEnginePlugin + JNI cpp + CMake. No real duplicates — layered beauty/call/audio designs confirmed legitimate.
+- [Phase 3 Private Call audit](mem://features/phase3-private-call-audit) — DONE 2026-06-06.
+- [Private call honest P0 fix pass](mem://features/private-call-honest-p0-fix) — DONE 2026-06-08. 3-arm audit (JS 26, Android 16, Backend 10 findings). Fixed: Android compile (`attachResilienceController` `}`), user-hangup→NativeCall dispatch, `call-billing-tick` anonymous-trigger auth, `private_calls` RLS WITH CHECK + column-guard trigger, JS 15s reconnect-budget + Reconnecting state surface. 55/55 tests pass. Open P0: Android FCM avatar sync fetch. Open P1: low-balance UI, end-reason enum, FOR UPDATE locks, end_reason CHECK, audio routing. Reports at `.lovable/private-call-{js,android,backend}-audit.md`.
+- [Pkg438 Native gift+entry animation Phase A](mem://features/pkg438-native-gift-entry-animation-phase-a) — DONE 2026-06-06. Android-only foundation. Phase B (JS dispatcher) → Plan Phase 5.
+- [Pkg425 Trader wallet history + instant UI](mem://features/pkg425-trader-wallet-history-instant) — DONE 2026-06-06.
+- [Pkg424 instant-play warmup](mem://features/pkg424-instant-play-warmup) — DONE 2026-06-05.
