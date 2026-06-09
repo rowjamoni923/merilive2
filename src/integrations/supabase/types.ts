@@ -9346,6 +9346,7 @@ export type Database = {
           joined_at: string | null
           last_seen_at: string
           left_at: string | null
+          muted_by_host: boolean
           role: string | null
           room_id: string
           seat_number: number | null
@@ -9357,6 +9358,7 @@ export type Database = {
           joined_at?: string | null
           last_seen_at?: string
           left_at?: string | null
+          muted_by_host?: boolean
           role?: string | null
           room_id: string
           seat_number?: number | null
@@ -9368,6 +9370,7 @@ export type Database = {
           joined_at?: string | null
           last_seen_at?: string
           left_at?: string | null
+          muted_by_host?: boolean
           role?: string | null
           room_id?: string
           seat_number?: number | null
@@ -9390,6 +9393,50 @@ export type Database = {
           },
         ]
       }
+      party_room_seat_locks: {
+        Row: {
+          forbid_audio: boolean
+          forbid_video: boolean
+          id: string
+          is_locked: boolean
+          locked_at: string
+          locked_by: string
+          room_id: string
+          seat_number: number
+          updated_at: string
+        }
+        Insert: {
+          forbid_audio?: boolean
+          forbid_video?: boolean
+          id?: string
+          is_locked?: boolean
+          locked_at?: string
+          locked_by: string
+          room_id: string
+          seat_number: number
+          updated_at?: string
+        }
+        Update: {
+          forbid_audio?: boolean
+          forbid_video?: boolean
+          id?: string
+          is_locked?: boolean
+          locked_at?: string
+          locked_by?: string
+          room_id?: string
+          seat_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_room_seat_locks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "party_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       party_rooms: {
         Row: {
           announcement: string | null
@@ -9402,7 +9449,9 @@ export type Database = {
           ended_at: string | null
           entry_fee: number
           game_mode: string | null
+          gift_split_config: Json
           host_id: string
+          host_reconnect_deadline: string | null
           id: string
           is_active: boolean | null
           is_locked: boolean | null
@@ -9428,7 +9477,9 @@ export type Database = {
           ended_at?: string | null
           entry_fee?: number
           game_mode?: string | null
+          gift_split_config?: Json
           host_id: string
+          host_reconnect_deadline?: string | null
           id?: string
           is_active?: boolean | null
           is_locked?: boolean | null
@@ -9454,7 +9505,9 @@ export type Database = {
           ended_at?: string | null
           entry_fee?: number
           game_mode?: string | null
+          gift_split_config?: Json
           host_id?: string
+          host_reconnect_deadline?: string | null
           id?: string
           is_active?: boolean | null
           is_locked?: boolean | null
@@ -19304,6 +19357,7 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_party_room_code: { Args: never; Returns: string }
       generate_sub_agent_referral_code: {
         Args: { _agency_id: string }
         Returns: string
@@ -19915,6 +19969,7 @@ export type Database = {
         Args: { p_context?: string; p_text: string }
         Returns: Json
       }
+      mute_all_speakers: { Args: { p_room_id: string }; Returns: Json }
       normalize_public_profile_media_url: {
         Args: { _url: string }
         Returns: string
@@ -20148,6 +20203,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_party_gift_split: {
+        Args: {
+          p_gift_id: string
+          p_idempotency_key?: string
+          p_room_id: string
+          p_sender_id: string
+          p_total_beans: number
+          p_total_coins: number
+        }
+        Returns: Json
+      }
       recover_session_by_device: {
         Args: { p_device_id: string }
         Returns: {
@@ -20310,6 +20376,16 @@ export type Database = {
         Args: { _admin_user_id: string; _new_password: string }
         Returns: Json
       }
+      set_seat_lock: {
+        Args: {
+          p_forbid_audio?: boolean
+          p_forbid_video?: boolean
+          p_locked: boolean
+          p_room_id: string
+          p_seat_number: number
+        }
+        Returns: Json
+      }
       set_signup_country: {
         Args: {
           _city?: string
@@ -20386,6 +20462,7 @@ export type Database = {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
       }
+      sweep_party_host_reconnect: { Args: never; Returns: number }
       sweep_pending_face_verifications: { Args: never; Returns: number }
       sync_host_online_status: {
         Args: { p_is_online: boolean; p_user_id: string }
@@ -20408,6 +20485,7 @@ export type Database = {
         Returns: Json
       }
       trigger_weekly_agency_schedule: { Args: never; Returns: Json }
+      unmute_all_speakers: { Args: { p_room_id: string }; Returns: Json }
       update_active_session: {
         Args: { _device_info?: Json; _session_id: string }
         Returns: undefined
