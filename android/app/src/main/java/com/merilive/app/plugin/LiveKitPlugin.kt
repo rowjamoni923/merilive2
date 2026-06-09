@@ -1664,6 +1664,14 @@ class LiveKitPlugin : Plugin() {
             return true
         }
 
+        // FIX-B (freeze-frame): emit muting event so a JS poster overlay
+        // can mask the encoder restart window. Resume event fires below
+        // once a fresh frame lands.
+        try {
+            val mev = JSObject(); mev.put("reason", reason)
+            notifyListeners("local-video-muting", mev)
+        } catch (_: Throwable) {}
+
         val delays = longArrayOf(0L, 260L, 650L, 1_100L)
         var lastError: Throwable? = null
         for ((attempt, waitMs) in delays.withIndex()) {
@@ -1681,6 +1689,9 @@ class LiveKitPlugin : Plugin() {
                 // processor to the fresh LocalVideoTrack so beauty survives
                 // reconnects, resolution flips, and recovery cycles.
                 try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+                // FIX-B — arm a "first new frame" beacon. JS hides the
+                // poster once `local-video-resumed` fires (≤2 s).
+                armLocalResumeBeacon(reason)
                 return true
             } catch (e: Throwable) {
                 lastError = e
@@ -1695,6 +1706,12 @@ class LiveKitPlugin : Plugin() {
         data.put("reason", reason)
         data.put("error", lastError?.message ?: lastError?.javaClass?.simpleName ?: "unknown")
         notifyListeners("camera-state", data)
+        // Surface the failure to JS so the poster overlay can switch to a
+        // "Tap to retry" affordance instead of staying frozen forever.
+        try {
+            val fev = JSObject(); fev.put("reason", reason)
+            notifyListeners("local-video-resume-failed", fev)
+        } catch (_: Throwable) {}
         if (reason != "connect") scheduleHardReconnect("camera-open-timeout:$reason")
         return false
     }
