@@ -702,6 +702,40 @@ serve(async (req) => {
       }
     }
 
+    // F3 (2026-06-09): Cross-check the duplicate match against banned_face_hashes
+    // AND the matched account's `profiles.is_blocked` state. If the face is
+    // already on the ban list, this is a hard auto-reject (not just a manual
+    // review note) — banned users should NOT be able to re-onboard.
+    let bannedFaceMatch: { user_id: string; reason: string | null } | null = null;
+    if (duplicateBlock) {
+      const matchedUserId = (duplicateBlock as any).previous_user_id as string | null;
+      if (matchedUserId) {
+        try {
+          const { data: bannedRow } = await supabaseAdmin
+            .from("banned_face_hashes")
+            .select("user_id, reason")
+            .eq("user_id", matchedUserId)
+            .eq("is_active", true)
+            .maybeSingle();
+          if (bannedRow) {
+            bannedFaceMatch = { user_id: bannedRow.user_id as string, reason: (bannedRow.reason as string | null) ?? null };
+          } else {
+            const { data: prevProf } = await supabaseAdmin
+              .from("profiles")
+              .select("is_blocked, blocked_reason")
+              .eq("id", matchedUserId)
+              .maybeSingle();
+            if (prevProf?.is_blocked === true) {
+              bannedFaceMatch = { user_id: matchedUserId, reason: (prevProf.blocked_reason as string | null) ?? "Previously banned account" };
+            }
+          }
+        } catch (e) {
+          console.warn("[face-verification-analyze] banned-face cross-check skipped:", e);
+        }
+      }
+    }
+    rekognition.banned_face_match = bannedFaceMatch;
+
     // Re-read ai_analysis right before the merge so we never blow away client-set
     // flags like { manual_review_required: true } that the insert wrote.
     const { data: existingRow } = await supabaseAdmin
@@ -728,13 +762,15 @@ serve(async (req) => {
       .eq("id", submissionId);
 
     // ────────────────────────────────────────────────────────────────────
-    // POLICY (Updated 2026-06-06):
-    //   • The ONLY case that auto-rejects is `gender_mismatch` OR `is_duplicate_face`.
-    //   • For `is_duplicate_face`, we provide detailed account info in the rejection reason.
-    //   • Every other unclear signal (liveness_failed, replay_suspected,
-    //     profile_face_mismatch, below-threshold scores,
-    //     occlusion, etc.) goes to admin MANUAL REVIEW — never auto-reject.
-    //   • Clean submissions auto-approve (~90/100 target).
+    // POLICY (Updated F3 2026-06-09):
+    //   Hard auto-reject cases (no admin review needed):
+    //     • gender_mismatch
+    //     • duplicate_face (face already on another account)
+    //     • banned_face (matched account is on banned_face_hashes / is_blocked)
+    //     • photo_mismatch (avatar / host gallery do not match live face)
+    //     • liveness_failed (provider explicitly flagged photo-of-photo / video replay)
+    //     • replay_suspected (all three yaw deltas <3° → static image)
+    //   Every other unclear signal goes to admin manual review.
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
@@ -748,18 +784,21 @@ serve(async (req) => {
       genderConf >= 70 &&
       !frontError
     );
-    
+
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
-    // If there is a clear mismatch, we auto-reject.
     const isDuplicate = Boolean(duplicateBlock);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "photo_mismatch" | null = null;
-    
+    const isBannedFace = Boolean(bannedFaceMatch);
+    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "photo_mismatch" | "banned_face" | "liveness_failed" | "replay_suspected" | null = null;
+
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
     const noFaceInAvatar = profileMatchSkipReason === "no_face_in_avatar";
 
-    if (isDuplicate) hardAutoReject = "duplicate_face";
+    if (isBannedFace) hardAutoReject = "banned_face";
+    else if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
+    else if (livenessFailed) hardAutoReject = "liveness_failed";
+    else if (replaySuspected) hardAutoReject = "replay_suspected";
     else if (profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) hardAutoReject = "photo_mismatch";
 
     if (hardAutoReject) {
@@ -770,6 +809,12 @@ serve(async (req) => {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
+      } else if (hardAutoReject === "banned_face") {
+        rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "liveness_failed") {
+        rReason = "Liveness check failed. We detected that the submitted video may not be from a live person (e.g. photo, screen recording, or video replay). Please record a fresh, well-lit video of your own face following the on-screen instructions.";
+      } else if (hardAutoReject === "replay_suspected") {
+        rReason = `Replay detected. Your head did not turn enough between the front, left, and right captures (yaw deltas L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°). Please follow the on-screen prompts and turn your head clearly to each side.`;
       } else if (hardAutoReject === "photo_mismatch") {
         if (noFaceInAvatar) {
           rReason = "Verification failed: No clear face detected in your profile photo. Please upload a clear face photo as your profile picture and try again.";
@@ -800,8 +845,8 @@ serve(async (req) => {
         JSON.stringify({
           ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: "gender_mismatch" },
-          blocker: "gender_mismatch",
+          autoFinalize: { success: false, reason: hardAutoReject },
+          blocker: hardAutoReject,
           declaredGender,
           expectedGender,
           detectedGender: detectedGenderForDecision,
