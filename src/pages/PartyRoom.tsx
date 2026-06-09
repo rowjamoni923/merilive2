@@ -606,7 +606,7 @@ const PartyRoom = () => {
       try {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('coin_amount, receiver_beans, sender_id')
+          .select('coin_amount, receiver_beans, sender_id, receiver_id')
           .eq('party_room_id', roomId);
 
         if (error) {
@@ -620,19 +620,27 @@ const PartyRoom = () => {
           const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100)), 0);
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
-          
-          // Per-participant gift contribution tracking
+
+          // Per-participant gift contribution tracking (sender -> coins spent)
           const perUser: Record<string, number> = {};
+          // PR-2.3 (G) — per-seat received beans (receiver -> beans earned)
+          const perReceiver: Record<string, number> = {};
           data.forEach(tx => {
             if (tx.sender_id) {
               perUser[tx.sender_id] = (perUser[tx.sender_id] || 0) + (tx.coin_amount || 0);
             }
+            if (tx.receiver_id) {
+              const b = tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100);
+              perReceiver[tx.receiver_id] = (perReceiver[tx.receiver_id] || 0) + b;
+            }
           });
           setParticipantBeans(perUser);
+          setSeatBeansReceived(perReceiver);
         } else {
           console.log('[PartyRoom] No gift transactions for this room yet');
           setTotalRoomBeans(0);
           setParticipantBeans({});
+          setSeatBeansReceived({});
         }
       } catch (err) {
         console.error('[PartyRoom] Exception fetching beans:', err);
