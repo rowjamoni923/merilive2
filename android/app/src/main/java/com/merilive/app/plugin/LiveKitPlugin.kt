@@ -1181,7 +1181,7 @@ class LiveKitPlugin : Plugin() {
 
         attachEventListeners(newRoom)
 
-        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
+        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
 
         // Phase 1A — publish to Application-scope observer so future
         // callers (re-entry to live/call screen) can detect an active
