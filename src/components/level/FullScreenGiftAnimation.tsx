@@ -416,6 +416,8 @@ const FullScreenGiftAnimation = ({
     );
   };
 
+  if (skipForNative) return null;
+
   return (
     <AnimatePresence>
       {isVisible && (
