@@ -263,6 +263,26 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         long timeoutMs,
         Bitmap avatar
     ) {
+        // Honest-private-call fix (L-5): on Android 14+, only attach the
+        // full-screen-intent when the OS has actually granted USE_FULL_SCREEN_INTENT.
+        // Google Play auto-revokes FSI from non-calling apps since Jan 2025; if we
+        // still attach it the OS silently downgrades to a heads-up — same UX as
+        // not setting it, but the API ref count is wasted. Gate the attach so the
+        // notification stays a clean high-priority heads-up when FSI is denied.
+        boolean canUseFsi = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            try {
+                android.app.NotificationManager nm =
+                    (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (nm != null) canUseFsi = nm.canUseFullScreenIntent();
+                if (!canUseFsi) {
+                    Log.w(TAG, "Full-screen-intent NOT granted on Android 14+ — " +
+                        "falling back to high-priority heads-up only. " +
+                        "Prompt user via Settings → Notifications → Full-screen.");
+                }
+            } catch (Throwable ignored) {}
+        }
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
@@ -275,11 +295,14 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setOngoing(true)
             .setShowWhen(true)
             .setWhen(System.currentTimeMillis())
-            .setFullScreenIntent(fullScreenPI, true)
             .setContentIntent(fullScreenPI)
             .setTimeoutAfter(timeoutMs)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+        if (canUseFsi) {
+            builder.setFullScreenIntent(fullScreenPI, true);
+        }
 
         boolean styleApplied = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -305,28 +328,13 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             if (avatar != null) builder.setLargeIcon(avatar);
         }
 
-        // Honest-private-call fix (B-2): on Android 14+ USE_FULL_SCREEN_INTENT
-        // is a restricted grant (ROLE_DIALER / explicit user opt-in). If the
-        // app isn't allowed, the FSI is silently downgraded to a heads-up —
-        // surface that as a warning so we can detect missed lock-screen rings.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            try {
-                android.app.NotificationManager nm =
-                    (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                if (nm != null && !nm.canUseFullScreenIntent()) {
-                    Log.w(TAG, "Full-screen-intent NOT granted on Android 14+ — " +
-                        "incoming-call UI will only show as heads-up. " +
-                        "Prompt user via Settings → Notifications → Full-screen.");
-                }
-            } catch (Throwable ignored) {}
-        }
-
         try {
             NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());
         } catch (SecurityException se) {
             Log.w(TAG, "notify rejected: " + se.getMessage());
         }
     }
+
 
 
 

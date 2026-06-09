@@ -81,7 +81,16 @@ public class NotificationHelper {
         callChannel.setLightColor(Color.GREEN);
         callChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         callChannel.setBypassDnd(true);
+        // Honest-private-call fix (L-9): incoming-call notifications must NEVER
+        // be turned into chat bubbles. CallStyle + bubble together produces a
+        // duplicate floating call surface on Android 12+ that can't be dismissed
+        // without ending the call. Disable at channel level so the OS rejects
+        // any bubble attempt regardless of per-notification settings.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try { callChannel.setAllowBubbles(false); } catch (Throwable ignored) {}
+        }
         manager.createNotificationChannel(callChannel);
+
 
         // 2. MESSAGES - HIGH
         NotificationChannel msgChannel = new NotificationChannel(

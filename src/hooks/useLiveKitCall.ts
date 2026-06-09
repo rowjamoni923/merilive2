@@ -646,10 +646,11 @@ export function useLiveKitCall(
               }));
             } catch { /* ignore */ }
           } else if (connectionState === ConnectionState.Reconnecting) {
-            // Honest-private-call fix (F-12 + F-13): make reconnect visible
-            // to the UI and arm a 15s budget — if we haven't recovered by
-            // then, force-end the call with reason `network` so we never
-            // hang forever while billing keeps ticking.
+            // Honest-private-call fix (F-12 + F-13 + L-10): make reconnect
+            // visible and arm a 30s budget — industry standard (GetStream /
+            // Agora / LiveKit production recommendation). Was 15s, but
+            // ICE-restart recovery typically takes 5–25s on flaky mobile
+            // networks; 15s force-ended calls that would have recovered.
             setState(p => ({ ...p, connectionState: 'connecting' as any, isConnected: false }));
             // Honest-private-call fix (F-11): pause the visible duration
             // counter while the call is reconnecting (server-side billing
@@ -672,8 +673,9 @@ export function useLiveKitCall(
                     detail: { callId: callIdRef.current, reason: 'network' },
                   }));
                 } catch { /* ignore */ }
-              }, 15000);
+              }, 30000);
             }
+
           } else if (connectionState === ConnectionState.Disconnected) {
             if (reconnectBudgetTimerRef.current) {
               clearTimeout(reconnectBudgetTimerRef.current);
