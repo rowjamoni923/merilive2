@@ -52,6 +52,7 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { cdnAvatar } from "@/lib/cdnImage";
 
 interface PartyRoom {
   id: string;
@@ -655,7 +656,12 @@ const Discover = () => {
               {filteredRooms.map((room, index) => {
                 const TypeIcon = getRoomTypeIcon(room.room_type);
                 const hostLevel = room.host?.user_level || 1;
-                const hostAvatar = normalizeProfileMediaUrl(room.host?.avatar_url) || room.host?.avatar_url;
+                const hostAvatarFull = normalizeProfileMediaUrl(room.host?.avatar_url) || room.host?.avatar_url;
+                // Card thumbnail is ~170×96 dp — CDN-resize to 360px to save 2G/3G bandwidth.
+                // Same visual at 2× DPR, ~70% smaller download.
+                const hostAvatar = hostAvatarFull
+                  ? (cdnAvatar(hostAvatarFull, 180, 80) || hostAvatarFull)
+                  : null;
                 const gameEmoji = room.game_mode ? getGameModeEmoji(room.game_mode) : null;
                 const gameColor = room.game_mode ? getGameModeColor(room.game_mode) : null;
                 
@@ -824,8 +830,12 @@ const Discover = () => {
               <div className="relative h-40">
                 {(entryPreview.background_url || entryPreview.host?.avatar_url) ? (
                   <img
-                    src={normalizeProfileMediaUrl(entryPreview.background_url || entryPreview.host?.avatar_url) || undefined}
+                    src={cdnAvatar(normalizeProfileMediaUrl(entryPreview.background_url || entryPreview.host?.avatar_url) || (entryPreview.background_url || entryPreview.host?.avatar_url) || '', 400, 82) || normalizeProfileMediaUrl(entryPreview.background_url || entryPreview.host?.avatar_url) || undefined}
                     alt=""
+                    loading="eager"
+                    decoding="sync"
+                    // @ts-expect-error – fetchpriority is a standard HTML hint
+                    fetchpriority="high"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -853,7 +863,7 @@ const Discover = () => {
                     style={{ boxShadow: '0 8px 24px -6px rgba(79,70,229,0.45), inset 0 1px 0 rgba(255,255,255,0.4)' }}
                   >
                     <Avatar className="w-16 h-16 border-4 border-background">
-                      <AvatarImage src={normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined} />
+                      <AvatarImage src={cdnAvatar(normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || '', 64) || normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined} />
                       <AvatarFallback className="bg-gradient-primary text-on-dark text-lg">
                         {entryPreview.host?.display_name?.[0] || "H"}
                       </AvatarFallback>
