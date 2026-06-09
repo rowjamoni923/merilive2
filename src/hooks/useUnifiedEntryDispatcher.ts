@@ -269,6 +269,7 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
   return useMemo(() => ({
     entryAnimations: inner.entryAnimations,
     nameBarAnimations: inner.nameBarAnimations,
+    nameBarOverflowCount: inner.nameBarOverflowCount,
     removeEntryAnimation: inner.removeEntryAnimation,
     removeNameBarAnimation: inner.removeNameBarAnimation,
     hasActiveAnimation: inner.hasActiveAnimation,
