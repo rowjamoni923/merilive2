@@ -2115,12 +2115,21 @@ class LiveKitPlugin : Plugin() {
                         notifyListeners("disconnected", data)
                         // Server-initiated / network drop — release the screen-on flag too.
                         setKeepScreenOn(false)
-                        // Step 26 — escalate to a hard reconnect when the
-                        // SDK's auto-recovery has fully given up. Skip when
-                        // the user (or our disconnect()) initiated it.
-                        if (resilienceEnabled && lastConnectArgs != null &&
+                        // Phase 5 — TOKEN_EXPIRED is terminal: the cached JWT
+                        // is stale, so blind hard-reconnect will fail again.
+                        // Emit a dedicated event and let JS call refreshToken()
+                        // + reconnectNow() with a fresh token. (Chamet/Bigo pattern.)
+                        if (event.reason.name.equals("TOKEN_EXPIRED", ignoreCase = true)) {
+                            val expiredData = JSObject()
+                            expiredData.put("reason", "TOKEN_EXPIRED")
+                            notifyListeners("token-expired", expiredData)
+                            Log.w(TAG, "Disconnected: TOKEN_EXPIRED — JS must refresh token before reconnect")
+                        } else if (resilienceEnabled && lastConnectArgs != null &&
                             !isClientInitiatedDisconnect(event.reason.name)
                         ) {
+                            // Step 26 — escalate to a hard reconnect when the
+                            // SDK's auto-recovery has fully given up. Skip when
+                            // the user (or our disconnect()) initiated it.
                             scheduleHardReconnect("disconnected:${event.reason.name}")
                         }
                     }
