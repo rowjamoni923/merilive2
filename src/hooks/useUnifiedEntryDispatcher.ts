@@ -137,11 +137,14 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
     welcomeWindowMs = 500,
     userDedupWindowMs = 60_000,
     minEntryGapMs = 500,
+    premiumEntryGapMs = 3500,
     coalesceDepthThreshold = 3,
+    welcomeOnEveryEntry = true,
     suppressPremiumDuringGame = roomType === 'game_party',
     suppressedAutoFlushMs = 30_000,
     suppressedMaxQueue = 10,
   } = opts;
+
 
   const inner = useEntryAnimations();
 
