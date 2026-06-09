@@ -1053,9 +1053,18 @@ class LiveKitPlugin : Plugin() {
         // Step 32 — bias publish-side codec when JS pinned a preference.
         // Falls back to "auto" → SDK chooses (VP8 default on libwebrtc).
         val codecForPublish: String? = resolvePublishCodec()
+        // Phase 5 — explicit 3-layer simulcast ladder for live rooms
+        // (Chamet/Bigo/WebRTC reference): H180 (~150kbps) + H360 (~500kbps)
+        // + top camera layer (1080p ~3Mbps). Layers must be ordered
+        // smallest→largest; the top is appended by the SDK from the capture
+        // resolution. 720p call rooms stay single-layer (peer-to-peer).
+        val simulcastLayers: List<VideoPreset169> =
+            if (args.resolution != "720p") listOf(VideoPreset169.H180, VideoPreset169.H360)
+            else emptyList()
         val publishDefaults = VideoTrackPublishDefaults(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
+            videoSimulcastLayers = simulcastLayers,
             videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
         negotiatedCodec = codecForPublish ?: "auto"
