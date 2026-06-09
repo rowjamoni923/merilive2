@@ -34,23 +34,47 @@ function readCurrentContext(pathname: string): { streamId?: string; roomId?: str
   return {};
 }
 
-// De-dupe rapid re-entries (e.g. flaky network reconnects) — 30s window.
-const recentlyShown = new Map<string, number>();
-function shouldShow(userId: string): boolean {
+// Phase 7 — two-layer dedupe aligned with Bigo / Chamet / Poppo industry rules:
+//   1. RAPID_REENTRY_MS = 60s — catches network flap / rapid leave-rejoin
+//      across ANY room (research: Bigo/Chamet broadcast-join dedupe is ~60s,
+//      not 30s; bumped from prior 30s to match Stream/Bigo signaling standard).
+//   2. PER_ROOM_COOLDOWN_MS = 5min — prevents the same user from spamming
+//      the grand-entrance animation in the SAME room by farming exit→rejoin
+//      (Bigo SVIP activation guide: same-room animation cooldown ≈ 5 min).
+// Both gates must pass before the native entry animation is enqueued.
+const RAPID_REENTRY_MS = 60_000;
+const PER_ROOM_COOLDOWN_MS = 5 * 60_000;
+
+const recentlyShown = new Map<string, number>();       // key: userId
+const recentlyShownPerRoom = new Map<string, number>(); // key: `${ctxKey}|${userId}`
+
+function ctxKeyOf(ctx: { streamId?: string; roomId?: string }): string {
+  return ctx.streamId ? `live:${ctx.streamId}` : ctx.roomId ? `party:${ctx.roomId}` : 'global';
+}
+
+function shouldShow(userId: string, ctxKey: string): boolean {
   const now = Date.now();
-  const last = recentlyShown.get(userId) ?? 0;
-  if (now - last < 30_000) return false;
+  const lastGlobal = recentlyShown.get(userId) ?? 0;
+  if (now - lastGlobal < RAPID_REENTRY_MS) return false;
+  const perRoomKey = `${ctxKey}|${userId}`;
+  const lastRoom = recentlyShownPerRoom.get(perRoomKey) ?? 0;
+  if (now - lastRoom < PER_ROOM_COOLDOWN_MS) return false;
   recentlyShown.set(userId, now);
-  // GC
+  recentlyShownPerRoom.set(perRoomKey, now);
+  // GC — drop entries older than the longer of the two windows.
   if (recentlyShown.size > 200) {
     for (const [k, t] of recentlyShown) if (now - t > 120_000) recentlyShown.delete(k);
+  }
+  if (recentlyShownPerRoom.size > 500) {
+    for (const [k, t] of recentlyShownPerRoom)
+      if (now - t > PER_ROOM_COOLDOWN_MS * 2) recentlyShownPerRoom.delete(k);
   }
   return true;
 }
 
-async function dispatchEntry(userId: string, force = false) {
+async function dispatchEntry(userId: string, ctxKey: string, force = false) {
   if (!userId) return;
-  if (!force && !shouldShow(userId)) return;
+  if (!force && !shouldShow(userId, ctxKey)) return;
   const asset = await resolveEntryForUser(userId);
   if (!asset) return;
   await tryEnqueueNativeEntry({
