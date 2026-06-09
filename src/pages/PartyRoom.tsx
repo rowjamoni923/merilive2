@@ -1914,6 +1914,43 @@ const PartyRoom = () => {
     }
   };
 
+  // PR-2.5: extracted so EmptySeatHostActionsSheet "Move here" can call it.
+  const hostMoveToSeat = async (position: number) => {
+    if (!roomId || !currentUser) return;
+    try {
+      const { error: seatError } = await supabase
+        .from('party_room_participants')
+        .update({ seat_number: position, role: 'speaker' })
+        .eq('room_id', roomId)
+        .eq('user_id', currentUser.id);
+
+      if (seatError) {
+        console.error('[PartyRoom] Host seat assignment error:', seatError);
+        recordClientError({ label: 'PartyRoom.seatTaken', message: seatError.message });
+        toast.error('Failed to join seat');
+        return;
+      }
+      setParticipants(prev => prev.map(p =>
+        p.user_id === currentUser.id ? { ...p, position, role: 'speaker' } : p
+      ));
+      setMyPosition(position);
+      setShowSeatSelector(false);
+      void publishPartyEvent(roomId, {
+        type: 'seat_action',
+        roomId,
+        action: 'approved',
+        requester_id: currentUser.id,
+        seat_position: position,
+        request_id: `host-move-${currentUser.id}-${Date.now()}`,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      console.error('[PartyRoom] Host seat error:', error);
+      recordClientError({ label: 'PartyRoom.seatTaken', message: error instanceof Error ? error.message : String(error) });
+      toast.error('Failed to join seat');
+    }
+  };
+
   // Request to take a seat (for non-hosts)
   const requestSeat = async (position: number) => {
     if (!roomId || !currentUser || !room) return;
@@ -1925,8 +1962,14 @@ const PartyRoom = () => {
       return;
     }
 
-    // HOST AUTO-JOIN: If user is the host, directly assign seat without request
+    // PR-2.5: Host taps empty seat → open Chamet/Bigo-style action sheet
+    // (Move here / Lock / Unlock) instead of auto-joining silently.
     if (isHost) {
+      setEmptySeatTarget(position);
+      return;
+    }
+    // (Legacy host auto-join branch removed — handled by sheet → hostMoveToSeat.)
+    if (false) {
       try {
         // Directly update participant position (host auto-joins)
         const { error: seatError } = await supabase
