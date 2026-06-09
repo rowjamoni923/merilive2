@@ -249,6 +249,12 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // PR-2 (P0-5): password prompt modal state when enter_party_room rejects with
+  // 'Password required' / 'Invalid password'. Lets viewers retry without
+  // bouncing back to the lobby.
+  const [passwordPrompt, setPasswordPrompt] = useState<{ show: boolean; error?: string }>({ show: false });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
