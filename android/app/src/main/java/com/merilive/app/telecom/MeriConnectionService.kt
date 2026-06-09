@@ -133,7 +133,13 @@ class MeriConnectionService : ConnectionService() {
             setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED)
             connectionProperties = Connection.PROPERTY_SELF_MANAGED
             audioModeIsVoip = true
-            connectionCapabilities = Connection.CAPABILITY_MUTE
+            connectionCapabilities = try {
+                Connection.CAPABILITY_MUTE or
+                    Connection.CAPABILITY_HOLD or
+                    Connection.CAPABILITY_SUPPORT_HOLD
+            } catch (_: Throwable) {
+                Connection.CAPABILITY_MUTE
+            }
         }
         if (callId.isNotEmpty()) put(callId, conn)
         // C-3: arm a 90s outgoing-dial watchdog. If JS never promotes to
