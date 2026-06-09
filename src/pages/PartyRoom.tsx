@@ -1937,21 +1937,15 @@ const PartyRoom = () => {
     // Mark as recently processed to prevent realtime refetch from bringing it back
     recentlyProcessedRequestsRef.current.add(request.id);
 
-    // Immediately update local state for faster UI update (optimistic)
+    // PR-2 (P1-3): hide the request row optimistically (low-risk UI), but
+    // DO NOT optimistically grant the seat. We previously mutated
+    // participants → speaker BEFORE the RPC, so on rejection (seat_taken /
+    // already_handled / not_host) two clients flickered a phantom speaker.
+    // Seat-grant now happens only after the RPC returns ok:true.
     setSeatRequests(prev => prev.filter(r => r.id !== request.id));
-    setParticipants(prev => prev.map(p => 
-      p.user_id === request.requester_id 
-        ? { ...p, position: request.seat_position, role: 'speaker' }
-        : p
-    ));
 
     try {
       // Phase III.a: atomic server-side approval via RPC.
-      // Replaces the previous raw `party_room_participants` UPDATE which had
-      // no row-lock and let two hosts double-occupy the same seat. The RPC
-      // takes SELECT FOR UPDATE on (request, room, seat slot) and returns
-      // {ok:false, error:'seat_taken'|'already_handled'|'not_host'|...} on
-      // conflict so we can reconcile state without trusting client guesses.
       const { data: rpcData, error: rpcError } = await supabase.rpc('approve_seat_request', {
         p_request_id: request.id,
       });
@@ -1975,6 +1969,14 @@ const PartyRoom = () => {
         await fetchParticipants();
         return;
       }
+
+      // PR-2 (P1-3): seat granted server-side — NOW apply local optimistic
+      // promote so the UI reflects truth instantly while Realtime catches up.
+      setParticipants(prev => prev.map(p =>
+        p.user_id === request.requester_id
+          ? { ...p, position: request.seat_position, role: 'speaker' }
+          : p
+      ));
 
       console.log('[PartyRoom] ✅ Seat assigned via RPC:', request.requester_id, 'pos:', request.seat_position);
 
