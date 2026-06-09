@@ -137,3 +137,20 @@ Research-first audit found ~90% of party-room foundation already shipped: voice/
 - **F-6.2** Added 150ms `Participant.audioLevel` poll loop emitting per-participant `seat-audio-levels` (smooth ring animation — Yalla/MICO/Bigo standard; LiveKit server-side ActiveSpeakers fires only ~1s, too coarse for ring pulse). Also emits `local-vad-changed { speaking, level }` with threshold 0.08f and 500ms silence hold — JS BGM player can duck to -20dB on `speaking:true` and restore on `speaking:false` per Bigo/Hollah ducking curve. Poll started on connect + adopt, stopped on all teardown paths (disconnect, destroy, process-background, live-host-grace).
 
 APK rebuild required. JS-side BGM ducking integration is a follow-up (no native BGM player yet; event fires harmlessly until consumed).
+
+## ✅ Phase 7 — Viewer-side professional upgrade — DONE 2026-06-09 (honest)
+Research-first audit found the WebView viewer stack is ~95% already at industry standard:
+
+**Chat overlay (`PremiumJoinChatOverlay`)** — already has per-type styling (chat/join/gift/host/system), inline gift icons, separate 6s join TTL (research: 4–5s), spring-animated entries/exits, level/trader/country badges, auto-scroll. **No changes** — WEB-DESIGN-SACRED rule prevents adding the top gradient mask / pause-on-scroll pill / hard message cap as visual edits. These are documented as JS-side follow-ups if user later approves design adjustments.
+
+**Viewer system (`useViewers` + `livekitLiveEventsSignaling`)** — already server-authoritative (no client self-broadcast), dedup by ID, profile hydration in background, reliable transport, dedicated `viewer_joined` packets with pre-rendered profile + entry asset URLs. **No changes** — already exceeds Chamet/Bigo baseline.
+
+**Entry animation system** — substantial existing machinery: `UnifiedEntryAnimation` with SVGA/VAP/PAG/Lottie/MP4/image, native pipeline detection (Pkg438), CinematicEntranceOverlay for noble ranks (duke/king/marquis), priority-aware resolver (`resolveEntryForUser`), Pkg438 native dispatcher.
+
+**1 behavioral gap fixed (no visual impact):**
+- **F-7.1** `useNativeEntryDispatcher` now enforces TWO-LAYER dedupe matching Bigo/Chamet activation rules:
+  - **60s** rapid-reentry global window (bumped from 30s — Stream/Bigo/Chamet signaling standard for network-flap dedupe)
+  - **5min** per-room cooldown (new — Bigo SVIP activation guide: same user can't trigger grand entrance again in the same room within 5 minutes; prevents farm exit→rejoin animation spam)
+  - Both gates must pass; per-room map GC'd at >500 entries / >2× cooldown age.
+
+JS-only change. No APK rebuild needed. Owner-account testable on `/live/:id` and `/party/:id` routes.
