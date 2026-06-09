@@ -101,6 +101,7 @@ import { UnifiedPartyRoom } from "@/components/party/UnifiedPartyRoom";
 import { GiftContributorsPanel } from "@/components/party/GiftContributorsPanel";
 import { SeatInvitePickerSheet } from "@/components/party/SeatInvitePickerSheet";
 import { SeatInviteResponseSheet } from "@/components/party/SeatInviteResponseSheet";
+import { EmptySeatHostActionsSheet } from "@/components/party/EmptySeatHostActionsSheet";
 import PartyGiftSeatPicker, { type PartyGiftSeatPickerSeat } from "@/components/party/PartyGiftSeatPicker";
 import { useSeatInvitationInbox } from "@/hooks/useSeatInvitationInbox";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
@@ -250,6 +251,11 @@ const PartyRoom = () => {
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   // Phase III.d — host-side seat invite picker target.
   const [seatInviteTarget, setSeatInviteTarget] = useState<{ id: string; name: string } | null>(null);
+  // PR-2.5: per-seat lock map (seat_number -> isLocked) sourced from
+  // public.party_room_seat_locks via Supabase Realtime.
+  const [seatLocks, setSeatLocks] = useState<Record<number, boolean>>({});
+  // PR-2.5: host action sheet target when host taps an empty seat.
+  const [emptySeatTarget, setEmptySeatTarget] = useState<number | null>(null);
   // PR-2 (P0-5): password prompt modal state when enter_party_room rejects with
   // 'Password required' / 'Invalid password'. Lets viewers retry without
   // bouncing back to the lobby.
