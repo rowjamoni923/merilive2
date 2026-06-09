@@ -38,6 +38,7 @@ import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { useProCamera } from "@/camera/useProCamera";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -867,10 +868,14 @@ const GoLive = () => {
               }}
             >
               {userProfile?.avatar_url ? (
-                <img loading="lazy" decoding="async" 
-                  src={userProfile.avatar_url} 
-                  alt={userProfile.display_name || "User"} 
-                  className="w-full h-full object-contain" />
+                <img
+                  loading="eager"
+                  decoding="sync"
+                  {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
+                  src={enhanceThumbnail(userProfile.avatar_url, { width: 96, quality: 85 })}
+                  alt={userProfile.display_name || "User"}
+                  className="w-full h-full object-contain"
+                />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-white" />
