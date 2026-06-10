@@ -131,4 +131,44 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 });
 
 
+// ----------------------------------------------------------------------------
+// M-8: Proactive session refresh on app resume.
+// `autoRefreshToken: true` only fires while the page/tab is visible. On
+// Android (WebView paused) and on web tabs left in the background for days,
+// the access token can expire silently. When the user comes back, the cached
+// `getSession()` still resolves with the stale token until the first failed
+// REST call — leading to "I'm logged in but every request 401s".
+// Mitigation: on visibilitychange→visible AND on focus, if the access token
+// expires within 5 minutes, force-refresh now. No polling, no data refetch
+// (respects the "NEVER polling/visibility-refresh in place of realtime" rule
+// — this only refreshes the JWT, not any business data).
+// ----------------------------------------------------------------------------
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  const REFRESH_THRESHOLD_SEC = 5 * 60;
+  let refreshInFlight = false;
+  const maybeRefresh = async () => {
+    if (refreshInFlight) return;
+    if (document.visibilityState !== 'visible') return;
+    try {
+      refreshInFlight = true;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.expires_at) return;
+      const secondsUntilExpiry = session.expires_at - Math.floor(Date.now() / 1000);
+      if (secondsUntilExpiry <= REFRESH_THRESHOLD_SEC) {
+        await supabase.auth.refreshSession();
+      }
+    } catch {
+      // best-effort; autoRefreshToken / onAuthStateChange will surface real failures
+    } finally {
+      refreshInFlight = false;
+    }
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void maybeRefresh();
+  });
+  window.addEventListener('focus', () => void maybeRefresh());
+}
+
+
+
 
