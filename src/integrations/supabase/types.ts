@@ -16784,6 +16784,7 @@ export type Database = {
         Args: { _action_type: string; _payload: Json }
         Returns: Json
       }
+      _ferris_wheel_multiplier: { Args: { p_slot: number }; Returns: number }
       _internal_add_beans: {
         Args: { _amount: number; _user_id: string }
         Returns: undefined
@@ -16864,6 +16865,10 @@ export type Database = {
       }
       _roulette_official_multiplier: {
         Args: { p_bet_type: string }
+        Returns: number
+      }
+      _teen_patti_score: {
+        Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
       }
       accept_pk_battle: { Args: { p_battle_id: string }; Returns: string }
@@ -19334,6 +19339,10 @@ export type Database = {
         Args: { _status: string }
         Returns: string
       }
+      ferris_wheel_play: {
+        Args: { p_bet_amount: number; p_chosen_slot: number }
+        Returns: Json
+      }
       finalize_first_minute_earnings: {
         Args: { p_call_id: string }
         Returns: undefined
@@ -20626,6 +20635,10 @@ export type Database = {
       sync_host_online_status: {
         Args: { p_is_online: boolean; p_user_id: string }
         Returns: undefined
+      }
+      teen_patti_play: {
+        Args: { p_bet_a?: number; p_bet_b?: number; p_bet_c?: number }
+        Returns: Json
       }
       tick_agency_commission_scheduler: { Args: never; Returns: Json }
       tick_agency_weekly_scheduler: { Args: never; Returns: Json }
