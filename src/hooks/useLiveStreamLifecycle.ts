@@ -98,15 +98,17 @@ export const useLiveStreamLifecycle = ({
       const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
       const token = session?.access_token;
       if (token) {
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}`, {
-          method: 'PATCH',
+        // R2-H21: prefer `end_live_stream` RPC over the direct PATCH so the
+        // server-side cleanup runs (earnings settlement, viewer left_at,
+        // summary). Keepalive ensures this fires even during page unload.
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/end_live_stream`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'apikey': getSupabasePublishableKey(),
             'Authorization': `Bearer ${token}`,
-            'Prefer': 'return=minimal',
           },
-          body: JSON.stringify({ is_active: false, ended_at: new Date().toISOString() }),
+          body: JSON.stringify({ p_stream_id: streamId }),
           keepalive: true,
         });
       }
