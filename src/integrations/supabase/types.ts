@@ -4266,6 +4266,7 @@ export type Database = {
           profile_photo_url: string | null
           reference_image_url: string | null
           rejection_reason: string | null
+          rekognition_attempts: number
           rekognition_confidence: number | null
           rekognition_external_id: string | null
           rekognition_external_image_id: string | null
@@ -4310,6 +4311,7 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -4354,6 +4356,7 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -19713,6 +19716,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_live_face_runtime: {
+        Args: {
+          p_grace_seconds?: number
+          p_stream_id: string
+          p_user_id: string
+        }
+        Returns: {
+          grace_ends_at: string
+          in_grace: boolean
+          is_authorized: boolean
+          warning_count: number
+        }[]
+      }
       get_live_stream_ingress: {
         Args: { _stream_id: string }
         Returns: {
@@ -19986,6 +20002,10 @@ export type Database = {
         Args: { agency_uuid: string }
         Returns: undefined
       }
+      increment_face_submission_attempts: {
+        Args: { p_submission_id: string }
+        Returns: number
+      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
@@ -20017,6 +20037,10 @@ export type Database = {
       }
       is_group_member: {
         Args: { _group_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      is_live_stream_host: {
+        Args: { p_stream_id: string; p_user_id: string }
         Returns: boolean
       }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
