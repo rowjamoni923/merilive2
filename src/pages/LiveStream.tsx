@@ -1447,20 +1447,13 @@ const LiveStream = () => {
     window.addEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
 
     // Pkg361 ZERO-REFRESH: Subscribe to ALL relevant tables for the livestream
+    // C2 (2026-06-10): removed 'live_streams' from this list — handled by the dedicated
+    // `live-stream-end-${id}` channel at line ~1923 to avoid double `leaveChannel()` race.
     const unsubscribeRealtime = subscribeToTables(
       `livestream-realtime-${id}`,
-      ['live_streams', 'stream_viewers', 'stream_chat', 'gift_transactions'],
+      ['stream_viewers', 'stream_chat', 'gift_transactions'],
       (table, event, payload) => {
         const row = payload as any;
-        
-        // 1. Stream ended or updated
-        if (table === 'live_streams' && row.id === id) {
-          if (row.status === 'ended' || row.is_active === false) {
-            handleStreamEndCallback();
-          } else {
-            setStreamData(prev => prev ? { ...prev, ...row } : row);
-          }
-        }
         
         // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
