@@ -11,18 +11,14 @@
 // directly from the client after the user reports having paid.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { strictCors } from "../_shared/strict-cors.ts";
 
 const SWIFT_PAY_BASE_URL = "https://instant-harmony-flow.lovable.app";
 const SWIFT_PAY_API_KEY = Deno.env.get("SWIFT_PAY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, x-client-platform, x-supabase-api-version, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+let corsHeaders: Record<string, string> = {};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -47,6 +43,7 @@ async function resolveScope(req: Request) {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = strictCors(req, { methods: "POST, GET, OPTIONS" });
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST" && req.method !== "GET") {
     return json({ error: "method_not_allowed" }, 405);
