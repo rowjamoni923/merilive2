@@ -84,10 +84,24 @@ serve(async (req) => {
       );
     }
 
-    // 2) Bill each in parallel (DB-level lock prevents races)
-    const results = await Promise.allSettled(
-      callIds.map((id) => admin.rpc("bill_call_minute", { p_call_id: id })),
-    );
+    // 2) Bill each in parallel (DB-level lock prevents races).
+    //    Phase 2 #7: per-call 10s timeout so one stuck row can't starve the
+    //    whole tick pass (function ceiling is ~150s; without this a DB lock
+    //    contention on a single row drops every concurrent call's minute).
+    const BILL_TIMEOUT_MS = 10_000;
+    const billOne = (id: string) => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        timer = setTimeout(
+          () => resolve({ data: null, error: { message: `timeout_${BILL_TIMEOUT_MS}ms` } }),
+          BILL_TIMEOUT_MS,
+        );
+      });
+      const rpc = admin.rpc("bill_call_minute", { p_call_id: id })
+        .then((r) => { if (timer) clearTimeout(timer); return r; });
+      return Promise.race([rpc, timeout]);
+    };
+    const results = await Promise.allSettled(callIds.map(billOne));
 
     let billed = 0;
     let skipped = 0;
