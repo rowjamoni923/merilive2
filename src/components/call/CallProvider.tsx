@@ -79,7 +79,10 @@ export function CallProvider({ children }: CallProviderProps) {
   const [isHost, setIsHost] = useState(false);
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [callEndedInfo, setCallEndedInfo] = useState<CallEndedInfo | null>(null);
-  const callEndedRef = useRef(false);
+  // H-4: callEndedRef is now sourced from usePrivateCall (single source of
+  // truth). The previously-local ref drifted from the hook's ref under fast
+  // accept/decline cycles, leading to either a stuck "ended" gate or a
+  // missed end-screen.  Bound below right after the hook returns.
   // ☠️ DEAD FOREVER: Track ended call IDs permanently - NEVER reconnect a dead call
   const endedCallIdsRef = useRef<Set<string>>(new Set());
   // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
