@@ -1,5 +1,4 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -84,10 +83,6 @@ async function handleUserOffline(odersId: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
-  }
-
-  if (!isAllowedOrigin(req)) {
-    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const upgrade = req.headers.get('upgrade') || ''

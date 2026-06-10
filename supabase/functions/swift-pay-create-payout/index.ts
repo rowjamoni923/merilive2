@@ -6,14 +6,17 @@
 // Idempotent: caller passes withdrawal_id; we short-circuit if already initiated.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { strictCors } from "../_shared/strict-cors.ts";
 
 const SWIFT_PAY_BASE_URL = "https://instant-harmony-flow.lovable.app";
 const SWIFT_PAY_API_KEY = Deno.env.get("SWIFT_PAY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-let corsHeaders: Record<string, string> = {};
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, x-client-platform, x-supabase-api-version, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), {
@@ -23,7 +26,6 @@ function json(b: unknown, s = 200) {
 }
 
 Deno.serve(async (req) => {
-  corsHeaders = strictCors(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 

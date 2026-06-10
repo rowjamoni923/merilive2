@@ -12,6 +12,8 @@ const CURRENCY_ZERO_DECIMAL = new Set(["bif", "clp", "djf", "gnf", "jpy", "kmf",
 const ALLOWED_RETURN_ORIGINS = new Set([
   "https://merilive.com",
   "https://www.merilive.com",
+  "https://merilive.top",
+  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);

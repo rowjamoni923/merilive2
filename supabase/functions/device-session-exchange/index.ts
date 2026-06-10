@@ -19,6 +19,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 const ALLOWED_ORIGINS = new Set([
   "https://merilive.com",
   "https://www.merilive.com",
+  "https://merilive.top",
+  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);

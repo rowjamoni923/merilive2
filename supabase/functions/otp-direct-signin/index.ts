@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { strictCors } from "../_shared/strict-cors.ts";
 
-let corsHeaders: Record<string, string> = {};
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -48,7 +50,6 @@ async function createMagicSession(supabaseAdmin: any, email: string) {
 }
 
 serve(async (req) => {
-  corsHeaders = strictCors(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
 
@@ -117,7 +118,7 @@ serve(async (req) => {
       const tokenResponse = await consumeVerifiedToken();
       if (tokenResponse) return tokenResponse;
 
-      if (password.length < 8) return json({ success: false, error: "Password must be at least 8 characters" }, 400);
+      if (password.length < 6) return json({ success: false, error: "Password must be at least 6 characters" }, 400);
       if (!displayName) return json({ success: false, error: "Display name is required" }, 400);
 
       const metadata: Record<string, unknown> = { full_name: displayName, device_id: deviceId || undefined };

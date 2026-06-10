@@ -5,9 +5,12 @@
 // email_confirm:true so no email is sent.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { strictCors, constantTimeEqual } from "../_shared/strict-cors.ts";
 
-let corsHeaders: Record<string, string> = {};
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, x-client-platform, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -17,7 +20,6 @@ function json(body: unknown, status = 200) {
 }
 
 Deno.serve(async (req) => {
-  corsHeaders = strictCors(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -93,7 +95,7 @@ Deno.serve(async (req) => {
       await admin.from("email_otps").update({ is_used: true }).eq("id", otpRecord.id);
       return json({ success: false, error: "Too many failed attempts. Please request a new OTP." }, 429);
     }
-    if (!constantTimeEqual(String(otpRecord.otp_code), otp)) {
+    if (String(otpRecord.otp_code) !== otp) {
       await admin
         .from("email_otps")
         .update({ attempts: (otpRecord.attempts ?? 0) + 1 })

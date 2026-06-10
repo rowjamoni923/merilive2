@@ -3,7 +3,6 @@
 // or be an active admin via x-admin-token.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { requireAdminSession } from '../_shared/adminAuth.ts';
-import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,10 +19,6 @@ const json = (status: number, body: unknown) =>
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-
-  if (!isAllowedOrigin(req)) {
-    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

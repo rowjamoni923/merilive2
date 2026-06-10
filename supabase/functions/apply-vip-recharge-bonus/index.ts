@@ -4,13 +4,16 @@
 // Direct anon callers are rejected — previously any anon could grant unlimited
 // diamonds to any user_id.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { strictCors } from "../_shared/strict-cors.ts";
 
-let CORS: Record<string, string> = {};
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret, x-cron-secret, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
@@ -32,8 +35,7 @@ function isAuthorized(req: Request): boolean {
 }
 
 Deno.serve(async (req) => {
-  CORS = strictCors(req);
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     if (!isAuthorized(req)) {

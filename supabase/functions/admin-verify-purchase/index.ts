@@ -1,5 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { strictCors } from "../_shared/strict-cors.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 /**
  * Admin Manual Purchase Verification & Credit
@@ -11,7 +15,6 @@ import { strictCors } from "../_shared/strict-cors.ts";
  * Pkg321: Added section permission check (user-management with edit right).
  */
 Deno.serve(async (req) => {
-  const corsHeaders = strictCors(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

@@ -11,7 +11,6 @@
  * Reuses the SigV4 signing pattern from face-verification-analyze.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -112,10 +111,6 @@ const HARD_THRESHOLD = 80; // confidence %
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  if (!isAllowedOrigin(req)) {
-    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
 
   try {
     // ── Pkg310 deep-audit: require authenticated caller (anti-DoS / AWS cost abuse) ──

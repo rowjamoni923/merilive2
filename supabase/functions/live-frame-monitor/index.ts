@@ -17,7 +17,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-import { isAllowedOrigin } from "../_shared/strict-cors.ts";
   getProviderConfig,
   providerMonitorFrame,
   providerSearchFace,
@@ -45,10 +44,6 @@ const IDENTITY_THRESHOLD = 85; // similarity %
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
-  }
-
-  if (!isAllowedOrigin(req)) {
-    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "POST only" }), {
