@@ -3899,6 +3899,7 @@ export type Database = {
       device_tokens: {
         Row: {
           created_at: string | null
+          device_id: string | null
           id: string
           is_active: boolean | null
           platform: string
@@ -3908,6 +3909,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -3917,6 +3919,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -20463,6 +20466,15 @@ export type Database = {
           _user_agent?: string
         }
         Returns: undefined
+      }
+      register_device_token: {
+        Args: {
+          p_device_id: string
+          p_device_info?: Json
+          p_platform: string
+          p_token: string
+        }
+        Returns: string
       }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
