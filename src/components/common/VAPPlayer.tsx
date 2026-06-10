@@ -405,7 +405,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-  }, [autoPlay, createShaders, muted, volume, loop]);
+  }, [autoPlay, createShaders, muted, volume, loop, resolvedSrc]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth) return;
