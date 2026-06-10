@@ -123,9 +123,16 @@ export const PKBattleActive = ({
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
-  // Live diamond-delta floaters per side (Bigo-signature) — auto-evicted after 1.4s.
-  type DeltaFloat = { key: string; side: "challenger" | "opponent"; amount: number };
+  // Live floaters: 'score' (active-phase delta) + 'cheer' (punishment-phase
+  // rescue gift). Auto-evicted after ~1.4s. Bigo-signature gift-feedback.
+  type DeltaFloat = {
+    key: string;
+    side: "challenger" | "opponent";
+    amount: number;
+    kind: "score" | "cheer";
+  };
   const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+
   const prevChallengerRef = useRef(0);
   const prevOpponentRef = useRef(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
