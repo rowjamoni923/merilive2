@@ -1041,9 +1041,10 @@ export function usePrivateCall(userId: string | null) {
   }, [toast]);
 
   // End the current call - INSTANT response
-  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/coins change every second)
-  const callStateRef = useRef(callState);
+  // H-5: callStateRef is declared at the top of the hook (line ~76).
+  // Keep it in sync here so the latest state is observable in async callbacks.
   callStateRef.current = callState;
+
 
   const endCall = useCallback(async (reason: string = 'normal') => {
     const cs = callStateRef.current;
