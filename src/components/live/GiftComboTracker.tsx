@@ -51,9 +51,16 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
   const [lanes, setLanes] = useState<ComboLane[]>([]);
 
   const flushLanes = () => {
-    const arr = Array.from(lanesRef.current.values())
-      .sort((a, b) => b.lastAt - a.lastAt)
-      .slice(0, MAX_LANES);
+    const all = Array.from(lanesRef.current.values());
+    const topLane = all
+      .slice()
+      .sort((a, b) => (b.totalValue - a.totalValue) || (b.count - a.count) || (b.lastAt - a.lastAt))[0];
+    const arr = [
+      ...(topLane ? [topLane] : []),
+      ...all
+        .filter((lane) => lane.id !== topLane?.id)
+        .sort((a, b) => b.lastAt - a.lastAt),
+    ].slice(0, MAX_LANES);
     setLanes(arr);
   };
 
