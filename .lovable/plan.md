@@ -121,6 +121,24 @@ Step 14: APK rebuild signal
 - RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
 - Profile Self Recharge UI now displays only one `Recharge Source` and one destination `My Diamond Balance`; internal helper/agency split is hidden from the user action flow.
 
+---
+
+## Emergency Recovery — Shop/VIP/animation relation outage
+
+### Verified root cause
+- Owner account login reproduced a live Data API failure: `user_purchases?select=item_id,is_equipped,expires_at,shop_items(category)` returned HTTP 400 / `PGRST200` because PostgREST cannot find the `user_purchases.item_id → shop_items.id` relationship in the active schema cache.
+- Direct catalog check confirmed `user_purchases` currently has **no constraints at all**, even though the app code and older migrations expect `item_id` and `user_id` foreign keys.
+- This breaks any section that hydrates purchased/equipped shop assets: VIP membership equip flow, shop entitlements, chat bubble/gift-panel styling, profile/avatar frame hydration, entrance/name-bar/vehicle/VAP/MP4/SVGA animation lookup, and some message/live/party overlays.
+
+### Professional standard checked
+- Chamet publicly documents live chat/party, virtual community interaction, in-app purchases, and premium/VIP-style perks: https://play.google.com/store/apps/details?id=com.hkfuliao.chamet and https://bittopup.com/article/Chamet-VIP-2025-Complete-Guide-to-Badges-Levels-Perks
+- BIGO describes real-time chat, broadcasts, virtual city-style interaction, diamonds, and audience/streamer surfaces: https://www.bigo.tv/blog/use-bigo-live and https://www.bigo.tv/blog/bigo-live-app-features
+- Poppo agency docs describe agency/host management, live broadcasts, virtual gifts, and VIP/coin ecosystem: https://www.poppolive.net/en/agency/ and https://poppoliveagents.com/agent-training/
+
+### Fix standard for MeriLive
+- Restore the exact foreign keys expected by the frontend (`user_purchases.user_id → profiles.id`, `user_purchases.item_id → shop_items.id`) after verifying there are zero orphan rows.
+- Keep existing UI/design unchanged; only restore the missing DB relationship so Supabase embedded joins work again across Shop, VIP, chat/gift panels, profile frames, and animation hydration.
+
 ## Total scope
 ~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
 
