@@ -349,6 +349,29 @@ export function usePartyRoomNativeLiveKit(
     }
   }, [roomType, state.isVideoEnabled]);
 
+  // Phase 3 #10: republish camera when the ProCamera arbiter releases late.
+  // At connect time we pass `video: cameraReadyRef.current` — if face-verify is
+  // still running, video is OFF. When verify finishes (`cameraReady` flips
+  // false→true) the user stayed audio-only with no way back short of toggling
+  // manually. Detect the transition and auto-enable on the native publisher.
+  const prevCameraReadyRef = useRef(cameraReady);
+  useEffect(() => {
+    const prev = prevCameraReadyRef.current;
+    prevCameraReadyRef.current = cameraReady;
+    if (prev || !cameraReady) return;
+    if (deadRef.current) return;
+    if (!state.isConnected || !usingNativeRef.current) return;
+    if (!partyCanPublishRef.current || !isVideoPartyType(roomType)) return;
+    nativeLiveKitController.setCameraEnabled(true)
+      .then(() => {
+        if (deadRef.current) return;
+        setState((p) => ({ ...p, isVideoEnabled: true }));
+      })
+      .catch((err) => {
+        console.warn('[PartyLiveKit] Auto camera republish failed:', err);
+      });
+  }, [cameraReady, state.isConnected, roomType]);
+
   useEffect(() => {
     if (!roomId || !userId) {
       console.log('[PartyLiveKit] Skipping init - roomId:', roomId, 'userId:', userId, 'roomType:', roomType);
