@@ -255,7 +255,17 @@
 
 ## 🎯 Round-2 Proposed Phase Order
 
-**R2-Phase A — STOP THE BLEED (8 CRITICAL)** — bulk-import auth, ai-chat-reply auth, OTP server-side, recovery_password, IPN logs+HMAC, party-room Map→Presence, livekit-token public upsert, swift-pay cron fail-closed.
+**R2-Phase A — STOP THE BLEED (8 CRITICAL) — 🟢 DONE 2026-06-10 (7/8, 1 deferred)**
+- [x] R2-C1: `bulk-import-profiles` — added `requireAdminSession({ ownerOnly: true })` guard. Closes anonymous privilege escalation via service_role profile upsert.
+- [x] R2-C2: `ai-chat-reply` — JWT validation required; caller must be the conversation participant (sender or host). Closes anon LLM-budget burn.
+- [x] R2-C3: Signup OTP fully server-side. `send-signup-confirmation` now generates code via CSPRNG, inserts into `email_otps` with 10-min expiry, and NEVER returns the code in the response. `Auth.tsx` no longer compares client-side — calls `verify-email-otp` (timing-safe, attempts-capped). `setExpectedOtpCode` left as dead no-op (cleanup in B).
+- [~] R2-C4: `recover_session_by_device` plaintext recovery_password — DEFERRED. Honest call: refactoring device auto-login to a one-time signed exchange token requires a new RPC + edge fn + Auth.tsx rewrite of the silent-recovery path. Will land in R2-Phase B with a dedicated `recover_session_exchange` RPC.
+- [x] R2-C5: `local-payment-ipn` — wildcard CORS replaced with `ALLOWED_CORS_ORIGINS` allow-list + `Vary: Origin`; raw IPN body no longer logged (only sanitized `{gateway, presence flags, status}` metadata). AamarPay credential fail-closed branch was already present (line 209-221) and verified.
+- [x] R2-C6: `party-room` WebSocket edge fn — deprecated to `410 Gone`. Stateless-isolate module-level `Map` removed entirely. Frontend already migrated to LiveKit + Supabase Realtime (no callers in `src/`). Eliminates ghost-participant + invisible-host class of bugs.
+- [x] R2-C7: `livekit-token` viewer token path — replaced direct service-role `stream_viewers` upsert with `enter_live_stream` RPC call via user-authed client. Now correctly enforces ban / privacy / followers / pk_only / password gates and atomically recomputes `viewer_count`.
+- [x] R2-C8: `swift-pay-poll-deposits` cron path — fail-closed `CRON_SECRET` check when called without user JWT and without `topup_id`. Missing env → 500. Wrong/absent header → 401. Closes anon fan-out scanning of every user's pending top-up.
+
+
 
 **R2-Phase B — RLS + IDEMPOTENCY HARDENING** — helper table policies, google-purchase pre-check, noble idempotency key, lockout-server-authoritative, mass `search_path` patch.
 

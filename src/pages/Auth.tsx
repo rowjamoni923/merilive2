@@ -1883,20 +1883,12 @@ const Auth = () => {
 
     setLoading(true);
     try {
-
-      // Generate OTP code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setExpectedOtpCode(verificationCode);
-      
-      // Send confirmation email via edge function - DO NOT create account yet
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
-        body: {
-          email,
-          displayName,
-          verificationCode,
-        }
+      // R2-C3: OTP is generated and persisted server-side. The client never
+      // sees the code, never compares it locally.
+      const { error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: { email, displayName }
       });
-      
+
       if (emailError) {
         console.error("Email sending error:", emailError);
         recordClientError({ label: "Auth.verificationCode", message: emailError instanceof Error ? emailError.message : String(emailError) });
@@ -1913,7 +1905,7 @@ const Auth = () => {
         title: "📧 Verification Code Sent",
         description: `Check your email at ${email} for the 6-digit verification code.`,
       });
-      
+
       // Show OTP verification step - account will be created AFTER verification
       setAuthStep("otp_verify");
       startResendCountdown();
@@ -1941,7 +1933,17 @@ const Auth = () => {
 
     setOtpLoading(true);
     try {
-      if (otpCode === expectedOtpCode) {
+      // R2-C3: server-side OTP verification. The code never leaves the server.
+      const { data: verifyData, error: verifyErr } = await supabase.functions.invoke(
+        'verify-email-otp',
+        { body: { email, otp: otpCode, purpose: 'register' } },
+      );
+      const verified =
+        !verifyErr &&
+        verifyData &&
+        (verifyData as { success?: boolean; verified?: boolean }).success === true &&
+        (verifyData as { verified?: boolean }).verified === true;
+      if (verified) {
         // 🛡️ PERMANENT BAN GUARD — block signup if device/IP/face is on the urgent ban list
         try {
           const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
@@ -2060,9 +2062,13 @@ const Auth = () => {
         
         navigateAfterAuth();
       } else {
+        const serverMsg =
+          (verifyData as { error?: string } | null)?.error ||
+          (verifyErr as { message?: string } | null)?.message ||
+          "The verification code is incorrect. Please try again.";
         toast({
           title: "Invalid Code",
-          description: "The verification code is incorrect. Please try again.",
+          description: serverMsg,
           variant: "destructive",
         });
       }
@@ -2081,15 +2087,9 @@ const Auth = () => {
   const handleResendOtp = async () => {
     setOtpLoading(true);
     try {
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setExpectedOtpCode(verificationCode);
-      
+      // R2-C3: server generates and persists the OTP; client never sees it.
       await supabase.functions.invoke('send-signup-confirmation', {
-        body: {
-          email,
-          displayName,
-          verificationCode,
-        }
+        body: { email, displayName }
       });
       
       toast({
