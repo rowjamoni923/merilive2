@@ -38,6 +38,7 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import VipNobleSection from "@/components/vip/VipNobleSection";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 interface VIPTier {
@@ -1330,7 +1331,7 @@ const VIP = () => {
                                 />
                               ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
                                 <img loading="lazy" decoding="async" 
-                                  src={priv.preview_url} 
+                                  src={enhanceThumbnail(priv.preview_url, { width: 160, quality: 82 })} 
                                   alt={priv.name}
                                   className="w-full h-full object-cover" />
                               ) : (
