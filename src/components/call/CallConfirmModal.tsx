@@ -1,4 +1,5 @@
 import React from "react";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Phone, X, Diamond, Clock, Sparkles, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,7 +92,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
                 style={{ width: 120, height: 120, top: -10, left: "50%", marginLeft: -60 }}
               />
               <Avatar className="w-24 h-24 border-4 border-pink-500 shadow-xl shadow-pink-500/30 relative z-10">
-                <AvatarImage src={hostAvatar || undefined} />
+                <AvatarImage src={enhanceThumbnail(hostAvatar || undefined, { width: 128, quality: 85 })} />
                 <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white text-2xl">
                   <User className="w-10 h-10" />
                 </AvatarFallback>
