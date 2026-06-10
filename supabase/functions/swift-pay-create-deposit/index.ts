@@ -16,7 +16,6 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const ALLOWED_ORIGINS = new Set<string>([
   "https://merilive.com",
   "https://www.merilive.com",
-  "https://merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);

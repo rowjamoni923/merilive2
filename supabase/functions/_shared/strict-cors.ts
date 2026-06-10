@@ -7,10 +7,10 @@
 //   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
 export const ALLOWED_APP_ORIGINS = new Set<string>([
+  // Main app domain (the ONLY production app origin)
   "https://merilive.com",
   "https://www.merilive.com",
-  "https://merilive.top",
-  "https://www.merilive.top",
+  // Lovable preview / staging
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
   // Capacitor / Cordova Android WebView origins
@@ -19,6 +19,8 @@ export const ALLOWED_APP_ORIGINS = new Set<string>([
   "http://localhost",
   "https://localhost",
 ]);
+// NOTE: merilive.top is the marketing landing page ONLY — never an app origin.
+// Do not add it here. See mem://constraints/merilive-top-landing-only.
 
 const DEFAULT_HEADERS =
   "authorization, x-client-info, apikey, content-type, x-admin-token, x-internal-secret, x-cron-secret, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-supabase-api-version";
