@@ -118,7 +118,8 @@ async function resolveSwiftPayMinUsd(admin: ReturnType<typeof createClient>): Pr
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  currentCors = buildCors(req.headers.get("origin"));
+  if (req.method === "OPTIONS") return new Response("ok", { headers: currentCors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   try {
