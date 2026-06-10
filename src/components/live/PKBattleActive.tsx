@@ -587,63 +587,81 @@ export const PKBattleActive = ({
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div
-            className="relative mt-3 h-2.5 rounded-full overflow-hidden flex"
-            style={{
-              background: "rgba(0,0,0,0.4)",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
-            }}
-          >
-            <motion.div
-              className="h-full relative"
-              style={{
-                background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
-                boxShadow: "0 0 10px rgba(236,72,153,0.7)",
-              }}
-              initial={{ width: "50%" }}
-              animate={{ width: `${challengerPercent}%` }}
-              transition={{ type: "spring", damping: 18, stiffness: 140 }}
-            >
-              <div
-                className="absolute inset-0"
+          {/* Progress Bar + sliding lead crown (Bigo-parity) */}
+          <div className="relative mt-3">
+            {totalScore > 0 && (
+              <motion.div
+                className="pointer-events-none absolute -top-3 z-10"
                 style={{
-                  background:
-                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite",
+                  left: `${challengerPercent}%`,
+                  transform: "translateX(-50%)",
+                  filter: "drop-shadow(0 0 6px rgba(251,191,36,0.95)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
                 }}
-              />
-            </motion.div>
-            <motion.div
-              className="h-full relative"
-              style={{
-                background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
-                boxShadow: "0 0 10px rgba(168,85,247,0.7)",
-              }}
-              initial={{ width: "50%" }}
-              animate={{ width: `${opponentPercent}%` }}
-              transition={{ type: "spring", damping: 18, stiffness: 140 }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
-                }}
-              />
-            </motion.div>
-            {/* Center divider glow */}
+                animate={{ left: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 22, stiffness: 180 }}
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-300" />
+              </motion.div>
+            )}
             <div
-              className="pointer-events-none absolute top-0 bottom-0 w-px"
+              className="relative h-2.5 rounded-full overflow-hidden flex"
               style={{
-                left: `${challengerPercent}%`,
-                background: "rgba(255,255,255,0.8)",
-                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
-                transform: "translateX(-0.5px)",
+                background: "rgba(0,0,0,0.4)",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
               }}
-            />
+            >
+              <motion.div
+                className="h-full relative"
+                style={{
+                  background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
+                  boxShadow: "0 0 10px rgba(236,72,153,0.7)",
+                }}
+                initial={{ width: "50%" }}
+                animate={{ width: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 18, stiffness: 140 }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                    animation: "giftSendShine 2.6s ease-in-out infinite",
+                  }}
+                />
+              </motion.div>
+              <motion.div
+                className="h-full relative"
+                style={{
+                  background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
+                  boxShadow: "0 0 10px rgba(168,85,247,0.7)",
+                }}
+                initial={{ width: "50%" }}
+                animate={{ width: `${opponentPercent}%` }}
+                transition={{ type: "spring", damping: 18, stiffness: 140 }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                    animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
+                  }}
+                />
+              </motion.div>
+              {/* Center divider glow follows leader split */}
+              <motion.div
+                className="pointer-events-none absolute top-0 bottom-0 w-px"
+                style={{
+                  background: "rgba(255,255,255,0.8)",
+                  boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                  transform: "translateX(-0.5px)",
+                }}
+                animate={{ left: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 22, stiffness: 180 }}
+              />
+            </div>
           </div>
+
         </div>
 
         {/* Step 4: Winner / Draw / Punishment overlay */}
