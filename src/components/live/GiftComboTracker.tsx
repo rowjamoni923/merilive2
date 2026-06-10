@@ -25,7 +25,8 @@ const COMBO_WINDOW_MS = 4000;
 const MAX_LANES = 3;
 
 interface ComboLane {
-  id: string;            // sender+gift key
+  id: string;
+  comboKey: string;      // sender+gift map key
   senderId: string;
   senderName: string;
   senderAvatar?: string;
@@ -95,6 +96,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
         if (existing?.timer) clearTimeout(existing.timer);
         const lane: ComboLane = {
           id: `${key}|${now}`,
+          comboKey: key,
           senderId: data.senderId,
           senderName: data.senderName || "User",
           senderAvatar: data.senderAvatar,
@@ -181,7 +183,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
               totalValue: lane.totalValue,
             }}
             isTopContributor={lane.id === topActiveLaneId}
-            onDismiss={() => dismissLane(`${lane.senderId}|${lane.giftName}`)}
+            onDismiss={() => dismissLane(lane.comboKey)}
           />
         </div>
       ))}
