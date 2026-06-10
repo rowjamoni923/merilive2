@@ -1324,12 +1324,18 @@ export function usePrivateCall(userId: string | null) {
       privateCallChannelRef.current = null;
     }
 
+    // H6 (2026-06-10): single OR-filter instead of two separate `.on()` calls.
+    // Supabase Realtime treats each `.on(postgres_changes, ...)` as a distinct
+    // server-side subscription; with two filters on the same table+channel a row
+    // matching both caller_id and host_id would fire handleRow twice.
     const privateCallChannel = supabase
       .channel(`private-call-${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
-        handleRow((payload as any).new || (payload as any).old);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `host_id=eq.${userId}` }, (payload) => {
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'private_calls',
+        filter: `or(caller_id.eq.${userId},host_id.eq.${userId})`,
+      }, (payload) => {
         handleRow((payload as any).new || (payload as any).old);
       })
       .subscribe();
