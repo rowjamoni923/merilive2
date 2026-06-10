@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ConnectionState } from "livekit-client";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
+import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
