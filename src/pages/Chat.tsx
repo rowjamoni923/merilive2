@@ -1107,25 +1107,35 @@ const Chat = () => {
         'broadcast',
         { event: 'message' },
         (payload: any) => {
-          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
-          upsertLiveMessageRef.current(payload.payload.message);
+          const p = payload?.payload;
+          if (!p || p.conversationId !== selectedConversation.id || !p.message) return;
+          // R2-Phase C Wave-2: DM broadcast trust — only accept messages whose
+          // sender_id matches the verified conversation peer. Stops a 3rd party
+          // who knows the conversation id from injecting forged bubbles.
+          const peerId = selectedConversation.other_user?.id;
+          const senderId = p.message?.sender_id;
+          if (!peerId || (senderId !== peerId && senderId !== currentUserId)) return;
+          upsertLiveMessageRef.current(p.message);
         }
       )
       .on(
         'broadcast',
         { event: 'gift_animation' },
         (payload: any) => {
-          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
-          if (payload.payload?.senderId === currentUserId) return;
-          if (payload.payload?.soundUrl && !payload.payload.content.includes('| snd:')) {
-            payload.payload.content = `${payload.payload.content.replace(/\]$/, '')} | snd:${payload.payload.soundUrl}]`;
+          const p = payload?.payload;
+          if (!p || p.conversationId !== selectedConversation.id || !p.content) return;
+          if (p.senderId === currentUserId) return;
+          // Trust only the verified peer as gift sender.
+          if (p.senderId !== selectedConversation.other_user?.id) return;
+          if (p.soundUrl && !p.content.includes('| snd:')) {
+            p.content = `${p.content.replace(/\]$/, '')} | snd:${p.soundUrl}]`;
           }
           playGiftAnimationFromContent(
-            payload.payload.content,
-            payload.payload.senderId,
+            p.content,
+            p.senderId,
             true,
-            payload.payload.animationFormat || null,
-            payload.payload.animationConfigUrl || null,
+            p.animationFormat || null,
+            p.animationConfigUrl || null,
           );
         }
       )
