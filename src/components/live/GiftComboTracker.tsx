@@ -124,6 +124,9 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
 
   if (lanes.length === 0) return null;
 
+  const totalActive = lanesRef.current.size;
+  const hiddenCount = Math.max(0, totalActive - lanes.length);
+
   return (
     <div
       className="pointer-events-none fixed left-3 z-[60] flex flex-col-reverse gap-2"
@@ -131,6 +134,21 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
         bottom: "calc(env(safe-area-inset-bottom) + 7rem)",
       }}
     >
+      {hiddenCount > 0 && (
+        <div
+          className="pointer-events-none self-start px-2 py-0.5 rounded-full text-[10px] font-bold text-white/90"
+          style={{
+            background: "linear-gradient(135deg, rgba(76,29,149,0.85), rgba(131,24,67,0.85))",
+            border: "1px solid rgba(255,255,255,0.18)",
+            boxShadow: "0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+          }}
+        >
+          +{hiddenCount} more combo{hiddenCount > 1 ? "s" : ""}
+        </div>
+      )}
       {lanes.map((lane) => (
         <div key={lane.id} className="pointer-events-auto">
           <GiftComboDisplay
@@ -154,5 +172,6 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
     </div>
   );
 };
+
 
 export default GiftComboTracker;
