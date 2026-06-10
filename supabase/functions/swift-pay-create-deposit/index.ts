@@ -30,10 +30,11 @@ function buildCors(origin: string | null) {
   };
 }
 
-function json(body: unknown, corsHeaders: Record<string, string>, status = 200) {
+let currentCors: Record<string, string> = buildCors(null);
+function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...currentCors, "Content-Type": "application/json" },
   });
 }
 
