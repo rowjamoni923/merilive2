@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, X, Clock, Diamond, Gem, Wallet, Receipt, Calendar, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { usePersistedCache } from "@/hooks/usePersistedCache";
 }
 
 const RechargeHistory = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const [ordersCache, setRechargeOrders, hadOrdersCache] = usePersistedCache<RechargeOrder[]>('rechargeHist:orders', null);
   const rechargeOrders = ordersCache ?? [];

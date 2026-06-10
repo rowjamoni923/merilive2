@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { 
@@ -164,6 +165,7 @@ interface WithdrawalHistory {
 }
 
 const AgencyDashboard = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const { toast } = useToast();
   const [agency, setAgency] = useState<Agency | null>(null);
