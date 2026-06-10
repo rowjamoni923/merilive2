@@ -19981,6 +19981,13 @@ export type Database = {
         Returns: number
       }
       mark_live_stream_live: { Args: { p_stream_id: string }; Returns: Json }
+      mark_livekit_participant_left: {
+        Args: { _identity: string; _room_name: string }
+        Returns: {
+          kind: string
+          marked_id: string
+        }[]
+      }
       mark_messages_delivered: {
         Args: { p_conversation_id: string; p_recipient_id: string }
         Returns: number

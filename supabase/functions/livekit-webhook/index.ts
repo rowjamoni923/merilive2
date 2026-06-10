@@ -100,6 +100,26 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Phase 2 #6: stamp left_at on viewer / party participant rows immediately
+  // when LiveKit reports a participant_left. Without this, viewer counts stay
+  // inflated until the background stale-sweep cron (minutes of lag) — Chamet
+  // standard is <5s. Pure additive: room_finished still cleans up orphans.
+  if (eventType === "participant_left" && roomName && participant?.identity) {
+    try {
+      const { data, error } = await admin.rpc("mark_livekit_participant_left", {
+        _room_name: roomName,
+        _identity: String(participant.identity),
+      });
+      if (error) {
+        console.error("[livekit-webhook] mark_left error:", error.message);
+      } else if (data && data.length > 0) {
+        console.log("[livekit-webhook] marked-left:", JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error("[livekit-webhook] mark_left throw:", (e as Error)?.message);
+    }
+  }
+
   // Pkg112: Finalize stream_recordings rows on egress lifecycle events.
   // LiveKit EgressInfo status enum (string in webhook payload):
   //   EGRESS_STARTING / EGRESS_ACTIVE / EGRESS_ENDING / EGRESS_COMPLETE / EGRESS_FAILED / EGRESS_ABORTED / EGRESS_LIMIT_REACHED
