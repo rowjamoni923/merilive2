@@ -3456,6 +3456,36 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
   }
 
+  /* ---------- Wave B HARD GUARDS — LiveStream / PartyRoom / Private Call ----------
+     Design-sacred: only width/overflow/safe-area, no color/layout token change. */
+  body:not([data-admin-active="true"]) [data-livestream-root],
+  body:not([data-admin-active="true"]) [data-party-root],
+  body:not([data-admin-active="true"]) [data-call-root] {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+  }
+  body:not([data-admin-active="true"]) [data-livestream-root] *,
+  body:not([data-admin-active="true"]) [data-party-root] *,
+  body:not([data-admin-active="true"]) [data-call-root] * {
+    max-width: 100vw;
+  }
+  body:not([data-admin-active="true"]) [data-livestream-root] [class*="fixed"][class*="bottom-"],
+  body:not([data-admin-active="true"]) [data-party-root] [class*="fixed"][class*="bottom-"],
+  body:not([data-admin-active="true"]) [data-call-root] [class*="fixed"][class*="bottom-"] {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
+  }
+  body:not([data-admin-active="true"]) [data-livestream-root] [role="dialog"],
+  body:not([data-admin-active="true"]) [data-party-root] [role="dialog"],
+  body:not([data-admin-active="true"]) [data-call-root] [role="dialog"] {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  body:not([data-admin-active="true"]) [data-party-seat-grid] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
   /* ---------- BADGES — readable ---------- */
   .admin-content [class*="Badge"],
   .admin-content [class*="badge"] {
