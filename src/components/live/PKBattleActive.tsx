@@ -658,6 +658,62 @@ export const PKBattleActive = ({
 
           {/* Progress Bar + sliding lead crown (Bigo-parity) */}
           <div className="relative mt-3">
+            {/* Sudden-Death "FINAL PUSH" banner — last 30s + close score */}
+            <AnimatePresence>
+              {suddenDeath && (
+                <motion.div
+                  key="sudden-death"
+                  className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full z-20"
+                  initial={{ scale: 0, y: 6, opacity: 0 }}
+                  animate={{ scale: [0, 1.15, 1], y: 0, opacity: 1 }}
+                  exit={{ scale: 0.6, opacity: 0 }}
+                  transition={{ type: "spring", damping: 16, stiffness: 320 }}
+                  style={{
+                    background: "linear-gradient(135deg, #ef4444 0%, #f97316 50%, #fbbf24 100%)",
+                    border: "1px solid rgba(254,243,199,0.7)",
+                    boxShadow:
+                      "0 0 14px rgba(239,68,68,0.7), 0 0 28px rgba(251,191,36,0.4), inset 0 1px 0 rgba(255,255,255,0.35)",
+                  }}
+                >
+                  <motion.span
+                    className="text-[10px] font-black tracking-[0.2em] text-white uppercase block"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    Final Push
+                  </motion.span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Diamond-delta floaters per side (Bigo-signature +N rise+fade) */}
+            <div className="pointer-events-none absolute -top-4 left-0 right-0 h-6 z-10 overflow-visible">
+              <AnimatePresence>
+                {deltaFloats.map((f) => (
+                  <motion.div
+                    key={f.key}
+                    className="absolute text-[11px] font-black tabular-nums"
+                    style={{
+                      left: f.side === "challenger" ? "20%" : "80%",
+                      transform: "translateX(-50%)",
+                      color: f.side === "challenger" ? "#fbcfe8" : "#e9d5ff",
+                      textShadow:
+                        f.side === "challenger"
+                          ? "0 0 8px rgba(236,72,153,0.9), 0 1px 2px rgba(0,0,0,0.6)"
+                          : "0 0 8px rgba(168,85,247,0.9), 0 1px 2px rgba(0,0,0,0.6)",
+                    }}
+                    initial={{ y: 6, opacity: 0, scale: 0.7 }}
+                    animate={{ y: -22, opacity: [0, 1, 1, 0], scale: [0.7, 1.15, 1, 0.9] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.2, 0.7, 1] }}
+                  >
+                    +{fmtCompact(f.amount)} 💎
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
             {/* Raw count micro-text above each half */}
             <div className="flex justify-between mb-0.5 px-0.5">
               <span className="text-[10px] font-bold text-pink-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
@@ -686,6 +742,7 @@ export const PKBattleActive = ({
               style={{
                 background: "rgba(0,0,0,0.4)",
                 boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
+                filter: inPunishment ? "saturate(0.6) brightness(0.85)" : undefined,
               }}
             >
               <motion.div
@@ -698,7 +755,7 @@ export const PKBattleActive = ({
                 animate={{ width: `${challengerPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                {challengerWinning && totalScore > 0 && (
+                {challengerWinning && totalScore > 0 && !inPunishment && (
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -706,6 +763,16 @@ export const PKBattleActive = ({
                         "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
                       animation: "giftSendShine 1.4s ease-in-out infinite",
                       mixBlendMode: "screen",
+                    }}
+                  />
+                )}
+                {challengerLost && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
+                      mixBlendMode: "multiply",
                     }}
                   />
                 )}
@@ -720,7 +787,7 @@ export const PKBattleActive = ({
                 animate={{ width: `${opponentPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                {opponentWinning && totalScore > 0 && (
+                {opponentWinning && totalScore > 0 && !inPunishment && (
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -728,6 +795,16 @@ export const PKBattleActive = ({
                         "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
                       animation: "giftSendShine 1.4s ease-in-out infinite",
                       mixBlendMode: "screen",
+                    }}
+                  />
+                )}
+                {opponentLost && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
+                      mixBlendMode: "multiply",
                     }}
                   />
                 )}
@@ -746,6 +823,7 @@ export const PKBattleActive = ({
               />
             </div>
           </div>
+
 
         </div>
 
