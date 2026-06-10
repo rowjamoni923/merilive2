@@ -561,7 +561,7 @@ const LiveStream = () => {
       void import('@capacitor/app').then(({ App }) => {
         try {
           const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
-            if (!isActive) sendViewerLeave();
+            if (!isActive) sendViewerLeaveOnce();
           }));
           appStateDetach = () => {
             handlePromise
@@ -589,8 +589,8 @@ const LiveStream = () => {
     // First ping after 30s; join RPC already establishes presence at t=0.
     hbTimer = setInterval(sendHeartbeat, 30000);
     return () => {
-      window.removeEventListener('pagehide', sendViewerLeave);
-      window.removeEventListener('beforeunload', sendViewerLeave);
+      window.removeEventListener('pagehide', sendViewerLeaveOnce);
+      window.removeEventListener('beforeunload', sendViewerLeaveOnce);
       document.removeEventListener('visibilitychange', onVisibility);
       if (appStateDetach) appStateDetach();
       if (hbTimer) clearInterval(hbTimer);
