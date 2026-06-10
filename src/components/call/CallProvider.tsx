@@ -155,21 +155,26 @@ export function CallProvider({ children }: CallProviderProps) {
   useEffect(() => {
     if (callState.status !== 'ended' || showCallEndedModal) return;
 
+    // M-15: snapshot callId + numeric fields BEFORE the async DB read so a
+    // concurrent dismiss/clear can't repoint us at the wrong call mid-flight.
+    const snapCallId = callState.callId;
+    const snapDuration = callState.duration;
+    const snapCoinsSpent = callState.totalCoinsSpent;
+    const snapHostEarned = callState.hostEarned;
+
     const captureEndedInfo = async () => {
-      let finalDuration = callState.duration;
-      let coinsSpent = callState.totalCoinsSpent;
-      let hostEarnedAmount = callState.hostEarned;
-      // Honest-private-call fix (F-15 / F-04): default to 'normal' but
-      // overwrite from the DB row whenever it is available.
+      let finalDuration = snapDuration;
+      let coinsSpent = snapCoinsSpent;
+      let hostEarnedAmount = snapHostEarned;
       let dbEndReasonRaw: string | null | undefined = undefined;
 
-      // Fetch FINAL call data from DB for accuracy
-      if (callState.callId) {
+      if (snapCallId) {
+
         try {
           const { data: finalCallData } = await supabase
             .from('private_calls')
             .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
-            .eq('id', callState.callId)
+            .eq('id', snapCallId)
             .single();
 
           if (finalCallData) {
