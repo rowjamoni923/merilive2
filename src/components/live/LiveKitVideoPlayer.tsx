@@ -207,7 +207,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const revealWatchdog = setTimeout(() => {
       const mt = videoTrack?.mediaStreamTrack;
-      if (mt && mt.readyState === 'live') {
+      // Pkg-audit V3: don't reveal until video element has actually decoded a
+      // frame (readyState >= HAVE_CURRENT_DATA AND non-zero videoWidth).
+      // Previously this could uncover a black frame on slow connections.
+      if (mt && mt.readyState === 'live' && el.readyState >= 2 && el.videoWidth > 0) {
         try {
           if (el.paused) el.play().catch(() => {});
         } catch { /* ignore */ }

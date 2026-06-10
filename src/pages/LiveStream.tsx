@@ -1252,17 +1252,24 @@ const LiveStream = () => {
               console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
               
               console.log('[LiveStream] 🚗 Dispatching self entry/namebar:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
-              addEntryAnimation({
-                userId: currentUserId,
-                displayName: userName,
-                avatarUrl,
-                level: userLevel,
-                entranceUrl: entranceAnimationUrl || undefined,
-                entryNameBarUrl: entryNameBarUrl || undefined,
-                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
-                soundUrl: entranceSoundUrl || undefined,
-                rankCode: rankCode || undefined,
-              });
+              console.log('[LiveStream] 🚗 Dispatching self entry/namebar:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode });
+              // Pkg-audit E1: mount guard — never fire if component unmounted mid-fetch
+              // Pkg-audit E3: noise gate — only show entry effect when user has actually
+              // equipped something. Previously every viewer with no equipped animation
+              // triggered a full-screen emoji particle effect (industry: NO effect = NO display).
+              if (mountedRef.current && (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl || rankCode)) {
+                addEntryAnimation({
+                  userId: currentUserId,
+                  displayName: userName,
+                  avatarUrl,
+                  level: userLevel,
+                  entranceUrl: entranceAnimationUrl || undefined,
+                  entryNameBarUrl: entryNameBarUrl || undefined,
+                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                  soundUrl: entranceSoundUrl || undefined,
+                  rankCode: rankCode || undefined,
+                });
+              }
               
               // ⚡ Pkg82a: LiveKit-ONLY viewer_joined publish (replaces Supabase
               // `join_broadcast_${id}` broadcast). Fires after `stream_viewers`
@@ -2418,21 +2425,26 @@ const LiveStream = () => {
     }, 2000);
   };
 
+  const isSendingRef = useRef(false);
   const handleSendMessage = async () => {
     if (!message.trim() || !currentUserId || !id) return;
-    
+    if (isSendingRef.current) return; // Pkg-audit C1: prevent double-tap dupe INSERT
+    isSendingRef.current = true;
+
     const messageText = message.trim();
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    
-    // 🔍 BLOCKING: Detect contact info BEFORE sending
+
+    // 🔍 BLOCKING: Detect contact info BEFORE sending — applies to ALL users
+    // (Pkg-audit C2: previously gated on `is_host === true`; viewers could
+    // bypass mask. Industry standard = mask everyone, log violations for all.)
     const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
     const detection = detectContactInfo(messageText);
-    
+
     let contentToSend = messageText;
-    if (currentUser?.is_host === true && detection.hasViolation) {
+    if (detection.hasViolation) {
       contentToSend = maskContactContent(messageText, detection);
       console.log('[ContactDetection] LiveStream BLOCKED, masked:', contentToSend);
-      
+
       // Process violation (warning + bean deduction)
       detectAndProcessViolation(currentUserId, messageText, 'live_stream', id)
         .then(res => {
@@ -2444,7 +2456,7 @@ const LiveStream = () => {
         })
         .catch(err => console.error('[ContactDetection] LiveStream error:', err));
     }
-    
+
     // Optimistic update - show MASKED message
     setMessages(prev => [...prev, {
       id: tempId,
@@ -2458,10 +2470,10 @@ const LiveStream = () => {
       isNewUser: false,
       countryFlag: currentUser?.country_flag || undefined,
     }]);
-    
+
     // Clear input immediately
     setMessage("");
-    
+
     // Save MASKED message to database (moderation/persistence source of truth)
     const { data: insertedRow, error } = await supabase
       .from("stream_chat")
@@ -2477,6 +2489,8 @@ const LiveStream = () => {
       console.error('Failed to send message:', error);
       recordClientError({ label: "LiveStream.detection", message: error instanceof Error ? error.message : String(error) });
       setMessages(prev => prev.filter(m => m.id !== tempId));
+      // Pkg-audit C4: user-facing failure feedback (was silent before)
+      try { toast.error("Message failed to send"); } catch { /* ignore */ }
     } else {
       trackTaskProgress('messages_sent', { increment: 1 });
       // Pkg79: sub-50ms peer delivery via LiveKit DataPacket.
@@ -2492,7 +2506,9 @@ const LiveStream = () => {
         messageType: 'text',
       });
     }
+    isSendingRef.current = false;
   };
+
 
 
   const calculateDuration = () => {
