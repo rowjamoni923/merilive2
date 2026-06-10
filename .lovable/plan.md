@@ -279,6 +279,11 @@
 
 **R2-Phase C — REALTIME + PUSH RELIABILITY** — FCM token dedup, push dispatch dedup, channel cleanup leaks, reconnect backoff, DM broadcast trust.
 
+**R2-Guest Device Recovery Hotfix — ✅ DONE 2026-06-10**
+- Root cause: `Auth.tsx` cleared `meri_device_id` whenever `/auth` loaded without an active Supabase session. That erased the server-bound recovery key before `recover_session_by_device()` ran, so the Start/Extract path generated a fresh `device_*` and created a new guest profile instead of restoring the existing one.
+- Fix: `/auth` no longer deletes device recovery keys; “profile missing → re-register” fallback screens no longer delete `meri_device_id`; `persistentDeviceId` now restores old encrypted recovery keys and backs up the ID to native secure storage; new `bind_own_device_id()` RPC guarantees first signup binds `profiles.device_id` through the protected-column trigger bypass; active `profiles.device_id` is now unique; if a matching device account is found but session exchange fails, registration now fail-closes instead of creating a duplicate account.
+- Verification: live DB check shows `0` duplicate `profiles.device_id` groups; recent auth logs show no new `/signup` retry storm during the fix window. Android users need a new APK/WebView bundle to receive the native secure-storage hardening.
+
 **R2-Phase D — LIVE/PARTY/REELS POLISH** — host effect gating, force-end RPC path, reel view dedup, party seat DB-lock, role self-promote.
 
 **R2-Phase E — STORAGE + FACE + LOGS** — signed URLs, face server-side grace/count, AWS attempt cap, log scrubbing batch.

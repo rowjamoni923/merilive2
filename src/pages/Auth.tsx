@@ -18,8 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
-import { getPersistentDeviceId, getDeviceIdSync } from "@/utils/persistentDeviceId";
-import { getSessionFromNative } from "@/utils/nativeSessionStorage";
+import { getPersistentDeviceId } from "@/utils/persistentDeviceId";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
 // Geolocation helpers are loaded lazily — they're a 600+ line module with
 // country/IP detection that's only needed AFTER the user submits, so we keep
@@ -39,8 +38,6 @@ type AuthBranding = {
 
 interface DeviceAccount {
   deviceId: string;
-  email: string;
-  password: string;
   displayName: string;
   avatarUrl: string | null;
   gender: Gender;
@@ -126,6 +123,21 @@ const exchangeDeviceSession = async (
     return true;
   } catch (e) {
     console.error('[Auth] exchangeDeviceSession error:', e);
+    return false;
+  }
+};
+
+const bindOwnDeviceId = async (deviceId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('bind_own_device_id', { p_device_id: deviceId });
+    const result = data as { success?: boolean; error?: string } | null;
+    if (error || !result?.success) {
+      console.warn('[Auth] bind_own_device_id failed:', error?.message || result?.error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('[Auth] bindOwnDeviceId error:', error);
     return false;
   }
 };
@@ -504,10 +516,6 @@ const Auth = () => {
           }
         }
 
-        // Clear any stale localStorage credentials — don't auto-login from them
-        localStorage.removeItem("meri_device_account");
-        localStorage.removeItem("meri_device_id");
-
         console.log('[Auth] No valid session — showing auth UI');
       } catch (err) {
         console.error('[Auth] Session check error:', err);
@@ -656,7 +664,13 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-        console.warn('[Auth] Device recovery exchange failed, falling back to registration');
+        console.warn('[Auth] Device recovery exchange failed; refusing to create a duplicate account');
+        toast({
+          title: "Recovery Failed",
+          description: "We found your device account but could not restore it right now. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
 
@@ -1032,6 +1046,14 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
+
+        console.warn('[Auth] Safety recovery exchange failed; refusing duplicate registration');
+        toast({
+          title: "Recovery Failed",
+          description: "We found your device account but could not restore it right now. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
       
@@ -1048,6 +1070,7 @@ const Auth = () => {
             full_name: displayName,
             is_guest: true,
             device_id: deviceId,
+            gender: selectedGender,
           },
         },
       });
@@ -1096,7 +1119,6 @@ const Auth = () => {
             .from("profiles")
             .update({ 
               display_name: displayName,
-              device_id: deviceId,
             })
             .eq("id", userId);
         }
@@ -1106,6 +1128,11 @@ const Auth = () => {
 
       // Ensure profile row, gender, and female→host conversion are fully ready before redirect
       if (userId) {
+        const bound = await bindOwnDeviceId(deviceId);
+        if (!bound) {
+          throw new Error('Device account binding failed. Please try again.');
+        }
+
         const readyProfile = await ensureProfileReady(
           userId,
           {
@@ -1120,11 +1147,9 @@ const Auth = () => {
           throw new Error('Profile setup is still processing. Please try again.');
         }
 
-        // Save device account with credentials for future recovery
+        // Cache only non-secret account display data. Recovery uses device_id + one-time exchange token.
         localStorage.setItem("meri_device_account", JSON.stringify({
           deviceId,
-          email: guestEmail,
-          password: guestPassword,
           displayName,
           avatarUrl: null,
           gender: selectedGender,

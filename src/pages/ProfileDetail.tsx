@@ -739,7 +739,6 @@ const ProfileDetail = () => {
       // INSTANT: flag + navigate, cleanup in background
       try {
         localStorage.setItem('meri_manual_logout', 'true');
-        localStorage.removeItem('meri_device_id');
         localStorage.removeItem('meri_device_account');
         localStorage.removeItem('meri_last_user');
       } catch {}

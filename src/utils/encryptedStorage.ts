@@ -11,7 +11,6 @@
 // Keys that contain sensitive data and MUST be encrypted
 const SENSITIVE_KEYS = [
   'meri_device_account',    // Contains email + password
-  'meri_device_id',         // Device fingerprint
   'meri_last_user',         // User email & display info
   'meri_pending_registration', // Registration data
   'meri_return_to',         // Return URL (potential redirect attack)
@@ -219,6 +218,19 @@ export const secureStorage = {
           }
         } catch {
           localStorage.removeItem(supabaseKey);
+        }
+      }
+
+      // Device recovery keys must remain synchronously readable. If an older
+      // build encrypted them, restore them before any auth/recovery flow runs.
+      for (const key of ['meri_device_id', 'meri_persistent_device_id', 'meri_force_device_id']) {
+        const value = localStorage.getItem(key);
+        if (value?.startsWith('🔐')) {
+          const restored = await decrypt(value);
+          if (/^device_[A-Za-z0-9_:-]{6,128}$/.test(restored)) {
+            localStorage.setItem(key, restored);
+            console.log(`[EncryptedStorage] Restored device recovery key: ${key}`);
+          }
         }
       }
 

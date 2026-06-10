@@ -10,12 +10,50 @@
  
  import { Device } from '@capacitor/device';
  import { Capacitor } from '@capacitor/core';
+ import { secureGet, secureSet } from '@/plugins/SecureStorage';
  
  // Cache the device ID to avoid repeated native calls
  let cachedDeviceId: string | null = null;
  
-// Check if this is a web preview environment and force a specific device ID for testing
-const FORCE_TEST_DEVICE_ID = localStorage.getItem('meri_force_device_id');
+ const DEVICE_ID_KEY = 'meri_device_id';
+ const PERSISTENT_DEVICE_ID_KEY = 'meri_persistent_device_id';
+
+ type ValidDeviceId = string & { readonly __validDeviceId: unique symbol };
+
+ const isValidDeviceId = (value: string | null | undefined): value is ValidDeviceId =>
+   typeof value === 'string' && /^device_[A-Za-z0-9_:-]{6,128}$/.test(value);
+
+ const readLocalDeviceId = async (key: string): Promise<string | null> => {
+   try {
+     const raw = localStorage.getItem(key);
+     if (isValidDeviceId(raw)) return raw;
+     if (raw?.startsWith('🔐')) {
+       const { secureStorage } = await import('@/utils/encryptedStorage');
+       const decrypted = await secureStorage.getItem(key);
+       if (isValidDeviceId(decrypted)) {
+         localStorage.setItem(key, decrypted);
+         return decrypted;
+       }
+     }
+   } catch {
+     // Ignore storage failures.
+   }
+   return null;
+ };
+
+ const persistDeviceId = async (deviceId: string): Promise<void> => {
+   try {
+     localStorage.setItem(DEVICE_ID_KEY, deviceId);
+     localStorage.setItem(PERSISTENT_DEVICE_ID_KEY, deviceId);
+   } catch {
+     // Ignore web storage failures.
+   }
+   try {
+     await secureSet(DEVICE_ID_KEY, deviceId);
+   } catch {
+     // Native secure storage is best-effort; Android ID remains authoritative.
+   }
+ };
 
  /**
   * Generate a deterministic device ID from hardware UUID
@@ -38,11 +76,10 @@ const FORCE_TEST_DEVICE_ID = localStorage.getItem('meri_force_device_id');
   */
  export const getPersistentDeviceId = async (): Promise<string> => {
   // Check for forced device ID (for testing existing accounts in preview)
-  const forcedId = localStorage.getItem('meri_force_device_id');
-  if (forcedId && forcedId.startsWith('device_')) {
+  const forcedId = await readLocalDeviceId('meri_force_device_id');
+  if (isValidDeviceId(forcedId)) {
     cachedDeviceId = forcedId;
-    // Also sync to meri_device_id
-    localStorage.setItem('meri_device_id', forcedId);
+     await persistDeviceId(forcedId);
     console.log('[PersistentDeviceId] Using FORCED device ID:', forcedId);
     return forcedId;
   }
@@ -62,8 +99,7 @@ const FORCE_TEST_DEVICE_ID = localStorage.getItem('meri_force_device_id');
        
        // Also save to localStorage for consistency
        try {
-         localStorage.setItem('meri_device_id', cachedDeviceId);
-         localStorage.setItem('meri_persistent_device_id', cachedDeviceId);
+         await persistDeviceId(cachedDeviceId);
        } catch (e) {
          // Ignore storage errors
        }
@@ -75,18 +111,24 @@ const FORCE_TEST_DEVICE_ID = localStorage.getItem('meri_force_device_id');
    }
    
    // Web fallback - MUST use stored ID if available (critical for recovery)
-   const storedMeriDeviceId = localStorage.getItem('meri_device_id');
-   if (storedMeriDeviceId && storedMeriDeviceId.startsWith('device_')) {
+   const storedMeriDeviceId = await readLocalDeviceId(DEVICE_ID_KEY);
+   if (isValidDeviceId(storedMeriDeviceId)) {
      cachedDeviceId = storedMeriDeviceId;
      console.log('[PersistentDeviceId] Using stored meri_device_id:', cachedDeviceId);
      return cachedDeviceId;
    }
    
-   const storedId = localStorage.getItem('meri_persistent_device_id');
-   if (storedId && storedId.startsWith('device_')) {
+   const storedId = await readLocalDeviceId(PERSISTENT_DEVICE_ID_KEY);
+   if (isValidDeviceId(storedId)) {
      cachedDeviceId = storedId;
-     // Sync to meri_device_id
-     localStorage.setItem('meri_device_id', cachedDeviceId);
+     await persistDeviceId(cachedDeviceId);
+     return cachedDeviceId;
+   }
+   const nativeStoredId = await secureGet(DEVICE_ID_KEY);
+   if (isValidDeviceId(nativeStoredId)) {
+     cachedDeviceId = nativeStoredId;
+     await persistDeviceId(cachedDeviceId);
+     console.log('[PersistentDeviceId] Using native stored device ID:', cachedDeviceId);
      return cachedDeviceId;
    }
    
@@ -96,8 +138,7 @@ const FORCE_TEST_DEVICE_ID = localStorage.getItem('meri_force_device_id');
    
    // Store it for consistency
    try {
-     localStorage.setItem('meri_persistent_device_id', cachedDeviceId);
-     localStorage.setItem('meri_device_id', cachedDeviceId);
+     await persistDeviceId(cachedDeviceId);
    } catch (e) {
      console.warn('[PersistentDeviceId] Failed to store in localStorage');
    }

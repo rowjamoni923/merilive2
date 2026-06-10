@@ -18825,6 +18825,7 @@ export type Database = {
         }
         Returns: Json
       }
+      bind_own_device_id: { Args: { p_device_id: string }; Returns: Json }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
