@@ -868,13 +868,15 @@ export const PKBattleActive = ({
                   />
                 )}
                 {challengerLost && (
-                  <div
+                  <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
                         "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
                       mixBlendMode: "multiply",
                     }}
+                    animate={{ opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
               </motion.div>
