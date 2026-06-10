@@ -227,7 +227,8 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
 
   // Phase 5: remember whether last dispatch was premium so the next drain
   // waits the longer `premiumEntryGapMs` window.
-  const lastWasPremiumRef = { current: false } as { current: boolean };
+  // P1 FIX: useRef so the flag survives re-renders.
+  const lastWasPremiumRef = useRef(false);
 
   function scheduleDrain() {
     if (drainTimerRef.current) return;
