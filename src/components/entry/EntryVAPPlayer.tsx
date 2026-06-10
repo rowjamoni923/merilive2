@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { detectVapSideBySideLayout, isLikelyVapCompositeSize, detectVapLayoutWithSeek, getCachedVapLayout } from '@/utils/vapDetection';
 import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
@@ -57,11 +57,12 @@ interface EntryVAPPlayerProps {
   soundUrl?: string | null;
 }
 
-const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+const getAutoVapRects = (video: HTMLVideoElement, srcUrl?: string) => {
+  const cached = srcUrl ? getCachedVapLayout(srcUrl) : null;
+  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-right';
   return layout === 'alpha-left'
-    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
-    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1], layout }
+    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1], layout };
 };
 
 // Entry overlays should fall back to plain video much sooner than gifts.
@@ -235,7 +236,7 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     if (!canvas) return;
 
     if (shouldUsePerformanceVideoFallback(video, cfg)) {
-      const { rgbRect } = getAutoVapRects(video);
+      const { rgbRect } = getAutoVapRects(video, resolvedSrc);
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
@@ -301,6 +302,7 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     // Cap DPR at 2 for entries — phones reporting dpr=3.5 burn an extra ~3×
     // the pixels for no visible benefit on a transient overlay.
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let initialLayout: 'alpha-left' | 'alpha-right' | undefined;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
@@ -308,16 +310,37 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
       canvas.width = cfg.w * dpr;
       canvas.height = cfg.h * dpr;
     } else {
-      ({ rgbRect, alphaRect } = getAutoVapRects(video));
+      const rects = getAutoVapRects(video, resolvedSrc);
+      rgbRect = rects.rgbRect;
+      alphaRect = rects.alphaRect;
+      initialLayout = rects.layout;
       canvas.width = (videoWidth / 2) * dpr;
       canvas.height = videoHeight * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
-    gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
-    gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
+    const rgbUniform = gl.getUniformLocation(program, 'u_rgbRect');
+    const alphaUniform = gl.getUniformLocation(program, 'u_alphaRect');
+    gl.uniform4fv(rgbUniform, rgbRect);
+    gl.uniform4fv(alphaUniform, alphaRect);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    // Confirm side via mid-frame seek when first-frame detection was a guess.
+    if (!cfg && initialLayout && !getCachedVapLayout(resolvedSrc)) {
+      void detectVapLayoutWithSeek(video, resolvedSrc).then((confirmed) => {
+        if (!mountedRef.current || confirmed === initialLayout) return;
+        const newRgb = confirmed === 'alpha-left' ? [0.5, 0, 0.5, 1] : [0, 0, 0.5, 1];
+        const newAlpha = confirmed === 'alpha-left' ? [0, 0, 0.5, 1] : [0.5, 0, 0.5, 1];
+        try {
+          gl.useProgram(program);
+          gl.uniform4fv(rgbUniform, newRgb);
+          gl.uniform4fv(alphaUniform, newAlpha);
+          setFallbackCrop(newRgb as [number, number, number, number]);
+          lastVideoTimeRef.current = -1;
+        } catch { /* noop */ }
+      });
+    }
 
     const render = () => {
       if (useVideoFallbackRef.current || !mountedRef.current) return;
