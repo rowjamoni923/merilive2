@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { detectVapSideBySideLayout, isLikelyVapCompositeSize, detectVapLayoutWithSeek, getCachedVapLayout } from '@/utils/vapDetection';
 import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
@@ -39,11 +39,12 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
   cancelVideoFrameCallback?: (handle: number) => void;
 };
 
-const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+const getAutoVapRects = (video: HTMLVideoElement, srcUrl?: string) => {
+  const cached = srcUrl ? getCachedVapLayout(srcUrl) : null;
+  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-right';
   return layout === 'alpha-left'
-    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
-    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1], layout }
+    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1], layout };
 };
 
 const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
@@ -226,7 +227,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (!canvas) return;
 
     if (shouldUsePerformanceVideoFallback(video, cfg)) {
-      const { rgbRect } = getAutoVapRects(video);
+      const { rgbRect } = getAutoVapRects(video, resolvedSrc);
       setFallbackCrop(rgbRect as [number, number, number, number]);
       setUseVideoFallback(true);
       setLoading(false);
@@ -290,6 +291,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
     const dpr = window.devicePixelRatio || 1;
+    let initialLayout: 'alpha-left' | 'alpha-right' | undefined;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
@@ -297,16 +299,47 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       canvas.width = cfg.w * dpr; 
       canvas.height = cfg.h * dpr;
     } else {
-      ({ rgbRect, alphaRect } = getAutoVapRects(video));
+      const rects = getAutoVapRects(video, resolvedSrc);
+      rgbRect = rects.rgbRect;
+      alphaRect = rects.alphaRect;
+      initialLayout = rects.layout;
       canvas.width = (videoWidth / 2) * dpr; 
       canvas.height = videoHeight * dpr;
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
-    gl.uniform4fv(gl.getUniformLocation(program, 'u_rgbRect'), rgbRect);
-    gl.uniform4fv(gl.getUniformLocation(program, 'u_alphaRect'), alphaRect);
+    const rgbUniform = gl.getUniformLocation(program, 'u_rgbRect');
+    const alphaUniform = gl.getUniformLocation(program, 'u_alphaRect');
+    gl.uniform4fv(rgbUniform, rgbRect);
+    gl.uniform4fv(alphaUniform, alphaRect);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    // If config wasn't provided AND first-frame detection was uncertain,
+    // verify layout via mid-frame seek and swap uniforms if it differs.
+    // This catches the case where the first frame is blank/transparent and
+    // we'd otherwise show the white alpha-mask half to the user.
+    if (!cfg && initialLayout) {
+      const cached = getCachedVapLayout(resolvedSrc);
+      if (!cached) {
+        void detectVapLayoutWithSeek(video, resolvedSrc).then((confirmed) => {
+          if (!mountedRef.current || confirmed === initialLayout) return;
+          const newRgb = confirmed === 'alpha-left'
+            ? [0.5, 0, 0.5, 1]
+            : [0, 0, 0.5, 1];
+          const newAlpha = confirmed === 'alpha-left'
+            ? [0, 0, 0.5, 1]
+            : [0.5, 0, 0.5, 1];
+          try {
+            gl.useProgram(program);
+            gl.uniform4fv(rgbUniform, newRgb);
+            gl.uniform4fv(alphaUniform, newAlpha);
+            setFallbackCrop(newRgb as [number, number, number, number]);
+            lastVideoTimeRef.current = -1; // force re-paint
+          } catch { /* noop */ }
+        });
+      }
+    }
 
     const render = () => {
       if (useVideoFallbackRef.current || !mountedRef.current) return;
@@ -372,7 +405,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     render();
     setLoading(false);
     onLoadRef.current?.();
-  }, [autoPlay, createShaders, muted, volume, loop]);
+  }, [autoPlay, createShaders, muted, volume, loop, resolvedSrc]);
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
     if (initializedRef.current || !video.videoWidth) return;
