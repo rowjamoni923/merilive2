@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
