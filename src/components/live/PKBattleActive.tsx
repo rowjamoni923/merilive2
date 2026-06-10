@@ -69,6 +69,13 @@ export const PKBattleActive = ({
   // (~60Hz) so React renders + bar animations never flood the main thread.
   const pendingChallengerRef = useRef<number | null>(null);
   const pendingOpponentRef = useRef<number | null>(null);
+  // Mirror score state into refs so optimistic gift bumps can read the latest
+  // base without re-listing scores in the Realtime channel deps (which would
+  // cause an unsubscribe/resubscribe storm under burst gifting).
+  const latestChallengerScoreRef = useRef(0);
+  const latestOpponentScoreRef = useRef(0);
+  useEffect(() => { latestChallengerScoreRef.current = challengerScore; }, [challengerScore]);
+  useEffect(() => { latestOpponentScoreRef.current = opponentScore; }, [opponentScore]);
   const flushScheduledRef = useRef(false);
   const scheduleFlush = useRef(() => {
     if (flushScheduledRef.current) return;
