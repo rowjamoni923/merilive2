@@ -1,6 +1,75 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
+
+/**
+ * Bigo/Chamet-parity drawing lightning bolt for PK header.
+ * stroke-dasharray + animated pathLength = energy-arc draw effect.
+ */
+const PKLightningBolt = ({ mirror = false }: { mirror?: boolean }) => (
+  <motion.svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    style={{
+      transform: mirror ? "scaleX(-1)" : undefined,
+      filter: "drop-shadow(0 0 6px rgba(251,191,36,0.85)) drop-shadow(0 0 12px rgba(236,72,153,0.45))",
+    }}
+  >
+    <motion.path
+      d="M13 2 L4 14 L11 14 L9 22 L20 9 L13 9 Z"
+      stroke="#fde68a"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="url(#pk-bolt-grad)"
+      initial={{ pathLength: 0, opacity: 0.4 }}
+      animate={{ pathLength: [0, 1, 1], opacity: [0.4, 1, 0.9] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
+    />
+    <defs>
+      <linearGradient id="pk-bolt-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#fef3c7" />
+        <stop offset="55%" stopColor="#fbbf24" />
+        <stop offset="100%" stopColor="#f97316" />
+      </linearGradient>
+    </defs>
+  </motion.svg>
+);
+
+/**
+ * Bigo-parity score number with Y-axis cross-fade slide (80ms) instead of
+ * key-remount color flash. Eliminates score-blink during rapid gift bursts.
+ */
+const PKScoreNumber = ({
+  value,
+  color,
+  glow,
+}: {
+  value: number;
+  color: string;
+  glow: string;
+}) => (
+  <span
+    className="relative inline-block overflow-hidden text-lg font-extrabold tabular-nums"
+    style={{ minWidth: "1.5em", height: "1.4em", lineHeight: "1.4em", color, textShadow: glow }}
+  >
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.span
+        key={value}
+        initial={{ y: "60%", opacity: 0 }}
+        animate={{ y: "0%", opacity: 1 }}
+        exit={{ y: "-60%", opacity: 0 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0 flex items-center justify-start"
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
+  </span>
+);
+
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
 // PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
@@ -285,6 +354,8 @@ export const PKBattleActive = ({
   const opponentWinning = opponentScore > challengerScore;
 
   const timeUrgent = timeLeft <= 30;
+  const timeCritical = timeLeft <= 10 && timeLeft > 0;
+  const timeShatter = timeLeft === 0 && !!serverStartedAt && !battleEnded;
 
   return (
     <motion.div
@@ -333,13 +404,7 @@ export const PKBattleActive = ({
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <motion.div
-            animate={{ rotate: [0, -8, 0, 8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
-          >
-            <Swords className="w-4 h-4 text-amber-400" />
-          </motion.div>
+          <PKLightningBolt />
           <span
             className="font-extrabold text-sm tracking-wide"
             style={{
@@ -360,21 +425,27 @@ export const PKBattleActive = ({
               border: timeUrgent ? "1px solid rgba(252,165,165,0.5)" : "1px solid rgba(255,255,255,0.08)",
               boxShadow: timeUrgent ? "0 0 14px rgba(239,68,68,0.5)" : "none",
             }}
-            animate={timeUrgent ? { scale: [1, 1.06, 1] } : {}}
-            transition={{ duration: 1, repeat: Infinity }}
+            animate={
+              timeShatter
+                ? { scale: [1, 1.6, 0.4], opacity: [1, 0.9, 0], filter: ["blur(0px)", "blur(2px)", "blur(8px)"] }
+                : timeCritical
+                  ? { scale: [1, 1.18, 1] }
+                  : timeUrgent
+                    ? { scale: [1, 1.06, 1] }
+                    : { scale: 1 }
+            }
+            transition={
+              timeShatter
+                ? { duration: 0.6, ease: "easeOut" }
+                : { duration: timeCritical ? 0.55 : 1, repeat: Infinity, ease: "easeInOut" }
+            }
           >
             <Timer className={`w-3 h-3 ${timeUrgent ? "text-rose-200" : "text-amber-400"}`} />
             <span className={`font-mono text-sm tabular-nums font-bold ${timeUrgent ? "text-rose-100" : "text-amber-300"}`}>
               {formatTime(timeLeft)}
             </span>
           </motion.div>
-          <motion.div
-            animate={{ rotate: [0, 8, 0, -8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
-          >
-            <Swords className="w-4 h-4 text-amber-400 transform scale-x-[-1]" />
-          </motion.div>
+          <PKLightningBolt mirror />
         </div>
 
         {/* VS Section */}
@@ -424,39 +495,41 @@ export const PKBattleActive = ({
                   {challengerName}
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <motion.span
-                    key={challengerScore}
-                    initial={{ scale: 1.25, color: "#fff" }}
-                    animate={{ scale: 1, color: "#fbbf24" }}
-                    transition={{ duration: 0.4 }}
-                    className="text-amber-400 text-lg font-extrabold tabular-nums"
-                    style={{ textShadow: "0 0 10px rgba(251,191,36,0.5)" }}
-                  >
-                    {challengerScore}
-                  </motion.span>
+                  <PKScoreNumber
+                    value={challengerScore}
+                    color="#fbbf24"
+                    glow="0 0 10px rgba(251,191,36,0.5)"
+                  />
                   <span className="text-white/70 text-[10px]">diamonds</span>
                 </div>
               </div>
             </div>
 
-            {/* VS Badge */}
+            {/* VS Badge — pulsing heartbeat (replaces rotating spinner) */}
             <motion.div
               className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               style={{
-                background: "linear-gradient(135deg, #ec4899, #a855f7)",
+                background: "linear-gradient(135deg, #ef4444, #ec4899)",
                 boxShadow:
-                  "0 0 0 2px rgba(255,255,255,0.18), 0 0 18px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
+                  "0 0 0 2px rgba(255,255,255,0.22), 0 0 18px rgba(239,68,68,0.7), 0 0 36px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.32)",
               }}
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              animate={{ scale: [1, 1.12, 1] }}
+              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
             >
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{ border: "2px solid rgba(252,165,165,0.7)" }}
+                animate={{ scale: [1, 1.6, 1.8], opacity: [0.85, 0.3, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
+              />
               <span
-                className="text-white font-extrabold text-xs"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
+                className="relative text-white font-extrabold text-xs"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.45)" }}
               >
                 VS
               </span>
             </motion.div>
+
 
             {/* Opponent */}
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
@@ -503,78 +576,92 @@ export const PKBattleActive = ({
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5 justify-end">
                   <span className="text-white/70 text-[10px]">diamonds</span>
-                  <motion.span
-                    key={opponentScore}
-                    initial={{ scale: 1.25, color: "#fff" }}
-                    animate={{ scale: 1, color: "#c084fc" }}
-                    transition={{ duration: 0.4 }}
-                    className="text-purple-400 text-lg font-extrabold tabular-nums"
-                    style={{ textShadow: "0 0 10px rgba(168,85,247,0.55)" }}
-                  >
-                    {opponentScore}
-                  </motion.span>
+                  <PKScoreNumber
+                    value={opponentScore}
+                    color="#c084fc"
+                    glow="0 0 10px rgba(168,85,247,0.55)"
+                  />
                 </div>
+
               </div>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div
-            className="relative mt-3 h-2.5 rounded-full overflow-hidden flex"
-            style={{
-              background: "rgba(0,0,0,0.4)",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
-            }}
-          >
-            <motion.div
-              className="h-full relative"
-              style={{
-                background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
-                boxShadow: "0 0 10px rgba(236,72,153,0.7)",
-              }}
-              initial={{ width: "50%" }}
-              animate={{ width: `${challengerPercent}%` }}
-              transition={{ type: "spring", damping: 18, stiffness: 140 }}
-            >
-              <div
-                className="absolute inset-0"
+          {/* Progress Bar + sliding lead crown (Bigo-parity) */}
+          <div className="relative mt-3">
+            {totalScore > 0 && (
+              <motion.div
+                className="pointer-events-none absolute -top-3 z-10"
                 style={{
-                  background:
-                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite",
+                  left: `${challengerPercent}%`,
+                  transform: "translateX(-50%)",
+                  filter: "drop-shadow(0 0 6px rgba(251,191,36,0.95)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
                 }}
-              />
-            </motion.div>
-            <motion.div
-              className="h-full relative"
-              style={{
-                background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
-                boxShadow: "0 0 10px rgba(168,85,247,0.7)",
-              }}
-              initial={{ width: "50%" }}
-              animate={{ width: `${opponentPercent}%` }}
-              transition={{ type: "spring", damping: 18, stiffness: 140 }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
-                }}
-              />
-            </motion.div>
-            {/* Center divider glow */}
+                animate={{ left: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 22, stiffness: 180 }}
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-300" />
+              </motion.div>
+            )}
             <div
-              className="pointer-events-none absolute top-0 bottom-0 w-px"
+              className="relative h-2.5 rounded-full overflow-hidden flex"
               style={{
-                left: `${challengerPercent}%`,
-                background: "rgba(255,255,255,0.8)",
-                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
-                transform: "translateX(-0.5px)",
+                background: "rgba(0,0,0,0.4)",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
               }}
-            />
+            >
+              <motion.div
+                className="h-full relative"
+                style={{
+                  background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
+                  boxShadow: "0 0 10px rgba(236,72,153,0.7)",
+                }}
+                initial={{ width: "50%" }}
+                animate={{ width: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 18, stiffness: 140 }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                    animation: "giftSendShine 2.6s ease-in-out infinite",
+                  }}
+                />
+              </motion.div>
+              <motion.div
+                className="h-full relative"
+                style={{
+                  background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
+                  boxShadow: "0 0 10px rgba(168,85,247,0.7)",
+                }}
+                initial={{ width: "50%" }}
+                animate={{ width: `${opponentPercent}%` }}
+                transition={{ type: "spring", damping: 18, stiffness: 140 }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                    animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
+                  }}
+                />
+              </motion.div>
+              {/* Center divider glow follows leader split */}
+              <motion.div
+                className="pointer-events-none absolute top-0 bottom-0 w-px"
+                style={{
+                  background: "rgba(255,255,255,0.8)",
+                  boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                  transform: "translateX(-0.5px)",
+                }}
+                animate={{ left: `${challengerPercent}%` }}
+                transition={{ type: "spring", damping: 22, stiffness: 180 }}
+              />
+            </div>
           </div>
+
         </div>
 
         {/* Step 4: Winner / Draw / Punishment overlay */}
