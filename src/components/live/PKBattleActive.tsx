@@ -453,7 +453,7 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("profiles")
         .select("username, display_name")
-        .eq("user_id", mvpUserId)
+        .eq("id", mvpUserId)
         .maybeSingle();
       if (cancelled) return;
       const n = (data as any)?.display_name || (data as any)?.username || null;
