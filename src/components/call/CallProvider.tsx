@@ -427,14 +427,16 @@ export function CallProvider({ children }: CallProviderProps) {
     const deadCallId = callState.callId;
     if (deadCallId) endedCallIdsRef.current.add(deadCallId);
     callEndedRef.current = true;
+    selfEndedRef.current = true; // H-7: this client invoked the hang-up
     console.log('[CallProvider] User ending call:', deadCallId);
-    
+
     // ⚡ INSTANT: Clear UI state BEFORE awaiting network calls
     setAcceptedCallInfo(null);
     setIsHost(false);
-    
+
     // Fire endCall (network ops happen in background)
     await endCall();
+
 
     // Phase-3 C3: release the in-flight end guard immediately. The
     // prior 3s cooldown blocked Accept on a brand-new incoming call
