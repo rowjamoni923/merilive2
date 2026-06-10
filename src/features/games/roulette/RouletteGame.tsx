@@ -253,6 +253,8 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
   );
 
 
+  // Server-authoritative spin: server generates winning number AND credits winners.
+  // Idempotent — only the first call per round actually settles; others receive the cached result.
   const spinWheel = async () => {
     if (!currentSession) return;
 
@@ -262,97 +264,59 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
     playSpinSound();
 
     try {
-      // Atomic spin - only ONE client will actually set the winning number
-      await supabase.rpc('roulette_spin_wheel', {
-        p_session_id: currentSession.id
+      await supabase.rpc('roulette_spin_and_settle', {
+        p_session_id: currentSession.id,
       });
-
-      // ✅ FIX: Only one client completes, guarded by ref
-      if (!completeCalledRef.current) {
-        completeCalledRef.current = true;
-        setTimeout(async () => {
-          try {
-            await supabase.rpc('roulette_complete_session', {
-              p_session_id: currentSession.id
-            });
-            console.log('[Roulette] ✅ Session completed via RPC');
-          } catch (e) {
-            console.error('[Roulette] Complete session error:', e);
-          }
-        }, 5000);
-      }
+      // Result will arrive via realtime app_sync 'roulette_sessions' broadcast
+      // (status='completed' + winning_number). processSettlement() then reads
+      // the player's authoritative win_amount from roulette_bets.
     } catch (err) {
       console.error('[Roulette] Spin error:', err);
-      // Recovery: try to fetch current session state
       spinCalledRef.current = false;
       fetchCurrentSession();
     }
   };
 
-  // ✅ FIX: Use ref-based bet checking to avoid stale closure
-  const processWinnings = async (winNum: number) => {
-    if (!userId) return;
+  // Read the authoritative settlement result from the server.
+  // The server has already credited the player's wallet inside roulette_spin_and_settle.
+  const processSettlement = async (winNum: number) => {
+    if (!userId || !currentSession) return;
 
-    const bets = myBetsRef.current;
-    if (!bets.length) {
-      console.log('[Roulette] No bets to process');
-      return;
-    }
+    try {
+      const { data: myBetRows } = await supabase
+        .from('roulette_bets')
+        .select('bet_amount, win_amount, is_winner')
+        .eq('session_id', currentSession.id)
+        .eq('user_id', userId);
 
-    console.log('[Roulette] Processing', bets.length, 'bets for winning number:', winNum);
-    let totalWin = 0;
-
-    bets.forEach(bet => {
-      let won = false;
-      switch (bet.type) {
-        case "0": won = winNum === 0; break;
-        case "1-12": won = winNum >= 1 && winNum <= 12; break;
-        case "13-24": won = winNum >= 13 && winNum <= 24; break;
-        case "25-36": won = winNum >= 25 && winNum <= 36; break;
-        case "red": won = RED_NUMBERS.includes(winNum); break;
-        case "black": won = winNum > 0 && !RED_NUMBERS.includes(winNum); break;
-        case "odd": won = winNum > 0 && winNum % 2 === 1; break;
-        case "even": won = winNum > 0 && winNum % 2 === 0; break;
+      const rows = myBetRows ?? [];
+      if (rows.length === 0) {
+        // Player didn't bet this round — nothing to show.
+        return;
       }
-      if (won) totalWin += bet.amount * bet.multiplier;
-    });
 
-    if (totalWin > 0) {
-      playWinSound();
-      toast.success(`🎉 You Won ${totalWin.toLocaleString()} Diamonds!`, { duration: 5000 });
-      onWin?.(totalWin);
+      const totalWin = rows.reduce((s, r: any) => s + (r.win_amount || 0), 0);
+      const anyWinner = rows.some((r: any) => r.is_winner);
 
-      try {
-        const { data, error } = await supabase.rpc('process_game_win', {
-          p_user_id: userId,
-          p_amount: Math.floor(totalWin),
-          p_game_id: 'roulette',
-          p_game_name: 'Roulette',
-          p_multiplier: null,
-          p_is_jackpot: false,
-        });
-
-        if (error) {
-          console.error('[Roulette] Win processing error:', error);
-          toast.error("Error crediting winnings. Contact support.");
-        } else if (data) {
-          const result = data as any;
-          if (result.success && result.new_balance !== undefined) {
-            console.log('[Roulette] ✅ Win credited! New balance:', result.new_balance);
-            updateCachedBalance(result.new_balance);
-          }
-        }
-      } catch (e) {
-        console.error('[Roulette] Win RPC error:', e);
+      if (anyWinner && totalWin > 0) {
+        playWinSound();
+        toast.success(`🎉 You Won ${totalWin.toLocaleString()} Diamonds!`, { duration: 5000 });
+        onWin?.(totalWin);
+      } else {
+        playLoseSound();
+        toast.error("Better luck next time!");
       }
+      // Server credited the coins; just refresh the local balance display.
       refetchBalance();
-    } else {
-      playLoseSound();
-      toast.error("Better luck next time!");
+    } catch (e) {
+      console.error('[Roulette] Settlement read error:', e);
       refetchBalance();
     }
   };
 
+  // Atomic bet: a single RPC validates the round phase, validates the bet type
+  // against the official multiplier whitelist, deducts My Diamonds, and inserts
+  // the bet row — all in one transaction. The client never decides payout.
   const placeBet = async (betType: string, multiplier: number) => {
     if (!userId || !currentSession) {
       toast.error("Please login to place bets");
@@ -364,24 +328,23 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
       return;
     }
 
-    // Server is the source of truth — do NOT pre-block with stale cached balance.
-    // Atomically deduct diamonds; server validates amount and balance under row lock.
-    const { data: deductResult, error: deductError } = await supabase.rpc('deduct_coins_atomic', {
-      p_user_id: userId,
-      p_amount: selectedChip
+    const { data, error } = await supabase.rpc('roulette_place_bet', {
+      p_session_id: currentSession.id,
+      p_bet_type: betType,
+      p_amount: selectedChip,
     });
 
-    if (deductError || !deductResult) {
+    if (error) {
       toast.error("Failed to place bet");
-      console.error('[Roulette] Deduct error:', deductError);
+      console.error('[Roulette] place_bet error:', error);
       return;
     }
 
-    const result = deductResult as any;
+    const result = (data ?? {}) as any;
     if (!result.success) {
       const serverBal = typeof result.balance === 'number' ? result.balance : undefined;
       if (serverBal !== undefined) updateCachedBalance(serverBal);
-      const msg = result.error === 'Insufficient balance' && serverBal !== undefined
+      const msg = result.error === 'Insufficient diamonds' && serverBal !== undefined
         ? `Not enough diamonds (you have ${serverBal.toLocaleString()})`
         : (result.error || "Failed to place bet");
       toast.error(msg);
@@ -389,24 +352,12 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
       return;
     }
 
-    // Update balance instantly
-    if (result.new_balance !== undefined) {
-      updateCachedBalance(result.new_balance);
-    }
+    if (result.new_balance !== undefined) updateCachedBalance(result.new_balance);
     refetchBalance();
 
-    const newBet = { type: betType, amount: selectedChip, multiplier };
-    setMyBets(prev => [...prev, newBet]);
-
-    await supabase
-      .from("roulette_bets")
-      .insert({
-        session_id: currentSession.id,
-        user_id: userId,
-        bet_type: betType,
-        bet_amount: selectedChip,
-        multiplier
-      });
+    // Track the bet locally just for UI chip display; the server is the source of truth for payout.
+    const serverMultiplier = typeof result.multiplier === 'number' ? result.multiplier : multiplier;
+    setMyBets(prev => [...prev, { type: betType, amount: selectedChip, multiplier: serverMultiplier }]);
 
     playBetSound();
   };
