@@ -18,7 +18,9 @@
  const DEVICE_ID_KEY = 'meri_device_id';
  const PERSISTENT_DEVICE_ID_KEY = 'meri_persistent_device_id';
 
- const isValidDeviceId = (value: string | null | undefined): value is string =>
+ type ValidDeviceId = string & { readonly __validDeviceId: unique symbol };
+
+ const isValidDeviceId = (value: string | null | undefined): value is ValidDeviceId =>
    typeof value === 'string' && /^device_[A-Za-z0-9_:-]{6,128}$/.test(value);
 
  const readLocalDeviceId = async (key: string): Promise<string | null> => {
