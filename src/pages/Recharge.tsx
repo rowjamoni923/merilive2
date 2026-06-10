@@ -2463,7 +2463,7 @@ const Recharge = () => {
                             </div>
                             <div className="relative shrink-0">
                               <img loading="lazy" decoding="async"
-                                src={helper.avatar || '/placeholder.svg'}
+                                src={helper.avatar ? enhanceThumbnail(helper.avatar, { width: 64, quality: 82 }) : '/placeholder.svg'}
                                 alt={helper.name}
                                 className={cn(
                                   "object-cover rounded-xl",
