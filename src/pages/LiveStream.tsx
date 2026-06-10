@@ -3564,6 +3564,7 @@ const LiveStream = () => {
   return (
     <div 
       data-room-shell
+      data-livestream-root
       className={cn(
         "room-viewport flex flex-col overflow-hidden",
         // Pkg415: on native Android host path the TextureView lives behind the
