@@ -402,8 +402,9 @@ export const PKBattleActive = ({
     if (cDelta <= 0 && oDelta <= 0) return;
     const adds: DeltaFloat[] = [];
     const stamp = Date.now();
-    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta });
-    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta });
+    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta, kind: "score" });
+    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta, kind: "score" });
+
     if (!adds.length) return;
     setDeltaFloats((prev) => [...prev, ...adds].slice(-8));
     const keys = adds.map((a) => a.key);
