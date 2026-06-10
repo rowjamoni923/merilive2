@@ -257,6 +257,12 @@ serve(async (req) => {
     });
   }
 
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: 'forbidden_origin' }), {
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const startTime = performance.now();
 
   try {
