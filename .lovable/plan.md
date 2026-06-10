@@ -172,3 +172,97 @@
 - **VPS work deferred** per memory rule.
 - **English-only UI strings** maintained.
 - Some HIGH items (H-2 viewer inflation) need product decision before code (do we accept some inflation to keep UX fast, or strict-check every viewer join?).
+
+---
+
+# 🔥 ROUND 2 — BROADER AUDIT (2026-06-10)
+**Method:** 3 parallel subagents — codebase deep-dive (live/party/reels/chat/agency/helper/auth/push/storage/face/realtime) + 2024-26 competitor research (Chamet/Bigo/Olamet/Mux/Agora/TRTC) + edge-fn/RLS security audit (148 fns + all migrations).
+**Result:** 4 CRITICAL, 16 HIGH, ~40 MED beyond Phase 1-5.
+
+## 🔴 R2-CRITICAL (exploits live now — money/data/account takeover)
+
+| # | Area | File:Line | Bug | Industry Fix |
+|---|---|---|---|---|
+| **R2-C1** | Auth | `bulk-import-profiles/index.ts:8` | NO auth guard + `service_role` upserts ANY `profiles` row (is_host / coins / role) — full privilege escalation. | `requireAdminSession()` guard like `bulk-create-auth-accounts:39`. |
+| **R2-C2** | Cost | `ai-chat-reply/index.ts` | No `getUser()` check, CORS `*`, calls paid LLM. Anon caller burns LOVABLE_API_KEY budget. | JWT validate + per-user daily LLM counter. |
+| **R2-C3** | Auth | `src/pages/Auth.tsx:256,1944` | Guest-flow OTP compared **client-side**; `expectedOtpCode` returned to browser → readable in DevTools. | Verify server-side only (pattern of `verify-email-otp` already exists). |
+| **R2-C4** | Auth | `src/pages/Auth.tsx:79,92` | `recover_session_by_device` returns `recovery_email` + `recovery_password` in plaintext JSON. XSS/MITM = permanent creds for any device. | Return short-lived signed token; server exchanges it for session. |
+| **R2-C5** | Payment | `local-payment-ipn/index.ts:4,66,210` | Wildcard CORS + full body logged + AamarPay falls through to **credit on missing signature_key**. | (a) remove CORS, (b) drop body log, (c) fail-closed if HMAC/credentials absent. |
+| **R2-C6** | Party | `supabase/functions/party-room/index.ts:31` | `partyRooms` is module-level `Map` in stateless Deno isolate. Two clients on different isolates = invisible to each other. | Replace with Supabase Realtime Presence (auto-leave on socket drop, free at this scale). |
+| **R2-C7** | Live | `supabase/functions/livekit-token/index.ts:177` | Public-stream auto-upsert into `stream_viewers` bypasses `enter_live_stream` RPC's ban/rate-limit. Unlimited fake viewers. | Always require `enter_live_stream`; remove the edge-fn upsert. |
+| **R2-C8** | Cron | `swift-pay-poll-deposits/index.ts` | If `CRON_SECRET` env unset → `undefined !== undefined` = false → guard PASSES. Open-credit endpoint. | Fail-closed: `if (!internalSecret) return 401`. |
+
+## 🟠 R2-HIGH
+
+| # | Area | Issue | Fix |
+|---|---|---|---|
+| R2-H1 | RLS | `helper_withdrawal_requests` / `helper_level_config` / `helper_notifications` / `helper_payment_methods` policies are `FOR ALL USING (true)` reachable by `authenticated` (PII: bank acct, withdrawal amts). | Re-scope `TO service_role` or `USING (auth.uid() IS NULL)` for the admin policy + add user-owner SELECT for `helper_payment_methods`. |
+| R2-H2 | Auth | `Auth.tsx` brute-force protection lives in `localStorage` — clearing storage resets lockout. | Make `failed_login_attempts` / `account_lockouts` authoritative server-side. |
+| R2-H3 | Auth | OTP resend path skips `checkBeforeLogin` rate-check (`Auth.tsx:1625`). | Apply server-side send-count throttle in edge fn (progressive: 30s→60s→5m→15m→1h per StartMessaging 2025). |
+| R2-H4 | Push | FCM token refresh inserts new row but never deactivates old rows for same `device_id` → push to dead tokens, FCM UNREGISTERED errors. | On refresh, deactivate all prior `device_tokens` rows for the device before insert. Industry: one token per (user_id, device_id). |
+| R2-H5 | Push | `send-push-notification` doesn't write/check `message_push_dispatches` → 10 gift events in 1s = 10 pushes. | Insert dedup row `ON CONFLICT DO NOTHING` on `(user_id, type, reference_id)` 30s window. |
+| R2-H6 | Chat | `conversation_encryption_keys` table exists but `Chat.tsx` never uses it — messages stored/transmitted plaintext. | Either implement Signal/X3DH or remove the feature claim. (User decision: enable server-side encryption OR full E2EE OR drop.) |
+| R2-H7 | Chat | DM broadcast channel `dm-live-${convId}` has NO RLS — any authenticated user with convId can `.send()` fake messages. | Don't render broadcast payloads as persistent messages; rely on DB INSERT + realtime (which IS RLS-checked). Broadcast only for typing/ephemeral. |
+| R2-H8 | Reels | `increment_reel_view` fired client-side per swipe — same user can scroll back-and-forth to inflate. | Server-side dedup: 1 view per (user, reel) per 24h (TikTok = ≥3s watch time). |
+| R2-H9 | Reels | `reel_likes` / `reel_shares` insert without `if (!currentUserId) return` guard → silent DB errors for anon. | Add guard + login prompt. |
+| R2-H10 | Storage | Face verification images fetched by URL from DB — if bucket is public-readable, anyone with submission UUID gets ID photo. | Signed URL with ≤15min TTL (industry GDPR-safe). Delete raw image ≤7d after decision (EDPB 2024). |
+| R2-H11 | Storage | `bulk-import-profiles` (R2-C1) + reel upload filename not validated server-side → MIME spoof / path traversal. | Enforce `${userId}/${uuid}.<ext>` server-side. |
+| R2-H12 | Face | `live-frame-monitor` POST has no proof that `streamId` matches caller's active stream (per audit). | Validate `streamId.host_id = auth.uid()` in fn before any AI/AWS call. |
+| R2-H13 | Face | 60s grace period + warning count are CLIENT state — host refresh resets both. | Compute grace from `live_streams.started_at` server-side; load existing `live_face_warnings` count from DB. |
+| R2-H14 | Cost | `face-verification-analyze` calls AWS Rekognition with no per-row attempt cap. | `attempts` counter on `face_verification_submissions`; reject `>3`. |
+| R2-H15 | CORS | Wildcard CORS on `swift-pay-create-deposit`, `noble-purchase`, `verify-google-purchase`, `livekit-webhook`. | Restrict to app origins (`merilive.top`, preview); webhooks → drop CORS entirely. |
+| R2-H16 | Idempotency | `verify-google-purchase` — RPC check only inside txn; if fn crashes after credit + before 200, retry double-credits. | Pre-check `UNIQUE(purchase_token)` table BEFORE the credit RPC. |
+| R2-H17 | Idempotency | `noble-purchase` — no client-supplied idempotency key, double-tap = double-debit. | Accept `idempotency_key uuid` + `UNIQUE` table. |
+| R2-H18 | Realtime | `useUniversalRealtime` singleton + StrictMode = leak; `Reels.tsx` `subscribeToTables` cleanup misses `clearTimeout(refetchTimer)`. | Ref guard + ensure removeChannel before re-create. |
+| R2-H19 | Realtime | Reconnect backoff not visible — Supabase default. Industry: 1→2→4→8→16s + ±20% jitter. | Configure `reconnectAfterMs` callback on RealtimeClient. |
+| R2-H20 | Cost | `distribute-leaderboard-rewards` `force_all=true` fan-out has no advisory lock; concurrent cron runs = duplicate rewards. | `pg_try_advisory_lock(<key>)` at top; require service_role JWT for `force_all`. |
+| R2-H21 | Live | `useLiveStreamLifecycle:64` — `forceEndStream` PATCHes `is_active=false` directly, skipping `end_live_stream` RPC (earnings/summary/`stream_viewers.left_at` not updated). | Always call RPC via keepalive transport. |
+| R2-H22 | Live | `LiveStream.tsx` host effects fire on client-state `isHost=true` before DB verification. | Gate everything on `isHostVerified` (already exists at L1108). |
+
+## 🟡 R2-MED (≈40 items — abbreviated)
+
+- **Logs**: `verify-google-purchase`, `detect-phone-number`, `send-whatsapp-otp`, `admin-sync-auth` log PII / balances / OTP-bearing responses.
+- **Live**: `enter_live_stream` no dedup ref → StrictMode double row. Leave fetch uses raw `id` from URL — sanitise UUID.
+- **Party**: `update-seat` lets client self-promote `role`. Seat assignment uses in-memory Set (race) — needs `FOR UPDATE SKIP LOCKED`.
+- **Reels**: optimistic+realtime like double-count. Comment insert no `.catch`.
+- **Chat**: typing channel doesn't pass `{self:false}` → self-typing flashes. Receipt channel ref race on convo switch.
+- **Auth**: admin token in `localStorage` cross-tab contamination → use `sessionStorage`.
+- **Helper/Agency**: no recipient confirmation step in transfer. Topup form no client idempotency UUID.
+- **SECURITY DEFINER `search_path`**: mass-fix needed (only Jan-2026 batch was patched in Phase 1).
+
+## 📊 Industry Benchmarks Added (2024-26)
+
+| Item | Standard | Our gap |
+|---|---|---|
+| Host heartbeat | 30s app-level + 60s zombie window | Currently 15s/35s — tighter than std, OK |
+| OTP expiry / attempts | 5 min / 3 attempts | Audit needed |
+| OTP resend cooldown | Progressive 30s→60s→5m→15m→1h | Likely flat 60s |
+| Refresh token | Rotate on every use (RFC 9700) | Supabase default — verify |
+| Multi-device sessions | Max 4 (WhatsApp/Signal) | Unlimited currently |
+| Reels preload | 2 ahead (not 5+) | Verify |
+| Reels view count | ≥3s watch-time + Redis batch | Per-swipe write (R2-H8) |
+| FCM token | 1 per (user, device) | Multiple stale per device (R2-H4) |
+| Signed URL TTL | 15 min private, 1 h semi-public | Verify face/chat uploads |
+| Face KYC retention | Delete raw ≤7d (GDPR EDPB 2024) | Verify |
+| Liveness | Active for KYC (ISO 30107-3) | Verify |
+| CSAM scan | Synchronous on upload | Not implemented (PhotoDNA/Arachnid) |
+| Supabase channels | ≤50 per client | Verify global hook |
+| Reconnect backoff | 1/2/4/8/16s + jitter | Default only |
+| Party seats | 8 (social) / 12 (party), 30s lock TTL | Verify |
+| Room idle timeout | 5 min zero-speakers+viewers | Verify |
+| Chat media | 10MB img / 100MB video / 16MB voice | Verify |
+| Chat E2EE | Signal PQXDH 2025 std | Plaintext today (R2-H6) |
+
+## 🎯 Round-2 Proposed Phase Order
+
+**R2-Phase A — STOP THE BLEED (8 CRITICAL)** — bulk-import auth, ai-chat-reply auth, OTP server-side, recovery_password, IPN logs+HMAC, party-room Map→Presence, livekit-token public upsert, swift-pay cron fail-closed.
+
+**R2-Phase B — RLS + IDEMPOTENCY HARDENING** — helper table policies, google-purchase pre-check, noble idempotency key, lockout-server-authoritative, mass `search_path` patch.
+
+**R2-Phase C — REALTIME + PUSH RELIABILITY** — FCM token dedup, push dispatch dedup, channel cleanup leaks, reconnect backoff, DM broadcast trust.
+
+**R2-Phase D — LIVE/PARTY/REELS POLISH** — host effect gating, force-end RPC path, reel view dedup, party seat DB-lock, role self-promote.
+
+**R2-Phase E — STORAGE + FACE + LOGS** — signed URLs, face server-side grace/count, AWS attempt cap, log scrubbing batch.
+
+**R2-Phase F — UX/POLISH + CHAT ENCRYPTION DECISION** — E2EE go/no-go, typing channel `{self:false}`, recipient confirm, admin sessionStorage.
