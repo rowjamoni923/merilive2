@@ -3612,7 +3612,36 @@ export type Database = {
           participant2_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_participant1_id_fkey"
+            columns: ["participant1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant1_id_fkey"
+            columns: ["participant1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant2_id_fkey"
+            columns: ["participant2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant2_id_fkey"
+            columns: ["participant2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cost_monitor_alerts: {
         Row: {
@@ -8629,7 +8658,29 @@ export type Database = {
           sender_id?: string
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       moderation_audit_log: {
         Row: {
@@ -15284,7 +15335,29 @@ export type Database = {
           purchased_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_reports: {
         Row: {
@@ -15628,7 +15701,36 @@ export type Database = {
           user_id?: string
           vip_tier_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_vip_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_vip_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_vip_subscriptions_vip_tier_id_fkey"
+            columns: ["vip_tier_id"]
+            isOneToOne: false
+            referencedRelation: "vip_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_vip_subscriptions_vip_tier_id_fkey"
+            columns: ["vip_tier_id"]
+            isOneToOne: false
+            referencedRelation: "vip_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicle_entrances: {
         Row: {
