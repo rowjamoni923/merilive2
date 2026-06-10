@@ -1,6 +1,75 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
+
+/**
+ * Bigo/Chamet-parity drawing lightning bolt for PK header.
+ * stroke-dasharray + animated pathLength = energy-arc draw effect.
+ */
+const PKLightningBolt = ({ mirror = false }: { mirror?: boolean }) => (
+  <motion.svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="none"
+    style={{
+      transform: mirror ? "scaleX(-1)" : undefined,
+      filter: "drop-shadow(0 0 6px rgba(251,191,36,0.85)) drop-shadow(0 0 12px rgba(236,72,153,0.45))",
+    }}
+  >
+    <motion.path
+      d="M13 2 L4 14 L11 14 L9 22 L20 9 L13 9 Z"
+      stroke="#fde68a"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="url(#pk-bolt-grad)"
+      initial={{ pathLength: 0, opacity: 0.4 }}
+      animate={{ pathLength: [0, 1, 1], opacity: [0.4, 1, 0.9] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
+    />
+    <defs>
+      <linearGradient id="pk-bolt-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#fef3c7" />
+        <stop offset="55%" stopColor="#fbbf24" />
+        <stop offset="100%" stopColor="#f97316" />
+      </linearGradient>
+    </defs>
+  </motion.svg>
+);
+
+/**
+ * Bigo-parity score number with Y-axis cross-fade slide (80ms) instead of
+ * key-remount color flash. Eliminates score-blink during rapid gift bursts.
+ */
+const PKScoreNumber = ({
+  value,
+  color,
+  glow,
+}: {
+  value: number;
+  color: string;
+  glow: string;
+}) => (
+  <span
+    className="relative inline-block overflow-hidden text-lg font-extrabold tabular-nums"
+    style={{ minWidth: "1.5em", height: "1.4em", lineHeight: "1.4em", color, textShadow: glow }}
+  >
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.span
+        key={value}
+        initial={{ y: "60%", opacity: 0 }}
+        animate={{ y: "0%", opacity: 1 }}
+        exit={{ y: "-60%", opacity: 0 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0 flex items-center justify-start"
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
+  </span>
+);
+
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
 // PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
