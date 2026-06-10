@@ -934,7 +934,7 @@ export const PKBattleActive = ({
                 obvious that gifts still register even though the HP bar froze.
                 Bigo/Chamet "rescue meter" parity. */}
             <AnimatePresence>
-              {inPunishment && (rescueTally.challenger > 0 || rescueTally.opponent > 0 || true) && (
+              {inPunishment && (
                 <motion.div
                   key="pk-rescue-meter"
                   initial={{ opacity: 0, y: -4 }}
