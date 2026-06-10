@@ -431,7 +431,7 @@ export const PKBattleActive = ({
       else if (opponentId && detail.receiverId === opponentId) side = "opponent";
       if (!side) return;
       const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" }].slice(-8));
+      setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" as const }].slice(-8));
       setTimeout(() => {
         setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
       }, 1400);
