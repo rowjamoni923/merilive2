@@ -5153,6 +5153,36 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_combo_window: {
+        Row: {
+          combo_seq: number
+          combo_started_at: string
+          context_key: string
+          gift_id: string
+          id: string
+          last_sent_at: string
+          sender_id: string
+        }
+        Insert: {
+          combo_seq?: number
+          combo_started_at?: string
+          context_key: string
+          gift_id: string
+          id?: string
+          last_sent_at?: string
+          sender_id: string
+        }
+        Update: {
+          combo_seq?: number
+          combo_started_at?: string
+          context_key?: string
+          gift_id?: string
+          id?: string
+          last_sent_at?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       gift_transaction_logs: {
         Row: {
           created_at: string | null
@@ -19081,6 +19111,7 @@ export type Database = {
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       cleanup_login_attempts: { Args: never; Returns: undefined }
+      cleanup_old_gift_combos: { Args: never; Returns: number }
       cleanup_old_security_alerts: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_stale_data: { Args: never; Returns: undefined }
@@ -20506,6 +20537,15 @@ export type Database = {
         Returns: undefined
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
+      record_gift_combo: {
+        Args: {
+          p_context_key: string
+          p_gift_id: string
+          p_sender_id: string
+          p_window_ms?: number
+        }
+        Returns: Json
+      }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
       record_live_violation: {
