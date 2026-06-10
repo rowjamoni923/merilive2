@@ -39,6 +39,19 @@ export function strictCors(
   };
 }
 
+/**
+ * Origin guard for legacy functions that still use wildcard CORS.
+ * Returns true when:
+ *   - no Origin header (server-to-server, curl, native Android non-WebView)
+ *   - Origin is in the allow-list (browser/Capacitor WebView)
+ * Use this as a cheap defense-in-depth before doing any real work.
+ */
+export function isAllowedOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  return ALLOWED_APP_ORIGINS.has(origin);
+}
+
 /** Constant-time string compare. Use for OTPs, tokens, secrets. */
 export function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
