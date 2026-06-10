@@ -147,17 +147,19 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
     return () => { cancelled = true; };
   }, [topChallenger, topOpponent]);
 
-  const left = useMemo<ResolvedSender[]>(() =>
-    topChallenger.map((r) => {
-      const p = profileCacheRef.current.get(r.senderId);
-      return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
-    }), [topChallenger, profilesVersion]);
+  // Reading profilesVersion keeps profile arrival state-driven without the old
+  // `void profilesReady` render hack.
+  void profilesVersion;
 
-  const right = useMemo<ResolvedSender[]>(() =>
-    topOpponent.map((r) => {
-      const p = profileCacheRef.current.get(r.senderId);
-      return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
-    }), [topOpponent, profilesVersion]);
+  const left: ResolvedSender[] = topChallenger.map((r) => {
+    const p = profileCacheRef.current.get(r.senderId);
+    return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
+  });
+
+  const right: ResolvedSender[] = topOpponent.map((r) => {
+    const p = profileCacheRef.current.get(r.senderId);
+    return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
+  });
 
   if (left.length === 0 && right.length === 0) return null;
 
