@@ -17101,7 +17101,7 @@ export type Database = {
         Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
       }
-      accept_pk_battle: { Args: { p_battle_id: string }; Returns: string }
+      accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       accept_seat_invitation: {
         Args: { p_invitation_id: string }
@@ -20891,7 +20891,7 @@ export type Database = {
           p_opponent_id: string
           p_opponent_stream_id: string
         }
-        Returns: string
+        Returns: Json
       }
       start_pk_battle_random: {
         Args: {
