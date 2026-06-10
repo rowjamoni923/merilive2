@@ -35,6 +35,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -826,7 +827,7 @@ const ProfileDetail = () => {
                 />
               ) : (
                 <img
-                  src={url}
+                  src={enhanceThumbnail(url, { width: 750, quality: 85 })}
                   alt=""
                   className="w-full h-full object-cover"
                   loading="eager"
@@ -852,7 +853,7 @@ const ProfileDetail = () => {
             />
           ) : (
             <img
-              src={coverSrc}
+              src={enhanceThumbnail(coverSrc, { width: 750, quality: 85 })}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
@@ -998,12 +999,12 @@ const ProfileDetail = () => {
             <div className="relative flex-shrink-0 w-24 h-24">
               <FramedAvatarWithPrivileges
                 userId={profile.id}
-                src={getDisplayAvatar(profile.id, profile.avatar_url, {
+                src={enhanceThumbnail(getDisplayAvatar(profile.id, profile.avatar_url, {
                   isOwner: isOwnProfile,
                   gender: ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
                     ? 'female'
                     : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female'),
-                })}
+                }), { width: 128, quality: 85 })}
 
                 name={profile.display_name || "U"}
                 level={level}
