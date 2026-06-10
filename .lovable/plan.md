@@ -348,3 +348,14 @@ Research-locked (Bigo/Chamet/TikTok LIVE teardown): bottom-left stacking pill qu
 - H-13 (host short-circuit): `useNativeCallBillingSync` now accepts `isHost?: boolean` and returns early BEFORE the `private_calls` + `profiles` SELECTs when the parent already knows we're host. `CallProvider` passes its existing `isHost` state. Saves 2 DB round-trips per host-side mount and removes the failure mode where a slow/failed query could surface coin-deduction UI to a host (UI only ever pushes via `pushBilling`, which now never fires for host).
 - Files: `src/hooks/usePrivateCall.ts`, `src/components/call/CallProvider.tsx`, `src/hooks/useNativeCallBillingSync.ts`.
 - Verification: typecheck clean. APK rebuild NOT required (TS-only; native plugin contract unchanged).
+
+## Bucket C — CORS sweep — DONE 2026-06-10
+
+Audited all 150 edge functions:
+- 147 browser-callable functions: all have `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, OPTIONS preflight handler, and spread `...corsHeaders` into success + error responses.
+- 3 server-to-server functions correctly omit CORS by design (not browser-callable):
+  - `livekit-webhook` — signed by LiveKit JWT (Pkg97)
+  - `handle-email-suppression` — Mailgun → Go API → Lovable Cloud, verified by `@lovable.dev/webhooks-js`
+  - `purge-face-verification-images` — daily cron with `CRON_SECRET` header
+
+No fixes required. Bucket C closed clean.
