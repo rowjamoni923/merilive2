@@ -321,7 +321,14 @@ serve(async (req) => {
 
     console.log(`[face-check] Stream: ${streamId}, Face: ${faceDetected}, Eyes: ${analysis.eyesOpen}(${analysis.eyesOpenConfidence.toFixed(0)}%), Light: ${analysis.goodLighting}, FrameOK: ${analysis.goodFraming}, Lying: ${analysis.lyingDown}, Pose: Y${analysis.pose.yaw.toFixed(1)} P${analysis.pose.pitch.toFixed(1)} R${analysis.pose.roll.toFixed(1)}, Sleep: ${analysis.sleepScore}, Violations: ${analysis.violations.join(",") || "none"}`);
 
-    return new Response(JSON.stringify(analysis), {
+    return new Response(JSON.stringify({
+      ...analysis,
+      // R2-H13: server-authoritative grace + warning count. Client should
+      // skip strike accumulation while `inGracePeriod` is true so refresh-
+      // bypass is no longer possible.
+      inGracePeriod: serverInGrace,
+      warningCount: serverWarningCount,
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -334,3 +341,4 @@ serve(async (req) => {
     });
   }
 });
+
