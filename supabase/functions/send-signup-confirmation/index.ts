@@ -16,7 +16,8 @@ const corsHeaders = {
 interface SignupConfirmationRequest {
   email: string;
   displayName?: string;
-  verificationCode: string;
+  // Ignored — kept for back-compat with older clients. Server always picks.
+  verificationCode?: string;
   userId?: string;
 }
 
