@@ -199,6 +199,17 @@ export function CallProvider({ children }: CallProviderProps) {
       const { normalizeEndReason } = await import('@/lib/callEndReasons');
       const normalisedReason = normalizeEndReason(dbEndReasonRaw);
 
+      // H-7: derive endedBy honestly.
+      // - 'system' for low_balance / timeout / forced server-side end
+      // - 'self'   when this client invoked endCall()
+      // - 'remote' otherwise (the other party hung up)
+      const systemReasons = new Set(['low_balance', 'insufficient_balance', 'timeout', 'no_answer', 'force_end']);
+      const rawReasonStr = (dbEndReasonRaw ?? '').toString().toLowerCase();
+      const endedBy: 'self' | 'remote' | 'system' =
+        systemReasons.has(rawReasonStr) ? 'system'
+        : selfEndedRef.current ? 'self'
+        : 'remote';
+
       setCallEndedInfo({
         remoteUserName: remoteName,
         remoteUserAvatar: remoteAvatar,
@@ -207,9 +218,10 @@ export function CallProvider({ children }: CallProviderProps) {
         coinsSpent,
         hostEarned: hostEarnedAmount,
         isHost,
-        endedBy: 'remote',
+        endedBy,
         endReason: normalisedReason,
       });
+
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
       // Phase-3 C3: do NOT raise callEndedRef here. The previous 3s
