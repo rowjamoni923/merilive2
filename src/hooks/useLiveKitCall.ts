@@ -368,6 +368,9 @@ export function useLiveKitCall(
         if (!nativeCallRequired) {
           toast.error('Private calls require the Android app.');
           setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
+          // P0 FIX: reset init guard so a later kill-switch re-enable can retry.
+          // Previously isInitRef stayed true, permanently blocking re-init for the session.
+          isInitRef.current = false;
           return;
         }
 

@@ -350,7 +350,7 @@ const FullScreenGiftAnimation = ({
               className="w-full h-full max-w-[90vw] max-h-[90vh]"
               loop={false}
               autoPlay={true}
-              muted={false}
+              muted={true}
               onComplete={handleAnimationEnd}
             />
           </div>
