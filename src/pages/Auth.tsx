@@ -38,8 +38,6 @@ type AuthBranding = {
 
 interface DeviceAccount {
   deviceId: string;
-  email: string;
-  password: string;
   displayName: string;
   avatarUrl: string | null;
   gender: Gender;
@@ -1152,8 +1150,6 @@ const Auth = () => {
         // Save device account with credentials for future recovery
         localStorage.setItem("meri_device_account", JSON.stringify({
           deviceId,
-          email: guestEmail,
-          password: guestPassword,
           displayName,
           avatarUrl: null,
           gender: selectedGender,
