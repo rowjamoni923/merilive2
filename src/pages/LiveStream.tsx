@@ -109,6 +109,7 @@ import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } from "@/features/shared/gifting";
+import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 // UNIFIED Chat Overlay - ONE LINK for Live Stream + Party Room
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
@@ -4809,6 +4810,9 @@ const LiveStream = () => {
           />
         ))}
       </AnimatePresence>
+
+      {/* Pkg-audit Phase 17: Chamet/Bigo-style edge combo counter (4s window, max 3 lanes). */}
+      {id && <GiftComboTracker scope="live" id={id} receiverName={streamData?.host?.display_name || "Host"} />}
 
       {/* Global Live Game Selector — context="live" routes win bubbles to stream_chat */}
       <LiveGameSelector

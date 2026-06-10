@@ -2075,6 +2075,9 @@ export function UnifiedPartyRoom({
         isBanned={numberWarning.warningState.isBanned}
         isGenericWarning={numberWarning.warningState.isGenericWarning}
       />
+
+      {/* Pkg-audit Phase 17: Chamet/Bigo-style edge combo counter. */}
+      {roomId && <GiftComboTracker scope="party" id={roomId} receiverName="Party" />}
     </div>
   );
 }
