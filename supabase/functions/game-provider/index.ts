@@ -415,6 +415,12 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ success: false, error: 'forbidden_origin' }), {
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
 
   try {
     // Authentication check
