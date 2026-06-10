@@ -79,3 +79,15 @@
   - Dialog/sheet children forced to full viewport width.
   - 9-seat party grid pinned to 3 columns at 360px (overriding the auto-collapse-to-2 rule).
 - Owner-account preview at 360px verified: home/party-list/live-feed clean, no overflow. Inside-room visual verification requires a live host or active call which the preview cannot spawn solo — guards are defensive so any future content overflow is automatically clamped.
+
+## Wave C — DONE 2026-06-10
+- Body marker `data-wavec-root="true"` set via useEffect on mount for: Profile, ProfileDetail, EditProfile, Invitation, FollowingList, SearchUsers.
+- New CSS block "Wave C HARD GUARDS" in `src/index.css` scoped to non-admin + mobile (≤767px):
+  - `overflow-x: hidden` on body, `max-width: 100vw` on all descendants.
+  - Tab strips & `[role=tablist]` use native horizontal scroll (hidden scrollbar).
+  - All grid/flex children get `min-width: 0` so long names/IDs don't push overflow.
+  - Fixed bottom action bars receive `padding-bottom: max(env(safe-area-inset-bottom), 8px)`.
+  - Dialog/sheet `max-width: 100vw`.
+  - Buttons & `a[role=button]` floor to `min-height: 36px` (skippable with `data-no-tap-min`).
+  - Inputs/textareas/selects forced to `font-size: max(16px, 1rem)` to block iOS/Android zoom-on-focus.
+- Design tokens (colors, fonts, gradients, copy, logos) untouched. Purely defensive responsive hardening.

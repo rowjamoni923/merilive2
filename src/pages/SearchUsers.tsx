@@ -83,6 +83,10 @@ const SearchUsers = () => {
   const [showFilterSheet, setShowFilterSheet] = useState(false);
 
   useEffect(() => {
+    document.body.setAttribute('data-wavec-root', 'true');
+    return () => { document.body.removeAttribute('data-wavec-root'); };
+  }, []);
+  useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
