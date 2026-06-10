@@ -428,7 +428,9 @@ export function ActiveCallScreen({
 
   // Phase 3 Step 3 — Low-balance + force-end signals from server billing tick.
   // Viewer (caller) only sees the warning banner; host doesn't need recharge CTA.
-  const callSignal = useCallSignaling(callId);
+  // H5 (2026-06-10): gate channel lifecycle on isOpen so we don't leak a Supabase
+  // Realtime slot when the screen is closed but callId hasn't been cleared yet.
+  const callSignal = useCallSignaling(isOpen ? callId : null);
   useEffect(() => {
     if (callSignal.forceEnded && isOpen) {
       try { toast.error('Call ended: ' + (callSignal.forceEndReason === 'insufficient_balance' ? 'insufficient balance' : 'connection ended')); } catch { /* noop */ }

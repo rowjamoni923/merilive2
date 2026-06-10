@@ -1324,6 +1324,10 @@ export function usePrivateCall(userId: string | null) {
       privateCallChannelRef.current = null;
     }
 
+    // H6 (2026-06-10): keeping dual filters — Supabase Realtime postgres_changes
+    // filter only supports eq/neq/gt/gte/lt/lte/in (no `or`). Dup-fire risk only
+    // materialises on caller_id==host_id (self-call), which is blocked server-side
+    // in start_private_call. `handleRow` is also idempotent on (callId, status).
     const privateCallChannel = supabase
       .channel(`private-call-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {

@@ -176,6 +176,9 @@ export function useLiveKitCall(
         // Mirrors useLiveKitClient.ts:266.
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
+        // C3 (2026-06-10): guard against zombie camera lock — if the call already ended,
+        // a late camera-failure event must NOT trigger reconnect (would hold camera hardware).
+        if (deadRef.current) return;
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       }

@@ -537,14 +537,22 @@ const LiveStream = () => {
         }).catch(() => {});
       } catch { /* ignore unload failures */ }
     };
-    window.addEventListener('pagehide', sendViewerLeave);
-    window.addEventListener('beforeunload', sendViewerLeave);
+    // M1 (2026-06-10): dedup leave RPC — pagehide + visibilitychange both fire
+    // on Android home button → double RPC. hasLeftRef ensures one call only.
+    let hasLeftLocal = false;
+    const sendViewerLeaveOnce = () => {
+      if (hasLeftLocal) return;
+      hasLeftLocal = true;
+      sendViewerLeave();
+    };
+    window.addEventListener('pagehide', sendViewerLeaveOnce);
+    window.addEventListener('beforeunload', sendViewerLeaveOnce);
     // Pkg425: also fire on tab-hidden + Capacitor app background. iOS Safari and
     // Android WebView kill tabs without firing pagehide/beforeunload reliably; the
     // 90s cron cleans those up but the count stays inflated until then. Visibility
     // and appStateChange give us a sub-second leave on app switch / lock screen.
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') sendViewerLeave();
+      if (document.visibilityState === 'hidden') sendViewerLeaveOnce();
     };
     document.addEventListener('visibilitychange', onVisibility);
     let appStateDetach: (() => void) | null = null;
@@ -553,7 +561,7 @@ const LiveStream = () => {
       void import('@capacitor/app').then(({ App }) => {
         try {
           const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
-            if (!isActive) sendViewerLeave();
+            if (!isActive) sendViewerLeaveOnce();
           }));
           appStateDetach = () => {
             handlePromise
@@ -581,8 +589,8 @@ const LiveStream = () => {
     // First ping after 30s; join RPC already establishes presence at t=0.
     hbTimer = setInterval(sendHeartbeat, 30000);
     return () => {
-      window.removeEventListener('pagehide', sendViewerLeave);
-      window.removeEventListener('beforeunload', sendViewerLeave);
+      window.removeEventListener('pagehide', sendViewerLeaveOnce);
+      window.removeEventListener('beforeunload', sendViewerLeaveOnce);
       document.removeEventListener('visibilitychange', onVisibility);
       if (appStateDetach) appStateDetach();
       if (hbTimer) clearInterval(hbTimer);
@@ -609,9 +617,17 @@ const LiveStream = () => {
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Live stream lifecycle - auto end stream when host leaves app
+  // H7 (2026-06-10): keep as plain function (leaveChannel is destructured later
+  // in this component, so useCallback hits TDZ). Stale-closure issue fixed via
+  // isHostRef synced on every render below — guarantees the callback always
+  // reads the latest isHost even when subscribeToTables captured an early instance.
+  const isHostRef = useRef(isHost);
+  useEffect(() => { isHostRef.current = isHost; }, [isHost]);
+
   const handleStreamEndCallback = async () => {
-    console.log('[LiveStream] Stream ended via lifecycle hook');
-    if (!isHost) {
+    const hostNow = isHostRef.current;
+    console.log('[LiveStream] Stream ended via lifecycle hook, isHost=', hostNow);
+    if (!hostNow) {
       if (streamEndedRef.current) return;
       streamEndedRef.current = true;
       setStreamEndedBy(hostInfo?.name || "Host");
@@ -1452,12 +1468,12 @@ const LiveStream = () => {
       ['live_streams', 'stream_viewers', 'stream_chat', 'gift_transactions'],
       (table, event, payload) => {
         const row = payload as any;
-        
-        // 1. Stream ended or updated
+
+        // 1. Stream metadata updates only — stream END is handled exclusively by the
+        // dedicated `live-stream-end-${id}` channel (see line ~1923). Doing it here too
+        // caused `leaveChannel()` to fire twice on stream end (C2, fixed 2026-06-10).
         if (table === 'live_streams' && row.id === id) {
-          if (row.status === 'ended' || row.is_active === false) {
-            handleStreamEndCallback();
-          } else {
+          if (row.status !== 'ended' && row.is_active !== false) {
             setStreamData(prev => prev ? { ...prev, ...row } : row);
           }
         }
@@ -1582,7 +1598,22 @@ const LiveStream = () => {
     // the WS, messages never arrive. This Postgres realtime channel guarantees
     // delivery to EVERY participant — host AND every viewer — so public chat
     // is truly public. Dedup via message id ensures no double-render.
+    // H3 (2026-06-10): cap seenMsgIds with FIFO eviction — was unbounded, OOM
+    // risk on multi-hour streams with heavy chat.
+    const SEEN_MSG_CAP = 500;
     const seenMsgIds = new Set<string>();
+    const rememberSeen = (mid: string) => {
+      if (seenMsgIds.has(mid)) return false;
+      seenMsgIds.add(mid);
+      if (seenMsgIds.size > SEEN_MSG_CAP) {
+        const oldest = seenMsgIds.values().next().value;
+        if (oldest !== undefined) seenMsgIds.delete(oldest);
+      }
+      return true;
+    };
+    // H2 (2026-06-10): per-channel profile cache — was issuing one profiles_public
+    // SELECT per arriving chat row (N+1). Now hits DB only on cache miss.
+    const profileCache = new Map<string, any>();
     const chatChannel = supabase
       .channel(`live-chat-rt-${id}`)
       .on('postgres_changes', {
@@ -1593,8 +1624,7 @@ const LiveStream = () => {
       }, async (payload) => {
         const row: any = payload.new;
         if (!row?.id || !row?.user_id) return;
-        if (seenMsgIds.has(row.id)) return;
-        seenMsgIds.add(row.id);
+        if (!rememberSeen(row.id)) return;
 
         // F1 — Skip trigger-written system_join rows in realtime: the live
         // in-memory join message (LiveKit fast-path or Postgres safety-net)
@@ -1606,12 +1636,19 @@ const LiveStream = () => {
         if (row.user_id === currentUserId) return;
 
 
-        // Resolve sender profile for display
-        const { data: profile } = await supabase
-          .from('profiles_public')
-          .select('id, display_name, user_level, avatar_url, country_flag, created_at')
-          .eq('id', row.user_id)
-          .maybeSingle();
+        // Resolve sender profile (cache first, DB only on miss)
+        let profile = profileCache.get(row.user_id);
+        if (!profile) {
+          const { data } = await supabase
+            .from('profiles_public')
+            .select('id, display_name, user_level, avatar_url, country_flag, created_at')
+            .eq('id', row.user_id)
+            .maybeSingle();
+          if (data) {
+            profile = data;
+            profileCache.set(row.user_id, data);
+          }
+        }
 
         setMessages(prev => {
           if (prev.some(m => m.id === row.id)) return prev;
