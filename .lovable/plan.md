@@ -1,43 +1,113 @@
-# Plan — Phase 6: Create (Go Live / Create Party / Live & Party viewer-side)
+# Professional Rebuild: Game System + PK Battle
 
-Started + done 2026-06-09.
+দুটো system-ই server-authoritative, race-free, professional grade-এ rebuild করব — Chamet/Bigo/Poppo যেভাবে করে সেভাবে। Design/UI shell অপরিবর্তিত থাকবে, শুধু backend logic + wiring।
 
-## Research (mem://features/create-golive-competitor-numbers)
-8 apps (Chamet/Bigo/Olamet/Poppo/Hollah/HiiClub/WeJoy/CrushLive) + Agora/LiveKit Android docs. Key consensus: camera preview <400ms cold / <150ms warm, host avatar = LCP candidate, front cam mirrored, tap→first-frame <500ms via token prewarm, ExoPlayer/LiveKit pool=3, viewer mute-on-join, exit confirm host-only, audio-only reconnect fallback after 3 fails.
+---
 
-## Audit (web layer — design SACRED, native lives in Kotlin plugins)
+## PART A — PK BATTLE (Phase 1, আগে)
 
-| # | Surface | File | Status |
-|---|---------|------|--------|
-| 1 | Go Live preview card host avatar (LCP) | src/pages/GoLive.tsx:869 | **FIX NOW** — was lazy/async, no CDN resize |
-| 2 | Go Live `<video>` preview tag attrs | src/pages/GoLive.tsx | MATCH — playsInline, muted, autoPlay, disablePiP, controls=false |
-| 3 | Beauty filter pipeline | useProCamera | EXCEEDS — already native bridge |
-| 4 | Create Party preview tile + avatar fallback | src/pages/CreateParty.tsx:440 | MATCH — AvatarWithFrame already optimized, fallback under <video> prevents black flash |
-| 5 | Create Party game logos | src/pages/CreateParty.tsx:761 | MATCH — lazy+async (correct, below fold) |
-| 6 | LiveKit join (host start) | livekitService | EXCEEDS — warmLiveKitToken on intent |
-| 7 | Viewer-side LiveStream.tsx (4933 LOC) | src/pages/LiveStream.tsx | OUT OF SCOPE this phase — needs dedicated pass |
-| 8 | Viewer-side party (UnifiedPartyRoom + Chamet*) | src/components/party/* | MATCH — useAudioLevels speaking ring, native gift/entry, mute-on-join |
-| 9 | Audio-only reconnect fallback after 3 fails | (none) | DEFER — needs reconnect-state UI design decision |
-| 10 | "Joining…" overlay with blurred host avatar bg | (current spinner) | DEFER — minor polish |
+Memory-locked research অনুযায়ী 6-step rebuild:
 
-## Fix applied (web, design-sacred)
-**GoLive host-avatar preview card (#1):**
-- `loading="lazy"` → `loading="eager"`
-- `decoding="async"` → `decoding="sync"`
-- added `fetchpriority="high"`
-- raw `avatar_url` → `enhanceThumbnail(url, { width: 96, quality: 85 })`
+### A1. Schema audit + fix migration
+- `pk_battles` table actual columns scan
+- Missing column add: `server_start_at`, `server_end_at`, `punishment_end_at`, `host_a_score`, `host_b_score`, `winner_user_id`, `status` enum (`pending|active|punishment|completed|cancelled`)
+- Race-free matchmaking: partial UNIQUE index on `(host_a_id, status)` where `status in ('pending','active')` — same host একসাথে দুই PK তে থাকতে পারবে না
+- `pk_battle_gifts` seed: gift_id → pk_score mapping (admin-tunable, default = coin_cost)
 
-Impact: shaves ~150-250ms off LCP on mid-range G35 over 3G (raw URLs were often 1080px+ originals), zero visual change.
+### A2. Server-authoritative score (trigger)
+- `gift_transactions` insert trigger: যদি receiver কোনো active `pk_battle` এর host হয়, তাহলে sender's contribution `pk_battles.host_a_score` বা `host_b_score`-এ atomic add
+- Score lookup via `pk_battle_gifts.pk_score` (fallback = gift coin value)
+- All score mutation DB-side, client কখনো `host_a_score` write করতে পারবে না (RLS: no UPDATE on score columns from authenticated; only service_role)
 
-## Deferred (out of 1% gap risk, but documented)
-- LiveStream.tsx (4933 LOC) full audit → own dedicated phase
-- Pre-warm LiveKit token at GoLive screen mount
-- Cold-start camera prewarm pool (Chamet 2s-keep-alive)
-- "Joining…" overlay polish (host avatar blur background)
-- Audio-only reconnect fallback dialog
+### A3. Server-side timer (edge function + cron)
+- `pk-battle-tick` edge function, every 10s via pg_cron
+- Active battle যার `server_end_at < now()` → status='punishment', `punishment_end_at = now()+90s`, winner decide (higher score, tie = no winner)
+- Punishment expired → status='completed', reward distribute (70% winner / 30% loser of total pot, or whatever admin config)
+- Realtime broadcast on `pk_battles` row update
 
-## Verification
-Owner preview: GoLive page → host avatar card top-left should now go through weserv CDN (`images.weserv.nl?url=...&w=192&q=85`). Network tab confirms. No visual difference.
+### A4. Matchmaking RPC
+- `pk_battle_invite(opponent_id, duration_seconds)` — level≥5 gate, both hosts free check, single atomic insert
+- `pk_battle_accept(battle_id)` — only opponent can accept, sets `server_start_at = now()`, `server_end_at = now() + duration`
+- `pk_battle_decline(battle_id)` / `pk_battle_cancel(battle_id)`
 
-## Business logic untouched
-Zero changes to camera permissions, LiveKit signaling, profile fetch, face verification gate, room creation RPC, party type flow, or viewer join logic.
+### A5. Reward + history
+- `pk_reward_history` populate at completion
+- Winner badge, streak counter on `profiles`
+
+### A6. Frontend rewire
+- PK UI components → call new RPCs only
+- Score display reads from Realtime subscription (never compute client-side)
+- Timer displays `server_end_at - now()` (clock-skew tolerant)
+
+---
+
+## PART B — GAME SYSTEM (Phase 2)
+
+Industry standard: একটা single server-authoritative minigame দিয়ে শুরু — **Crash** (Aviator-style) — Chamet/Bigo এ এটাই most popular। পরে Dice/Roulette add করা যাবে same engine-এ।
+
+### B1. Schema cleanup + new tables
+- `game_rounds` (replaces ad-hoc `game_sessions` for Crash): `id`, `game_type`, `server_seed_hash`, `server_seed` (reveal after), `client_seed`, `crash_multiplier` (provably fair), `started_at`, `crashed_at`, `status`
+- `game_bets` align: `round_id`, `user_id`, `bet_amount`, `auto_cashout_at`, `cashed_out_at`, `cashout_multiplier`, `payout`, `status`
+- Drop/ignore broken `game_players`, `game_session_tokens` (provider-related, unused)
+
+### B2. Provably-fair Crash engine (edge function)
+- `game-crash-engine` edge function, runs as long-lived loop via cron `* * * * *` + internal 1s tick
+- Each round: generate `server_seed` → hash → publish hash → 5s betting window → start multiplier 1.00x ascending → crash at deterministic point (HMAC-SHA256 derived) → reveal seed
+- Round state in `game_rounds`, ticks broadcast via Supabase Realtime channel `game:crash`
+
+### B3. Bet + cashout RPCs (atomic, race-free)
+- `game_place_bet(round_id, amount, auto_cashout)` — only during betting window, atomic `profiles.coins -= amount`, insert `game_bets`
+- `game_cashout(bet_id)` — only if round active + not crashed + not already cashed; payout = `amount * current_multiplier`, atomic credit
+- All wallet mutations through `SECURITY DEFINER` functions with row locks (`FOR UPDATE`)
+
+### B4. Auto-cashout worker
+- Edge function tick checks active bets with `auto_cashout_at <= current_multiplier` → auto-trigger cashout
+
+### B5. Anti-cheat + limits
+- Min/max bet from `game_settings`
+- Per-user per-round single bet limit
+- Rate limit: max 1 bet per 500ms per user
+- `game_provider_logs` audit trail
+
+### B6. Frontend wire
+- Game UI subscribes to `game:crash` channel for multiplier ticks
+- Bet button → `game_place_bet` RPC
+- Cashout button → `game_cashout` RPC
+- Wallet sync via existing `profiles.coins` realtime
+
+---
+
+## Execution order (strict)
+
+```text
+Step 1: PK schema migration (A1) — needs approval
+Step 2: PK score trigger + RLS (A2) — needs approval
+Step 3: PK tick edge function + cron (A3)
+Step 4: PK matchmaking RPCs (A4) — needs approval
+Step 5: PK reward (A5) — needs approval
+Step 6: PK frontend rewire (A6) — code edit
+Step 7: Owner-account live test PK (smdollarex923@gmail.com)
+Step 8: Game schema migration (B1) — needs approval
+Step 9: Crash engine edge function (B2)
+Step 10: Game bet/cashout RPCs (B3) — needs approval
+Step 11: Auto-cashout worker (B4)
+Step 12: Game frontend wire (B6)
+Step 13: Owner-account test Game
+Step 14: APK rebuild signal
+```
+
+## Non-goals (এখন না)
+- 3rd-party provider integration (Evolution/Spribe) — পরে
+- Multiple game variants — Crash first, validate, তারপর Dice/Roulette
+- Tournament/leaderboard for games — পরে
+- PK custom rule sets — default 5min/90s/70-30 only
+
+## Honest constraints
+- প্রতিটা edge function deploy auto, কিন্তু cron schedule + secret check করতে হবে
+- Frontend rewire-এ existing PK/Game components পড়তে হবে (এখনো deep-read করিনি) — Step 6 + 12 শুরু আগে full file scan হবে
+- Owner-account testing শুধু web flow validate করবে; native PK overlay / game WebView Android-specific কিছু থাকলে APK rebuild লাগবে — সেটা সৎভাবে বলব
+
+## Total scope
+~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
+
+**Approve করলে Step 1 (PK schema audit + migration) দিয়ে শুরু করব।**
