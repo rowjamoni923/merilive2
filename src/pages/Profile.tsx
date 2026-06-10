@@ -1393,12 +1393,16 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const result = data as any;
       if (!result?.success) throw new Error(result?.error || 'Self recharge failed');
 
-      // Update local state
-      const helperDeducted = Math.max(0, Number(traderWallet || 0) - Number(result.new_wallet_balance || 0));
-      const agencyDeducted = Math.max(0, amount - helperDeducted);
-      setTraderWallet(result.new_wallet_balance);
-      if (agencyData && agencyDeducted > 0) {
-        setAgencyData(prev => prev ? { ...prev, diamond_balance: Math.max(0, (prev.diamond_balance || 0) - agencyDeducted) } : null);
+      // Update local state from the RPC contract:
+      // new_wallet_balance = helper/topup wallet only, new_agency_balance = agency diamond wallet.
+      // The UI combines them once through availableTransferBalance/selfRechargeSourceBalance.
+      const nextHelperWallet = Number(result.new_helper_wallet_balance ?? result.new_wallet_balance ?? 0);
+      const nextAgencyBalance = Number(
+        result.new_agency_balance ?? Math.max(0, Number(agencyData?.diamond_balance || 0) - Number(result.agency_deducted || 0))
+      );
+      setTraderWallet(nextHelperWallet);
+      if (agencyData) {
+        setAgencyData(prev => prev ? { ...prev, diamond_balance: nextAgencyBalance } : null);
       }
       // Update cached user balance
       const { updateCachedBalance } = await import('@/hooks/useUserBalance');
@@ -1409,8 +1413,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         description: `${amount.toLocaleString()} 💎 added to your My Diamond Balance`,
       });
 
-      // Check low balance warning on combined trader wallet balance
-      await checkAndNotifyLowBalance(Math.max(0, (result.new_wallet_balance || 0) + Number(agencyData?.diamond_balance || 0) - agencyDeducted), currentUser.id);
+      // Check low balance warning on the single combined Trader Wallet balance.
+      await checkAndNotifyLowBalance(Math.max(0, nextHelperWallet + nextAgencyBalance), currentUser.id);
 
       setSelfRechargeAmount("");
       setShowTransferModal(false);
