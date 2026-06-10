@@ -99,6 +99,31 @@ export function usePrivateCall(userId: string | null) {
   const pendingCallCheckInFlightRef = useRef(false);
   const softEndCallRef = useRef<(() => void) | null>(null);
 
+  // C4 (2026-06-10): industry-standard caller-balance escrow at ring init.
+  // Holds 1-minute cost server-side so concurrent gifts can't drain the balance
+  // before the call connects. Released on reject/timeout/error, consumed on connect.
+  const currentReservationHoldRef = useRef<string | null>(null);
+  const releaseCurrentReservation = useCallback(async () => {
+    const hold = currentReservationHoldRef.current;
+    if (!hold) return;
+    currentReservationHoldRef.current = null;
+    try {
+      await supabase.rpc('release_call_balance', { p_hold_id: hold });
+    } catch (e) {
+      console.warn('[Call C4] release_call_balance failed:', e);
+    }
+  }, []);
+  const consumeCurrentReservation = useCallback(async (callId: string) => {
+    const hold = currentReservationHoldRef.current;
+    if (!hold || !callId) return;
+    currentReservationHoldRef.current = null;
+    try {
+      await supabase.rpc('consume_call_balance_reservation', { p_hold_id: hold, p_call_id: callId });
+    } catch (e) {
+      console.warn('[Call C4] consume_call_balance_reservation failed:', e);
+    }
+  }, []);
+
   const showVerifiedIncomingCall = useCallback(async (callId: string) => {
     if (!userId || !callId || endedCallIdsRef.current.has(callId)) return false;
     if (incomingCallIdRef.current === callId) return true;
