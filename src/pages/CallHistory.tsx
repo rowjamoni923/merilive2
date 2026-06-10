@@ -11,6 +11,7 @@ import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface CallRecord {
   id: string;
