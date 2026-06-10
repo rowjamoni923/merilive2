@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +11,12 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: 'forbidden_origin' }), {
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -45,12 +52,24 @@ serve(async (req) => {
       });
     }
 
+    const betNum = Number(bet_amount);
+    if (!game_key || typeof game_key !== 'string' || game_key.length > 64) {
+      return new Response(JSON.stringify({ error: 'invalid game_key' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!Number.isFinite(betNum) || betNum <= 0 || betNum > 10_000_000) {
+      return new Response(JSON.stringify({ error: 'invalid bet_amount' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Call secure RPC
     const { data, error } = await supabase.rpc('process_game_bet', {
       p_user_id: user.id,
       p_game_key: game_key,
       p_room_id: room_id || null,
-      p_bet_amount: bet_amount,
+      p_bet_amount: betNum,
       p_bet_details: bet_details || {},
     });
 
