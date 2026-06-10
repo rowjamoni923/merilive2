@@ -3,6 +3,7 @@
 // Auto-approves at >90% similarity, auto-bans duplicates
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,6 +138,10 @@ async function ensureCollection(): Promise<void> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {

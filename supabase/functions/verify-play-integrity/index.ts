@@ -1,3 +1,4 @@
+import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 // Pkg236 — Play Integrity API verification edge function
 // Accepts a Play Integrity token from the Android client, calls Google's
 // Play Integrity API using the service-account JSON, and returns the
@@ -90,6 +91,10 @@ async function getAccessToken(sa: SaJson): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   try {
     const body = await req.json().catch(() => ({}));

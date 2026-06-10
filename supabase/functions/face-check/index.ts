@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -106,6 +107,10 @@ async function callRekognition(imageBytes: Uint8Array, accessKey: string, secret
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {
