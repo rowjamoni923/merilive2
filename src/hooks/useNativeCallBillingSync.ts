@@ -182,10 +182,15 @@ export function useNativeCallBillingSync({
     };
   }, []);
 
-  // 2) Billing sync — caller side only (verified by reading caller_id).
+  // 2) Billing sync — caller side only.
+  // H-13: short-circuit BEFORE any DB query when the parent has already
+  // identified this client as the host. Saves one private_calls SELECT +
+  // one profiles SELECT per host-side call and removes the failure mode
+  // where a slow/failed query could surface coin-deduction UI to a host.
   useEffect(() => {
     if (!isAndroidNative()) return;
     if (!userId || !callId) return;
+    if (isHost) return;
 
     let cancelled = false;
     let balance = 0;
