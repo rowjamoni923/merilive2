@@ -9991,9 +9991,13 @@ export type Database = {
       }
       pk_battles: {
         Row: {
+          challenger_id: string | null
+          challenger_score: number | null
+          challenger_stream_id: string | null
           competition_id: string | null
           connect_grace_seconds: number
           created_at: string | null
+          duration_minutes: number | null
           duration_seconds: number
           ended_at: string | null
           final_status: string | null
@@ -10005,6 +10009,9 @@ export type Database = {
           min_host_level: number
           mode: string
           mvp_user_id: string | null
+          opponent_id: string | null
+          opponent_score: number | null
+          opponent_stream_id: string | null
           phase_config: Json
           punishment_end_ts: string | null
           started_at: string | null
@@ -10018,9 +10025,13 @@ export type Database = {
           winner_user_id: string | null
         }
         Insert: {
+          challenger_id?: string | null
+          challenger_score?: number | null
+          challenger_stream_id?: string | null
           competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
+          duration_minutes?: number | null
           duration_seconds?: number
           ended_at?: string | null
           final_status?: string | null
@@ -10032,6 +10043,9 @@ export type Database = {
           min_host_level?: number
           mode?: string
           mvp_user_id?: string | null
+          opponent_id?: string | null
+          opponent_score?: number | null
+          opponent_stream_id?: string | null
           phase_config?: Json
           punishment_end_ts?: string | null
           started_at?: string | null
@@ -10045,9 +10059,13 @@ export type Database = {
           winner_user_id?: string | null
         }
         Update: {
+          challenger_id?: string | null
+          challenger_score?: number | null
+          challenger_stream_id?: string | null
           competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
+          duration_minutes?: number | null
           duration_seconds?: number
           ended_at?: string | null
           final_status?: string | null
@@ -10059,6 +10077,9 @@ export type Database = {
           min_host_level?: number
           mode?: string
           mvp_user_id?: string | null
+          opponent_id?: string | null
+          opponent_score?: number | null
+          opponent_stream_id?: string | null
           phase_config?: Json
           punishment_end_ts?: string | null
           started_at?: string | null
@@ -16834,7 +16855,7 @@ export type Database = {
         Args: { p_host_id: string }
         Returns: number
       }
-      accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
+      accept_pk_battle: { Args: { p_battle_id: string }; Returns: string }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       accept_seat_invitation: {
         Args: { p_invitation_id: string }
@@ -20001,9 +20022,13 @@ export type Database = {
       pk_battle_accept: {
         Args: { _battle_id: string; _stream_id?: string }
         Returns: {
+          challenger_id: string | null
+          challenger_score: number | null
+          challenger_stream_id: string | null
           competition_id: string | null
           connect_grace_seconds: number
           created_at: string | null
+          duration_minutes: number | null
           duration_seconds: number
           ended_at: string | null
           final_status: string | null
@@ -20015,6 +20040,9 @@ export type Database = {
           min_host_level: number
           mode: string
           mvp_user_id: string | null
+          opponent_id: string | null
+          opponent_score: number | null
+          opponent_stream_id: string | null
           phase_config: Json
           punishment_end_ts: string | null
           started_at: string | null
@@ -20038,9 +20066,13 @@ export type Database = {
       pk_battle_finalize: {
         Args: { _battle_id: string }
         Returns: {
+          challenger_id: string | null
+          challenger_score: number | null
+          challenger_stream_id: string | null
           competition_id: string | null
           connect_grace_seconds: number
           created_at: string | null
+          duration_minutes: number | null
           duration_seconds: number
           ended_at: string | null
           final_status: string | null
@@ -20052,6 +20084,9 @@ export type Database = {
           min_host_level: number
           mode: string
           mvp_user_id: string | null
+          opponent_id: string | null
+          opponent_score: number | null
+          opponent_stream_id: string | null
           phase_config: Json
           punishment_end_ts: string | null
           started_at: string | null
@@ -20379,7 +20414,10 @@ export type Database = {
         }
         Returns: Json
       }
-      request_pk_battle_end: { Args: { p_battle_id: string }; Returns: Json }
+      request_pk_battle_end: {
+        Args: { p_battle_id: string }
+        Returns: undefined
+      }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }
         Returns: Json
@@ -20520,7 +20558,7 @@ export type Database = {
           p_opponent_id: string
           p_opponent_stream_id: string
         }
-        Returns: Json
+        Returns: string
       }
       start_pk_battle_random: {
         Args: {
