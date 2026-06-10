@@ -25,7 +25,8 @@ const COMBO_WINDOW_MS = 4000;
 const MAX_LANES = 3;
 
 interface ComboLane {
-  id: string;            // sender+gift key
+  id: string;
+  comboKey: string;      // sender+gift map key
   senderId: string;
   senderName: string;
   senderAvatar?: string;
@@ -46,20 +47,33 @@ interface Props {
   receiverName?: string;
 }
 
+type ComboGiftDetail = GiftSentDetail & {
+  senderLevel?: number | string | null;
+  giftIcon?: string | null;
+};
+
 export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) => {
   const lanesRef = useRef<Map<string, ComboLane>>(new Map());
   const [lanes, setLanes] = useState<ComboLane[]>([]);
 
   const flushLanes = () => {
-    const arr = Array.from(lanesRef.current.values())
-      .sort((a, b) => b.lastAt - a.lastAt)
-      .slice(0, MAX_LANES);
+    const all = Array.from(lanesRef.current.values());
+    const topLane = all
+      .slice()
+      .sort((a, b) => (b.totalValue - a.totalValue) || (b.count - a.count) || (b.lastAt - a.lastAt))[0];
+    const arr = [
+      ...(topLane ? [topLane] : []),
+      ...all
+        .filter((lane) => lane.id !== topLane?.id)
+        .sort((a, b) => b.lastAt - a.lastAt),
+    ].slice(0, MAX_LANES);
     setLanes(arr);
   };
 
   useEffect(() => {
+    const laneStore = lanesRef.current;
     const onGift = (ev: Event) => {
-      const data = (ev as CustomEvent<GiftSentDetail>).detail;
+      const data = (ev as CustomEvent<ComboGiftDetail>).detail;
       if (!data || data.scope !== scope || data.id !== id) return;
       if (!data.senderId || !data.giftName) return;
 
@@ -82,13 +96,14 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
         if (existing?.timer) clearTimeout(existing.timer);
         const lane: ComboLane = {
           id: `${key}|${now}`,
+          comboKey: key,
           senderId: data.senderId,
           senderName: data.senderName || "User",
           senderAvatar: data.senderAvatar,
-          senderLevel: Number((data as any).senderLevel) || 1,
+          senderLevel: Number(data.senderLevel) || 1,
           receiverName,
           giftName: data.giftName,
-          giftEmoji: (data as any).giftIcon || "🎁",
+          giftEmoji: data.giftIcon || "🎁",
           giftIcon: data.giftIconUrl || undefined,
           count: addCount,
           totalValue: unitCoins * addCount,
@@ -108,10 +123,10 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
     return () => {
       window.removeEventListener("livekit-gift-sent", onGift);
       // Clear timers on unmount
-      for (const lane of lanesRef.current.values()) {
+      for (const lane of laneStore.values()) {
         if (lane.timer) clearTimeout(lane.timer);
       }
-      lanesRef.current.clear();
+      laneStore.clear();
     };
   }, [scope, id, receiverName]);
 
@@ -126,6 +141,8 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
 
   const totalActive = lanesRef.current.size;
   const hiddenCount = Math.max(0, totalActive - lanes.length);
+  const topActiveLaneId = Array.from(lanesRef.current.values())
+    .sort((a, b) => (b.totalValue - a.totalValue) || (b.count - a.count) || (b.lastAt - a.lastAt))[0]?.id;
 
   return (
     <div
@@ -165,7 +182,8 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
               count: lane.count,
               totalValue: lane.totalValue,
             }}
-            onDismiss={() => dismissLane(`${lane.senderId}|${lane.giftName}`)}
+            isTopContributor={lane.id === topActiveLaneId}
+            onDismiss={() => dismissLane(lane.comboKey)}
           />
         </div>
       ))}

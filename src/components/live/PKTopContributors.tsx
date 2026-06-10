@@ -25,6 +25,12 @@ interface SenderRow {
   score: number;
 }
 
+interface PKGiftRow {
+  sender_id?: string | null;
+  target_host_id?: string | null;
+  score_value?: number | string | null;
+}
+
 interface ResolvedSender extends SenderRow {
   avatar: string | null;
   name: string;
@@ -38,11 +44,11 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
   const opponentMapRef = useRef<Map<string, number>>(new Map());
   const profileCacheRef = useRef<Map<string, { avatar: string | null; name: string }>>(new Map());
   const [tick, setTick] = useState(0);
-  const [profilesReady, setProfilesReady] = useState(0);
+  const [, setProfilesVersion] = useState(0);
 
   const bump = () => setTick((n) => n + 1);
 
-  const applyGift = (row: { sender_id?: string | null; target_host_id?: string | null; score_value?: number | string | null }) => {
+  const applyGift = (row: PKGiftRow) => {
     const senderId = row.sender_id;
     const target = row.target_host_id;
     const score = Number(row.score_value) || 0;
@@ -67,7 +73,8 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
       if (cancelled || !data) return;
       challengerMapRef.current.clear();
       opponentMapRef.current.clear();
-      for (const row of data) applyGift(row as any);
+      profileCacheRef.current.clear();
+      for (const row of data) applyGift(row);
       bump();
     })();
 
@@ -78,7 +85,7 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
         { event: "INSERT", schema: "public", table: "pk_battle_gifts", filter: `battle_id=eq.${battleId}` },
         (payload) => {
           if (cancelled) return;
-          applyGift(payload.new as any);
+          applyGift(payload.new as PKGiftRow);
           bump();
         },
       )
@@ -123,7 +130,7 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
         .select("id, avatar_url, display_name, username")
         .in("id", ids);
       if (cancelled || !data) return;
-      for (const p of data as any[]) {
+      for (const p of data) {
         profileCacheRef.current.set(p.id, {
           avatar: p.avatar_url || null,
           name: p.display_name || p.username || "User",
@@ -135,22 +142,20 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
           profileCacheRef.current.set(id, { avatar: null, name: "User" });
         }
       }
-      setProfilesReady((n) => n + 1);
+      setProfilesVersion((n) => n + 1);
     })();
     return () => { cancelled = true; };
   }, [topChallenger, topOpponent]);
 
-  const resolve = (rows: SenderRow[]): ResolvedSender[] =>
-    rows.map((r) => {
-      const p = profileCacheRef.current.get(r.senderId);
-      return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
-    });
+  const left: ResolvedSender[] = topChallenger.map((r) => {
+    const p = profileCacheRef.current.get(r.senderId);
+    return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
+  });
 
-  // Reference profilesReady so the component re-renders once profiles arrive.
-  void profilesReady;
-
-  const left = resolve(topChallenger);
-  const right = resolve(topOpponent);
+  const right: ResolvedSender[] = topOpponent.map((r) => {
+    const p = profileCacheRef.current.get(r.senderId);
+    return { ...r, avatar: p?.avatar ?? null, name: p?.name ?? "User" };
+  });
 
   if (left.length === 0 && right.length === 0) return null;
 

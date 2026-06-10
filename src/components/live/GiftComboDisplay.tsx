@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Crown } from "lucide-react";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -37,6 +38,7 @@ interface GiftCombo {
 
 interface GiftComboDisplayProps {
   combo: GiftCombo | null;
+  isTopContributor?: boolean;
   onComplete?: () => void;
   onDismiss?: () => void;
 }
@@ -51,7 +53,7 @@ function getTier(totalValue: number) {
   return { isPremium, isLegendary };
 }
 
-export const GiftComboDisplay = ({ combo, onComplete, onDismiss }: GiftComboDisplayProps) => {
+export const GiftComboDisplay = ({ combo, isTopContributor = false, onComplete, onDismiss }: GiftComboDisplayProps) => {
   const [milestoneTick, setMilestoneTick] = useState(0); // forces per-burst keyframe re-run
   const [isPressed, setIsPressed] = useState(false);
   const lastCountRef = useRef(0);
@@ -66,7 +68,7 @@ export const GiftComboDisplay = ({ combo, onComplete, onDismiss }: GiftComboDisp
       setMilestoneTick((n) => n + 1);
       // Milestone haptic (Bigo/Chamet parity): tiered vibration on x10/x50/x99.
       try {
-        const vib = (navigator as any)?.vibrate?.bind(navigator);
+        const vib = typeof navigator !== "undefined" ? navigator.vibrate?.bind(navigator) : undefined;
         if (vib) {
           if (prev < MILESTONES.fullFlash && combo.count >= MILESTONES.fullFlash) {
             vib([40, 30, 60, 30, 90]);
@@ -230,6 +232,17 @@ export const GiftComboDisplay = ({ combo, onComplete, onDismiss }: GiftComboDisp
 
           {/* Sender avatar (compact 36dp) */}
           <div className="relative shrink-0">
+            {isTopContributor && (
+              <motion.div
+                className="absolute -top-3 -left-1 z-10"
+                initial={{ y: 4, opacity: 0, scale: 0.7 }}
+                animate={{ y: [0, -2, 0], opacity: 1, scale: 1, rotate: [0, -6, 0, 6, 0] }}
+                transition={{ y: { duration: 1.6, repeat: Infinity, ease: "easeInOut" }, rotate: { duration: 1.8, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 0.16 }, scale: { duration: 0.18 } }}
+                style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.95)) drop-shadow(0 1px 2px rgba(0,0,0,0.65))" }}
+              >
+                <Crown className="w-4 h-4 text-amber-300" />
+              </motion.div>
+            )}
             <Avatar className="w-9 h-9 ring-2 ring-white/30">
               <AvatarImage src={combo.senderAvatar} alt={combo.senderName} />
               <AvatarFallback className="text-[10px] font-bold">

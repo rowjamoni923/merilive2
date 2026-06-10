@@ -53,7 +53,7 @@ const PKScoreNumber = ({
 }) => (
   <span
     className="relative inline-block overflow-hidden text-lg font-extrabold tabular-nums"
-    style={{ minWidth: "1.5em", height: "1.4em", lineHeight: "1.4em", color, textShadow: glow }}
+    style={{ minWidth: "1.5em", height: "1.6em", lineHeight: "1.6em", color, textShadow: glow }}
   >
     <AnimatePresence mode="popLayout" initial={false}>
       <motion.span
@@ -93,6 +93,19 @@ interface PKBattleActiveProps {
   /** Current viewer/host user id — drives native PK SFX/VAP/haptic cues. Optional. */
   currentUserId?: string | null;
   onBattleEnd: (winnerId: string | null) => void;
+}
+
+interface PKBattleRow {
+  challenger_score?: number | null;
+  opponent_score?: number | null;
+  started_at?: string | null;
+  duration_seconds?: number | null;
+  status?: string | null;
+  winner_user_id?: string | null;
+  final_status?: string | null;
+  mvp_user_id?: string | null;
+  mvp_contribution?: number | null;
+  punishment_end_ts?: string | null;
 }
 
 export const PKBattleActive = ({
@@ -135,8 +148,20 @@ export const PKBattleActive = ({
 
   const prevChallengerRef = useRef(0);
   const prevOpponentRef = useRef(0);
+  const latestChallengerScoreRef = useRef(0);
+  const latestOpponentScoreRef = useRef(0);
+  const onBattleEndRef = useRef(onBattleEnd);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
+
+  useEffect(() => {
+    latestChallengerScoreRef.current = challengerScore;
+    latestOpponentScoreRef.current = opponentScore;
+  }, [challengerScore, opponentScore]);
+
+  useEffect(() => {
+    onBattleEndRef.current = onBattleEnd;
+  }, [onBattleEnd]);
 
 
   // PK Battle Step 3 — REWORKED:
@@ -176,18 +201,7 @@ export const PKBattleActive = ({
     if (battleEnded) return;
     let cancelled = false;
 
-    const applyRow = (row: {
-      challenger_score?: number | null;
-      opponent_score?: number | null;
-      started_at?: string | null;
-      duration_seconds?: number | null;
-      status?: string | null;
-      winner_user_id?: string | null;
-      final_status?: string | null;
-      mvp_user_id?: string | null;
-      mvp_contribution?: number | null;
-      punishment_end_ts?: string | null;
-    }) => {
+    const applyRow = (row: PKBattleRow) => {
       // Coalesced score updates (P2). Stash latest and flush on next frame.
       if (typeof row.challenger_score === "number") {
         pendingChallengerRef.current = row.challenger_score;
@@ -212,7 +226,7 @@ export const PKBattleActive = ({
       if (row.winner_user_id !== undefined) setWinnerUserId(row.winner_user_id ?? null);
       if (row.status === "ended") {
         setBattleEnded(true);
-        onBattleEnd(row.winner_user_id ?? null);
+        onBattleEndRef.current(row.winner_user_id ?? null);
       }
     };
 
@@ -237,7 +251,7 @@ export const PKBattleActive = ({
         { event: "UPDATE", schema: "public", table: "pk_battles", filter: `id=eq.${battleId}` },
         (payload) => {
           if (cancelled) return;
-          applyRow(payload.new as Parameters<typeof applyRow>[0]);
+          applyRow(payload.new as PKBattleRow);
         },
       )
       .subscribe();
@@ -247,14 +261,15 @@ export const PKBattleActive = ({
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
+      if (detail.scope !== "live") return;
       const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
       if (!coins) return;
       if (challengerId && detail.receiverId === challengerId) {
-        const base = pendingChallengerRef.current ?? challengerScore;
+        const base = pendingChallengerRef.current ?? latestChallengerScoreRef.current;
         pendingChallengerRef.current = base + coins;
         scheduleFlush();
       } else if (opponentId && detail.receiverId === opponentId) {
-        const base = pendingOpponentRef.current ?? opponentScore;
+        const base = pendingOpponentRef.current ?? latestOpponentScoreRef.current;
         pendingOpponentRef.current = base + coins;
         scheduleFlush();
       }
@@ -266,7 +281,7 @@ export const PKBattleActive = ({
       supabase.removeChannel(channel);
       window.removeEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
     };
-  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd, challengerScore, opponentScore, scheduleFlush]);
+  }, [battleId, battleEnded, challengerId, opponentId, scheduleFlush]);
 
 
 
@@ -453,10 +468,10 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("profiles")
         .select("username, display_name")
-        .eq("user_id", mvpUserId)
+        .eq("id", mvpUserId)
         .maybeSingle();
       if (cancelled) return;
-      const n = (data as any)?.display_name || (data as any)?.username || null;
+      const n = data?.display_name || data?.username || null;
       setMvpName(n);
     })();
     return () => { cancelled = true; };
