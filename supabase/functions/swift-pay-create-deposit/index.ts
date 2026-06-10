@@ -311,7 +311,11 @@ Deno.serve(async (req) => {
 
     if (!depositRes.ok) {
       const gatewayMessage = gatewayErrorMessage(depositBody);
-      console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage, depositBody);
+      // R2-Phase E Wave-2 log scrub: don't dump the full raw gateway body —
+      // it can include payment addresses + provider txn ids. Log status +
+      // sanitized message only.
+      console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage);
+
 
       if (isGatewayMinimumAmountError(gatewayMessage) || isGatewayMinimumAmountError(String(depositBody?.details ?? ""))) {
         // Parse "Minimum required is approximately $X.XX" out of details

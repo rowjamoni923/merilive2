@@ -4257,6 +4257,7 @@ export type Database = {
           full_name: string | null
           host_photos: string[] | null
           id: string
+          images_purged_at: string | null
           ip_hash: string | null
           is_duplicate_face: boolean | null
           language: string | null
@@ -4302,6 +4303,7 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
@@ -4347,6 +4349,7 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
