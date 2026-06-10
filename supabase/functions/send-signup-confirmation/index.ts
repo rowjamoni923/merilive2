@@ -123,6 +123,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`[send-signup-confirmation] Queuing OTP to ${email}`);
 
+    // R2-C3: persist OTP server-side so `verify-email-otp` can validate it.
+    // No client ever sees the code.
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { error: otpInsertErr } = await supabase.from("email_otps").insert({
+      email,
+      otp_code: verificationCode,
+      purpose: "register",
+      expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
+      attempts: 0,
+      is_used: false,
+    });
+    if (otpInsertErr) {
+      console.error("[send-signup-confirmation] email_otps insert error:", otpInsertErr);
+      return new Response(
+        JSON.stringify({ success: false, error: "OTP persist failed" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const result = await sendOtpEmail({
       to: email,
       otp: verificationCode,
@@ -134,14 +155,15 @@ const handler = async (req: Request): Promise<Response> => {
     if (!result.success) {
       console.error("[send-signup-confirmation] Lovable Email failed:", result.error);
       return new Response(
-        JSON.stringify({ success: false, error: "Email delivery failed", details: result.error, code: verificationCode }),
+        JSON.stringify({ success: false, error: "Email delivery failed", details: result.error }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
     console.log("[send-signup-confirmation] ✅ Queued via Lovable Email");
+    // NOTE: `code` intentionally omitted from response — never returned to client.
     return new Response(
-      JSON.stringify({ success: true, provider: "Lovable", code: verificationCode, displayName }),
+      JSON.stringify({ success: true, provider: "Lovable", displayName }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
