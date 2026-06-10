@@ -36,6 +36,14 @@ interface UseNativeCallBillingSyncArgs {
   userId: string | null;
   /** Active call id; null/empty disables the sync. */
   callId: string | null | undefined;
+  /**
+   * H-13: parent already knows whether this client is the host. Pass it in
+   * so we can short-circuit BEFORE issuing any DB query — host-side mounts
+   * previously paid for a `private_calls` SELECT + a wallet SELECT just to
+   * discover they shouldn't push, and a slow / failed query could even
+   * surface a phantom coin-deduction UI to the host.
+   */
+  isHost?: boolean;
 }
 
 function isAndroidNative(): boolean {
