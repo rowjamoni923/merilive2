@@ -117,11 +117,18 @@ export const PKBattleActive = ({
   const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
   const [mvpUserId, setMvpUserId] = useState<string | null>(null);
   const [mvpContribution, setMvpContribution] = useState<number | null>(null);
+  const [mvpName, setMvpName] = useState<string | null>(null);
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
+  // Live diamond-delta floaters per side (Bigo-signature) — auto-evicted after 1.4s.
+  type DeltaFloat = { key: string; side: "challenger" | "opponent"; amount: number };
+  const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+  const prevChallengerRef = useRef(0);
+  const prevOpponentRef = useRef(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
+
 
   // PK Battle Step 3 — REWORKED:
   //   1. Seed from server-authoritative columns (challenger_score, opponent_score,
@@ -366,6 +373,59 @@ export const PKBattleActive = ({
   const timeCritical = timeLeft <= 10 && timeLeft > 0;
   const timeShatter = timeLeft === 0 && !!serverStartedAt && !battleEnded;
 
+  // Sudden-Death: last 30s + scores within ±10% of midline (Bigo "FINAL PUSH").
+  const suddenDeath =
+    !battleEnded && timeLeft > 0 && timeLeft <= 30 &&
+    totalScore > 0 && Math.abs(challengerPercent - opponentPercent) <= 20;
+
+  // Punishment-phase: dim & lock both halves, loser side gets red wash.
+  const inPunishment = battleEnded && punishLeft > 0 && !!winnerUserId;
+  const challengerLost = inPunishment && winnerUserId === opponentId;
+  const opponentLost = inPunishment && winnerUserId === challengerId;
+
+  // Live diamond-delta float-up: detect server score increases and emit a
+  // transient `+N` floater anchored over the matching HP half.
+  useEffect(() => {
+    const cDelta = challengerScore - prevChallengerRef.current;
+    const oDelta = opponentScore - prevOpponentRef.current;
+    prevChallengerRef.current = challengerScore;
+    prevOpponentRef.current = opponentScore;
+    if (cDelta <= 0 && oDelta <= 0) return;
+    const adds: DeltaFloat[] = [];
+    const stamp = Date.now();
+    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta });
+    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta });
+    if (!adds.length) return;
+    setDeltaFloats((prev) => [...prev, ...adds].slice(-8));
+    const keys = adds.map((a) => a.key);
+    const t = setTimeout(() => {
+      setDeltaFloats((prev) => prev.filter((f) => !keys.includes(f.key)));
+    }, 1400);
+    return () => clearTimeout(t);
+  }, [challengerScore, opponentScore]);
+
+  // Resolve MVP display name. Cheap: if MVP is one of the hosts, reuse name;
+  // otherwise fire a single profiles SELECT.
+  useEffect(() => {
+    if (!mvpUserId) { setMvpName(null); return; }
+    if (mvpUserId === challengerId) { setMvpName(challengerName); return; }
+    if (mvpUserId === opponentId) { setMvpName(opponentName); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, display_name")
+        .eq("user_id", mvpUserId)
+        .maybeSingle();
+      if (cancelled) return;
+      const n = (data as any)?.display_name || (data as any)?.username || null;
+      setMvpName(n);
+    })();
+    return () => { cancelled = true; };
+  }, [mvpUserId, challengerId, opponentId, challengerName, opponentName]);
+
+
+
   return (
     <motion.div
       className={`absolute left-0 right-0 z-30 px-3 ${compact ? "top-2 mx-auto max-w-xl" : "top-24"}`}
@@ -598,6 +658,62 @@ export const PKBattleActive = ({
 
           {/* Progress Bar + sliding lead crown (Bigo-parity) */}
           <div className="relative mt-3">
+            {/* Sudden-Death "FINAL PUSH" banner — last 30s + close score */}
+            <AnimatePresence>
+              {suddenDeath && (
+                <motion.div
+                  key="sudden-death"
+                  className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full z-20"
+                  initial={{ scale: 0, y: 6, opacity: 0 }}
+                  animate={{ scale: [0, 1.15, 1], y: 0, opacity: 1 }}
+                  exit={{ scale: 0.6, opacity: 0 }}
+                  transition={{ type: "spring", damping: 16, stiffness: 320 }}
+                  style={{
+                    background: "linear-gradient(135deg, #ef4444 0%, #f97316 50%, #fbbf24 100%)",
+                    border: "1px solid rgba(254,243,199,0.7)",
+                    boxShadow:
+                      "0 0 14px rgba(239,68,68,0.7), 0 0 28px rgba(251,191,36,0.4), inset 0 1px 0 rgba(255,255,255,0.35)",
+                  }}
+                >
+                  <motion.span
+                    className="text-[10px] font-black tracking-[0.2em] text-white uppercase block"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    Final Push
+                  </motion.span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Diamond-delta floaters per side (Bigo-signature +N rise+fade) */}
+            <div className="pointer-events-none absolute -top-4 left-0 right-0 h-6 z-10 overflow-visible">
+              <AnimatePresence>
+                {deltaFloats.map((f) => (
+                  <motion.div
+                    key={f.key}
+                    className="absolute text-[11px] font-black tabular-nums"
+                    style={{
+                      left: f.side === "challenger" ? "20%" : "80%",
+                      transform: "translateX(-50%)",
+                      color: f.side === "challenger" ? "#fbcfe8" : "#e9d5ff",
+                      textShadow:
+                        f.side === "challenger"
+                          ? "0 0 8px rgba(236,72,153,0.9), 0 1px 2px rgba(0,0,0,0.6)"
+                          : "0 0 8px rgba(168,85,247,0.9), 0 1px 2px rgba(0,0,0,0.6)",
+                    }}
+                    initial={{ y: 6, opacity: 0, scale: 0.7 }}
+                    animate={{ y: -22, opacity: [0, 1, 1, 0], scale: [0.7, 1.15, 1, 0.9] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.2, 0.7, 1] }}
+                  >
+                    +{fmtCompact(f.amount)} 💎
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
             {/* Raw count micro-text above each half */}
             <div className="flex justify-between mb-0.5 px-0.5">
               <span className="text-[10px] font-bold text-pink-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
@@ -626,6 +742,7 @@ export const PKBattleActive = ({
               style={{
                 background: "rgba(0,0,0,0.4)",
                 boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
+                filter: inPunishment ? "saturate(0.6) brightness(0.85)" : undefined,
               }}
             >
               <motion.div
@@ -638,7 +755,7 @@ export const PKBattleActive = ({
                 animate={{ width: `${challengerPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                {challengerWinning && totalScore > 0 && (
+                {challengerWinning && totalScore > 0 && !inPunishment && (
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -646,6 +763,16 @@ export const PKBattleActive = ({
                         "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
                       animation: "giftSendShine 1.4s ease-in-out infinite",
                       mixBlendMode: "screen",
+                    }}
+                  />
+                )}
+                {challengerLost && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
+                      mixBlendMode: "multiply",
                     }}
                   />
                 )}
@@ -660,7 +787,7 @@ export const PKBattleActive = ({
                 animate={{ width: `${opponentPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                {opponentWinning && totalScore > 0 && (
+                {opponentWinning && totalScore > 0 && !inPunishment && (
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -668,6 +795,16 @@ export const PKBattleActive = ({
                         "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
                       animation: "giftSendShine 1.4s ease-in-out infinite",
                       mixBlendMode: "screen",
+                    }}
+                  />
+                )}
+                {opponentLost && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
+                      mixBlendMode: "multiply",
                     }}
                   />
                 )}
@@ -686,6 +823,7 @@ export const PKBattleActive = ({
               />
             </div>
           </div>
+
 
         </div>
 
@@ -755,11 +893,17 @@ export const PKBattleActive = ({
                     <Crown className="w-3.5 h-3.5 text-amber-300" />
                     <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
                   </div>
+                  {mvpName && (
+                    <span className="text-[10px] font-bold text-amber-100 truncate max-w-[90px]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {mvpName}
+                    </span>
+                  )}
                   {typeof mvpContribution === "number" && mvpContribution > 0 && (
                     <span className="text-[9px] font-semibold text-amber-300/90 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
                       {fmtCompact(mvpContribution)} coins
                     </span>
                   )}
+
                 </div>
               )}
 
