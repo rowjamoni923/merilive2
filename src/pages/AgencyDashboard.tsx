@@ -949,7 +949,7 @@ const AgencyDashboard = () => {
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="w-9 h-9 border-2 border-amber-500/40">
-                      <AvatarImage src={ph.profile?.avatar_url || ''} />
+                      <AvatarImage src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82 })} />
                       <AvatarFallback className="bg-amber-500/20 text-amber-200 text-xs">
                         {ph.profile?.display_name?.charAt(0) || '?'}
                       </AvatarFallback>
@@ -1023,7 +1023,7 @@ const AgencyDashboard = () => {
               {parentAgency.owner_profile && (
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <Avatar className="w-8 h-8 border border-white/30">
-                    <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
+                    <AvatarImage src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82 })} />
                     <AvatarFallback className="bg-white/20 text-white text-xs">
                       {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                     </AvatarFallback>
@@ -1636,7 +1636,7 @@ const AgencyDashboard = () => {
                         {index + 1}
                       </span>
                       <Avatar className="w-10 h-10 border-2 border-border">
-                        <AvatarImage src={host.profile?.avatar_url || ""} />
+                        <AvatarImage src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82 })} />
                         <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -1768,7 +1768,7 @@ const AgencyDashboard = () => {
                     {subAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <Avatar className="w-10 h-10 border-2 border-border">
-                          <AvatarImage src={sa.profile?.avatar_url || ""} />
+                          <AvatarImage src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82 })} />
                           <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -2111,7 +2111,7 @@ const AgencyDashboard = () => {
                 {parentAgency.owner_profile && (
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
                     <Avatar className="w-12 h-12 border-2 border-purple-200">
-                      <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
+                      <AvatarImage src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82 })} />
                       <AvatarFallback className="bg-purple-100 text-purple-700">
                         {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                       </AvatarFallback>

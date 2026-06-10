@@ -410,7 +410,7 @@ const AgentRank = () => {
                       className={`${config.ringSize} rounded-full bg-gradient-to-b ${config.ring} ${config.glow}`}
                     >
                       <Avatar className={`${config.size} border-2 border-black/30`}>
-                        <AvatarImage src={entry.owner_avatar || entry.logo_url || undefined} className="object-contain" />
+                        <AvatarImage src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82 })} className="object-contain" />
                         <AvatarFallback className={`bg-gradient-to-br ${config.badge} text-slate-800 font-black ${isChamp ? 'text-xl' : 'text-lg'}`}>
                           {entry.agency_name?.slice(0, 2)}
                         </AvatarFallback>
@@ -503,7 +503,7 @@ const AgentRank = () => {
                   {/* Avatar */}
                   <div className="relative">
                     <Avatar className="w-11 h-11 border border-amber-300">
-                      <AvatarImage src={agency.owner_avatar || agency.logo_url || undefined} className="object-contain" />
+                      <AvatarImage src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82 })} className="object-contain" />
                       <AvatarFallback className="bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white font-bold text-sm">
                         {agency.agency_name?.slice(0, 2)}
                       </AvatarFallback>
@@ -555,7 +555,7 @@ const AgentRank = () => {
               <span className="text-sm font-black text-white">#{currentUserAgency.rank_position}</span>
             </div>
             <Avatar className="w-9 h-9 border border-amber-200/60">
-              <AvatarImage src={currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined} />
+              <AvatarImage src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82 })} />
               <AvatarFallback className="bg-white/10 text-white font-bold text-xs">
                 {currentUserAgency.agency_name?.slice(0, 2)}
               </AvatarFallback>

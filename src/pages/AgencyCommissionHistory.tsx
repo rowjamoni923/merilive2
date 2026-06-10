@@ -331,7 +331,7 @@ const AgencyCommissionHistory = () => {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={commission.host_profile?.avatar_url || ""} />
+                          <AvatarImage src={enhanceThumbnail(commission.host_profile?.avatar_url || "", { width: 96, quality: 82 })} />
                           <AvatarFallback>
                             <User className="w-5 h-5" />
                           </AvatarFallback>
