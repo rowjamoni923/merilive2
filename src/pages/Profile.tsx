@@ -2176,7 +2176,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Avatar with Level-Based SVGA Frame */}
           <AvatarWithFrame 
             userId={profileId}
-            src={profile?.avatar_url}
+            src={profile?.avatar_url ? enhanceThumbnail(profile.avatar_url, { width: 128, quality: 85 }) : profile?.avatar_url}
             name={resolvedProfileName || "U"}
             level={displayLevel} 
             size="xl"
