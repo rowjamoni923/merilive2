@@ -1518,5 +1518,11 @@ export function usePrivateCall(userId: string | null) {
     endCall,
     dismissCall,
     notifyMediaConnected,
+    // H-4: expose the single source-of-truth call-ended ref so CallProvider
+    // (and any other parent) reads the SAME ref instead of maintaining its
+    // own that can drift out of sync (e.g. parent missed reset → stuck
+    // "call ended" gate that blocks the next incoming call).
+    callEndedRef,
   };
+
 }
