@@ -145,6 +145,7 @@ serve(async (req) => {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      authedUserId = userData.user.id;
     }
 
     const { imageBase64, streamId } = await req.json();
@@ -154,6 +155,36 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // R2-H12: caller MUST be the live host of the stream they're posting
+    // frames for. Without this, any authenticated user could spam frames
+    // tagged with someone else's streamId and corrupt their face-warning
+    // history. Skip when no streamId is supplied (used by some non-live
+    // call-quality probes).
+    // R2-H13: also load server-side grace + persisted warning count so a
+    // client refresh can no longer reset face-moderation state to zero.
+    let serverInGrace = false;
+    let serverWarningCount = 0;
+    if (streamId) {
+      const adminClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: rt, error: rtErr } = await adminClient.rpc("get_live_face_runtime", {
+        p_user_id: authedUserId,
+        p_stream_id: streamId,
+        p_grace_seconds: 60,
+      });
+      const row = Array.isArray(rt) ? rt[0] : rt;
+      if (rtErr || !row?.is_authorized) {
+        return new Response(JSON.stringify({ error: "stream_not_owned" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      serverInGrace = Boolean(row.in_grace);
+      serverWarningCount = Number(row.warning_count ?? 0);
+    }
+
 
     const cleanBase64 = String(imageBase64).includes(',')
       ? String(imageBase64).split(',').pop()!
