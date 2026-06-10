@@ -318,3 +318,6 @@ Verification: APK rebuild NOT required (DB + edge-fn + WebView hook). Owner-acco
 - Admin sessionStorage (R2-H6 admin part): already implemented in `src/utils/adminAccessStorage.ts` (dual sessionStorage + persistent localStorage with explicit sync). No change needed.
 - Recipient confirm in transfers: SKIPPED — adds a new dialog/UX step which the user's "no system change" rule disallows; existing helper/agency forms already have a review state before submit.
 Verification: APK rebuild NOT required (single web tweak in Chat.tsx). No DB migration, no edge fn, no feature surface changes.
+
+**R2-Phase F+ Combo Gift Counter pro-grade redesign — Phase 1** — DONE 2026-06-10.
+Research-locked (Bigo/Chamet/TikTok LIVE teardown): bottom-left stacking pill queue, italic compressed chrome-gold typography with 2px black stroke + 3D bevel, 4-tier milestone burst (x5 punch / x10 spark / x50 fire-ring / x99 full-frame flash), per-tap spring 1.0→1.06→0.98→1.0 (220ms), Y-axis number cross-fade (80ms swap). Files: src/components/live/GiftComboDisplay.tsx (full rewrite, NOT fixed anymore — tracker positions), src/components/live/GiftComboTracker.tsx (right→left anchor, flex-col-reverse so newest sits on top). Server-authoritative scoring + per-sender+gift lane logic + 4s combo window UNTOUCHED. APK rebuild NOT required.
