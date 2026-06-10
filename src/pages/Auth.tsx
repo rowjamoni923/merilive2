@@ -651,7 +651,13 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-        console.warn('[Auth] Device recovery exchange failed, falling back to registration');
+        console.warn('[Auth] Device recovery exchange failed; refusing to create a duplicate account');
+        toast({
+          title: "Recovery Failed",
+          description: "We found your device account but could not restore it right now. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
 
@@ -1027,6 +1033,14 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
+
+        console.warn('[Auth] Safety recovery exchange failed; refusing duplicate registration');
+        toast({
+          title: "Recovery Failed",
+          description: "We found your device account but could not restore it right now. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
       
