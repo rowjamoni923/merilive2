@@ -95,7 +95,14 @@ export const useLiveStreamLifecycle = ({
     // Can't await on unload, so use stored auth token if available
     try {
       const authStorageKey = getSupabaseAuthStorageKey();
-      const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
+      // M3 (2026-06-10): null-guard authStorageKey — when null, localStorage.getItem(null)
+      // returns null, JSON.parse('{}') is {}, token becomes undefined and the RPC
+      // is silently skipped. Stream stays is_active=true until 3-min cron.
+      if (!authStorageKey) {
+        console.warn('[LiveStream Lifecycle] No auth storage key; skipping sync end');
+        return;
+      }
+      const session = JSON.parse(localStorage.getItem(authStorageKey) || '{}');
       const token = session?.access_token;
       if (token) {
         // R2-H21: prefer `end_live_stream` RPC over the direct PATCH so the

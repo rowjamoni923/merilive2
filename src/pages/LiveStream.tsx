@@ -537,14 +537,22 @@ const LiveStream = () => {
         }).catch(() => {});
       } catch { /* ignore unload failures */ }
     };
-    window.addEventListener('pagehide', sendViewerLeave);
-    window.addEventListener('beforeunload', sendViewerLeave);
+    // M1 (2026-06-10): dedup leave RPC — pagehide + visibilitychange both fire
+    // on Android home button → double RPC. hasLeftRef ensures one call only.
+    let hasLeftLocal = false;
+    const sendViewerLeaveOnce = () => {
+      if (hasLeftLocal) return;
+      hasLeftLocal = true;
+      sendViewerLeave();
+    };
+    window.addEventListener('pagehide', sendViewerLeaveOnce);
+    window.addEventListener('beforeunload', sendViewerLeaveOnce);
     // Pkg425: also fire on tab-hidden + Capacitor app background. iOS Safari and
     // Android WebView kill tabs without firing pagehide/beforeunload reliably; the
     // 90s cron cleans those up but the count stays inflated until then. Visibility
     // and appStateChange give us a sub-second leave on app switch / lock screen.
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') sendViewerLeave();
+      if (document.visibilityState === 'hidden') sendViewerLeaveOnce();
     };
     document.addEventListener('visibilitychange', onVisibility);
     let appStateDetach: (() => void) | null = null;
