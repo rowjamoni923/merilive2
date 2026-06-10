@@ -1,49 +1,86 @@
-## Wave 2: Edge Functions Audit (150 functions total)
+# Wave 3 — Database / RLS / Storage Security Audit
 
-ভাই, honest reality: **150 edge functions আছে।** এক session-এ সবগুলো "100% নিখুঁত" করা মানে কোনোটাই ঠিকমতো audit হবে না — শুধু surface scan হবে আর নতুন bug আসবে। Memory-র research-first rule অনুযায়ী প্রতি function-এ Chamet/Bigo equivalent + current code + gap analysis দরকার।
+Supabase linter এ মোট **1347 issues** ধরা পড়েছে। Wave 2-এর মতোই sub-waves এ ভাগ করে আগাব, প্রতিটা sub-wave এর পরে আপনার approval নিয়ে পরেরটা শুরু করব।
 
-তাই Wave 2-কে **risk-ordered 6 sub-wave**-এ ভাঙছি। আজকে Sub-wave 2A (highest-risk: money/auth) শুরু করব, বাকিগুলো পরের session-এ। প্রতিটা sub-wave নিজে নিজে complete + verifiable।
+## Issue distribution (linter snapshot)
 
-### Sub-wave 2A — Money & Auth (TODAY, ~15 functions)
-সবচেয়ে বেশি abuse risk। এক bug = সরাসরি টাকার ক্ষতি।
-- **Recharge/Payment:** `create-local-payment`, `local-payment-ipn`, `swift-pay-create-deposit`, `swift-pay-poll-deposits`, `swift-pay-create-payout`, `verify-google-purchase`, `admin-verify-purchase`, `apply-vip-recharge-bonus`, `noble-purchase`
-- **Auth/Session:** `device-session-exchange`, `otp-direct-signin`, `verify-email-otp`, `send-email-otp`, `send-password-otp`, `force-reset-guest-password`, `link-device-to-account`, `link-email-to-account`
+| Severity | Count | Issue |
+|---|---|---|
+| ERROR | 4 | Security Definer Views |
+| WARN | 564 | SECURITY DEFINER fn callable by `anon` |
+| WARN | 764 | SECURITY DEFINER fn callable by `authenticated` |
+| WARN | 8 | Public storage bucket allows listing |
+| WARN | 1 | RLS policy `USING (true)` on write op |
+| WARN | 1 | Extension installed in `public` schema |
+| INFO | 5 | RLS enabled but no policy |
 
-Audit checklist প্রতিটার জন্য:
-1. JWT validation (`getClaims` present?)
-2. Zod input validation
-3. CORS headers in all responses (incl. errors)
-4. service_role usage scoped (never returned to client)
-5. Idempotency for money paths (idempotency_keys table use)
-6. Replay/race protection
-7. Amount/coin validation server-side (client-supplied amounts rejected)
-8. Rate limiting
+## Sub-wave plan (small → high impact, safe → invasive)
 
-### Sub-wave 2B — LiveKit & Calls (~25 functions)
-`livekit-*` (20), `call-*` (3), `webrtc-signaling`, `agora-*` (2 legacy — check if removable)
+### 3A — Quick wins (4 ERRORs + INFOs)
+- **4 SECURITY DEFINER views** → recreate as `security_invoker=true` views (Postgres 15+) so they enforce the *caller's* RLS, not the creator's. Identify each view, check what it exposes, and convert in one migration.
+- **5 RLS-enabled-no-policy tables** → either add the missing policy or, if the table is server-only, leave RLS on (deny-all is the correct posture) and document why.
+- **1 `USING (true)` write policy** → identify and tighten to `auth.uid()`-scoped.
+- **1 extension in `public`** → move to `extensions` schema if it's `pg_trgm`/`uuid-ossp`/etc., or document acceptance.
 
-### Sub-wave 2C — Gift / Game / Reward (~15)
-`gift-service`, `game-*` (7), `leaderboard-rewards`, `distribute-leaderboard-rewards`, `claim-vip-daily-reward`, `payroll-helper-bonus`, `pk-battle-tick`, `pk-invite-deliver`
+### 3B — Storage buckets (8 buckets with public listing)
+For each of the 8 buckets:
+1. Inspect the bucket purpose (avatars / gift-media / chat-attachments / etc.).
+2. Decide if **read** must be public (gift assets — yes) vs **listing** must be public (almost never).
+3. Replace the broad `SELECT * FROM storage.objects` policy with a path-scoped policy that allows reading individual objects but not enumerating the whole bucket.
 
-### Sub-wave 2D — Moderation / Face / Anti-abuse (~15)
-`face-*`, `auto-face-verify`, `process-face-verification-v3`, `content-moderate`, `ai-moderator`, `live-frame-monitor`, `live-voice-moderate`, `verify-play-integrity`, `detect-vpn`, `scan-image-contact`, `scan-svga-audio`, `moderate-*`
+### 3C — SECURITY DEFINER function exposure (1328 warns)
+This is the biggest chunk. Strategy:
+1. Pull the full list of `SECURITY DEFINER` functions in `public`.
+2. Classify each into:
+   - **Client-callable via `supabase.rpc()`** (e.g. `has_role`, `claim_*`, `get_*` helpers) — keep `EXECUTE` to the role that legitimately calls it (`authenticated` only, almost never `anon`).
+   - **Trigger-only / called internally by other definer fns** — REVOKE `EXECUTE FROM PUBLIC, anon, authenticated`. Triggers still run as table owner.
+   - **Edge-function-only (called with service_role)** — REVOKE from everyone except `service_role`.
+3. Generate a single migration that revokes excess EXECUTE grants. Touch nothing the app actually calls.
 
-### Sub-wave 2E — Notifications / Push / Email (~20)
-`send-*-otp`, `send-*-email`, `send-push-notification`, `send-app-notification`, `send-reengagement-push`, `push-on-notification`, `notify-new-message`, `broadcast-app-update`, `auth-email-hook`, `handle-email-*`
+Risk note: aggressive revoke can break `supabase.rpc('fn_name')` calls in the React code. Mitigation = grep `src/` for every `.rpc(` call and whitelist those function names before revoking.
 
-### Sub-wave 2F — Admin / Maintenance / Misc (~60)
-`admin-*` (16), `bulk-*`, `migrate-*`, `sync-*`, `fix-*`, `fetch-exchange-rates`, `r2-*`, `tencent-beauty-sign`, `translate`, `ai-chat*`, `support-*`, helpers, agency, party-room, presence, ranking, etc.
+### 3D — High-value table RLS deep audit
+Manual review of the most sensitive tables (independent of linter):
+- `profiles` (127 cols, 6 policies) — column-level overshare check, especially for phone/email/balance/device fields visible to other users.
+- `coin_transactions`, `recharge_transactions`, `coin_transfers`, `billing_ledger` — verify no cross-user reads, no client INSERT/UPDATE on balance-bearing rows.
+- `private_calls`, `messages`, `conversations`, `group_messages` — verify participant-only visibility.
+- `user_roles`, `admin_users`, `admin_*` — confirm no client-side INSERT/UPDATE; verify `has_role()` is the only way to read.
+- `face_verification_submissions`, `face_records`, `play_integrity_verdicts` — verify owner-only reads (PII).
+- `device_tokens`, `device_session_exchange_tokens`, `phone_otps`, `email_otps`, `password_reset_otps`, `admin_login_otps` — verify zero client read access.
 
-### Approach for Sub-wave 2A
-1. Research-first: WebSocket+REST patterns Bigo/Chamet payment IPN, Google Play DTSv2 verification standards, OTP rate-limit norms (Twilio/Firebase guidelines).
-2. Read all 17 functions in parallel.
-3. Build gap matrix in `.lovable/edge-audit-2A.md`.
-4. Fix gaps via parallel file writes — one migration if DB changes needed (idempotency_keys hardening).
-5. Verify with `supabase--curl_edge_functions` using owner test account.
+For each table: read current policies, identify gaps, write a migration to tighten. Anything flagged for change goes through your approval before the migration runs.
 
-### Why not all 150 at once
-- Per-function research + gap doc takes real tokens; quality drops past ~20/session.
-- Money/auth functions changed wrong = revenue loss + lockouts. Must verify each.
-- Research-first memory rule explicitly forbids "skip and bulk-fix."
+### 3E — Data API GRANT audit
+Bulk-verify every `public` table has correct GRANTs for its policy scope. Common mistakes to look for:
+- `anon SELECT` on tables whose every policy is `auth.uid()`-scoped.
+- Missing `service_role` grant on edge-function-touched tables.
+- `authenticated INSERT/UPDATE` on tables that should be admin-only.
 
-**Approve → আমি এখনই Sub-wave 2A start করব।** Sub-wave 2B-2F পরের message-এ একই pattern-এ।
+### 3F — Auth/security memory + scanner cleanup
+Update `.lovable/memory/security-memory.md` with:
+- What's intentionally public (gift media, avatars, public profile fields).
+- What's intentionally server-only (OTP tables, audit logs).
+- Findings that were investigated and accepted as safe.
+
+So future scans don't keep re-flagging the same intentional patterns.
+
+## Technical details (for reference, not user-facing)
+
+- All migrations will follow project convention (`GRANT` block in same migration as `CREATE TABLE` / `CREATE POLICY`).
+- No data UPDATEs in migrations — use the insert tool if data fix is ever needed.
+- Each sub-wave produces an audit doc at `.lovable/db-audit-3X.md` (matching Wave 2 pattern).
+- Owner test account (`smdollarex923@gmail.com`) will be used to smoke-test profile/wallet/call flows after sub-waves 3C, 3D, 3E.
+- Research-first rule respected — competitor patterns (Chamet/Bigo/Olamet use server-authoritative balance + role tables + signed asset URLs) already match our target posture; no extra research needed before 3A/3B. 3C/3D will get a quick competitor cross-check before code.
+
+## Recommended order
+
+1. **3A** (small, safe, immediate wins) — start here.
+2. **3B** (storage bucket listing) — short, contained.
+3. **3D** (high-value table RLS) — most important security gain.
+4. **3E** (GRANTs audit) — supports 3D findings.
+5. **3C** (bulk SECURITY DEFINER revoke) — biggest scope, most risk → do last after rpc whitelist is solid.
+6. **3F** (memory cleanup) — closes the wave.
+
+## Confirm to proceed
+
+3A থেকে শুরু করব? নাকি অন্য order চান (যেমন আগে 3D, পরে বাকিগুলো)?
