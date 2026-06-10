@@ -3181,10 +3181,10 @@ const LiveStream = () => {
           if (battle.mvp_user_id) {
             const { data: mvpProfile } = await supabase
               .from("profiles")
-              .select("name, avatar_url")
+              .select("display_name, username, avatar_url")
               .eq("id", battle.mvp_user_id)
               .maybeSingle();
-            mvpName = mvpProfile?.name ?? null;
+            mvpName = mvpProfile?.display_name || mvpProfile?.username || null;
             mvpAvatar = mvpProfile?.avatar_url ?? null;
             const { data: mvpRow } = await supabase
               .from("pk_battle_gifts")
