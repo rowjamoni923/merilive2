@@ -107,6 +107,19 @@ Step 14: APK rebuild signal
 - Frontend rewire-এ existing PK/Game components পড়তে হবে (এখনো deep-read করিনি) — Step 6 + 12 শুরু আগে full file scan হবে
 - Owner-account testing শুধু web flow validate করবে; native PK overlay / game WebView Android-specific কিছু থাকলে APK rebuild লাগবে — সেটা সৎভাবে বলব
 
+---
+
+## Hotfix — Trader Wallet duplicate balance display
+
+### Verified root cause
+- Current owner account DB check: helper/topup wallet = **0.30 💎**, agency diamond wallet = **100,673,632 💎**, combined usable Trader Wallet = **100,673,632.30 💎**.
+- Self Recharge RPC was returning the **combined** value under `new_wallet_balance`; Profile UI then stored that as helper wallet and added agency balance again, creating a doubled display.
+- Professional wallet standard: show one usable wallet balance for the action source; keep internal ledgers separated only for accounting/audit, not duplicated in the user action screen.
+
+### Fix
+- RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
+- Profile Self Recharge UI now displays only one `Recharge Source` and one destination `My Diamond Balance`; internal helper/agency split is hidden from the user action flow.
+
 ## Total scope
 ~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
 
