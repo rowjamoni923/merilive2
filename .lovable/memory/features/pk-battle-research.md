@@ -65,11 +65,13 @@ Last audited: 2026-06-08 (Phase II audit). Original memory said "100% broken" �
 - ✅ Duration presets [180/300/600]s: segmented selector in `PKBattlePanel` → forwarded to both `start_pk_battle` (direct) and `start_pk_battle_random` via `randomPKSearching.durationSeconds`.
 - ✅ Per-user PK stats: `profiles.pk_wins / pk_losses / pk_draws / pk_current_streak / pk_longest_streak / pk_total_battles`. Auto-updated in `end_pk_battle`. **UI card NOT added yet** (design-sacred — awaiting explicit OK).
 
-## Deferred (low-priority cleanup)
-- R2: Drop `pk_battle_gifts.receiver_id` dead column
-- R3: Drop unused `pk_match_queue` table + 3 RPCs
+## Fixed 2026-06-10 (Bucket D cleanup)
+- ✅ R2: `pk_battle_gifts.receiver_id` already absent in live DB (verified via information_schema). Nothing to drop.
+- ✅ R3: `pk_match_queue` table + `pk_match%`/`pk_queue%` RPCs already absent in live DB. Nothing to drop.
+- ✅ R5: `pk-battle-tick` cron tightened from `*/10 * * * * *` → `*/5 * * * * *`. Job renamed `pk-battle-tick-every-5s`. Worst-case "TIME'S UP" → server-end latency halved (10s → 5s). No edge-fn or schema change needed.
+
+## Deferred
 - R4: MVP cash bonus — research confirms no platform does this. Skip unless product asks.
-- R5: 10s cosmetic delay between client "TIME'S UP" and server-side end (cron interval). Reduce cron to 5s OR add server-trigger on row UPDATE if it becomes a UX complaint.
 
 ## Files that touch PK Battle (sacred design — never restyle)
 - `src/components/live/PKBattleActive.tsx`
