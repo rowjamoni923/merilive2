@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getTaskDate } from "@/utils/taskDateUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -2175,7 +2176,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Avatar with Level-Based SVGA Frame */}
           <AvatarWithFrame 
             userId={profileId}
-            src={profile?.avatar_url}
+            src={profile?.avatar_url ? enhanceThumbnail(profile.avatar_url, { width: 128, quality: 85 }) : profile?.avatar_url}
             name={resolvedProfileName || "U"}
             level={displayLevel} 
             size="xl"
