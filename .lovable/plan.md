@@ -321,3 +321,9 @@ Verification: APK rebuild NOT required (single web tweak in Chat.tsx). No DB mig
 
 **R2-Phase F+ Combo Gift Counter pro-grade redesign — Phase 1** — DONE 2026-06-10.
 Research-locked (Bigo/Chamet/TikTok LIVE teardown): bottom-left stacking pill queue, italic compressed chrome-gold typography with 2px black stroke + 3D bevel, 4-tier milestone burst (x5 punch / x10 spark / x50 fire-ring / x99 full-frame flash), per-tap spring 1.0→1.06→0.98→1.0 (220ms), Y-axis number cross-fade (80ms swap). Files: src/components/live/GiftComboDisplay.tsx (full rewrite, NOT fixed anymore — tracker positions), src/components/live/GiftComboTracker.tsx (right→left anchor, flex-col-reverse so newest sits on top). Server-authoritative scoring + per-sender+gift lane logic + 4s combo window UNTOUCHED. APK rebuild NOT required.
+
+**Layer 1 PK/Gift Visual Polish — ✅ COMPLETE 2026-06-10**
+- Gift Combo: sender avatar/name chip ✅, milestone haptics x10/x50/x99 ✅, +N overflow chip ✅, active top-contributor crown ✅ (highest visible totalValue/count lane stays visible and crowned).
+- PK Active: top-3 supporter avatars per side ✅, +N diamond floaters ✅, punishment HP lock/caption/red loser wash ✅, Final Push close-score banner ✅, MVP identity/name micro-text ✅.
+- PK Result: MVP avatar/name/coins ✅, winner confetti + gift-rain ✅, loser grayscale fade ✅.
+- Sources/benchmarks: Bigo LIVE PK docs (PK duel + gifts), Chamet/Poppo BitTopup 2026 PK writeups (70/30 + gift-driven ranking), Tencent/TUILiveKit battle UX patterns; implemented as React/WebView presentation only, LiveKit/Supabase authority unchanged. APK rebuild NOT required.
