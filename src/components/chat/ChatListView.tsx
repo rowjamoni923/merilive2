@@ -132,7 +132,7 @@ const GroupRow: React.FC<{ group: Group; onSelect: (g: Group) => void }> = React
       className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
     >
       <Avatar className="w-14 h-14 shrink-0 self-center">
-        <AvatarImage src={group.avatar_url || undefined} />
+        <AvatarImage src={group.avatar_url ? enhanceThumbnail(group.avatar_url, { width: 64, quality: 82 }) : undefined} />
         <AvatarFallback className="bg-muted text-muted-foreground">
           <Users className="w-6 h-6" />
         </AvatarFallback>
