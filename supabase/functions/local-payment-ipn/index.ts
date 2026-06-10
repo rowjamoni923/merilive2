@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// R2-C5: gateway IPN is a server-to-server webhook (SSLCommerz/AamarPay).
+// Restrict CORS to known app origins only; the gateway POST doesn't honor CORS.
+const ALLOWED_CORS_ORIGINS = new Set([
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+function corsHeadersFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const allow = ALLOWED_CORS_ORIGINS.has(origin) ? origin : "https://merilive.top";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Vary": "Origin",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const ALLOWED_RETURN_ORIGINS = new Set([
   "https://merilive.top",
