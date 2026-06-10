@@ -114,7 +114,8 @@ Step 14: APK rebuild signal
 ### Verified root cause
 - Current owner account DB check: helper/topup wallet = **0.30 💎**, agency diamond wallet = **100,673,632 💎**, combined usable Trader Wallet = **100,673,632.30 💎**.
 - Self Recharge RPC was returning the **combined** value under `new_wallet_balance`; Profile UI then stored that as helper wallet and added agency balance again, creating a doubled display.
-- Professional wallet standard: show one usable wallet balance for the action source; keep internal ledgers separated only for accounting/audit, not duplicated in the user action screen.
+- Research note: category apps keep accounting buckets separated internally (stock/recharge currency vs earnings/commission currency), but recharge/transfer flows should highlight only the usable transfer source and avoid duplicate totals. References reviewed: BitTopup BIGO diamonds/beans guide, Poppo agent/coin seller training materials, Chamet/Olamet agency payout patterns.
+- Applied standard for MeriLive: keep helper wallet and agency diamond ledger separated internally for audit, but show one Trader Wallet source in the user action screen so the same balance is not counted twice.
 
 ### Fix
 - RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
