@@ -87,6 +87,27 @@ serve(async (req) => {
       });
     }
 
+    // R2-H12: when a streamId is supplied, confirm the caller actually
+    // hosts that live stream. Without this, anyone with a valid JWT could
+    // POST frames tagged with someone else's streamId and corrupt their
+    // moderation history / get them auto-ended.
+    if (body.streamId) {
+      const adminClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: ownsStream, error: ownsErr } = await adminClient.rpc("is_live_stream_host", {
+        p_user_id: callerUserId,
+        p_stream_id: body.streamId,
+      });
+      if (ownsErr || ownsStream !== true) {
+        return new Response(JSON.stringify({ error: "stream_not_owned" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const videoCfg = getProviderConfig("VERIFY_VIDEO_API_KEY");
     if (!videoCfg) {
       return new Response(
@@ -94,6 +115,7 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
 
     const result = (await providerMonitorFrame(videoCfg, {
       external_user_id: body.userId,
