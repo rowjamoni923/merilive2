@@ -5183,6 +5183,48 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_self_link_signals: {
+        Row: {
+          coin_total: number
+          device_id: string | null
+          first_at: string
+          gift_count: number
+          id: string
+          ip_hash: string | null
+          last_at: string
+          receiver_id: string
+          sender_id: string
+          suspect: boolean
+          suspect_reason: string | null
+        }
+        Insert: {
+          coin_total?: number
+          device_id?: string | null
+          first_at?: string
+          gift_count?: number
+          id?: string
+          ip_hash?: string | null
+          last_at?: string
+          receiver_id: string
+          sender_id: string
+          suspect?: boolean
+          suspect_reason?: string | null
+        }
+        Update: {
+          coin_total?: number
+          device_id?: string | null
+          first_at?: string
+          gift_count?: number
+          id?: string
+          ip_hash?: string | null
+          last_at?: string
+          receiver_id?: string
+          sender_id?: string
+          suspect?: boolean
+          suspect_reason?: string | null
+        }
+        Relationships: []
+      }
       gift_transaction_logs: {
         Row: {
           created_at: string | null
@@ -5234,6 +5276,9 @@ export type Database = {
           created_at: string | null
           diamond_cost: number | null
           gift_id: string | null
+          held_beans: number
+          held_released: boolean
+          held_until: string | null
           id: string
           idempotency_key: string | null
           party_room_id: string | null
@@ -5255,6 +5300,9 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
+          held_beans?: number
+          held_released?: boolean
+          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -5276,6 +5324,9 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
+          held_beans?: number
+          held_released?: boolean
+          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -10828,6 +10879,7 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
+          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -10845,8 +10897,10 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
+          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
+          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -10954,6 +11008,7 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
+          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -10971,8 +11026,10 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
+          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -11080,6 +11137,7 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
+          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -11097,8 +11155,10 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
+          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -19389,6 +19449,7 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
+          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -19406,8 +19467,10 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
+          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
+          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -20546,6 +20609,19 @@ export type Database = {
         }
         Returns: Json
       }
+      record_gift_signal: {
+        Args: {
+          _coins: number
+          _device_id: string
+          _ip_hash: string
+          _receiver_id: string
+          _sender_id: string
+        }
+        Returns: {
+          reason: string
+          suspect: boolean
+        }[]
+      }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
       record_live_violation: {
@@ -20606,6 +20682,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_device_fingerprint: {
+        Args: { _device_id: string }
+        Returns: undefined
+      }
       register_device_token: {
         Args: {
           p_device_id: string
@@ -20625,6 +20705,7 @@ export type Database = {
         Returns: Json
       }
       release_call_balance: { Args: { p_hold_id: string }; Returns: Json }
+      release_expired_gift_holds: { Args: never; Returns: number }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
       report_live_face_event: {
         Args: {
