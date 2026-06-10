@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, ShieldOff, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,7 +188,7 @@ const UserManagement = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {user.blocked_avatar ? (
-                      <img loading="lazy" decoding="async" src={user.blocked_avatar} alt="" className="w-full h-full object-contain" />
+                      <img loading="lazy" decoding="async" src={enhanceThumbnail(user.blocked_avatar, { width: 96, quality: 82 })} alt="" className="w-full h-full object-contain" />
                     ) : (
                       <User className="w-5 h-5 text-muted-foreground" />
                     )}
