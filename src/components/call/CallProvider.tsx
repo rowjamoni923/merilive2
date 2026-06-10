@@ -140,9 +140,12 @@ export function CallProvider({ children }: CallProviderProps) {
     if (incomingCall) {
       setIsHost(true);
       callEndedRef.current = false;
+      selfEndedRef.current = false;
     } else if (callState.callId && callState.status === 'calling') {
       setIsHost(false);
       callEndedRef.current = false;
+      selfEndedRef.current = false;
+
     }
   }, [incomingCall, callState.callId, callState.status]);
 
