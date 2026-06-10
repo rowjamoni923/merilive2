@@ -12,6 +12,11 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: 'forbidden_origin' }), {
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
   try {
     if (req.method !== 'POST') {
