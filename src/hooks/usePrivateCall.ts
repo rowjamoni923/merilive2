@@ -381,7 +381,7 @@ export function usePrivateCall(userId: string | null) {
       title: 'Call Connected',
       description: 'Host received and accepted your call',
     });
-  }, [clearAllTimers]);
+  }, [clearAllTimers, consumeCurrentReservation]);
 
   // Phase 3 fix (B1): the duplicate subscribeToTables listener that used to live
   // here was removed. The scoped supabase.channel(`private-call-${userId}`)
