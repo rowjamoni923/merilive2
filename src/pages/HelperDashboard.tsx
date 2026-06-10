@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useToast } from "@/hooks/use-toast";
@@ -2239,7 +2240,7 @@ const HelperDashboard = () => {
                   <div className="bg-slate-50 rounded-xl p-4 border border-sky-200/30">
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar className="w-12 h-12 border-2 border-sky-200">
-                        <AvatarImage src={searchedUser.avatar_url} />
+                        <AvatarImage src={enhanceThumbnail(searchedUser.avatar_url, { width: 96, quality: 82 })} />
                         <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
  <User className="w-5 h-5 text-white" />
                         </AvatarFallback>
@@ -2436,7 +2437,7 @@ const HelperDashboard = () => {
                   <div className="flex items-center gap-3">
                     {transfer.sender_type === 'trader_to_user' ? (
                       <Avatar className="w-10 h-10 border-2 border-sky-300">
-                        <AvatarImage src={transfer.receiver?.avatar_url} />
+                        <AvatarImage src={enhanceThumbnail(transfer.receiver?.avatar_url, { width: 96, quality: 82 })} />
                         <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
                           <User className="w-4 h-4 text-white" />
                         </AvatarFallback>

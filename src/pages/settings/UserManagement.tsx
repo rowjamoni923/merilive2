@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, ShieldOff, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
