@@ -156,17 +156,21 @@ export const PKBattleActive = ({
 
     // 0ms optimistic UI bump from own-room LiveKit gift — server reconciles.
     // P2: optimistic bumps also go through the rAF buffer to share the throttle.
+    // P0 FIX: read score base from refs (not closure state) so we don't need
+    // challengerScore/opponentScore in deps. Previously, listing them caused
+    // the Realtime channel to unsubscribe/resubscribe on every score change —
+    // saturating Supabase Realtime under burst gifting and dropping updates.
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
       const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
       if (!coins) return;
       if (challengerId && detail.receiverId === challengerId) {
-        const base = pendingChallengerRef.current ?? challengerScore;
+        const base = pendingChallengerRef.current ?? latestChallengerScoreRef.current;
         pendingChallengerRef.current = base + coins;
         scheduleFlush();
       } else if (opponentId && detail.receiverId === opponentId) {
-        const base = pendingOpponentRef.current ?? opponentScore;
+        const base = pendingOpponentRef.current ?? latestOpponentScoreRef.current;
         pendingOpponentRef.current = base + coins;
         scheduleFlush();
       }
@@ -178,7 +182,7 @@ export const PKBattleActive = ({
       supabase.removeChannel(channel);
       window.removeEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
     };
-  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd, challengerScore, opponentScore, scheduleFlush]);
+  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd, scheduleFlush]);
 
 
 
