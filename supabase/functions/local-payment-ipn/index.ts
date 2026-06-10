@@ -51,6 +51,7 @@ function assertSamePayment(order: any, bodyFields: { userId?: string; totalCoins
 }
 
 serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -75,7 +76,16 @@ serve(async (req) => {
       params.forEach((value, key) => { body[key] = value; });
     }
 
-    console.log("[IPN] Received callback:", JSON.stringify(body));
+    // R2-C5: do NOT log raw IPN body — contains card metadata + identifiers.
+    console.log(
+      "[IPN] callback received",
+      JSON.stringify({
+        gateway: body.value_a ? "sslcommerz" : body.opt_a ? "aamarpay" : "unknown",
+        order_id_present: !!(body.value_a || body.opt_a),
+        txn_id_present: !!(body.tran_id || body.mer_txnid || body.pg_txnid),
+        status: body.status || body.pay_status || body.status_code || null,
+      }),
+    );
 
     let orderId: string;
     let userId: string;
