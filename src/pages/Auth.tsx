@@ -2221,7 +2221,7 @@ const Auth = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-8 safe-area-top safe-area-bottom">
+        <div className="min-h-full flex flex-col justify-end gap-2 px-4 pt-4 pb-8 safe-area-top safe-area-bottom max-w-full">
           {/* Agency Referral Banner */}
           {agencyInfo && (
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
@@ -2243,7 +2243,7 @@ const Auth = () => {
           )}
 
         {/* Auth Buttons */}
-        <div className="space-y-2 pb-2">
+        <div className="space-y-2 pb-2 w-full max-w-full">
           {/* Latest Login - Only show if user previously logged in */}
           {lastUser && (
             <div className="relative">
@@ -2278,7 +2278,7 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={handleStartClick}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full min-h-[44px] rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
             {loading ? (
@@ -2306,7 +2306,7 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full min-h-[44px] rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Phone className="w-5 h-5 mr-2" />
             <span>Continue with Phone</span>
@@ -2328,7 +2328,7 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full min-h-[44px] rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Mail className="w-5 h-5 mr-2 text-white" />
             <span className="drop-shadow-md tracking-wide">Continue with Email</span>
@@ -2341,7 +2341,7 @@ const Auth = () => {
               {!showReferralInput ? (
                 <button
                   onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-white/70 hover:text-white text-[11px] py-1.5 transition-colors tracking-wide" /* dark-ok */
+                  className="w-full min-h-[44px] text-center text-white/70 hover:text-white text-[11px] py-2 transition-colors tracking-wide" /* dark-ok */
                 >
                   Have a referral code? Enter it here
                 </button>
@@ -2394,7 +2394,7 @@ const Auth = () => {
           <button
             onClick={() => setAgreed(!agreed)}
             className={`
-              w-full mt-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2
+              w-full mt-1 min-h-[44px] py-2 px-2 rounded-xl flex items-center justify-start gap-2
               transition-all duration-300 backdrop-blur-md
               ${agreed 
                 ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]' 
@@ -2403,7 +2403,7 @@ const Auth = () => {
             `}
           >
             <div className={`
-              w-4 h-4 rounded-md flex items-center justify-center transition-all duration-300
+              w-4 h-4 shrink-0 rounded-md flex items-center justify-center transition-all duration-300
               ${agreed 
                 ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg' 
                 : 'bg-white/10 border border-white/30'
@@ -2413,7 +2413,7 @@ const Auth = () => {
                 <Check className="w-3 h-3 text-white" /> /* dark-ok */
               )}
             </div>
-            <span className={`text-[10px] leading-tight transition-colors tracking-wide ${agreed ? 'text-white/95' : 'text-white/70'}`}> {/* dark-ok */}
+            <span className={`min-w-0 flex-1 text-left text-[10px] leading-tight transition-colors tracking-wide break-words ${agreed ? 'text-white/95' : 'text-white/70'}`}> {/* dark-ok */}
               I agree to the{' '}
               <span className="underline decoration-white/40">Terms of Service</span>
               {' & '}
