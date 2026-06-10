@@ -162,27 +162,25 @@ Deno.serve(async (req) => {
                 .is("left_at", null)
                 .maybeSingle();
               if (!sv) {
-                // Bug-fix #1 (viewer-race): For PUBLIC streams the client may
-                // request the token in parallel with enter_live_stream — the
-                // DB row may not have committed yet, which previously dumped
-                // the viewer back to home with a misleading "stream ended"
-                // toast. Public streams have no entry barrier, so auto-upsert
-                // the viewer row here (race-safe) instead of erroring out.
-                // Non-public (password / followers / pk_only) rooms still
-                // require explicit enter_live_stream so this fallback only
-                // applies to `public`.
-                if (privacy === "public") {
-                  const { error: insErr } = await svc
-                    .from("stream_viewers")
-                    .upsert(
-                      { stream_id: m[1], viewer_id: identity, joined_at: new Date().toISOString(), left_at: null },
-                      { onConflict: "stream_id,viewer_id" },
-                    );
-                  if (insErr) {
-                    console.warn("[livekit-token] viewer auto-enter failed:", insErr);
-                    return json(200, { error: "must_enter_stream_first", fallback: true });
-                  }
-                } else {
+                // R2-C7: previously did a direct service-role upsert into
+                // stream_viewers, which silently skipped enter_live_stream's
+                // privacy/ban/rate-limit gates. Now we always call the RPC as
+                // the user — the only authoritative path for joining a viewer
+                // slot. Public streams still succeed first-try (no barrier);
+                // private/password/followers/pk_only correctly enforce rules.
+                const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                  global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+                });
+                const { data: enterRes, error: enterErr } = await userClient.rpc(
+                  "enter_live_stream",
+                  { p_stream_id: m[1], p_password: null },
+                );
+                const ok =
+                  !enterErr &&
+                  enterRes &&
+                  typeof enterRes === "object" &&
+                  (enterRes as { success?: boolean }).success === true;
+                if (!ok) {
                   return json(200, { error: "must_enter_stream_first", fallback: true });
                 }
               }
