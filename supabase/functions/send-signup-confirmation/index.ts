@@ -47,16 +47,17 @@ const getClientIp = (req: Request) => {
 const validatePayload = (payload: SignupConfirmationRequest) => {
   const email = payload?.email?.trim().toLowerCase();
   const displayName = (payload?.displayName || "").trim().slice(0, 50);
-  const verificationCode = String(payload?.verificationCode || "").trim();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     return { ok: false as const, error: "Invalid email format" };
   }
 
-  const finalCode = /^\d{6}$/.test(verificationCode)
-    ? verificationCode
-    : Math.floor(100000 + Math.random() * 900000).toString();
+  // R2-C3: always generate the OTP server-side; ignore any client-supplied code.
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const num = ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+  const finalCode = (100000 + (num % 900000)).toString();
 
   return {
     ok: true as const,
