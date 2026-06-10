@@ -121,6 +121,15 @@ Step 14: APK rebuild signal
 - RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
 - Profile Self Recharge UI now displays only one `Recharge Source` and one destination `My Diamond Balance`; internal helper/agency split is hidden from the user action flow.
 
+### Regression found 2026-06-10 — Self Recharge RPC drift
+- Current owner-account DB check: `smtv923@gmail.com` has helper/topup wallet **-0.40 💎**, agency diamond wallet **204,906,597 💎**, My Diamond Balance **76,617,862 💎**. UI correctly shows combined Recharge Source ≈ **204,906,596.6 💎**.
+- Live `public.helper_transfer_diamonds_to_self(uuid,bigint)` drifted back to helper-wallet-only logic and returns **"Insufficient trader wallet balance"** when helper wallet is below the requested amount, even though agency diamond wallet is part of the same Trader Wallet source used by Top Up and Agency Transfer.
+- Professional wallet standard remains: one server-authoritative, atomic Trader Wallet funding source for helper top-up, agency transfer, and self recharge; internal buckets may stay separate for audit, but eligibility/debit must use the same combined available source.
+- References already reviewed for this wallet standard: BIGO diamonds/beans guide, Poppo agent/coin seller training, Chamet/Olamet agency payout patterns.
+
+### Immediate fix standard
+- Restore `helper_transfer_diamonds_to_self` to match `helper_transfer_diamonds_to_agency`: combined available = `topup_helpers.wallet_balance + agencies.diamond_balance`, debit helper wallet first then agency diamond wallet, credit only `profiles.coins`, and return the same split/combined response contract the UI already expects.
+
 ---
 
 ## Emergency Recovery — Shop/VIP/animation relation outage
