@@ -28,6 +28,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -516,7 +517,7 @@ const AgentWallet = () => {
             {transfers.slice(0, 5).map((tx) => (
               <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={tx.receiver_avatar || ""} />
+                  <AvatarImage src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82 })} />
                   <AvatarFallback>
                     <User className="w-5 h-5" />
                   </AvatarFallback>
@@ -599,7 +600,7 @@ const AgentWallet = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 border-t transition-colors"
                   >
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar_url || ""} />
+                      <AvatarImage src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82 })} />
                       <AvatarFallback>
                         <User className="w-5 h-5" />
                       </AvatarFallback>
@@ -625,7 +626,7 @@ const AgentWallet = () => {
             {foundUser && (
               <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
                 <Avatar className="w-12 h-12 border-2 border-success-300">
-                  <AvatarImage src={foundUser.avatar_url || ""} />
+                  <AvatarImage src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82 })} />
                   <AvatarFallback>
                     <User className="w-6 h-6" />
                   </AvatarFallback>

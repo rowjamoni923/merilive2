@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -317,7 +318,7 @@ const JoinAgency = () => {
                 <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   {pendingRequest.agency_logo_url ? (
                   <Avatar className="w-14 h-14 rounded-xl">
-                      <AvatarImage src={pendingRequest.agency_logo_url} />
+                      <AvatarImage src={enhanceThumbnail(pendingRequest.agency_logo_url, { width: 96, quality: 82 })} />
                       <AvatarFallback>
                         <Building2 className="w-7 h-7 text-white" />
                       </AvatarFallback>

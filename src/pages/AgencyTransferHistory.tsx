@@ -16,6 +16,7 @@ import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -382,7 +383,7 @@ const AgencyTransferHistory = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 ring-2 ring-brand-500/30">
-                            <AvatarImage src={transfer.host_profile?.avatar_url || ""} />
+                            <AvatarImage src={enhanceThumbnail(transfer.host_profile?.avatar_url || "", { width: 96, quality: 82 })} />
                             <AvatarFallback className="bg-brand-500/20">
                               <User className="w-5 h-5 text-brand-600" />
                             </AvatarFallback>
@@ -434,7 +435,7 @@ const AgencyTransferHistory = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-9 h-9 ring-2 ring-success-500/30">
-                            <AvatarImage src={wc.host_profile?.avatar_url || ""} />
+                            <AvatarImage src={enhanceThumbnail(wc.host_profile?.avatar_url || "", { width: 96, quality: 82 })} />
                             <AvatarFallback className="bg-success-500/20">
                               <User className="w-4 h-4 text-success-600" />
                             </AvatarFallback>

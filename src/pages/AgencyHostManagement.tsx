@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -389,7 +390,7 @@ const AgencyHostManagement = () => {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <Avatar className="w-12 h-12 border-2 border-amber-300">
-                      <AvatarImage src={hostData.host?.avatar_url || undefined} />
+                      <AvatarImage src={enhanceThumbnail(hostData.host?.avatar_url || undefined, { width: 96, quality: 82 })} />
                       <AvatarFallback className="bg-amber-100 text-amber-700">
                         {hostData.host?.display_name?.charAt(0) || "H"}
                       </AvatarFallback>
@@ -468,7 +469,7 @@ const AgencyHostManagement = () => {
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={hostData.host?.avatar_url || undefined} />
+                        <AvatarImage src={enhanceThumbnail(hostData.host?.avatar_url || undefined, { width: 96, quality: 82 })} />
                         <AvatarFallback className="bg-primary/10 text-primary">
                           {hostData.host?.display_name?.charAt(0) || "H"}
                         </AvatarFallback>

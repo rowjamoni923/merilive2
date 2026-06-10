@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import {
   InputOTP,
@@ -446,7 +447,7 @@ const AgencySignup = () => {
               <div className="p-3 bg-success-900/30 border border-success-700/50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 border-2 border-success-300">
-                    <AvatarImage src={foundUser.avatar_url || undefined} />
+                    <AvatarImage src={enhanceThumbnail(foundUser.avatar_url || undefined, { width: 96, quality: 82 })} />
                     <AvatarFallback className="bg-success-800 text-success-300">{foundUser.display_name?.charAt(0) || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

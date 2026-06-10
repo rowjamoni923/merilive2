@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -930,7 +931,7 @@ const AgencyCoinExchange = () => {
                         className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-warning-50 transition-colors"
                       >
                         <Avatar className="w-10 h-10 border border-warning-200/60">
-                          <AvatarImage src={user.avatar_url || ""} />
+                          <AvatarImage src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82 })} />
                           <AvatarFallback className="bg-gradient-to-br from-info-500 to-info-500 text-white">
                             {user.display_name?.charAt(0) || "U"}
                           </AvatarFallback>
@@ -954,7 +955,7 @@ const AgencyCoinExchange = () => {
                   <div className="bg-gradient-to-r from-info-500/10 to-info-500/10 rounded-xl p-4 border border-info-500/20">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border-2 border-info-400">
-                        <AvatarImage src={selectedUser.avatar_url || ""} />
+                        <AvatarImage src={enhanceThumbnail(selectedUser.avatar_url || "", { width: 96, quality: 82 })} />
                         <AvatarFallback className="bg-gradient-to-br from-info-500 to-info-500 text-white">
                           {selectedUser.display_name?.charAt(0) || "U"}
                         </AvatarFallback>

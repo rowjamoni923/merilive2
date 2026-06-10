@@ -18,6 +18,7 @@ import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -204,7 +205,7 @@ const AgencyDetailsPage = () => {
             <div className="relative flex items-center gap-4">
               <div className={`p-[2px] rounded-full bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')}`}>
                 <Avatar className="w-16 h-16 border-2 border-white">
-                  <AvatarImage src={hostAgency.logo_url || undefined} />
+                  <AvatarImage src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82 })} />
                   <AvatarFallback className={`bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')} text-white text-xl font-semibold`}>
                     {hostAgency.name?.charAt(0) || 'A'}
                   </AvatarFallback>
