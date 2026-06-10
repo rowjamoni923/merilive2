@@ -129,6 +129,21 @@ const exchangeDeviceSession = async (
   }
 };
 
+const bindOwnDeviceId = async (deviceId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('bind_own_device_id', { p_device_id: deviceId });
+    const result = data as { success?: boolean; error?: string } | null;
+    if (error || !result?.success) {
+      console.warn('[Auth] bind_own_device_id failed:', error?.message || result?.error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('[Auth] bindOwnDeviceId error:', error);
+    return false;
+  }
+};
+
 
 // Helper function to navigate to return URL or home
 const getReturnUrl = (): string => {
