@@ -42,6 +42,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 // Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
@@ -245,7 +246,7 @@ const ShopItemCard = ({
           if (previewIsStatic && !imageError) {
             return (
               <img
-                src={item.preview_url!}
+                src={enhanceThumbnail(item.preview_url!, { width: 256, quality: 85 })}
                 alt={item.name}
                 loading="eager"
                 decoding="async"
@@ -808,7 +809,7 @@ const Shop = () => {
                     if (selectedItem.preview_url || animSrc) {
                       return (
                         <img loading="lazy" decoding="async"
-                          src={selectedItem.preview_url || animSrc}
+                          src={selectedItem.preview_url ? enhanceThumbnail(selectedItem.preview_url, { width: 600, quality: 85 }) : animSrc}
                           alt={selectedItem.name}
                           className="max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto block"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
