@@ -290,6 +290,8 @@ export function usePrivateCall(userId: string | null) {
     clearAllTimers();
     setCallState(prev => ({ ...prev, status: 'ended' }));
     setIncomingCall(null);
+    // C4: release any active escrow hold (covers reject/timeout/cancel before connect)
+    void releaseCurrentReservation();
     Promise.resolve(supabase.rpc('reset_my_call_status')).catch(() => {});
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
@@ -303,7 +305,7 @@ export function usePrivateCall(userId: string | null) {
       const idsArray = Array.from(endedCallIdsRef.current);
       endedCallIdsRef.current = new Set(idsArray.slice(-10));
     }
-  }, [clearAllTimers]);
+  }, [clearAllTimers, releaseCurrentReservation]);
 
   // Called by CallProvider after capturing ended info for modal - resets to idle
   const dismissCall = useCallback(() => {
