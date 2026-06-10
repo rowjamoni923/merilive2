@@ -3866,6 +3866,36 @@ export type Database = {
         }
         Relationships: []
       }
+      device_session_exchange_tokens: {
+        Row: {
+          consumed_at: string | null
+          consumer_ip: string | null
+          created_at: string
+          device_id: string
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          consumer_ip?: string | null
+          created_at?: string
+          device_id: string
+          expires_at?: string
+          token?: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          consumer_ip?: string | null
+          created_at?: string
+          device_id?: string
+          expires_at?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       device_tokens: {
         Row: {
           created_at: string | null
@@ -6713,6 +6743,39 @@ export type Database = {
           level_number?: number
           min_beans?: number
           perks?: Json | null
+        }
+        Relationships: []
+      }
+      idempotency_keys: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          key: string
+          response: Json | null
+          scope: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key: string
+          response?: Json | null
+          scope: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key?: string
+          response?: Json | null
+          scope?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -18912,6 +18975,10 @@ export type Database = {
         Args: { _host_id: string; _hour_number: number }
         Returns: Json
       }
+      claim_idempotency_key: {
+        Args: { _key: string; _scope: string; _user_id: string }
+        Returns: Json
+      }
       claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
       claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
@@ -18966,6 +19033,10 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_idempotency_key: {
+        Args: { _key: string; _response: Json; _scope: string; _status: string }
+        Returns: undefined
+      }
       consume_agency_app_otp_token: {
         Args: {
           p_purpose?: string
@@ -18973,6 +19044,12 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
+      }
+      consume_device_session_token: {
+        Args: { p_consumer_ip: string; p_device_id: string; p_token: string }
+        Returns: {
+          user_id: string
+        }[]
       }
       consume_otp_exchange_token: {
         Args: {
@@ -20362,10 +20439,9 @@ export type Database = {
         Returns: {
           avatar_url: string
           display_name: string
+          exchange_token: string
           gender: string
           is_host: boolean
-          recovery_email: string
-          recovery_password: string
           user_id: string
         }[]
       }
