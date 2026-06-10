@@ -16867,6 +16867,7 @@ export type Database = {
         Args: { p_bet_type: string }
         Returns: number
       }
+      _secure_random: { Args: never; Returns: number }
       _teen_patti_score: {
         Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
@@ -20235,34 +20236,20 @@ export type Database = {
         }
         Returns: Json
       }
-      process_gift_transaction:
-        | {
-            Args: {
-              p_call_id?: string
-              p_gift_id: string
-              p_party_room_id?: string
-              p_quantity?: number
-              p_receiver_id: string
-              p_reel_id?: string
-              p_sender_id: string
-              p_stream_id?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_call_id?: string
-              p_gift_id: string
-              p_idempotency_key?: string
-              p_party_room_id?: string
-              p_quantity?: number
-              p_receiver_id: string
-              p_reel_id?: string
-              p_sender_id: string
-              p_stream_id?: string
-            }
-            Returns: Json
-          }
+      process_gift_transaction: {
+        Args: {
+          p_call_id?: string
+          p_gift_id: string
+          p_idempotency_key?: string
+          p_party_room_id?: string
+          p_quantity?: number
+          p_receiver_id: string
+          p_reel_id?: string
+          p_sender_id: string
+          p_stream_id?: string
+        }
+        Returns: Json
+      }
       process_google_play_purchase: {
         Args: {
           p_google_order_id?: string

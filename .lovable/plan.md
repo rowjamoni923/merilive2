@@ -109,16 +109,16 @@
 
 ## 🎯 Proposed Fix Order (Phases — one phase per approval)
 
-**Phase 1 — STOP THE BLEED (CRITICAL, ~1 migration + 2 edge fn edits)**
-- CR-3: `device_tokens` lockdown (RLS + revoke anon)
-- CR-1: `process_game_bet` add `auth.uid()` check
-- CR-2: `game-balance-callback` make HMAC mandatory
-- CR-5: `pk-battle-tick` add `CRON_SECRET` guard
-- CR-4: `roulette_spin_and_settle` restrict to admin/cron
-- CR-6: `process_gift_transaction` lock receiver row
-- CR-8: `livekit_room_events` RLS lock
-- CR-9: tighten CORS on admin/financial edge fns
-- CR-7: `random()` → `gen_random_bytes()` in 3 game RPCs
+**Phase 1 — STOP THE BLEED (CRITICAL) — ✅ DONE 2026-06-10**
+- [x] CR-3: `device_tokens` lockdown (already scoped; anon grant revoked, authenticated/service_role re-granted)
+- [x] CR-1: `process_game_bet` — `auth.uid() = p_user_id` enforced
+- [x] CR-2: `game-balance-callback` — HMAC mandatory (fail-closed if secret unset); CORS locked
+- [x] CR-5: `pk-battle-tick` — service-role bearer OR `CRON_SECRET` required (matches `call-billing-tick`)
+- [x] CR-4: `roulette_spin_and_settle` — refuses unless `betting_ends_at <= now()`
+- [x] CR-6: legacy non-locked `process_gift_transaction` overload DROPPED; only the locked+idempotent 9-arg version remains
+- [x] CR-8: `livekit_room_events` — RLS on, anon+authenticated revoked, service_role only
+- [x] CR-7: `_secure_random()` helper (pgcrypto `gen_random_bytes`) replaces `random()` in roulette/ferris/teen patti
+- [~] CR-9: CORS tightened on `game-balance-callback` (provider webhook). Admin endpoints audit deferred to Phase 2.
 
 **Phase 2 — PRIVATE CALL & LIVE STREAM RELIABILITY (HIGH frontend)**
 - H-4, H-5, H-7, H-11, H-13, H-15 (single source ref, fix declaration order, correct endedBy, channel safety, host short-circuit, declaration order)
