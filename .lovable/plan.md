@@ -326,4 +326,5 @@ Research-locked (Bigo/Chamet/TikTok LIVE teardown): bottom-left stacking pill qu
 - Gift Combo: sender avatar/name chip ✅, milestone haptics x10/x50/x99 ✅, +N overflow chip ✅, active top-contributor crown ✅ (highest visible totalValue/count lane stays visible and crowned).
 - PK Active: top-3 supporter avatars per side ✅, +N diamond floaters ✅, punishment HP lock/caption/red loser wash ✅, Final Push close-score banner ✅, MVP identity/name micro-text ✅.
 - PK Result: MVP avatar/name/coins ✅, winner confetti + gift-rain ✅, loser grayscale fade ✅.
+- Post-subagent QA hardening ✅: fixed PKBattleActive score-update subscription churn (score changes no longer recreate Supabase channel/listener), removed fragile `Parameters<typeof applyRow>` typing, cleaned PKTopContributors `any` casts + profile render hack, and replaced combo dismiss reconstructed key with stored lane key.
 - Sources/benchmarks: Bigo LIVE PK docs (PK duel + gifts), Chamet/Poppo BitTopup 2026 PK writeups (70/30 + gift-driven ranking), Tencent/TUILiveKit battle UX patterns; implemented as React/WebView presentation only, LiveKit/Supabase authority unchanged. APK rebuild NOT required.
