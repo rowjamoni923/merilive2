@@ -109,7 +109,7 @@ export default function DeveloperOptions() {
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="mobile-page-scrollable px-4 py-4 space-y-4">
         {/* Warning banner */}
         <div className="rounded-xl border border-border bg-card p-3 flex gap-3">
           <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
