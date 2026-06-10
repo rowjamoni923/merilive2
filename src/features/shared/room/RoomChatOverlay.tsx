@@ -496,30 +496,12 @@ export const RoomChatOverlay = memo(({
   adminBannerRoomType,
 }: RoomChatOverlayProps) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const [isScrolledUp, setIsScrolledUp] = useState(false);
 
   // Show all messages or limit if maxMessages is provided
   const displayMessages = maxMessages ? messages.slice(-maxMessages) : messages;
 
-  // Detect scroll position for scroll-to-bottom button
-  useEffect(() => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      // flex-col-reverse: bottom = scrollTop ≈ 0
-      setIsScrolledUp(el.scrollTop > 60);
-    };
-
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const scrollToBottom = () => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // With flex-col-reverse, scroll position 0 is at bottom (newest)
+  // No auto-scroll needed - newest messages naturally appear at bottom
 
   return (
     <div className={cn(
@@ -541,6 +523,57 @@ export const RoomChatOverlay = memo(({
         )}
         style={{ maxHeight: window.innerWidth >= 768 ? '400px' : maxHeight }}
       >
+        {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
+        <AnimatePresence initial={false} mode="sync">
+          {displayMessages.slice().reverse().map((msg) => (
+            <ChatMessageItem
+              key={msg.id}
+              message={msg}
+              autoHide={msg.message.includes('[GIFT:') || msg.message.toLowerCase().includes('sent ')}
+            />
+          ))}
+        </AnimatePresence>
+
+        {/* Join Notifications - After messages in reverse (appear above messages) */}
+        <AnimatePresence initial={false} mode="sync">
+          {joinNotifications.slice().reverse().map((notification) => (
+            <JoinNotificationItem
+              key={notification.id}
+              notification={notification}
+              roomKind={roomType === 'live' ? 'live' : 'party'}
+            />
+          ))}
+        </AnimatePresence>
+
+        {/* Welcome Message - INSIDE scroll, will scroll up with messages */}
+        {showWelcome && hostName && (
+          <div className="shrink-0">
+            <WelcomeMessage
+              hostName={hostName}
+              hostLevel={hostLevel}
+              roomTitle={roomTitle}
+              roomType={roomType}
+            />
+          </div>
+        )}
+
+        {/* Admin Room Warning Banner - INSIDE scroll, at very top when scrolled up */}
+        {adminBannerRoomType && (
+          <div className="shrink-0">
+            <RoomWelcomeBanner roomType={adminBannerRoomType} />
+          </div>
+        )}
+      </div>
+
+      {/* Scroll-to-bottom button — appears when user scrolls up */}
+      <ScrollToBottomButton
+        scrollRef={chatContainerRef}
+        reverse
+        className="bottom-2 left-1/2 -translate-x-1/2"
+      />
+    </div>
+  );
+});
         {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
         <AnimatePresence initial={false} mode="sync">
           {displayMessages.slice().reverse().map((msg) => (
