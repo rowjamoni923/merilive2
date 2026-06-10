@@ -44,7 +44,7 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
   const opponentMapRef = useRef<Map<string, number>>(new Map());
   const profileCacheRef = useRef<Map<string, { avatar: string | null; name: string }>>(new Map());
   const [tick, setTick] = useState(0);
-  const [profilesVersion, setProfilesVersion] = useState(0);
+  const [, setProfilesVersion] = useState(0);
 
   const bump = () => setTick((n) => n + 1);
 
@@ -146,10 +146,6 @@ export const PKTopContributors = ({ battleId, challengerId, opponentId }: Props)
     })();
     return () => { cancelled = true; };
   }, [topChallenger, topOpponent]);
-
-  // Reading profilesVersion keeps profile arrival state-driven without the old
-  // `void profilesReady` render hack.
-  void profilesVersion;
 
   const left: ResolvedSender[] = topChallenger.map((r) => {
     const p = profileCacheRef.current.get(r.senderId);
