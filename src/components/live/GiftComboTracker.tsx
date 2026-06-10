@@ -115,6 +115,13 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
     };
   }, [scope, id, receiverName]);
 
+  const dismissLane = (key: string) => {
+    const lane = lanesRef.current.get(key);
+    if (lane?.timer) clearTimeout(lane.timer);
+    lanesRef.current.delete(key);
+    flushLanes();
+  };
+
   if (lanes.length === 0) return null;
 
   return (
@@ -125,22 +132,24 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
       }}
     >
       {lanes.map((lane) => (
-        <GiftComboDisplay
-          key={lane.id}
-          combo={{
-            id: lane.id,
-            senderId: lane.senderId,
-            senderName: lane.senderName,
-            senderAvatar: lane.senderAvatar,
-            senderLevel: lane.senderLevel,
-            receiverName: lane.receiverName,
-            giftName: lane.giftName,
-            giftEmoji: lane.giftEmoji,
-            giftIcon: lane.giftIcon,
-            count: lane.count,
-            totalValue: lane.totalValue,
-          }}
-        />
+        <div key={lane.id} className="pointer-events-auto">
+          <GiftComboDisplay
+            combo={{
+              id: lane.id,
+              senderId: lane.senderId,
+              senderName: lane.senderName,
+              senderAvatar: lane.senderAvatar,
+              senderLevel: lane.senderLevel,
+              receiverName: lane.receiverName,
+              giftName: lane.giftName,
+              giftEmoji: lane.giftEmoji,
+              giftIcon: lane.giftIcon,
+              count: lane.count,
+              totalValue: lane.totalValue,
+            }}
+            onDismiss={() => dismissLane(`${lane.senderId}|${lane.giftName}`)}
+          />
+        </div>
       ))}
     </div>
   );
