@@ -13,6 +13,7 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import type { Conversation, Group } from "./chatTypes";
