@@ -65,32 +65,34 @@ const generateDeviceId = async (): Promise<string> => {
   return await getPersistentDeviceId();
 };
 
-// Recover account by device ID - returns credentials for automatic login
+// Recover account by device ID - returns metadata + a single-use exchange token.
+// R2-Phase B / R2-C4: the RPC no longer leaks the deterministic password.
+// To actually log in, callers must POST the token to the `device-session-exchange`
+// edge function via `exchangeDeviceSession()` below.
 const recoverAccountByDevice = async (deviceId: string): Promise<{
   userId: string;
   displayName: string;
   avatarUrl: string | null;
   gender: string | null;
   isHost: boolean;
-  recoveryEmail: string;
-  recoveryPassword: string;
+  exchangeToken: string;
 } | null> => {
   try {
-    const { data, error } = await supabase.rpc('recover_session_by_device', { 
-      p_device_id: deviceId
+    const { data, error } = await supabase.rpc('recover_session_by_device', {
+      p_device_id: deviceId,
     });
-    
-    if (error || !data || data.length === 0) return null;
-    
-    const account = data[0];
+
+    if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
+    const account: any = Array.isArray(data) ? data[0] : data;
+    if (!account?.exchange_token) return null;
+
     return {
       userId: account.user_id,
       displayName: account.display_name || 'User',
-      avatarUrl: account.avatar_url,
-      gender: account.gender,
-      isHost: account.is_host || false,
-      recoveryEmail: account.recovery_email,
-      recoveryPassword: account.recovery_password,
+      avatarUrl: account.avatar_url ?? null,
+      gender: account.gender ?? null,
+      isHost: !!account.is_host,
+      exchangeToken: account.exchange_token,
     };
   } catch (error) {
     console.error('Error checking device account:', error);
@@ -98,6 +100,36 @@ const recoverAccountByDevice = async (deviceId: string): Promise<{
     return null;
   }
 };
+
+// Trade a single-use exchange token for a real Supabase session.
+// Sets the session on the client and returns true on success.
+const exchangeDeviceSession = async (
+  exchangeToken: string,
+  deviceId: string,
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('device-session-exchange', {
+      body: { token: exchangeToken, device_id: deviceId },
+    });
+    if (error || !data?.success || !data?.access_token || !data?.refresh_token) {
+      console.warn('[Auth] device-session-exchange failed:', error?.message || data?.error);
+      return false;
+    }
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    if (setErr) {
+      console.warn('[Auth] setSession after exchange failed:', setErr.message);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[Auth] exchangeDeviceSession error:', e);
+    return false;
+  }
+};
+
 
 // Helper function to navigate to return URL or home
 const getReturnUrl = (): string => {
