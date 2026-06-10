@@ -1308,6 +1308,17 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
+    // H-11: StrictMode-safe channel guard. Under React 18 dev StrictMode an
+    // effect may run twice synchronously, and a `userId` flip (sign-in /
+    // account-switch) re-runs this effect. We keep a ref to the live channel
+    // and tear down any prior subscription before opening a new one to
+    // prevent two channels sharing the same `private-call-${userId}` name
+    // (Supabase Realtime treats them as one client → duplicate event fan-out).
+    if (privateCallChannelRef.current) {
+      try { supabase.removeChannel(privateCallChannelRef.current); } catch { /* no-op */ }
+      privateCallChannelRef.current = null;
+    }
+
     const privateCallChannel = supabase
       .channel(`private-call-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
@@ -1317,11 +1328,16 @@ export function usePrivateCall(userId: string | null) {
         handleRow((payload as any).new || (payload as any).old);
       })
       .subscribe();
+    privateCallChannelRef.current = privateCallChannel;
 
     return () => {
-      supabase.removeChannel(privateCallChannel);
+      if (privateCallChannelRef.current === privateCallChannel) {
+        privateCallChannelRef.current = null;
+      }
+      try { supabase.removeChannel(privateCallChannel); } catch { /* no-op */ }
     };
   }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+
 
   // Incoming call listener: FCM is the wake/delivery path, while the scoped
   // private_calls realtime listener above is the DB truth path for missed FCM,
