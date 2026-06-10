@@ -60,11 +60,26 @@ export const GiftComboDisplay = ({ combo, onComplete, onDismiss }: GiftComboDisp
   useEffect(() => {
     if (!combo) return;
     if (combo.count !== lastCountRef.current) {
+      const prev = lastCountRef.current;
       lastCountRef.current = combo.count;
       // Re-trigger burst keyframe whenever count changes (per-tap punch).
       setMilestoneTick((n) => n + 1);
+      // Milestone haptic (Bigo/Chamet parity): tiered vibration on x10/x50/x99.
+      try {
+        const vib = (navigator as any)?.vibrate?.bind(navigator);
+        if (vib) {
+          if (prev < MILESTONES.fullFlash && combo.count >= MILESTONES.fullFlash) {
+            vib([40, 30, 60, 30, 90]);
+          } else if (prev < MILESTONES.fireRing && combo.count >= MILESTONES.fireRing) {
+            vib([30, 20, 60]);
+          } else if (prev < MILESTONES.spark && combo.count >= MILESTONES.spark) {
+            vib([30, 20, 30]);
+          }
+        }
+      } catch { /* haptic unsupported — silent */ }
     }
   }, [combo?.count, combo]);
+
 
   if (!combo) return null;
 
