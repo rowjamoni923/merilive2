@@ -1171,22 +1171,25 @@ const Chat = () => {
 
     receiptChannel
       .on('broadcast', { event: 'delivered' }, (payload: any) => {
-        if (payload.payload?.userId !== currentUserId) {
-          setMessages(prev => prev.map(m =>
-            m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
-              ? { ...m, status: 'delivered' as const }
-              : m
-          ));
-        }
+        const p = payload?.payload;
+        // R2-Phase C Wave-2: receipt must come from the verified peer.
+        if (!p || p.userId === currentUserId) return;
+        if (p.userId !== selectedConversation.other_user?.id) return;
+        setMessages(prev => prev.map(m =>
+          m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
+            ? { ...m, status: 'delivered' as const }
+            : m
+        ));
       })
       .on('broadcast', { event: 'read' }, (payload: any) => {
-        if (payload.payload?.userId !== currentUserId) {
-          setMessages(prev => prev.map(m =>
-            m.sender_id === currentUserId && m.status !== 'read'
-              ? { ...m, status: 'read' as const, is_read: true }
-              : m
-          ));
-        }
+        const p = payload?.payload;
+        if (!p || p.userId === currentUserId) return;
+        if (p.userId !== selectedConversation.other_user?.id) return;
+        setMessages(prev => prev.map(m =>
+          m.sender_id === currentUserId && m.status !== 'read'
+            ? { ...m, status: 'read' as const, is_read: true }
+            : m
+        ));
       })
       .subscribe();
 
