@@ -339,6 +339,9 @@ export function usePrivateCall(userId: string | null) {
       hostEarned: 0,
     }));
 
+    // C4: call is now connected — server billing tick takes over; consume the escrow.
+    void consumeCurrentReservation(callId);
+
     // Pkg211 — promote Telecom connection to active for outgoing caller
     if (isNativeAndroidApp()) {
       NativeCall.reportCallConnected({ callId }).catch(() => {});
