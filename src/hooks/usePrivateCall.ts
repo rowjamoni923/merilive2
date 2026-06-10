@@ -74,6 +74,11 @@ export function usePrivateCall(userId: string | null) {
   // read the latest callState without hitting `undefined.current` on the
   // very first render. Synced inside an effect below.
   const callStateRef = useRef<CallState>(INITIAL_CALL_STATE);
+  // H-11: holds the active `private-call-${userId}` Supabase Realtime channel
+  // so we can tear down a prior subscription before opening a new one on
+  // StrictMode double-mount or `userId` change. Typed loosely because
+  // `supabase.channel(...)` return type is not exported here.
+  const privateCallChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const currentCallIdRef = useRef<string | null>(null);
   const billingStartedRef = useRef<boolean>(false);
