@@ -145,6 +145,13 @@ export const PKBattleActive = ({
     kind: "score" | "cheer";
   };
   const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+  // Per-side accumulated rescue (cheer-gift) coins during punishment phase.
+  // Separate from HP score (which is server-locked at 0 during punishment).
+  // Resets when a new battle starts or when battle leaves punishment phase.
+  const [rescueTally, setRescueTally] = useState<{ challenger: number; opponent: number }>({
+    challenger: 0,
+    opponent: 0,
+  });
 
   const prevChallengerRef = useRef(0);
   const prevOpponentRef = useRef(0);
@@ -447,6 +454,9 @@ export const PKBattleActive = ({
       if (!side) return;
       const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" as const }].slice(-8));
+      // Accumulate into rescue tally so viewers see total support, not just
+      // a transient floater (Bigo/Chamet "rescue meter" parity).
+      setRescueTally((prev) => ({ ...prev, [side!]: prev[side!] + coins }));
       setTimeout(() => {
         setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
       }, 1400);
@@ -454,6 +464,11 @@ export const PKBattleActive = ({
     window.addEventListener("livekit-gift-sent", onCheer as EventListener);
     return () => window.removeEventListener("livekit-gift-sent", onCheer as EventListener);
   }, [battleEnded, punishLeft, challengerId, opponentId]);
+
+  // Reset rescue tally whenever battle ID changes or punishment ends.
+  useEffect(() => {
+    if (!battleEnded || punishLeft <= 0) setRescueTally({ challenger: 0, opponent: 0 });
+  }, [battleId, battleEnded, punishLeft]);
 
 
 
@@ -853,13 +868,15 @@ export const PKBattleActive = ({
                   />
                 )}
                 {challengerLost && (
-                  <div
+                  <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
                         "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
                       mixBlendMode: "multiply",
                     }}
+                    animate={{ opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
               </motion.div>
@@ -885,13 +902,15 @@ export const PKBattleActive = ({
                   />
                 )}
                 {opponentLost && (
-                  <div
+                  <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
                         "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
                       mixBlendMode: "multiply",
                     }}
+                    animate={{ opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
               </motion.div>
@@ -908,6 +927,58 @@ export const PKBattleActive = ({
                 transition={{ type: "spring", damping: 22, stiffness: 180 }}
               />
             </div>
+
+            {/* H-8 punishment-phase rescue meter + support hint. Renders only
+                while HP is locked; shows accumulated rescue coins per side
+                (the cheer floaters' running total) plus a viewer CTA so it's
+                obvious that gifts still register even though the HP bar froze.
+                Bigo/Chamet "rescue meter" parity. */}
+            <AnimatePresence>
+              {inPunishment && (
+                <motion.div
+                  key="pk-rescue-meter"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="mt-1 flex items-center justify-between gap-2 px-0.5"
+                >
+                  <motion.div
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(244,114,182,0.18))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}
+                    animate={{ scale: rescueTally.challenger > 0 ? [1, 1.06, 1] : 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <span className="text-[9px]">🙌</span>
+                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {fmtCompact(rescueTally.challenger)}
+                    </span>
+                  </motion.div>
+                  <span
+                    className="text-[8.5px] font-semibold tracking-wider uppercase text-rose-200/80"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
+                  >
+                    Send gifts to support
+                  </span>
+                  <motion.div
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(251,191,36,0.18))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}
+                    animate={{ scale: rescueTally.opponent > 0 ? [1, 1.06, 1] : 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {fmtCompact(rescueTally.opponent)}
+                    </span>
+                    <span className="text-[9px]">🙌</span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Top-3 supporter avatars per side (Bigo/Chamet parity) */}
             <PKTopContributors
