@@ -1,69 +1,39 @@
-// PK Battle Tick — runs every 10 seconds via pg_cron.
-// Calls public.get_expired_pk_battles() then public.end_pk_battle(id, 'time_up')
-// for each. Server is the sole writer of winner / MVP / punishment_end_ts.
-// Idempotent: end_pk_battle short-circuits if status='ended'.
-
-import { createClient } from 'npm:@supabase/supabase-js@2'
+// PK Battle tick: progresses active→punishment→completed via DB RPC.
+// Scheduled by pg_cron every 10s.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    )
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false } }
+    );
 
-    // P1: expire stale pending invites (>30s old) so hosts aren't permanently
-    // blocked from new PK requests when an opponent ignores a ring.
-    let invitesExpired = 0
-    try {
-      const { data: expRes } = await supabase.rpc('expire_stale_pk_invites')
-      if (typeof expRes === 'number') invitesExpired = expRes
-    } catch (e) {
-      console.warn('[pk-battle-tick] expire_stale_pk_invites failed:', e)
-    }
-
-    const { data: expired, error: listErr } = await supabase.rpc('get_expired_pk_battles')
-    if (listErr) {
-      return new Response(JSON.stringify({ ok: false, error: listErr.message, invitesExpired }), {
+    const { data, error } = await supabase.rpc("pk_battle_tick_all");
+    if (error) {
+      console.error("[pk-battle-tick] rpc error:", error);
+      return new Response(JSON.stringify({ ok: false, error: error.message }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const ids: string[] = (expired ?? []).map((r: { battle_id: string }) => r.battle_id)
-    if (ids.length === 0) {
-      return new Response(JSON.stringify({ ok: true, ended: 0, invitesExpired }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const results = await Promise.all(
-      ids.map(async (battle_id) => {
-        const { data, error } = await supabase.rpc('end_pk_battle', {
-          p_battle_id: battle_id,
-          p_reason: 'time_up',
-        })
-        return { battle_id, ok: !error, data, error: error?.message }
-      }),
-    )
-
-    const ended = results.filter((r) => r.ok).length
-    const failed = results.filter((r) => !r.ok)
-    return new Response(JSON.stringify({ ok: true, ended, failed, results, invitesExpired }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+    return new Response(JSON.stringify({ ok: true, progressed: data ?? 0, t: Date.now() }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("[pk-battle-tick] fatal:", e);
+    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
-})
+});

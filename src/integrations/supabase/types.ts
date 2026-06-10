@@ -9991,13 +9991,9 @@ export type Database = {
       }
       pk_battles: {
         Row: {
-          challenger_id: string | null
-          challenger_score: number | null
-          challenger_stream_id: string | null
           competition_id: string | null
           connect_grace_seconds: number
           created_at: string | null
-          duration_minutes: number | null
           duration_seconds: number
           ended_at: string | null
           final_status: string | null
@@ -10009,13 +10005,10 @@ export type Database = {
           min_host_level: number
           mode: string
           mvp_user_id: string | null
-          opponent_id: string | null
-          opponent_score: number | null
-          opponent_stream_id: string | null
           phase_config: Json
           punishment_end_ts: string | null
           started_at: string | null
-          status: string | null
+          status: string
           stream1_id: string | null
           stream2_id: string | null
           team_size: number
@@ -10025,13 +10018,9 @@ export type Database = {
           winner_user_id: string | null
         }
         Insert: {
-          challenger_id?: string | null
-          challenger_score?: number | null
-          challenger_stream_id?: string | null
           competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
-          duration_minutes?: number | null
           duration_seconds?: number
           ended_at?: string | null
           final_status?: string | null
@@ -10043,13 +10032,10 @@ export type Database = {
           min_host_level?: number
           mode?: string
           mvp_user_id?: string | null
-          opponent_id?: string | null
-          opponent_score?: number | null
-          opponent_stream_id?: string | null
           phase_config?: Json
           punishment_end_ts?: string | null
           started_at?: string | null
-          status?: string | null
+          status?: string
           stream1_id?: string | null
           stream2_id?: string | null
           team_size?: number
@@ -10059,13 +10045,9 @@ export type Database = {
           winner_user_id?: string | null
         }
         Update: {
-          challenger_id?: string | null
-          challenger_score?: number | null
-          challenger_stream_id?: string | null
           competition_id?: string | null
           connect_grace_seconds?: number
           created_at?: string | null
-          duration_minutes?: number | null
           duration_seconds?: number
           ended_at?: string | null
           final_status?: string | null
@@ -10077,13 +10059,10 @@ export type Database = {
           min_host_level?: number
           mode?: string
           mvp_user_id?: string | null
-          opponent_id?: string | null
-          opponent_score?: number | null
-          opponent_stream_id?: string | null
           phase_config?: Json
           punishment_end_ts?: string | null
           started_at?: string | null
-          status?: string | null
+          status?: string
           stream1_id?: string | null
           stream2_id?: string | null
           team_size?: number
@@ -20019,6 +19998,98 @@ export type Database = {
         Args: { p_room_id: string }
         Returns: undefined
       }
+      pk_battle_accept: {
+        Args: { _battle_id: string; _stream_id?: string }
+        Returns: {
+          competition_id: string | null
+          connect_grace_seconds: number
+          created_at: string | null
+          duration_seconds: number
+          ended_at: string | null
+          final_status: string | null
+          host1_id: string
+          host1_score: number | null
+          host2_id: string
+          host2_score: number | null
+          id: string
+          min_host_level: number
+          mode: string
+          mvp_user_id: string | null
+          phase_config: Json
+          punishment_end_ts: string | null
+          started_at: string | null
+          status: string
+          stream1_id: string | null
+          stream2_id: string | null
+          team_size: number
+          total_gift_value: number
+          updated_at: string
+          winner_id: string | null
+          winner_user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pk_battles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      pk_battle_decline: { Args: { _battle_id: string }; Returns: undefined }
+      pk_battle_finalize: {
+        Args: { _battle_id: string }
+        Returns: {
+          competition_id: string | null
+          connect_grace_seconds: number
+          created_at: string | null
+          duration_seconds: number
+          ended_at: string | null
+          final_status: string | null
+          host1_id: string
+          host1_score: number | null
+          host2_id: string
+          host2_score: number | null
+          id: string
+          min_host_level: number
+          mode: string
+          mvp_user_id: string | null
+          phase_config: Json
+          punishment_end_ts: string | null
+          started_at: string | null
+          status: string
+          stream1_id: string | null
+          stream2_id: string | null
+          team_size: number
+          total_gift_value: number
+          updated_at: string
+          winner_id: string | null
+          winner_user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pk_battles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      pk_battle_invite: {
+        Args: {
+          _duration_seconds?: number
+          _min_host_level?: number
+          _opponent_id: string
+          _stream_id?: string
+        }
+        Returns: string
+      }
+      pk_battle_send_gift: {
+        Args: {
+          _battle_id: string
+          _gift_id: string
+          _quantity?: number
+          _target_host_id: string
+        }
+        Returns: Json
+      }
+      pk_battle_tick_all: { Args: never; Returns: number }
       pk_team_invite: {
         Args: {
           p_battle_id: string
