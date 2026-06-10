@@ -1208,11 +1208,13 @@ const Chat = () => {
     const channel = supabase.channel(`typing-${selectedConversation.id}`);
     
     channel.on('broadcast', { event: 'typing' }, (payload: any) => {
-      if (payload.payload?.userId !== currentUserId) {
-        setIsOtherTyping(true);
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 3000);
-      }
+      const p = payload?.payload;
+      if (!p || p.userId === currentUserId) return;
+      // R2-Phase C Wave-2: only the verified peer can drive the typing indicator.
+      if (p.userId !== selectedConversation.other_user?.id) return;
+      setIsOtherTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 3000);
     }).subscribe();
     
     typingChannelRef.current = channel;
