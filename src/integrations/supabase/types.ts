@@ -11913,6 +11913,27 @@ export type Database = {
           },
         ]
       }
+      reel_views: {
+        Row: {
+          first_seen_at: string
+          reel_id: string
+          user_id: string
+          viewed_date: string
+        }
+        Insert: {
+          first_seen_at?: string
+          reel_id: string
+          user_id: string
+          viewed_date?: string
+        }
+        Update: {
+          first_seen_at?: string
+          reel_id?: string
+          user_id?: string
+          viewed_date?: string
+        }
+        Relationships: []
+      }
       reels: {
         Row: {
           beans_earned: number | null
