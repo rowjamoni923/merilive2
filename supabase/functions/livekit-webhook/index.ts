@@ -21,11 +21,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { WebhookReceiver } from "npm:livekit-server-sdk@2.9.4";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
-};
-
+// R2-Phase B Wave-2 / R2-H15: server-to-server webhook — no browser CORS needed.
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -35,10 +31,8 @@ const receiver = new WebhookReceiver(LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
   if (req.method !== "POST") {
-    return new Response("method_not_allowed", { status: 405, headers: corsHeaders });
+    return new Response("method_not_allowed", { status: 405 });
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -50,7 +44,7 @@ Deno.serve(async (req) => {
     event = await receiver.receive(body, authHeader, true);
   } catch (e) {
     console.error("[livekit-webhook] verify failed:", (e as Error)?.message);
-    return new Response("unauthorized", { status: 401, headers: corsHeaders });
+    return new Response("unauthorized", { status: 401 });
   }
 
   const eventType: string = event?.event ?? "unknown";
@@ -227,6 +221,6 @@ Deno.serve(async (req) => {
 
   return new Response(JSON.stringify({ ok: true, event: eventType }), {
     status: 200,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
   });
 });

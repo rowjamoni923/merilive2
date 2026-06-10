@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+// R2-Phase B Wave-2 / R2-H15: strict CORS allow-list (was wildcard).
+const ALLOWED_ORIGINS = new Set<string>([
+  "https://merilive.com",
+  "https://www.merilive.com",
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+function buildCors(origin: string | null) {
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://merilive.com";
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 const PACKAGE_NAME = 'com.merilive.app';
 
@@ -79,6 +91,7 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 }
 
 serve(async (req) => {
+  const corsHeaders = buildCors(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -132,6 +145,33 @@ serve(async (req) => {
     }
 
     console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.coins}`);
+
+    // R2-H16: idempotency pre-check BEFORE Google API call.
+    // Prevents calling Google (and re-charging if our credit RPC crashed before)
+    // when the purchase_token was already credited to ANY user.
+    const { data: existingTx } = await adminSupabase
+      .from('recharge_transactions')
+      .select('id, user_id, coins_received')
+      .eq('payment_method', 'google_play')
+      .eq('transaction_id', purchaseToken)
+      .maybeSingle();
+
+    if (existingTx) {
+      if (existingTx.user_id === userId) {
+        const { data: prof } = await adminSupabase
+          .from('profiles').select('coins').eq('id', userId).maybeSingle();
+        return new Response(JSON.stringify({
+          success: true,
+          alreadyProcessed: true,
+          coins: existingTx.coins_received ?? productInfo.coins,
+          newBalance: prof?.coins ?? 0,
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      console.error(`[verify-google-purchase] ❌ purchase_token already used by different user`);
+      return new Response(JSON.stringify({ success: false, error: 'purchase_token_already_used' }), {
+        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // 🔐 Verify with Google Play Developer API
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
