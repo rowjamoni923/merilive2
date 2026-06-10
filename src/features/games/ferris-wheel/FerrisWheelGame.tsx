@@ -4,7 +4,7 @@ import { Diamond, History, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useGameSound } from "@/hooks/useGameSound";
-import { updateCachedBalance } from "@/hooks/useUserBalance";
+import { placeBet as placeBetService, processWin } from "@/services/gameBalanceService";
 import { cn } from "@/lib/utils";
 import ferrisWheelImage from "@/assets/ferris-wheel.svg";
 
@@ -100,11 +100,6 @@ export const FerrisWheelGame = () => {
     playBetSound();
   };
 
-  // Server-authoritative spin:
-  // ferris_wheel_play RPC validates the chosen slot, deducts My Diamonds,
-  // generates the winning slot server-side with a weighted RNG, and credits
-  // the win if applicable — all in one transaction. The client never decides
-  // payout, eliminating the free-diamond exploit.
   const spinWheel = useCallback(async () => {
     if (selectedFood === null || !profile || !userId) return;
 
@@ -112,52 +107,60 @@ export const FerrisWheelGame = () => {
     setIsSpinning(true);
     playSpinSound();
 
-    const { data, error } = await supabase.rpc('ferris_wheel_play', {
-      p_bet_amount: selectedChip,
-      p_chosen_slot: selectedFood + 1, // server uses 1-based slot ids matching WHEEL_ITEMS
-    });
-
-    if (error) {
-      console.error('[FerrisWheel] play error:', error);
-      toast.error("Failed to play");
+    // Deduct bet using service
+    const betResult = await placeBetService(userId, "ferris-wheel", "Ferris Wheel", selectedChip);
+    
+    if (!betResult.success) {
+      toast.error(betResult.error || "Failed to place bet");
       setPhase("betting");
       setIsSpinning(false);
       return;
     }
 
-    const result = (data ?? {}) as any;
-    if (!result.success) {
-      const bal = typeof result.new_balance === 'number' ? result.new_balance : undefined;
-      if (bal !== undefined) {
-        setProfile(prev => prev ? { ...prev, coins: bal } : null);
-        updateCachedBalance(bal);
+    const newBalance = betResult.newBalance || 0;
+    setProfile({ ...profile, coins: newBalance });
+
+    // Determine winner (with slight house edge)
+    const random = Math.random();
+    let winIndex: number;
+    
+    // Higher multipliers have lower chance
+    const weights = WHEEL_ITEMS.map(item => 1 / item.multiplier);
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let cumulative = 0;
+    winIndex = 0;
+    
+    for (let i = 0; i < weights.length; i++) {
+      cumulative += weights[i] / totalWeight;
+      if (random < cumulative) {
+        winIndex = i;
+        break;
       }
-      const msg = result.error === 'Insufficient diamonds' && bal !== undefined
-        ? `Not enough diamonds (you have ${bal.toLocaleString()})`
-        : (result.error || "Failed to play");
-      toast.error(msg);
-      setPhase("betting");
-      setIsSpinning(false);
-      return;
     }
 
-    const winSlot1Based: number = result.winning_slot;
-    const winIndex = winSlot1Based - 1;
-    const newBal: number = result.new_balance ?? profile.coins;
-    const won: boolean = !!result.won;
-    const winAmount: number = result.win_amount ?? 0;
-
-    // Update cached balance immediately so other surfaces reflect the new value.
-    updateCachedBalance(newBal);
-
-    // Animate the wheel landing.
-    setTimeout(() => {
+    // Animate wheel
+    setTimeout(async () => {
       setWinningIndex(winIndex);
       setIsSpinning(false);
       setPhase("result");
-      setProfile(prev => prev ? { ...prev, coins: newBal } : null);
 
-      if (won) {
+      // Check if won
+      if (winIndex === selectedFood) {
+        const winAmount = selectedChip * WHEEL_ITEMS[winIndex].multiplier;
+        
+        // Process win using service
+        const winResult = await processWin(
+          userId, 
+          "ferris-wheel", 
+          "Ferris Wheel", 
+          winAmount, 
+          WHEEL_ITEMS[winIndex].multiplier
+        );
+        
+        if (winResult.success) {
+          setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
+        }
+        
         setTodayProfit(prev => prev + winAmount - selectedChip);
         playWinSound();
         toast.success(`🎉 You won ${winAmount.toLocaleString()} Diamonds!`);
@@ -169,6 +172,7 @@ export const FerrisWheelGame = () => {
 
       setRecentResults(prev => [winIndex, ...prev.slice(0, 9)]);
 
+      // Reset for next round
       setTimeout(() => {
         setPhase("betting");
         setSelectedFood(null);

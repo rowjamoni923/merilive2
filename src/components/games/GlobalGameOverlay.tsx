@@ -18,7 +18,7 @@ interface GlobalGameOverlayProps {
 }
 
 export function GlobalGameOverlay({ 
-  gameId = 'roulette',
+  gameId = 'aviator',
   roomId,
   isMinimized = false,
   onMinimize,
