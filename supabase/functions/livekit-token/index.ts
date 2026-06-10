@@ -65,6 +65,7 @@ async function validateAdminToken(token: string): Promise<{ ok: boolean; role?: 
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (!isAllowedOrigin(req)) return json(403, { error: "forbidden_origin" });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
   try {
