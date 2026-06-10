@@ -125,3 +125,21 @@ Step 14: APK rebuild signal
 ~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
 
 **Approve করলে Step 1 (PK schema audit + migration) দিয়ে শুরু করব।**
+
+---
+
+## Emergency Recovery — Public profile / agency visibility outage
+
+### Verified root cause
+- Browser network showed `profiles_public?select=*&id=eq.1134eefd...` returned HTTP 200 with `[]`, while direct DB read found the profile row exists and is not banned/deleted.
+- DB catalog showed `profiles_public` and `agencies_public` currently have `security_invoker=on`, so they inherit base-table RLS from `profiles` / `agencies`. Since `profiles` only allows users to read their own private row, every other user's public profile appears missing.
+- This cascades into profile detail, avatar/photo/frame hydration, viewer lists, reels profile joins, message conversation profile cards, and agency public details.
+
+### Professional standard checked
+- Chamet listing describes public live/social discovery, global user interaction, real-time video/chat/party features, and virtual community access: https://play.google.com/store/apps/details?id=com.hkfuliao.chamet
+- BIGO guide describes watching broadcasts, real-time chat, social discovery, and creator profile/earnings surfaces: https://www.bigo.tv/blog/use-bigo-live
+- Poppo describes live broadcasts, real-time audience interaction, virtual gifts, and agency/host management: https://www.poppolive.net/en/ and https://www.poppolive.net/en/agency/
+
+### Fix standard for MeriLive
+- Public-safe views must expose only non-sensitive public profile/agency fields and must not inherit private base-table owner-only RLS.
+- Base tables stay RLS-protected for sensitive/private columns; frontend keeps using public views for other-user profile cards/details and agency discovery.
