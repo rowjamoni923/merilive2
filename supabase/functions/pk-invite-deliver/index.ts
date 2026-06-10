@@ -47,6 +47,11 @@ const RANDOM_INVITE_COOLDOWN_MS = 30_000;
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: "forbidden_origin" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
