@@ -69,3 +69,13 @@
 - LiveStreamFeed hardening: root max-width guarded, bottom info respects safe-area, Enter Live target ≥44px, text area min-width guarded.
 - Verified current `/index` at mobile: `innerWidth=375`, `htmlScrollWidth=375`, `bodyScrollWidth=375`, `hasHorizontalOverflow=false`, visible issues=[]
 - Vitest smoke: `src/test/livekitCallSignaling.test.ts` 9/9 passed.
+
+## Wave B — DONE 2026-06-10
+- Added `data-livestream-root` to LiveStream shell, `data-call-root` to ActiveCallScreen shell.
+- Added `data-party-root="true"` body marker via useEffect in PartyRoom (fragment root, no shell div to tag).
+- New CSS block "Wave B HARD GUARDS" in `src/index.css` scoped to non-admin + mobile (≤767px):
+  - All descendants capped at `max-width: 100vw`, root surfaces `overflow-x: hidden` + `width: 100vw`.
+  - Fixed bottom bars inside these surfaces get `padding-bottom: max(env(safe-area-inset-bottom), 8px)`.
+  - Dialog/sheet children forced to full viewport width.
+  - 9-seat party grid pinned to 3 columns at 360px (overriding the auto-collapse-to-2 rule).
+- Owner-account preview at 360px verified: home/party-list/live-feed clean, no overflow. Inside-room visual verification requires a live host or active call which the preview cannot spawn solo — guards are defensive so any future content overflow is automatically clamped.
