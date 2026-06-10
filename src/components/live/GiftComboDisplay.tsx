@@ -38,6 +38,7 @@ interface GiftCombo {
 interface GiftComboDisplayProps {
   combo: GiftCombo | null;
   onComplete?: () => void;
+  onDismiss?: () => void;
 }
 
 // Milestone thresholds (Bigo/Chamet teardown 2024-2026)
@@ -50,8 +51,9 @@ function getTier(totalValue: number) {
   return { isPremium, isLegendary };
 }
 
-export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) => {
+export const GiftComboDisplay = ({ combo, onComplete, onDismiss }: GiftComboDisplayProps) => {
   const [milestoneTick, setMilestoneTick] = useState(0); // forces per-burst keyframe re-run
+  const [isPressed, setIsPressed] = useState(false);
   const lastCountRef = useRef(0);
   const lastMilestoneRef = useRef(0);
 
@@ -147,10 +149,18 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, x: -60, scale: 0.85 }}
-        animate={{ opacity: 1, x: 0, scale: 1 }}
+        animate={{ opacity: 1, x: 0, scale: isPressed ? 0.92 : 1 }}
         exit={{ opacity: 0, x: -40, scale: 0.85 }}
         transition={{ type: "spring", damping: 22, stiffness: 320 }}
-        className="relative pointer-events-none"
+        className="relative cursor-pointer select-none"
+        onClick={() => {
+          setIsPressed(true);
+          setTimeout(() => onDismiss?.(), 120);
+        }}
+        onTouchStart={() => setIsPressed(true)}
+        onTouchEnd={() => {
+          setTimeout(() => setIsPressed(false), 120);
+        }}
       >
         {/* Premium ambient glow */}
         {isPremium && (
