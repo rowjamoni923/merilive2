@@ -574,51 +574,6 @@ export const RoomChatOverlay = memo(({
     </div>
   );
 });
-        {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
-        <AnimatePresence initial={false} mode="sync">
-          {displayMessages.slice().reverse().map((msg) => (
-            <ChatMessageItem 
-              key={msg.id} 
-              message={msg} 
-              autoHide={msg.message.includes('[GIFT:') || msg.message.toLowerCase().includes('sent ')}
-            />
-          ))}
-        </AnimatePresence>
-        
-        {/* Join Notifications - After messages in reverse (appear above messages) */}
-        <AnimatePresence initial={false} mode="sync">
-          {joinNotifications.slice().reverse().map((notification) => (
-            <JoinNotificationItem
-              key={notification.id}
-              notification={notification}
-              roomKind={roomType === 'live' ? 'live' : 'party'}
-            />
-          ))}
-        </AnimatePresence>
-        
-        {/* Welcome Message - INSIDE scroll, will scroll up with messages */}
-        {showWelcome && hostName && (
-          <div className="shrink-0">
-            <WelcomeMessage 
-              hostName={hostName}
-              hostLevel={hostLevel}
-              roomTitle={roomTitle}
-              roomType={roomType}
-            />
-          </div>
-        )}
-        
-        {/* Admin Room Warning Banner - INSIDE scroll, at very top when scrolled up */}
-        {adminBannerRoomType && (
-          <div className="shrink-0">
-            <RoomWelcomeBanner roomType={adminBannerRoomType} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
 RoomChatOverlay.displayName = 'RoomChatOverlay';
 
 // ============= EXPORTS =============
