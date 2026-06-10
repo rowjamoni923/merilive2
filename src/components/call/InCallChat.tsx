@@ -4,6 +4,7 @@ import { Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
+import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 import {
   publishChatMessage,
   type ChatMessageDetail,
@@ -210,7 +211,7 @@ export const InCallChat = memo(({
           {/* Messages */}
           <div
             ref={chatRef}
-            className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[140px] max-h-[30vh]"
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[140px] max-h-[30vh] relative"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {messages.length === 0 && (
@@ -232,6 +233,10 @@ export const InCallChat = memo(({
                 </div>
               );
             })}
+            <ScrollToBottomButton
+              scrollRef={chatRef}
+              className="bottom-2 right-2"
+            />
           </div>
 
           {/* Input — Bigo-style pill + circular send */}

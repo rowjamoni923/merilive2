@@ -16,13 +16,14 @@
  * =====================================================
  */
 
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 
 import { 
   getLevelGradient, 
@@ -495,23 +496,23 @@ export const RoomChatOverlay = memo(({
   adminBannerRoomType,
 }: RoomChatOverlayProps) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Show all messages or limit if maxMessages is provided
   const displayMessages = maxMessages ? messages.slice(-maxMessages) : messages;
-  
+
   // With flex-col-reverse, scroll position 0 is at bottom (newest)
   // No auto-scroll needed - newest messages naturally appear at bottom
-  
+
   return (
     <div className={cn(
-      "flex flex-col w-full",
+      "flex flex-col w-full relative",
       className
     )}>
       {/* SCROLLABLE CHAT CONTAINER - Ultra Premium Luxury Style */}
       {/* flex-col-reverse: newest at bottom, scroll up to see older messages */}
       {/* ALL content (banner, welcome, messages) scrolls together */}
       {/* Subtle blur background for premium look */}
-      <div 
+      <div
         ref={chatContainerRef}
         className={cn(
           "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
@@ -525,14 +526,14 @@ export const RoomChatOverlay = memo(({
         {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
         <AnimatePresence initial={false} mode="sync">
           {displayMessages.slice().reverse().map((msg) => (
-            <ChatMessageItem 
-              key={msg.id} 
-              message={msg} 
+            <ChatMessageItem
+              key={msg.id}
+              message={msg}
               autoHide={msg.message.includes('[GIFT:') || msg.message.toLowerCase().includes('sent ')}
             />
           ))}
         </AnimatePresence>
-        
+
         {/* Join Notifications - After messages in reverse (appear above messages) */}
         <AnimatePresence initial={false} mode="sync">
           {joinNotifications.slice().reverse().map((notification) => (
@@ -543,11 +544,11 @@ export const RoomChatOverlay = memo(({
             />
           ))}
         </AnimatePresence>
-        
+
         {/* Welcome Message - INSIDE scroll, will scroll up with messages */}
         {showWelcome && hostName && (
           <div className="shrink-0">
-            <WelcomeMessage 
+            <WelcomeMessage
               hostName={hostName}
               hostLevel={hostLevel}
               roomTitle={roomTitle}
@@ -555,7 +556,7 @@ export const RoomChatOverlay = memo(({
             />
           </div>
         )}
-        
+
         {/* Admin Room Warning Banner - INSIDE scroll, at very top when scrolled up */}
         {adminBannerRoomType && (
           <div className="shrink-0">
@@ -563,10 +564,16 @@ export const RoomChatOverlay = memo(({
           </div>
         )}
       </div>
+
+      {/* Scroll-to-bottom button — appears when user scrolls up */}
+      <ScrollToBottomButton
+        scrollRef={chatContainerRef}
+        reverse
+        className="bottom-2 left-1/2 -translate-x-1/2"
+      />
     </div>
   );
 });
-
 RoomChatOverlay.displayName = 'RoomChatOverlay';
 
 // ============= EXPORTS =============

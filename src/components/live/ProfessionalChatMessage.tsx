@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 
 interface ChatMessageProps {
   id: string;
@@ -236,8 +238,9 @@ interface ProfessionalChatProps {
 }
 
 export const ProfessionalChat = ({ messages, className }: ProfessionalChatProps) => {
+  const chatRef = useRef<HTMLDivElement>(null);
   return (
-    <div className={cn("flex flex-col gap-1 overflow-y-auto scrollbar-hide", className)}>
+    <div className={cn("flex flex-col gap-1 overflow-y-auto scrollbar-hide relative", className)} ref={chatRef}>
       {messages.map((msg, index) => (
         <ProfessionalChatMessage
           key={msg.id || index}
@@ -255,6 +258,10 @@ export const ProfessionalChat = ({ messages, className }: ProfessionalChatProps)
           bubbleUrl={msg.bubbleUrl}
         />
       ))}
+      <ScrollToBottomButton
+        scrollRef={chatRef}
+        className="bottom-2 right-2"
+      />
     </div>
   );
 };
