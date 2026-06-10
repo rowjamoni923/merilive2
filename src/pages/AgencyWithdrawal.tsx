@@ -2329,6 +2329,12 @@ const AgencyWithdrawal = () => {
     const normalizedAccountName = getNormalizedAccountName();
     const normalizedAccountNumber = getNormalizedAccountNumber();
 
+    // C1: synchronous double-submit guard — beans were being deducted twice on fast double-tap
+    if (submitRef.current) {
+      console.warn('[Withdrawal] Double-submit blocked by submitRef');
+      return;
+    }
+    submitRef.current = true;
     setSubmitting(true);
     try {
       const rate = exchangeRates[countryConfig.currency] || 1;
@@ -2464,6 +2470,7 @@ const AgencyWithdrawal = () => {
       toast.error('Withdrawal request failed');
     } finally {
       setSubmitting(false);
+      submitRef.current = false;
     }
   };
 
