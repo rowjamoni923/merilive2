@@ -35,6 +35,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
