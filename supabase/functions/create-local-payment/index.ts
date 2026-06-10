@@ -7,8 +7,13 @@ const corsHeaders = {
 };
 
 const CURRENCY_ZERO_DECIMAL = new Set(["bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf"]);
+// Main app domain is merilive.com. merilive.top is landing-only but still
+// allowed because checkout can be initiated from the landing CTA.
 const ALLOWED_RETURN_ORIGINS = new Set([
+  "https://merilive.com",
+  "https://www.merilive.com",
   "https://merilive.top",
+  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);
@@ -16,9 +21,9 @@ const ALLOWED_RETURN_ORIGINS = new Set([
 function normalizeReturnOrigin(raw: unknown): string {
   try {
     const origin = new URL(String(raw || "")).origin;
-    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.com";
   } catch {
-    return "https://merilive.top";
+    return "https://merilive.com";
   }
 }
 
