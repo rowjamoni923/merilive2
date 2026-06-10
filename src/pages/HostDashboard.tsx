@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -58,6 +59,7 @@ interface Transaction {
 }
 
 const HostDashboard = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState<EarningStats>({

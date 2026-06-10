@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronRight, Crown, Diamond, Sparkles, Star, Gift, Car, Headphones, Image, TrendingUp, Coins } from "lucide-react";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
@@ -107,6 +108,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 const Level = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [currentLevel, setCurrentLevel] = useState(0);

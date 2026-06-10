@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -1778,6 +1779,7 @@ const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
 };
 
 const AgencyWithdrawal = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const [agency, setAgency] = useState<Agency | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);

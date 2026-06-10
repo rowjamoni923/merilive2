@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe, ExternalLink } from "lucide-react";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
@@ -122,6 +123,7 @@ const PAYMENT_BRAND_FALLBACKS: Record<string, string> = {
 };
 
 const Recharge = () => {
+  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const { toast } = useToast();
   

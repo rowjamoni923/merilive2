@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -94,6 +95,7 @@ type PrivilegeSlot =
 
 // Helper: check if a URL is a valid asset (not just placeholder text)
 const isValidAssetUrl = (url: string | null | undefined): boolean => {
+  useBodyMarker("data-waved-root");
   if (!url || url.length < 10) return false;
   // Accept any HTTP(S) URL or relative path with known extensions
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return true;
