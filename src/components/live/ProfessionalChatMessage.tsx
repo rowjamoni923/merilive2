@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 
 interface ChatMessageProps {
   id: string;
