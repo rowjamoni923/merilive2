@@ -13,6 +13,7 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import type { Conversation, Group } from "./chatTypes";
@@ -67,7 +68,7 @@ const ConversationRow: React.FC<{
       {conv.other_user?.id ? (
         <AvatarWithFrame
           userId={conv.other_user.id}
-          src={conv.other_user?.avatar_url}
+          src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : conv.other_user?.avatar_url}
           name={conv.other_user?.display_name || "User"}
           level={pickDisplayLevel(conv.other_user as any)}
           size="md"
@@ -75,7 +76,7 @@ const ConversationRow: React.FC<{
         />
       ) : (
         <Avatar className="w-14 h-14">
-          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+          <AvatarImage src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : undefined} />
           <AvatarFallback className="bg-muted text-muted-foreground">
             {conv.other_user?.display_name?.[0] || "?"}
           </AvatarFallback>
@@ -131,7 +132,7 @@ const GroupRow: React.FC<{ group: Group; onSelect: (g: Group) => void }> = React
       className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
     >
       <Avatar className="w-14 h-14 shrink-0 self-center">
-        <AvatarImage src={group.avatar_url || undefined} />
+        <AvatarImage src={group.avatar_url ? enhanceThumbnail(group.avatar_url, { width: 64, quality: 82 }) : undefined} />
         <AvatarFallback className="bg-muted text-muted-foreground">
           <Users className="w-6 h-6" />
         </AvatarFallback>
