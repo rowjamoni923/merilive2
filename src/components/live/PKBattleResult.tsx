@@ -207,12 +207,13 @@ export const PKBattleResult = ({
                       ? "drop-shadow(0 2px 10px rgba(251,191,36,0.6)) drop-shadow(0 0 18px rgba(251,191,36,0.45))"
                       : "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
                   }}
-                  initial={{ scale: 0, y: 8 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ type: "spring", delay: 0.4, damping: 14, stiffness: 220 }}
+                  initial={{ scale: 0, y: -40, rotate: -8 }}
+                  animate={{ scale: [0, 1.25, 0.92, 1.04, 1], y: [-40, 0, 4, -2, 0], rotate: [-8, 0, 1, 0, 0] }}
+                  transition={{ delay: 0.4, duration: 0.7, times: [0, 0.45, 0.7, 0.88, 1], ease: [0.34, 1.56, 0.64, 1] }}
                 >
                   {isWinner ? "YOU WIN!" : "YOU LOST"}
                 </motion.div>
+
               </div>
             )}
 
