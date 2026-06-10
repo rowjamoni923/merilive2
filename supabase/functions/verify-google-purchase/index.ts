@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+// R2-Phase B Wave-2 / R2-H15: strict CORS allow-list (was wildcard).
+const ALLOWED_ORIGINS = new Set<string>([
+  "https://merilive.com",
+  "https://www.merilive.com",
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+function buildCors(origin: string | null) {
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://merilive.com";
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 const PACKAGE_NAME = 'com.merilive.app';
 
