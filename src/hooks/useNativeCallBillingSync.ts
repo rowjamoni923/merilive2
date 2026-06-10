@@ -36,6 +36,14 @@ interface UseNativeCallBillingSyncArgs {
   userId: string | null;
   /** Active call id; null/empty disables the sync. */
   callId: string | null | undefined;
+  /**
+   * H-13: parent already knows whether this client is the host. Pass it in
+   * so we can short-circuit BEFORE issuing any DB query — host-side mounts
+   * previously paid for a `private_calls` SELECT + a wallet SELECT just to
+   * discover they shouldn't push, and a slow / failed query could even
+   * surface a phantom coin-deduction UI to the host.
+   */
+  isHost?: boolean;
 }
 
 function isAndroidNative(): boolean {
@@ -59,6 +67,7 @@ async function pushBilling(callId: string, balance: number, ratePerMinute: numbe
 export function useNativeCallBillingSync({
   userId,
   callId,
+  isHost = false,
 }: UseNativeCallBillingSyncArgs): void {
   const lastPushedRef = useRef<{ balance: number; rate: number } | null>(null);
 
@@ -173,10 +182,15 @@ export function useNativeCallBillingSync({
     };
   }, []);
 
-  // 2) Billing sync — caller side only (verified by reading caller_id).
+  // 2) Billing sync — caller side only.
+  // H-13: short-circuit BEFORE any DB query when the parent has already
+  // identified this client as the host. Saves one private_calls SELECT +
+  // one profiles SELECT per host-side call and removes the failure mode
+  // where a slow/failed query could surface coin-deduction UI to a host.
   useEffect(() => {
     if (!isAndroidNative()) return;
     if (!userId || !callId) return;
+    if (isHost) return;
 
     let cancelled = false;
     let balance = 0;
@@ -262,5 +276,5 @@ export function useNativeCallBillingSync({
       try { supabase.removeChannel(profileChannel); } catch { /* no-op */ }
       try { supabase.removeChannel(callChannel); } catch { /* no-op */ }
     };
-  }, [userId, callId]);
+  }, [userId, callId, isHost]);
 }
