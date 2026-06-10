@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { recordClientError } from "@/utils/clientErrorLog";

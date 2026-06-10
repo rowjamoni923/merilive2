@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { playSynthSequence } from "@/utils/soundPlayer";
 

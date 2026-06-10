@@ -18,6 +18,7 @@ import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";

@@ -28,6 +28,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
