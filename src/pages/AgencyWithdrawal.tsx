@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import {
@@ -1786,6 +1786,8 @@ const AgencyWithdrawal = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // C1: synchronous double-submit guard (state updates are async, ref is immediate)
+  const submitRef = useRef(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
