@@ -156,7 +156,7 @@ const PublicPrivacyPolicy = () => (
         </ol>
         <p className="font-semibold mt-3 mb-1">Option 2 — Web Deletion Request:</p>
         <ol className="list-decimal pl-5 space-y-1">
-          <li>Visit <strong>https://merilive.top/account-deletion</strong></li>
+          <li>Visit <strong>https://merilive.com/account-deletion</strong></li>
           <li>Submit your registered email/phone and reason</li>
           <li>You will receive a confirmation email within 24 hours</li>
           <li>Account and data are deleted within 30 days of confirmation</li>
