@@ -1,0 +1,1 @@
+ALTER VIEW public.v_user_reserved_coins SET (security_invoker = true);
