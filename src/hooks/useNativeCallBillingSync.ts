@@ -276,5 +276,5 @@ export function useNativeCallBillingSync({
       try { supabase.removeChannel(profileChannel); } catch { /* no-op */ }
       try { supabase.removeChannel(callChannel); } catch { /* no-op */ }
     };
-  }, [userId, callId]);
+  }, [userId, callId, isHost]);
 }
