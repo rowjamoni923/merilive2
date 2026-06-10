@@ -1,202 +1,156 @@
-# Professional Rebuild: Game System + PK Battle
-
-দুটো system-ই server-authoritative, race-free, professional grade-এ rebuild করব — Chamet/Bigo/Poppo যেভাবে করে সেভাবে। Design/UI shell অপরিবর্তিত থাকবে, শুধু backend logic + wiring।
-
----
-
-## PART A — PK BATTLE (Phase 1, আগে)
-
-Memory-locked research অনুযায়ী 6-step rebuild:
-
-### A1. Schema audit + fix migration
-- `pk_battles` table actual columns scan
-- Missing column add: `server_start_at`, `server_end_at`, `punishment_end_at`, `host_a_score`, `host_b_score`, `winner_user_id`, `status` enum (`pending|active|punishment|completed|cancelled`)
-- Race-free matchmaking: partial UNIQUE index on `(host_a_id, status)` where `status in ('pending','active')` — same host একসাথে দুই PK তে থাকতে পারবে না
-- `pk_battle_gifts` seed: gift_id → pk_score mapping (admin-tunable, default = coin_cost)
-
-### A2. Server-authoritative score (trigger)
-- `gift_transactions` insert trigger: যদি receiver কোনো active `pk_battle` এর host হয়, তাহলে sender's contribution `pk_battles.host_a_score` বা `host_b_score`-এ atomic add
-- Score lookup via `pk_battle_gifts.pk_score` (fallback = gift coin value)
-- All score mutation DB-side, client কখনো `host_a_score` write করতে পারবে না (RLS: no UPDATE on score columns from authenticated; only service_role)
-
-### A3. Server-side timer (edge function + cron)
-- `pk-battle-tick` edge function, every 10s via pg_cron
-- Active battle যার `server_end_at < now()` → status='punishment', `punishment_end_at = now()+90s`, winner decide (higher score, tie = no winner)
-- Punishment expired → status='completed', reward distribute (70% winner / 30% loser of total pot, or whatever admin config)
-- Realtime broadcast on `pk_battles` row update
-
-### A4. Matchmaking RPC
-- `pk_battle_invite(opponent_id, duration_seconds)` — level≥5 gate, both hosts free check, single atomic insert
-- `pk_battle_accept(battle_id)` — only opponent can accept, sets `server_start_at = now()`, `server_end_at = now() + duration`
-- `pk_battle_decline(battle_id)` / `pk_battle_cancel(battle_id)`
-
-### A5. Reward + history
-- `pk_reward_history` populate at completion
-- Winner badge, streak counter on `profiles`
-
-### A6. Frontend rewire
-- PK UI components → call new RPCs only
-- Score display reads from Realtime subscription (never compute client-side)
-- Timer displays `server_end_at - now()` (clock-skew tolerant)
+# MeriLive — Full App Audit & Professionalization Plan
+**Date:** 2026-06-10
+**Method:** 3 parallel subagents — (1) codebase audit, (2) security/data-integrity audit, (3) competitor research (Chamet/Bigo/Olamet/Poppo, Agora→LiveKit translated)
+**Status:** Research complete. Awaiting user approval on fix order.
 
 ---
 
-## PART B — GAME SYSTEM (Phase 2) — Research-locked rebuild
+## 🔴 CRITICAL (must fix first — real exploits, money loss, data leak)
 
-**Mode:** Audit + plan only. NO code/migration yet. User approves before each step.
-
-### B0. Current state — verified findings (audit sub_zf6tnx58)
-
-Conflicts that make the system non-functional today:
-- **Roulette dual-backend collision**: `roulette_get_or_create_session` v2 (mig 20260414) returns `id`, but `RouletteGame.tsx` reads `session_id` → session creation broken.
-- **Bet table split-brain**: `place_live_game_bet` v3 (mig 20260524) writes `game_bets`, while `useGlobalLiveGame` Realtime subscribes to `live_game_bets` → live bet feed dead.
-- **`auto_process_live_game` is a no-op**: references column `ends_at` which does not exist (real col: `game_end_at`) → no server-side round closure.
-- **Cron: NONE registered** for any game. `game-auto-runner` only runs if a client clicks the admin button; rounds stall otherwise.
-- **Client-trusted RNG**: `useLiveGameRound.generateResult()` calls `Math.random()` in browser, then calls `process_game_win(amount)` with the value it chose → full house-edge bypass.
-- **`process_game_win` accepts arbitrary `p_amount`** from any auth user — no round ref, no cap.
-- **`handle_game_callback`** has no `FOR UPDATE`, no `external_tx_id` dedup → double-credit on concurrent provider callbacks.
-- **Column drift**: `betting_end_at` vs `betting_ends_at` vs `ends_at` across migrations.
-- **Orphan tables** (no writers): `game_sessions`, `game_players`, `game_stats`, `game_provider_logs`.
-
-### B1. Industry standard (research sub_2x3pmpg4 — Bigo/Chamet/Stake/Evolution)
-
-| Dimension | Standard | Source |
-|---|---|---|
-| Round FSM | `IDLE → BETTING_OPEN → LOCKED → RESOLVING → SETTLED` | Evolution / Stake docs |
-| Lucky Wheel timings | bet 5–8s, lock 1–2s, reveal 2–4s, total ~10–15s | Bigo/Chamet inferred |
-| Provably fair | `HMAC_SHA256(server_seed, "${client_seed}:${nonce}")`, publish hash before round, reveal seed after settle | stake.us/provably-fair/implementation |
-| House edge | Roulette 2.7%, Mines 1–3%, Dice 1%, mobile wheel 3–5% | Evolution / Stake |
-| Atomic bet | `SELECT FOR UPDATE` wallet + round in single tx, idempotency_key | jamesshen-svt/dice ref |
-| Single-writer payout | One worker settles a round; idempotent on retry | Paułowicz audit-ready postmortem |
-| Realtime | Postgres `UPDATE game_rounds` → Supabase Realtime → all room subs; absolute `betting_ends_at` timestamp, NOT durations | flowersayo countdown article |
-| Cron on Supabase | **pg_cron minimum = 1 min** (hosted). Pattern: sweep stale rounds every 60s + lazy advance on next bet + Realtime for UX. Sub-second tick infeasible without VPS (deferred). | supabase.com/docs/guides/functions/schedule-functions |
-| Audit | Append-only `bet_ledger`, `round_seeds` (INSERT only via RLS), `payout_ledger` | GLI-19 / UKGC RTS-7 |
-| Frontend timer | Absolute `betting_ends_at` UTC + client clock-drift offset on connect | flowersayo / Frank van Puffelen Firebase |
-
-### B2. MeriLive design decisions (locked by research + Supabase constraint)
-
-1. **One canonical table set** for ALL live games:
-   - `game_rounds` (repurpose `live_game_rounds`): + `server_seed_hash`, `server_seed`, `client_seed`, `nonce`, `betting_ends_at` (canonical), `resolves_at`, FSM `status`.
-   - `game_bets` (canonical): + `idempotency_key UNIQUE`, `payout`, `settled_at`.
-   - `game_ledger` (new, append-only): every coin debit/credit row; RLS denies UPDATE/DELETE.
-   - `round_seeds` (new): `(round_id PK, server_seed_hash, server_seed_revealed, client_seed, nonce)` — INSERT only.
-   - **Retire** orphans: `game_sessions`, `game_players`, `roulette_sessions`, `roulette_bets`, `live_game_bets`, `game_stats`, `game_provider_logs` (`DROP IF EXISTS` after archive).
-2. **Round lifecycle = pg_cron sweeper (60s)** + DB trigger on `INSERT INTO game_bets` that auto-opens a round if none active. Sub-minute UX = absolute `betting_ends_at` + Realtime row update; clients compute their own countdown. No persistent loop.
-3. **Server-authoritative outcome**: settle RPC reads `server_seed` + `client_seed` + nonce, computes via HMAC-SHA256 per Stake formula; writes result + reveals seed atomically. NEVER trust client.
-4. **Per-game-type result mapper**: pluggable SQL function per game (roulette_37, wheel_8, dice_6) takes HMAC bytes → outcome in that game's space. House edge enforced via per-game multiplier table in `game_settings`.
-5. **Idempotency**: every wallet-mutating RPC takes `p_idempotency_key uuid`; stored in `game_idempotency`; replay returns cached result.
-6. **Anti-cheat**: rate limit (max 1 bet / 500ms / user / room), per-round single-bet, max stake-to-balance ratio, RTP-deviation monitor.
-
-### B3. Step-by-step rebuild order (each step needs separate approval)
-
-```text
-B-Step 1: Schema consolidation migration
-          - rename live_game_rounds.betting_end_at → betting_ends_at (alias)
-          - add server_seed_hash/server_seed/client_seed/nonce/resolves_at on game_rounds
-          - create round_seeds (append-only RLS)
-          - create game_ledger (append-only RLS)
-          - create game_idempotency
-          - add idempotency_key UNIQUE + payout + settled_at on game_bets
-          - archive + DROP orphan tables
-
-B-Step 2: Provably-fair core SQL
-          - public.game_generate_round_seed() — random 32 bytes + sha256 hash
-          - public.game_compute_outcome(server_seed, client_seed, nonce, game_type)
-          - per-game outcome mappers (roulette_37, wheel_8, dice_6)
-
-B-Step 3: Atomic bet RPC
-          - public.game_place_bet(p_round_id, p_amount, p_bet_type, p_bet_value, p_idempotency_key)
-          - SELECT FOR UPDATE round, validate state=BETTING_OPEN AND now()<betting_ends_at
-          - SELECT FOR UPDATE profile, deduct, insert game_bets, insert game_ledger debit
-          - dedup via game_idempotency
-          - retire legacy place_game_bet / place_live_game_bet
-
-B-Step 4: Single-writer settlement RPC
-          - public.game_settle_round(p_round_id) — service_role / cron only
-          - SELECT FOR UPDATE round, compute outcome via B-Step 2, reveal seed
-          - iterate bets, FOR UPDATE each profile, credit winners, write game_ledger credit
-          - idempotent — re-run on settled round returns same result
-          - lock out client callers of process_live_game_round + process_game_win
-
-B-Step 5: Edge function game-tick + pg_cron
-          - supabase/functions/game-tick (CRON_SECRET header)
-          - sweep rounds WHERE status IN ('BETTING_OPEN','LOCKED') AND betting_ends_at < now()
-          - call game_settle_round per stale round
-          - open next round per active room if none open
-          - cron.schedule('game-tick', '* * * * *', net.http_post(...))
-
-B-Step 6: Frontend rewire (ZERO design change)
-          - useGlobalLiveGame + useLiveGameRound + RouletteGame → new RPCs
-          - DELETE all Math.random()/generateResult() in src/
-          - Replace Date.now()+duration with betting_ends_at + drift-correction helper
-          - Realtime subs → canonical game_bets, game_rounds
-          - Keep every UI component, layout, animation untouched
-
-B-Step 7: Owner-account live preview test (smdollarex923@gmail.com)
-          - Bet → settle → payout → ledger row → revealed seed visible
-          - Reconnect mid-round shows correct countdown (server-time anchor)
-          - Concurrent bets do not double-spend
-          - Honest flag: native game WebView path needs APK rebuild if any
-```
-
-### B4. Non-goals (this phase)
-- Crash (live ascending multiplier) — defer; needs sub-second tick → VPS (deferred).
-- 3rd-party provider integration (Evolution/Spribe/deckofcards) — keep current flow frozen.
-- Tournament/leaderboard for games — later.
-- Per-room custom house edge — global per game only.
-
-### B5. Honest constraints
-- pg_cron 60s minimum: BETTING_OPEN ≥ 8–15s windows fine because UI counts down off `betting_ends_at`; settlement may lag ≤60s if no one places a bet to trigger lazy advance. For continuous rooms acceptable (industry pattern). Instant-result games (Dice) → synchronous settlement inside `game_place_bet`, no round, no cron.
-- Sub-second multiplier tick (Crash/Aviator) genuinely needs a persistent worker → VPS (deferred). Skipped this phase.
-- Owner-account web test covers ~80%; any native game overlay/WebView code change needs APK rebuild — will flag explicitly.
+| # | Area | File / RPC | Issue | Industry Standard |
+|---|---|---|---|---|
+| **CR-1** | Wallet | `process_game_bet` RPC (migration 20260414094543) | No `auth.uid()` check; `p_user_id` trusted from client. RPC is `GRANT EXECUTE ... TO authenticated` → any logged-in user can debit any other user's coins by calling RPC directly with victim's UUID. | Server validates `auth.uid() = p_user_id` inside SECURITY DEFINER (same pattern as `process_gift_transaction`). |
+| **CR-2** | Wallet | `game-balance-callback` edge fn | HMAC verification SKIPPED when `GAME_CALLBACK_HMAC_SECRET` env unset → any attacker can credit unlimited diamonds with a captured game token. | Mandatory HMAC; reject 401 if secret missing (fail-closed). |
+| **CR-3** | Privacy | `device_tokens` table — policies `USING (true)` + `GRANT ... TO anon` | All FCM push tokens publicly readable. Attacker harvests entire device-token DB via anon key. | RLS `USING (auth.uid() = user_id)`; revoke anon. |
+| **CR-4** | Games | `roulette_spin_and_settle` — `GRANT EXECUTE ... TO authenticated` | Any user can trigger spin before bet window closes → manipulation. | Restrict to admin/cron only (Bigo/Agora pattern: server-cron driven game state). |
+| **CR-5** | Games | `pk-battle-tick` edge fn | Zero auth on HTTP endpoint. Anyone can force-settle all active PK battles. `call-billing-tick` has `CRON_SECRET` guard — `pk-battle-tick` missing it. | Same `CRON_SECRET` Bearer pattern as `call-billing-tick`. |
+| **CR-6** | Wallet | `process_gift_transaction` (migration 20260509052512) | Sender row locked `FOR UPDATE`, receiver row UPDATE'd WITHOUT lock → concurrent gifts race on `total_earnings`, `weekly_earnings`, `pending_earnings` → lost increments under gift storm. | Lock both rows in canonical order before mutate (standard double-entry ledger pattern). |
+| **CR-7** | Games | Server RNG uses Postgres `random()` (MT19937) | Predictable; observer can correlate outcomes. Compliance failure for paid games. | `gen_random_bytes()` from pgcrypto, or commit-reveal scheme. |
+| **CR-8** | Privacy | `livekit_room_events` table | RLS status unknown; if anon-readable, attacker enumerates all rooms + participant UUIDs + track activity. | `service_role` only. |
+| **CR-9** | Security | Wildcard CORS on `admin-*` + financial edge fns | Admin endpoints accessible from any origin → CSRF risk on admin browser sessions. | Lock to admin panel origin; remove CORS on webhook-only fns. |
 
 ---
 
-## Execution order (strict)
+## 🟠 HIGH (production-grade gaps vs Chamet/Bigo)
 
-```text
-Step 1: PK schema migration (A1) — needs approval
-Step 2: PK score trigger + RLS (A2) — needs approval
-Step 3: PK tick edge function + cron (A3)
-Step 4: PK matchmaking RPCs (A4) — needs approval
-Step 5: PK reward (A5) — needs approval
-Step 6: PK frontend rewire (A6) — code edit
-Step 7: Owner-account live test PK (smdollarex923@gmail.com)
-Step 8: Game schema migration (B1) — needs approval
-Step 9: Crash engine edge function (B2)
-Step 10: Game bet/cashout RPCs (B3) — needs approval
-Step 11: Auto-cashout worker (B4)
-Step 12: Game frontend wire (B6)
-Step 13: Owner-account test Game
-Step 14: APK rebuild signal
-```
-
-## Non-goals (এখন না)
-- 3rd-party provider integration (Evolution/Spribe) — পরে
-- Multiple game variants — Crash first, validate, তারপর Dice/Roulette
-- Tournament/leaderboard for games — পরে
-- PK custom rule sets — default 5min/90s/70-30 only
-
-## Honest constraints
-- প্রতিটা edge function deploy auto, কিন্তু cron schedule + secret check করতে হবে
-- Frontend rewire-এ existing PK/Game components পড়তে হবে (এখনো deep-read করিনি) — Step 6 + 12 শুরু আগে full file scan হবে
-- Owner-account testing শুধু web flow validate করবে; native PK overlay / game WebView Android-specific কিছু থাকলে APK rebuild লাগবে — সেটা সৎভাবে বলব
+| # | Area | Finding | Industry Standard |
+|---|---|---|---|
+| H-1 | Live Stream | 60s zombie stream window when host crashes (`update_stream_heartbeat` every 15s, cron kills at >60s) | Bigo/Chamet: 20–30s grace (Agora `onUserOffline` at 20s). Reduce stale threshold to 30s + add `visibilitychange→hidden` immediate-end on web. |
+| H-2 | LiveKit | Viewer token endpoint auto-upserts `stream_viewers` rows → unauthenticated fake-viewer inflation possible | Move upsert to `enter_live_stream` RPC with rate-limit per IP; fake-viewer detection = Sift industry standard. |
+| H-3 | LiveKit | Android native token refresh = full `reconnectNow()` → 1–3s media freeze | Bump TTL to 12–24h (LiveKit blog: token only validated at connect, not during session). Currently 6h. |
+| H-4 | Private Call | Dual `callEndedRef` in `usePrivateCall` + `CallProvider` can disagree → duplicate `acceptCall` on dead call | Single source of truth ref. |
+| H-5 | Private Call | `callStateRef` declared at line 1039 but used at line 116 → `undefined.current` crash on cold first render | Move declaration above first use. |
+| H-6 | Private Call | `call-billing-tick` N+1 queries per call (extra `profiles` SELECT for low-balance check) → 150s function ceiling exceeded under 100+ concurrent calls | Return `remaining_coins` from `bill_call_minute` RPC. |
+| H-7 | Frontend | `CallProvider` hardcodes `endedBy: 'remote'` → caller who hung up sees "Remote ended the call" (trust bug) | Track local initiator; correct copy. |
+| H-8 | PK Battle | Punishment-phase gifts don't update score columns (only `total_gift_value`) → viewers see no feedback on rescue gifts | Decide design; either credit to winner side or hide score bar in punishment phase. |
+| H-9 | Security | Many early SECURITY DEFINER functions missing `SET search_path = public` (Jan 2026 batch) | Supabase advisor flags this. Run `ALTER FUNCTION ... SET search_path = public` for each. |
+| H-10 | Push | `send-push-notification` mints new FCM OAuth token on EVERY push (1000 pushes/min = 1000 token requests/min to Google) | Cache token in module-level var; refresh only within 5 min of 1h expiry. |
+| H-11 | Realtime | `usePrivateCall` channel not StrictMode-safe on `userId` change → zombie channels | Store in `useRef`; always `removeChannel` before subscribe. |
+| H-12 | Realtime | `call_signaling:<callId>` channel name inconsistency risk (server broadcasts vs client subscribes) | Shared constants file. |
+| H-13 | Mobile | `useNativeCallBillingSync` shows coin-deduction UI to host if DB query fails (role check inside hook, not propagated) | Pass `isHost` prop; short-circuit before any DB query. |
+| H-14 | Profiles | `profiles` SELECT policy `USING (true)` exposes `phone`, `email`, possibly payment columns to ALL authenticated users | `profiles_public` view for safe columns; column-level REVOKE for phone/email; or split into `profiles` + `profiles_private`. |
+| H-15 | Wallet | Financial tables (`gift_transactions`, `payment_transactions`, `billing_ledger`, `balance_audit_log`, `coin_transactions`, `coin_transfers`, `coin_trader_transfers`, `user_beans_exchanges`) — no explicit GRANT statements found | Per public-schema-grants rule: explicit REVOKE + targeted GRANT. |
+| H-16 | Games | Ferris Wheel teen-patti zero-bet logs false-positive "win" audit rows (`is_win=true, amount=0`) → poisons leaderboard | Reject per-slot zero or skip win-log on zero payout. |
 
 ---
 
-## Hotfix — Trader Wallet duplicate balance display
+## 🟡 MEDIUM (polish + edge cases)
 
-### Verified root cause
-- Current owner account DB check: helper/topup wallet = **0.30 💎**, agency diamond wallet = **100,673,632 💎**, combined usable Trader Wallet = **100,673,632.30 💎**.
-- Self Recharge RPC was returning the **combined** value under `new_wallet_balance`; Profile UI then stored that as helper wallet and added agency balance again, creating a doubled display.
-- Research note: category apps keep accounting buckets separated internally (stock/recharge currency vs earnings/commission currency), but recharge/transfer flows should highlight only the usable transfer source and avoid duplicate totals. References reviewed: BitTopup BIGO diamonds/beans guide, Poppo agent/coin seller training materials, Chamet/Olamet agency payout patterns.
-- Applied standard for MeriLive: keep helper wallet and agency diamond ledger separated internally for audit, but show one Trader Wallet source in the user action screen so the same balance is not counted twice.
+| # | Area | Finding | Standard |
+|---|---|---|---|
+| M-1 | Games | Teen Patti tie-breaker: hand A always wins ties (deterministic bias — exploitable) | Suit-based or random tie-break. |
+| M-2 | Games | Ferris Wheel float weight sum = 1.0289 not 1.0 → slot 8 over-represented ~0.01% | Integer weights × 900. |
+| M-3 | Party | `party_room_seat_locks` RLS enabled but NO policies → silent fail on direct access | Policies or strict RPC-only access. |
+| M-4 | Games | `roulette_get_or_create_session` callable by viewers → can create new session mid-spin | Host/admin guard. |
+| M-5 | Wallet | Agency `beans_balance` only protected by trigger → dashboard direct SQL bypasses | Add CHECK constraint. |
+| M-6 | Wallet | Manual top-up has no idempotency key on `recharge_transactions` → admin double-click = double credit | UNIQUE(external_transaction_id). |
+| M-7 | Wallet | `swift_pay_topups.payment_id` not UNIQUE → concurrent poller cron can double-credit | Add UNIQUE + atomic credit gate. |
+| M-8 | Auth | `getSession()` returns stale cache; no proactive refresh on app resume → 30d-inactive users appear logged-in but fail every server call | Check `expires_at`; proactive `refreshSession()` within 5 min of expiry. |
+| M-9 | Animations | SVGA/VAP players: no `destroy()` between rapid gifts → Android WebView 16 WebGL context limit hit → black canvas | Explicit cleanup; cap concurrent ≤5 (CSDN/Tencent priority queue pattern). |
+| M-10 | Animations | Entry VAP not pre-warmed (only popular gifts) → 200–800ms stutter on premium entry | Include in `get_popular_gift_assets` warmup. |
+| M-11 | Call | FCM+Realtime dual-delivery race → double-ring on fast networks | Use existing `pendingCallCheckInFlightRef` in `showVerifiedIncomingCall`. |
+| M-12 | PK Battle | `pk_battle_send_gift` lock order risk (profiles vs pk_battles inconsistent) → deadlock under concurrent gifting | Canonical lock order. |
+| M-13 | Edge | `game-balance-callback` logs full response incl. balances → persistent log of every user's balance | Log only `{action, success, code}`. |
+| M-14 | Frontend | `acceptingRef`/`decliningRef` never reset on failure → accept button permanently disabled after one failure | try/finally reset. |
+| M-15 | Frontend | Stale closure risk in `CallProvider` `captureEndedInfo` (callId can be cleared mid-async) | Snapshot callId before async. |
+| M-16 | Mobile | `beforeunload` reads `localStorage` directly; wrong key if project URL changes → silent fail | Use `supabase.auth.getSession()`. |
+| M-17 | Edge | Supabase Edge cold-start 2–5s on critical paths (gift, call signal, billing) | Scheduled warm-ping every 5–10 min on critical fns. |
 
-### Fix
-- RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
-- Profile Self Recharge UI now displays only one `Recharge Source` and one destination `My Diamond Balance`; internal helper/agency split is hidden from the user action flow.
+---
 
-## Total scope
-~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
+## 🔵 LOW (cleanup / future)
 
-**Approve করলে Step 1 (PK schema audit + migration) দিয়ে শুরু করব।**
+- L-1: Wildcard CORS on all 110+ edge fns (already covered by CR-9 for sensitive ones)
+- L-2: Migration `n` alias obfuscation harms auditability
+- L-3: Storage buckets not in migrations — must audit via live DB
+- L-4: No list virtualization on 30+ item screens (Android low-RAM thrash)
+- L-5: Verify `livekit-client` actually tree-shaken from main chunk
+- L-6: Dead-code path in `admin-lookup-phone` (returns unmasked phone if early-return removed)
+
+---
+
+## ✅ Confirmed Healthy
+- `user_roles` table structure (separate table, `has_role` SECURITY DEFINER w/ `search_path`, no role on profiles) ✅
+- PK Battle schema rebuild (migration 20260610023028) — server-authoritative, canonical columns, unique partial indexes ✅ (small gaps only — H-8, CR-5, M-12)
+- Roulette/Ferris/Teen Patti server-authoritative refactor (just done) ✅ (gaps: CR-4, CR-7, M-1, M-2, M-4, H-16)
+- Helper/Trader wallet separation ✅ (just done, doesn't touch game flow)
+
+---
+
+## 📊 Industry Benchmarks Locked (cite when fixing)
+
+| Metric | Our Current | Industry Standard | Source |
+|---|---|---|---|
+| Stream zombie window | 60s | 20–30s (Agora `onUserOffline` 20s) | Agora docs |
+| LiveKit token TTL | 6h | 12–24h (only enforced at connect, not session) | LiveKit blog |
+| Ring timeout | reads `ring_timeout_seconds` ✅ | 30–45s (WhatsApp 30s) | Industry |
+| OTP cooldown | unknown — audit needed | 60s | Industry std |
+| OTP expiry | unknown | 5–10 min | Industry std |
+| FCM token cache | 0 (per-request) | 1h with 5min refresh window | Firebase docs |
+| PK duration | configurable ✅ | 3–5 min standard, 1–2 min punishment | Bigo/BitTopup 2026 |
+| Bigo Bean rate | n/a (our own econ) | 210 Beans = $1, 45–80% host rebate | BitTopup 2026 |
+| Supabase Realtime presence (Free) | unknown plan | 20 msg/s Free, 1000 Pro-no-cap → use Broadcast+counter not Presence for 100+ viewers | Supabase docs |
+| Edge fn cold start | 2–5s observed | Mitigate with cron warm-ping every 5–10 min | Supabase blog |
+| Gift animation concurrency | uncapped | ≤2–3 full-screen, ≤5 banners (Android 16 WebGL ctx limit) | LeakCanary + CSDN |
+| Beauty filter | unknown impl | GPUPixel <10ms GPU; thermal throttle → 720p@24fps + drop heavy ops | BIGO RTC |
+| Idempotency TTL | mostly missing | 24h on all gift/payment/top-up | Dev.to pattern |
+
+---
+
+## 🎯 Proposed Fix Order (Phases — one phase per approval)
+
+**Phase 1 — STOP THE BLEED (CRITICAL, ~1 migration + 2 edge fn edits)**
+- CR-3: `device_tokens` lockdown (RLS + revoke anon)
+- CR-1: `process_game_bet` add `auth.uid()` check
+- CR-2: `game-balance-callback` make HMAC mandatory
+- CR-5: `pk-battle-tick` add `CRON_SECRET` guard
+- CR-4: `roulette_spin_and_settle` restrict to admin/cron
+- CR-6: `process_gift_transaction` lock receiver row
+- CR-8: `livekit_room_events` RLS lock
+- CR-9: tighten CORS on admin/financial edge fns
+- CR-7: `random()` → `gen_random_bytes()` in 3 game RPCs
+
+**Phase 2 — PRIVATE CALL & LIVE STREAM RELIABILITY (HIGH frontend)**
+- H-4, H-5, H-7, H-11, H-13, H-15 (single source ref, fix declaration order, correct endedBy, channel safety, host short-circuit, declaration order)
+- H-1: zombie stream window 60→30s + visibilitychange handler
+- H-6: `bill_call_minute` returns balance (eliminate N+1)
+- H-3: token TTL 6h→24h
+- H-10: FCM token caching
+- H-14: profile PII protection
+
+**Phase 3 — FINANCIAL HARDENING (HIGH backend)**
+- H-15: explicit GRANTs on all financial tables
+- H-9: `SET search_path = public` on legacy SECURITY DEFINER fns
+- M-5, M-6, M-7: agency CHECK + top-up + swift-pay idempotency
+- M-8: proactive session refresh
+
+**Phase 4 — GAME POLISH & UX**
+- H-2, H-8, H-16: viewer inflation, PK punishment score, zero-bet log
+- M-1, M-2, M-4: teen patti tie, ferris float, roulette session host-guard
+- M-9, M-10: animation cleanup + entry VAP warmup
+- M-11, M-14, M-15, M-16: call edge races + Android beforeunload
+
+**Phase 5 — INFRASTRUCTURE**
+- M-3: party seat locks policies
+- M-12, M-13, M-17: pk lock order, log scrubbing, cold-start warm-pings
+- L-1 to L-6: cleanups
+
+---
+
+## ⚠️ Honest Notes
+- **Design SACRED** — zero UI/design/copy edits anywhere. Only backend RPCs, edge fns, hooks, and logic.
+- **Owner test account** (smdollarex923@gmail.com) will be used to verify each phase before claiming done.
+- **APK rebuild** required ONLY for Android-native pieces (none in Phase 1–3; possible in M-13 if native call billing changes).
+- **VPS work deferred** per memory rule.
+- **English-only UI strings** maintained.
+- Some HIGH items (H-2 viewer inflation) need product decision before code (do we accept some inflation to keep UX fast, or strict-check every viewer join?).
