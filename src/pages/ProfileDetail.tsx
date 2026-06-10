@@ -853,7 +853,7 @@ const ProfileDetail = () => {
             />
           ) : (
             <img
-              src={coverSrc}
+              src={enhanceThumbnail(coverSrc, { width: 750, quality: 85 })}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
