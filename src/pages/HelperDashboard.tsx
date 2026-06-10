@@ -2181,11 +2181,6 @@ const HelperDashboard = () => {
                   {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
                 </span>
               </div>
-              {agencyDiamondBalance > 0 && (
-                <p className="text-slate-700 text-[10px] mt-1">
-                  Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
-                </p>
-              )}
             </div>
 
             {/* Tabs */}
