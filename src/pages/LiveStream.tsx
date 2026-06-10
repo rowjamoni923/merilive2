@@ -1582,7 +1582,22 @@ const LiveStream = () => {
     // the WS, messages never arrive. This Postgres realtime channel guarantees
     // delivery to EVERY participant — host AND every viewer — so public chat
     // is truly public. Dedup via message id ensures no double-render.
+    // H3 (2026-06-10): cap seenMsgIds with FIFO eviction — was unbounded, OOM
+    // risk on multi-hour streams with heavy chat.
+    const SEEN_MSG_CAP = 500;
     const seenMsgIds = new Set<string>();
+    const rememberSeen = (mid: string) => {
+      if (seenMsgIds.has(mid)) return false;
+      seenMsgIds.add(mid);
+      if (seenMsgIds.size > SEEN_MSG_CAP) {
+        const oldest = seenMsgIds.values().next().value;
+        if (oldest !== undefined) seenMsgIds.delete(oldest);
+      }
+      return true;
+    };
+    // H2 (2026-06-10): per-channel profile cache — was issuing one profiles_public
+    // SELECT per arriving chat row (N+1). Now hits DB only on cache miss.
+    const profileCache = new Map<string, any>();
     const chatChannel = supabase
       .channel(`live-chat-rt-${id}`)
       .on('postgres_changes', {
@@ -1593,8 +1608,7 @@ const LiveStream = () => {
       }, async (payload) => {
         const row: any = payload.new;
         if (!row?.id || !row?.user_id) return;
-        if (seenMsgIds.has(row.id)) return;
-        seenMsgIds.add(row.id);
+        if (!rememberSeen(row.id)) return;
 
         // F1 — Skip trigger-written system_join rows in realtime: the live
         // in-memory join message (LiveKit fast-path or Postgres safety-net)
@@ -1606,12 +1620,19 @@ const LiveStream = () => {
         if (row.user_id === currentUserId) return;
 
 
-        // Resolve sender profile for display
-        const { data: profile } = await supabase
-          .from('profiles_public')
-          .select('id, display_name, user_level, avatar_url, country_flag, created_at')
-          .eq('id', row.user_id)
-          .maybeSingle();
+        // Resolve sender profile (cache first, DB only on miss)
+        let profile = profileCache.get(row.user_id);
+        if (!profile) {
+          const { data } = await supabase
+            .from('profiles_public')
+            .select('id, display_name, user_level, avatar_url, country_flag, created_at')
+            .eq('id', row.user_id)
+            .maybeSingle();
+          if (data) {
+            profile = data;
+            profileCache.set(row.user_id, data);
+          }
+        }
 
         setMessages(prev => {
           if (prev.some(m => m.id === row.id)) return prev;
