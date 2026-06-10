@@ -219,9 +219,9 @@ export default function LiveStreamFeed() {
       ref={containerRef}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 bg-background overflow-hidden max-w-[100vw]"
+      className="fixed inset-0 bg-background overflow-hidden"
     >
-      <div className="relative h-full w-full max-w-full overflow-hidden">
+      <div className="relative h-full w-full">
         <img loading="lazy" decoding="async" 
           src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
@@ -237,7 +237,7 @@ export default function LiveStreamFeed() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/20 to-foreground/35" />
 
-        <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+max(env(safe-area-inset-bottom),1rem))] min-w-0">
+        <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+1rem)]">
           <div className="flex items-center gap-2 mb-3">
             <Avatar className="h-10 w-10 border border-primary-foreground/40">
               <AvatarImage src={currentStream.host?.avatar_url || undefined} />
@@ -245,7 +245,7 @@ export default function LiveStreamFeed() {
                 {(currentStream.host?.display_name || "L").charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <p className="text-on-dark font-bold truncate">{currentStream.host?.display_name || "Live Host"}</p>
               <div className="flex items-center gap-1.5 text-on-dark-muted text-xs">
                 <Eye className="w-3.5 h-3.5" />
@@ -254,7 +254,7 @@ export default function LiveStreamFeed() {
             </div>
           </div>
           <h2 className="text-on-dark text-base font-bold line-clamp-2">{currentStream.title || "Live stream"}</h2>
-          <Button className="mt-4 min-h-[44px] bg-gradient-primary text-on-dark border-0" onClick={() => navigate(`/live/${currentStream.id}`)}>
+          <Button className="mt-4 bg-gradient-primary text-on-dark border-0" onClick={() => navigate(`/live/${currentStream.id}`)}>
             Enter Live
           </Button>
         </div>

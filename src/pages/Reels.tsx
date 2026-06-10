@@ -780,7 +780,7 @@ const Reels = () => {
         ) : (
           <motion.div
             ref={containerRef}
-            className="h-full w-full max-w-[100vw] overflow-hidden touch-pan-y"
+            className="h-full w-full touch-pan-y"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.2}
@@ -795,7 +795,7 @@ const Reels = () => {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -50, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="h-full w-full max-w-full overflow-hidden relative"
+                className="h-full w-full relative"
               >
                 {/* Video — Pkg427: when native ExoPlayer is active, render
                     a transparent tap-target instead of <video> so the
@@ -845,7 +845,7 @@ const Reels = () => {
                 </AnimatePresence>
 
                 {/* Right Side Actions — Floating 3D Orbs (Midnight Indigo) */}
-                <div className="absolute right-2.5 flex flex-col items-center gap-[14px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + max(env(safe-area-inset-bottom), 0px) + 72px)' }}>
+                <div className="absolute right-2.5 flex flex-col items-center gap-[18px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 80px)' }}>
                   {/* Like */}
                   <motion.button
                     onClick={() => handleLike(currentReel.id)}
@@ -946,7 +946,7 @@ const Reels = () => {
                     onClick={toggleMute}
                     whileTap={{ scale: 0.85 }}
                     aria-label={isMuted ? 'Unmute' : 'Mute'}
-                    className="relative w-[44px] h-[44px] rounded-full bg-[#0a0a1a]/60 backdrop-blur-xl flex items-center justify-center ring-1 ring-white/15 shadow-[0_3px_10px_rgba(0,0,0,0.5)]"
+                    className="relative w-[36px] h-[36px] rounded-full bg-[#0a0a1a]/60 backdrop-blur-xl flex items-center justify-center ring-1 ring-white/15 shadow-[0_3px_10px_rgba(0,0,0,0.5)]"
                   >
                     {isMuted ? (
                       <VolumeX className="w-[16px] h-[16px] text-white" strokeWidth={2.2} />
@@ -977,7 +977,7 @@ const Reels = () => {
 
                 {/* Bottom Info — Edge-to-edge Midnight Indigo gradient fade */}
                 <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: 'var(--bottom-nav-height, 56px)' }}>
-                  <div className="pt-28 pb-5 px-4 max-w-full overflow-hidden bg-gradient-to-t from-[#05050d]/95 via-[#0a0a1a]/70 via-30% to-transparent">
+                  <div className="pt-28 pb-5 px-4 bg-gradient-to-t from-[#05050d]/95 via-[#0a0a1a]/70 via-30% to-transparent">
                     <motion.div
                       initial={{ opacity: 0, y: 14 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1002,7 +1002,7 @@ const Reels = () => {
                         </button>
                         <button
                           onClick={() => navigate(`/profile/${currentReel.user_id}`)}
-                          className="min-w-0 truncate text-white font-extrabold text-[15.5px] tracking-[-0.015em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] active:opacity-70"
+                          className="text-white font-extrabold text-[15.5px] tracking-[-0.015em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] active:opacity-70"
                         >
                           @{currentReel.user?.display_name || 'User'}
                         </button>

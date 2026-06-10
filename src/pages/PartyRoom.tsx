@@ -214,14 +214,6 @@ const PartyRoom = () => {
       return out.length === prev.length ? prev : out;
     });
   }, [messages]);
-
-  // Mobile guard: marks body so global CSS in index.css (Wave B HARD GUARDS)
-  // can scope width/overflow/safe-area rules to this immersive surface.
-  useEffect(() => {
-    document.body.setAttribute('data-party-root', 'true');
-    return () => { document.body.removeAttribute('data-party-root'); };
-  }, []);
-
   const [message, setMessage] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
