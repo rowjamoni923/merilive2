@@ -91,6 +91,7 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 }
 
 serve(async (req) => {
+  const corsHeaders = buildCors(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
