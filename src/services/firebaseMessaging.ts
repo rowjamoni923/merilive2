@@ -209,37 +209,29 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
  */
 async function saveTokenToDatabase(userId: string, token: string, platform: string) {
   try {
-    // R2-H4 (Phase C): use server-side RPC so we can deactivate stale tokens
-    // for the same (user, device) atomically and avoid accumulating dead FCM
-    // tokens that get rejected with UNREGISTERED on every push.
-    const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
-    let deviceId: string | null = null;
-    try { deviceId = await getPersistentDeviceId(); } catch { /* fall through */ }
-
-    const deviceInfo = {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform,
-      timestamp: new Date().toISOString(),
-    };
-
-    const { error } = await supabase.rpc('register_device_token', {
-      p_token: token,
-      p_platform: platform,
-      p_device_id: deviceId,
-      p_device_info: deviceInfo,
-    });
+    // Upsert: update if token exists, insert if new
+    const { error } = await supabase
+      .from('device_tokens')
+      .upsert(
+        {
+          user_id: userId,
+          token,
+          platform,
+          is_active: true,
+          device_info: {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { onConflict: 'token' }
+      );
 
     if (error) {
-      console.error('[FCM] register_device_token failed, falling back to upsert:', error);
-      await supabase
-        .from('device_tokens')
-        .upsert(
-          { user_id: userId, token, platform, is_active: true, device_info: deviceInfo },
-          { onConflict: 'token' }
-        );
+      console.error('[FCM] Failed to save token:', error);
     } else {
-      console.log('[FCM] Token registered (deduped) for device', deviceId?.slice(0, 8));
+      console.log('[FCM] Token saved to database');
     }
   } catch (e) {
     console.error('[FCM] Database save error:', e);

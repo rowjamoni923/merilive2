@@ -12,29 +12,17 @@ const SWIFT_PAY_API_KEY = Deno.env.get("SWIFT_PAY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-// R2-Phase B Wave-2 / R2-H15: strict CORS allow-list (was wildcard).
-const ALLOWED_ORIGINS = new Set<string>([
-  "https://merilive.com",
-  "https://www.merilive.com",
-  "https://merilive.top",
-  "https://merilive2.lovable.app",
-  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
-]);
-function buildCors(origin: string | null) {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://merilive.com";
-  return {
-    "Access-Control-Allow-Origin": allow,
-    "Vary": "Origin",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, x-client-platform, x-supabase-api-version, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
-}
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, x-client-platform, x-supabase-api-version, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
-let currentCors: Record<string, string> = buildCors(null);
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...currentCors, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
@@ -118,8 +106,7 @@ async function resolveSwiftPayMinUsd(admin: ReturnType<typeof createClient>): Pr
 }
 
 Deno.serve(async (req) => {
-  currentCors = buildCors(req.headers.get("origin"));
-  if (req.method === "OPTIONS") return new Response("ok", { headers: currentCors });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   try {
@@ -311,11 +298,7 @@ Deno.serve(async (req) => {
 
     if (!depositRes.ok) {
       const gatewayMessage = gatewayErrorMessage(depositBody);
-      // R2-Phase E Wave-2 log scrub: don't dump the full raw gateway body —
-      // it can include payment addresses + provider txn ids. Log status +
-      // sanitized message only.
-      console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage);
-
+      console.error(`[swift-pay-create-deposit] gateway error for ${payCurrency}:`, depositRes.status, gatewayMessage, depositBody);
 
       if (isGatewayMinimumAmountError(gatewayMessage) || isGatewayMinimumAmountError(String(depositBody?.details ?? ""))) {
         // Parse "Minimum required is approximately $X.XX" out of details

@@ -18,7 +18,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
-import { getPersistentDeviceId } from "@/utils/persistentDeviceId";
+import { getPersistentDeviceId, getDeviceIdSync } from "@/utils/persistentDeviceId";
+import { getSessionFromNative } from "@/utils/nativeSessionStorage";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
 // Geolocation helpers are loaded lazily — they're a 600+ line module with
 // country/IP detection that's only needed AFTER the user submits, so we keep
@@ -38,6 +39,8 @@ type AuthBranding = {
 
 interface DeviceAccount {
   deviceId: string;
+  email: string;
+  password: string;
   displayName: string;
   avatarUrl: string | null;
   gender: Gender;
@@ -62,34 +65,32 @@ const generateDeviceId = async (): Promise<string> => {
   return await getPersistentDeviceId();
 };
 
-// Recover account by device ID - returns metadata + a single-use exchange token.
-// R2-Phase B / R2-C4: the RPC no longer leaks the deterministic password.
-// To actually log in, callers must POST the token to the `device-session-exchange`
-// edge function via `exchangeDeviceSession()` below.
+// Recover account by device ID - returns credentials for automatic login
 const recoverAccountByDevice = async (deviceId: string): Promise<{
   userId: string;
   displayName: string;
   avatarUrl: string | null;
   gender: string | null;
   isHost: boolean;
-  exchangeToken: string;
+  recoveryEmail: string;
+  recoveryPassword: string;
 } | null> => {
   try {
-    const { data, error } = await supabase.rpc('recover_session_by_device', {
-      p_device_id: deviceId,
+    const { data, error } = await supabase.rpc('recover_session_by_device', { 
+      p_device_id: deviceId
     });
-
-    if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
-    const account: any = Array.isArray(data) ? data[0] : data;
-    if (!account?.exchange_token) return null;
-
+    
+    if (error || !data || data.length === 0) return null;
+    
+    const account = data[0];
     return {
       userId: account.user_id,
       displayName: account.display_name || 'User',
-      avatarUrl: account.avatar_url ?? null,
-      gender: account.gender ?? null,
-      isHost: !!account.is_host,
-      exchangeToken: account.exchange_token,
+      avatarUrl: account.avatar_url,
+      gender: account.gender,
+      isHost: account.is_host || false,
+      recoveryEmail: account.recovery_email,
+      recoveryPassword: account.recovery_password,
     };
   } catch (error) {
     console.error('Error checking device account:', error);
@@ -97,51 +98,6 @@ const recoverAccountByDevice = async (deviceId: string): Promise<{
     return null;
   }
 };
-
-// Trade a single-use exchange token for a real Supabase session.
-// Sets the session on the client and returns true on success.
-const exchangeDeviceSession = async (
-  exchangeToken: string,
-  deviceId: string,
-): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('device-session-exchange', {
-      body: { token: exchangeToken, device_id: deviceId },
-    });
-    if (error || !data?.success || !data?.access_token || !data?.refresh_token) {
-      console.warn('[Auth] device-session-exchange failed:', error?.message || data?.error);
-      return false;
-    }
-    const { error: setErr } = await supabase.auth.setSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    });
-    if (setErr) {
-      console.warn('[Auth] setSession after exchange failed:', setErr.message);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error('[Auth] exchangeDeviceSession error:', e);
-    return false;
-  }
-};
-
-const bindOwnDeviceId = async (deviceId: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.rpc('bind_own_device_id', { p_device_id: deviceId });
-    const result = data as { success?: boolean; error?: string } | null;
-    if (error || !result?.success) {
-      console.warn('[Auth] bind_own_device_id failed:', error?.message || result?.error);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.warn('[Auth] bindOwnDeviceId error:', error);
-    return false;
-  }
-};
-
 
 // Helper function to navigate to return URL or home
 const getReturnUrl = (): string => {
@@ -516,6 +472,10 @@ const Auth = () => {
           }
         }
 
+        // Clear any stale localStorage credentials — don't auto-login from them
+        localStorage.removeItem("meri_device_account");
+        localStorage.removeItem("meri_device_id");
+
         console.log('[Auth] No valid session — showing auth UI');
       } catch (err) {
         console.error('[Auth] Session check error:', err);
@@ -620,27 +580,35 @@ const Auth = () => {
       const existingForDevice = await recoverAccountByDevice(deviceId);
 
       if (existingForDevice) {
-        console.log('[Auth] Existing device account found, exchanging single-use token for session');
+        console.log('[Auth] Existing device account found, auto-login');
+        const guestEmail = existingForDevice.recoveryEmail;
+        const guestPassword = existingForDevice.recoveryPassword;
 
-        // R2-C4: trade the one-time exchange token for a real session
-        // (no plaintext password ever touches the client).
-        let exchanged = await exchangeDeviceSession(existingForDevice.exchangeToken, deviceId);
+        // Force-sync deterministic credentials first (covers anonymous-legacy
+        // accounts AND cases where the guest password drifted). The function
+        // is idempotent when credentials are already correct.
+        try {
+          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+        } catch (e) { /* ignore — we'll still try signin */ }
 
-        // Legacy fallback: account predates deterministic credentials.
-        // `convert-anonymous-to-guest` is idempotent and ensures the auth
-        // user has an email/password set so a fresh exchange will work.
-        if (!exchanged) {
+        let { error: signInError } = await supabase.auth.signInWithPassword({
+          email: guestEmail,
+          password: guestPassword,
+        });
+
+        // If first attempt failed (rare race), try convert + signin once more
+        if (signInError) {
           try {
             await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
           } catch (e) { /* ignore */ }
-          // Re-mint a token because the prior one was consumed.
-          const retryAcct = await recoverAccountByDevice(deviceId);
-          if (retryAcct) {
-            exchanged = await exchangeDeviceSession(retryAcct.exchangeToken, deviceId);
-          }
+          const retry = await supabase.auth.signInWithPassword({
+            email: guestEmail,
+            password: guestPassword,
+          });
+          signInError = retry.error;
         }
 
-        if (exchanged) {
+        if (!signInError) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -652,6 +620,8 @@ const Auth = () => {
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
+            email: guestEmail,
+            password: guestPassword,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
@@ -664,15 +634,8 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-        console.warn('[Auth] Device recovery exchange failed; refusing to create a duplicate account');
-        toast({
-          title: "Recovery Failed",
-          description: "We found your device account but could not restore it right now. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        console.warn('[Auth] Device recovery sign-in failed, falling back to registration:', signInError.message);
       }
-
 
       // STEP 2: No existing account → proceed to registration form
       setIsEmailFlow(false);
@@ -1012,20 +975,17 @@ const Auth = () => {
       // SAFETY CHECK: Prevent duplicate accounts for same device
       const existingForDevice = await recoverAccountByDevice(deviceId);
       if (existingForDevice) {
-        console.log('[Auth] SAFETY: Device already has account, recovering via session exchange');
-
-        let exchanged = await exchangeDeviceSession(existingForDevice.exchangeToken, deviceId);
-        if (!exchanged) {
-          try {
-            await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-          } catch (e) { /* ignore */ }
-          const retryAcct = await recoverAccountByDevice(deviceId);
-          if (retryAcct) {
-            exchanged = await exchangeDeviceSession(retryAcct.exchangeToken, deviceId);
-          }
-        }
-
-        if (exchanged) {
+        console.log('[Auth] SAFETY: Device already has account, recovering instead of creating new');
+        const guestEmail = existingForDevice.recoveryEmail;
+        const guestPassword = existingForDevice.recoveryPassword;
+        
+        // Try conversion first (for anonymous accounts)
+        try {
+          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+        } catch (e) { /* ignore */ }
+        
+        const { error } = await supabase.auth.signInWithPassword({ email: guestEmail, password: guestPassword });
+        if (!error) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -1037,6 +997,8 @@ const Auth = () => {
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
+            email: guestEmail,
+            password: guestPassword,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
@@ -1046,16 +1008,7 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-
-        console.warn('[Auth] Safety recovery exchange failed; refusing duplicate registration');
-        toast({
-          title: "Recovery Failed",
-          description: "We found your device account but could not restore it right now. Please try again.",
-          variant: "destructive",
-        });
-        return;
       }
-
       
       // ALWAYS use deterministic guest credentials so recover_session_by_device works
       const guestEmail = `guest_${deviceId}@meri.local`;
@@ -1070,7 +1023,6 @@ const Auth = () => {
             full_name: displayName,
             is_guest: true,
             device_id: deviceId,
-            gender: selectedGender,
           },
         },
       });
@@ -1119,6 +1071,7 @@ const Auth = () => {
             .from("profiles")
             .update({ 
               display_name: displayName,
+              device_id: deviceId,
             })
             .eq("id", userId);
         }
@@ -1128,11 +1081,6 @@ const Auth = () => {
 
       // Ensure profile row, gender, and female→host conversion are fully ready before redirect
       if (userId) {
-        const bound = await bindOwnDeviceId(deviceId);
-        if (!bound) {
-          throw new Error('Device account binding failed. Please try again.');
-        }
-
         const readyProfile = await ensureProfileReady(
           userId,
           {
@@ -1147,9 +1095,11 @@ const Auth = () => {
           throw new Error('Profile setup is still processing. Please try again.');
         }
 
-        // Cache only non-secret account display data. Recovery uses device_id + one-time exchange token.
+        // Save device account with credentials for future recovery
         localStorage.setItem("meri_device_account", JSON.stringify({
           deviceId,
+          email: guestEmail,
+          password: guestPassword,
           displayName,
           avatarUrl: null,
           gender: selectedGender,
@@ -1933,12 +1883,20 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      // R2-C3: OTP is generated and persisted server-side. The client never
-      // sees the code, never compares it locally.
-      const { error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
-        body: { email, displayName }
-      });
 
+      // Generate OTP code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      setExpectedOtpCode(verificationCode);
+      
+      // Send confirmation email via edge function - DO NOT create account yet
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
+          email,
+          displayName,
+          verificationCode,
+        }
+      });
+      
       if (emailError) {
         console.error("Email sending error:", emailError);
         recordClientError({ label: "Auth.verificationCode", message: emailError instanceof Error ? emailError.message : String(emailError) });
@@ -1955,7 +1913,7 @@ const Auth = () => {
         title: "📧 Verification Code Sent",
         description: `Check your email at ${email} for the 6-digit verification code.`,
       });
-
+      
       // Show OTP verification step - account will be created AFTER verification
       setAuthStep("otp_verify");
       startResendCountdown();
@@ -1983,17 +1941,7 @@ const Auth = () => {
 
     setOtpLoading(true);
     try {
-      // R2-C3: server-side OTP verification. The code never leaves the server.
-      const { data: verifyData, error: verifyErr } = await supabase.functions.invoke(
-        'verify-email-otp',
-        { body: { email, otp: otpCode, purpose: 'register' } },
-      );
-      const verified =
-        !verifyErr &&
-        verifyData &&
-        (verifyData as { success?: boolean; verified?: boolean }).success === true &&
-        (verifyData as { verified?: boolean }).verified === true;
-      if (verified) {
+      if (otpCode === expectedOtpCode) {
         // 🛡️ PERMANENT BAN GUARD — block signup if device/IP/face is on the urgent ban list
         try {
           const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
@@ -2112,13 +2060,9 @@ const Auth = () => {
         
         navigateAfterAuth();
       } else {
-        const serverMsg =
-          (verifyData as { error?: string } | null)?.error ||
-          (verifyErr as { message?: string } | null)?.message ||
-          "The verification code is incorrect. Please try again.";
         toast({
           title: "Invalid Code",
-          description: serverMsg,
+          description: "The verification code is incorrect. Please try again.",
           variant: "destructive",
         });
       }
@@ -2137,9 +2081,15 @@ const Auth = () => {
   const handleResendOtp = async () => {
     setOtpLoading(true);
     try {
-      // R2-C3: server generates and persists the OTP; client never sees it.
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      setExpectedOtpCode(verificationCode);
+      
       await supabase.functions.invoke('send-signup-confirmation', {
-        body: { email, displayName }
+        body: {
+          email,
+          displayName,
+          verificationCode,
+        }
       });
       
       toast({

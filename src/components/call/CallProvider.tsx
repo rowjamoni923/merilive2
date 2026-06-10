@@ -79,20 +79,12 @@ export function CallProvider({ children }: CallProviderProps) {
   const [isHost, setIsHost] = useState(false);
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [callEndedInfo, setCallEndedInfo] = useState<CallEndedInfo | null>(null);
-  // H-4: callEndedRef is now sourced from usePrivateCall (single source of
-  // truth). The previously-local ref drifted from the hook's ref under fast
-  // accept/decline cycles, leading to either a stuck "ended" gate or a
-  // missed end-screen.  Bound below right after the hook returns.
+  const callEndedRef = useRef(false);
   // ☠️ DEAD FOREVER: Track ended call IDs permanently - NEVER reconnect a dead call
   const endedCallIdsRef = useRef<Set<string>>(new Set());
   // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
   const acceptingRef = useRef(false);
   const decliningRef = useRef(false);
-  // H-7: track whether the LOCAL user (this client) ended the current call.
-  // Reset on every new call. Used by captureEndedInfo() to pick the correct
-  // CallEndedModal copy instead of always showing "Remote ended the call".
-  const selfEndedRef = useRef(false);
-
 
   useEffect(() => {
     // ⚡ INSTANT: Use getSession() first (local cache, no network round-trip)
@@ -125,18 +117,15 @@ export function CallProvider({ children }: CallProviderProps) {
     endCall,
     dismissCall,
     notifyMediaConnected,
-    callEndedRef,
   } = usePrivateCall(userId);
 
   // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
   // every time the caller's wallet or the call's per-minute rate changes.
-  // No-op on web / iOS / older APKs.
-  // H-13: parent already tracks isHost — pass it so the hook can short-circuit
-  // before any DB query on the host side (was paying for 2 SELECTs per mount).
+  // No-op on web / iOS / older APKs. Hook verifies caller side internally
+  // by reading `private_calls.caller_id` so host-side mounts cost nothing.
   useNativeCallBillingSync({
     userId,
     callId: callState.callId,
-    isHost,
   });
 
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
@@ -146,12 +135,9 @@ export function CallProvider({ children }: CallProviderProps) {
     if (incomingCall) {
       setIsHost(true);
       callEndedRef.current = false;
-      selfEndedRef.current = false;
     } else if (callState.callId && callState.status === 'calling') {
       setIsHost(false);
       callEndedRef.current = false;
-      selfEndedRef.current = false;
-
     }
   }, [incomingCall, callState.callId, callState.status]);
 
@@ -161,26 +147,21 @@ export function CallProvider({ children }: CallProviderProps) {
   useEffect(() => {
     if (callState.status !== 'ended' || showCallEndedModal) return;
 
-    // M-15: snapshot callId + numeric fields BEFORE the async DB read so a
-    // concurrent dismiss/clear can't repoint us at the wrong call mid-flight.
-    const snapCallId = callState.callId;
-    const snapDuration = callState.duration;
-    const snapCoinsSpent = callState.totalCoinsSpent;
-    const snapHostEarned = callState.hostEarned;
-
     const captureEndedInfo = async () => {
-      let finalDuration = snapDuration;
-      let coinsSpent = snapCoinsSpent;
-      let hostEarnedAmount = snapHostEarned;
+      let finalDuration = callState.duration;
+      let coinsSpent = callState.totalCoinsSpent;
+      let hostEarnedAmount = callState.hostEarned;
+      // Honest-private-call fix (F-15 / F-04): default to 'normal' but
+      // overwrite from the DB row whenever it is available.
       let dbEndReasonRaw: string | null | undefined = undefined;
 
-      if (snapCallId) {
-
+      // Fetch FINAL call data from DB for accuracy
+      if (callState.callId) {
         try {
           const { data: finalCallData } = await supabase
             .from('private_calls')
             .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
-            .eq('id', snapCallId)
+            .eq('id', callState.callId)
             .single();
 
           if (finalCallData) {
@@ -210,17 +191,6 @@ export function CallProvider({ children }: CallProviderProps) {
       const { normalizeEndReason } = await import('@/lib/callEndReasons');
       const normalisedReason = normalizeEndReason(dbEndReasonRaw);
 
-      // H-7: derive endedBy honestly.
-      // - 'system' for low_balance / timeout / forced server-side end
-      // - 'self'   when this client invoked endCall()
-      // - 'remote' otherwise (the other party hung up)
-      const systemReasons = new Set(['low_balance', 'insufficient_balance', 'timeout', 'no_answer', 'force_end']);
-      const rawReasonStr = (dbEndReasonRaw ?? '').toString().toLowerCase();
-      const endedBy: 'self' | 'remote' | 'system' =
-        systemReasons.has(rawReasonStr) ? 'system'
-        : selfEndedRef.current ? 'self'
-        : 'remote';
-
       setCallEndedInfo({
         remoteUserName: remoteName,
         remoteUserAvatar: remoteAvatar,
@@ -229,10 +199,9 @@ export function CallProvider({ children }: CallProviderProps) {
         coinsSpent,
         hostEarned: hostEarnedAmount,
         isHost,
-        endedBy,
+        endedBy: 'remote',
         endReason: normalisedReason,
       });
-
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
       // Phase-3 C3: do NOT raise callEndedRef here. The previous 3s
@@ -438,16 +407,14 @@ export function CallProvider({ children }: CallProviderProps) {
     const deadCallId = callState.callId;
     if (deadCallId) endedCallIdsRef.current.add(deadCallId);
     callEndedRef.current = true;
-    selfEndedRef.current = true; // H-7: this client invoked the hang-up
     console.log('[CallProvider] User ending call:', deadCallId);
-
+    
     // ⚡ INSTANT: Clear UI state BEFORE awaiting network calls
     setAcceptedCallInfo(null);
     setIsHost(false);
-
+    
     // Fire endCall (network ops happen in background)
     await endCall();
-
 
     // Phase-3 C3: release the in-flight end guard immediately. The
     // prior 3s cooldown blocked Accept on a brand-new incoming call

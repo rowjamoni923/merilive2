@@ -54,16 +54,15 @@ export const useLiveStreamLifecycle = ({
       // fallback needed (prevents the $1400-bill dual-path pattern).
 
 
-      // R2-H21: prefer `end_live_stream` RPC so earnings settle,
-      // `stream_viewers.left_at` is filled in, and the live-summary row is
-      // generated. Direct `is_active=false` patch was skipping all of that.
-      const { error: rpcError } = await supabase.rpc('end_live_stream', { p_stream_id: streamId });
-
-      if (rpcError) {
-        console.error('[LiveStream Lifecycle] end_live_stream RPC failed, falling back:', rpcError);
-        // Fallback: keepalive PATCH with user token (only on unload paths
-        // where the RPC failed). Server cron will reconcile the rest within
-        // ~1 cycle, but at least the row flips inactive immediately.
+      // Primary: use Supabase client with user's session
+      const { error } = await supabase
+        .from('live_streams')
+        .update({ is_active: false, ended_at: new Date().toISOString() })
+        .eq('id', streamId);
+      
+      if (error) {
+        console.error('[LiveStream Lifecycle] Supabase update failed:', error);
+        // Fallback: use fetch with keepalive + user token for page unload scenarios
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (token) {
@@ -98,17 +97,15 @@ export const useLiveStreamLifecycle = ({
       const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
       const token = session?.access_token;
       if (token) {
-        // R2-H21: prefer `end_live_stream` RPC over the direct PATCH so the
-        // server-side cleanup runs (earnings settlement, viewer left_at,
-        // summary). Keepalive ensures this fires even during page unload.
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/end_live_stream`, {
-          method: 'POST',
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}`, {
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'apikey': getSupabasePublishableKey(),
             'Authorization': `Bearer ${token}`,
+            'Prefer': 'return=minimal',
           },
-          body: JSON.stringify({ p_stream_id: streamId }),
+          body: JSON.stringify({ is_active: false, ended_at: new Date().toISOString() }),
           keepalive: true,
         });
       }

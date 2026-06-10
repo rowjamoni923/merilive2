@@ -56,18 +56,6 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { userId, topupId } = await resolveScope(req);
 
-  // R2-C8: when there's no user JWT and no specific topup_id, this is a
-  // fan-out / cron poll across ALL pending rows. That path MUST require the
-  // shared CRON_SECRET — and FAIL CLOSED if the secret env is not configured
-  // (the previous `if (!cron) {}` style passed silently and let anyone scan
-  // every user's pending top-ups + trigger crediting attempts).
-  if (!userId && !topupId) {
-    const expected = Deno.env.get("CRON_SECRET");
-    if (!expected) return json({ error: "cron_secret_not_configured" }, 500);
-    const provided = req.headers.get("x-cron-secret") ?? "";
-    if (provided !== expected) return json({ error: "unauthorized" }, 401);
-  }
-
   // Build the candidate list
   let query = admin
     .from("swift_pay_topups")

@@ -284,31 +284,6 @@ serve(async (req) => {
       });
     }
 
-    // R2-H14: hard cap Rekognition retries per submission to 3.
-    // Internal/cron retries also count — same submission consuming AWS budget
-    // 100× in a row is exactly the abuse vector we're closing.
-    try {
-      const { data: attemptCount, error: attemptErr } = await supabaseAdmin.rpc(
-        "increment_face_submission_attempts",
-        { p_submission_id: submissionId },
-      );
-      if (attemptErr) {
-        console.warn("[face-verification-analyze] attempt counter rpc failed:", attemptErr.message);
-      } else if (typeof attemptCount === "number" && attemptCount > 3) {
-        return new Response(
-          JSON.stringify({
-            error: "Rekognition attempt cap exceeded",
-            code: "attempts_exhausted",
-            attempts: attemptCount,
-          }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-    } catch (e) {
-      console.warn("[face-verification-analyze] attempt counter threw:", e instanceof Error ? e.message : e);
-    }
-
-
     const frontUrl = row.front_url || row.face_image_url || row.selfie_url;
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;

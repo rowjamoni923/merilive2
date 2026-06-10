@@ -74,23 +74,16 @@ const channelPriority = (type?: string): string => {
   return "PRIORITY_DEFAULT";
 };
 
-// H-10: Cache the OAuth access token at module scope. Previously we minted a
-// fresh JWT and exchanged it for every single push (1000 pushes/min = 1000
-// Google token-endpoint round-trips). FCM access tokens are valid for 1 hour;
-// refresh inside the last 5 minutes to absorb clock skew.
-interface CachedToken {
-  token: string;
-  expiresAt: number; // epoch ms
-  keyId: string;     // bound to the private key in use; bust cache on rotation
-}
-let _cachedFcmToken: CachedToken | null = null;
-let _inflightTokenFetch: Promise<string> | null = null;
-
-async function mintAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
+// Generate JWT for FCM V1 authentication
+async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const exp = now + 3600; // 1 hour expiry
 
-  const header = { alg: "RS256", typ: "JWT" };
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+  };
+
   const payload = {
     iss: credentials.client_email,
     sub: credentials.client_email,
@@ -100,23 +93,28 @@ async function mintAccessToken(credentials: ServiceAccountCredentials): Promise<
     scope: "https://www.googleapis.com/auth/firebase.messaging",
   };
 
+  // Encode header and payload
   const encoder = new TextEncoder();
   const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const signatureInput = `${headerB64}.${payloadB64}`;
 
+  // Import private key and sign
   const privateKeyPem = credentials.private_key;
   const pemContents = privateKeyPem
     .replace("-----BEGIN PRIVATE KEY-----", "")
     .replace("-----END PRIVATE KEY-----", "")
     .replace(/\s/g, "");
-
+  
   const binaryKey = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
-
+  
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
     binaryKey,
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
     false,
     ["sign"]
   );
@@ -134,55 +132,24 @@ async function mintAccessToken(credentials: ServiceAccountCredentials): Promise<
 
   const jwt = `${signatureInput}.${signatureB64}`;
 
+  // Exchange JWT for access token
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   });
 
   const tokenData = await tokenResponse.json();
-
+  
   if (!tokenResponse.ok) {
     console.error("[FCM] Token exchange failed:", tokenData);
     throw new Error(`Token exchange failed: ${tokenData.error_description || tokenData.error}`);
   }
 
-  return tokenData.access_token as string;
+  return tokenData.access_token;
 }
-
-async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
-  const now = Date.now();
-  const REFRESH_WINDOW_MS = 5 * 60 * 1000; // refresh within last 5 min of 1h life
-  const keyId = credentials.private_key_id || credentials.client_email;
-
-  if (
-    _cachedFcmToken &&
-    _cachedFcmToken.keyId === keyId &&
-    _cachedFcmToken.expiresAt - now > REFRESH_WINDOW_MS
-  ) {
-    return _cachedFcmToken.token;
-  }
-
-  // Coalesce concurrent refreshes so a burst of pushes only triggers one exchange.
-  if (_inflightTokenFetch) return _inflightTokenFetch;
-
-  _inflightTokenFetch = (async () => {
-    try {
-      const token = await mintAccessToken(credentials);
-      _cachedFcmToken = {
-        token,
-        expiresAt: Date.now() + 3600 * 1000,
-        keyId,
-      };
-      return token;
-    } finally {
-      _inflightTokenFetch = null;
-    }
-  })();
-
-  return _inflightTokenFetch;
-}
-
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {

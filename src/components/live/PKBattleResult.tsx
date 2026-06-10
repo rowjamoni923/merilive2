@@ -35,8 +35,6 @@ export const PKBattleResult = ({
   rewardCoins,
   onClose,
 }: PKBattleResultProps) => {
-  const giftRain = ["💎", "🎁", "✨", "💖", "💎", "🎉", "🎁", "✨", "💎", "💖", "🎉", "🎁"];
-
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -108,39 +106,6 @@ export const PKBattleResult = ({
               animation: "giftSendShine 4.6s ease-in-out infinite",
             }}
           />
-
-          {/* Winner gift-rain — Bigo/Chamet-style celebration layer. */}
-          {!isDraw && (
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              {giftRain.map((gift, i) => (
-                <motion.span
-                  key={`${gift}-${i}`}
-                  className="absolute text-base"
-                  style={{
-                    left: `${10 + ((i * 17) % 76)}%`,
-                    top: -24,
-                    filter: "drop-shadow(0 0 8px rgba(251,191,36,0.6)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
-                  }}
-                  initial={{ y: -24, opacity: 0, rotate: -12, scale: 0.75 }}
-                  animate={{
-                    y: [ -24, 122, 244 ],
-                    opacity: [0, 1, 1, 0],
-                    rotate: [-12, 10, -8, 14],
-                    scale: [0.75, 1.08, 0.96],
-                  }}
-                  transition={{
-                    duration: 2.8 + (i % 3) * 0.28,
-                    delay: 0.35 + i * 0.13,
-                    repeat: Infinity,
-                    repeatDelay: 1.6,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {gift}
-                </motion.span>
-              ))}
-            </div>
-          )}
 
           {/* Header */}
           <div className="relative h-28 overflow-hidden">
@@ -242,13 +207,12 @@ export const PKBattleResult = ({
                       ? "drop-shadow(0 2px 10px rgba(251,191,36,0.6)) drop-shadow(0 0 18px rgba(251,191,36,0.45))"
                       : "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
                   }}
-                  initial={{ scale: 0, y: -40, rotate: -8 }}
-                  animate={{ scale: [0, 1.25, 0.92, 1.04, 1], y: [-40, 0, 4, -2, 0], rotate: [-8, 0, 1, 0, 0] }}
-                  transition={{ delay: 0.4, duration: 0.7, times: [0, 0.45, 0.7, 0.88, 1], ease: [0.34, 1.56, 0.64, 1] }}
+                  initial={{ scale: 0, y: 8 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ type: "spring", delay: 0.4, damping: 14, stiffness: 220 }}
                 >
                   {isWinner ? "YOU WIN!" : "YOU LOST"}
                 </motion.div>
-
               </div>
             )}
 

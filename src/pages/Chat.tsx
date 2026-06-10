@@ -1107,35 +1107,25 @@ const Chat = () => {
         'broadcast',
         { event: 'message' },
         (payload: any) => {
-          const p = payload?.payload;
-          if (!p || p.conversationId !== selectedConversation.id || !p.message) return;
-          // R2-Phase C Wave-2: DM broadcast trust — only accept messages whose
-          // sender_id matches the verified conversation peer. Stops a 3rd party
-          // who knows the conversation id from injecting forged bubbles.
-          const peerId = selectedConversation.other_user?.id;
-          const senderId = p.message?.sender_id;
-          if (!peerId || (senderId !== peerId && senderId !== currentUserId)) return;
-          upsertLiveMessageRef.current(p.message);
+          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
+          upsertLiveMessageRef.current(payload.payload.message);
         }
       )
       .on(
         'broadcast',
         { event: 'gift_animation' },
         (payload: any) => {
-          const p = payload?.payload;
-          if (!p || p.conversationId !== selectedConversation.id || !p.content) return;
-          if (p.senderId === currentUserId) return;
-          // Trust only the verified peer as gift sender.
-          if (p.senderId !== selectedConversation.other_user?.id) return;
-          if (p.soundUrl && !p.content.includes('| snd:')) {
-            p.content = `${p.content.replace(/\]$/, '')} | snd:${p.soundUrl}]`;
+          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
+          if (payload.payload?.senderId === currentUserId) return;
+          if (payload.payload?.soundUrl && !payload.payload.content.includes('| snd:')) {
+            payload.payload.content = `${payload.payload.content.replace(/\]$/, '')} | snd:${payload.payload.soundUrl}]`;
           }
           playGiftAnimationFromContent(
-            p.content,
-            p.senderId,
+            payload.payload.content,
+            payload.payload.senderId,
             true,
-            p.animationFormat || null,
-            p.animationConfigUrl || null,
+            payload.payload.animationFormat || null,
+            payload.payload.animationConfigUrl || null,
           );
         }
       )
@@ -1171,25 +1161,22 @@ const Chat = () => {
 
     receiptChannel
       .on('broadcast', { event: 'delivered' }, (payload: any) => {
-        const p = payload?.payload;
-        // R2-Phase C Wave-2: receipt must come from the verified peer.
-        if (!p || p.userId === currentUserId) return;
-        if (p.userId !== selectedConversation.other_user?.id) return;
-        setMessages(prev => prev.map(m =>
-          m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
-            ? { ...m, status: 'delivered' as const }
-            : m
-        ));
+        if (payload.payload?.userId !== currentUserId) {
+          setMessages(prev => prev.map(m =>
+            m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
+              ? { ...m, status: 'delivered' as const }
+              : m
+          ));
+        }
       })
       .on('broadcast', { event: 'read' }, (payload: any) => {
-        const p = payload?.payload;
-        if (!p || p.userId === currentUserId) return;
-        if (p.userId !== selectedConversation.other_user?.id) return;
-        setMessages(prev => prev.map(m =>
-          m.sender_id === currentUserId && m.status !== 'read'
-            ? { ...m, status: 'read' as const, is_read: true }
-            : m
-        ));
+        if (payload.payload?.userId !== currentUserId) {
+          setMessages(prev => prev.map(m =>
+            m.sender_id === currentUserId && m.status !== 'read'
+              ? { ...m, status: 'read' as const, is_read: true }
+              : m
+          ));
+        }
       })
       .subscribe();
 
@@ -1205,20 +1192,14 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedConversation?.id || !currentUserId) return;
     
-    // R2-Phase F: `self:false` so our own typing event isn't echoed back to us,
-    // saving a round-trip and avoiding any UI flicker if the userId guard ever changes.
-    const channel = supabase.channel(`typing-${selectedConversation.id}`, {
-      config: { broadcast: { self: false } },
-    });
+    const channel = supabase.channel(`typing-${selectedConversation.id}`);
     
     channel.on('broadcast', { event: 'typing' }, (payload: any) => {
-      const p = payload?.payload;
-      if (!p || p.userId === currentUserId) return;
-      // R2-Phase C Wave-2: only the verified peer can drive the typing indicator.
-      if (p.userId !== selectedConversation.other_user?.id) return;
-      setIsOtherTyping(true);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 3000);
+      if (payload.payload?.userId !== currentUserId) {
+        setIsOtherTyping(true);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 3000);
+      }
     }).subscribe();
     
     typingChannelRef.current = channel;

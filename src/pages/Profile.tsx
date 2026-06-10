@@ -2107,6 +2107,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // INSTANT: clear + navigate, background cleanup
       try {
         localStorage.setItem('meri_manual_logout', 'true');
+        localStorage.removeItem('meri_device_id');
         localStorage.removeItem('meri_device_account');
         localStorage.removeItem('meri_last_user');
         localStorage.removeItem('meri_pending_referral');

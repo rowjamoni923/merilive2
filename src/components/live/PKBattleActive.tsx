@@ -1,83 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Swords, Timer, Trophy, Frown } from "lucide-react";
-
-/**
- * Bigo/Chamet-parity drawing lightning bolt for PK header.
- * stroke-dasharray + animated pathLength = energy-arc draw effect.
- */
-const PKLightningBolt = ({ mirror = false }: { mirror?: boolean }) => (
-  <motion.svg
-    viewBox="0 0 24 24"
-    width="18"
-    height="18"
-    fill="none"
-    style={{
-      transform: mirror ? "scaleX(-1)" : undefined,
-      filter: "drop-shadow(0 0 6px rgba(251,191,36,0.85)) drop-shadow(0 0 12px rgba(236,72,153,0.45))",
-    }}
-  >
-    <motion.path
-      d="M13 2 L4 14 L11 14 L9 22 L20 9 L13 9 Z"
-      stroke="#fde68a"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="url(#pk-bolt-grad)"
-      initial={{ pathLength: 0, opacity: 0.4 }}
-      animate={{ pathLength: [0, 1, 1], opacity: [0.4, 1, 0.9] }}
-      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
-    />
-    <defs>
-      <linearGradient id="pk-bolt-grad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#fef3c7" />
-        <stop offset="55%" stopColor="#fbbf24" />
-        <stop offset="100%" stopColor="#f97316" />
-      </linearGradient>
-    </defs>
-  </motion.svg>
-);
-
-/**
- * Bigo-parity score number with Y-axis cross-fade slide (80ms) instead of
- * key-remount color flash. Eliminates score-blink during rapid gift bursts.
- */
-const PKScoreNumber = ({
-  value,
-  color,
-  glow,
-}: {
-  value: number;
-  color: string;
-  glow: string;
-}) => (
-  <span
-    className="relative inline-block overflow-hidden text-lg font-extrabold tabular-nums"
-    style={{ minWidth: "1.5em", height: "1.6em", lineHeight: "1.6em", color, textShadow: glow }}
-  >
-    <AnimatePresence mode="popLayout" initial={false}>
-      <motion.span
-        key={value}
-        initial={{ y: "60%", opacity: 0 }}
-        animate={{ y: "0%", opacity: 1 }}
-        exit={{ y: "-60%", opacity: 0 }}
-        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute inset-0 flex items-center justify-start"
-      >
-        {value}
-      </motion.span>
-    </AnimatePresence>
-  </span>
-);
-
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
 // PK Battle Step 4: server distributes 70% winner bonus (beans) + sets
 // mvp_user_id + punishment_end_ts. Client only renders these fields.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { usePKBattleSfx } from "@/hooks/usePKBattleSfx";
-import { PKTopContributors } from "./PKTopContributors";
-
 
 interface PKBattleActiveProps {
   battleId: string;
@@ -93,19 +22,6 @@ interface PKBattleActiveProps {
   /** Current viewer/host user id — drives native PK SFX/VAP/haptic cues. Optional. */
   currentUserId?: string | null;
   onBattleEnd: (winnerId: string | null) => void;
-}
-
-interface PKBattleRow {
-  challenger_score?: number | null;
-  opponent_score?: number | null;
-  started_at?: string | null;
-  duration_seconds?: number | null;
-  status?: string | null;
-  winner_user_id?: string | null;
-  final_status?: string | null;
-  mvp_user_id?: string | null;
-  mvp_contribution?: number | null;
-  punishment_end_ts?: string | null;
 }
 
 export const PKBattleActive = ({
@@ -131,45 +47,11 @@ export const PKBattleActive = ({
   // Step 4 — server-only fields surfaced for UI
   const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
   const [mvpUserId, setMvpUserId] = useState<string | null>(null);
-  const [mvpContribution, setMvpContribution] = useState<number | null>(null);
-  const [mvpName, setMvpName] = useState<string | null>(null);
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
-  // Live floaters: 'score' (active-phase delta) + 'cheer' (punishment-phase
-  // rescue gift). Auto-evicted after ~1.4s. Bigo-signature gift-feedback.
-  type DeltaFloat = {
-    key: string;
-    side: "challenger" | "opponent";
-    amount: number;
-    kind: "score" | "cheer";
-  };
-  const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
-  // Per-side accumulated rescue (cheer-gift) coins during punishment phase.
-  // Separate from HP score (which is server-locked at 0 during punishment).
-  // Resets when a new battle starts or when battle leaves punishment phase.
-  const [rescueTally, setRescueTally] = useState<{ challenger: number; opponent: number }>({
-    challenger: 0,
-    opponent: 0,
-  });
-
-  const prevChallengerRef = useRef(0);
-  const prevOpponentRef = useRef(0);
-  const latestChallengerScoreRef = useRef(0);
-  const latestOpponentScoreRef = useRef(0);
-  const onBattleEndRef = useRef(onBattleEnd);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
-
-  useEffect(() => {
-    latestChallengerScoreRef.current = challengerScore;
-    latestOpponentScoreRef.current = opponentScore;
-  }, [challengerScore, opponentScore]);
-
-  useEffect(() => {
-    onBattleEndRef.current = onBattleEnd;
-  }, [onBattleEnd]);
-
 
   // PK Battle Step 3 — REWORKED:
   //   1. Seed from server-authoritative columns (challenger_score, opponent_score,
@@ -208,7 +90,17 @@ export const PKBattleActive = ({
     if (battleEnded) return;
     let cancelled = false;
 
-    const applyRow = (row: PKBattleRow) => {
+    const applyRow = (row: {
+      challenger_score?: number | null;
+      opponent_score?: number | null;
+      started_at?: string | null;
+      duration_seconds?: number | null;
+      status?: string | null;
+      winner_user_id?: string | null;
+      final_status?: string | null;
+      mvp_user_id?: string | null;
+      punishment_end_ts?: string | null;
+    }) => {
       // Coalesced score updates (P2). Stash latest and flush on next frame.
       if (typeof row.challenger_score === "number") {
         pendingChallengerRef.current = row.challenger_score;
@@ -225,7 +117,6 @@ export const PKBattleActive = ({
         setServerDurationSec(row.duration_seconds);
       }
       if (row.mvp_user_id !== undefined) setMvpUserId(row.mvp_user_id ?? null);
-      if (row.mvp_contribution !== undefined) setMvpContribution(row.mvp_contribution ?? null);
       if (row.final_status !== undefined) setFinalStatus(row.final_status ?? null);
       if (row.punishment_end_ts !== undefined) {
         setPunishmentEndTs(row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null);
@@ -233,7 +124,7 @@ export const PKBattleActive = ({
       if (row.winner_user_id !== undefined) setWinnerUserId(row.winner_user_id ?? null);
       if (row.status === "ended") {
         setBattleEnded(true);
-        onBattleEndRef.current(row.winner_user_id ?? null);
+        onBattleEnd(row.winner_user_id ?? null);
       }
     };
 
@@ -241,7 +132,7 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("pk_battles")
         .select(
-          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, mvp_contribution, punishment_end_ts",
+          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, punishment_end_ts",
         )
         .eq("id", battleId)
         .maybeSingle();
@@ -258,7 +149,7 @@ export const PKBattleActive = ({
         { event: "UPDATE", schema: "public", table: "pk_battles", filter: `id=eq.${battleId}` },
         (payload) => {
           if (cancelled) return;
-          applyRow(payload.new as PKBattleRow);
+          applyRow(payload.new as Parameters<typeof applyRow>[0]);
         },
       )
       .subscribe();
@@ -268,15 +159,14 @@ export const PKBattleActive = ({
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
-      if (detail.scope !== "live") return;
       const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
       if (!coins) return;
       if (challengerId && detail.receiverId === challengerId) {
-        const base = pendingChallengerRef.current ?? latestChallengerScoreRef.current;
+        const base = pendingChallengerRef.current ?? challengerScore;
         pendingChallengerRef.current = base + coins;
         scheduleFlush();
       } else if (opponentId && detail.receiverId === opponentId) {
-        const base = pendingOpponentRef.current ?? latestOpponentScoreRef.current;
+        const base = pendingOpponentRef.current ?? opponentScore;
         pendingOpponentRef.current = base + coins;
         scheduleFlush();
       }
@@ -288,7 +178,7 @@ export const PKBattleActive = ({
       supabase.removeChannel(channel);
       window.removeEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
     };
-  }, [battleId, battleEnded, challengerId, opponentId, scheduleFlush]);
+  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd, challengerScore, opponentScore, scheduleFlush]);
 
 
 
@@ -391,108 +281,10 @@ export const PKBattleActive = ({
   const challengerPercent = totalScore > 0 ? (challengerScore / totalScore) * 100 : 50;
   const opponentPercent = totalScore > 0 ? (opponentScore / totalScore) * 100 : 50;
 
-  /** Compact raw-count formatter (Bigo-parity: 1,234 → 12.3K above HP half). */
-  const fmtCompact = (n: number) =>
-    n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` :
-    n >= 1_000 ? `${(n / 1_000).toFixed(1)}K` :
-    n.toLocaleString();
-
   const challengerWinning = challengerScore > opponentScore;
   const opponentWinning = opponentScore > challengerScore;
 
   const timeUrgent = timeLeft <= 30;
-  const timeCritical = timeLeft <= 10 && timeLeft > 0;
-  const timeShatter = timeLeft === 0 && !!serverStartedAt && !battleEnded;
-
-  // Sudden-Death: last 30s + scores within ±10% of midline (Bigo "FINAL PUSH").
-  const suddenDeath =
-    !battleEnded && timeLeft > 0 && timeLeft <= 30 &&
-    totalScore > 0 && Math.abs(challengerPercent - opponentPercent) <= 20;
-
-  // Punishment-phase: dim & lock both halves, loser side gets red wash.
-  const inPunishment = battleEnded && punishLeft > 0 && !!winnerUserId;
-  const challengerLost = inPunishment && winnerUserId === opponentId;
-  const opponentLost = inPunishment && winnerUserId === challengerId;
-
-  // Live diamond-delta float-up: detect server score increases and emit a
-  // transient `+N` floater anchored over the matching HP half.
-  useEffect(() => {
-    const cDelta = challengerScore - prevChallengerRef.current;
-    const oDelta = opponentScore - prevOpponentRef.current;
-    prevChallengerRef.current = challengerScore;
-    prevOpponentRef.current = opponentScore;
-    if (cDelta <= 0 && oDelta <= 0) return;
-    const adds: DeltaFloat[] = [];
-    const stamp = Date.now();
-    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta, kind: "score" });
-    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta, kind: "score" });
-
-    if (!adds.length) return;
-    setDeltaFloats((prev) => [...prev, ...adds].slice(-8));
-    const keys = adds.map((a) => a.key);
-    const t = setTimeout(() => {
-      setDeltaFloats((prev) => prev.filter((f) => !keys.includes(f.key)));
-    }, 1400);
-    return () => clearTimeout(t);
-  }, [challengerScore, opponentScore]);
-
-  // H-8: punishment-phase "cheer" floaters. Server credits score_value=0 for
-  // these gifts (HP bar locked, industry-correct), but viewers still need
-  // visible feedback that their rescue gift registered. Listen to the
-  // same livekit-gift-sent event the active-phase logic uses, but only emit
-  // here when battleEnded && punishment is active.
-  useEffect(() => {
-    if (!battleEnded || punishLeft <= 0) return;
-    const onCheer = (event: Event) => {
-      const detail = (event as CustomEvent<GiftSentDetail>).detail;
-      if (!detail) return;
-      const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
-      if (!coins) return;
-      let side: "challenger" | "opponent" | null = null;
-      if (challengerId && detail.receiverId === challengerId) side = "challenger";
-      else if (opponentId && detail.receiverId === opponentId) side = "opponent";
-      if (!side) return;
-      const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" as const }].slice(-8));
-      // Accumulate into rescue tally so viewers see total support, not just
-      // a transient floater (Bigo/Chamet "rescue meter" parity).
-      setRescueTally((prev) => ({ ...prev, [side!]: prev[side!] + coins }));
-      setTimeout(() => {
-        setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
-      }, 1400);
-    };
-    window.addEventListener("livekit-gift-sent", onCheer as EventListener);
-    return () => window.removeEventListener("livekit-gift-sent", onCheer as EventListener);
-  }, [battleEnded, punishLeft, challengerId, opponentId]);
-
-  // Reset rescue tally whenever battle ID changes or punishment ends.
-  useEffect(() => {
-    if (!battleEnded || punishLeft <= 0) setRescueTally({ challenger: 0, opponent: 0 });
-  }, [battleId, battleEnded, punishLeft]);
-
-
-
-  // Resolve MVP display name. Cheap: if MVP is one of the hosts, reuse name;
-  // otherwise fire a single profiles SELECT.
-  useEffect(() => {
-    if (!mvpUserId) { setMvpName(null); return; }
-    if (mvpUserId === challengerId) { setMvpName(challengerName); return; }
-    if (mvpUserId === opponentId) { setMvpName(opponentName); return; }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("username, display_name")
-        .eq("id", mvpUserId)
-        .maybeSingle();
-      if (cancelled) return;
-      const n = data?.display_name || data?.username || null;
-      setMvpName(n);
-    })();
-    return () => { cancelled = true; };
-  }, [mvpUserId, challengerId, opponentId, challengerName, opponentName]);
-
-
 
   return (
     <motion.div
@@ -541,7 +333,13 @@ export const PKBattleActive = ({
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <PKLightningBolt />
+          <motion.div
+            animate={{ rotate: [0, -8, 0, 8, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
+          >
+            <Swords className="w-4 h-4 text-amber-400" />
+          </motion.div>
           <span
             className="font-extrabold text-sm tracking-wide"
             style={{
@@ -562,27 +360,21 @@ export const PKBattleActive = ({
               border: timeUrgent ? "1px solid rgba(252,165,165,0.5)" : "1px solid rgba(255,255,255,0.08)",
               boxShadow: timeUrgent ? "0 0 14px rgba(239,68,68,0.5)" : "none",
             }}
-            animate={
-              timeShatter
-                ? { scale: [1, 1.6, 0.4], opacity: [1, 0.9, 0], filter: ["blur(0px)", "blur(2px)", "blur(8px)"] }
-                : timeCritical
-                  ? { scale: [1, 1.18, 1] }
-                  : timeUrgent
-                    ? { scale: [1, 1.06, 1] }
-                    : { scale: 1 }
-            }
-            transition={
-              timeShatter
-                ? { duration: 0.6, ease: "easeOut" }
-                : { duration: timeCritical ? 0.55 : 1, repeat: Infinity, ease: "easeInOut" }
-            }
+            animate={timeUrgent ? { scale: [1, 1.06, 1] } : {}}
+            transition={{ duration: 1, repeat: Infinity }}
           >
             <Timer className={`w-3 h-3 ${timeUrgent ? "text-rose-200" : "text-amber-400"}`} />
             <span className={`font-mono text-sm tabular-nums font-bold ${timeUrgent ? "text-rose-100" : "text-amber-300"}`}>
               {formatTime(timeLeft)}
             </span>
           </motion.div>
-          <PKLightningBolt mirror />
+          <motion.div
+            animate={{ rotate: [0, 8, 0, -8, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
+          >
+            <Swords className="w-4 h-4 text-amber-400 transform scale-x-[-1]" />
+          </motion.div>
         </div>
 
         {/* VS Section */}
@@ -632,41 +424,39 @@ export const PKBattleActive = ({
                   {challengerName}
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <PKScoreNumber
-                    value={challengerScore}
-                    color="#fbbf24"
-                    glow="0 0 10px rgba(251,191,36,0.5)"
-                  />
+                  <motion.span
+                    key={challengerScore}
+                    initial={{ scale: 1.25, color: "#fff" }}
+                    animate={{ scale: 1, color: "#fbbf24" }}
+                    transition={{ duration: 0.4 }}
+                    className="text-amber-400 text-lg font-extrabold tabular-nums"
+                    style={{ textShadow: "0 0 10px rgba(251,191,36,0.5)" }}
+                  >
+                    {challengerScore}
+                  </motion.span>
                   <span className="text-white/70 text-[10px]">diamonds</span>
                 </div>
               </div>
             </div>
 
-            {/* VS Badge — pulsing heartbeat (replaces rotating spinner) */}
+            {/* VS Badge */}
             <motion.div
               className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               style={{
-                background: "linear-gradient(135deg, #ef4444, #ec4899)",
+                background: "linear-gradient(135deg, #ec4899, #a855f7)",
                 boxShadow:
-                  "0 0 0 2px rgba(255,255,255,0.22), 0 0 18px rgba(239,68,68,0.7), 0 0 36px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.32)",
+                  "0 0 0 2px rgba(255,255,255,0.18), 0 0 18px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
               }}
-              animate={{ scale: [1, 1.12, 1] }}
-              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             >
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{ border: "2px solid rgba(252,165,165,0.7)" }}
-                animate={{ scale: [1, 1.6, 1.8], opacity: [0.85, 0.3, 0] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
-              />
               <span
-                className="relative text-white font-extrabold text-xs"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.45)" }}
+                className="text-white font-extrabold text-xs"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
               >
                 VS
               </span>
             </motion.div>
-
 
             {/* Opponent */}
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
@@ -713,284 +503,79 @@ export const PKBattleActive = ({
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5 justify-end">
                   <span className="text-white/70 text-[10px]">diamonds</span>
-                  <PKScoreNumber
-                    value={opponentScore}
-                    color="#c084fc"
-                    glow="0 0 10px rgba(168,85,247,0.55)"
-                  />
+                  <motion.span
+                    key={opponentScore}
+                    initial={{ scale: 1.25, color: "#fff" }}
+                    animate={{ scale: 1, color: "#c084fc" }}
+                    transition={{ duration: 0.4 }}
+                    className="text-purple-400 text-lg font-extrabold tabular-nums"
+                    style={{ textShadow: "0 0 10px rgba(168,85,247,0.55)" }}
+                  >
+                    {opponentScore}
+                  </motion.span>
                 </div>
-
               </div>
             </div>
           </div>
 
-          {/* Progress Bar + sliding lead crown (Bigo-parity) */}
-          <div className="relative mt-3">
-            {/* Sudden-Death "FINAL PUSH" banner — last 30s + close score */}
-            <AnimatePresence>
-              {suddenDeath && (
-                <motion.div
-                  key="sudden-death"
-                  className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full z-20"
-                  initial={{ scale: 0, y: 6, opacity: 0 }}
-                  animate={{ scale: [0, 1.15, 1], y: 0, opacity: 1 }}
-                  exit={{ scale: 0.6, opacity: 0 }}
-                  transition={{ type: "spring", damping: 16, stiffness: 320 }}
-                  style={{
-                    background: "linear-gradient(135deg, #ef4444 0%, #f97316 50%, #fbbf24 100%)",
-                    border: "1px solid rgba(254,243,199,0.7)",
-                    boxShadow:
-                      "0 0 14px rgba(239,68,68,0.7), 0 0 28px rgba(251,191,36,0.4), inset 0 1px 0 rgba(255,255,255,0.35)",
-                  }}
-                >
-                  <motion.span
-                    className="text-[10px] font-black tracking-[0.2em] text-white uppercase block"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
-                    animate={{ scale: [1, 1.08, 1] }}
-                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    Final Push
-                  </motion.span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Diamond-delta floaters per side (Bigo-signature +N rise+fade).
-                'score' (active) = side-colored; 'cheer' (punishment) = amber. */}
-            <div className="pointer-events-none absolute -top-4 left-0 right-0 h-6 z-10 overflow-visible">
-              <AnimatePresence>
-                {deltaFloats.map((f) => {
-                  const isCheer = f.kind === "cheer";
-                  const sideColor = f.side === "challenger" ? "#fbcfe8" : "#e9d5ff";
-                  const sideShadow =
-                    f.side === "challenger"
-                      ? "0 0 8px rgba(236,72,153,0.9), 0 1px 2px rgba(0,0,0,0.6)"
-                      : "0 0 8px rgba(168,85,247,0.9), 0 1px 2px rgba(0,0,0,0.6)";
-                  return (
-                    <motion.div
-                      key={f.key}
-                      className="absolute text-[11px] font-black tabular-nums"
-                      style={{
-                        left: f.side === "challenger" ? "20%" : "80%",
-                        transform: "translateX(-50%)",
-                        color: isCheer ? "#fde68a" : sideColor,
-                        textShadow: isCheer
-                          ? "0 0 8px rgba(251,191,36,0.9), 0 1px 2px rgba(0,0,0,0.6)"
-                          : sideShadow,
-                      }}
-                      initial={{ y: 6, opacity: 0, scale: 0.7 }}
-                      animate={{ y: -22, opacity: [0, 1, 1, 0], scale: [0.7, 1.15, 1, 0.9] }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.2, 0.7, 1] }}
-                    >
-                      {isCheer ? `+${fmtCompact(f.amount)} 🙌` : `+${fmtCompact(f.amount)} 💎`}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-
-            {/* Punishment-phase caption — viewers see HP bar is locked but
-                cheers are still tracked off-bar for the loser. */}
-            {inPunishment && (
-              <motion.div
-                key="pk-punishment-caption"
-                className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{
-                  background: "linear-gradient(135deg, rgba(239,68,68,0.35), rgba(76,29,149,0.35))",
-                  border: "1px solid rgba(252,165,165,0.45)",
-                  boxShadow: "0 0 10px rgba(239,68,68,0.35)",
-                }}
-              >
-                <span
-                  className="text-[9px] font-black tracking-[0.18em] uppercase text-rose-100"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.55)" }}
-                >
-                  Punishment · HP Locked
-                </span>
-              </motion.div>
-            )}
-
-
-
-            {/* Raw count micro-text above each half */}
-            <div className="flex justify-between mb-0.5 px-0.5">
-              <span className="text-[10px] font-bold text-pink-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-                {fmtCompact(challengerScore)}
-              </span>
-              <span className="text-[10px] font-bold text-purple-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-                {fmtCompact(opponentScore)}
-              </span>
-            </div>
-            {totalScore > 0 && (
-              <motion.div
-                className="pointer-events-none absolute -top-3 z-10"
-                style={{
-                  left: `${challengerPercent}%`,
-                  transform: "translateX(-50%)",
-                  filter: "drop-shadow(0 0 6px rgba(251,191,36,0.95)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
-                }}
-                animate={{ left: `${challengerPercent}%` }}
-                transition={{ type: "spring", damping: 22, stiffness: 180 }}
-              >
-                <Crown className="w-3.5 h-3.5 text-amber-300" />
-              </motion.div>
-            )}
-            <div
-              className="relative h-2.5 rounded-full overflow-hidden flex"
+          {/* Progress Bar */}
+          <div
+            className="relative mt-3 h-2.5 rounded-full overflow-hidden flex"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
+            }}
+          >
+            <motion.div
+              className="h-full relative"
               style={{
-                background: "rgba(0,0,0,0.4)",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
-                filter: inPunishment ? "saturate(0.6) brightness(0.85)" : undefined,
+                background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
+                boxShadow: "0 0 10px rgba(236,72,153,0.7)",
               }}
+              initial={{ width: "50%" }}
+              animate={{ width: `${challengerPercent}%` }}
+              transition={{ type: "spring", damping: 18, stiffness: 140 }}
             >
-              <motion.div
-                className="h-full relative"
+              <div
+                className="absolute inset-0"
                 style={{
-                  background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
-                  boxShadow: "0 0 10px rgba(236,72,153,0.7)",
+                  background:
+                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                  animation: "giftSendShine 2.6s ease-in-out infinite",
                 }}
-                initial={{ width: "50%" }}
-                animate={{ width: `${challengerPercent}%` }}
-                transition={{ type: "spring", damping: 18, stiffness: 140 }}
-              >
-                {challengerWinning && totalScore > 0 && !inPunishment && (
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
-                      animation: "giftSendShine 1.4s ease-in-out infinite",
-                      mixBlendMode: "screen",
-                    }}
-                  />
-                )}
-                {challengerLost && (
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
-                      mixBlendMode: "multiply",
-                    }}
-                    animate={{ opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-              </motion.div>
-              <motion.div
-                className="h-full relative"
-                style={{
-                  background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
-                  boxShadow: "0 0 10px rgba(168,85,247,0.7)",
-                }}
-                initial={{ width: "50%" }}
-                animate={{ width: `${opponentPercent}%` }}
-                transition={{ type: "spring", damping: 18, stiffness: 140 }}
-              >
-                {opponentWinning && totalScore > 0 && !inPunishment && (
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
-                      animation: "giftSendShine 1.4s ease-in-out infinite",
-                      mixBlendMode: "screen",
-                    }}
-                  />
-                )}
-                {opponentLost && (
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "repeating-linear-gradient(45deg, rgba(239,68,68,0.55) 0 6px, rgba(0,0,0,0.35) 6px 12px)",
-                      mixBlendMode: "multiply",
-                    }}
-                    animate={{ opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-              </motion.div>
-
-              {/* Center divider glow follows leader split */}
-              <motion.div
-                className="pointer-events-none absolute top-0 bottom-0 w-px"
-                style={{
-                  background: "rgba(255,255,255,0.8)",
-                  boxShadow: "0 0 6px rgba(255,255,255,0.9)",
-                  transform: "translateX(-0.5px)",
-                }}
-                animate={{ left: `${challengerPercent}%` }}
-                transition={{ type: "spring", damping: 22, stiffness: 180 }}
               />
-            </div>
-
-            {/* H-8 punishment-phase rescue meter + support hint. Renders only
-                while HP is locked; shows accumulated rescue coins per side
-                (the cheer floaters' running total) plus a viewer CTA so it's
-                obvious that gifts still register even though the HP bar froze.
-                Bigo/Chamet "rescue meter" parity. */}
-            <AnimatePresence>
-              {inPunishment && (
-                <motion.div
-                  key="pk-rescue-meter"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="mt-1 flex items-center justify-between gap-2 px-0.5"
-                >
-                  <motion.div
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(244,114,182,0.18))",
-                      border: "1px solid rgba(251,191,36,0.35)",
-                    }}
-                    animate={{ scale: rescueTally.challenger > 0 ? [1, 1.06, 1] : 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <span className="text-[9px]">🙌</span>
-                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-                      {fmtCompact(rescueTally.challenger)}
-                    </span>
-                  </motion.div>
-                  <span
-                    className="text-[8.5px] font-semibold tracking-wider uppercase text-rose-200/80"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
-                  >
-                    Send gifts to support
-                  </span>
-                  <motion.div
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(251,191,36,0.18))",
-                      border: "1px solid rgba(251,191,36,0.35)",
-                    }}
-                    animate={{ scale: rescueTally.opponent > 0 ? [1, 1.06, 1] : 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-                      {fmtCompact(rescueTally.opponent)}
-                    </span>
-                    <span className="text-[9px]">🙌</span>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Top-3 supporter avatars per side (Bigo/Chamet parity) */}
-            <PKTopContributors
-              battleId={battleId}
-              challengerId={challengerId}
-              opponentId={opponentId}
+            </motion.div>
+            <motion.div
+              className="h-full relative"
+              style={{
+                background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
+                boxShadow: "0 0 10px rgba(168,85,247,0.7)",
+              }}
+              initial={{ width: "50%" }}
+              animate={{ width: `${opponentPercent}%` }}
+              transition={{ type: "spring", damping: 18, stiffness: 140 }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                  animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
+                }}
+              />
+            </motion.div>
+            {/* Center divider glow */}
+            <div
+              className="pointer-events-none absolute top-0 bottom-0 w-px"
+              style={{
+                left: `${challengerPercent}%`,
+                background: "rgba(255,255,255,0.8)",
+                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                transform: "translateX(-0.5px)",
+              }}
             />
           </div>
-
-
         </div>
-
 
         {/* Step 4: Winner / Draw / Punishment overlay */}
         <AnimatePresence>
@@ -1046,29 +631,16 @@ export const PKBattleActive = ({
               </div>
 
               {mvpUserId && (
-                <div className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-full shrink-0">
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
-                      border: "1px solid rgba(251,191,36,0.55)",
-                      boxShadow: "0 0 12px rgba(251,191,36,0.35)",
-                    }}
-                  >
-                    <Crown className="w-3.5 h-3.5 text-amber-300" />
-                    <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
-                  </div>
-                  {mvpName && (
-                    <span className="text-[10px] font-bold text-amber-100 truncate max-w-[90px]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-                      {mvpName}
-                    </span>
-                  )}
-                  {typeof mvpContribution === "number" && mvpContribution > 0 && (
-                    <span className="text-[9px] font-semibold text-amber-300/90 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                      {fmtCompact(mvpContribution)} coins
-                    </span>
-                  )}
-
+                <div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
+                    border: "1px solid rgba(251,191,36,0.55)",
+                    boxShadow: "0 0 12px rgba(251,191,36,0.35)",
+                  }}
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
                 </div>
               )}
 

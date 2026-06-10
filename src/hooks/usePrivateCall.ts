@@ -69,17 +69,6 @@ export function usePrivateCall(userId: string | null) {
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Call ringing timeout
   const outgoingStatusPollRef = useRef<NodeJS.Timeout | null>(null); // Caller-side fallback status polling
   const callEndedRef = useRef<boolean>(false);
-  // H-5: declared at the top of the hook so callbacks defined later in
-  // the file (showVerifiedIncomingCall, accept/decline handlers, etc.) can
-  // read the latest callState without hitting `undefined.current` on the
-  // very first render. Synced inside an effect below.
-  const callStateRef = useRef<CallState>(INITIAL_CALL_STATE);
-  // H-11: holds the active `private-call-${userId}` Supabase Realtime channel
-  // so we can tear down a prior subscription before opening a new one on
-  // StrictMode double-mount or `userId` change. Typed loosely because
-  // `supabase.channel(...)` return type is not exported here.
-  const privateCallChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-
   const currentCallIdRef = useRef<string | null>(null);
   const billingStartedRef = useRef<boolean>(false);
   const liveSessionStartedRef = useRef<boolean>(false);
@@ -1046,10 +1035,9 @@ export function usePrivateCall(userId: string | null) {
   }, [toast]);
 
   // End the current call - INSTANT response
-  // H-5: callStateRef is declared at the top of the hook (line ~76).
-  // Keep it in sync here so the latest state is observable in async callbacks.
+  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/coins change every second)
+  const callStateRef = useRef(callState);
   callStateRef.current = callState;
-
 
   const endCall = useCallback(async (reason: string = 'normal') => {
     const cs = callStateRef.current;
@@ -1313,17 +1301,6 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
-    // H-11: StrictMode-safe channel guard. Under React 18 dev StrictMode an
-    // effect may run twice synchronously, and a `userId` flip (sign-in /
-    // account-switch) re-runs this effect. We keep a ref to the live channel
-    // and tear down any prior subscription before opening a new one to
-    // prevent two channels sharing the same `private-call-${userId}` name
-    // (Supabase Realtime treats them as one client → duplicate event fan-out).
-    if (privateCallChannelRef.current) {
-      try { supabase.removeChannel(privateCallChannelRef.current); } catch { /* no-op */ }
-      privateCallChannelRef.current = null;
-    }
-
     const privateCallChannel = supabase
       .channel(`private-call-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
@@ -1333,16 +1310,11 @@ export function usePrivateCall(userId: string | null) {
         handleRow((payload as any).new || (payload as any).old);
       })
       .subscribe();
-    privateCallChannelRef.current = privateCallChannel;
 
     return () => {
-      if (privateCallChannelRef.current === privateCallChannel) {
-        privateCallChannelRef.current = null;
-      }
-      try { supabase.removeChannel(privateCallChannel); } catch { /* no-op */ }
+      supabase.removeChannel(privateCallChannel);
     };
   }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
-
 
   // Incoming call listener: FCM is the wake/delivery path, while the scoped
   // private_calls realtime listener above is the DB truth path for missed FCM,
@@ -1539,11 +1511,5 @@ export function usePrivateCall(userId: string | null) {
     endCall,
     dismissCall,
     notifyMediaConnected,
-    // H-4: expose the single source-of-truth call-ended ref so CallProvider
-    // (and any other parent) reads the SAME ref instead of maintaining its
-    // own that can drift out of sync (e.g. parent missed reset → stuck
-    // "call ended" gate that blocks the next incoming call).
-    callEndedRef,
   };
-
 }

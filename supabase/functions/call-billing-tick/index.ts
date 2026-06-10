@@ -130,13 +130,7 @@ serve(async (req) => {
         details.push({ call_id: callId, error: error.message });
         continue;
       }
-      const payload = data as {
-        billed?: boolean;
-        reason?: string;
-        call_ended?: boolean;
-        remaining_coins?: number;
-        remaining_minutes?: number | null;
-      } | null;
+      const payload = data as { billed?: boolean; reason?: string; call_ended?: boolean } | null;
 
       if (payload?.call_ended) {
         ended++;
@@ -155,28 +149,41 @@ serve(async (req) => {
 
       if (payload?.billed) {
         billed++;
-        // H-6: bill_call_minute now returns remaining_minutes — no per-call N+1.
-        const remainingMinutes =
-          typeof payload.remaining_minutes === "number" ? payload.remaining_minutes : null;
-        if (remainingMinutes !== null && remainingMinutes <= 2) {
-          signals.push({
-            topic: `call_signaling:${callId}`,
-            event: "signal",
-            payload: {
-              action: "low_balance",
-              remaining_minutes: remainingMinutes,
-              remaining_seconds: remainingMinutes * 60,
-              severity: remainingMinutes <= 1 ? "critical" : "warning",
-              call_id: callId,
-              ts: Date.now(),
-            },
-          });
+        // Compute remaining minutes for viewer to broadcast low-balance warning
+        const { data: callRow } = await admin
+          .from("private_calls")
+          .select("caller_id,viewer_rate_per_min")
+          .eq("id", callId)
+          .maybeSingle();
+        if (callRow?.caller_id && callRow?.viewer_rate_per_min) {
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("coins")
+            .eq("id", callRow.caller_id)
+            .maybeSingle();
+          const coins = Number(prof?.coins ?? 0);
+          const rate = Number(callRow.viewer_rate_per_min);
+          const remainingMinutes = rate > 0 ? Math.floor(coins / rate) : 0;
+          // Industry pattern: pre-warn at 2 min, critical at 1 min.
+          if (remainingMinutes <= 2) {
+            signals.push({
+              topic: `call_signaling:${callId}`,
+              event: "signal",
+              payload: {
+                action: "low_balance",
+                remaining_minutes: remainingMinutes,
+                remaining_seconds: remainingMinutes * 60,
+                severity: remainingMinutes <= 1 ? "critical" : "warning",
+                call_id: callId,
+                ts: Date.now(),
+              },
+            });
+          }
         }
       } else {
         skipped++;
       }
     }
-
 
     // 3) Stateless broadcast via Supabase Realtime HTTP API
     if (signals.length > 0) {

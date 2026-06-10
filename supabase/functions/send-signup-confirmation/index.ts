@@ -1,10 +1,6 @@
 // Migrated from Gmail SMTP → Lovable Email queue (unlimited, queued, retry-safe)
 // Sends signup verification OTP via the unified premium otp-code template.
-// R2-C3: OTP is now generated server-side ONLY and persisted to `email_otps`.
-// The code is NEVER returned to the client (previously leaked via response and
-// allowed client-side compare → trivial DevTools bypass).
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendOtpEmail } from "../_shared/send-otp-email.ts";
 
 const corsHeaders = {
@@ -16,8 +12,7 @@ const corsHeaders = {
 interface SignupConfirmationRequest {
   email: string;
   displayName?: string;
-  // Ignored — kept for back-compat with older clients. Server always picks.
-  verificationCode?: string;
+  verificationCode: string;
   userId?: string;
 }
 
@@ -47,17 +42,16 @@ const getClientIp = (req: Request) => {
 const validatePayload = (payload: SignupConfirmationRequest) => {
   const email = payload?.email?.trim().toLowerCase();
   const displayName = (payload?.displayName || "").trim().slice(0, 50);
+  const verificationCode = String(payload?.verificationCode || "").trim();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     return { ok: false as const, error: "Invalid email format" };
   }
 
-  // R2-C3: always generate the OTP server-side; ignore any client-supplied code.
-  const bytes = new Uint8Array(4);
-  crypto.getRandomValues(bytes);
-  const num = ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
-  const finalCode = (100000 + (num % 900000)).toString();
+  const finalCode = /^\d{6}$/.test(verificationCode)
+    ? verificationCode
+    : Math.floor(100000 + Math.random() * 900000).toString();
 
   return {
     ok: true as const,
@@ -123,27 +117,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`[send-signup-confirmation] Queuing OTP to ${email}`);
 
-    // R2-C3: persist OTP server-side so `verify-email-otp` can validate it.
-    // No client ever sees the code.
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { error: otpInsertErr } = await supabase.from("email_otps").insert({
-      email,
-      otp_code: verificationCode,
-      purpose: "register",
-      expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
-      attempts: 0,
-      is_used: false,
-    });
-    if (otpInsertErr) {
-      console.error("[send-signup-confirmation] email_otps insert error:", otpInsertErr);
-      return new Response(
-        JSON.stringify({ success: false, error: "OTP persist failed" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
     const result = await sendOtpEmail({
       to: email,
       otp: verificationCode,
@@ -155,15 +128,14 @@ const handler = async (req: Request): Promise<Response> => {
     if (!result.success) {
       console.error("[send-signup-confirmation] Lovable Email failed:", result.error);
       return new Response(
-        JSON.stringify({ success: false, error: "Email delivery failed", details: result.error }),
+        JSON.stringify({ success: false, error: "Email delivery failed", details: result.error, code: verificationCode }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
     console.log("[send-signup-confirmation] ✅ Queued via Lovable Email");
-    // NOTE: `code` intentionally omitted from response — never returned to client.
     return new Response(
-      JSON.stringify({ success: true, provider: "Lovable", displayName }),
+      JSON.stringify({ success: true, provider: "Lovable", code: verificationCode, displayName }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {

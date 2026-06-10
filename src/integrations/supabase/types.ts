@@ -3866,40 +3866,9 @@ export type Database = {
         }
         Relationships: []
       }
-      device_session_exchange_tokens: {
-        Row: {
-          consumed_at: string | null
-          consumer_ip: string | null
-          created_at: string
-          device_id: string
-          expires_at: string
-          token: string
-          user_id: string
-        }
-        Insert: {
-          consumed_at?: string | null
-          consumer_ip?: string | null
-          created_at?: string
-          device_id: string
-          expires_at?: string
-          token?: string
-          user_id: string
-        }
-        Update: {
-          consumed_at?: string | null
-          consumer_ip?: string | null
-          created_at?: string
-          device_id?: string
-          expires_at?: string
-          token?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       device_tokens: {
         Row: {
           created_at: string | null
-          device_id: string | null
           id: string
           is_active: boolean | null
           platform: string
@@ -3909,7 +3878,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -3919,7 +3887,6 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -4257,7 +4224,6 @@ export type Database = {
           full_name: string | null
           host_photos: string[] | null
           id: string
-          images_purged_at: string | null
           ip_hash: string | null
           is_duplicate_face: boolean | null
           language: string | null
@@ -4267,7 +4233,6 @@ export type Database = {
           profile_photo_url: string | null
           reference_image_url: string | null
           rejection_reason: string | null
-          rekognition_attempts: number
           rekognition_confidence: number | null
           rekognition_external_id: string | null
           rekognition_external_image_id: string | null
@@ -4303,7 +4268,6 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
-          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
@@ -4313,7 +4277,6 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
-          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -4349,7 +4312,6 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
-          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
@@ -4359,7 +4321,6 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
-          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -6752,39 +6713,6 @@ export type Database = {
           level_number?: number
           min_beans?: number
           perks?: Json | null
-        }
-        Relationships: []
-      }
-      idempotency_keys: {
-        Row: {
-          completed_at: string | null
-          created_at: string
-          expires_at: string
-          key: string
-          response: Json | null
-          scope: string
-          status: string
-          user_id: string | null
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          key: string
-          response?: Json | null
-          scope: string
-          status?: string
-          user_id?: string | null
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          key?: string
-          response?: Json | null
-          scope?: string
-          status?: string
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -11919,27 +11847,6 @@ export type Database = {
           },
         ]
       }
-      reel_views: {
-        Row: {
-          first_seen_at: string
-          reel_id: string
-          user_id: string
-          viewed_date: string
-        }
-        Insert: {
-          first_seen_at?: string
-          reel_id: string
-          user_id: string
-          viewed_date?: string
-        }
-        Update: {
-          first_seen_at?: string
-          reel_id?: string
-          user_id?: string
-          viewed_date?: string
-        }
-        Relationships: []
-      }
       reels: {
         Row: {
           beans_earned: number | null
@@ -16960,7 +16867,6 @@ export type Database = {
         Args: { p_bet_type: string }
         Returns: number
       }
-      _secure_random: { Args: never; Returns: number }
       _teen_patti_score: {
         Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
@@ -18855,7 +18761,6 @@ export type Database = {
         }
         Returns: Json
       }
-      bind_own_device_id: { Args: { p_device_id: string }; Returns: Json }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -19006,10 +18911,6 @@ export type Database = {
         Args: { _host_id: string; _hour_number: number }
         Returns: Json
       }
-      claim_idempotency_key: {
-        Args: { _key: string; _scope: string; _user_id: string }
-        Returns: Json
-      }
       claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
       claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
@@ -19064,10 +18965,6 @@ export type Database = {
         }
         Returns: Json
       }
-      complete_idempotency_key: {
-        Args: { _key: string; _response: Json; _scope: string; _status: string }
-        Returns: undefined
-      }
       consume_agency_app_otp_token: {
         Args: {
           p_purpose?: string
@@ -19075,12 +18972,6 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
-      }
-      consume_device_session_token: {
-        Args: { p_consumer_ip: string; p_device_id: string; p_token: string }
-        Returns: {
-          user_id: string
-        }[]
       }
       consume_otp_exchange_token: {
         Args: {
@@ -19719,19 +19610,6 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_live_face_runtime: {
-        Args: {
-          p_grace_seconds?: number
-          p_stream_id: string
-          p_user_id: string
-        }
-        Returns: {
-          grace_ends_at: string
-          in_grace: boolean
-          is_authorized: boolean
-          warning_count: number
-        }[]
-      }
       get_live_stream_ingress: {
         Args: { _stream_id: string }
         Returns: {
@@ -20005,10 +19883,6 @@ export type Database = {
         Args: { agency_uuid: string }
         Returns: undefined
       }
-      increment_face_submission_attempts: {
-        Args: { p_submission_id: string }
-        Returns: number
-      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
@@ -20040,10 +19914,6 @@ export type Database = {
       }
       is_group_member: {
         Args: { _group_id: string; _user_id?: string }
-        Returns: boolean
-      }
-      is_live_stream_host: {
-        Args: { p_stream_id: string; p_user_id: string }
         Returns: boolean
       }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
@@ -20365,20 +20235,34 @@ export type Database = {
         }
         Returns: Json
       }
-      process_gift_transaction: {
-        Args: {
-          p_call_id?: string
-          p_gift_id: string
-          p_idempotency_key?: string
-          p_party_room_id?: string
-          p_quantity?: number
-          p_receiver_id: string
-          p_reel_id?: string
-          p_sender_id: string
-          p_stream_id?: string
-        }
-        Returns: Json
-      }
+      process_gift_transaction:
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_reel_id?: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_idempotency_key?: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_reel_id?: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
       process_google_play_purchase: {
         Args: {
           p_google_order_id?: string
@@ -20491,9 +20375,10 @@ export type Database = {
         Returns: {
           avatar_url: string
           display_name: string
-          exchange_token: string
           gender: string
           is_host: boolean
+          recovery_email: string
+          recovery_password: string
           user_id: string
         }[]
       }
@@ -20514,15 +20399,6 @@ export type Database = {
           _user_agent?: string
         }
         Returns: undefined
-      }
-      register_device_token: {
-        Args: {
-          p_device_id: string
-          p_device_info?: Json
-          p_platform: string
-          p_token: string
-        }
-        Returns: string
       }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }

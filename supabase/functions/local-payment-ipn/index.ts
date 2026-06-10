@@ -1,33 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
-// R2-C5: gateway IPN is a server-to-server webhook (SSLCommerz/AamarPay).
-// Restrict CORS to known app origins only; the gateway POST doesn't honor CORS.
-// Main app domain is merilive.com. merilive.top is landing-only but still
-// allowed because checkout return URLs can land back there.
-const ALLOWED_CORS_ORIGINS = new Set([
-  "https://merilive.com",
-  "https://www.merilive.com",
-  "https://merilive.top",
-  "https://www.merilive.top",
-  "https://merilive2.lovable.app",
-  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
-]);
-function corsHeadersFor(req: Request): Record<string, string> {
-  const origin = req.headers.get("origin") ?? "";
-  const allow = ALLOWED_CORS_ORIGINS.has(origin) ? origin : "https://merilive.com";
-  return {
-    "Access-Control-Allow-Origin": allow,
-    "Vary": "Origin",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  };
-}
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 const ALLOWED_RETURN_ORIGINS = new Set([
-  "https://merilive.com",
-  "https://www.merilive.com",
   "https://merilive.top",
-  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);
@@ -35,9 +15,9 @@ const ALLOWED_RETURN_ORIGINS = new Set([
 function normalizeReturnOrigin(raw: unknown): string {
   try {
     const origin = new URL(String(raw || "")).origin;
-    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.com";
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
   } catch {
-    return "https://merilive.com";
+    return "https://merilive.top";
   }
 }
 
@@ -59,7 +39,6 @@ function assertSamePayment(order: any, bodyFields: { userId?: string; totalCoins
 }
 
 serve(async (req) => {
-  const corsHeaders = corsHeadersFor(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -84,16 +63,7 @@ serve(async (req) => {
       params.forEach((value, key) => { body[key] = value; });
     }
 
-    // R2-C5: do NOT log raw IPN body — contains card metadata + identifiers.
-    console.log(
-      "[IPN] callback received",
-      JSON.stringify({
-        gateway: body.value_a ? "sslcommerz" : body.opt_a ? "aamarpay" : "unknown",
-        order_id_present: !!(body.value_a || body.opt_a),
-        txn_id_present: !!(body.tran_id || body.mer_txnid || body.pg_txnid),
-        status: body.status || body.pay_status || body.status_code || null,
-      }),
-    );
+    console.log("[IPN] Received callback:", JSON.stringify(body));
 
     let orderId: string;
     let userId: string;

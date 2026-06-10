@@ -85,21 +85,12 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
 
     setPurchasing(card.id);
     try {
-      // R2-H17: route through edge function with an idempotency key so a
-      // double-tap (network retry, accidental double click) cannot debit twice.
-      const idempotency_key =
-        (globalThis.crypto?.randomUUID?.() as string | undefined) ??
-        `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
-
-      const { data, error } = await supabase.functions.invoke("noble-purchase", {
-        body: {
-          noble_card_id: card.id,
-          auto_renew: false,
-          idempotency_key,
-        },
+      const { data, error } = await supabase.rpc("purchase_noble_card", {
+        _noble_card_id: card.id,
+        _auto_renew: false,
       });
       if (error) {
-        toast.error(error.message || "Purchase failed");
+        toast.error(error.message);
         return;
       }
       const result: any = data;

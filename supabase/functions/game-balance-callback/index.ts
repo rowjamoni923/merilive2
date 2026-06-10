@@ -18,10 +18,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
  * 3. Game provider calls this API with the token to manage balance
  */
 
-// CR-9 (Phase 1): provider webhook — not a browser API. Lock CORS down.
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'null',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-merchant-id, x-signature, x-timestamp',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-merchant-id',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
@@ -79,23 +78,18 @@ serve(async (req) => {
       }
     }
 
-    // CR-2 (Phase 1): HMAC is now MANDATORY (fail closed). If the secret is
-    // not configured, refuse the request — this endpoint can credit unlimited
-    // diamonds, so an unsigned callback must NEVER be accepted.
+    // SECURITY: require provider HMAC signature when GAME_CALLBACK_HMAC_SECRET is configured.
+    // Header: X-Signature (hex sha256), X-Timestamp (unix seconds). Falls back to body fields for legacy providers.
     const hmacSecret = Deno.env.get('GAME_CALLBACK_HMAC_SECRET') || '';
-    if (!hmacSecret) {
-      console.error('[GameCallback] GAME_CALLBACK_HMAC_SECRET not set — rejecting');
-      return new Response(JSON.stringify({
-        success: false, code: 503, message: 'Provider HMAC secret not configured', status: 0,
-      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-    const sig = req.headers.get('x-signature') || params.signature || params.sign || '';
-    const ts  = req.headers.get('x-timestamp') || params.timestamp || params.ts || '';
-    const ok  = await verifyHmac(hmacSecret, rawBody, sig, ts);
-    if (!ok) {
-      return new Response(JSON.stringify({
-        success: false, code: 401, message: 'Invalid signature', status: 0,
-      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (hmacSecret) {
+      const sig = req.headers.get('x-signature') || params.signature || params.sign || '';
+      const ts = req.headers.get('x-timestamp') || params.timestamp || params.ts || '';
+      const ok = await verifyHmac(hmacSecret, rawBody, sig, ts);
+      if (!ok) {
+        return new Response(JSON.stringify({
+          success: false, code: 401, message: 'Invalid signature', status: 0,
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     const action = params.action || params.type || params.method || 'getUserInfo';
@@ -163,8 +157,7 @@ serve(async (req) => {
       msg: data?.error || 'ok',
     };
 
-    // M-13: scrub balances/PII from logs — only metadata is retained.
-    console.log(`[GameCallback] ${action} | token=${token.substring(0, 8)}... | success=${!!data?.success} | code=${response.code}`);
+    console.log(`[GameCallback] ${action} | token=${token.substring(0, 8)}... | result:`, response);
 
     return new Response(JSON.stringify(response), {
       status: 200,
