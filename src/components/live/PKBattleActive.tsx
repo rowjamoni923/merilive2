@@ -454,6 +454,9 @@ export const PKBattleActive = ({
       if (!side) return;
       const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" as const }].slice(-8));
+      // Accumulate into rescue tally so viewers see total support, not just
+      // a transient floater (Bigo/Chamet "rescue meter" parity).
+      setRescueTally((prev) => ({ ...prev, [side!]: prev[side!] + coins }));
       setTimeout(() => {
         setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
       }, 1400);
@@ -461,6 +464,11 @@ export const PKBattleActive = ({
     window.addEventListener("livekit-gift-sent", onCheer as EventListener);
     return () => window.removeEventListener("livekit-gift-sent", onCheer as EventListener);
   }, [battleEnded, punishLeft, challengerId, opponentId]);
+
+  // Reset rescue tally whenever battle ID changes or punishment ends.
+  useEffect(() => {
+    if (!battleEnded || punishLeft <= 0) setRescueTally({ challenger: 0, opponent: 0 });
+  }, [battleId, battleEnded, punishLeft]);
 
 
 
