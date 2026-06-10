@@ -76,6 +76,8 @@ import { supabase } from "@/integrations/supabase/client";
 // mvp_user_id + punishment_end_ts. Client only renders these fields.
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { usePKBattleSfx } from "@/hooks/usePKBattleSfx";
+import { PKTopContributors } from "./PKTopContributors";
+
 
 interface PKBattleActiveProps {
   battleId: string;
