@@ -414,6 +414,34 @@ export const PKBattleActive = ({
     return () => clearTimeout(t);
   }, [challengerScore, opponentScore]);
 
+  // H-8: punishment-phase "cheer" floaters. Server credits score_value=0 for
+  // these gifts (HP bar locked, industry-correct), but viewers still need
+  // visible feedback that their rescue gift registered. Listen to the
+  // same livekit-gift-sent event the active-phase logic uses, but only emit
+  // here when battleEnded && punishment is active.
+  useEffect(() => {
+    if (!battleEnded || punishLeft <= 0) return;
+    const onCheer = (event: Event) => {
+      const detail = (event as CustomEvent<GiftSentDetail>).detail;
+      if (!detail) return;
+      const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
+      if (!coins) return;
+      let side: "challenger" | "opponent" | null = null;
+      if (challengerId && detail.receiverId === challengerId) side = "challenger";
+      else if (opponentId && detail.receiverId === opponentId) side = "opponent";
+      if (!side) return;
+      const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" }].slice(-8));
+      setTimeout(() => {
+        setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
+      }, 1400);
+    };
+    window.addEventListener("livekit-gift-sent", onCheer as EventListener);
+    return () => window.removeEventListener("livekit-gift-sent", onCheer as EventListener);
+  }, [battleEnded, punishLeft, challengerId, opponentId]);
+
+
+
   // Resolve MVP display name. Cheap: if MVP is one of the hosts, reuse name;
   // otherwise fire a single profiles SELECT.
   useEffect(() => {
