@@ -527,6 +527,10 @@ const ProfileDetail = () => {
   }, [userId, resolvedLevel, resolvedLevelLoading]);
 
   useEffect(() => {
+    document.body.setAttribute('data-wavec-root', 'true');
+    return () => { document.body.removeAttribute('data-wavec-root'); };
+  }, []);
+  useEffect(() => {
     fetchData();
   }, [fetchData]);
 
