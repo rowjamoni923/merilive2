@@ -169,6 +169,7 @@ export const PKBattleActive = ({
       winner_user_id?: string | null;
       final_status?: string | null;
       mvp_user_id?: string | null;
+      mvp_contribution?: number | null;
       punishment_end_ts?: string | null;
     }) => {
       // Coalesced score updates (P2). Stash latest and flush on next frame.
@@ -187,6 +188,7 @@ export const PKBattleActive = ({
         setServerDurationSec(row.duration_seconds);
       }
       if (row.mvp_user_id !== undefined) setMvpUserId(row.mvp_user_id ?? null);
+      if (row.mvp_contribution !== undefined) setMvpContribution(row.mvp_contribution ?? null);
       if (row.final_status !== undefined) setFinalStatus(row.final_status ?? null);
       if (row.punishment_end_ts !== undefined) {
         setPunishmentEndTs(row.punishment_end_ts ? new Date(row.punishment_end_ts).getTime() : null);
@@ -202,7 +204,7 @@ export const PKBattleActive = ({
       const { data } = await supabase
         .from("pk_battles")
         .select(
-          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, punishment_end_ts",
+          "challenger_score, opponent_score, started_at, duration_seconds, status, winner_user_id, final_status, mvp_user_id, mvp_contribution, punishment_end_ts",
         )
         .eq("id", battleId)
         .maybeSingle();
@@ -734,16 +736,23 @@ export const PKBattleActive = ({
               </div>
 
               {mvpUserId && (
-                <div
-                  className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
-                    border: "1px solid rgba(251,191,36,0.55)",
-                    boxShadow: "0 0 12px rgba(251,191,36,0.35)",
-                  }}
-                >
-                  <Crown className="w-3.5 h-3.5 text-amber-300" />
-                  <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
+                <div className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-full shrink-0">
+                  <div
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
+                      border: "1px solid rgba(251,191,36,0.55)",
+                      boxShadow: "0 0 12px rgba(251,191,36,0.35)",
+                    }}
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-300" />
+                    <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
+                  </div>
+                  {typeof mvpContribution === "number" && mvpContribution > 0 && (
+                    <span className="text-[9px] font-semibold text-amber-300/90 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                      {fmtCompact(mvpContribution)} coins
+                    </span>
+                  )}
                 </div>
               )}
 
