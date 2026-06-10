@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     event = await receiver.receive(body, authHeader, true);
   } catch (e) {
     console.error("[livekit-webhook] verify failed:", (e as Error)?.message);
-    return new Response("unauthorized", { status: 401, headers: corsHeaders });
+    return new Response("unauthorized", { status: 401 });
   }
 
   const eventType: string = event?.event ?? "unknown";
