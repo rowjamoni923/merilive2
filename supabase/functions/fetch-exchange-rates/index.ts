@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { isAllowedOrigin } from "../_shared/strict-cors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +48,10 @@ import { requireAdminSession } from "../_shared/adminAuth.ts";
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!isAllowedOrigin(req)) {
+    return new Response(JSON.stringify({ error: "forbidden_origin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   // Pkg342: lock down to admins with finance/coin-packages permission so this
