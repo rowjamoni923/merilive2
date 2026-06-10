@@ -1883,20 +1883,12 @@ const Auth = () => {
 
     setLoading(true);
     try {
-
-      // Generate OTP code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setExpectedOtpCode(verificationCode);
-      
-      // Send confirmation email via edge function - DO NOT create account yet
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
-        body: {
-          email,
-          displayName,
-          verificationCode,
-        }
+      // R2-C3: OTP is generated and persisted server-side. The client never
+      // sees the code, never compares it locally.
+      const { error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: { email, displayName }
       });
-      
+
       if (emailError) {
         console.error("Email sending error:", emailError);
         recordClientError({ label: "Auth.verificationCode", message: emailError instanceof Error ? emailError.message : String(emailError) });
@@ -1913,7 +1905,7 @@ const Auth = () => {
         title: "📧 Verification Code Sent",
         description: `Check your email at ${email} for the 6-digit verification code.`,
       });
-      
+
       // Show OTP verification step - account will be created AFTER verification
       setAuthStep("otp_verify");
       startResendCountdown();
