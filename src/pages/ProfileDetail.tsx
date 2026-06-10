@@ -999,12 +999,12 @@ const ProfileDetail = () => {
             <div className="relative flex-shrink-0 w-24 h-24">
               <FramedAvatarWithPrivileges
                 userId={profile.id}
-                src={getDisplayAvatar(profile.id, profile.avatar_url, {
+                src={enhanceThumbnail(getDisplayAvatar(profile.id, profile.avatar_url, {
                   isOwner: isOwnProfile,
                   gender: ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
                     ? 'female'
                     : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female'),
-                })}
+                }), { width: 128, quality: 85 })}
 
                 name={profile.display_name || "U"}
                 level={level}
