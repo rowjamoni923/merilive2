@@ -2895,6 +2895,45 @@ export type Database = {
         }
         Relationships: []
       }
+      call_balance_reservations: {
+        Row: {
+          call_id: string | null
+          caller_id: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          host_id: string
+          id: string
+          released_at: string | null
+          reserved_coins: number
+          status: string
+        }
+        Insert: {
+          call_id?: string | null
+          caller_id: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          host_id: string
+          id?: string
+          released_at?: string | null
+          reserved_coins: number
+          status?: string
+        }
+        Update: {
+          call_id?: string | null
+          caller_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          host_id?: string
+          id?: string
+          released_at?: string | null
+          reserved_coins?: number
+          status?: string
+        }
+        Relationships: []
+      }
       call_delivery_log: {
         Row: {
           attempt_number: number
@@ -16675,6 +16714,13 @@ export type Database = {
           },
         ]
       }
+      v_user_reserved_coins: {
+        Row: {
+          total_reserved: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       vip_plans: {
         Row: {
           ad_free: boolean | null
@@ -19029,6 +19075,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
+      cleanup_expired_call_reservations: { Args: never; Returns: number }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_expired_recordings: { Args: never; Returns: number }
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
@@ -19075,6 +19122,10 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
+      }
+      consume_call_balance_reservation: {
+        Args: { p_call_id: string; p_hold_id: string }
+        Returns: Json
       }
       consume_device_session_token: {
         Args: { p_consumer_ip: string; p_device_id: string; p_token: string }
@@ -20533,6 +20584,7 @@ export type Database = {
         Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
       }
+      release_call_balance: { Args: { p_hold_id: string }; Returns: Json }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
       report_live_face_event: {
         Args: {
@@ -20561,6 +20613,14 @@ export type Database = {
       request_pk_battle_end: {
         Args: { p_battle_id: string }
         Returns: undefined
+      }
+      reserve_call_balance: {
+        Args: {
+          p_caller_id: string
+          p_estimated_coins: number
+          p_host_id: string
+        }
+        Returns: Json
       }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }
