@@ -127,37 +127,40 @@ Deno.serve(async (req) => {
     const isLucky = Boolean(result.is_lucky ?? false)
 
     // PK Battle Step 2 — auto-score during active PK battle.
-    // If the receiver is currently in an accepted/active PK battle, mirror the
-    // gift to bill_pk_gift() so the server-authoritative score updates. This
-    // happens AFTER the main gift succeeded; failure here never rolls back
-    // the gift itself (best-effort, audit-logged via pk_battle_gifts row).
-    let pkScoreApplied: unknown = null
-    try {
-      const { data: battle } = await adminSupabase
-        .from('pk_battles')
-        .select('id, challenger_id, opponent_id, host1_id, host2_id, status')
-        .in('status', ['accepted', 'active'])
-        .or(
-          `challenger_id.eq.${receiverId},opponent_id.eq.${receiverId},host1_id.eq.${receiverId},host2_id.eq.${receiverId}`,
-        )
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    // Run as a fire-and-forget background task so the client response is NOT
+    // blocked by the extra select + bill_pk_gift RPC roundtrips. This was the
+    // main source of perceived gift-send lag (every gift paid the PK cost even
+    // when the receiver was not in a PK battle).
+    const pkSideEffect = (async () => {
+      try {
+        const { data: battle } = await adminSupabase
+          .from('pk_battles')
+          .select('id, status')
+          .in('status', ['accepted', 'active'])
+          .or(
+            `challenger_id.eq.${receiverId},opponent_id.eq.${receiverId},host1_id.eq.${receiverId},host2_id.eq.${receiverId}`,
+          )
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
 
-      if (battle?.id) {
-        const { data: pkRes } = await adminSupabase.rpc('bill_pk_gift', {
-          p_battle_id: battle.id,
-          p_sender_id: user.id,
-          p_target_host_id: receiverId,
-          p_gift_id: giftId,
-          p_coin_amount: coinsSpent,
-          p_stream_id: streamId ?? null,
-        })
-        pkScoreApplied = pkRes
+        if (battle?.id) {
+          await adminSupabase.rpc('bill_pk_gift', {
+            p_battle_id: battle.id,
+            p_sender_id: user.id,
+            p_target_host_id: receiverId,
+            p_gift_id: giftId,
+            p_coin_amount: coinsSpent,
+            p_stream_id: streamId ?? null,
+          })
+        }
+      } catch (pkErr) {
+        console.warn('[gift-service] PK scoring side-effect failed:', pkErr)
       }
-    } catch (pkErr) {
-      console.warn('[gift-service] PK scoring side-effect failed:', pkErr)
-    }
+    })()
+
+    // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+    try { (globalThis as any).EdgeRuntime?.waitUntil?.(pkSideEffect) } catch (_) {}
 
     return new Response(
       JSON.stringify({
@@ -170,7 +173,7 @@ Deno.serve(async (req) => {
         newBalance,
         diamondBonus,
         isLucky,
-        pkScore: pkScoreApplied,
+        pkScore: null,
       }),
       {
         status: 200,
