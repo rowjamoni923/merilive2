@@ -233,7 +233,7 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
           setIsSpinning(false);
           setWinningNumber(winNum);
           setGamePhase('result');
-          setTimeout(() => { processWinnings(winNum); }, 2000);
+          setTimeout(() => { processSettlement(winNum); }, 2000);
           setTimeout(() => {
             setWinningNumber(null);
             setIsSpinning(false);
