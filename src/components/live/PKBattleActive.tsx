@@ -924,6 +924,58 @@ export const PKBattleActive = ({
               />
             </div>
 
+            {/* H-8 punishment-phase rescue meter + support hint. Renders only
+                while HP is locked; shows accumulated rescue coins per side
+                (the cheer floaters' running total) plus a viewer CTA so it's
+                obvious that gifts still register even though the HP bar froze.
+                Bigo/Chamet "rescue meter" parity. */}
+            <AnimatePresence>
+              {inPunishment && (rescueTally.challenger > 0 || rescueTally.opponent > 0 || true) && (
+                <motion.div
+                  key="pk-rescue-meter"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="mt-1 flex items-center justify-between gap-2 px-0.5"
+                >
+                  <motion.div
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(244,114,182,0.18))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}
+                    animate={{ scale: rescueTally.challenger > 0 ? [1, 1.06, 1] : 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <span className="text-[9px]">🙌</span>
+                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {fmtCompact(rescueTally.challenger)}
+                    </span>
+                  </motion.div>
+                  <span
+                    className="text-[8.5px] font-semibold tracking-wider uppercase text-rose-200/80"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
+                  >
+                    Send gifts to support
+                  </span>
+                  <motion.div
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(251,191,36,0.18))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}
+                    animate={{ scale: rescueTally.opponent > 0 ? [1, 1.06, 1] : 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <span className="text-[9px] font-extrabold tabular-nums text-amber-100" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {fmtCompact(rescueTally.opponent)}
+                    </span>
+                    <span className="text-[9px]">🙌</span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Top-3 supporter avatars per side (Bigo/Chamet parity) */}
             <PKTopContributors
               battleId={battleId}
