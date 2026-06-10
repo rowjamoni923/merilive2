@@ -456,7 +456,7 @@ export const PKBattleActive = ({
         .eq("id", mvpUserId)
         .maybeSingle();
       if (cancelled) return;
-      const n = (data as any)?.display_name || (data as any)?.username || null;
+      const n = data?.display_name || data?.username || null;
       setMvpName(n);
     })();
     return () => { cancelled = true; };

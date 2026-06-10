@@ -68,7 +68,7 @@ export const GiftComboDisplay = ({ combo, isTopContributor = false, onComplete, 
       setMilestoneTick((n) => n + 1);
       // Milestone haptic (Bigo/Chamet parity): tiered vibration on x10/x50/x99.
       try {
-        const vib = (navigator as any)?.vibrate?.bind(navigator);
+        const vib = typeof navigator !== "undefined" ? navigator.vibrate?.bind(navigator) : undefined;
         if (vib) {
           if (prev < MILESTONES.fullFlash && combo.count >= MILESTONES.fullFlash) {
             vib([40, 30, 60, 30, 90]);

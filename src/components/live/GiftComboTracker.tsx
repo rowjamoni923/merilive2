@@ -46,6 +46,11 @@ interface Props {
   receiverName?: string;
 }
 
+type ComboGiftDetail = GiftSentDetail & {
+  senderLevel?: number | string | null;
+  giftIcon?: string | null;
+};
+
 export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) => {
   const lanesRef = useRef<Map<string, ComboLane>>(new Map());
   const [lanes, setLanes] = useState<ComboLane[]>([]);
@@ -65,8 +70,9 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
   };
 
   useEffect(() => {
+    const laneStore = lanesRef.current;
     const onGift = (ev: Event) => {
-      const data = (ev as CustomEvent<GiftSentDetail>).detail;
+      const data = (ev as CustomEvent<ComboGiftDetail>).detail;
       if (!data || data.scope !== scope || data.id !== id) return;
       if (!data.senderId || !data.giftName) return;
 
@@ -92,10 +98,10 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
           senderId: data.senderId,
           senderName: data.senderName || "User",
           senderAvatar: data.senderAvatar,
-          senderLevel: Number((data as any).senderLevel) || 1,
+          senderLevel: Number(data.senderLevel) || 1,
           receiverName,
           giftName: data.giftName,
-          giftEmoji: (data as any).giftIcon || "🎁",
+          giftEmoji: data.giftIcon || "🎁",
           giftIcon: data.giftIconUrl || undefined,
           count: addCount,
           totalValue: unitCoins * addCount,
@@ -115,10 +121,10 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
     return () => {
       window.removeEventListener("livekit-gift-sent", onGift);
       // Clear timers on unmount
-      for (const lane of lanesRef.current.values()) {
+      for (const lane of laneStore.values()) {
         if (lane.timer) clearTimeout(lane.timer);
       }
-      lanesRef.current.clear();
+      laneStore.clear();
     };
   }, [scope, id, receiverName]);
 
