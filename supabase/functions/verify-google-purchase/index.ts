@@ -204,7 +204,17 @@ serve(async (req) => {
     }
 
     const purchaseData = await googleResponse.json();
-    console.log(`[verify-google-purchase] Google response:`, JSON.stringify(purchaseData));
+    // R2-Phase E Wave-2 log scrub: never dump full Google response — it
+    // contains obfuscated externalAccountId, developerPayload, regionCode,
+    // and other linkable identifiers. Log only the safe state fields.
+    console.log(`[verify-google-purchase] Google response:`, JSON.stringify({
+      purchaseState: purchaseData.purchaseState,
+      consumptionState: purchaseData.consumptionState,
+      acknowledgementState: purchaseData.acknowledgementState,
+      orderId: purchaseData.orderId,
+      purchaseTimeMillis: purchaseData.purchaseTimeMillis,
+    }));
+
 
     // Check purchase state: 0 = Purchased, 1 = Canceled, 2 = Pending
     if (purchaseData.purchaseState !== 0) {
