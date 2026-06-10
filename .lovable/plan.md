@@ -156,10 +156,12 @@
 - [ ] M-9, M-10: gift/entry animation work — BLOCKED by `mem://constraints/never-touch-gift-entry-animations` and pkg438 Phase B (JS shim pending).
 - [ ] M-11: FCM+Realtime double-ring — needs incoming-call channel refactor; deferred with H-4/H-11.
 
-**Phase 5 — INFRASTRUCTURE**
-- M-3: party seat locks policies
-- M-12, M-13, M-17: pk lock order, log scrubbing, cold-start warm-pings
-- L-1 to L-6: cleanups
+**Phase 5 — INFRASTRUCTURE — 🟡 PARTIAL 2026-06-10**
+- [x] M-3: ✅ already healthy — `party_room_seat_locks` already has both SELECT (host) and FOR ALL (host) policies in migration 20260609013936 alongside table create.
+- [x] M-12: ✅ already healthy — `pk_battle_send_gift` locks `pk_battles FOR UPDATE` first, then `profiles FOR UPDATE` (canonical order). No deadlock risk.
+- [x] M-13: `game-balance-callback` no longer logs full response body (balances). Now logs only `action / token-prefix / success / code` metadata.
+- [~] M-17: cold-start warm-pings — deferred. Needs `cron.schedule()` + `pg_net` with project URL + anon key (not migration-safe). Add via insert tool when user opts in.
+- [~] L-1..L-6: bulk cleanups (wildcard CORS sweep, migration alias readability, storage-bucket audit, list virtualisation, livekit-client tree-shake verify, admin-lookup-phone dead path) — non-blocking, batch later.
 
 ---
 
