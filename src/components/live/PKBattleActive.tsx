@@ -350,6 +350,12 @@ export const PKBattleActive = ({
   const challengerPercent = totalScore > 0 ? (challengerScore / totalScore) * 100 : 50;
   const opponentPercent = totalScore > 0 ? (opponentScore / totalScore) * 100 : 50;
 
+  /** Compact raw-count formatter (Bigo-parity: 1,234 → 12.3K above HP half). */
+  const fmtCompact = (n: number) =>
+    n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` :
+    n >= 1_000 ? `${(n / 1_000).toFixed(1)}K` :
+    n.toLocaleString();
+
   const challengerWinning = challengerScore > opponentScore;
   const opponentWinning = opponentScore > challengerScore;
 
