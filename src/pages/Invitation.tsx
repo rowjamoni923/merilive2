@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import defaultBanner from "@/assets/invitation-banner.jpg";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface LeaderboardEntry {
   rank: number;
