@@ -18,9 +18,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
  * 3. Game provider calls this API with the token to manage balance
  */
 
+// CR-9 (Phase 1): provider webhook — not a browser API. Lock CORS down.
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-merchant-id',
+  'Access-Control-Allow-Origin': 'null',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-merchant-id, x-signature, x-timestamp',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
