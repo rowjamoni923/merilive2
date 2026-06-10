@@ -125,6 +125,7 @@ export function CallProvider({ children }: CallProviderProps) {
     endCall,
     dismissCall,
     notifyMediaConnected,
+    callEndedRef,
   } = usePrivateCall(userId);
 
   // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
