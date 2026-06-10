@@ -2062,9 +2062,13 @@ const Auth = () => {
         
         navigateAfterAuth();
       } else {
+        const serverMsg =
+          (verifyData as { error?: string } | null)?.error ||
+          (verifyErr as { message?: string } | null)?.message ||
+          "The verification code is incorrect. Please try again.";
         toast({
           title: "Invalid Code",
-          description: "The verification code is incorrect. Please try again.",
+          description: serverMsg,
           variant: "destructive",
         });
       }
@@ -2083,15 +2087,9 @@ const Auth = () => {
   const handleResendOtp = async () => {
     setOtpLoading(true);
     try {
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setExpectedOtpCode(verificationCode);
-      
+      // R2-C3: server generates and persists the OTP; client never sees it.
       await supabase.functions.invoke('send-signup-confirmation', {
-        body: {
-          email,
-          displayName,
-          verificationCode,
-        }
+        body: { email, displayName }
       });
       
       toast({
