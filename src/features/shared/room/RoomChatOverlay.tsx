@@ -16,13 +16,14 @@
  * =====================================================
  */
 
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
+import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 
 import { 
   getLevelGradient, 
@@ -495,23 +496,41 @@ export const RoomChatOverlay = memo(({
   adminBannerRoomType,
 }: RoomChatOverlayProps) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+
   // Show all messages or limit if maxMessages is provided
   const displayMessages = maxMessages ? messages.slice(-maxMessages) : messages;
-  
-  // With flex-col-reverse, scroll position 0 is at bottom (newest)
-  // No auto-scroll needed - newest messages naturally appear at bottom
-  
+
+  // Detect scroll position for scroll-to-bottom button
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      // flex-col-reverse: bottom = scrollTop ≈ 0
+      setIsScrolledUp(el.scrollTop > 60);
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className={cn(
-      "flex flex-col w-full",
+      "flex flex-col w-full relative",
       className
     )}>
       {/* SCROLLABLE CHAT CONTAINER - Ultra Premium Luxury Style */}
       {/* flex-col-reverse: newest at bottom, scroll up to see older messages */}
       {/* ALL content (banner, welcome, messages) scrolls together */}
       {/* Subtle blur background for premium look */}
-      <div 
+      <div
         ref={chatContainerRef}
         className={cn(
           "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
