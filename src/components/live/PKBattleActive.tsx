@@ -638,14 +638,17 @@ export const PKBattleActive = ({
                 animate={{ width: `${challengerPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                    animation: "giftSendShine 2.6s ease-in-out infinite",
-                  }}
-                />
+                {challengerWinning && totalScore > 0 && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
+                      animation: "giftSendShine 1.4s ease-in-out infinite",
+                      mixBlendMode: "screen",
+                    }}
+                  />
+                )}
               </motion.div>
               <motion.div
                 className="h-full relative"
@@ -657,15 +660,19 @@ export const PKBattleActive = ({
                 animate={{ width: `${opponentPercent}%` }}
                 transition={{ type: "spring", damping: 18, stiffness: 140 }}
               >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                    animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
-                  }}
-                />
+                {opponentWinning && totalScore > 0 && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%)",
+                      animation: "giftSendShine 1.4s ease-in-out infinite",
+                      mixBlendMode: "screen",
+                    }}
+                  />
+                )}
               </motion.div>
+
               {/* Center divider glow follows leader split */}
               <motion.div
                 className="pointer-events-none absolute top-0 bottom-0 w-px"
