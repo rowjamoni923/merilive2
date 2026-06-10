@@ -609,7 +609,10 @@ const LiveStream = () => {
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Live stream lifecycle - auto end stream when host leaves app
-  const handleStreamEndCallback = async () => {
+  // H7 (2026-06-10): wrap in useCallback with isHost in deps so the subscribeToTables
+  // effect at line ~1450 captures the fresh isHost (was stale-closure → host could be
+  // routed to viewer "stream ended" modal on cold-start DB races).
+  const handleStreamEndCallback = useCallback(async () => {
     console.log('[LiveStream] Stream ended via lifecycle hook');
     if (!isHost) {
       if (streamEndedRef.current) return;
@@ -625,7 +628,7 @@ const LiveStream = () => {
     }
     await leaveChannel();
     navigate('/');
-  };
+  }, [isHost, hostInfo?.name, leaveChannel, navigate]);
   
   useLiveStreamLifecycle({
     streamId: id,
