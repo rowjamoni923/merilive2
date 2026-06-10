@@ -267,10 +267,14 @@
 
 
 
-**R2-Phase B — RLS + IDEMPOTENCY HARDENING — 🟡 WAVE-1 DONE 2026-06-10**
+**R2-Phase B — RLS + IDEMPOTENCY HARDENING — ✅ WAVE-1+2 DONE 2026-06-10**
 - [x] R2-C4: `recover_session_by_device` no longer returns `recovery_password`. Now mints a single-use UUID exchange token (5-min TTL, `device_session_exchange_tokens`, service_role only). New edge fn `device-session-exchange` consumes token → admin `generateLink({type:'magiclink'})` → `verifyOtp` → returns `{access_token, refresh_token}` only. `Auth.tsx` 2 sign-in paths refactored to `exchangeDeviceSession()` + `setSession()`. localStorage no longer caches `email`/`password`.
 - [x] R2-H17 + foundation: new `idempotency_keys` table + `claim_idempotency_key` / `complete_idempotency_key` RPCs (service_role only, 24h TTL, fail-closed). `noble-purchase` edge fn rewritten to require `idempotency_key` UUID; replays cached response on duplicate, returns 409 on in-flight duplicate. `VipNobleSection.tsx` switched from direct `rpc('purchase_noble_card')` to `functions.invoke('noble-purchase', { idempotency_key })`.
-- [ ] Wave-2: R2-H1 helper RLS audit (helper_withdrawal_requests bank-data scope), R2-H2 lockout server-authoritative, R2-H16 `verify-google-purchase` pre-check before Google API call, mass `search_path` linter sweep.
+- [x] R2-H1: helper RLS already locked down by pkg343 — admin writes scoped to `admin_has_any_section_permission(['finance-hub','helper-management','level-5-helpers',...])`, helper-owned reads scoped to `auth.uid() = helper_id` / `topup_helpers.user_id = auth.uid()`. Verified `helper_withdrawal_requests`, `helper_notifications`, `helper_payment_methods`, `helper_level_config` — no `FOR ALL USING (true)` to `authenticated`.
+- [N/A] R2-H2: lockout server-authoritative — DELIBERATELY NOT IMPLEMENTED. `useBruteForceProtection` is an intentional no-op per documented product policy ("the app must never time-lock users/admins out of login"); single-device control handled by `user_active_sessions` displacement. Closing as won't-fix.
+- [x] R2-H15: wildcard CORS removed from `verify-google-purchase`, `noble-purchase`, `swift-pay-create-deposit` (strict allow-list: merilive.com, www.merilive.com, merilive.top, merilive2.lovable.app, preview), and dropped entirely from `livekit-webhook` (server-to-server only).
+- [x] R2-H16: `verify-google-purchase` now does a `recharge_transactions` `transaction_id = purchaseToken` pre-check BEFORE the Google API call — duplicate token by same user → 200 alreadyProcessed (no Google round-trip), duplicate by different user → 409. Defense-in-depth on top of `process_google_play_purchase`'s in-txn check.
+- [x] search_path sweep: 10 remaining public funcs (`_ferris_wheel_multiplier`, `_mod_audit_*`, `_roulette_*`, `_teen_patti_score`, `guard_agency_earnings_transfers_host`, `lock_user_location`, `sync_live_ban_columns`, `tg_swift_pay_topups_touch`) now `SET search_path = public`. Linter WARN count 1327 → 1317.
 
 
 **R2-Phase C — REALTIME + PUSH RELIABILITY** — FCM token dedup, push dispatch dedup, channel cleanup leaks, reconnect backoff, DM broadcast trust.
