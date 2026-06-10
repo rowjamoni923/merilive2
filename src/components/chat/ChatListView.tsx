@@ -68,7 +68,7 @@ const ConversationRow: React.FC<{
       {conv.other_user?.id ? (
         <AvatarWithFrame
           userId={conv.other_user.id}
-          src={conv.other_user?.avatar_url}
+          src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : conv.other_user?.avatar_url}
           name={conv.other_user?.display_name || "User"}
           level={pickDisplayLevel(conv.other_user as any)}
           size="md"
