@@ -595,6 +595,15 @@ export const PKBattleActive = ({
 
           {/* Progress Bar + sliding lead crown (Bigo-parity) */}
           <div className="relative mt-3">
+            {/* Raw count micro-text above each half */}
+            <div className="flex justify-between mb-0.5 px-0.5">
+              <span className="text-[10px] font-bold text-pink-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                {fmtCompact(challengerScore)}
+              </span>
+              <span className="text-[10px] font-bold text-purple-300 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                {fmtCompact(opponentScore)}
+              </span>
+            </div>
             {totalScore > 0 && (
               <motion.div
                 className="pointer-events-none absolute -top-3 z-10"
