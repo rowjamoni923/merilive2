@@ -166,6 +166,19 @@ export function usePartyRoomNativeLiveKit(
         connectionState: ConnectionState.Disconnected,
         nativeParticipants: new Map(),
       }));
+      // Phase 3 #13: party rooms previously had no auto-reconnect on transient
+      // drops (unlike the live-stream path). Brief WiFi/4G dips silently kicked
+      // the user. Mirror live-stream behaviour: attempt one immediate native
+      // reconnect; cleanup() flips deadRef so this is skipped on intentional exits.
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      reconnectTimerRef.current = setTimeout(() => {
+        reconnectTimerRef.current = null;
+        if (deadRef.current) return;
+        nativeLiveKitController.reconnectNow().catch(() => {});
+      }, 500);
     },
   }, roomId ? { scope: 'party', id: roomId } : undefined);
   useNativeLiveKitLifecycle(state.isNativeMediaActive);
@@ -335,6 +348,29 @@ export function usePartyRoomNativeLiveKit(
       toast.error('Camera could not start. Please close other camera screens and try again.');
     }
   }, [roomType, state.isVideoEnabled]);
+
+  // Phase 3 #10: republish camera when the ProCamera arbiter releases late.
+  // At connect time we pass `video: cameraReadyRef.current` — if face-verify is
+  // still running, video is OFF. When verify finishes (`cameraReady` flips
+  // false→true) the user stayed audio-only with no way back short of toggling
+  // manually. Detect the transition and auto-enable on the native publisher.
+  const prevCameraReadyRef = useRef(cameraReady);
+  useEffect(() => {
+    const prev = prevCameraReadyRef.current;
+    prevCameraReadyRef.current = cameraReady;
+    if (prev || !cameraReady) return;
+    if (deadRef.current) return;
+    if (!state.isConnected || !usingNativeRef.current) return;
+    if (!partyCanPublishRef.current || !isVideoPartyType(roomType)) return;
+    nativeLiveKitController.setCameraEnabled(true)
+      .then(() => {
+        if (deadRef.current) return;
+        setState((p) => ({ ...p, isVideoEnabled: true }));
+      })
+      .catch((err) => {
+        console.warn('[PartyLiveKit] Auto camera republish failed:', err);
+      });
+  }, [cameraReady, state.isConnected, roomType]);
 
   useEffect(() => {
     if (!roomId || !userId) {
