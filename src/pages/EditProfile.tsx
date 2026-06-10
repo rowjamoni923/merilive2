@@ -175,10 +175,6 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
-    document.body.setAttribute('data-wavec-root', 'true');
-    return () => { document.body.removeAttribute('data-wavec-root'); };
-  }, []);
-  useEffect(() => {
     let cancelled = false;
     let unsubscribeRealtime: (() => void) | null = null;
 

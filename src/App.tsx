@@ -1007,19 +1007,6 @@ const App = () => {
           if (Capacitor.isNativePlatform()) {
             Browser.close().catch(() => {});
           }
-
-          // G4 — register device fingerprint for anti-self-gift detection (fire-and-forget)
-          (async () => {
-            try {
-              const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
-              const did = await getPersistentDeviceId();
-              if (did) {
-                supabase.rpc('register_device_fingerprint', { _device_id: did } as never).then(() => {}, () => {});
-              }
-            } catch { /* non-blocking */ }
-          })();
-
-          
           
           // Check for pending agency claim from browser-based sub-agency form
           setTimeout(async () => {

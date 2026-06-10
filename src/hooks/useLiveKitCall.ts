@@ -95,38 +95,6 @@ export function useLiveKitCall(
   // (which has `[]` deps to avoid disconnect storms on every render).
   const callIdRef = useRef<string | null>(null);
   callIdRef.current = callId;
-
-  // G6 (2026-06-10): WiFi↔4G handoff — explicit ICE restart on network type change.
-  // Browser WebRTC auto-restarts ICE only on IP change; navigator.connection.type
-  // changes (WiFi→cellular) often don't trigger that. We force `engine.restartIce()`
-  // to recover the call in ≤15s instead of waiting for keepalive timeout.
-  useEffect(() => {
-    const conn: any = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    if (!conn || typeof conn.addEventListener !== 'function') return;
-    let lastType: string = String(conn.effectiveType ?? conn.type ?? '');
-    const onChange = () => {
-      const next = String(conn.effectiveType ?? conn.type ?? '');
-      if (next === lastType) return;
-      console.log('[LiveKitCall] G6 network change', lastType, '→', next, '— forcing ICE restart');
-      lastType = next;
-      const room: any = roomRef.current;
-      if (!room || deadRef.current) return;
-      try {
-        if (typeof room.engine?.restartIce === 'function') {
-          Promise.resolve(room.engine.restartIce()).catch((e: unknown) => {
-            console.warn('[LiveKitCall] G6 restartIce failed:', e);
-          });
-        } else if (typeof room.engine?.fullReconnect === 'function') {
-          Promise.resolve(room.engine.fullReconnect()).catch(() => {});
-        }
-      } catch (e) {
-        console.warn('[LiveKitCall] G6 ICE restart threw:', e);
-      }
-    };
-    try { conn.addEventListener('change', onChange); } catch { /* ignore */ }
-    return () => { try { conn.removeEventListener('change', onChange); } catch { /* ignore */ } };
-  }, []);
-
   // True when this private call session is published via the native
   // Android LiveKit plugin (Capacitor) instead of the browser
   // livekit-client. Drives the native branch in cleanup/toggleAudio/toggleVideo.
@@ -208,9 +176,6 @@ export function useLiveKitCall(
         // Mirrors useLiveKitClient.ts:266.
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        // C3 (2026-06-10): guard against zombie camera lock — if the call already ended,
-        // a late camera-failure event must NOT trigger reconnect (would hold camera hardware).
-        if (deadRef.current) return;
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       }

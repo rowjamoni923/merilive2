@@ -2895,45 +2895,6 @@ export type Database = {
         }
         Relationships: []
       }
-      call_balance_reservations: {
-        Row: {
-          call_id: string | null
-          caller_id: string
-          consumed_at: string | null
-          created_at: string
-          expires_at: string
-          host_id: string
-          id: string
-          released_at: string | null
-          reserved_coins: number
-          status: string
-        }
-        Insert: {
-          call_id?: string | null
-          caller_id: string
-          consumed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          host_id: string
-          id?: string
-          released_at?: string | null
-          reserved_coins: number
-          status?: string
-        }
-        Update: {
-          call_id?: string | null
-          caller_id?: string
-          consumed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          host_id?: string
-          id?: string
-          released_at?: string | null
-          reserved_coins?: number
-          status?: string
-        }
-        Relationships: []
-      }
       call_delivery_log: {
         Row: {
           attempt_number: number
@@ -5153,78 +5114,6 @@ export type Database = {
         }
         Relationships: []
       }
-      gift_combo_window: {
-        Row: {
-          combo_seq: number
-          combo_started_at: string
-          context_key: string
-          gift_id: string
-          id: string
-          last_sent_at: string
-          sender_id: string
-        }
-        Insert: {
-          combo_seq?: number
-          combo_started_at?: string
-          context_key: string
-          gift_id: string
-          id?: string
-          last_sent_at?: string
-          sender_id: string
-        }
-        Update: {
-          combo_seq?: number
-          combo_started_at?: string
-          context_key?: string
-          gift_id?: string
-          id?: string
-          last_sent_at?: string
-          sender_id?: string
-        }
-        Relationships: []
-      }
-      gift_self_link_signals: {
-        Row: {
-          coin_total: number
-          device_id: string | null
-          first_at: string
-          gift_count: number
-          id: string
-          ip_hash: string | null
-          last_at: string
-          receiver_id: string
-          sender_id: string
-          suspect: boolean
-          suspect_reason: string | null
-        }
-        Insert: {
-          coin_total?: number
-          device_id?: string | null
-          first_at?: string
-          gift_count?: number
-          id?: string
-          ip_hash?: string | null
-          last_at?: string
-          receiver_id: string
-          sender_id: string
-          suspect?: boolean
-          suspect_reason?: string | null
-        }
-        Update: {
-          coin_total?: number
-          device_id?: string | null
-          first_at?: string
-          gift_count?: number
-          id?: string
-          ip_hash?: string | null
-          last_at?: string
-          receiver_id?: string
-          sender_id?: string
-          suspect?: boolean
-          suspect_reason?: string | null
-        }
-        Relationships: []
-      }
       gift_transaction_logs: {
         Row: {
           created_at: string | null
@@ -5276,9 +5165,6 @@ export type Database = {
           created_at: string | null
           diamond_cost: number | null
           gift_id: string | null
-          held_beans: number
-          held_released: boolean
-          held_until: string | null
           id: string
           idempotency_key: string | null
           party_room_id: string | null
@@ -5300,9 +5186,6 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
-          held_beans?: number
-          held_released?: boolean
-          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -5324,9 +5207,6 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
-          held_beans?: number
-          held_released?: boolean
-          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -10879,7 +10759,6 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
-          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -10897,10 +10776,8 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
-          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
-          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -11008,7 +10885,6 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
-          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -11026,10 +10902,8 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
-          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
-          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -11137,7 +11011,6 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
-          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -11155,10 +11028,8 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
-          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
-          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -16804,13 +16675,6 @@ export type Database = {
           },
         ]
       }
-      v_user_reserved_coins: {
-        Row: {
-          total_reserved: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       vip_plans: {
         Row: {
           ad_free: boolean | null
@@ -19165,13 +19029,11 @@ export type Database = {
         }[]
       }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
-      cleanup_expired_call_reservations: { Args: never; Returns: number }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_expired_recordings: { Args: never; Returns: number }
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       cleanup_login_attempts: { Args: never; Returns: undefined }
-      cleanup_old_gift_combos: { Args: never; Returns: number }
       cleanup_old_security_alerts: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_stale_data: { Args: never; Returns: undefined }
@@ -19213,10 +19075,6 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
-      }
-      consume_call_balance_reservation: {
-        Args: { p_call_id: string; p_hold_id: string }
-        Returns: Json
       }
       consume_device_session_token: {
         Args: { p_consumer_ip: string; p_device_id: string; p_token: string }
@@ -19449,7 +19307,6 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
-          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -19467,10 +19324,8 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
-          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
-          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -20600,28 +20455,6 @@ export type Database = {
         Returns: undefined
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
-      record_gift_combo: {
-        Args: {
-          p_context_key: string
-          p_gift_id: string
-          p_sender_id: string
-          p_window_ms?: number
-        }
-        Returns: Json
-      }
-      record_gift_signal: {
-        Args: {
-          _coins: number
-          _device_id: string
-          _ip_hash: string
-          _receiver_id: string
-          _sender_id: string
-        }
-        Returns: {
-          reason: string
-          suspect: boolean
-        }[]
-      }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
       record_live_violation: {
@@ -20682,10 +20515,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      register_device_fingerprint: {
-        Args: { _device_id: string }
-        Returns: undefined
-      }
       register_device_token: {
         Args: {
           p_device_id: string
@@ -20704,8 +20533,6 @@ export type Database = {
         Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
       }
-      release_call_balance: { Args: { p_hold_id: string }; Returns: Json }
-      release_expired_gift_holds: { Args: never; Returns: number }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
       report_live_face_event: {
         Args: {
@@ -20734,14 +20561,6 @@ export type Database = {
       request_pk_battle_end: {
         Args: { p_battle_id: string }
         Returns: undefined
-      }
-      reserve_call_balance: {
-        Args: {
-          p_caller_id: string
-          p_estimated_coins: number
-          p_host_id: string
-        }
-        Returns: Json
       }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }

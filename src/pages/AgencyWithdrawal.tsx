@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -1779,15 +1778,12 @@ const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
 };
 
 const AgencyWithdrawal = () => {
-  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const [agency, setAgency] = useState<Agency | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  // C1: synchronous double-submit guard (state updates are async, ref is immediate)
-  const submitRef = useRef(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
@@ -2329,12 +2325,6 @@ const AgencyWithdrawal = () => {
     const normalizedAccountName = getNormalizedAccountName();
     const normalizedAccountNumber = getNormalizedAccountNumber();
 
-    // C1: synchronous double-submit guard — beans were being deducted twice on fast double-tap
-    if (submitRef.current) {
-      console.warn('[Withdrawal] Double-submit blocked by submitRef');
-      return;
-    }
-    submitRef.current = true;
     setSubmitting(true);
     try {
       const rate = exchangeRates[countryConfig.currency] || 1;
@@ -2470,7 +2460,6 @@ const AgencyWithdrawal = () => {
       toast.error('Withdrawal request failed');
     } finally {
       setSubmitting(false);
-      submitRef.current = false;
     }
   };
 

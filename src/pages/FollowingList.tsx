@@ -167,10 +167,6 @@ const FollowingList = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    document.body.setAttribute('data-wavec-root', 'true');
-    return () => { document.body.removeAttribute('data-wavec-root'); };
-  }, []);
-  useEffect(() => {
     cancelledRef.current = false;
     void fetchData();
 

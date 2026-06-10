@@ -197,10 +197,6 @@ const PartyRoom = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // H4 (2026-06-10): gate heartbeat on successful enter_party_room — was creating
-  // ghost participant rows when join failed (password/level gate) because currentUser
-  // is set before the RPC.
-  const [hasJoinedRoom, setHasJoinedRoom] = useState(false);
 
   // 🛡️ Party room chat dedup guard: same id never renders twice across
   // realtime INSERT, broadcast event, local optimistic send, seat-request
@@ -961,7 +957,7 @@ const PartyRoom = () => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${accessToken}`,
               Prefer: 'return=minimal',
             },
@@ -1768,8 +1764,6 @@ const PartyRoom = () => {
         }
         throw enterError;
       }
-      // H4: mark joined only after successful RPC — gates heartbeat from line ~353
-      setHasJoinedRoom(true);
 
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
       if (isHostUser) {

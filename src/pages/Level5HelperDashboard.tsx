@@ -1,5 +1,4 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -142,7 +141,6 @@ interface CurrencyRate {
 const CLAIM_LOCK_SECONDS = 3600; // Updated to 1 hour (3600 seconds) to prevent double payments as requested
 
 const getClaimLockExpiryMs = (withdrawal?: { claim_locked_until?: string | null } | null) => {
-  useBodyMarker("data-waved-root");
   if (!withdrawal?.claim_locked_until) return null;
   const expiry = new Date(withdrawal.claim_locked_until).getTime();
   return Number.isFinite(expiry) ? expiry : null;

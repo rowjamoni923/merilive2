@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Trophy, Crown, Medal, Award, Gem, Clock, Users, RefreshCw } from "lucide-react";
@@ -42,7 +41,6 @@ interface RewardTier {
 }
 
 const PKLeaderboard = () => {
-  useBodyMarker("data-waved-root");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);

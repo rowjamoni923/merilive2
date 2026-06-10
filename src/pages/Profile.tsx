@@ -253,10 +253,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const loadTransferHistoryRef = useRef<() => Promise<void>>(async () => {});
   const refreshTransferBalancesRef = useRef<() => Promise<void>>(async () => {});
   const agencyIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    document.body.setAttribute('data-wavec-root', 'true');
-    return () => { document.body.removeAttribute('data-wavec-root'); };
-  }, []);
   useEffect(() => { showTransferModalRef.current = showTransferModal; }, [showTransferModal]);
   useEffect(() => { transferTabRef.current = transferTab; }, [transferTab]);
 

@@ -68,10 +68,6 @@ const Invitation = () => {
   const [claimingTierId, setClaimingTierId] = useState<string | null>(null);
 
   useEffect(() => {
-    document.body.setAttribute('data-wavec-root', 'true');
-    return () => { document.body.removeAttribute('data-wavec-root'); };
-  }, []);
-  useEffect(() => {
     fetchData();
     fetchTiers();
     fetchBanner();

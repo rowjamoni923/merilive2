@@ -217,12 +217,6 @@ const ensureAuthStateListener = () => {
 };
 
 const cleanupUniversalChannels = async () => {
-  // M4 (2026-06-10): clear any pending debounced updates before tearing down
-  // channels. Otherwise scheduled setTimeouts fire after the channel is gone
-  // and call subscriber callbacks that may have been unmounted.
-  pendingUpdates.forEach((t) => clearTimeout(t));
-  pendingUpdates.clear();
-
   const existingChannels = supabase
     .getChannels()
     .filter((channel) => {

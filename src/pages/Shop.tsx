@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, Suspense, lazy } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -350,7 +349,6 @@ const ShopItemCard = ({
 };
 
 const Shop = () => {
-  useBodyMarker("data-waved-root");
   const navigate = useNavigate();
   const { toast } = useToast();
   const [itemsCache, setItemsCache, hadItemsCache] = usePersistedCache<ShopItem[]>("shop:items", []);

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 
 import { 
@@ -88,7 +87,6 @@ const normalizePaymentMethod = (row: any): PaymentMethod => ({
 });
 
 const getHelperPackageLevel = (pkg: { display_order?: number | null; description?: string | null }, index: number) => {
-  useBodyMarker("data-waved-root");
   const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
   return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
 };

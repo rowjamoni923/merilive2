@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useBodyMarker } from "@/hooks/useBodyMarker";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, HelpCircle, Clock, Crown, Users, Gamepad2, Sparkles, Gift, Swords
@@ -63,7 +62,6 @@ interface PKCompetition {
 }
 
 const formatNumber = (num: number): string => {
-  useBodyMarker("data-waved-root");
   if (num == null) return '0';
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
