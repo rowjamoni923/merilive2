@@ -893,11 +893,17 @@ export const PKBattleActive = ({
                     <Crown className="w-3.5 h-3.5 text-amber-300" />
                     <span className="text-[10px] font-extrabold tracking-wider text-amber-200">MVP</span>
                   </div>
+                  {mvpName && (
+                    <span className="text-[10px] font-bold text-amber-100 truncate max-w-[90px]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                      {mvpName}
+                    </span>
+                  )}
                   {typeof mvpContribution === "number" && mvpContribution > 0 && (
                     <span className="text-[9px] font-semibold text-amber-300/90 tabular-nums" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
                       {fmtCompact(mvpContribution)} coins
                     </span>
                   )}
+
                 </div>
               )}
 
