@@ -299,6 +299,14 @@
 
 Verification: APK rebuild not required (DB + JS only). Live host end-of-stream flow needs owner-account smoke test in preview.
 
-**R2-Phase E — STORAGE + FACE + LOGS** — signed URLs, face server-side grace/count, AWS attempt cap, log scrubbing batch.
+**R2-Phase E — STORAGE + FACE + LOGS — ✅ WAVE-1 DONE 2026-06-10**
+- [x] R2-H14 AWS attempt cap: new `face_verification_submissions.rekognition_attempts` column + `increment_face_submission_attempts(submission_id)` service-only RPC. `face-verification-analyze` atomically increments at the top of every run and returns `429 attempts_exhausted` once a single submission exceeds 3 Rekognition runs (covers user retries, cron, admin re-runs — every path that spends AWS budget on the same row). Industry parity: Onfido / Persona cap automatic biometric retries at 3 per submission before forcing manual review.
+- [x] R2-H12 stream ownership: `face-check` and `live-frame-monitor` now call `is_live_stream_host(p_user_id, p_stream_id)` and return 403 `stream_not_owned` when the caller isn't the active host. Without this, any authenticated user could POST frames tagged with someone else's `streamId` and corrupt their warning history / trigger forced end-of-stream.
+- [x] R2-H13 server-side grace + warning count: new `get_live_face_runtime(user, stream, grace=60s)` returns `in_grace`, `warning_count`, `is_authorized` from `live_streams.started_at` + `live_face_warnings`. `face-check` includes `inGracePeriod` + `warningCount` in every response; `useLiveFaceDetection` skips strike accumulation while the server says we're still in grace, so host page-refresh can no longer reset the 60s timer or the warning counter to zero.
+- [~] R2-H10 signed-URL TTL + raw-image purge (≤7d) — DEFERRED to Wave-2 (needs storage-consumer audit + daily purge cron; bucket is already private + service-role-only so no public exposure today).
+- [~] R2-H11 reel/face filename validation — DEFERRED to Wave-2.
+- [~] Log scrubbing batch — DEFERRED to Wave-2.
+
+Verification: APK rebuild NOT required (DB + edge-fn + WebView hook). Owner-account smoke path: go-live as smdollarex923 → console shows `grace=true` ticks during first 60s → refresh mid-stream → `warns=` persists.
 
 **R2-Phase F — UX/POLISH + CHAT ENCRYPTION DECISION** — E2EE go/no-go, typing channel `{self:false}`, recipient confirm, admin sessionStorage.

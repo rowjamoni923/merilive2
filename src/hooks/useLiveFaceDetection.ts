@@ -618,7 +618,18 @@ export function useLiveFaceDetection({
       }
 
       const analysis = await response.json();
-      console.log(`[FaceDetection] 🔍 Server: face=${analysis.faceDetected} eyes=${analysis.eyesOpen}(${analysis.eyesOpenConfidence?.toFixed(0)}%) sleep=${analysis.sleepScore} violations=${analysis.violations?.join(',') || 'none'}`);
+      console.log(`[FaceDetection] 🔍 Server: face=${analysis.faceDetected} eyes=${analysis.eyesOpen}(${analysis.eyesOpenConfidence?.toFixed(0)}%) sleep=${analysis.sleepScore} grace=${analysis.inGracePeriod} warns=${analysis.warningCount} violations=${analysis.violations?.join(',') || 'none'}`);
+
+      // R2-H13: while the server-authoritative grace window is open, don't
+      // accumulate strikes. Refreshing the page used to reset both the
+      // 60s grace + warning count to zero — now the server owns both.
+      if (analysis.inGracePeriod) {
+        serverFailCountRef.current = 0;
+        serverPassCountRef.current = 0;
+        if (isCountingDownRef.current) stopCountdown();
+        return;
+      }
+
 
       // Track pose for anti-spoof
       if (analysis.pose && analysis.faceDetected) {
