@@ -61,3 +61,11 @@
 
 ### Deliverable
 4 waves, each = 1 chat response with diff + verification. Total ETA ≈ 4 working sessions।
+
+## Mobile customization — Wave A partial fix — DONE 2026-06-10
+- Global Android WebView overflow guard added in `src/index.css`: `html/body/#root` now cap at `100vw` and hide stray horizontal overflow.
+- Auth/landing visible mobile screen hardened: CTA buttons now ≥44px tap targets, Terms agreement row wraps instead of clipping, container max-width guarded.
+- Reels hardening: root/reel panels cap at `100vw`, right action stack uses bottom safe-area, mute target raised to 44px, username truncates.
+- LiveStreamFeed hardening: root max-width guarded, bottom info respects safe-area, Enter Live target ≥44px, text area min-width guarded.
+- Verified current `/index` at mobile: `innerWidth=375`, `htmlScrollWidth=375`, `bodyScrollWidth=375`, `hasHorizontalOverflow=false`, visible issues=[]
+- Vitest smoke: `src/test/livekitCallSignaling.test.ts` 9/9 passed.
