@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -924,6 +925,9 @@ export function ChametStyleGameRoom({
         onConfirm={handleCloseConfirm}
         isHost={isHost}
       />
+
+      {/* Pkg-audit Phase 17: Chamet/Bigo-style edge combo counter. */}
+      {roomId && <GiftComboTracker scope="party" id={roomId} receiverName="Game Party" />}
     </div>
   );
 }
