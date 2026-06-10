@@ -354,6 +354,8 @@ export const PKBattleActive = ({
   const opponentWinning = opponentScore > challengerScore;
 
   const timeUrgent = timeLeft <= 30;
+  const timeCritical = timeLeft <= 10 && timeLeft > 0;
+  const timeShatter = timeLeft === 0 && !!serverStartedAt && !battleEnded;
 
   return (
     <motion.div
@@ -402,13 +404,7 @@ export const PKBattleActive = ({
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <motion.div
-            animate={{ rotate: [0, -8, 0, 8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
-          >
-            <Swords className="w-4 h-4 text-amber-400" />
-          </motion.div>
+          <PKLightningBolt />
           <span
             className="font-extrabold text-sm tracking-wide"
             style={{
@@ -429,21 +425,27 @@ export const PKBattleActive = ({
               border: timeUrgent ? "1px solid rgba(252,165,165,0.5)" : "1px solid rgba(255,255,255,0.08)",
               boxShadow: timeUrgent ? "0 0 14px rgba(239,68,68,0.5)" : "none",
             }}
-            animate={timeUrgent ? { scale: [1, 1.06, 1] } : {}}
-            transition={{ duration: 1, repeat: Infinity }}
+            animate={
+              timeShatter
+                ? { scale: [1, 1.6, 0.4], opacity: [1, 0.9, 0], filter: ["blur(0px)", "blur(2px)", "blur(8px)"] }
+                : timeCritical
+                  ? { scale: [1, 1.18, 1] }
+                  : timeUrgent
+                    ? { scale: [1, 1.06, 1] }
+                    : { scale: 1 }
+            }
+            transition={
+              timeShatter
+                ? { duration: 0.6, ease: "easeOut" }
+                : { duration: timeCritical ? 0.55 : 1, repeat: Infinity, ease: "easeInOut" }
+            }
           >
             <Timer className={`w-3 h-3 ${timeUrgent ? "text-rose-200" : "text-amber-400"}`} />
             <span className={`font-mono text-sm tabular-nums font-bold ${timeUrgent ? "text-rose-100" : "text-amber-300"}`}>
               {formatTime(timeLeft)}
             </span>
           </motion.div>
-          <motion.div
-            animate={{ rotate: [0, 8, 0, -8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
-          >
-            <Swords className="w-4 h-4 text-amber-400 transform scale-x-[-1]" />
-          </motion.div>
+          <PKLightningBolt mirror />
         </div>
 
         {/* VS Section */}
@@ -493,39 +495,41 @@ export const PKBattleActive = ({
                   {challengerName}
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <motion.span
-                    key={challengerScore}
-                    initial={{ scale: 1.25, color: "#fff" }}
-                    animate={{ scale: 1, color: "#fbbf24" }}
-                    transition={{ duration: 0.4 }}
-                    className="text-amber-400 text-lg font-extrabold tabular-nums"
-                    style={{ textShadow: "0 0 10px rgba(251,191,36,0.5)" }}
-                  >
-                    {challengerScore}
-                  </motion.span>
+                  <PKScoreNumber
+                    value={challengerScore}
+                    color="#fbbf24"
+                    glow="0 0 10px rgba(251,191,36,0.5)"
+                  />
                   <span className="text-white/70 text-[10px]">diamonds</span>
                 </div>
               </div>
             </div>
 
-            {/* VS Badge */}
+            {/* VS Badge — pulsing heartbeat (replaces rotating spinner) */}
             <motion.div
               className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               style={{
-                background: "linear-gradient(135deg, #ec4899, #a855f7)",
+                background: "linear-gradient(135deg, #ef4444, #ec4899)",
                 boxShadow:
-                  "0 0 0 2px rgba(255,255,255,0.18), 0 0 18px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
+                  "0 0 0 2px rgba(255,255,255,0.22), 0 0 18px rgba(239,68,68,0.7), 0 0 36px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.32)",
               }}
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              animate={{ scale: [1, 1.12, 1] }}
+              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
             >
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{ border: "2px solid rgba(252,165,165,0.7)" }}
+                animate={{ scale: [1, 1.6, 1.8], opacity: [0.85, 0.3, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
+              />
               <span
-                className="text-white font-extrabold text-xs"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
+                className="relative text-white font-extrabold text-xs"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.45)" }}
               >
                 VS
               </span>
             </motion.div>
+
 
             {/* Opponent */}
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
