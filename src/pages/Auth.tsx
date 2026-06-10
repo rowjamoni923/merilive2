@@ -1147,7 +1147,7 @@ const Auth = () => {
           throw new Error('Profile setup is still processing. Please try again.');
         }
 
-        // Save device account with credentials for future recovery
+        // Cache only non-secret account display data. Recovery uses device_id + one-time exchange token.
         localStorage.setItem("meri_device_account", JSON.stringify({
           deviceId,
           displayName,
