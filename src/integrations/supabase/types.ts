@@ -2895,6 +2895,45 @@ export type Database = {
         }
         Relationships: []
       }
+      call_balance_reservations: {
+        Row: {
+          call_id: string | null
+          caller_id: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          host_id: string
+          id: string
+          released_at: string | null
+          reserved_coins: number
+          status: string
+        }
+        Insert: {
+          call_id?: string | null
+          caller_id: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          host_id: string
+          id?: string
+          released_at?: string | null
+          reserved_coins: number
+          status?: string
+        }
+        Update: {
+          call_id?: string | null
+          caller_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          host_id?: string
+          id?: string
+          released_at?: string | null
+          reserved_coins?: number
+          status?: string
+        }
+        Relationships: []
+      }
       call_delivery_log: {
         Row: {
           attempt_number: number
@@ -3866,9 +3905,40 @@ export type Database = {
         }
         Relationships: []
       }
+      device_session_exchange_tokens: {
+        Row: {
+          consumed_at: string | null
+          consumer_ip: string | null
+          created_at: string
+          device_id: string
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          consumer_ip?: string | null
+          created_at?: string
+          device_id: string
+          expires_at?: string
+          token?: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          consumer_ip?: string | null
+          created_at?: string
+          device_id?: string
+          expires_at?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       device_tokens: {
         Row: {
           created_at: string | null
+          device_id: string | null
           id: string
           is_active: boolean | null
           platform: string
@@ -3878,6 +3948,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -3887,6 +3958,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          device_id?: string | null
           id?: string
           is_active?: boolean | null
           platform?: string
@@ -4224,6 +4296,7 @@ export type Database = {
           full_name: string | null
           host_photos: string[] | null
           id: string
+          images_purged_at: string | null
           ip_hash: string | null
           is_duplicate_face: boolean | null
           language: string | null
@@ -4233,6 +4306,7 @@ export type Database = {
           profile_photo_url: string | null
           reference_image_url: string | null
           rejection_reason: string | null
+          rekognition_attempts: number
           rekognition_confidence: number | null
           rekognition_external_id: string | null
           rekognition_external_image_id: string | null
@@ -4268,6 +4342,7 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
@@ -4277,6 +4352,7 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -4312,6 +4388,7 @@ export type Database = {
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          images_purged_at?: string | null
           ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
@@ -4321,6 +4398,7 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_attempts?: number
           rekognition_confidence?: number | null
           rekognition_external_id?: string | null
           rekognition_external_image_id?: string | null
@@ -5075,6 +5153,78 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_combo_window: {
+        Row: {
+          combo_seq: number
+          combo_started_at: string
+          context_key: string
+          gift_id: string
+          id: string
+          last_sent_at: string
+          sender_id: string
+        }
+        Insert: {
+          combo_seq?: number
+          combo_started_at?: string
+          context_key: string
+          gift_id: string
+          id?: string
+          last_sent_at?: string
+          sender_id: string
+        }
+        Update: {
+          combo_seq?: number
+          combo_started_at?: string
+          context_key?: string
+          gift_id?: string
+          id?: string
+          last_sent_at?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      gift_self_link_signals: {
+        Row: {
+          coin_total: number
+          device_id: string | null
+          first_at: string
+          gift_count: number
+          id: string
+          ip_hash: string | null
+          last_at: string
+          receiver_id: string
+          sender_id: string
+          suspect: boolean
+          suspect_reason: string | null
+        }
+        Insert: {
+          coin_total?: number
+          device_id?: string | null
+          first_at?: string
+          gift_count?: number
+          id?: string
+          ip_hash?: string | null
+          last_at?: string
+          receiver_id: string
+          sender_id: string
+          suspect?: boolean
+          suspect_reason?: string | null
+        }
+        Update: {
+          coin_total?: number
+          device_id?: string | null
+          first_at?: string
+          gift_count?: number
+          id?: string
+          ip_hash?: string | null
+          last_at?: string
+          receiver_id?: string
+          sender_id?: string
+          suspect?: boolean
+          suspect_reason?: string | null
+        }
+        Relationships: []
+      }
       gift_transaction_logs: {
         Row: {
           created_at: string | null
@@ -5126,6 +5276,9 @@ export type Database = {
           created_at: string | null
           diamond_cost: number | null
           gift_id: string | null
+          held_beans: number
+          held_released: boolean
+          held_until: string | null
           id: string
           idempotency_key: string | null
           party_room_id: string | null
@@ -5147,6 +5300,9 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
+          held_beans?: number
+          held_released?: boolean
+          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -5168,6 +5324,9 @@ export type Database = {
           created_at?: string | null
           diamond_cost?: number | null
           gift_id?: string | null
+          held_beans?: number
+          held_released?: boolean
+          held_until?: string | null
           id?: string
           idempotency_key?: string | null
           party_room_id?: string | null
@@ -6713,6 +6872,39 @@ export type Database = {
           level_number?: number
           min_beans?: number
           perks?: Json | null
+        }
+        Relationships: []
+      }
+      idempotency_keys: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          key: string
+          response: Json | null
+          scope: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key: string
+          response?: Json | null
+          scope: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          key?: string
+          response?: Json | null
+          scope?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -10687,6 +10879,7 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
+          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -10704,8 +10897,10 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
+          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
+          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -10813,6 +11008,7 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
+          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -10830,8 +11026,10 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
+          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -10939,6 +11137,7 @@ export type Database = {
           current_vip_tier_id?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_at?: string | null
+          device_fingerprints?: Json
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
@@ -10956,8 +11155,10 @@ export type Database = {
           face_verification_image?: string | null
           face_verification_status?: string | null
           face_verified_at?: string | null
+          first_recharge_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          held_earnings?: number
           hide_gift_senders?: boolean
           hide_location?: boolean
           host_availability?: string | null
@@ -11847,6 +12048,27 @@ export type Database = {
           },
         ]
       }
+      reel_views: {
+        Row: {
+          first_seen_at: string
+          reel_id: string
+          user_id: string
+          viewed_date: string
+        }
+        Insert: {
+          first_seen_at?: string
+          reel_id: string
+          user_id: string
+          viewed_date?: string
+        }
+        Update: {
+          first_seen_at?: string
+          reel_id?: string
+          user_id?: string
+          viewed_date?: string
+        }
+        Relationships: []
+      }
       reels: {
         Row: {
           beans_earned: number | null
@@ -12113,6 +12335,7 @@ export type Database = {
           created_at: string
           id: string
           is_winner: boolean | null
+          multiplier: number
           session_id: string
           user_id: string
           win_amount: number | null
@@ -12124,6 +12347,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_winner?: boolean | null
+          multiplier?: number
           session_id: string
           user_id: string
           win_amount?: number | null
@@ -12135,6 +12359,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_winner?: boolean | null
+          multiplier?: number
           session_id?: string
           user_id?: string
           win_amount?: number | null
@@ -16579,6 +16804,13 @@ export type Database = {
           },
         ]
       }
+      v_user_reserved_coins: {
+        Row: {
+          total_reserved: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       vip_plans: {
         Row: {
           ad_free: boolean | null
@@ -16781,6 +17013,7 @@ export type Database = {
         Args: { _action_type: string; _payload: Json }
         Returns: Json
       }
+      _ferris_wheel_multiplier: { Args: { p_slot: number }; Returns: number }
       _internal_add_beans: {
         Args: { _amount: number; _user_id: string }
         Returns: undefined
@@ -16855,7 +17088,20 @@ export type Database = {
         Args: { p_host_id: string }
         Returns: number
       }
-      accept_pk_battle: { Args: { p_battle_id: string }; Returns: string }
+      _roulette_is_winner: {
+        Args: { p_bet_type: string; p_n: number }
+        Returns: boolean
+      }
+      _roulette_official_multiplier: {
+        Args: { p_bet_type: string }
+        Returns: number
+      }
+      _secure_random: { Args: never; Returns: number }
+      _teen_patti_score: {
+        Args: { p_ranks: number[]; p_suits: string[] }
+        Returns: number
+      }
+      accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       accept_seat_invitation: {
         Args: { p_invitation_id: string }
@@ -18745,6 +18991,7 @@ export type Database = {
         }
         Returns: Json
       }
+      bind_own_device_id: { Args: { p_device_id: string }; Returns: Json }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -18895,6 +19142,10 @@ export type Database = {
         Args: { _host_id: string; _hour_number: number }
         Returns: Json
       }
+      claim_idempotency_key: {
+        Args: { _key: string; _scope: string; _user_id: string }
+        Returns: Json
+      }
       claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
       claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
@@ -18914,11 +19165,13 @@ export type Database = {
         }[]
       }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
+      cleanup_expired_call_reservations: { Args: never; Returns: number }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_expired_recordings: { Args: never; Returns: number }
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       cleanup_login_attempts: { Args: never; Returns: undefined }
+      cleanup_old_gift_combos: { Args: never; Returns: number }
       cleanup_old_security_alerts: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_stale_data: { Args: never; Returns: undefined }
@@ -18949,6 +19202,10 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_idempotency_key: {
+        Args: { _key: string; _response: Json; _scope: string; _status: string }
+        Returns: undefined
+      }
       consume_agency_app_otp_token: {
         Args: {
           p_purpose?: string
@@ -18956,6 +19213,16 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
+      }
+      consume_call_balance_reservation: {
+        Args: { p_call_id: string; p_hold_id: string }
+        Returns: Json
+      }
+      consume_device_session_token: {
+        Args: { p_consumer_ip: string; p_device_id: string; p_token: string }
+        Returns: {
+          user_id: string
+        }[]
       }
       consume_otp_exchange_token: {
         Args: {
@@ -19182,6 +19449,7 @@ export type Database = {
           current_vip_tier_id: string | null
           deletion_requested_at: string | null
           deletion_scheduled_at: string | null
+          device_fingerprints: Json
           device_id: string | null
           diamonds: number | null
           display_name: string | null
@@ -19199,8 +19467,10 @@ export type Database = {
           face_verification_image: string | null
           face_verification_status: string | null
           face_verified_at: string | null
+          first_recharge_at: string | null
           frame_id: string | null
           gender: string | null
+          held_earnings: number
           hide_gift_senders: boolean
           hide_location: boolean
           host_availability: string | null
@@ -19322,6 +19592,10 @@ export type Database = {
       face_verification_status_bucket: {
         Args: { _status: string }
         Returns: string
+      }
+      ferris_wheel_play: {
+        Args: { p_bet_amount: number; p_chosen_slot: number }
+        Returns: Json
       }
       finalize_first_minute_earnings: {
         Args: { p_call_id: string }
@@ -19588,6 +19862,19 @@ export type Database = {
           rank: number
           stat_value: number
           user_id: string
+        }[]
+      }
+      get_live_face_runtime: {
+        Args: {
+          p_grace_seconds?: number
+          p_stream_id: string
+          p_user_id: string
+        }
+        Returns: {
+          grace_ends_at: string
+          in_grace: boolean
+          is_authorized: boolean
+          warning_count: number
         }[]
       }
       get_live_stream_ingress: {
@@ -19863,6 +20150,10 @@ export type Database = {
         Args: { agency_uuid: string }
         Returns: undefined
       }
+      increment_face_submission_attempts: {
+        Args: { p_submission_id: string }
+        Returns: number
+      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
@@ -19894,6 +20185,10 @@ export type Database = {
       }
       is_group_member: {
         Args: { _group_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      is_live_stream_host: {
+        Args: { p_stream_id: string; p_user_id: string }
         Returns: boolean
       }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
@@ -20215,34 +20510,20 @@ export type Database = {
         }
         Returns: Json
       }
-      process_gift_transaction:
-        | {
-            Args: {
-              p_call_id?: string
-              p_gift_id: string
-              p_party_room_id?: string
-              p_quantity?: number
-              p_receiver_id: string
-              p_reel_id?: string
-              p_sender_id: string
-              p_stream_id?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_call_id?: string
-              p_gift_id: string
-              p_idempotency_key?: string
-              p_party_room_id?: string
-              p_quantity?: number
-              p_receiver_id: string
-              p_reel_id?: string
-              p_sender_id: string
-              p_stream_id?: string
-            }
-            Returns: Json
-          }
+      process_gift_transaction: {
+        Args: {
+          p_call_id?: string
+          p_gift_id: string
+          p_idempotency_key?: string
+          p_party_room_id?: string
+          p_quantity?: number
+          p_receiver_id: string
+          p_reel_id?: string
+          p_sender_id: string
+          p_stream_id?: string
+        }
+        Returns: Json
+      }
       process_google_play_purchase: {
         Args: {
           p_google_order_id?: string
@@ -20319,6 +20600,28 @@ export type Database = {
         Returns: undefined
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
+      record_gift_combo: {
+        Args: {
+          p_context_key: string
+          p_gift_id: string
+          p_sender_id: string
+          p_window_ms?: number
+        }
+        Returns: Json
+      }
+      record_gift_signal: {
+        Args: {
+          _coins: number
+          _device_id: string
+          _ip_hash: string
+          _receiver_id: string
+          _sender_id: string
+        }
+        Returns: {
+          reason: string
+          suspect: boolean
+        }[]
+      }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
       record_live_violation: {
@@ -20355,10 +20658,9 @@ export type Database = {
         Returns: {
           avatar_url: string
           display_name: string
+          exchange_token: string
           gender: string
           is_host: boolean
-          recovery_email: string
-          recovery_password: string
           user_id: string
         }[]
       }
@@ -20380,6 +20682,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_device_fingerprint: {
+        Args: { _device_id: string }
+        Returns: undefined
+      }
+      register_device_token: {
+        Args: {
+          p_device_id: string
+          p_device_info?: Json
+          p_platform: string
+          p_token: string
+        }
+        Returns: string
+      }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
         Returns: Json
@@ -20389,6 +20704,8 @@ export type Database = {
         Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
       }
+      release_call_balance: { Args: { p_hold_id: string }; Returns: Json }
+      release_expired_gift_holds: { Args: never; Returns: number }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
       report_live_face_event: {
         Args: {
@@ -20418,6 +20735,14 @@ export type Database = {
         Args: { p_battle_id: string }
         Returns: undefined
       }
+      reserve_call_balance: {
+        Args: {
+          p_caller_id: string
+          p_estimated_coins: number
+          p_host_id: string
+        }
+        Returns: Json
+      }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }
         Returns: Json
@@ -20438,6 +20763,14 @@ export type Database = {
       }
       roulette_get_or_create_session: {
         Args: { p_duration_seconds?: number }
+        Returns: Json
+      }
+      roulette_place_bet: {
+        Args: { p_amount: number; p_bet_type: string; p_session_id: string }
+        Returns: Json
+      }
+      roulette_spin_and_settle: {
+        Args: { p_session_id: string }
         Returns: Json
       }
       roulette_spin_wheel: {
@@ -20558,7 +20891,7 @@ export type Database = {
           p_opponent_id: string
           p_opponent_stream_id: string
         }
-        Returns: string
+        Returns: Json
       }
       start_pk_battle_random: {
         Args: {
@@ -20607,6 +20940,10 @@ export type Database = {
       sync_host_online_status: {
         Args: { p_is_online: boolean; p_user_id: string }
         Returns: undefined
+      }
+      teen_patti_play: {
+        Args: { p_bet_a?: number; p_bet_b?: number; p_bet_c?: number }
+        Returns: Json
       }
       tick_agency_commission_scheduler: { Args: never; Returns: Json }
       tick_agency_weekly_scheduler: { Args: never; Returns: Json }
