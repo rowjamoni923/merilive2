@@ -303,9 +303,12 @@ Deno.serve(async (req) => {
     }
 
 
-    // Pkg189: TTL bumped 1h → 6h to cover long live/party sessions.
-    // Client-side livekitTokenRefresh.ts proactively refreshes at ttl-600s.
-    const TTL_SECONDS = 60 * 60 * 6; // 6 hours
+    // H-3: TTL bumped 6h → 24h. LiveKit only validates JWT at connect time,
+    // not during the session, so longer TTL eliminates mid-session full
+    // reconnects (1–3s media freeze) from token refresh.
+    // Client-side livekitTokenRefresh.ts still proactively refreshes at ttl-600s.
+    const TTL_SECONDS = 60 * 60 * 24; // 24 hours
+
 
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity,
