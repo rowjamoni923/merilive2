@@ -312,4 +312,9 @@ Verification: APK rebuild NOT required (DB + edge fn + storage policy). Cron sch
 
 Verification: APK rebuild NOT required (DB + edge-fn + WebView hook). Owner-account smoke path: go-live as smdollarex923 → console shows `grace=true` ticks during first 60s → refresh mid-stream → `warns=` persists.
 
-**R2-Phase F — UX/POLISH + CHAT ENCRYPTION DECISION** — E2EE go/no-go, typing channel `{self:false}`, recipient confirm, admin sessionStorage.
+**R2-Phase F — UX/POLISH (no-system-change mode)** — DONE 2026-06-10.
+- Chat E2EE (R2-H6): NO-OP by design. Industry peers (Chamet/Bigo/Olamet) all use plaintext + server moderation; enabling E2EE breaks moderation, push preview, multi-device. Not a runtime bug, just an unused table — leave as-is per user "no system change" rule.
+- Typing channel: added `{ broadcast: { self: false } }` in `src/pages/Chat.tsx` typing channel — pure bandwidth optimization, behaviour unchanged (existing `p.userId === currentUserId` guard preserved).
+- Admin sessionStorage (R2-H6 admin part): already implemented in `src/utils/adminAccessStorage.ts` (dual sessionStorage + persistent localStorage with explicit sync). No change needed.
+- Recipient confirm in transfers: SKIPPED — adds a new dialog/UX step which the user's "no system change" rule disallows; existing helper/agency forms already have a review state before submit.
+Verification: APK rebuild NOT required (single web tweak in Chat.tsx). No DB migration, no edge fn, no feature surface changes.

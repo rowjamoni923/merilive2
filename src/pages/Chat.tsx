@@ -1205,7 +1205,11 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedConversation?.id || !currentUserId) return;
     
-    const channel = supabase.channel(`typing-${selectedConversation.id}`);
+    // R2-Phase F: `self:false` so our own typing event isn't echoed back to us,
+    // saving a round-trip and avoiding any UI flicker if the userId guard ever changes.
+    const channel = supabase.channel(`typing-${selectedConversation.id}`, {
+      config: { broadcast: { self: false } },
+    });
     
     channel.on('broadcast', { event: 'typing' }, (payload: any) => {
       const p = payload?.payload;
