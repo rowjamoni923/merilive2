@@ -54,15 +54,16 @@ export const useLiveStreamLifecycle = ({
       // fallback needed (prevents the $1400-bill dual-path pattern).
 
 
-      // Primary: use Supabase client with user's session
-      const { error } = await supabase
-        .from('live_streams')
-        .update({ is_active: false, ended_at: new Date().toISOString() })
-        .eq('id', streamId);
-      
-      if (error) {
-        console.error('[LiveStream Lifecycle] Supabase update failed:', error);
-        // Fallback: use fetch with keepalive + user token for page unload scenarios
+      // R2-H21: prefer `end_live_stream` RPC so earnings settle,
+      // `stream_viewers.left_at` is filled in, and the live-summary row is
+      // generated. Direct `is_active=false` patch was skipping all of that.
+      const { error: rpcError } = await supabase.rpc('end_live_stream', { p_stream_id: streamId });
+
+      if (rpcError) {
+        console.error('[LiveStream Lifecycle] end_live_stream RPC failed, falling back:', rpcError);
+        // Fallback: keepalive PATCH with user token (only on unload paths
+        // where the RPC failed). Server cron will reconcile the rest within
+        // ~1 cycle, but at least the row flips inactive immediately.
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (token) {
