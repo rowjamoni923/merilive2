@@ -240,24 +240,29 @@ interface ProfessionalChatProps {
 export const ProfessionalChat = ({ messages, className }: ProfessionalChatProps) => {
   const chatRef = useRef<HTMLDivElement>(null);
   return (
-    <div className={cn("flex flex-col gap-1 overflow-y-auto scrollbar-hide relative", className)} ref={chatRef}>
-      {messages.map((msg, index) => (
-        <ProfessionalChatMessage
-          key={msg.id || index}
-          id={msg.id}
-          userName={msg.user}
-          message={msg.message}
-          userLevel={msg.level || 1}
-          isHost={msg.isHost}
-          isVIP={msg.isVIP}
-          vipTier={msg.vipTier}
-          type={msg.type}
-          giftName={msg.giftName}
-          giftCount={msg.giftCount}
-          giftEmoji={msg.giftEmoji}
-          bubbleUrl={msg.bubbleUrl}
-        />
-      ))}
+    <div className={cn("relative flex flex-col min-h-0", className)}>
+      <div
+        ref={chatRef}
+        className="flex flex-col gap-1 overflow-y-auto scrollbar-hide flex-1 min-h-0"
+      >
+        {messages.map((msg, index) => (
+          <ProfessionalChatMessage
+            key={msg.id || index}
+            id={msg.id}
+            userName={msg.user}
+            message={msg.message}
+            userLevel={msg.level || 1}
+            isHost={msg.isHost}
+            isVIP={msg.isVIP}
+            vipTier={msg.vipTier}
+            type={msg.type}
+            giftName={msg.giftName}
+            giftCount={msg.giftCount}
+            giftEmoji={msg.giftEmoji}
+            bubbleUrl={msg.bubbleUrl}
+          />
+        ))}
+      </div>
       <ScrollToBottomButton
         scrollRef={chatRef}
         className="bottom-2 right-2"
