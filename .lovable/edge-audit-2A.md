@@ -31,10 +31,14 @@
 3. **Timing-attack fix** in `link-email-to-account`: OTP comparison now uses `constantTimeEqual`.
 4. **Weak-password fix** in `otp-direct-signin`: `mode='create'` now requires ≥8 chars (was 6) — aligns with `link-email-to-account` and OWASP minimum.
 
-## Verified Non-issues
-- `email_otps` table has **zero** anon/authenticated grants and an admin-only RLS policy. Plaintext OTP storage acceptable for 5-min TTL (per OWASP) — service-role only access.
+## Verified Non-issues (with research backing)
+- `email_otps` table has **zero** anon/authenticated grants and an admin-only RLS policy. Plaintext OTP storage acceptable for 5-min TTL per OWASP (service-role only access).
 - All money-credit paths use atomic RPCs (`safe_credit_diamonds`, `complete_gateway_helper_topup`, `process_google_play_purchase`, `claim_idempotency_key`).
 - Server-side amount validation present everywhere; client cannot inflate coins.
+- SSLCommerz/AamarPay IPN do not use HMAC headers — they require re-validation via gateway API (already implemented in `local-payment-ipn`).
+- `otp-direct-signin` returns `exists:false` only AFTER OTP verification; attacker must already control inbox to reach that branch — enumeration window already closed.
+- Google Play verify uses server-side `purchases.products.get` + acknowledge/consume (matches official Google Play Billing Security guidance).
+- Noble subscription uses idempotency keys via `claim_idempotency_key` RPC (matches Stripe idempotency pattern).
 
 ## Future Hardening (lower priority)
 - Optional OTP hash-at-rest with HMAC-SHA256 + dedicated `OTP_HASH_KEY` secret. Skipped now — table is service-role-only.
