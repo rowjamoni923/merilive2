@@ -119,7 +119,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
 
   return (
     <div
-      className="pointer-events-none fixed right-2 z-[60] flex flex-col gap-2"
+      className="pointer-events-none fixed left-3 z-[60] flex flex-col-reverse gap-2"
       style={{
         bottom: "calc(env(safe-area-inset-bottom) + 7rem)",
       }}
