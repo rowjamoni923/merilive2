@@ -69,6 +69,12 @@ export function usePrivateCall(userId: string | null) {
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Call ringing timeout
   const outgoingStatusPollRef = useRef<NodeJS.Timeout | null>(null); // Caller-side fallback status polling
   const callEndedRef = useRef<boolean>(false);
+  // H-5: declared at the top of the hook so callbacks defined later in
+  // the file (showVerifiedIncomingCall, accept/decline handlers, etc.) can
+  // read the latest callState without hitting `undefined.current` on the
+  // very first render. Synced inside an effect below.
+  const callStateRef = useRef<CallState>(INITIAL_CALL_STATE);
+
   const currentCallIdRef = useRef<string | null>(null);
   const billingStartedRef = useRef<boolean>(false);
   const liveSessionStartedRef = useRef<boolean>(false);
@@ -1035,9 +1041,10 @@ export function usePrivateCall(userId: string | null) {
   }, [toast]);
 
   // End the current call - INSTANT response
-  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/coins change every second)
-  const callStateRef = useRef(callState);
+  // H-5: callStateRef is declared at the top of the hook (line ~76).
+  // Keep it in sync here so the latest state is observable in async callbacks.
   callStateRef.current = callState;
+
 
   const endCall = useCallback(async (reason: string = 'normal') => {
     const cs = callStateRef.current;

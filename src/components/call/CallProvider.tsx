@@ -85,6 +85,11 @@ export function CallProvider({ children }: CallProviderProps) {
   // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
   const acceptingRef = useRef(false);
   const decliningRef = useRef(false);
+  // H-7: track whether the LOCAL user (this client) ended the current call.
+  // Reset on every new call. Used by captureEndedInfo() to pick the correct
+  // CallEndedModal copy instead of always showing "Remote ended the call".
+  const selfEndedRef = useRef(false);
+
 
   useEffect(() => {
     // ⚡ INSTANT: Use getSession() first (local cache, no network round-trip)
@@ -135,9 +140,12 @@ export function CallProvider({ children }: CallProviderProps) {
     if (incomingCall) {
       setIsHost(true);
       callEndedRef.current = false;
+      selfEndedRef.current = false;
     } else if (callState.callId && callState.status === 'calling') {
       setIsHost(false);
       callEndedRef.current = false;
+      selfEndedRef.current = false;
+
     }
   }, [incomingCall, callState.callId, callState.status]);
 
@@ -191,6 +199,17 @@ export function CallProvider({ children }: CallProviderProps) {
       const { normalizeEndReason } = await import('@/lib/callEndReasons');
       const normalisedReason = normalizeEndReason(dbEndReasonRaw);
 
+      // H-7: derive endedBy honestly.
+      // - 'system' for low_balance / timeout / forced server-side end
+      // - 'self'   when this client invoked endCall()
+      // - 'remote' otherwise (the other party hung up)
+      const systemReasons = new Set(['low_balance', 'insufficient_balance', 'timeout', 'no_answer', 'force_end']);
+      const rawReasonStr = (dbEndReasonRaw ?? '').toString().toLowerCase();
+      const endedBy: 'self' | 'remote' | 'system' =
+        systemReasons.has(rawReasonStr) ? 'system'
+        : selfEndedRef.current ? 'self'
+        : 'remote';
+
       setCallEndedInfo({
         remoteUserName: remoteName,
         remoteUserAvatar: remoteAvatar,
@@ -199,9 +218,10 @@ export function CallProvider({ children }: CallProviderProps) {
         coinsSpent,
         hostEarned: hostEarnedAmount,
         isHost,
-        endedBy: 'remote',
+        endedBy,
         endReason: normalisedReason,
       });
+
       setShowCallEndedModal(true);
       setAcceptedCallInfo(null);
       // Phase-3 C3: do NOT raise callEndedRef here. The previous 3s
@@ -407,14 +427,16 @@ export function CallProvider({ children }: CallProviderProps) {
     const deadCallId = callState.callId;
     if (deadCallId) endedCallIdsRef.current.add(deadCallId);
     callEndedRef.current = true;
+    selfEndedRef.current = true; // H-7: this client invoked the hang-up
     console.log('[CallProvider] User ending call:', deadCallId);
-    
+
     // ⚡ INSTANT: Clear UI state BEFORE awaiting network calls
     setAcceptedCallInfo(null);
     setIsHost(false);
-    
+
     // Fire endCall (network ops happen in background)
     await endCall();
+
 
     // Phase-3 C3: release the in-flight end guard immediately. The
     // prior 3s cooldown blocked Accept on a brand-new incoming call

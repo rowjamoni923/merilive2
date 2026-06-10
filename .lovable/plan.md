@@ -120,13 +120,19 @@
 - [x] CR-7: `_secure_random()` helper (pgcrypto `gen_random_bytes`) replaces `random()` in roulette/ferris/teen patti
 - [~] CR-9: CORS tightened on `game-balance-callback` (provider webhook). Admin endpoints audit deferred to Phase 2.
 
-**Phase 2 — PRIVATE CALL & LIVE STREAM RELIABILITY (HIGH frontend)**
-- H-4, H-5, H-7, H-11, H-13, H-15 (single source ref, fix declaration order, correct endedBy, channel safety, host short-circuit, declaration order)
-- H-1: zombie stream window 60→30s + visibilitychange handler
-- H-6: `bill_call_minute` returns balance (eliminate N+1)
-- H-3: token TTL 6h→24h
-- H-10: FCM token caching
-- H-14: profile PII protection
+**Phase 2 — PRIVATE CALL & LIVE STREAM RELIABILITY (HIGH frontend) — 🟡 PARTIAL 2026-06-10**
+- [x] H-1: zombie stream window 3min → 35s (cleanup_stale_live_streams) — Agora benchmark 20-30s + buffer over 15s heartbeat
+- [x] H-3: LiveKit token TTL 6h → 24h (livekit-token edge fn) — eliminates mid-session full reconnects
+- [x] H-5: `callStateRef` declaration moved to top of `usePrivateCall` — fixes `undefined.current` on first render
+- [x] H-6: `bill_call_minute` now returns `remaining_coins` / `remaining_minutes` — call-billing-tick N+1 eliminated
+- [x] H-7: `endedBy` derived honestly in CallProvider (self / remote / system) via `selfEndedRef` + DB end_reason
+- [x] H-10: FCM access-token caching at module scope (1h cache, 5min refresh window, in-flight coalescing)
+- [x] H-14: ✅ Already healthy — `profiles` SELECT policy is `auth.uid() = id`, not `USING (true)` (plan claim was stale). Cross-user PII access already gated through `profiles_public` view.
+- [ ] H-4: dual `callEndedRef` consolidation (usePrivateCall + CallProvider) — deferred, needs careful refactor
+- [ ] H-11: `usePrivateCall` channel StrictMode safety on `userId` change — deferred
+- [ ] H-13: `useNativeCallBillingSync` host short-circuit before DB query — deferred
+- [ ] H-15: explicit GRANTs on financial tables — moved to Phase 3
+
 
 **Phase 3 — FINANCIAL HARDENING (HIGH backend)**
 - H-15: explicit GRANTs on all financial tables
