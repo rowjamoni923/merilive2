@@ -13,6 +13,11 @@ export const ALLOWED_APP_ORIGINS = new Set<string>([
   "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+  // Capacitor / Cordova Android WebView origins
+  "capacitor://localhost",
+  "ionic://localhost",
+  "http://localhost",
+  "https://localhost",
 ]);
 
 const DEFAULT_HEADERS =
@@ -32,6 +37,19 @@ export function strictCors(
       : DEFAULT_HEADERS,
     "Access-Control-Allow-Methods": opts.methods ?? "POST, OPTIONS",
   };
+}
+
+/**
+ * Origin guard for legacy functions that still use wildcard CORS.
+ * Returns true when:
+ *   - no Origin header (server-to-server, curl, native Android non-WebView)
+ *   - Origin is in the allow-list (browser/Capacitor WebView)
+ * Use this as a cheap defense-in-depth before doing any real work.
+ */
+export function isAllowedOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  return ALLOWED_APP_ORIGINS.has(origin);
 }
 
 /** Constant-time string compare. Use for OTPs, tokens, secrets. */
