@@ -267,7 +267,11 @@
 
 
 
-**R2-Phase B — RLS + IDEMPOTENCY HARDENING** — helper table policies, google-purchase pre-check, noble idempotency key, lockout-server-authoritative, mass `search_path` patch.
+**R2-Phase B — RLS + IDEMPOTENCY HARDENING — 🟡 WAVE-1 DONE 2026-06-10**
+- [x] R2-C4: `recover_session_by_device` no longer returns `recovery_password`. Now mints a single-use UUID exchange token (5-min TTL, `device_session_exchange_tokens`, service_role only). New edge fn `device-session-exchange` consumes token → admin `generateLink({type:'magiclink'})` → `verifyOtp` → returns `{access_token, refresh_token}` only. `Auth.tsx` 2 sign-in paths refactored to `exchangeDeviceSession()` + `setSession()`. localStorage no longer caches `email`/`password`.
+- [x] R2-H17 + foundation: new `idempotency_keys` table + `claim_idempotency_key` / `complete_idempotency_key` RPCs (service_role only, 24h TTL, fail-closed). `noble-purchase` edge fn rewritten to require `idempotency_key` UUID; replays cached response on duplicate, returns 409 on in-flight duplicate. `VipNobleSection.tsx` switched from direct `rpc('purchase_noble_card')` to `functions.invoke('noble-purchase', { idempotency_key })`.
+- [ ] Wave-2: R2-H1 helper RLS audit (helper_withdrawal_requests bank-data scope), R2-H2 lockout server-authoritative, R2-H16 `verify-google-purchase` pre-check before Google API call, mass `search_path` linter sweep.
+
 
 **R2-Phase C — REALTIME + PUSH RELIABILITY** — FCM token dedup, push dispatch dedup, channel cleanup leaks, reconnect backoff, DM broadcast trust.
 

@@ -65,32 +65,34 @@ const generateDeviceId = async (): Promise<string> => {
   return await getPersistentDeviceId();
 };
 
-// Recover account by device ID - returns credentials for automatic login
+// Recover account by device ID - returns metadata + a single-use exchange token.
+// R2-Phase B / R2-C4: the RPC no longer leaks the deterministic password.
+// To actually log in, callers must POST the token to the `device-session-exchange`
+// edge function via `exchangeDeviceSession()` below.
 const recoverAccountByDevice = async (deviceId: string): Promise<{
   userId: string;
   displayName: string;
   avatarUrl: string | null;
   gender: string | null;
   isHost: boolean;
-  recoveryEmail: string;
-  recoveryPassword: string;
+  exchangeToken: string;
 } | null> => {
   try {
-    const { data, error } = await supabase.rpc('recover_session_by_device', { 
-      p_device_id: deviceId
+    const { data, error } = await supabase.rpc('recover_session_by_device', {
+      p_device_id: deviceId,
     });
-    
-    if (error || !data || data.length === 0) return null;
-    
-    const account = data[0];
+
+    if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
+    const account: any = Array.isArray(data) ? data[0] : data;
+    if (!account?.exchange_token) return null;
+
     return {
       userId: account.user_id,
       displayName: account.display_name || 'User',
-      avatarUrl: account.avatar_url,
-      gender: account.gender,
-      isHost: account.is_host || false,
-      recoveryEmail: account.recovery_email,
-      recoveryPassword: account.recovery_password,
+      avatarUrl: account.avatar_url ?? null,
+      gender: account.gender ?? null,
+      isHost: !!account.is_host,
+      exchangeToken: account.exchange_token,
     };
   } catch (error) {
     console.error('Error checking device account:', error);
@@ -98,6 +100,36 @@ const recoverAccountByDevice = async (deviceId: string): Promise<{
     return null;
   }
 };
+
+// Trade a single-use exchange token for a real Supabase session.
+// Sets the session on the client and returns true on success.
+const exchangeDeviceSession = async (
+  exchangeToken: string,
+  deviceId: string,
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('device-session-exchange', {
+      body: { token: exchangeToken, device_id: deviceId },
+    });
+    if (error || !data?.success || !data?.access_token || !data?.refresh_token) {
+      console.warn('[Auth] device-session-exchange failed:', error?.message || data?.error);
+      return false;
+    }
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    if (setErr) {
+      console.warn('[Auth] setSession after exchange failed:', setErr.message);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[Auth] exchangeDeviceSession error:', e);
+    return false;
+  }
+};
+
 
 // Helper function to navigate to return URL or home
 const getReturnUrl = (): string => {
@@ -580,35 +612,27 @@ const Auth = () => {
       const existingForDevice = await recoverAccountByDevice(deviceId);
 
       if (existingForDevice) {
-        console.log('[Auth] Existing device account found, auto-login');
-        const guestEmail = existingForDevice.recoveryEmail;
-        const guestPassword = existingForDevice.recoveryPassword;
+        console.log('[Auth] Existing device account found, exchanging single-use token for session');
 
-        // Force-sync deterministic credentials first (covers anonymous-legacy
-        // accounts AND cases where the guest password drifted). The function
-        // is idempotent when credentials are already correct.
-        try {
-          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-        } catch (e) { /* ignore — we'll still try signin */ }
+        // R2-C4: trade the one-time exchange token for a real session
+        // (no plaintext password ever touches the client).
+        let exchanged = await exchangeDeviceSession(existingForDevice.exchangeToken, deviceId);
 
-        let { error: signInError } = await supabase.auth.signInWithPassword({
-          email: guestEmail,
-          password: guestPassword,
-        });
-
-        // If first attempt failed (rare race), try convert + signin once more
-        if (signInError) {
+        // Legacy fallback: account predates deterministic credentials.
+        // `convert-anonymous-to-guest` is idempotent and ensures the auth
+        // user has an email/password set so a fresh exchange will work.
+        if (!exchanged) {
           try {
             await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
           } catch (e) { /* ignore */ }
-          const retry = await supabase.auth.signInWithPassword({
-            email: guestEmail,
-            password: guestPassword,
-          });
-          signInError = retry.error;
+          // Re-mint a token because the prior one was consumed.
+          const retryAcct = await recoverAccountByDevice(deviceId);
+          if (retryAcct) {
+            exchanged = await exchangeDeviceSession(retryAcct.exchangeToken, deviceId);
+          }
         }
 
-        if (!signInError) {
+        if (exchanged) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -620,8 +644,6 @@ const Auth = () => {
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
-            email: guestEmail,
-            password: guestPassword,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
@@ -634,8 +656,9 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-        console.warn('[Auth] Device recovery sign-in failed, falling back to registration:', signInError.message);
+        console.warn('[Auth] Device recovery exchange failed, falling back to registration');
       }
+
 
       // STEP 2: No existing account → proceed to registration form
       setIsEmailFlow(false);
@@ -975,17 +998,20 @@ const Auth = () => {
       // SAFETY CHECK: Prevent duplicate accounts for same device
       const existingForDevice = await recoverAccountByDevice(deviceId);
       if (existingForDevice) {
-        console.log('[Auth] SAFETY: Device already has account, recovering instead of creating new');
-        const guestEmail = existingForDevice.recoveryEmail;
-        const guestPassword = existingForDevice.recoveryPassword;
-        
-        // Try conversion first (for anonymous accounts)
-        try {
-          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-        } catch (e) { /* ignore */ }
-        
-        const { error } = await supabase.auth.signInWithPassword({ email: guestEmail, password: guestPassword });
-        if (!error) {
+        console.log('[Auth] SAFETY: Device already has account, recovering via session exchange');
+
+        let exchanged = await exchangeDeviceSession(existingForDevice.exchangeToken, deviceId);
+        if (!exchanged) {
+          try {
+            await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+          } catch (e) { /* ignore */ }
+          const retryAcct = await recoverAccountByDevice(deviceId);
+          if (retryAcct) {
+            exchanged = await exchangeDeviceSession(retryAcct.exchangeToken, deviceId);
+          }
+        }
+
+        if (exchanged) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -997,8 +1023,6 @@ const Auth = () => {
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
-            email: guestEmail,
-            password: guestPassword,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
@@ -1009,6 +1033,7 @@ const Auth = () => {
           return;
         }
       }
+
       
       // ALWAYS use deterministic guest credentials so recover_session_by_device works
       const guestEmail = `guest_${deviceId}@meri.local`;
