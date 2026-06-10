@@ -143,11 +143,18 @@
 - [x] M-8: proactive session refresh on `visibilitychange→visible` + `window.focus` (5-min threshold, single-flight). Fixes "logged in but every request 401s" after long background. Auth-only refresh — no business-data refetch (respects no-polling rule).
 
 
-**Phase 4 — GAME POLISH & UX**
-- H-2, H-8, H-16: viewer inflation, PK punishment score, zero-bet log
-- M-1, M-2, M-4: teen patti tie, ferris float, roulette session host-guard
-- M-9, M-10: animation cleanup + entry VAP warmup
-- M-11, M-14, M-15, M-16: call edge races + Android beforeunload
+**Phase 4 — GAME POLISH & UX — 🟡 PARTIAL 2026-06-10**
+- [x] M-1: Teen Patti tie-breaker — cascading `>=` (always favored hand A) replaced with `_secure_random()` pick among tied top-scoring hands. `tie_count` recorded in `result_data` for audit.
+- [x] M-15: `captureEndedInfo` in `CallProvider` snapshots `callId` / `duration` / `coinsSpent` / `hostEarned` BEFORE the async DB read — prevents stale-closure mis-attribution if call is dismissed mid-flight.
+- [x] M-2: ✅ already healthy — ferris weights normalised by `v_total_w` at runtime; the 1.0289 sum never reaches probability math, no observable bias.
+- [x] H-16: ✅ already healthy — `teen_patti_play` rejects `total_bet<=0`; per-slot zero bet correctly logs `is_win=false` with `transaction_type='bet'`.
+- [x] M-14: ✅ already healthy — `acceptingRef`/`decliningRef` released in `finally` (500ms tick) in `CallProvider`.
+- [x] M-16: ✅ already healthy — `PartyRoom` `beforeunload` uses `sessionAccessTokenRef`, not raw localStorage.
+- [~] H-8: backend already correct (punishment-phase gifts skip score columns, return `phase:'punishment'`). UI label tweak deferred — design SACRED rule.
+- [~] H-2: livekit-token public-stream viewer auto-upsert is the intentional race-fix; per-IP rate limit deferred (needs product call).
+- [~] M-4: roulette is community-round (no host); `get_or_create_session` already refuses to create mid-spin via status check. No code change needed.
+- [ ] M-9, M-10: gift/entry animation work — BLOCKED by `mem://constraints/never-touch-gift-entry-animations` and pkg438 Phase B (JS shim pending).
+- [ ] M-11: FCM+Realtime double-ring — needs incoming-call channel refactor; deferred with H-4/H-11.
 
 **Phase 5 — INFRASTRUCTURE**
 - M-3: party seat locks policies
