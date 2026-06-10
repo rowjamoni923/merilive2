@@ -287,12 +287,37 @@ export function useGlobalLiveGame({
     }
   }, [currentRound, autoProcessRound, phase]);
 
-  // live_game_* tables are not in supabase_realtime publication; use bounded
-  // REST refreshes and RPC responses instead of postgres_changes channels.
+  // Realtime subscriptions on live_game_rounds + live_game_bets (both in
+  // supabase_realtime publication with REPLICA IDENTITY FULL). Chamet-class
+  // <300ms latency for round transitions and bet/pool updates.
   useEffect(() => {
     if (!currentRound) return;
     fetchRecentBets(currentRound.id);
-  }, [currentRound?.id, fetchRecentBets]);
+
+    const roundId = currentRound.id;
+    const channel = supabase
+      .channel(`live-game-${roundId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'live_game_rounds', filter: `id=eq.${roundId}` },
+        () => { fetchCurrentRound(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'live_game_rounds' },
+        () => { fetchCurrentRound(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'live_game_bets', filter: `round_id=eq.${roundId}` },
+        () => { fetchRecentBets(roundId); }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentRound?.id, fetchRecentBets, fetchCurrentRound]);
 
   // Initialize and ensure game is running
   useEffect(() => {
