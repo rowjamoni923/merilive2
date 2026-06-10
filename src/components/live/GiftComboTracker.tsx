@@ -126,6 +126,8 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
 
   const totalActive = lanesRef.current.size;
   const hiddenCount = Math.max(0, totalActive - lanes.length);
+  const topActiveLaneId = Array.from(lanesRef.current.values())
+    .sort((a, b) => (b.totalValue - a.totalValue) || (b.count - a.count) || (b.lastAt - a.lastAt))[0]?.id;
 
   return (
     <div
@@ -165,6 +167,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
               count: lane.count,
               totalValue: lane.totalValue,
             }}
+            isTopContributor={lane.id === topActiveLaneId}
             onDismiss={() => dismissLane(`${lane.senderId}|${lane.giftName}`)}
           />
         </div>
