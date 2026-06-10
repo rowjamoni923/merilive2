@@ -134,11 +134,14 @@
 - [ ] H-15: explicit GRANTs on financial tables — moved to Phase 3
 
 
-**Phase 3 — FINANCIAL HARDENING (HIGH backend)**
-- H-15: explicit GRANTs on all financial tables
-- H-9: `SET search_path = public` on legacy SECURITY DEFINER fns
-- M-5, M-6, M-7: agency CHECK + top-up + swift-pay idempotency
-- M-8: proactive session refresh
+**Phase 3 — FINANCIAL HARDENING (HIGH backend) — ✅ DONE 2026-06-10**
+- [x] H-15: defense-in-depth — `REVOKE ALL ... FROM anon` on 21 financial tables (gift / payment / billing / coin transfers / agency / helper / game). RLS already blocked anon; this removes the default-ACL bits so a future permissive policy can't expose money flows. service_role re-granted.
+- [x] H-9: ✅ already healthy — every `SECURITY DEFINER` function in `public` has `SET search_path` (Phase 1 swept the legacy ones).
+- [x] M-5: `agencies.beans_balance >= 0` CHECK constraint added (VALID).
+- [x] M-6: ✅ already healthy — `recharge_transactions` has unique partial indexes on `google_order_id`, google-play `transaction_id`, and (`payment_method`,`transaction_id`) for completed gateway txns.
+- [x] M-7: `swift_pay_topups.payment_id` unique partial index — prevents double-credit from concurrent poller workers.
+- [x] M-8: proactive session refresh on `visibilitychange→visible` + `window.focus` (5-min threshold, single-flight). Fixes "logged in but every request 401s" after long background. Auth-only refresh — no business-data refetch (respects no-polling rule).
+
 
 **Phase 4 — GAME POLISH & UX**
 - H-2, H-8, H-16: viewer inflation, PK punishment score, zero-bet log
