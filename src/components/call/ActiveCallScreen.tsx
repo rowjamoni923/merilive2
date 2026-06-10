@@ -825,7 +825,7 @@ export function ActiveCallScreen({
                 style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
               >
                 {remoteUserAvatar ? (
-                  <img loading="lazy" decoding="async" src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={enhanceThumbnail(normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar, { width: 512, quality: 82 })} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-extrabold">
                     {remoteUserName?.charAt(0)}
@@ -1033,7 +1033,7 @@ export function ActiveCallScreen({
                   {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
                   { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
                     <img loading="lazy" decoding="async" 
-                      src={isSwapped ? myAvatarUrl : remoteUserAvatar} 
+                      src={enhanceThumbnail(isSwapped ? myAvatarUrl : remoteUserAvatar, { width: 64, quality: 60 })} 
                       alt="" 
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl"
  />
@@ -1066,7 +1066,7 @@ export function ActiveCallScreen({
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
                   { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
                     <img loading="lazy" decoding="async"
-                      src={isSwapped ? remoteUserAvatar : myAvatarUrl}
+                      src={enhanceThumbnail(isSwapped ? remoteUserAvatar : myAvatarUrl, { width: 64, quality: 60 })}
                       alt=""
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-lg"
  />
