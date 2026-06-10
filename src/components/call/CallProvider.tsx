@@ -85,6 +85,11 @@ export function CallProvider({ children }: CallProviderProps) {
   // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
   const acceptingRef = useRef(false);
   const decliningRef = useRef(false);
+  // H-7: track whether the LOCAL user (this client) ended the current call.
+  // Reset on every new call. Used by captureEndedInfo() to pick the correct
+  // CallEndedModal copy instead of always showing "Remote ended the call".
+  const selfEndedRef = useRef(false);
+
 
   useEffect(() => {
     // ⚡ INSTANT: Use getSession() first (local cache, no network round-trip)
