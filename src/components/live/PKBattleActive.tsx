@@ -373,6 +373,59 @@ export const PKBattleActive = ({
   const timeCritical = timeLeft <= 10 && timeLeft > 0;
   const timeShatter = timeLeft === 0 && !!serverStartedAt && !battleEnded;
 
+  // Sudden-Death: last 30s + scores within ±10% of midline (Bigo "FINAL PUSH").
+  const suddenDeath =
+    !battleEnded && timeLeft > 0 && timeLeft <= 30 &&
+    totalScore > 0 && Math.abs(challengerPercent - opponentPercent) <= 20;
+
+  // Punishment-phase: dim & lock both halves, loser side gets red wash.
+  const inPunishment = battleEnded && punishLeft > 0 && !!winnerUserId;
+  const challengerLost = inPunishment && winnerUserId === opponentId;
+  const opponentLost = inPunishment && winnerUserId === challengerId;
+
+  // Live diamond-delta float-up: detect server score increases and emit a
+  // transient `+N` floater anchored over the matching HP half.
+  useEffect(() => {
+    const cDelta = challengerScore - prevChallengerRef.current;
+    const oDelta = opponentScore - prevOpponentRef.current;
+    prevChallengerRef.current = challengerScore;
+    prevOpponentRef.current = opponentScore;
+    if (cDelta <= 0 && oDelta <= 0) return;
+    const adds: DeltaFloat[] = [];
+    const stamp = Date.now();
+    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta });
+    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta });
+    if (!adds.length) return;
+    setDeltaFloats((prev) => [...prev, ...adds].slice(-8));
+    const keys = adds.map((a) => a.key);
+    const t = setTimeout(() => {
+      setDeltaFloats((prev) => prev.filter((f) => !keys.includes(f.key)));
+    }, 1400);
+    return () => clearTimeout(t);
+  }, [challengerScore, opponentScore]);
+
+  // Resolve MVP display name. Cheap: if MVP is one of the hosts, reuse name;
+  // otherwise fire a single profiles SELECT.
+  useEffect(() => {
+    if (!mvpUserId) { setMvpName(null); return; }
+    if (mvpUserId === challengerId) { setMvpName(challengerName); return; }
+    if (mvpUserId === opponentId) { setMvpName(opponentName); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, display_name")
+        .eq("user_id", mvpUserId)
+        .maybeSingle();
+      if (cancelled) return;
+      const n = (data as any)?.display_name || (data as any)?.username || null;
+      setMvpName(n);
+    })();
+    return () => { cancelled = true; };
+  }, [mvpUserId, challengerId, opponentId, challengerName, opponentName]);
+
+
+
   return (
     <motion.div
       className={`absolute left-0 right-0 z-30 px-3 ${compact ? "top-2 mx-auto max-w-xl" : "top-24"}`}
