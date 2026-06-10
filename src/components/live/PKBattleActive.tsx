@@ -116,6 +116,7 @@ export const PKBattleActive = ({
   // Step 4 — server-only fields surfaced for UI
   const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
   const [mvpUserId, setMvpUserId] = useState<string | null>(null);
+  const [mvpContribution, setMvpContribution] = useState<number | null>(null);
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
