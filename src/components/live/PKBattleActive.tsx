@@ -576,17 +576,13 @@ export const PKBattleActive = ({
                 </p>
                 <div className="flex items-baseline gap-1 mt-0.5 justify-end">
                   <span className="text-white/70 text-[10px]">diamonds</span>
-                  <motion.span
-                    key={opponentScore}
-                    initial={{ scale: 1.25, color: "#fff" }}
-                    animate={{ scale: 1, color: "#c084fc" }}
-                    transition={{ duration: 0.4 }}
-                    className="text-purple-400 text-lg font-extrabold tabular-nums"
-                    style={{ textShadow: "0 0 10px rgba(168,85,247,0.55)" }}
-                  >
-                    {opponentScore}
-                  </motion.span>
+                  <PKScoreNumber
+                    value={opponentScore}
+                    color="#c084fc"
+                    glow="0 0 10px rgba(168,85,247,0.55)"
+                  />
                 </div>
+
               </div>
             </div>
           </div>
