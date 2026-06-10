@@ -3,14 +3,19 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 // R2-C5: gateway IPN is a server-to-server webhook (SSLCommerz/AamarPay).
 // Restrict CORS to known app origins only; the gateway POST doesn't honor CORS.
+// Main app domain is merilive.com. merilive.top is landing-only but still
+// allowed because checkout return URLs can land back there.
 const ALLOWED_CORS_ORIGINS = new Set([
+  "https://merilive.com",
+  "https://www.merilive.com",
   "https://merilive.top",
+  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);
 function corsHeadersFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  const allow = ALLOWED_CORS_ORIGINS.has(origin) ? origin : "https://merilive.top";
+  const allow = ALLOWED_CORS_ORIGINS.has(origin) ? origin : "https://merilive.com";
   return {
     "Access-Control-Allow-Origin": allow,
     "Vary": "Origin",
@@ -19,7 +24,10 @@ function corsHeadersFor(req: Request): Record<string, string> {
 }
 
 const ALLOWED_RETURN_ORIGINS = new Set([
+  "https://merilive.com",
+  "https://www.merilive.com",
   "https://merilive.top",
+  "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
 ]);
@@ -27,9 +35,9 @@ const ALLOWED_RETURN_ORIGINS = new Set([
 function normalizeReturnOrigin(raw: unknown): string {
   try {
     const origin = new URL(String(raw || "")).origin;
-    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.com";
   } catch {
-    return "https://merilive.top";
+    return "https://merilive.com";
   }
 }
 
