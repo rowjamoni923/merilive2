@@ -278,6 +278,11 @@
 
 
 **R2-Phase C — REALTIME + PUSH RELIABILITY** — FCM token dedup, push dispatch dedup, channel cleanup leaks, reconnect backoff, DM broadcast trust.
+- [x] R2-H4 (Wave-1): `device_tokens.device_id` column + partial unique index on `(user_id, device_id) WHERE is_active`. New `register_device_token(token, platform, device_id, device_info)` SECURITY DEFINER RPC: deactivates stale active rows for same `(user, device)` before upserting on token PK, so FCM token rotation no longer leaves UNREGISTERED rows piling up. `firebaseMessaging.saveTokenToDatabase` switched to RPC (web + native), with safe fallback to legacy upsert. One-time cleanup deactivated any duplicate active rows that already shared a token.
+- [x] J2/H17 already done: `message_push_dispatches` (PK message_id) + `notification_push_dispatches` (PK notification_id) — verified `notify-new-message` and `send-push-notification` both insert + treat `23505` as `already_dispatched`. No further work.
+- [x] M-11 dual-delivery double-ring: `showVerifiedIncomingCall` already idempotent via `incomingCallIdRef === callId → return true` so FCM + Realtime fan-in to a single ring. Plus `pendingCallCheckInFlightRef` coalesces the catch-up DB poll. Closed.
+- [x] Channel cleanup audit: every `supabase.channel(...)` in `src/hooks` confirmed paired with `supabase.removeChannel` in cleanup (private-call, native-gift, native-entry, notifications, universal-realtime, single-device-session, seat-invitations, admin-broadcast, call-signaling, live-game). No leaks.
+- [ ] Reconnect backoff + DM broadcast trust polish — deferred to Wave-2 if user wants deeper hardening; current Supabase client default exponential backoff + scoped channels already in place.
 
 **R2-Guest Device Recovery Hotfix — ✅ DONE 2026-06-10**
 - Root cause: `Auth.tsx` cleared `meri_device_id` whenever `/auth` loaded without an active Supabase session. That erased the server-bound recovery key before `recover_session_by_device()` ran, so the Start/Extract path generated a fresh `device_*` and created a new guest profile instead of restoring the existing one.
