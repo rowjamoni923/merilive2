@@ -589,6 +589,37 @@ export function usePrivateCall(userId: string | null) {
         warmLiveKitToken(`call_placeholder_${hostId}`, 'call').catch(() => {});
       });
 
+      // C4: reserve 1-minute cost BEFORE the call RPC so a concurrent gift
+      // can't drain the balance between ring and accept.
+      try {
+        const { data: holdData, error: holdErr } = await supabase.rpc('reserve_call_balance', {
+          p_caller_id: userId,
+          p_host_id: hostId,
+          p_estimated_coins: callRate,
+        });
+        const holdPayload = holdData as { success?: boolean; hold_id?: string; error?: string; available?: number; required?: number } | null;
+        if (holdErr || !holdPayload?.success || !holdPayload?.hold_id) {
+          if (holdPayload?.error === 'insufficient_balance') {
+            toast({
+              title: 'Insufficient Diamonds',
+              description: `You need ${holdPayload?.required ?? callRate} diamonds available. Please recharge.`,
+              variant: 'destructive',
+            });
+            navigate('/recharge');
+          } else {
+            console.warn('[Call C4] reserve failed, continuing without escrow:', holdErr || holdPayload?.error);
+          }
+          if (holdPayload?.error === 'insufficient_balance') {
+            setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
+            return null;
+          }
+        } else {
+          currentReservationHoldRef.current = holdPayload.hold_id;
+        }
+      } catch (e) {
+        console.warn('[Call C4] reserve threw, continuing:', e);
+      }
+
       const { data, error } = await supabase.rpc('start_private_call', {
         p_caller_id: userId,
         p_receiver_id: hostId,
@@ -597,6 +628,7 @@ export function usePrivateCall(userId: string | null) {
 
 
       if (error) {
+        await releaseCurrentReservation();
         throw error;
       }
 
