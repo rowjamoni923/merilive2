@@ -13,6 +13,11 @@ export const ALLOWED_APP_ORIGINS = new Set<string>([
   "https://www.merilive.top",
   "https://merilive2.lovable.app",
   "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+  // Capacitor / Cordova Android WebView origins
+  "capacitor://localhost",
+  "ionic://localhost",
+  "http://localhost",
+  "https://localhost",
 ]);
 
 const DEFAULT_HEADERS =
