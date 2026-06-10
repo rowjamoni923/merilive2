@@ -271,20 +271,53 @@ const Recharge = () => {
 
   
   // Fetch real international exchange rates for Google tab
+  // C5 (2026-06-10): open.er-api.com is blocked by some BD ISPs → silent fail showed $0
+  // conversions. Now falls back to admin-configured `currency_rates` table, toasts only
+  // when BOTH sources fail.
   useEffect(() => {
     const fetchInternationalRates = async () => {
+      let primaryOk = false;
       try {
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
         if (res.ok) {
           const data = await res.json();
-          if (data.rates) {
+          if (data.rates && Object.keys(data.rates).length > 0) {
             setInternationalRates(data.rates);
-            console.log('[Recharge] Fetched international exchange rates');
+            primaryOk = true;
+            console.log('[Recharge] Fetched international exchange rates (primary)');
           }
         }
       } catch (err) {
-        console.error('[Recharge] Failed to fetch international rates:', err);
-        recordClientError({ label: "Recharge.data", message: err instanceof Error ? err.message : String(err) });
+        console.warn('[Recharge] Primary FX fetch failed, will try fallback:', err);
+      }
+
+      if (primaryOk) return;
+
+      // Fallback: admin-configured currency_rates table (USD-based)
+      try {
+        const { data, error } = await supabase
+          .from('currency_rates')
+          .select('currency_code, rate_per_usd')
+          .eq('is_active', true);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const rates: Record<string, number> = {};
+          for (const row of data as Array<{ currency_code: string; rate_per_usd: number }>) {
+            if (row.currency_code && typeof row.rate_per_usd === 'number') {
+              rates[row.currency_code.toUpperCase()] = row.rate_per_usd;
+            }
+          }
+          if (Object.keys(rates).length > 0) {
+            setInternationalRates(rates);
+            console.log('[Recharge] Fetched international exchange rates (fallback DB)');
+            return;
+          }
+        }
+        throw new Error('No active rows in currency_rates');
+      } catch (fallbackErr) {
+        console.error('[Recharge] Both FX sources failed:', fallbackErr);
+        recordClientError({ label: "Recharge.data", message: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr) });
+        toast.error('Could not load currency rates. International prices may be inaccurate.', { duration: 5000 });
       }
     };
     fetchInternationalRates();
