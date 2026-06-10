@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getTaskDate } from "@/utils/taskDateUtils";
 import { useToast } from "@/hooks/use-toast";
