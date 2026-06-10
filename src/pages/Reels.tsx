@@ -814,6 +814,8 @@ const Reels = () => {
                       if (el) hardenVideoElementForNative(el, { muted: isMuted });
                     }}
                     src={currentReel.video_url}
+                    poster={currentReel.thumbnail_url || undefined}
+                    preload="auto"
                     className="w-full h-full object-cover"
                     loop
                     playsInline
