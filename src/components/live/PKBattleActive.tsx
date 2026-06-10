@@ -117,11 +117,18 @@ export const PKBattleActive = ({
   const [winnerUserId, setWinnerUserId] = useState<string | null>(null);
   const [mvpUserId, setMvpUserId] = useState<string | null>(null);
   const [mvpContribution, setMvpContribution] = useState<number | null>(null);
+  const [mvpName, setMvpName] = useState<string | null>(null);
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
+  // Live diamond-delta floaters per side (Bigo-signature) — auto-evicted after 1.4s.
+  type DeltaFloat = { key: string; side: "challenger" | "opponent"; amount: number };
+  const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+  const prevChallengerRef = useRef(0);
+  const prevOpponentRef = useRef(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
   const compact = isLandscape || isVerySmallHeight;
+
 
   // PK Battle Step 3 — REWORKED:
   //   1. Seed from server-authoritative columns (challenger_score, opponent_score,
