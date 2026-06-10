@@ -1072,6 +1072,7 @@ const Auth = () => {
             full_name: displayName,
             is_guest: true,
             device_id: deviceId,
+            gender: selectedGender,
           },
         },
       });
@@ -1120,7 +1121,6 @@ const Auth = () => {
             .from("profiles")
             .update({ 
               display_name: displayName,
-              device_id: deviceId,
             })
             .eq("id", userId);
         }
@@ -1130,6 +1130,11 @@ const Auth = () => {
 
       // Ensure profile row, gender, and female→host conversion are fully ready before redirect
       if (userId) {
+        const bound = await bindOwnDeviceId(deviceId);
+        if (!bound) {
+          throw new Error('Device account binding failed. Please try again.');
+        }
+
         const readyProfile = await ensureProfileReady(
           userId,
           {
