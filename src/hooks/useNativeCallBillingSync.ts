@@ -67,6 +67,7 @@ async function pushBilling(callId: string, balance: number, ratePerMinute: numbe
 export function useNativeCallBillingSync({
   userId,
   callId,
+  isHost = false,
 }: UseNativeCallBillingSyncArgs): void {
   const lastPushedRef = useRef<{ balance: number; rate: number } | null>(null);
 
