@@ -16,7 +16,7 @@
  * =====================================================
  */
 
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { memo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
