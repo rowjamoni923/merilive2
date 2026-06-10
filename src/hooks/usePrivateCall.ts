@@ -667,6 +667,7 @@ export function usePrivateCall(userId: string | null) {
           });
         }
         setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
+        await releaseCurrentReservation();
         return null;
       }
 
