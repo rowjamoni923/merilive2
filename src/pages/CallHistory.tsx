@@ -307,7 +307,7 @@ const CallHistory = () => {
                 {/* Avatar */}
                 <div className="relative">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={call.other_user?.avatar_url || undefined} />
+                    <AvatarImage src={call.other_user?.avatar_url ? enhanceThumbnail(call.other_user.avatar_url, { width: 48, quality: 82 }) : undefined} />
                     <AvatarFallback>
                       {call.other_user?.display_name?.[0] || '?'}
                     </AvatarFallback>
