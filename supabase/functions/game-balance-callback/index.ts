@@ -163,7 +163,8 @@ serve(async (req) => {
       msg: data?.error || 'ok',
     };
 
-    console.log(`[GameCallback] ${action} | token=${token.substring(0, 8)}... | result:`, response);
+    // M-13: scrub balances/PII from logs — only metadata is retained.
+    console.log(`[GameCallback] ${action} | token=${token.substring(0, 8)}... | success=${!!data?.success} | code=${response.code}`);
 
     return new Response(JSON.stringify(response), {
       status: 200,
