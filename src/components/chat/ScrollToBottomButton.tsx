@@ -39,8 +39,9 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
     if (!el) return;
 
     if (reverse) {
-      // flex-col-reverse: bottom is scrollTop ≈ 0
-      setShow(el.scrollTop > threshold);
+      // flex-col-reverse: bottom is scrollTop ≈ 0, and scrollTop goes
+      // NEGATIVE as the user scrolls up. Use absolute value.
+      setShow(Math.abs(el.scrollTop) > threshold);
     } else {
       // Normal order: bottom is scrollTop + clientHeight ≈ scrollHeight
       const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold;
@@ -59,19 +60,33 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
   }, [scrollRef, reverse]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    let el: HTMLElement | null = null;
+    let raf = 0;
+    let observer: MutationObserver | null = null;
 
-    // Check on mount + on scroll
-    checkScroll();
-    el.addEventListener("scroll", checkScroll, { passive: true });
-
-    // Also re-check after resize / orientation change
     const onResize = () => checkScroll();
-    window.addEventListener("resize", onResize);
+
+    const attach = () => {
+      el = scrollRef.current;
+      if (!el) {
+        // Ref not assigned yet (e.g. AnimatePresence mount) — retry next frame
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      checkScroll();
+      el.addEventListener("scroll", checkScroll, { passive: true });
+      window.addEventListener("resize", onResize);
+      // Re-check when messages are added/removed (content height changes)
+      observer = new MutationObserver(() => checkScroll());
+      observer.observe(el, { childList: true, subtree: true });
+    };
+
+    attach();
 
     return () => {
-      el.removeEventListener("scroll", checkScroll);
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      if (el) el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", onResize);
     };
   }, [checkScroll, scrollRef]);
