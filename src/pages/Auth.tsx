@@ -18,8 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
-import { getPersistentDeviceId, getDeviceIdSync } from "@/utils/persistentDeviceId";
-import { getSessionFromNative } from "@/utils/nativeSessionStorage";
+import { getPersistentDeviceId } from "@/utils/persistentDeviceId";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
 // Geolocation helpers are loaded lazily — they're a 600+ line module with
 // country/IP detection that's only needed AFTER the user submits, so we keep
@@ -503,10 +502,6 @@ const Auth = () => {
             return;
           }
         }
-
-        // Clear any stale localStorage credentials — don't auto-login from them
-        localStorage.removeItem("meri_device_account");
-        localStorage.removeItem("meri_device_id");
 
         console.log('[Auth] No valid session — showing auth UI');
       } catch (err) {
