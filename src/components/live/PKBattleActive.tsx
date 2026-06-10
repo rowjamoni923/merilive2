@@ -123,9 +123,16 @@ export const PKBattleActive = ({
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [punishmentEndTs, setPunishmentEndTs] = useState<number | null>(null);
   const [punishLeft, setPunishLeft] = useState(0);
-  // Live diamond-delta floaters per side (Bigo-signature) — auto-evicted after 1.4s.
-  type DeltaFloat = { key: string; side: "challenger" | "opponent"; amount: number };
+  // Live floaters: 'score' (active-phase delta) + 'cheer' (punishment-phase
+  // rescue gift). Auto-evicted after ~1.4s. Bigo-signature gift-feedback.
+  type DeltaFloat = {
+    key: string;
+    side: "challenger" | "opponent";
+    amount: number;
+    kind: "score" | "cheer";
+  };
   const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+
   const prevChallengerRef = useRef(0);
   const prevOpponentRef = useRef(0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
@@ -395,8 +402,9 @@ export const PKBattleActive = ({
     if (cDelta <= 0 && oDelta <= 0) return;
     const adds: DeltaFloat[] = [];
     const stamp = Date.now();
-    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta });
-    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta });
+    if (cDelta > 0) adds.push({ key: `c-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "challenger", amount: cDelta, kind: "score" });
+    if (oDelta > 0) adds.push({ key: `o-${stamp}-${Math.random().toString(36).slice(2, 6)}`, side: "opponent", amount: oDelta, kind: "score" });
+
     if (!adds.length) return;
     setDeltaFloats((prev) => [...prev, ...adds].slice(-8));
     const keys = adds.map((a) => a.key);
@@ -405,6 +413,34 @@ export const PKBattleActive = ({
     }, 1400);
     return () => clearTimeout(t);
   }, [challengerScore, opponentScore]);
+
+  // H-8: punishment-phase "cheer" floaters. Server credits score_value=0 for
+  // these gifts (HP bar locked, industry-correct), but viewers still need
+  // visible feedback that their rescue gift registered. Listen to the
+  // same livekit-gift-sent event the active-phase logic uses, but only emit
+  // here when battleEnded && punishment is active.
+  useEffect(() => {
+    if (!battleEnded || punishLeft <= 0) return;
+    const onCheer = (event: Event) => {
+      const detail = (event as CustomEvent<GiftSentDetail>).detail;
+      if (!detail) return;
+      const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
+      if (!coins) return;
+      let side: "challenger" | "opponent" | null = null;
+      if (challengerId && detail.receiverId === challengerId) side = "challenger";
+      else if (opponentId && detail.receiverId === opponentId) side = "opponent";
+      if (!side) return;
+      const key = `cheer-${side[0]}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      setDeltaFloats((prev) => [...prev, { key, side: side!, amount: coins, kind: "cheer" as const }].slice(-8));
+      setTimeout(() => {
+        setDeltaFloats((prev) => prev.filter((f) => f.key !== key));
+      }, 1400);
+    };
+    window.addEventListener("livekit-gift-sent", onCheer as EventListener);
+    return () => window.removeEventListener("livekit-gift-sent", onCheer as EventListener);
+  }, [battleEnded, punishLeft, challengerId, opponentId]);
+
+
 
   // Resolve MVP display name. Cheap: if MVP is one of the hosts, reuse name;
   // otherwise fire a single profiles SELECT.
@@ -689,32 +725,65 @@ export const PKBattleActive = ({
               )}
             </AnimatePresence>
 
-            {/* Diamond-delta floaters per side (Bigo-signature +N rise+fade) */}
+            {/* Diamond-delta floaters per side (Bigo-signature +N rise+fade).
+                'score' (active) = side-colored; 'cheer' (punishment) = amber. */}
             <div className="pointer-events-none absolute -top-4 left-0 right-0 h-6 z-10 overflow-visible">
               <AnimatePresence>
-                {deltaFloats.map((f) => (
-                  <motion.div
-                    key={f.key}
-                    className="absolute text-[11px] font-black tabular-nums"
-                    style={{
-                      left: f.side === "challenger" ? "20%" : "80%",
-                      transform: "translateX(-50%)",
-                      color: f.side === "challenger" ? "#fbcfe8" : "#e9d5ff",
-                      textShadow:
-                        f.side === "challenger"
-                          ? "0 0 8px rgba(236,72,153,0.9), 0 1px 2px rgba(0,0,0,0.6)"
-                          : "0 0 8px rgba(168,85,247,0.9), 0 1px 2px rgba(0,0,0,0.6)",
-                    }}
-                    initial={{ y: 6, opacity: 0, scale: 0.7 }}
-                    animate={{ y: -22, opacity: [0, 1, 1, 0], scale: [0.7, 1.15, 1, 0.9] }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.2, 0.7, 1] }}
-                  >
-                    +{fmtCompact(f.amount)} 💎
-                  </motion.div>
-                ))}
+                {deltaFloats.map((f) => {
+                  const isCheer = f.kind === "cheer";
+                  const sideColor = f.side === "challenger" ? "#fbcfe8" : "#e9d5ff";
+                  const sideShadow =
+                    f.side === "challenger"
+                      ? "0 0 8px rgba(236,72,153,0.9), 0 1px 2px rgba(0,0,0,0.6)"
+                      : "0 0 8px rgba(168,85,247,0.9), 0 1px 2px rgba(0,0,0,0.6)";
+                  return (
+                    <motion.div
+                      key={f.key}
+                      className="absolute text-[11px] font-black tabular-nums"
+                      style={{
+                        left: f.side === "challenger" ? "20%" : "80%",
+                        transform: "translateX(-50%)",
+                        color: isCheer ? "#fde68a" : sideColor,
+                        textShadow: isCheer
+                          ? "0 0 8px rgba(251,191,36,0.9), 0 1px 2px rgba(0,0,0,0.6)"
+                          : sideShadow,
+                      }}
+                      initial={{ y: 6, opacity: 0, scale: 0.7 }}
+                      animate={{ y: -22, opacity: [0, 1, 1, 0], scale: [0.7, 1.15, 1, 0.9] }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.2, 0.7, 1] }}
+                    >
+                      {isCheer ? `+${fmtCompact(f.amount)} 🙌` : `+${fmtCompact(f.amount)} 💎`}
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </div>
+
+            {/* Punishment-phase caption — viewers see HP bar is locked but
+                cheers are still tracked off-bar for the loser. */}
+            {inPunishment && (
+              <motion.div
+                key="pk-punishment-caption"
+                className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  background: "linear-gradient(135deg, rgba(239,68,68,0.35), rgba(76,29,149,0.35))",
+                  border: "1px solid rgba(252,165,165,0.45)",
+                  boxShadow: "0 0 10px rgba(239,68,68,0.35)",
+                }}
+              >
+                <span
+                  className="text-[9px] font-black tracking-[0.18em] uppercase text-rose-100"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.55)" }}
+                >
+                  Punishment · HP Locked
+                </span>
+              </motion.div>
+            )}
+
+
 
             {/* Raw count micro-text above each half */}
             <div className="flex justify-between mb-0.5 px-0.5">
