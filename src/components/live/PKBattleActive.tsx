@@ -145,6 +145,13 @@ export const PKBattleActive = ({
     kind: "score" | "cheer";
   };
   const [deltaFloats, setDeltaFloats] = useState<DeltaFloat[]>([]);
+  // Per-side accumulated rescue (cheer-gift) coins during punishment phase.
+  // Separate from HP score (which is server-locked at 0 during punishment).
+  // Resets when a new battle starts or when battle leaves punishment phase.
+  const [rescueTally, setRescueTally] = useState<{ challenger: number; opponent: number }>({
+    challenger: 0,
+    opponent: 0,
+  });
 
   const prevChallengerRef = useRef(0);
   const prevOpponentRef = useRef(0);
