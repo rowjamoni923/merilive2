@@ -1,6 +1,10 @@
 // Migrated from Gmail SMTP → Lovable Email queue (unlimited, queued, retry-safe)
 // Sends signup verification OTP via the unified premium otp-code template.
+// R2-C3: OTP is now generated server-side ONLY and persisted to `email_otps`.
+// The code is NEVER returned to the client (previously leaked via response and
+// allowed client-side compare → trivial DevTools bypass).
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendOtpEmail } from "../_shared/send-otp-email.ts";
 
 const corsHeaders = {
