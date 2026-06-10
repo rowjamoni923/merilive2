@@ -130,11 +130,13 @@ export function CallProvider({ children }: CallProviderProps) {
 
   // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
   // every time the caller's wallet or the call's per-minute rate changes.
-  // No-op on web / iOS / older APKs. Hook verifies caller side internally
-  // by reading `private_calls.caller_id` so host-side mounts cost nothing.
+  // No-op on web / iOS / older APKs.
+  // H-13: parent already tracks isHost — pass it so the hook can short-circuit
+  // before any DB query on the host side (was paying for 2 SELECTs per mount).
   useNativeCallBillingSync({
     userId,
     callId: callState.callId,
+    isHost,
   });
 
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
