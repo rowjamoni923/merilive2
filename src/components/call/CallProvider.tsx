@@ -174,7 +174,7 @@ export function CallProvider({ children }: CallProviderProps) {
           const { data: finalCallData } = await supabase
             .from('private_calls')
             .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
-            .eq('id', callState.callId)
+            .eq('id', snapCallId)
             .single();
 
           if (finalCallData) {
