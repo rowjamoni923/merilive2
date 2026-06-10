@@ -72,12 +72,13 @@ export function FullScreenPromoBanners() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    // Permanent per-user dismiss — once the user has closed, skipped, let
-    // auto-close fire, clicked the banner, or submitted proof, never show
-    // this banner again on this device.
-    if (typeof window !== "undefined" && localStorage.getItem(ratingBannerDismissedKey(user.id)) === "1") {
-      return false;
-    }
+    // One-time cleanup of the legacy per-device dismiss flag.
+    // The previous build dismissed the banner permanently on Skip / X /
+    // auto-close — that broke the rule "show to every new user until they
+    // actually rate". The only source of truth now is `rating_reward_claims`:
+    // if a row exists for this user (pending / approved / rejected) → never
+    // show again. Otherwise → keep showing (once per session, 40s-2min in).
+    try { localStorage.removeItem(ratingBannerDismissedKey(user.id)); } catch { /* ignore */ }
 
     const { data: settingData } = await supabase
       .from("app_settings")
@@ -94,12 +95,7 @@ export function FullScreenPromoBanners() {
       .eq("user_id", user.id)
       .limit(1);
 
-    if ((existingClaims?.length ?? 0) > 0) {
-      // User already has at least one submitted claim — also persist the
-      // dismiss flag so the eligibility short-circuits on later loads.
-      try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
-      return false;
-    }
+    if ((existingClaims?.length ?? 0) > 0) return false;
     return true;
   }, []);
 
@@ -137,20 +133,16 @@ export function FullScreenPromoBanners() {
 
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
-    // Permanently dismiss the rating banner for this user on this device —
-    // it will never auto-show again (covers Skip, X, auto-close, and
-    // click-through paths).
-    if (currentBanner?.id === "rating") {
-      void supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
-        }
-      });
-    }
+    // Intentionally DO NOT mark a permanent per-device dismiss here.
+    // Per spec: the rating banner must keep coming to users who have NOT
+    // submitted proof yet (every new session, 40s-2min in). Only an actual
+    // `rating_reward_claims` row blocks future shows — handled in
+    // `isRatingBannerEligible`. SESSION_KEY already prevents re-show
+    // within the same app session.
     setIsVisible(false);
     setCurrentBanner(null);
     setRotationIndex(null);
-  }, [advanceRotation, rotationIndex, currentBanner?.id]);
+  }, [advanceRotation, rotationIndex]);
 
   useEffect(() => {
     let ratingDelayTimer: number | undefined;
