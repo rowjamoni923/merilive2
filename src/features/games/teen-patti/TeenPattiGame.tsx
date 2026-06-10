@@ -4,8 +4,23 @@ import { Diamond, Volume2, VolumeX, HelpCircle, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useGameSound } from "@/hooks/useGameSound";
-import { placeBet as placeBetService, processWin } from "@/services/gameBalanceService";
+import { updateCachedBalance } from "@/hooks/useUserBalance";
 import { cn } from "@/lib/utils";
+
+// Map server-side rank/suit codes to display strings.
+const RANK_TO_VALUE: Record<number, string> = {
+  1: "A", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7",
+  8: "8", 9: "9", 10: "10", 11: "J", 12: "Q", 13: "K",
+};
+const SUIT_CODE_TO_GLYPH: Record<string, string> = { S: "♠", H: "♥", D: "♦", C: "♣" };
+const HAND_NAME_BY_BAND = (score: number): string => {
+  if (score >= 600) return "Trail";
+  if (score >= 500) return "Pure Sequence";
+  if (score >= 400) return "Sequence";
+  if (score >= 300) return "Color";
+  if (score >= 200) return "Pair";
+  return "High Card";
+};
 
 // Card suits and values
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -135,91 +150,127 @@ export const TeenPattiGame = () => {
     return () => clearInterval(interval);
   }, [phase]);
 
-  const placeBet = async (hand: "A" | "B" | "C") => {
+  // Bets are tracked locally during the betting phase; the server atomically
+  // deducts the *total* at deal time inside teen_patti_play(). This prevents
+  // a partial-deduction race if the round ends mid-bet.
+  const placeBet = (hand: "A" | "B" | "C") => {
     if (phase !== "betting") return;
-    
+
     if (!userId) {
       toast.error("Please login to play");
       return;
     }
 
-    // Server is source of truth — no client-side stale-balance pre-check.
-    const betResult = await placeBetService(userId, "teen-patti", "Teen Patti", selectedChip);
-
-    if (!betResult.success) {
-      const bal = (betResult as any).newBalance;
-      const msg = /insufficient/i.test(betResult.error || '')
-        ? `Not enough diamonds${typeof bal === 'number' ? ` (you have ${bal.toLocaleString()})` : ''}`
-        : (betResult.error || "Failed to place bet");
-      toast.error(msg);
+    const myTotal = bets.A + bets.B + bets.C;
+    const projected = myTotal + selectedChip;
+    if ((profile?.coins ?? 0) < projected) {
+      toast.error(`Not enough diamonds (you have ${(profile?.coins ?? 0).toLocaleString()})`);
       return;
     }
 
-    setProfile(prev => prev ? { ...prev, coins: betResult.newBalance || 0 } : null);
     setBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     setAllBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     playBetSound();
   };
 
-  const dealCards = useCallback(() => {
+  // Server-authoritative deal: one RPC deducts the total bet, shuffles a real
+  // deck, deals three hands, evaluates standard Teen Patti rankings, and
+  // credits 2x on the player's bet on the winning hand — all in one
+  // transaction. The client only renders what the server returns.
+  const dealCards = useCallback(async () => {
     setPhase("revealing");
-    
-    // Create and shuffle deck
-    const deck = shuffleDeck(createDeck());
-    
-    // Deal 3 cards to each hand
-    const handA: Card[] = [deck[0], deck[1], deck[2]];
-    const handB: Card[] = [deck[3], deck[4], deck[5]];
-    const handC: Card[] = [deck[6], deck[7], deck[8]];
 
-    const evalA = evaluateHand(handA);
-    const evalB = evaluateHand(handB);
-    const evalC = evaluateHand(handC);
+    if (!userId) {
+      // No login → no deal. Reset.
+      setPhase("betting");
+      setBets({ A: 0, B: 0, C: 0 });
+      setAllBets({ A: 0, B: 0, C: 0 });
+      setTimeLeft(30);
+      return;
+    }
 
-    setHands({
-      A: { cards: handA, ...evalA },
-      B: { cards: handB, ...evalB },
-      C: { cards: handC, ...evalC }
+    const totalBet = bets.A + bets.B + bets.C;
+    if (totalBet <= 0) {
+      // No bet → nothing to play; restart betting phase.
+      setPhase("betting");
+      setTimeLeft(30);
+      return;
+    }
+
+    const { data, error } = await supabase.rpc('teen_patti_play', {
+      p_bet_a: bets.A,
+      p_bet_b: bets.B,
+      p_bet_c: bets.C,
     });
 
-    // Reveal cards one by one
-    setTimeout(async () => {
+    if (error) {
+      console.error('[TeenPatti] play error:', error);
+      toast.error("Failed to deal");
+      setPhase("betting");
+      setBets({ A: 0, B: 0, C: 0 });
+      setAllBets({ A: 0, B: 0, C: 0 });
+      setTimeLeft(30);
+      return;
+    }
+
+    const result = (data ?? {}) as any;
+    if (!result.success) {
+      const bal = typeof result.new_balance === 'number' ? result.new_balance : undefined;
+      if (bal !== undefined) {
+        setProfile(prev => prev ? { ...prev, coins: bal } : null);
+        updateCachedBalance(bal);
+      }
+      const msg = result.error === 'Insufficient diamonds' && bal !== undefined
+        ? `Not enough diamonds (you have ${bal.toLocaleString()})`
+        : (result.error || "Failed to deal");
+      toast.error(msg);
+      setPhase("betting");
+      setBets({ A: 0, B: 0, C: 0 });
+      setAllBets({ A: 0, B: 0, C: 0 });
+      setTimeLeft(30);
+      return;
+    }
+
+    // Build displayable hands from the server payload.
+    const buildHand = (h: any): Hand => ({
+      cards: (h.ranks as number[]).map((r, i) => ({
+        suit: SUIT_CODE_TO_GLYPH[h.suits[i]] ?? "?",
+        value: RANK_TO_VALUE[r] ?? String(r),
+        rank: r,
+      })),
+      score: h.score,
+      name: HAND_NAME_BY_BAND(h.score),
+    });
+
+    const winningHand = result.winner as "A" | "B" | "C";
+    const winAmount: number = result.win_amount ?? 0;
+    const newBal: number = result.new_balance ?? (profile?.coins ?? 0);
+
+    setHands({
+      A: buildHand(result.hands.A),
+      B: buildHand(result.hands.B),
+      C: buildHand(result.hands.C),
+    });
+
+    setTimeout(() => {
       setCardsRevealed(true);
       playCardFlip();
-      
-      // Determine winner
-      setTimeout(async () => {
-        const scores = { A: evalA.score, B: evalB.score, C: evalC.score };
-        const winningHand = Object.entries(scores).reduce((a, b) => 
-          a[1] > b[1] ? a : b
-        )[0] as "A" | "B" | "C";
-        
+
+      setTimeout(() => {
         setWinner(winningHand);
         setPhase("result");
         setRecentWinners(prev => [winningHand, ...prev.slice(0, 9)]);
+        setProfile(prev => prev ? { ...prev, coins: newBal } : null);
+        updateCachedBalance(newBal);
 
-        // Calculate winnings
-        const myBetOnWinner = bets[winningHand];
-        const totalBet = bets.A + bets.B + bets.C;
-        
-        if (myBetOnWinner > 0 && userId) {
-          const winAmount = myBetOnWinner * 2;
-          
-          // Process win using service
-          const winResult = await processWin(userId, "teen-patti", "Teen Patti", winAmount, 2);
-          
-          if (winResult.success) {
-            setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
-          }
-          
+        if (winAmount > 0) {
           playWinSound();
           toast.success(`🎉 ${winningHand} wins! You won ${winAmount.toLocaleString()} Diamonds!`);
-        } else if (totalBet > 0) {
+        } else {
           playLoseSound();
           toast.error(`${winningHand} wins! Better luck next time!`);
         }
 
-        // Reset for next round
         setTimeout(() => {
           setPhase("betting");
           setBets({ A: 0, B: 0, C: 0 });
