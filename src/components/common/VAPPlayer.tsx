@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
-import { detectVapSideBySideLayout, isLikelyVapCompositeSize } from '@/utils/vapDetection';
+import { detectVapSideBySideLayout, isLikelyVapCompositeSize, detectVapLayoutWithSeek, getCachedVapLayout } from '@/utils/vapDetection';
 import { useNativeVAPAttempt } from '@/hooks/useNativeVAPAttempt';
 
 interface VAPConfig {
@@ -39,11 +39,12 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
   cancelVideoFrameCallback?: (handle: number) => void;
 };
 
-const getAutoVapRects = (video: HTMLVideoElement) => {
-  const layout = detectVapSideBySideLayout(video) || 'alpha-right';
+const getAutoVapRects = (video: HTMLVideoElement, srcUrl?: string) => {
+  const cached = srcUrl ? getCachedVapLayout(srcUrl) : null;
+  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-right';
   return layout === 'alpha-left'
-    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1] }
-    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1] };
+    ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1], layout }
+    : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1], layout };
 };
 
 const shouldUsePerformanceVideoFallback = (video: HTMLVideoElement, cfg: VAPConfig | null): boolean => {
