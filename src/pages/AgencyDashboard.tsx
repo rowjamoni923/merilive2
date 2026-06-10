@@ -781,7 +781,7 @@ const AgencyDashboard = () => {
             <div className="flex items-start gap-3">
               {agency.logo_url ? (
                 <img loading="lazy" decoding="async" 
-                  src={agency.logo_url} 
+                  src={enhanceThumbnail(agency.logo_url, { width: 96, quality: 85 })} 
                   alt={agency.name}
                   className="w-12 h-12 rounded-xl object-cover border-2 border-white/30 shadow-lg"
  />
