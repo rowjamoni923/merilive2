@@ -12113,6 +12113,7 @@ export type Database = {
           created_at: string
           id: string
           is_winner: boolean | null
+          multiplier: number
           session_id: string
           user_id: string
           win_amount: number | null
@@ -12124,6 +12125,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_winner?: boolean | null
+          multiplier?: number
           session_id: string
           user_id: string
           win_amount?: number | null
@@ -12135,6 +12137,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_winner?: boolean | null
+          multiplier?: number
           session_id?: string
           user_id?: string
           win_amount?: number | null
@@ -16855,6 +16858,14 @@ export type Database = {
         Args: { p_host_id: string }
         Returns: number
       }
+      _roulette_is_winner: {
+        Args: { p_bet_type: string; p_n: number }
+        Returns: boolean
+      }
+      _roulette_official_multiplier: {
+        Args: { p_bet_type: string }
+        Returns: number
+      }
       accept_pk_battle: { Args: { p_battle_id: string }; Returns: string }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       accept_seat_invitation: {
@@ -20438,6 +20449,14 @@ export type Database = {
       }
       roulette_get_or_create_session: {
         Args: { p_duration_seconds?: number }
+        Returns: Json
+      }
+      roulette_place_bet: {
+        Args: { p_amount: number; p_bet_type: string; p_session_id: string }
+        Returns: Json
+      }
+      roulette_spin_and_settle: {
+        Args: { p_session_id: string }
         Returns: Json
       }
       roulette_spin_wheel: {
