@@ -146,6 +146,33 @@ serve(async (req) => {
 
     console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.coins}`);
 
+    // R2-H16: idempotency pre-check BEFORE Google API call.
+    // Prevents calling Google (and re-charging if our credit RPC crashed before)
+    // when the purchase_token was already credited to ANY user.
+    const { data: existingTx } = await adminSupabase
+      .from('recharge_transactions')
+      .select('id, user_id, coins_received')
+      .eq('payment_method', 'google_play')
+      .eq('transaction_id', purchaseToken)
+      .maybeSingle();
+
+    if (existingTx) {
+      if (existingTx.user_id === userId) {
+        const { data: prof } = await adminSupabase
+          .from('profiles').select('coins').eq('id', userId).maybeSingle();
+        return new Response(JSON.stringify({
+          success: true,
+          alreadyProcessed: true,
+          coins: existingTx.coins_received ?? productInfo.coins,
+          newBalance: prof?.coins ?? 0,
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      console.error(`[verify-google-purchase] ❌ purchase_token already used by different user`);
+      return new Response(JSON.stringify({ success: false, error: 'purchase_token_already_used' }), {
+        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // 🔐 Verify with Google Play Developer API
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
     if (!serviceAccountJson) {
