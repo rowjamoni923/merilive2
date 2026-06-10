@@ -76,7 +76,7 @@ const ConversationRow: React.FC<{
         />
       ) : (
         <Avatar className="w-14 h-14">
-          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+          <AvatarImage src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : undefined} />
           <AvatarFallback className="bg-muted text-muted-foreground">
             {conv.other_user?.display_name?.[0] || "?"}
           </AvatarFallback>
