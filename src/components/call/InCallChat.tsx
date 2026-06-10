@@ -208,31 +208,33 @@ export const InCallChat = memo(({
             </button>
           </div>
 
-          {/* Messages */}
-          <div
-            ref={chatRef}
-            className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[140px] max-h-[30vh] relative"
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            {messages.length === 0 && (
-              <p className="text-white/40 text-xs text-center py-6">
-                Send a message to start chatting…
-              </p>
-            )}
-            {messages.map((msg) => {
-              const isMe = msg.senderId === userId;
-              return (
-                <div key={msg.id} className={cn("w-full flex", isMe ? "justify-end" : "justify-start")}>
-                  <RoomChatBubble
-                    id={msg.id}
-                    userName={isMe ? "You" : msg.senderName}
-                    message={msg.message}
-                    userLevel={1}
-                    isHost={false}
-                  />
-                </div>
-              );
-            })}
+          {/* Messages — relative wrapper so the scroll button floats over the list */}
+          <div className="relative flex-1 min-h-0 flex flex-col">
+            <div
+              ref={chatRef}
+              className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[140px] max-h-[30vh]"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {messages.length === 0 && (
+                <p className="text-white/40 text-xs text-center py-6">
+                  Send a message to start chatting…
+                </p>
+              )}
+              {messages.map((msg) => {
+                const isMe = msg.senderId === userId;
+                return (
+                  <div key={msg.id} className={cn("w-full flex", isMe ? "justify-end" : "justify-start")}>
+                    <RoomChatBubble
+                      id={msg.id}
+                      userName={isMe ? "You" : msg.senderName}
+                      message={msg.message}
+                      userLevel={1}
+                      isHost={false}
+                    />
+                  </div>
+                );
+              })}
+            </div>
             <ScrollToBottomButton
               scrollRef={chatRef}
               className="bottom-2 right-2"
