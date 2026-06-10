@@ -166,6 +166,19 @@ export function usePartyRoomNativeLiveKit(
         connectionState: ConnectionState.Disconnected,
         nativeParticipants: new Map(),
       }));
+      // Phase 3 #13: party rooms previously had no auto-reconnect on transient
+      // drops (unlike the live-stream path). Brief WiFi/4G dips silently kicked
+      // the user. Mirror live-stream behaviour: attempt one immediate native
+      // reconnect; cleanup() flips deadRef so this is skipped on intentional exits.
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      reconnectTimerRef.current = setTimeout(() => {
+        reconnectTimerRef.current = null;
+        if (deadRef.current) return;
+        nativeLiveKitController.reconnectNow().catch(() => {});
+      }, 500);
     },
   }, roomId ? { scope: 'party', id: roomId } : undefined);
   useNativeLiveKitLifecycle(state.isNativeMediaActive);
