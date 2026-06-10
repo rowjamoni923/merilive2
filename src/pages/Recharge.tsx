@@ -317,7 +317,7 @@ const Recharge = () => {
       } catch (fallbackErr) {
         console.error('[Recharge] Both FX sources failed:', fallbackErr);
         recordClientError({ label: "Recharge.data", message: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr) });
-        toast.error('Could not load currency rates. International prices may be inaccurate.', { duration: 5000 });
+        toast({ title: 'Currency rates unavailable', description: 'International prices may be inaccurate. Please retry shortly.', variant: 'destructive' });
       }
     };
     fetchInternationalRates();
