@@ -328,3 +328,16 @@ Research-locked (Bigo/Chamet/TikTok LIVE teardown): bottom-left stacking pill qu
 - PK Result: MVP avatar/name/coins ✅, winner confetti + gift-rain ✅, loser grayscale fade ✅.
 - Post-subagent QA hardening ✅: fixed PKBattleActive score-update subscription churn (score changes no longer recreate Supabase channel/listener), removed fragile `Parameters<typeof applyRow>` typing, cleaned PKTopContributors `any` casts + profile render hack, and replaced combo dismiss reconstructed key with stored lane key.
 - Sources/benchmarks: Bigo LIVE PK docs (PK duel + gifts), Chamet/Poppo BitTopup 2026 PK writeups (70/30 + gift-driven ranking), Tencent/TUILiveKit battle UX patterns; implemented as React/WebView presentation only, LiveKit/Supabase authority unchanged. APK rebuild NOT required.
+
+**Layer 2 PK Punishment-Phase + Auth — ✅ COMPLETE 2026-06-10**
+- CR-5: `pk-battle-tick` edge fn — service-role bearer OR `CRON_SECRET` x-cron-secret enforced (constant-time compare, 401 on miss). Verified in code.
+- H-8 backend: `bill_pk_gift` + `pk_battle_send_gift` insert `score_value=0` and skip `host1_score/host2_score` updates while `phase='punishment'`. HP bar locked = Bigo/Chamet/Poppo standard.
+- H-8 frontend (full polish):
+  - Cheer floaters (`+N 🙌` amber) during punishment, distinct from active-phase `+N 💎` floaters.
+  - "Punishment · HP Locked" pill above HP bar so the frozen bar is intentional, not a bug.
+  - Per-side **rescue tally meter** under the HP bar accumulating cheer-gift coins per side + "Send gifts to support" CTA between them (always visible during punishment, 0 → 1.2K with scale pulse on each gift). Resets when battle ID changes or punishment ends.
+  - Loser-half pulse: existing red-stripe wash now pulses opacity 0.7→1→0.7 (1.2s loop) for stronger "loser" affordance.
+  - Punishment countdown MM:SS in the result banner (already present, re-verified).
+  - Loser host's mic auto-muted for full punishment window via `pk:loser-mic` window event (already present).
+- Sources: Bigo LIVE PK punishment-phase teardown, Chamet L5 70/30 + rescue-meter (BitTopup 2026), Poppo PK 1v1 coin-strategy guide, Tencent TUILiveKit BattleConfig.
+- Files: `src/components/live/PKBattleActive.tsx`. APK rebuild NOT required (pure web/React presentation).
