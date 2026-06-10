@@ -1933,7 +1933,17 @@ const Auth = () => {
 
     setOtpLoading(true);
     try {
-      if (otpCode === expectedOtpCode) {
+      // R2-C3: server-side OTP verification. The code never leaves the server.
+      const { data: verifyData, error: verifyErr } = await supabase.functions.invoke(
+        'verify-email-otp',
+        { body: { email, otp: otpCode, purpose: 'register' } },
+      );
+      const verified =
+        !verifyErr &&
+        verifyData &&
+        (verifyData as { success?: boolean; verified?: boolean }).success === true &&
+        (verifyData as { verified?: boolean }).verified === true;
+      if (verified) {
         // 🛡️ PERMANENT BAN GUARD — block signup if device/IP/face is on the urgent ban list
         try {
           const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
