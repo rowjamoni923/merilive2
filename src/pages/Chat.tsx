@@ -201,8 +201,11 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content
     .replace(/\[Gift:\s*[^|\s\]]+\|/i, '[Gift: ')
-    // Strip optional trailing |snd:URL field before final ] so preview regex matches
-    .replace(/\|\s*snd:[^|\]]+/i, '');
+    // Strip optional trailing fields before final ] so preview regex matches
+    .replace(/\|\s*snd:[^|\]]+/i, '')
+    .replace(/\|\s*fmt:[^|\]]+/i, '')
+    .replace(/\|\s*cfg:[^|\]]+/i, '')
+    .replace(/\|\s*\+\d+\s*lucky/i, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
   const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
@@ -937,12 +940,17 @@ const Chat = () => {
         
         // Get beans amount from response for message
         const beansEarned = response.hostReceived || Math.floor(totalCost * 0.6);
-        
+        // 🎰 Lucky-gift diamond bonus (random payout for is_lucky gifts)
+        const luckyBonus = response.isLucky && (response.diamondBonus || 0) > 0
+          ? (response.diamondBonus || 0)
+          : 0;
+        const luckySuffix = luckyBonus > 0 ? ` | +${luckyBonus} lucky` : '';
+
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
-        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
+        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | +LUCKY lucky]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${luckySuffix}${formatSuffix}${configSuffix}${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${luckySuffix}${formatSuffix}${configSuffix}${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
@@ -2625,6 +2633,7 @@ const Chat = () => {
                           const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
+                          const luckyMatch = content.match(/\+(\d+)\s*lucky/i);
                           const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
                           const giftName = nameMatch?.[1]?.trim() || '';
 
@@ -2640,6 +2649,7 @@ const Chat = () => {
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
                           const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
+                          const luckyAmount = luckyMatch ? luckyMatch[1] : null;
 
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
@@ -2714,6 +2724,22 @@ const Chat = () => {
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
+                              ) : null}
+
+                              {/* 🎰 Lucky Gift bonus — only sender sees their bonus diamonds */}
+                              {isMine && luckyAmount && Number(luckyAmount) > 0 ? (
+                                <motion.div
+                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
+                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  transition={{ type: 'spring', stiffness: 320, damping: 16, delay: 0.15 }}
+                                  className="flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full shadow-[0_2px_10px_rgba(168,85,247,0.45)] bg-gradient-to-r from-amber-400 via-fuchsia-500 to-purple-500 border border-white/30"
+                                >
+                                  <span className="text-[9px]">🎰</span>
+                                  <img loading="lazy" decoding="async" src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
+                                  <span className="text-[9px] font-black text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
+                                    +{Number(luckyAmount).toLocaleString()}
+                                  </span>
+                                </motion.div>
                               ) : null}
                               
                               {/* Timestamp + Status */}
