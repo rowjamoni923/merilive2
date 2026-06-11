@@ -26,8 +26,8 @@ export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelect
         <span className="text-white/70 text-sm">{balance.toLocaleString()}</span>
       </div>
 
-      {/* Chips row */}
-      <div className="flex justify-center items-end gap-3">
+      {/* Chips row — horizontal scroll on narrow screens so all chips reachable */}
+      <div className="flex justify-center items-end gap-2 overflow-x-auto px-2 pb-1 -mx-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CHIPS.map((chip) => {
           const isSelected = selectedChip === chip.value;
           const isDisabled = balance < chip.value;
