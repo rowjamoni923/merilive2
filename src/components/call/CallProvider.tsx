@@ -143,7 +143,40 @@ export function CallProvider({ children }: CallProviderProps) {
     }
   }, [incomingCall, callState.callId, callState.status]);
 
-  // ✅ SIMPLIFIED: Single source of truth for call-end detection
+  // Pro single-camera lifecycle (Chamet/Bigo): start native LiveKit
+  // prejoin preview the moment an incoming OR outgoing call exists, so
+  // the accepted call connect path reuses the SAME LocalVideoTrack via
+  // promotePreviewToSession — no Camera2 re-open, no black flash at
+  // accept. Private calls are always video in this app.
+  useEffect(() => {
+    if (!isNativeAndroidApp()) return;
+    const callIsActive = !!incomingCall || callState.status === 'calling' || callState.status === 'ringing';
+    if (!callIsActive) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await nativeLiveKitController.startLocalPreview({
+          lens: 'front',
+          resolution: '720p',
+          mirror: true,
+        });
+      } catch (e) {
+        if (!cancelled) console.warn('[CallProvider] prejoin preview failed (non-fatal):', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [incomingCall, callState.status]);
+
+  // If a ringing/incoming call resolves without ever connecting (decline,
+  // timeout, missed), release the prejoin Camera2 slot.
+  useEffect(() => {
+    if (!isNativeAndroidApp()) return;
+    if (callState.status === 'ended' || (!incomingCall && callState.status === 'idle')) {
+      nativeLiveKitController.stopLocalPreview().catch(() => {});
+    }
+  }, [callState.status, incomingCall]);
+
+
   // usePrivateCall handles ALL detection (broadcast + realtime + polling)
   // and sets status='ended' while keeping call data intact for CallEndedModal
   useEffect(() => {
