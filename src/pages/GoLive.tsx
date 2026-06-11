@@ -552,6 +552,41 @@ const GoLive = () => {
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
 
+  // Silent camera auto-start (permissions already granted): waits for the
+  // ProCamera arbiter slot, then runs the SAME preview pipeline the Allow
+  // button uses — no popup, no second camera, no restart. If the start fails
+  // (e.g. permission revoked in phone Settings), fall back to the primer.
+  useEffect(() => {
+    if (!autoStartCamera || autoStartDoneRef.current) return;
+    if (proCamera.error) { setAutoStartCamera(false); return; }
+    if (!proCamera.ready) return;
+    autoStartDoneRef.current = true;
+    setAutoStartCamera(false);
+
+    void (async () => {
+      try {
+        if (isNativeAndroid) {
+          const previewStarted = await startNativePreview();
+          if (!previewStarted) {
+            toast.error('Camera preview unavailable. Please update the app to the latest build.');
+          }
+          return;
+        }
+        const mediaStream = await getCameraStream(true);
+        if (!mediaStream) throw new Error('Failed to get camera stream');
+        setStream(mediaStream);
+        setFacingMode('user');
+        attachWebPreviewStream(mediaStream);
+      } catch (error: any) {
+        console.warn('[GoLive] Silent camera auto-start failed:', error?.name, error?.message || error);
+        recordClientError({ label: 'GoLive.autoStartCamera', message: error instanceof Error ? error.message : String(error) });
+        setShowPermissionPrompt(true);
+      }
+    })();
+  }, [autoStartCamera, proCamera.ready, proCamera.error, isNativeAndroid, startNativePreview, getCameraStream, attachWebPreviewStream]);
+
+
+
   useEffect(() => {
     if (!currentUserId) return;
 
