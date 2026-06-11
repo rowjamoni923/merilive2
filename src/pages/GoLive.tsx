@@ -40,6 +40,7 @@ import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from 
 import { useProCamera } from "@/camera/useProCamera";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
+import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -273,6 +274,11 @@ const GoLive = () => {
     location: false,
   });
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  // Professional flow (Chamet/Bigo): when OS-level camera+mic are ALREADY
+  // granted, the primer popup is skipped and the preview camera auto-starts
+  // silently. The popup is a first-time-only experience.
+  const [autoStartCamera, setAutoStartCamera] = useState(false);
+  const autoStartDoneRef = useRef(false);
   const [userLocation, setUserLocation] = useState<{ city: string; country: string; flag: string } | null>(null);
   
   // Live ban state
