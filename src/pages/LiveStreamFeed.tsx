@@ -105,9 +105,26 @@ export default function LiveStreamFeed() {
       () => fetchStreams()
     );
 
+    // Instant-close: drop streams the moment the host marks them inactive.
+    const instantCloseChannel = supabase
+      .channel(`live-feed-instant-close-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'live_streams' },
+        (payload: any) => {
+          const row = payload?.new;
+          if (!row) return;
+          if (row.is_active === false || row.status === 'ended' || row.ended_at) {
+            setStreams((prev) => prev.filter((s) => s.id !== row.id));
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
       unsubscribe();
+      supabase.removeChannel(instantCloseChannel);
     };
   }, [currentStreamId]);
 
