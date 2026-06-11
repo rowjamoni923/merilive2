@@ -9,12 +9,21 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "load
   wrapperClassName?: string;
   /** Kept for API compatibility — viewport gating is disabled now. */
   rootMargin?: string;
+  /** Force eager + high priority for above-the-fold hero images. Defaults to false. */
+  priority?: boolean;
 }
 
 /**
- * Eager image loader. Formerly viewport-gated via IntersectionObserver, but
- * per user mandate ("no image loads in pieces, everything instant") we now
- * load the real src immediately. API preserved so callers compile unchanged.
+ * Image loader. Per user mandate ("no image loads in pieces, everything
+ * instant") we no longer gate behind IntersectionObserver. We DO use the
+ * browser's native `loading="lazy"` (which only defers far-off-screen images,
+ * cheap and standards-based) plus `decoding="async"` so paint is never blocked.
+ *
+ * Fix vs prior version: previously we set BOTH loading="lazy" AND
+ * fetchpriority="high" on every image, which contradicts each other and
+ * confuses Chrome's resource scheduler. Now:
+ *  - default: native lazy + auto fetchpriority (browser decides)
+ *  - priority={true}: eager + high (hero / LCP images)
  */
 export const LazyImage = ({
   src,
@@ -23,6 +32,7 @@ export const LazyImage = ({
   wrapperClassName: _wrapperClassName,
   className,
   rootMargin: _rootMargin,
+  priority = false,
   onError,
   onLoad,
   ...rest
@@ -32,12 +42,17 @@ export const LazyImage = ({
   const normalizedPlaceholder = useMemo(() => normalizePublicMediaUrl(placeholder), [placeholder]);
   const showSrc = !errored ? normalizedSrc : normalizedPlaceholder;
 
+  const priorityAttrs = priority
+    ? ({ loading: "eager", fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)
+    : ({ loading: "lazy", fetchpriority: "auto" } as ImgHTMLAttributes<HTMLImageElement>);
+
   return (
-    <img loading="lazy" decoding="async"
+    <img
+      decoding="async"
+      {...priorityAttrs}
       {...rest}
       src={showSrc || placeholder || undefined}
       alt={alt}
-      {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
       className={cn(className)}
       onLoad={(e) => onLoad?.(e)}
       onError={(e) => {
