@@ -152,6 +152,19 @@ const CreateParty = () => {
         if (videoMode) {
           const mediaPermission = await getCameraStream(true);
           if (mediaPermission) setStream(mediaPermission);
+          // Pro single-camera lifecycle (Chamet/Bigo): start the native
+          // LiveKit prejoin camera NOW so PartyRoom can reuse the SAME
+          // LocalVideoTrack via promotePreviewToSession — no Camera2
+          // re-open between Create Party → Party Room.
+          try {
+            await nativeLiveKitController.startLocalPreview({
+              lens: 'front',
+              resolution: '1080p',
+              mirror: true,
+            });
+          } catch (e) {
+            console.warn('[CreateParty] native prejoin preview failed (non-fatal):', e);
+          }
         } else {
           const micGranted = await requestMicrophonePermission();
           if (!micGranted) throw new Error("Microphone permission denied.");
