@@ -317,13 +317,31 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     ? isOwnerProp
     : !!(userId && viewerId && userId === viewerId);
 
-  const effectiveSrc = useMemo(() => {
+  // 🚨 Avatar load fix: keep a stable "current src" with onError retry.
+  // The original URL is always tried first; if it fails (e.g. transient CDN
+  // hiccup) we retry once with a cache-bust before falling through to the
+  // letter fallback. This prevents the screenshot bug where the FRAME loads
+  // but the avatar photo silently 404s and the user only sees a letter.
+  const originalSrc = useMemo(() => {
     if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
     if (!userId) return undefined;
     if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
-    // Default to female pool when gender unknown (host-first product).
     return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
   }, [hasRealSrc, src, userId, isOwner, resolvedGender]);
+  const [imgSrc, setImgSrc] = useState<string | undefined>(originalSrc);
+  const retriedRef = useRef(false);
+  useEffect(() => {
+    setImgSrc(originalSrc);
+    retriedRef.current = false;
+  }, [originalSrc]);
+  const handleAvatarError = useCallback(() => {
+    if (retriedRef.current || !originalSrc) return;
+    retriedRef.current = true;
+    // Cache-bust retry once; if this also fails, AvatarFallback renders.
+    const bust = originalSrc.includes('?') ? '&' : '?';
+    setImgSrc(`${originalSrc}${bust}_r=${Date.now()}`);
+  }, [originalSrc]);
+  const effectiveSrc = imgSrc;
 
   const sizeConfig = sizeConfigs[size];
 

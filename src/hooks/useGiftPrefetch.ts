@@ -101,7 +101,30 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
         }));
         seedAnimationHints(giftCache.gifts);
+        // Warm icons (top 8) instantly so the panel grid renders zero-latency.
         warmGiftUrlsForInstantPlay(giftCache.gifts.slice(0, 8).flatMap((gift) => [gift.icon_url]));
+        // 🚨 First-play fix: also warm the top 12 ANIMATION assets (MP4/SVGA
+        // + sibling .json config) in the background at LOW priority + small
+        // byte cap. This makes the very first send of popular gifts a cache
+        // hit instead of a cold network fetch — eliminating the "first play
+        // shows nothing, second play works" symptom. Persisted to Cache API
+        // so it survives reloads.
+        const topAnimAssets = giftCache.gifts.slice(0, 12).flatMap((g) => [
+          g.animation_url,
+          g.animation_config_url,
+        ]);
+        if (typeof window !== 'undefined' && topAnimAssets.length) {
+          import('@/utils/vapWarmup')
+            .then((m) =>
+              m.warmupVapUrls(topAnimAssets, {
+                warmJsonSibling: true,
+                priority: 'low',
+                maxBytes: 4 * 1024 * 1024,
+                persist: true,
+              }),
+            )
+            .catch(() => {});
+        }
         giftCache.timestamp = Date.now();
         listeners.forEach(cb => cb());
       }
