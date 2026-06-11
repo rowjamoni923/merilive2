@@ -41,7 +41,7 @@ export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelect
               onClick={() => !isDisabled && onSelectChip(chip.value)}
               disabled={isDisabled}
               className={cn(
-                "relative w-14 h-14 rounded-full transition-shadow",
+                "relative w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-shadow shrink-0",
                 isDisabled && "opacity-30 cursor-not-allowed"
               )}
             >
