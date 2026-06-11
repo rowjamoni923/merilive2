@@ -45,57 +45,57 @@ const getNumberColor = (num: number): 'red' | 'black' | 'green' => {
 
 const NUMBERS = Array.from({ length: 37 }, (_, i) => i);
 
-// 3D Roulette Ball Component - FIXED: Ball stays at TOP (12 o'clock position)
-// In real roulette, the ball indicator/pointer is fixed at the TOP of the wheel
-// The winning number is whichever segment is at the TOP when wheel stops
-// Ball is placed OUTSIDE the rotating wheel so it doesn't rotate with it
-const RouletteBall = ({ 
-  isSpinning, 
-  finalAngle // The angle where the winning segment will be after wheel stops
-}: { 
-  isSpinning: boolean; 
-  finalAngle: number;
-}) => {
-  // Ball is always at the TOP of the wheel (12 o'clock position)
-  // This is where the winning number will be shown after the wheel stops rotating
-  const ballRadius = 80; // Distance from center (on the number ring outer edge)
-  
-  // TOP position = -90 degrees in CSS (12 o'clock)
-  const topAngleRad = -90 * (Math.PI / 180);
-  const ballX = Math.cos(topAngleRad) * ballRadius; // = 0
-  const ballY = Math.sin(topAngleRad) * ballRadius; // = -80 (top)
-  
+// --- Professional SVG wheel helpers (premium casino look, GPU-smooth) ---
+const SEG_ANGLE = 360 / WHEEL_ORDER.length; // ≈ 9.73°
+const polar = (cx: number, cy: number, r: number, deg: number) => {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+};
+const arcPath = (
+  cx: number, cy: number,
+  rOuter: number, rInner: number,
+  startDeg: number, endDeg: number,
+) => {
+  const p1 = polar(cx, cy, rOuter, startDeg);
+  const p2 = polar(cx, cy, rOuter, endDeg);
+  const p3 = polar(cx, cy, rInner, endDeg);
+  const p4 = polar(cx, cy, rInner, startDeg);
+  const large = endDeg - startDeg > 180 ? 1 : 0;
+  return `M ${p1.x} ${p1.y} A ${rOuter} ${rOuter} 0 ${large} 1 ${p2.x} ${p2.y} L ${p3.x} ${p3.y} A ${rInner} ${rInner} 0 ${large} 0 ${p4.x} ${p4.y} Z`;
+};
+
+// Premium ivory ball that orbits the outer track on a single rotating layer.
+// Pure CSS transform = no jitter, no keyframe bounce. Lands at top (12 o'clock)
+// where the winning segment sits after the wheel settles.
+const RouletteBall = ({ isSpinning }: { isSpinning: boolean; finalAngle: number }) => {
   return (
     <motion.div
-      className="absolute w-5 h-5 rounded-full z-50 pointer-events-none"
-      style={{
-        background: 'radial-gradient(circle at 30% 30%, #ffffff 0%, #f8f8f8 15%, #e8e8e8 30%, #d0d0d0 50%, #b0b0b0 70%, #909090 100%)',
-        boxShadow: '0 3px 10px rgba(0,0,0,0.9), inset 0 3px 6px rgba(255,255,255,0.9), inset 0 -2px 4px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.3)',
-        left: '50%',
-        top: '50%',
-      }}
-      animate={isSpinning ? {
-        // During spin - ball bounces around the outer edge
-        x: [0, -72, 68, -75, 70, -68, 0],
-        y: [-80, -65, -70, -62, -72, -68, -80],
-        scale: [1, 0.9, 1.1, 0.95, 1.05, 0.98, 1],
-      } : {
-        // After spin - ball stays at the TOP (where winning number is)
-        x: ballX - 10, // -10 to center (half of ball width)
-        y: ballY - 10, // -10 to center (half of ball height)
-        scale: 1,
-      }}
-      transition={isSpinning ? {
-        duration: 3.5,
-        ease: "linear",
-        repeat: Infinity,
-      } : {
-        duration: 0.5,
-        ease: "easeOut",
-      }}
-    />
+      className="absolute inset-0 z-50 pointer-events-none"
+      style={{ willChange: 'transform' }}
+      animate={{ rotate: isSpinning ? -1440 : 0 }}
+      transition={
+        isSpinning
+          ? { duration: 4, ease: [0.15, 0.85, 0.15, 1] }
+          : { duration: 0.6, ease: 'easeOut' }
+      }
+    >
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: 14,
+          height: 14,
+          left: '50%',
+          top: 6,
+          transform: 'translateX(-50%)',
+          background: 'radial-gradient(circle at 30% 28%, #ffffff 0%, #f4f4f4 28%, #d6d6d6 60%, #8e8e8e 100%)',
+          boxShadow:
+            '0 2px 6px rgba(0,0,0,0.85), inset 0 2px 3px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(0,0,0,0.35)',
+        }}
+      />
+    </motion.div>
   );
 };
+
 
 // Auto-play interval (25 seconds betting + 5 seconds spinning = 30 second cycle)
 const AUTO_PLAY_BETTING_TIME = 25000; // 25 seconds betting phase
