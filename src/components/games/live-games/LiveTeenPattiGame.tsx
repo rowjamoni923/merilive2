@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import teenPattiBg from "@/assets/games-bg/teen-patti-bg.jpg";
 
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
@@ -633,9 +634,11 @@ export function LiveTeenPattiGame({
 
   return (
     <div 
-      className="space-y-1 p-1 rounded-xl relative live-game-premium-panel"
+      className="space-y-1 p-1 rounded-xl relative live-game-premium-panel overflow-hidden border border-amber-500/30"
       style={{
-        background: "linear-gradient(180deg, rgba(139,0,0,0.3) 0%, rgba(92,0,0,0.3) 100%)"
+        backgroundImage: `linear-gradient(180deg, rgba(0,10,5,0.55) 0%, rgba(0,10,5,0.72) 100%), url(${teenPattiBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       <div ref={bindLayer} className="live-game-fx-layer" aria-hidden="true" />

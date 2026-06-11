@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import fireWheelBg from "@/assets/games-bg/fire-wheel-bg.jpg";
 
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
@@ -355,7 +356,14 @@ export function LiveFerrisWheelGame({
       {/* WIN/LOSE popup only - Result emoji is shown in Results strip */}
 
       {/* Premium Ferris Wheel Container */}
-      <div className="relative bg-gradient-to-b from-indigo-900/50 via-purple-900/40 to-indigo-900/50 rounded-2xl p-3 border-2 border-purple-500/40 shadow-2xl overflow-hidden">
+      <div
+        className="relative rounded-2xl p-3 border-2 border-amber-500/40 shadow-2xl overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(10,0,0,0.55) 0%, rgba(10,0,0,0.72) 100%), url(${fireWheelBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* Background Particles */}
         <div className="absolute inset-0 overflow-hidden rounded-2xl">
           {[...Array(6)].map((_, i) => (

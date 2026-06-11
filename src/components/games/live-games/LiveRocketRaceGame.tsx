@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import rocketRaceBg from "@/assets/games-bg/rocket-race-bg.jpg";
 import { cn } from "@/lib/utils";
 import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -335,9 +336,11 @@ export function LiveRocketRaceGame({
 
       {/* Premium 3D Space Arena */}
       <div 
-        className="relative rounded-2xl overflow-hidden border-2 border-purple-500/40 shadow-2xl min-h-[320px]"
+        className="relative rounded-2xl overflow-hidden border-2 border-cyan-400/30 shadow-2xl min-h-[320px]"
         style={{
-          background: 'linear-gradient(180deg, #0a0a1f 0%, #1a0a2e 30%, #2d1b4e 60%, #4a1d6e 100%)'
+          backgroundImage: `linear-gradient(180deg, rgba(5,5,20,0.55) 0%, rgba(5,5,20,0.78) 100%), url(${rocketRaceBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
         {/* Animated Stars Background */}
