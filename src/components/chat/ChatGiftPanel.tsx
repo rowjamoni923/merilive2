@@ -309,7 +309,6 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
           <ScrollArea className="w-full">
             <div className="flex gap-1.5 px-4 py-2">
               {availableCategories.map((category) => {
-                const count = getCategoryGifts(category.id).length;
                 const isActive = activeCategory === category.id;
                 return (
                   <button
@@ -324,14 +323,6 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
                   >
                     <span className="text-sm">{category.icon}</span>
                     <span>{category.name}</span>
-                    {count > 0 && (
-                      <span className={cn(
-                        "ml-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-bold",
-                        isActive ? "bg-white/30 text-white" : "bg-muted text-muted-foreground"
-                      )}>
-                        {count}
-                      </span>
-                    )}
                   </button>
                 );
               })}
