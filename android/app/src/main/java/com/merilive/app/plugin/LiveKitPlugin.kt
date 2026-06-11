@@ -1016,8 +1016,39 @@ class LiveKitPlugin : Plugin() {
      * it in retry/backoff logic.
      */
     private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
-        // Go Live handoff — release the pre-connect preview camera FIRST so
-        // the real session can claim Camera2 cleanly. The CameraOwnership
+        // ─────────────────────────────────────────────────────────────────
+        // Pro "single camera capturer lifecycle" handoff (Chamet/Bigo/Agora
+        // pattern, translated to LiveKit Android per
+        // /mnt/documents/preview_to_broadcast_engineering_brief.md).
+        //
+        // If a prejoin preview is currently running AND the session profile
+        // is compatible, PROMOTE the preview Room + LocalVideoTrack into the
+        // live session instead of tearing them down and re-opening Camera2.
+        // Result: zero black flash, zero permission re-prompt, zero
+        // ownership churn — same hardware capture continues into broadcast.
+        //
+        // Compatibility gate (kept narrow on purpose; falls through to the
+        // legacy rebuild path otherwise):
+        //   • not a reconnect (reconnects always rebuild)
+        //   • video session (audio-only doesn't need camera)
+        //   • no E2EE (E2EE options must be set at Room create time)
+        //   • preview is live (previewRoom + previewTrack set)
+        //   • no existing real session
+        // Resolution mismatch is OK — capture frames are downscaled at
+        // encode time, no Camera2 restart needed.
+        val canPromotePreview = !isReconnect &&
+            args.video &&
+            !args.e2eeOn &&
+            previewRoom != null &&
+            previewTrack != null &&
+            room == null
+        if (canPromotePreview) {
+            promotePreviewToSession(args)
+            return
+        }
+
+        // Legacy rebuild path — release the pre-connect preview camera FIRST
+        // so the real session can claim Camera2 cleanly. The CameraOwnership
         // release below arms the OEM settle grace which the claim code
         // already waits for. WebView stays transparent; attachLocal
         // re-mounts the live renderer moments later.
@@ -1323,6 +1354,147 @@ class LiveKitPlugin : Plugin() {
             notifyListeners("connection-state", data)
         }
     }
+
+    /**
+     * Zero-restart preview→broadcast handoff.
+     *
+     * Promotes the prejoin `previewRoom` + `previewTrack` directly into the
+     * live session: the Camera2 device opened by `startLocalPreview` keeps
+     * capturing the entire time, and the SAME `LocalVideoTrack` is published
+     * to the SFU via `publishVideoTrack(track, opts)`.
+     *
+     * This is the Agora `setupLocalVideo + startPreview → joinChannel` flow
+     * translated to LiveKit Android. See engineering brief saved at
+     * /mnt/documents/preview_to_broadcast_engineering_brief.md.
+     *
+     * Caller (`connectInternal`) is responsible for gating eligibility.
+     */
+    private suspend fun promotePreviewToSession(args: ConnectArgs) {
+        val pr = previewRoom
+        val ptrack = previewTrack
+        if (pr == null || ptrack == null) {
+            throw IllegalStateException("promotePreviewToSession called without active preview")
+        }
+        Log.i(TAG, "promotePreviewToSession: reusing preview Camera2 + LocalVideoTrack (no restart)")
+
+        // We already own the Camera2 slot from startLocalPreview — keep it.
+        // Skip CameraOwnership.acquireOrEvictStale, OEM grace, and the
+        // awaitFrontCameraAvailable wait — camera is already running.
+
+        // Reset adaptive ladder for this fresh session.
+        baseTier = AdaptiveTier.HIGH
+        currentTier = baseTier
+        baseLens = if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+        consecutiveExcellent = 0
+        lastTierChangeMs = 0L
+        adaptiveBusy = false
+        audioOnlyActive = false
+
+        // Publish encoding ladder — mirrors connectInternal legacy path.
+        // 1080p Live → 3Mbps + simulcast (H180/H360 + top). 720p call → 2Mbps single-layer.
+        val publishEncoding: VideoEncoding = if (args.resolution == "720p") {
+            VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
+        } else {
+            VideoEncoding(maxBitrate = 3_000_000, maxFps = 30)
+        }
+        val codecForPublish: String? = resolvePublishCodec()
+        // Simulcast layers inherit from RoomOptions.videoTrackPublishDefaults
+        // set at preview Room creation; SFU adapts per-viewer server-side.
+        val videoPublishOptions = VideoTrackPublishOptions(
+            videoEncoding = publishEncoding,
+            simulcast = (args.resolution != "720p"),
+            videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
+        )
+        negotiatedCodec = codecForPublish ?: "auto"
+
+        // Promote: preview Room becomes the live session Room.
+        room = pr
+        previewRoom = null
+        previewTrack = null
+        // Keep `previewRenderer` mounted — it's already showing live frames.
+
+        attachEventListeners(pr)
+        startAudioLevelPoll(pr)
+
+        // Connect over the network. Camera capture continues unaffected.
+        pr.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
+
+        // Bind to Application-scope observer.
+        try {
+            com.merilive.app.rtc.RtcEngineManager.bind(
+                pr,
+                com.merilive.app.rtc.RtcEngineManager.ConnectSummary(
+                    url = args.url,
+                    callType = args.callType,
+                    audioProfile = args.audioProfile,
+                    e2eeEnabled = args.e2eeOn,
+                ),
+            )
+        } catch (t: Throwable) {
+            Log.w(TAG, "RtcEngineManager.bind failed (non-fatal): ${t.message}")
+        }
+
+        // canPublish guard — same as legacy path.
+        try {
+            val perms = pr.localParticipant.permissions
+            if (perms != null && !perms.canPublish) {
+                Log.e(TAG, "canPublish=false on native — refusing to publish silently")
+                try { notifyListeners("publishDenied", JSObject().put("canPublish", false)) } catch (_: Exception) {}
+                throw IllegalStateException("Token denied publish (canPublish=false)")
+            }
+        } catch (e: IllegalStateException) { throw e }
+          catch (_: Throwable) { /* permissions read failed — proceed best-effort */ }
+
+        // ── THE HANDOFF ──
+        // Publish the EXISTING preview track. No createVideoTrack, no
+        // setCameraEnabled, no second Camera2.open(). Just attach the
+        // already-running rtcTrack to the freshly-negotiated PeerConnection.
+        pr.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
+
+        // Mic is independent — opening the mic does NOT touch the camera.
+        if (args.audio) {
+            try { pr.localParticipant.setMicrophoneEnabled(true) }
+            catch (e: Exception) { Log.w(TAG, "mic enable failed: ${e.message}") }
+        }
+
+        // Install stall sink on the promoted track so the watchdog can monitor it.
+        try { installStallSink(ptrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
+        try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+
+        // Standard post-connect setup — copied from connectInternal legacy
+        // path (everything below the Publish-local-tracks block).
+        setKeepScreenOn(true)
+        applyAudioMode(true)
+        setSpeakerphoneInternal(args.video)
+        setProximityMonitoringInternal(!args.video)
+        registerAudioDeviceListener()
+
+        if (args.audioProfile == "music") {
+            try {
+                val hasHeadset = detectHeadsetConnected()
+                if (!hasHeadset) {
+                    val warn = JSObject()
+                    warn.put("reason", "MUSIC_MODE_NO_HEADSET")
+                    warn.put("message", "Use headphones for best music quality")
+                    notifyListeners("music-headphone-warning", warn)
+                }
+            } catch (e: Exception) { Log.w(TAG, "music-headphone check failed: ${e.message}") }
+        }
+        registerHeadsetReceivers()
+        if (headsetButtonsEnabled) startHeadsetMediaSession()
+        micIntentBeforeLoss = args.audio
+        requestAudioFocusInternal()
+        if (args.video || args.audio) {
+            startCallForegroundService(args.callerName, args.callType, args.broadcastMode)
+        }
+        startStallWatchdog()
+        registerNetworkCallback()
+        try { localSid = pr.localParticipant.sid.value } catch (_: Exception) {}
+        startStatsCollector()
+        withContext(Dispatchers.Main) { attachAllRemoteRenderersInternal(pr) }
+    }
+
+
 
     @PluginMethod
     fun disconnect(call: PluginCall) {
