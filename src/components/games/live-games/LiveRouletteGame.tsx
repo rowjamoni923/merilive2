@@ -592,127 +592,100 @@ export function LiveRouletteGame({
               transition={{ duration: 0.5, repeat: isSpinning ? Infinity : 0 }}
             />
 
-            {/* Main Wheel */}
+            {/* Main Wheel — pro casino SVG (GPU-smooth single transform) */}
             <motion.div
-              className="w-48 h-48 rounded-full relative shadow-2xl"
+              className="absolute inset-0 flex items-center justify-center"
               animate={{ rotate: rotation }}
               transition={{ duration: 5, ease: [0.15, 0.85, 0.15, 1] }}
-              style={{
-                boxShadow: '0 0 40px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.3)',
-              }}
+              style={{ willChange: 'transform' }}
             >
-              {/* Outer Golden Ring */}
-              <div 
-                className="absolute inset-0 rounded-full p-1"
-                style={{
-                  background: 'linear-gradient(145deg, #ffd700 0%, #b8860b 30%, #daa520 50%, #b8860b 70%, #ffd700 100%)',
-                }}
+              <svg
+                viewBox="0 0 200 200"
+                className="w-full h-full drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
               >
-                {/* Number Segments - Clean Conic Gradient */}
-                <div 
-                  className="w-full h-full rounded-full relative overflow-hidden"
-                  style={{
-                    background: 'conic-gradient(from -85deg, ' + 
-                      WHEEL_ORDER.map((num, i) => {
-                        const colorType = getNumberColor(num);
-                        const color = colorType === 'green' ? '#16a34a' : colorType === 'red' ? '#dc2626' : '#171717';
-                        const start = (i / 37) * 100;
-                        const end = ((i + 1) / 37) * 100;
-                        return `${color} ${start}%, ${color} ${end}%`;
-                      }).join(', ') + ')',
-                  }}
-                >
-                  {/* Segment Divider Lines */}
-                  {WHEEL_ORDER.map((_, i) => {
-                    const angle = i * (360 / 37);
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-[1px] bg-amber-400/60"
-                        style={{
-                          height: '46%',
-                          left: '50%',
-                          top: '4%',
-                          transformOrigin: 'bottom center',
-                          transform: `translateX(-50%) rotate(${angle}deg)`,
-                        }}
-                      />
-                    );
-                  })}
+                <defs>
+                  <linearGradient id="rouletteGoldRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE9A0" />
+                    <stop offset="35%" stopColor="#D4AF37" />
+                    <stop offset="55%" stopColor="#8B6914" />
+                    <stop offset="100%" stopColor="#FFD86B" />
+                  </linearGradient>
+                  <radialGradient id="rouletteWood" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stopColor="#5C3D2E" />
+                    <stop offset="100%" stopColor="#1F1108" />
+                  </radialGradient>
+                  <radialGradient id="rouletteHub" cx="35%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#FFFDE4" />
+                    <stop offset="40%" stopColor="#FFD700" />
+                    <stop offset="80%" stopColor="#A07314" />
+                    <stop offset="100%" stopColor="#5A3F0A" />
+                  </radialGradient>
+                </defs>
 
-                  {/* Number Labels - Larger & Clearer */}
-                  {WHEEL_ORDER.map((num, i) => {
-                    const angle = i * (360 / 37);
-                    const radius = 78;
-                    const angleRad = (angle - 90) * (Math.PI / 180);
-                    const x = Math.cos(angleRad) * radius;
-                    const y = Math.sin(angleRad) * radius;
-                    
-                    return (
-                      <span
-                        key={num}
-                        className="absolute font-bold text-white select-none"
-                        style={{
-                          left: `calc(50% + ${x}px)`,
-                          top: `calc(50% + ${y}px)`,
-                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                          fontSize: '9px',
-                          fontWeight: 800,
-                          textShadow: '0 1px 3px rgba(0,0,0,1), 0 0 6px rgba(0,0,0,0.8)',
-                          letterSpacing: '-0.3px',
-                        }}
-                      >
-                        {num}
-                      </span>
-                    );
-                  })}
-                  
-                  {/* Inner Golden Ring */}
-                  <div 
-                    className="absolute inset-[38%] rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, #ffd700 0%, #daa520 30%, #b8860b 50%, #8b6914 70%, #daa520 100%)',
-                      boxShadow: '0 0 10px rgba(218,165,32,0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    {/* Center Wood Ring */}
-                    <div 
-                      className="absolute inset-[4px] rounded-full"
+                {/* Outer gold rim */}
+                <circle cx="100" cy="100" r="99" fill="url(#rouletteGoldRim)" />
+                <circle cx="100" cy="100" r="96.5" fill="#0a0a0a" />
+
+                {/* Number segments */}
+                {WHEEL_ORDER.map((num, i) => {
+                  const startDeg = i * SEG_ANGLE - SEG_ANGLE / 2;
+                  const endDeg = startDeg + SEG_ANGLE;
+                  const colorType = getNumberColor(num);
+                  const fill =
+                    colorType === 'green' ? '#0F8A3C'
+                      : colorType === 'red' ? '#C8102E'
+                      : '#141414';
+                  return (
+                    <path
+                      key={`seg-${num}`}
+                      d={arcPath(100, 100, 95, 38, startDeg, endDeg)}
+                      fill={fill}
+                      stroke="#D4AF37"
+                      strokeWidth="0.35"
+                    />
+                  );
+                })}
+
+                {/* Numbers — crisp SVG text, stroke-on-fill for legibility */}
+                {WHEEL_ORDER.map((num, i) => {
+                  const angle = i * SEG_ANGLE;
+                  const p = polar(100, 100, 78, angle);
+                  return (
+                    <text
+                      key={`txt-${num}`}
+                      x={p.x}
+                      y={p.y}
+                      fontSize="8.5"
+                      fontWeight="800"
+                      fill="#ffffff"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      transform={`rotate(${angle} ${p.x} ${p.y})`}
                       style={{
-                        background: 'linear-gradient(160deg, #5c3d2e 0%, #3d2517 40%, #2a1810 60%, #4a2c1c 100%)',
-                        boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.6)',
+                        paintOrder: 'stroke',
+                        stroke: 'rgba(0,0,0,0.85)',
+                        strokeWidth: 0.9,
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
                       }}
                     >
-                      {/* Center Golden Hub */}
-                      <div 
-                        className="absolute inset-2 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'linear-gradient(145deg, #fff8dc 0%, #ffd700 25%, #daa520 50%, #b8860b 75%, #8b6914 100%)',
-                          boxShadow: 'inset 0 -3px 8px rgba(0,0,0,0.4), inset 0 3px 8px rgba(255,255,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
-                        }}
-                      >
-                        {/* Shine */}
-                        <div 
-                          className="absolute inset-0 rounded-full"
-                          style={{
-                            background: 'radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.5) 0%, transparent 50%)',
-                          }}
-                        />
-                        
-                        {/* Center Jewel */}
-                        <div 
-                          className="w-6 h-6 rounded-full"
-                          style={{
-                            background: 'radial-gradient(circle at 35% 30%, #fffacd 0%, #ffd700 30%, #daa520 60%, #b8860b 100%)',
-                            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -2px 4px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.4)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                      {num}
+                    </text>
+                  );
+                })}
+
+                {/* Inner gold ring */}
+                <circle cx="100" cy="100" r="38" fill="url(#rouletteGoldRim)" />
+                <circle cx="100" cy="100" r="35" fill="url(#rouletteWood)" />
+
+                {/* Hub */}
+                <circle cx="100" cy="100" r="22" fill="url(#rouletteHub)" />
+                <circle cx="100" cy="100" r="6" fill="#FFFDE4" opacity="0.85" />
+
+                {/* Subtle highlight on rim */}
+                <circle cx="100" cy="100" r="97.5" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
+              </svg>
             </motion.div>
+
             
             {/* Ball OUTSIDE the rotating wheel container - positioned in screen coordinates */}
             {/* CRITICAL: Ball is placed OUTSIDE the motion.div so it doesn't rotate with the wheel */}
