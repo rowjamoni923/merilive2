@@ -684,7 +684,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       )}
 
       {/* Obsidian Gold Bet Chips Bar */}
-      {!isCurrentGameExternal && phase === 'betting' && activeGame !== 'roulette' && (
+      {!isCurrentGameExternal && phase === 'betting' && (
         <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-gradient-to-r from-[#1A1B2E] to-[#12121D] border-b border-white/5">
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {presetBets.map((amount) => {
