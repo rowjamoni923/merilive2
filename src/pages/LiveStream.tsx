@@ -610,17 +610,23 @@ const LiveStream = () => {
 
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
-    console.log('[LiveStream] Stream ended via lifecycle hook');
+    console.log('[LiveStream] Stream ended via lifecycle hook', { isHost, alreadyEnded: streamEndedRef.current });
     if (!isHost) {
-      if (streamEndedRef.current) return;
+      if (streamEndedRef.current) {
+        // Still ensure the modal is visible even if a previous path set the ref.
+        setStreamEndedBy(prev => prev || hostInfo?.name || "Host");
+        setShowStreamEndedModal(true);
+        return;
+      }
       streamEndedRef.current = true;
       setStreamEndedBy(hostInfo?.name || "Host");
       setShowStreamEndedModal(true);
+      console.log('[LiveStream] 🟣 Viewer RoomEndedModal opened');
       await leaveChannel().catch(() => {});
       if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
       streamEndRedirectTimerRef.current = setTimeout(() => {
         navigate('/', { replace: true });
-      }, 3000);
+      }, 7000);
       return;
     }
     await leaveChannel();
