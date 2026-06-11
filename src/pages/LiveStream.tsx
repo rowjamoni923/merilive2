@@ -3468,10 +3468,10 @@ const LiveStream = () => {
           />
           
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
-            <img loading="lazy" decoding="async" src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={safeHost.avatar || "/placeholder.svg"} alt={safeHost.name} className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg">
-            <span className="text-xs font-bold text-black">Lv{hostInfo.level}</span>
+            <span className="text-xs font-bold text-black">Lv{safeHost.level}</span>
           </div>
         </motion.div>
 
@@ -3483,14 +3483,14 @@ const LiveStream = () => {
           className="text-center mb-4"
         >
           <h2 className="text-2xl font-bold text-white mb-2">
-            {hostInfo.name}
+            {safeHost.name}
           </h2>
           <div className="flex items-center justify-center gap-2">
             <Badge className="bg-white/10 text-white border-white/10">
-              {hostInfo.country}
+              {safeHost.country}
             </Badge>
             <Badge className="bg-white/10 text-white border-white/10">
-              🗣️ {hostInfo.language}
+              🗣️ {safeHost.language}
             </Badge>
           </div>
         </motion.div>
