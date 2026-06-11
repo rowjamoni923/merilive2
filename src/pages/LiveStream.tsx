@@ -3413,7 +3413,16 @@ const LiveStream = () => {
   // ⚡ INSTANT ENGAGEMENT: No reconnecting overlay - video keeps playing in background
   // Reconnection happens silently without blocking the user experience
 
-  if (showLiveEndSummary && hostInfo) {
+  if (showLiveEndSummary) {
+    const safeHost = hostInfo ?? {
+      name: streamData?.title || currentUser?.user_metadata?.display_name || 'Host',
+      avatar: currentUser?.user_metadata?.avatar_url || '/placeholder.svg',
+      level: 1,
+      country: '',
+      language: '',
+      id: streamData?.host_id || currentUser?.id || '',
+    } as typeof hostInfo;
+    console.log('[LiveStream] 🟣 Host Live End Summary rendering', { hasHostInfo: !!hostInfo });
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Animated Background Orbs */}
