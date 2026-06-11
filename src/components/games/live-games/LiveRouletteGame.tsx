@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import rouletteBg from "@/assets/games-bg/roulette-bg.jpg";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
@@ -504,7 +505,14 @@ export function LiveRouletteGame({
       {/* WIN/LOSE popup only - Result number is shown in Results strip */}
 
       {/* Premium Casino Roulette Container */}
-      <div className="relative bg-gradient-to-br from-[#0a3d1c] via-[#0d4a22] to-[#063516] rounded-2xl p-4 border-2 border-amber-600/50 shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]">
+      <div
+        className="relative rounded-2xl p-4 border-2 border-amber-600/50 overflow-hidden shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(5,20,10,0.6) 0%, rgba(5,20,10,0.78) 100%), url(${rouletteBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* Casino Table Felt Texture */}
         <div className="absolute inset-0 rounded-2xl opacity-40" style={{
           backgroundImage: `

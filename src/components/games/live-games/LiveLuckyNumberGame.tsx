@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+import luckyNumberBg from "@/assets/games-bg/lucky-number-bg.jpg";
 
 import { cn } from "@/lib/utils";
 import { Coins, Star, Sparkles } from "lucide-react";
@@ -291,9 +292,11 @@ export function LiveLuckyNumberGame({
       </div>
 
       {/* Main Game Area - Space Theme */}
-      <div className="relative rounded-2xl overflow-hidden border-2 border-purple-500/40 shadow-2xl p-4"
+      <div className="relative rounded-2xl overflow-hidden border-2 border-amber-500/40 shadow-2xl p-4"
         style={{
-          background: 'linear-gradient(180deg, #0f0a1f 0%, #1a0f2e 40%, #2a1a4a 100%)'
+          backgroundImage: `linear-gradient(180deg, rgba(10,4,30,0.55) 0%, rgba(10,4,30,0.72) 100%), url(${luckyNumberBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
         {/* Countdown Overlay */}
