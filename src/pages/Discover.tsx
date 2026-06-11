@@ -301,9 +301,9 @@ const Discover = () => {
       return;
     }
 
-    // PR-2.5: ALWAYS show preview-before-enter for ALL rooms (Chamet/Bigo pattern).
-    // This gives users a moment to see host, fee, mood, participant count, etc.
-    setEntryPreview(room);
+    // Instant-join: navigate straight into the room (Bigo/Chamet pattern).
+    // Removed pre-entry preview dialog per user request.
+    navigate(`/party/${room.id}`);
   };
 
   const handleJoinFromPreview = () => {
