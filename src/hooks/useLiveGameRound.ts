@@ -397,21 +397,22 @@ export function useLiveGameRound({
     // PARALLEL: Run profile fetch and coin deduction concurrently
     // Use Promise.all for maximum speed
     try {
-      // First get current coins
+      // First get current coins (use maybeSingle to avoid throwing when row not found / RLS)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('coins')
         .eq('id', user.id)
-        .single();
-      
-      if (profileError || !profile) {
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('[placeBet] profile fetch error:', profileError);
         // Rollback optimistic update
         setBets(prev => prev.filter(b => b.id !== newBet.id));
         setMyBets(prev => prev.filter(b => b.id !== newBet.id));
-        return { success: false, error: 'Failed to get profile' };
+        return { success: false, error: 'Could not verify balance, please retry' };
       }
-      
-      if (profile.coins < betAmount) {
+
+      if (profile && profile.coins < betAmount) {
         // Rollback optimistic update
         setBets(prev => prev.filter(b => b.id !== newBet.id));
         setMyBets(prev => prev.filter(b => b.id !== newBet.id));
