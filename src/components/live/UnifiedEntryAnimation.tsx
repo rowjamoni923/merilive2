@@ -172,7 +172,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
           style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
-            width: '100vw', height: '100vh',
+            width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
             zIndex: 99999,
             display: 'flex',
             alignItems: 'center',
@@ -224,7 +224,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
           style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
-            width: '100vw', height: '100vh',
+            width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
             zIndex: 99999,
             overflow: 'visible',
           }}
@@ -266,7 +266,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          width: '100vw', height: '100vh',
+          width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
           zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
@@ -307,7 +307,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
       style={{
         position: 'fixed',
         top: 0, left: 0, right: 0, bottom: 0,
-        width: '100vw', height: '100vh',
+        width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
         zIndex: 100000,
         margin: 0, padding: 0,
       }}
@@ -333,7 +333,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             style={{
               position: 'fixed',
               top: 0, left: 0,
-              width: '100vw', height: '100vh',
+              width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
               background: entry.animationType === 'vehicle'
                 ? 'radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(20,10,5,0.55) 100%)'
                 : 'radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(15,5,30,0.5) 100%)',

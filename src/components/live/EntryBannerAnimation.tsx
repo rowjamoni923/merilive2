@@ -110,8 +110,10 @@ const EntryBannerAnimationInner = memo(({
             left: 0,
             right: 0,
             bottom: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100dvw',
+            height: '100dvh',
+            minWidth: '100vw',
+            minHeight: '100vh',
             zIndex: 99999,
             overflow: 'visible',
           }}
