@@ -38,6 +38,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 
 type PartyMode = "video" | "audio" | "game";
 
