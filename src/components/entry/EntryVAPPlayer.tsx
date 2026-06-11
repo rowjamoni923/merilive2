@@ -417,6 +417,8 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
 
+    // EXACT native duration — not one millisecond more, not one less.
+    // Matches VAPPlayer behavior; no buffer/grace added.
     if (!loop && video.duration > 0 && Number.isFinite(video.duration)) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
       completionTimerRef.current = setTimeout(() => {
@@ -424,7 +426,7 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }
-      }, Math.max(300, video.duration * 1000 + 150));
+      }, Math.round(video.duration * 1000));
     }
 
     if (!isComposite) {
