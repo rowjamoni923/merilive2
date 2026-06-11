@@ -170,3 +170,18 @@ Step 14: APK rebuild signal
 ### Fix standard for MeriLive
 - Public-safe views must expose only non-sensitive public profile/agency fields and must not inherit private base-table owner-only RLS.
 - Base tables stay RLS-protected for sensitive/private columns; frontend keeps using public views for other-user profile cards/details and agency discovery.
+
+## 2026-06-11 — Native prejoin camera preview (Go Live black screen)
+
+### Research → root cause
+- Competitor standard (Chamet/Bigo/LiveKit prejoin docs): host MUST see own camera on the Go Live screen before any room exists; preview uses the same native capture family as the publisher to avoid camera ownership races.
+- Codebase trace: `GoLive.tsx startNativePreview` was a stub returning `false` (camera never opened); plugin had no preview-only method (camera existed only after `connect()`+`attachLocal()`); WebView transparency was only applied after a real connect.
+
+### Implemented
+- `LiveKitPlugin.kt`: `startLocalPreview`/`stopLocalPreview` — standalone never-connected Room as track factory → `createVideoTrack()`+`startCapture()` → mirrored TextureViewRenderer mounted behind WebView. CameraOwnership honored (OWNER_LIVEKIT + OEM release grace + availability wait). `connectInternal()`/`disconnect()` auto-teardown the preview.
+- JS bridge + controller wrappers; `connectAndPublish` stops preview first (safe on old APKs).
+- `GoLive.tsx`: starts native preview right after permission grant; stop releases the camera.
+- `RoomWelcomeBanner.tsx`: compliance warning restyled to compact muted system-notice (Chamet/Bigo standard).
+
+### Verification
+- Web build/type checks via harness. Native path requires APK rebuild + on-device test (preview → Go Live handoff → in-room host camera). Old APKs show English "update the app" toast instead of silent black.

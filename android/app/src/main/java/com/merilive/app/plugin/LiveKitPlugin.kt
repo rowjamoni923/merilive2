@@ -228,6 +228,16 @@ class LiveKitPlugin : Plugin() {
     private var localRenderer: TextureViewRenderer? = null
     private val remoteRenderers = mutableMapOf<String, TextureViewRenderer>()
 
+    // --- Pre-connect local camera preview (Go Live screen) -----------
+    // A standalone LiveKit Room (never connected) used purely as a track
+    // factory: it owns a Camera2 capture session + TextureView mounted
+    // behind the WebView so the host sees themselves BEFORE going live
+    // (Chamet/Bigo prejoin pattern). Torn down automatically by
+    // connectInternal() and disconnect().
+    @Volatile private var previewRoom: Room? = null
+    @Volatile private var previewTrack: LocalVideoTrack? = null
+    private var previewRenderer: TextureViewRenderer? = null
+
     // --- Audio routing state (Step 11) -----------------------------
     private var savedAudioMode: Int = AudioManager.MODE_NORMAL
     private var savedSpeakerphoneOn: Boolean = false
@@ -1006,6 +1016,12 @@ class LiveKitPlugin : Plugin() {
      * it in retry/backoff logic.
      */
     private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
+        // Go Live handoff — release the pre-connect preview camera FIRST so
+        // the real session can claim Camera2 cleanly. The CameraOwnership
+        // release below arms the OEM settle grace which the claim code
+        // already waits for. WebView stays transparent; attachLocal
+        // re-mounts the live renderer moments later.
+        withContext(Dispatchers.Main) { stopLocalPreviewInternal(restoreOpaque = false) }
         // Pkg415: claim Camera2 ownership BEFORE building a new room so
         // NativeCameraPlugin can't race in and grab the hardware mid-connect.
         // Use force=true on reconnect because we already owned it and just
@@ -1343,7 +1359,10 @@ class LiveKitPlugin : Plugin() {
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
-                activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+                activity?.runOnUiThread {
+                    stopLocalPreviewInternal(restoreOpaque = true)
+                    detachAllRenderersInternal(releaseRenderers = true)
+                }
                 val currentRoom = room
                 try { currentRoom?.disconnect() } catch (_: Exception) {}
                 releaseRoomResources(currentRoom, "disconnect")
@@ -1938,6 +1957,130 @@ class LiveKitPlugin : Plugin() {
         activity?.runOnUiThread {
             detachAllRenderersInternal(releaseRenderers = true)
             call.resolve()
+        }
+    }
+
+    // --- Pre-connect local camera preview (Go Live screen) ------------
+    //
+    // Professional pattern (Chamet/Bigo/LiveKit prejoin): the host sees
+    // their own camera BEFORE the room exists. We create a standalone
+    // (never-connected) Room purely as a track factory, start the Camera2
+    // capture, and mount the renderer behind the WebView. connect() and
+    // disconnect() both tear this down automatically, so the live session
+    // can never fight the preview for the camera.
+
+    @PluginMethod
+    fun startLocalPreview(call: PluginCall) {
+        if (getPermissionState("camera") != PermissionState.GRANTED) {
+            call.reject("Camera permission not granted")
+            return
+        }
+        // Already inside a real session → just (re)attach the live renderer.
+        if (room != null) {
+            attachLocal(call)
+            return
+        }
+        if (previewTrack != null) {
+            val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
+            call.resolve(ret)
+            return
+        }
+
+        val lens = call.getString("lens", "front") ?: "front"
+        val resolution = call.getString("resolution", "1080p") ?: "1080p"
+        val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+
+        scope.launch {
+            try {
+                val heldBy = CameraOwnership.owner()
+                if (!CameraOwnership.acquireOrEvictStale(CameraOwnership.OWNER_LIVEKIT)) {
+                    call.reject("Camera busy: held by $heldBy")
+                    return@launch
+                }
+                val graceMs = CameraOwnership.releaseGraceRemainingMs(CameraOwnership.OWNER_LIVEKIT)
+                if (graceMs > 0L) {
+                    Log.w(TAG, "OEM Camera2 release grace before preview open: ${graceMs}ms")
+                    delay(graceMs)
+                }
+                awaitFrontCameraAvailable(OEM_CAMERA_AVAILABILITY_WAIT_MS)
+
+                val captureParams: VideoCaptureParameter =
+                    if (resolution == "720p") VideoPreset169.H720.capture else VideoPreset169.H1080.capture
+                val position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+
+                val pr = LiveKit.create(
+                    appContext = context.applicationContext,
+                    options = RoomOptions(
+                        videoTrackCaptureDefaults = LocalVideoTrackOptions(
+                            position = position,
+                            captureParams = captureParams,
+                        ),
+                    ),
+                )
+                previewRoom = pr
+                val track = pr.localParticipant.createVideoTrack()
+                previewTrack = track
+                track.startCapture()
+
+                withContext(Dispatchers.Main) {
+                    val renderer = createRenderer()
+                    previewRenderer = renderer
+                    pr.initVideoRenderer(renderer)
+                    try { renderer.setMirror(mirror) } catch (_: Throwable) {}
+                    track.addRenderer(renderer)
+                    mountBehindWebView(renderer)
+                }
+
+                val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
+                call.resolve(ret)
+            } catch (e: Exception) {
+                Log.e(TAG, "startLocalPreview failed", e)
+                withContext(Dispatchers.Main) { stopLocalPreviewInternal(restoreOpaque = true) }
+                call.reject("startLocalPreview failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun stopLocalPreview(call: PluginCall) {
+        val act = activity
+        if (act != null) {
+            act.runOnUiThread {
+                stopLocalPreviewInternal(restoreOpaque = true)
+                val ret = JSObject(); ret.put("stopped", true)
+                call.resolve(ret)
+            }
+        } else {
+            stopLocalPreviewInternal(restoreOpaque = true)
+            val ret = JSObject(); ret.put("stopped", true)
+            call.resolve(ret)
+        }
+    }
+
+    /** Main-thread only. Safe no-op when no preview is active. */
+    private fun stopLocalPreviewInternal(restoreOpaque: Boolean) {
+        val track = previewTrack
+        val pr = previewRoom
+        val renderer = previewRenderer
+        if (track == null && pr == null && renderer == null) return
+        previewTrack = null
+        previewRoom = null
+        previewRenderer = null
+        if (renderer != null) {
+            if (track != null) try { track.removeRenderer(renderer) } catch (_: Exception) {}
+            try { (renderer.parent as? ViewGroup)?.removeView(renderer) } catch (_: Exception) {}
+            try { renderer.release() } catch (_: Exception) {}
+        }
+        try { track?.stopCapture() } catch (_: Exception) {}
+        try { track?.stop() } catch (_: Exception) {}
+        try { pr?.release() } catch (_: Exception) {}
+        // Only surrender the Camera2 slot when no real session owns it.
+        if (room == null) CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
+        if (restoreOpaque && room == null) {
+            val webView = bridge?.webView
+            webView?.setBackgroundColor(0xFF000000.toInt())
+            (webView?.parent as? android.view.View)?.setBackgroundColor(0xFF000000.toInt())
+            webView?.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
         }
     }
 

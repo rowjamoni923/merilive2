@@ -39,6 +39,7 @@ import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { useProCamera } from "@/camera/useProCamera";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -149,16 +150,31 @@ const GoLive = () => {
 
 
 
-  // Wrapper: start native camera with permission check
+  // Start the native LiveKit prejoin camera preview (Android only).
+  // Uses the SAME Camera2 family as the live publisher (LiveKitPlugin
+  // startLocalPreview), so there is no CameraX/Camera2 ownership race —
+  // NativeCamera stays reserved for Face Verification.
   const startNativePreview = useCallback(async () => {
-    // Streaming/live preview must use LiveKit (Android native)/LiveKit camera only. The
-    // NativeCamera CameraX plugin is reserved for Face Verification; opening
-    // it here creates the exact Camera2 ownership race that produces ColorOS
-    // white screens and `handleResized abandoned` surfaces during handoff.
-    return false;
+    if (nativePreviewStartInFlightRef.current) return false;
+    nativePreviewStartInFlightRef.current = true;
+    try {
+      const started = await nativeLiveKitController.startLocalPreview({
+        lens: 'front',
+        resolution: '1080p',
+        mirror: true,
+      });
+      if (started) {
+        setNativePreviewActive(true);
+        setPreviewHasFrame(true);
+      }
+      return started;
+    } finally {
+      nativePreviewStartInFlightRef.current = false;
+    }
   }, []);
 
   const stopNativePreview = useCallback(async () => {
+    try { await nativeLiveKitController.stopLocalPreview(); } catch { /* noop */ }
     applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
   }, [applyNativePreviewTransparency]);
@@ -545,6 +561,12 @@ const GoLive = () => {
         if (!permission.granted) throw new Error(permission.error || 'Camera permission denied.');
         setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
         playSound('notification');
+        // Start the native prejoin camera preview right away so the host
+        // sees themselves before going live (Chamet/Bigo standard).
+        const previewStarted = await startNativePreview();
+        if (!previewStarted) {
+          toast.error('Camera preview unavailable. Please update the app to the latest build.');
+        }
         return;
       } catch (error: any) {
         console.error("[GoLive] Native camera/mic permission error:", error?.name, error?.message || error);

@@ -313,6 +313,17 @@ export interface NativeLiveKitPlugin {
   attachAllRemotes(): Promise<{ attached: number }>;
   detachAll(): Promise<void>;
 
+  /**
+   * Pre-connect Go Live camera preview (Chamet/Bigo prejoin pattern).
+   * Starts a native Camera2 capture + TextureView behind the WebView
+   * WITHOUT joining any room. If a session is already live, falls
+   * through to attachLocal(). connect() / disconnect() tear the
+   * preview down automatically.
+   */
+  startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean }): Promise<{ started?: boolean; mode?: 'preview' | 'session' }>;
+  /** Stop the pre-connect preview and release the camera. Safe no-op. */
+  stopLocalPreview(): Promise<{ stopped: boolean }>;
+
   // --- Phase 1C — Bounded NativeVideoView surfaces ----------------
   /**
    * Create / move a TextureViewRenderer positioned at CSS-pixel bounds
