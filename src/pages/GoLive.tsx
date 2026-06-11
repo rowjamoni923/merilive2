@@ -504,10 +504,29 @@ const GoLive = () => {
         setIsLoading(false);
       }
 
-        // Camera must start from a real tap/click. Auto-starting from mount can
-        // make browsers/WebViews ignore the later Allow action, so always show
-        // the explicit permission button here.
-        if (!useLiveKit && isMounted) setShowPermissionPrompt(true);
+        // Professional flow: the "Allow Permissions" primer shows ONLY when
+        // camera/mic are NOT yet granted at the OS level. Once the host has
+        // allowed them (first time), every later Go Live open skips the popup
+        // and silently auto-starts the same preview camera. The gesture rule
+        // only matters when a permission DIALOG would appear — with granted
+        // permissions, camera start needs no user tap.
+        if (!useLiveKit && isMounted) {
+          let alreadyGranted = false;
+          try {
+            const status = await checkDevicePermissionStatus();
+            alreadyGranted = !!(status.camera && status.microphone);
+            if (alreadyGranted && isMounted) {
+              setPermissionsGranted(prev => ({
+                ...prev,
+                camera: true,
+                microphone: true,
+                location: !!status.location,
+              }));
+              setAutoStartCamera(true);
+            }
+          } catch { /* fall through to the explicit primer */ }
+          if (!alreadyGranted && isMounted) setShowPermissionPrompt(true);
+        }
     };
     
     initializeGoLive();
