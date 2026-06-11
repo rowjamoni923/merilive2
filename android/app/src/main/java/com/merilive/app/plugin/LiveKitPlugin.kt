@@ -1032,13 +1032,13 @@ class LiveKitPlugin : Plugin() {
         //   • not a reconnect (reconnects always rebuild)
         //   • video session (audio-only doesn't need camera)
         //   • no E2EE (E2EE options must be set at Room create time)
-        //   • 1080p Live (720p call uses different capture params)
         //   • preview is live (previewRoom + previewTrack set)
         //   • no existing real session
+        // Resolution mismatch is OK — capture frames are downscaled at
+        // encode time, no Camera2 restart needed.
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
-            args.resolution != "720p" &&
             previewRoom != null &&
             previewTrack != null &&
             room == null
