@@ -85,6 +85,10 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
+      // Go Live handoff — drop any pre-connect camera preview BEFORE the
+      // real session claims Camera2 (the native side also does this; old
+      // APKs without the method just throw → swallowed).
+      try { await NativeLiveKit.stopLocalPreview(); } catch { /* noop */ }
       // Never adopt a surviving Room for live / party / private call media.
       // Professional Android apps keep exactly one visible native SDK media
       // owner; stale adoption is what creates "already live" and background
@@ -247,6 +251,27 @@ class NativeLiveKitController {
     try { await NativeLiveKit.switchCamera(); } catch (e) {
       console.warn('[NativeLiveKitController] switchCamera failed:', e);
     }
+  }
+
+  // --- Pre-connect Go Live camera preview (Android only) ---------
+  /**
+   * Start the native prejoin camera preview behind the WebView.
+   * Returns false on web/iOS, on old APKs without the method, or when
+   * the camera is busy — callers should surface a friendly message.
+   */
+  async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean }): Promise<boolean> {
+    try {
+      await NativeLiveKit.startLocalPreview(opts ?? {});
+      return true;
+    } catch (e) {
+      console.warn('[NativeLiveKitController] startLocalPreview failed:', e);
+      return false;
+    }
+  }
+
+  /** Stop the prejoin preview and release the camera. Always safe. */
+  async stopLocalPreview(): Promise<void> {
+    try { await NativeLiveKit.stopLocalPreview(); } catch { /* no preview / not implemented */ }
   }
 
   async attachRemote(sid: string): Promise<void> {
