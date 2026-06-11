@@ -140,6 +140,71 @@ export async function warmAppImageCache(): Promise<void> {
       (data || []).forEach((r: any) => { push(r.frame_url); push(r.preview_url); });
     }));
 
+    // Pkg-NetFix: extended coverage so EVERY banner section the user sees on
+    // first visit is already in cache — events, PK rewards, popup banners,
+    // app theme (splash/home/login bg), party-room banners, VIP / noble
+    // backgrounds (top-up + diamond store), shop items, admin notices.
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('popup_event_banners').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('app_event_themes').select('splash_image_url, home_banner_url, login_bg_url').eq('is_active', true).limit(5);
+      (data || []).forEach((r: any) => { push(r.splash_image_url, 'app-assets'); push(r.home_banner_url, 'banners'); push(r.login_bg_url, 'app-assets'); });
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('pk_reward_banners').select('banner_image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.banner_image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('pk_competitions').select('banner_image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.banner_image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('party_room_banners').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('party_room_backgrounds').select('image_url, thumbnail_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => { push(r.image_url); push(r.thumbnail_url); });
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('shop_items').select('image_url').eq('is_active', true).limit(40);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('vip_plans').select('profile_background_url').limit(20);
+      (data || []).forEach((r: any) => push(r.profile_background_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('vip_tiers').select('profile_background_url').limit(20);
+      (data || []).forEach((r: any) => push(r.profile_background_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('noble_cards').select('profile_background_url').limit(20);
+      (data || []).forEach((r: any) => push(r.profile_background_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('admin_notices').select('image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('vehicle_entrances').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('entry_name_bars').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('leaderboard_podium_frames').select('frame_image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.frame_image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('poster_images').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+
     await Promise.allSettled(queries);
 
     const list = Array.from(urls);
