@@ -937,12 +937,17 @@ const Chat = () => {
         
         // Get beans amount from response for message
         const beansEarned = response.hostReceived || Math.floor(totalCost * 0.6);
-        
+        // 🎰 Lucky-gift diamond bonus (random payout for is_lucky gifts)
+        const luckyBonus = response.isLucky && (response.diamondBonus || 0) > 0
+          ? (response.diamondBonus || 0)
+          : 0;
+        const luckySuffix = luckyBonus > 0 ? ` | +${luckyBonus} lucky` : '';
+
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
-        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
+        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | +LUCKY lucky]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${formatSuffix}${configSuffix}${soundSuffix}]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${luckySuffix}${formatSuffix}${configSuffix}${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${luckySuffix}${formatSuffix}${configSuffix}${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
