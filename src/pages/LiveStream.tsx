@@ -3415,8 +3415,8 @@ const LiveStream = () => {
 
   if (showLiveEndSummary) {
     const safeHost = hostInfo ?? {
-      name: streamData?.title || currentUser?.user_metadata?.display_name || 'Host',
-      avatar: currentUser?.user_metadata?.avatar_url || '/placeholder.svg',
+      name: streamData?.title || currentUser?.display_name || 'Host',
+      avatar: currentUser?.avatar_url || '/placeholder.svg',
       level: 1,
       country: '',
       language: '',
