@@ -1404,7 +1404,6 @@ class LiveKitPlugin : Plugin() {
         val videoPublishOptions = VideoTrackPublishOptions(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
-            simulcastLayers = simulcastLayers,
             videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
         negotiatedCodec = codecForPublish ?: "auto"
