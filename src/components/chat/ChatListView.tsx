@@ -65,10 +65,18 @@ const ConversationRow: React.FC<{
     className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
   >
     <div className="relative shrink-0 self-center">
+      {/*
+        🚨 Avatar load fix: pass the ORIGINAL avatar_url, not the weserv-proxied
+        thumbnail. The weserv CDN proxy was occasionally returning 404 / rate-
+        limiting / blocking inside the WebView, which caused <AvatarImage> to
+        fall through to <AvatarFallback> (the letter B/S/H shown in the user's
+        screenshot) even when the real avatar exists in storage. Native R2 /
+        Supabase storage URLs load directly and are already edge-cached.
+      */}
       {conv.other_user?.id ? (
         <AvatarWithFrame
           userId={conv.other_user.id}
-          src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : conv.other_user?.avatar_url}
+          src={conv.other_user?.avatar_url || undefined}
           name={conv.other_user?.display_name || "User"}
           level={pickDisplayLevel(conv.other_user as any)}
           size="md"
@@ -76,7 +84,7 @@ const ConversationRow: React.FC<{
         />
       ) : (
         <Avatar className="w-14 h-14">
-          <AvatarImage src={conv.other_user?.avatar_url ? enhanceThumbnail(conv.other_user.avatar_url, { width: 64, quality: 82 }) : undefined} />
+          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
           <AvatarFallback className="bg-muted text-muted-foreground">
             {conv.other_user?.display_name?.[0] || "?"}
           </AvatarFallback>
