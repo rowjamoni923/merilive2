@@ -2630,6 +2630,7 @@ const Chat = () => {
                           const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
+                          const luckyMatch = content.match(/\+(\d+)\s*lucky/i);
                           const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
                           const giftName = nameMatch?.[1]?.trim() || '';
 
@@ -2645,6 +2646,7 @@ const Chat = () => {
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
                           const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
+                          const luckyAmount = luckyMatch ? luckyMatch[1] : null;
 
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
