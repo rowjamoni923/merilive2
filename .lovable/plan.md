@@ -185,3 +185,17 @@ Step 14: APK rebuild signal
 
 ### Verification
 - Web build/type checks via harness. Native path requires APK rebuild + on-device test (preview → Go Live handoff → in-room host camera). Old APKs show English "update the app" toast instead of silent black.
+
+## 2026-06-11 — Permission primer shows ONCE (Chamet/Bigo standard)
+### Research (subagent, competitor pattern)
+- Pro apps (Bigo/Chamet/Poppo) show the custom "Allow Permissions" primer ONLY when OS state is prompt/denied — never when already granted. Live OS-state check beats persisted flags (Android 11 one-time permissions, Settings revokes).
+- After grant, camera preview auto-starts seamlessly — no second tap.
+
+### Gap found
+- `GoLive.tsx` mount unconditionally `setShowPermissionPrompt(true)` → popup on EVERY Go Live open even with all permissions granted.
+
+### Fix
+- Mount now calls `checkPermissionStatus()` (`MeriPermissions.checkAllPermissions` on Android = real OS state, Permissions API on web; never shows a dialog).
+- Granted → skip popup, set `permissionsGranted`, silent auto-start effect (waits for ProCamera arbiter) runs the SAME preview pipeline as the Allow button (native `startLocalPreview` / web `getCameraStream`).
+- Not granted / revoked / auto-start failure → primer falls back exactly as before.
+- Works with current APK (MeriPermissions plugin already shipped) — no rebuild needed for this fix.
