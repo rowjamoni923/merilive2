@@ -2722,6 +2722,22 @@ const Chat = () => {
                                   </span>
                                 </div>
                               ) : null}
+
+                              {/* 🎰 Lucky Gift bonus — only sender sees their bonus diamonds */}
+                              {isMine && luckyAmount && Number(luckyAmount) > 0 ? (
+                                <motion.div
+                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
+                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  transition={{ type: 'spring', stiffness: 320, damping: 16, delay: 0.15 }}
+                                  className="flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full shadow-[0_2px_10px_rgba(168,85,247,0.45)] bg-gradient-to-r from-amber-400 via-fuchsia-500 to-purple-500 border border-white/30"
+                                >
+                                  <span className="text-[9px]">🎰</span>
+                                  <img loading="lazy" decoding="async" src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
+                                  <span className="text-[9px] font-black text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
+                                    +{Number(luckyAmount).toLocaleString()}
+                                  </span>
+                                </motion.div>
+                              ) : null}
                               
                               {/* Timestamp + Status */}
                               <p className="text-[8px] text-muted-foreground/60 mt-0.5 flex items-center justify-center gap-0.5">
