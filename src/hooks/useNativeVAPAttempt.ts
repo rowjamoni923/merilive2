@@ -87,7 +87,13 @@ export function useNativeVAPAttempt(
   opts: UseNativeVAPAttemptOpts = {},
 ): NativeVAPMode {
   const { enabled = true, loop = 1 } = opts;
-  const [mode, setMode] = useState<NativeVAPMode>('pending');
+  // 🚨 First-play fix: default to 'fallback' (NOT 'pending') so the WebView
+  // VAP <canvas>/<video> mounts and starts decoding from frame 0 on the very
+  // first send. We only flip to 'active' AFTER the native plugin confirms
+  // it has taken over (then the WebView path hides itself). This eliminates
+  // the "first send shows nothing, second send works" symptom caused by the
+  // old 'pending' gap (50-300ms with nothing rendered).
+  const [mode, setMode] = useState<NativeVAPMode>('fallback');
   const onCompleteRef = useRef(opts.onComplete);
   const onErrorRef = useRef(opts.onError);
 
@@ -101,26 +107,17 @@ export function useNativeVAPAttempt(
     let listenerHandle: { remove: () => Promise<void> } | null = null;
 
     (async () => {
-      if (!enabled || !src) {
-        if (!cancelled) setMode('fallback');
-        return;
-      }
+      if (!enabled || !src) return; // stay in 'fallback'
 
-      // Cheap synchronous platform gate.
+      // Cheap synchronous platform gate. If flag is OFF and we haven't loaded
+      // the remote config yet, load it; if still OFF, stay in 'fallback'.
       if (!isNativeVAPFlagEnabled() && !remoteLoaded) {
-        // Could be that remote flag hasn't loaded yet — load then re-check.
         await loadRemoteFlag();
         if (cancelled) return;
       }
-      if (!isNativeVAPFlagEnabled()) {
-        if (!cancelled) setMode('fallback');
-        return;
-      }
+      if (!isNativeVAPFlagEnabled()) return;
 
-      if (!(await isNativeVAPAvailable())) {
-        if (!cancelled) setMode('fallback');
-        return;
-      }
+      if (!(await isNativeVAPAvailable())) return;
 
       // Register listeners BEFORE play so we don't miss the complete event
       // on very short clips.
@@ -134,7 +131,6 @@ export function useNativeVAPAttempt(
             }
           },
         );
-        // Best-effort error listener — failures here just fall back silently.
         await NativeVAP.addListener('vap:error', (data) => {
           if (!cancelled && data?.url === src) {
             onErrorRef.current?.(
@@ -153,7 +149,10 @@ export function useNativeVAPAttempt(
         scaleMode: 'fitCenter',
       });
       if (cancelled) return;
-      setMode(ok ? 'active' : 'fallback');
+      // Only promote to 'active' on confirmed success. On failure, the
+      // WebView path is ALREADY rendering (we started in 'fallback'), so
+      // playback is uninterrupted.
+      if (ok) setMode('active');
     })();
 
     return () => {
@@ -161,10 +160,8 @@ export function useNativeVAPAttempt(
       if (listenerHandle) {
         listenerHandle.remove().catch(() => {});
       }
-      // Only stop if we actually took over; harmless either way.
       stopNativeVAP().catch(() => {});
     };
-    // We intentionally re-attempt only when src/loop/enabled change.
   }, [src, loop, enabled]);
 
   return mode;

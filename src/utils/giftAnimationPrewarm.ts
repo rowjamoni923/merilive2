@@ -150,21 +150,34 @@ export async function prewarmGiftAssets(urls: Array<string | null | undefined>):
 
   if (imageUrls.length) pushImageWarm(imageUrls);
 
-  // Hard caps so opening a category with 200 gifts does not flood the network
-  const svgaCap = Math.min(svgaUrls.length, 12);
+  // 🚨 Internet-slow fix: when the gift panel opens we used to fire up to 10
+  // HIGH-priority MP4/VAP downloads (each capped at 32 MB) plus 20 more
+  // low-priority ones. On a typical 4G WebView socket pool (6 sockets) this
+  // saturated the connection — live stream LiveKit frames stalled, chat
+  // realtime missed events, FCM push was delayed. Now we keep the warm small,
+  // low-priority, with tight byte budgets so foreground traffic always wins.
+  const svgaCap = Math.min(svgaUrls.length, 8);
   for (let i = 0; i < svgaCap; i += 4) {
     await Promise.allSettled(
       svgaUrls.slice(i, i + 4).map(u => fetchWithBinaryCache(u).catch(() => null))
     );
   }
   await Promise.allSettled(
-    lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
+    lottieUrls.slice(0, 12).map(u => fetchLottieCached(u).catch(() => null))
   );
-  // Gift panel open: warm top 10 visible videos with high priority +
-  // persistent Cache API store so first tap plays instantly.
-  const topVideos = videoUrls.slice(0, 10);
-  const tailVideos = videoUrls.slice(10, 30);
-  if (topVideos.length) warmupSelectedVapUrls(topVideos);
-  if (tailVideos.length) warmupVapUrls(tailVideos, { warmJsonSibling: false });
 
+  // Videos: only the top 4 visible gifts get persisted, low-priority, capped
+  // at 4 MB each. The remaining gifts are warmed on first user interaction
+  // via warmGiftForInstantPlay() (long-press / select), NOT on panel open.
+  const topVideos = videoUrls.slice(0, 4);
+  if (topVideos.length) {
+    warmupVapUrls(topVideos, {
+      warmJsonSibling: true,
+      priority: 'low',
+      maxBytes: 4 * 1024 * 1024,
+      persist: true,
+    });
+  }
+  // Tail videos intentionally skipped — they were the main culprit behind
+  // app-wide internet slowdown when the gift panel opens.
 }

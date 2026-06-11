@@ -1,201 +1,82 @@
-# Professional Rebuild: Game System + PK Battle
+## 3-issue Plan — VAP First-Play, Gift Panel Slowness, Chat Avatars
 
-দুটো system-ই server-authoritative, race-free, professional grade-এ rebuild করব — Chamet/Bigo/Poppo যেভাবে করে সেভাবে। Design/UI shell অপরিবর্তিত থাকবে, শুধু backend logic + wiring।
-
----
-
-## PART A — PK BATTLE (Phase 1, আগে)
-
-Memory-locked research অনুযায়ী 6-step rebuild:
-
-### A1. Schema audit + fix migration
-- `pk_battles` table actual columns scan
-- Missing column add: `server_start_at`, `server_end_at`, `punishment_end_at`, `host_a_score`, `host_b_score`, `winner_user_id`, `status` enum (`pending|active|punishment|completed|cancelled`)
-- Race-free matchmaking: partial UNIQUE index on `(host_a_id, status)` where `status in ('pending','active')` — same host একসাথে দুই PK তে থাকতে পারবে না
-- `pk_battle_gifts` seed: gift_id → pk_score mapping (admin-tunable, default = coin_cost)
-
-### A2. Server-authoritative score (trigger)
-- `gift_transactions` insert trigger: যদি receiver কোনো active `pk_battle` এর host হয়, তাহলে sender's contribution `pk_battles.host_a_score` বা `host_b_score`-এ atomic add
-- Score lookup via `pk_battle_gifts.pk_score` (fallback = gift coin value)
-- All score mutation DB-side, client কখনো `host_a_score` write করতে পারবে না (RLS: no UPDATE on score columns from authenticated; only service_role)
-
-### A3. Server-side timer (edge function + cron)
-- `pk-battle-tick` edge function, every 10s via pg_cron
-- Active battle যার `server_end_at < now()` → status='punishment', `punishment_end_at = now()+90s`, winner decide (higher score, tie = no winner)
-- Punishment expired → status='completed', reward distribute (70% winner / 30% loser of total pot, or whatever admin config)
-- Realtime broadcast on `pk_battles` row update
-
-### A4. Matchmaking RPC
-- `pk_battle_invite(opponent_id, duration_seconds)` — level≥5 gate, both hosts free check, single atomic insert
-- `pk_battle_accept(battle_id)` — only opponent can accept, sets `server_start_at = now()`, `server_end_at = now() + duration`
-- `pk_battle_decline(battle_id)` / `pk_battle_cancel(battle_id)`
-
-### A5. Reward + history
-- `pk_reward_history` populate at completion
-- Winner badge, streak counter on `profiles`
-
-### A6. Frontend rewire
-- PK UI components → call new RPCs only
-- Score display reads from Realtime subscription (never compute client-side)
-- Timer displays `server_end_at - now()` (clock-skew tolerant)
+Honest read on what is happening, what professional apps do, what I will change, and what needs an APK rebuild vs Lovable-only.
 
 ---
 
-## PART B — GAME SYSTEM (Phase 2)
+### Issue 1 — VAP gift animation does not play on first send (plays on second)
 
-Industry standard: একটা single server-authoritative minigame দিয়ে শুরু — **Crash** (Aviator-style) — Chamet/Bigo এ এটাই most popular। পরে Dice/Roulette add করা যাবে same engine-এ।
+**Diagnosis (verified in code):**
+- `VAPPlayer.tsx` mounts → `useNativeVAPAttempt` immediately runs and returns `'pending'` (line 90) → renders **nothing** for ~50-300ms while it awaits `loadRemoteFlag()` + `isNativeVAPAvailable()` + `tryNativeVAPPlay()`.
+- During that `pending` window the WebView `<canvas>/<video>` never mounts. If native flag ends as `fallback`, by the time the WebView path mounts, the gift event has already advanced timers / been dismissed by the parent — so the first attempt looks like nothing happened.
+- VAP layout detection (`detectVapSideBySideLayout`) on first uncached video can paint the alpha-mask half (white) for the opening frames, which the user perceives as "didn't play".
+- Cache API persistent layer (`vap-binary-v1`) is correct, but `warmupVapUrls` is called for top-8 icons only (`useGiftPrefetch.ts:104`) — animation MP4s themselves are NOT warmed until a gift is sent. First send = cold network.
 
-### B1. Schema cleanup + new tables
-- `game_rounds` (replaces ad-hoc `game_sessions` for Crash): `id`, `game_type`, `server_seed_hash`, `server_seed` (reveal after), `client_seed`, `crash_multiplier` (provably fair), `started_at`, `crashed_at`, `status`
-- `game_bets` align: `round_id`, `user_id`, `bet_amount`, `auto_cashout_at`, `cashed_out_at`, `cashout_multiplier`, `payout`, `status`
-- Drop/ignore broken `game_players`, `game_session_tokens` (provider-related, unused)
+**Industry standard (Chamet / Bigo / Poppo via Agora-style flow):**
+- Start the animation surface on `'pending'` with a transparent placeholder (not `null`), so the parent never thinks "nothing rendered".
+- Pre-fetch top popular gift MP4 + JSON on app boot (idle callback), with persistent Cache API.
+- Native VAP attempt has a hard 350ms budget — exceed it → fallback immediately, no infinite "pending".
+- VAP layout cached by URL prefix so the SAME asset never re-detects across sessions.
 
-### B2. Provably-fair Crash engine (edge function)
-- `game-crash-engine` edge function, runs as long-lived loop via cron `* * * * *` + internal 1s tick
-- Each round: generate `server_seed` → hash → publish hash → 5s betting window → start multiplier 1.00x ascending → crash at deterministic point (HMAC-SHA256 derived) → reveal seed
-- Round state in `game_rounds`, ticks broadcast via Supabase Realtime channel `game:crash`
+**Lovable-only fixes:**
+1. `useNativeVAPAttempt` — start in `'fallback'` instead of `'pending'`. Flip to `'active'` only AFTER `tryNativeVAPPlay` resolves `ok:true`. This guarantees WebView path mounts immediately and native silently takes over later when ready.
+2. `VAPPlayer.tsx` — render `<canvas>` from frame 0 even during native pending; hide it the instant `nativeMode === 'active'`.
+3. `useGiftPrefetch.ts` — extend warmup beyond icons: warm `animation_url` + `animation_config_url` for top 12 gifts in `warmupVapUrls(..., {priority:'low', persist:true})` so first send of popular gifts is bytes-from-disk.
+4. Persist VAP layout decision keyed by URL hash in `localStorage` (currently in-memory only — lost on reload).
 
-### B3. Bet + cashout RPCs (atomic, race-free)
-- `game_place_bet(round_id, amount, auto_cashout)` — only during betting window, atomic `profiles.coins -= amount`, insert `game_bets`
-- `game_cashout(bet_id)` — only if round active + not crashed + not already cashed; payout = `amount * current_multiplier`, atomic credit
-- All wallet mutations through `SECURITY DEFINER` functions with row locks (`FOR UPDATE`)
-
-### B4. Auto-cashout worker
-- Edge function tick checks active bets with `auto_cashout_at <= current_multiplier` → auto-trigger cashout
-
-### B5. Anti-cheat + limits
-- Min/max bet from `game_settings`
-- Per-user per-round single bet limit
-- Rate limit: max 1 bet per 500ms per user
-- `game_provider_logs` audit trail
-
-### B6. Frontend wire
-- Game UI subscribes to `game:crash` channel for multiplier ticks
-- Bet button → `game_place_bet` RPC
-- Cashout button → `game_cashout` RPC
-- Wallet sync via existing `profiles.coins` realtime
+**Native (APK rebuild) — none required for the first-play fix.** Native plugin already correct; only JS sequencing is wrong.
 
 ---
 
-## Execution order (strict)
+### Issue 2 — Gift panel slow to open + slows whole app internet
 
-```text
-Step 1: PK schema migration (A1) — needs approval
-Step 2: PK score trigger + RLS (A2) — needs approval
-Step 3: PK tick edge function + cron (A3)
-Step 4: PK matchmaking RPCs (A4) — needs approval
-Step 5: PK reward (A5) — needs approval
-Step 6: PK frontend rewire (A6) — code edit
-Step 7: Owner-account live test PK (smdollarex923@gmail.com)
-Step 8: Game schema migration (B1) — needs approval
-Step 9: Crash engine edge function (B2)
-Step 10: Game bet/cashout RPCs (B3) — needs approval
-Step 11: Auto-cashout worker (B4)
-Step 12: Game frontend wire (B6)
-Step 13: Owner-account test Game
-Step 14: APK rebuild signal
-```
+**Diagnosis:**
+- `GiftPanel` (873 lines) and its swipeable grid eagerly mount `<img>` for every gift icon across every category page on open. With ~100+ gifts, that's 100+ parallel HTTP requests on the same connection → saturates the WebView socket pool → live stream, chat realtime, FCM all stall.
+- `useGiftPrefetch` warms only top-8 icons; the remaining 90+ kick off concurrently on panel open.
+- No `<img loading="lazy">` / IntersectionObserver gating per page.
 
-## Non-goals (এখন না)
-- 3rd-party provider integration (Evolution/Spribe) — পরে
-- Multiple game variants — Crash first, validate, তারপর Dice/Roulette
-- Tournament/leaderboard for games — পরে
-- PK custom rule sets — default 5min/90s/70-30 only
+**Industry standard:**
+- Gift grid is paged tabs (4-8 visible at a time). Off-tab images use `loading="lazy"` + low fetchpriority. Only currently visible tab images use eager + high fetchpriority. Concurrency capped (~6 parallel).
+- Icons served as small WebP thumbnails (~80x80 q70), not full MP4 poster frames.
 
-## Honest constraints
-- প্রতিটা edge function deploy auto, কিন্তু cron schedule + secret check করতে হবে
-- Frontend rewire-এ existing PK/Game components পড়তে হবে (এখনো deep-read করিনি) — Step 6 + 12 শুরু আগে full file scan হবে
-- Owner-account testing শুধু web flow validate করবে; native PK overlay / game WebView Android-specific কিছু থাকলে APK rebuild লাগবে — সেটা সৎভাবে বলব
+**Lovable-only fixes:**
+1. `GiftSwipeableGrid` — add `loading="lazy"`, `decoding="async"`, `fetchpriority={isActiveTab ? 'high' : 'low'}` to icon `<img>`.
+2. Add an IntersectionObserver gate so off-tab icons don't start their request until the tab nears viewport.
+3. Use `enhanceThumbnail(icon_url, { width: 96, quality: 70 })` for every gift icon (icons currently raw URL).
+4. Cap parallel icon fetches via a tiny image queue (max 6 concurrent on slow connection per `navigator.connection.effectiveType`).
+5. Stop animation MP4 warm storm when a user opens the panel — never warm MP4s on open; only warm on hover/long-press (i.e. when user intends to send).
 
 ---
 
-## Hotfix — Trader Wallet duplicate balance display
+### Issue 3 — Chat list shows letters/initials, frame loads but avatar photo missing (screenshot evidence)
 
-### Verified root cause
-- Current owner account DB check: helper/topup wallet = **0.30 💎**, agency diamond wallet = **100,673,632 💎**, combined usable Trader Wallet = **100,673,632.30 💎**.
-- Self Recharge RPC was returning the **combined** value under `new_wallet_balance`; Profile UI then stored that as helper wallet and added agency balance again, creating a doubled display.
-- Research note: category apps keep accounting buckets separated internally (stock/recharge currency vs earnings/commission currency), but recharge/transfer flows should highlight only the usable transfer source and avoid duplicate totals. References reviewed: BitTopup BIGO diamonds/beans guide, Poppo agent/coin seller training materials, Chamet/Olamet agency payout patterns.
-- Applied standard for MeriLive: keep helper wallet and agency diamond ledger separated internally for audit, but show one Trader Wallet source in the user action screen so the same balance is not counted twice.
+**Diagnosis:**
+- `ChatListView.ConversationRow` renders `<AvatarWithFrame>` with `src = enhanceThumbnail(avatar_url, ...)`.
+- `AvatarWithFrame` runs its own gender / placeholder pipeline (`getDisplayAvatar`, `getCachedGender`, `requestGender`) — if `gender` cache is empty for that user, the avatar `<img>` waits on a Supabase `requestGender` round-trip before deciding final src; meanwhile fallback initials render.
+- `requestGender` is batched, but for 10+ rows on first chat-list load, the batch fires ONCE — every subsequent render before resolution shows initials.
+- Also: thumbnail CDN URL may be returning 404 silently when the original is not in the storage bucket → `<AvatarImage>` falls through to `<AvatarFallback>` (the letter).
 
-### Fix
-- RPC return contract corrected: `new_wallet_balance` / `new_helper_wallet_balance` = helper wallet only; `new_agency_balance` = agency diamond wallet; `available_balance` = combined display value.
-- Profile Self Recharge UI now displays only one `Recharge Source` and one destination `My Diamond Balance`; internal helper/agency split is hidden from the user action flow.
+**Industry standard:**
+- Avatar pipeline never blocks `<img>` on a secondary RPC. Real avatar URL paints first; gender-aware placeholder only used when `avatar_url` is `null`.
+- Failed thumbnail → fall through to original `avatar_url`, not to initials.
 
-### Regression found 2026-06-10 — Self Recharge RPC drift
-- Current owner-account DB check: `smtv923@gmail.com` has helper/topup wallet **-0.40 💎**, agency diamond wallet **204,906,597 💎**, My Diamond Balance **76,617,862 💎**. UI correctly shows combined Recharge Source ≈ **204,906,596.6 💎**.
-- Live `public.helper_transfer_diamonds_to_self(uuid,bigint)` drifted back to helper-wallet-only logic and returns **"Insufficient trader wallet balance"** when helper wallet is below the requested amount, even though agency diamond wallet is part of the same Trader Wallet source used by Top Up and Agency Transfer.
-- Professional wallet standard remains: one server-authoritative, atomic Trader Wallet funding source for helper top-up, agency transfer, and self recharge; internal buckets may stay separate for audit, but eligibility/debit must use the same combined available source.
-- References already reviewed for this wallet standard: BIGO diamonds/beans guide, Poppo agent/coin seller training, Chamet/Olamet agency payout patterns.
-
-### Immediate fix standard
-- Restore `helper_transfer_diamonds_to_self` to match `helper_transfer_diamonds_to_agency`: combined available = `topup_helpers.wallet_balance + agencies.diamond_balance`, debit helper wallet first then agency diamond wallet, credit only `profiles.coins`, and return the same split/combined response contract the UI already expects.
+**Lovable-only fixes:**
+1. `AvatarWithFrame` — when `src` (avatar_url) is present, render it IMMEDIATELY without waiting for `requestGender`. Gender lookup only kicks in when `src` is null/empty.
+2. Add `onError` handler that retries with original (non-thumbnail) URL before falling back to initials.
+3. `ChatListView` — pass real `gender` if conversation payload includes it (extend `Conversation` shape) so the gender RPC is skipped entirely.
+4. Add `preloadUserFrames` batch call for the first 20 conversations on mount so frames + avatars warm together.
 
 ---
 
-## Emergency Recovery — Shop/VIP/animation relation outage
-
-### Verified root cause
-- Owner account login reproduced a live Data API failure: `user_purchases?select=item_id,is_equipped,expires_at,shop_items(category)` returned HTTP 400 / `PGRST200` because PostgREST cannot find the `user_purchases.item_id → shop_items.id` relationship in the active schema cache.
-- Direct catalog check confirmed `user_purchases` currently has **no constraints at all**, even though the app code and older migrations expect `item_id` and `user_id` foreign keys.
-- This breaks any section that hydrates purchased/equipped shop assets: VIP membership equip flow, shop entitlements, chat bubble/gift-panel styling, profile/avatar frame hydration, entrance/name-bar/vehicle/VAP/MP4/SVGA animation lookup, and some message/live/party overlays.
-
-### Professional standard checked
-- Chamet publicly documents live chat/party, virtual community interaction, in-app purchases, and premium/VIP-style perks: https://play.google.com/store/apps/details?id=com.hkfuliao.chamet and https://bittopup.com/article/Chamet-VIP-2025-Complete-Guide-to-Badges-Levels-Perks
-- BIGO describes real-time chat, broadcasts, virtual city-style interaction, diamonds, and audience/streamer surfaces: https://www.bigo.tv/blog/use-bigo-live and https://www.bigo.tv/blog/bigo-live-app-features
-- Poppo agency docs describe agency/host management, live broadcasts, virtual gifts, and VIP/coin ecosystem: https://www.poppolive.net/en/agency/ and https://poppoliveagents.com/agent-training/
-
-### Fix standard for MeriLive
-- Restore the exact foreign keys expected by the frontend (`user_purchases.user_id → profiles.id`, `user_purchases.item_id → shop_items.id`) after verifying there are zero orphan rows.
-- Keep existing UI/design unchanged; only restore the missing DB relationship so Supabase embedded joins work again across Shop, VIP, chat/gift panels, profile frames, and animation hydration.
-
-## Total scope
-~6 migrations, 3 edge functions, 2 cron jobs, ~10-15 frontend files. বড় কাজ, কিন্তু phased — প্রতি step approve করার পর next।
-
-**Approve করলে Step 1 (PK schema audit + migration) দিয়ে শুরু করব।**
-
----
-
-## Emergency Recovery — Public profile / agency visibility outage
-
-### Verified root cause
-- Browser network showed `profiles_public?select=*&id=eq.1134eefd...` returned HTTP 200 with `[]`, while direct DB read found the profile row exists and is not banned/deleted.
-- DB catalog showed `profiles_public` and `agencies_public` currently have `security_invoker=on`, so they inherit base-table RLS from `profiles` / `agencies`. Since `profiles` only allows users to read their own private row, every other user's public profile appears missing.
-- This cascades into profile detail, avatar/photo/frame hydration, viewer lists, reels profile joins, message conversation profile cards, and agency public details.
-
-### Professional standard checked
-- Chamet listing describes public live/social discovery, global user interaction, real-time video/chat/party features, and virtual community access: https://play.google.com/store/apps/details?id=com.hkfuliao.chamet
-- BIGO guide describes watching broadcasts, real-time chat, social discovery, and creator profile/earnings surfaces: https://www.bigo.tv/blog/use-bigo-live
-- Poppo describes live broadcasts, real-time audience interaction, virtual gifts, and agency/host management: https://www.poppolive.net/en/ and https://www.poppolive.net/en/agency/
-
-### Fix standard for MeriLive
-- Public-safe views must expose only non-sensitive public profile/agency fields and must not inherit private base-table owner-only RLS.
-- Base tables stay RLS-protected for sensitive/private columns; frontend keeps using public views for other-user profile cards/details and agency discovery.
-
-## 2026-06-11 — Native prejoin camera preview (Go Live black screen)
-
-### Research → root cause
-- Competitor standard (Chamet/Bigo/LiveKit prejoin docs): host MUST see own camera on the Go Live screen before any room exists; preview uses the same native capture family as the publisher to avoid camera ownership races.
-- Codebase trace: `GoLive.tsx startNativePreview` was a stub returning `false` (camera never opened); plugin had no preview-only method (camera existed only after `connect()`+`attachLocal()`); WebView transparency was only applied after a real connect.
-
-### Implemented
-- `LiveKitPlugin.kt`: `startLocalPreview`/`stopLocalPreview` — standalone never-connected Room as track factory → `createVideoTrack()`+`startCapture()` → mirrored TextureViewRenderer mounted behind WebView. CameraOwnership honored (OWNER_LIVEKIT + OEM release grace + availability wait). `connectInternal()`/`disconnect()` auto-teardown the preview.
-- JS bridge + controller wrappers; `connectAndPublish` stops preview first (safe on old APKs).
-- `GoLive.tsx`: starts native preview right after permission grant; stop releases the camera.
-- `RoomWelcomeBanner.tsx`: compliance warning restyled to compact muted system-notice (Chamet/Bigo standard).
+### Execution order
+1. **Issue 3 first** (smallest blast radius, immediate user-visible win in screenshot).
+2. **Issue 1** (VAP first-play sequencing fix in `useNativeVAPAttempt` + warmup expansion).
+3. **Issue 2** (gift panel lazy/concurrency hardening).
 
 ### Verification
-- Web build/type checks via harness. Native path requires APK rebuild + on-device test (preview → Go Live handoff → in-room host camera). Old APKs show English "update the app" toast instead of silent black.
+- Owner account login (`smdollarex923@gmail.com / Sazzad017@`) → Chat list reload, then test gift send in live + private call + party room.
+- Network panel: confirm gift panel open keeps concurrent requests ≤ 6 and total bytes on idle tab < 200 KB.
+- Console: confirm `[VAPPlayer]` mounts canvas on frame 0, native takes over only when ready.
 
-## 2026-06-11 — Permission primer shows ONCE (Chamet/Bigo standard)
-### Research (subagent, competitor pattern)
-- Pro apps (Bigo/Chamet/Poppo) show the custom "Allow Permissions" primer ONLY when OS state is prompt/denied — never when already granted. Live OS-state check beats persisted flags (Android 11 one-time permissions, Settings revokes).
-- After grant, camera preview auto-starts seamlessly — no second tap.
-
-### Gap found
-- `GoLive.tsx` mount unconditionally `setShowPermissionPrompt(true)` → popup on EVERY Go Live open even with all permissions granted.
-
-### Fix
-- Mount now calls `checkPermissionStatus()` (`MeriPermissions.checkAllPermissions` on Android = real OS state, Permissions API on web; never shows a dialog).
-- Granted → skip popup, set `permissionsGranted`, silent auto-start effect (waits for ProCamera arbiter) runs the SAME preview pipeline as the Allow button (native `startLocalPreview` / web `getCameraStream`).
-- Not granted / revoked / auto-start failure → primer falls back exactly as before.
-- Works with current APK (MeriPermissions plugin already shipped) — no rebuild needed for this fix.
+### APK rebuild needed?
+**No.** All three issues are React/JS sequencing + image loading. Native VAP plugin code is untouched. Web preview = APK behavior here.

@@ -317,13 +317,31 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     ? isOwnerProp
     : !!(userId && viewerId && userId === viewerId);
 
-  const effectiveSrc = useMemo(() => {
+  // 🚨 Avatar load fix: keep a stable "current src" with onError retry.
+  // The original URL is always tried first; if it fails (e.g. transient CDN
+  // hiccup) we retry once with a cache-bust before falling through to the
+  // letter fallback. This prevents the screenshot bug where the FRAME loads
+  // but the avatar photo silently 404s and the user only sees a letter.
+  const originalSrc = useMemo(() => {
     if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
     if (!userId) return undefined;
     if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
-    // Default to female pool when gender unknown (host-first product).
     return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
   }, [hasRealSrc, src, userId, isOwner, resolvedGender]);
+  const [imgSrc, setImgSrc] = useState<string | undefined>(originalSrc);
+  const retriedRef = useRef(false);
+  useEffect(() => {
+    setImgSrc(originalSrc);
+    retriedRef.current = false;
+  }, [originalSrc]);
+  const handleAvatarError = useCallback(() => {
+    if (retriedRef.current || !originalSrc) return;
+    retriedRef.current = true;
+    // Cache-bust retry once; if this also fails, AvatarFallback renders.
+    const bust = originalSrc.includes('?') ? '&' : '?';
+    setImgSrc(`${originalSrc}${bust}_r=${Date.now()}`);
+  }, [originalSrc]);
+  const effectiveSrc = imgSrc;
 
   const sizeConfig = sizeConfigs[size];
 
@@ -463,7 +481,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         style={{ ...containerStyle, overflow: 'hidden', borderRadius: '9999px' }}>
         <Avatar className={cn('border-2 border-white/30', avatarClassName)}
           style={{ width: sizeConfig.container, height: sizeConfig.container }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
 
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold shadow-inner', sizeConfig.text)}>
             {displayName}
@@ -521,7 +539,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
             width: sizeConfig.avatar, height: sizeConfig.avatar,
             border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>
