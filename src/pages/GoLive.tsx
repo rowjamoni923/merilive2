@@ -40,6 +40,7 @@ import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from 
 import { useProCamera } from "@/camera/useProCamera";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
+import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -273,6 +274,11 @@ const GoLive = () => {
     location: false,
   });
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  // Professional flow (Chamet/Bigo): when OS-level camera+mic are ALREADY
+  // granted, the primer popup is skipped and the preview camera auto-starts
+  // silently. The popup is a first-time-only experience.
+  const [autoStartCamera, setAutoStartCamera] = useState(false);
+  const autoStartDoneRef = useRef(false);
   const [userLocation, setUserLocation] = useState<{ city: string; country: string; flag: string } | null>(null);
   
   // Live ban state
@@ -498,10 +504,29 @@ const GoLive = () => {
         setIsLoading(false);
       }
 
-        // Camera must start from a real tap/click. Auto-starting from mount can
-        // make browsers/WebViews ignore the later Allow action, so always show
-        // the explicit permission button here.
-        if (!useLiveKit && isMounted) setShowPermissionPrompt(true);
+        // Professional flow: the "Allow Permissions" primer shows ONLY when
+        // camera/mic are NOT yet granted at the OS level. Once the host has
+        // allowed them (first time), every later Go Live open skips the popup
+        // and silently auto-starts the same preview camera. The gesture rule
+        // only matters when a permission DIALOG would appear — with granted
+        // permissions, camera start needs no user tap.
+        if (!useLiveKit && isMounted) {
+          let alreadyGranted = false;
+          try {
+            const status = await checkDevicePermissionStatus();
+            alreadyGranted = !!(status.camera && status.microphone);
+            if (alreadyGranted && isMounted) {
+              setPermissionsGranted(prev => ({
+                ...prev,
+                camera: true,
+                microphone: true,
+                location: !!status.location,
+              }));
+              setAutoStartCamera(true);
+            }
+          } catch { /* fall through to the explicit primer */ }
+          if (!alreadyGranted && isMounted) setShowPermissionPrompt(true);
+        }
     };
     
     initializeGoLive();
@@ -526,6 +551,41 @@ const GoLive = () => {
       }
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
+
+  // Silent camera auto-start (permissions already granted): waits for the
+  // ProCamera arbiter slot, then runs the SAME preview pipeline the Allow
+  // button uses — no popup, no second camera, no restart. If the start fails
+  // (e.g. permission revoked in phone Settings), fall back to the primer.
+  useEffect(() => {
+    if (!autoStartCamera || autoStartDoneRef.current) return;
+    if (proCamera.error) { setAutoStartCamera(false); return; }
+    if (!proCamera.ready) return;
+    autoStartDoneRef.current = true;
+    setAutoStartCamera(false);
+
+    void (async () => {
+      try {
+        if (isNativeAndroid) {
+          const previewStarted = await startNativePreview();
+          if (!previewStarted) {
+            toast.error('Camera preview unavailable. Please update the app to the latest build.');
+          }
+          return;
+        }
+        const mediaStream = await getCameraStream(true);
+        if (!mediaStream) throw new Error('Failed to get camera stream');
+        setStream(mediaStream);
+        setFacingMode('user');
+        attachWebPreviewStream(mediaStream);
+      } catch (error: any) {
+        console.warn('[GoLive] Silent camera auto-start failed:', error?.name, error?.message || error);
+        recordClientError({ label: 'GoLive.autoStartCamera', message: error instanceof Error ? error.message : String(error) });
+        setShowPermissionPrompt(true);
+      }
+    })();
+  }, [autoStartCamera, proCamera.ready, proCamera.error, isNativeAndroid, startNativePreview, getCameraStream, attachWebPreviewStream]);
+
+
 
   useEffect(() => {
     if (!currentUserId) return;

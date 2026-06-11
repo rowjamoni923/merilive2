@@ -42,3 +42,6 @@ All native handoff lives in `LiveKitPlugin.kt`. React-side wiring works in web p
 ## Known follow-ups
 - Optional: render the prejoin preview INSIDE the IncomingCallModal as a small PiP (currently it runs invisibly behind the modal — Camera2 is hot but not shown).
 - Optional: relax E2EE exclusion by pre-creating the preview Room with E2EE options when an E2EE key is cached.
+
+## Permission primer = once-only (2026-06-11)
+GoLive no longer shows the custom "Allow Permissions" popup on every open. Mount now calls `checkPermissionStatus()` (utils/nativePermissions → `MeriPermissions.checkAllPermissions`, real OS state, never prompts). Granted → popup skipped, `permissionsGranted` set, silent auto-start effect (waits for ProCamera arbiter `ready`) runs the SAME pipeline as the Allow button (`startNativePreview` native / `getCameraStream` web). Not granted or auto-start fails → primer falls back as before. Industry pattern: live OS-state check, never persisted-flag-only (Android 11 one-time grants / Settings revokes). Pure WebView change — no APK rebuild needed.
