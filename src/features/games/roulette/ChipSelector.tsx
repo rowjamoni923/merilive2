@@ -9,6 +9,7 @@ interface ChipSelectorProps {
 }
 
 const CHIPS = [
+  { value: 500, bg: "from-slate-400 to-slate-600", ring: "#94a3b8", text: "500", dark: false },
   { value: 1000, bg: "from-green-500 to-green-700", ring: "#22c55e", text: "1K", dark: false },
   { value: 5000, bg: "from-red-500 to-red-700", ring: "#ef4444", text: "5K", dark: false },
   { value: 10000, bg: "from-blue-500 to-blue-700", ring: "#3b82f6", text: "10K", dark: false },
@@ -25,8 +26,8 @@ export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelect
         <span className="text-white/70 text-sm">{balance.toLocaleString()}</span>
       </div>
 
-      {/* Chips row */}
-      <div className="flex justify-center items-end gap-3">
+      {/* Chips row — horizontal scroll on narrow screens so all chips reachable */}
+      <div className="flex justify-center items-end gap-2 overflow-x-auto px-2 pb-1 -mx-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CHIPS.map((chip) => {
           const isSelected = selectedChip === chip.value;
           const isDisabled = balance < chip.value;
@@ -40,7 +41,7 @@ export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelect
               onClick={() => !isDisabled && onSelectChip(chip.value)}
               disabled={isDisabled}
               className={cn(
-                "relative w-14 h-14 rounded-full transition-shadow",
+                "relative w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-shadow shrink-0",
                 isDisabled && "opacity-30 cursor-not-allowed"
               )}
             >

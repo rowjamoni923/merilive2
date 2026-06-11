@@ -535,9 +535,12 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
         }} />
       </div>
 
-      {/* Betting Area */}
+      {/* Betting Area — grid scrolls, chip selector stays pinned so users
+          can always change their bet amount (was getting clipped on phones). */}
       <div className={cn("relative z-10 flex-1 overflow-auto", embedded ? "p-2 pt-1" : "p-4 pt-2")}>
         <BettingGrid myBets={myBets} allBets={allBets} onPlaceBet={placeBet} disabled={!isBettingOpen} />
+      </div>
+      <div className={cn("relative z-10 shrink-0", embedded ? "px-2 pb-1" : "px-4 pb-3")}>
         <ChipSelector selectedChip={selectedChip} onSelectChip={setSelectedChip} balance={diamondBalance} />
       </div>
 
