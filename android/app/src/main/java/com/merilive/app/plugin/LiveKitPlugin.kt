@@ -1016,8 +1016,39 @@ class LiveKitPlugin : Plugin() {
      * it in retry/backoff logic.
      */
     private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
-        // Go Live handoff — release the pre-connect preview camera FIRST so
-        // the real session can claim Camera2 cleanly. The CameraOwnership
+        // ─────────────────────────────────────────────────────────────────
+        // Pro "single camera capturer lifecycle" handoff (Chamet/Bigo/Agora
+        // pattern, translated to LiveKit Android per
+        // /mnt/documents/preview_to_broadcast_engineering_brief.md).
+        //
+        // If a prejoin preview is currently running AND the session profile
+        // is compatible, PROMOTE the preview Room + LocalVideoTrack into the
+        // live session instead of tearing them down and re-opening Camera2.
+        // Result: zero black flash, zero permission re-prompt, zero
+        // ownership churn — same hardware capture continues into broadcast.
+        //
+        // Compatibility gate (kept narrow on purpose; falls through to the
+        // legacy rebuild path otherwise):
+        //   • not a reconnect (reconnects always rebuild)
+        //   • video session (audio-only doesn't need camera)
+        //   • no E2EE (E2EE options must be set at Room create time)
+        //   • 1080p Live (720p call uses different capture params)
+        //   • preview is live (previewRoom + previewTrack set)
+        //   • no existing real session
+        val canPromotePreview = !isReconnect &&
+            args.video &&
+            !args.e2eeOn &&
+            args.resolution != "720p" &&
+            previewRoom != null &&
+            previewTrack != null &&
+            room == null
+        if (canPromotePreview) {
+            promotePreviewToSession(args)
+            return
+        }
+
+        // Legacy rebuild path — release the pre-connect preview camera FIRST
+        // so the real session can claim Camera2 cleanly. The CameraOwnership
         // release below arms the OEM settle grace which the claim code
         // already waits for. WebView stays transparent; attachLocal
         // re-mounts the live renderer moments later.
