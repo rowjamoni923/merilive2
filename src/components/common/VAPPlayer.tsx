@@ -413,21 +413,46 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (initializedRef.current || !video.videoWidth) return;
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
-    
-    // VAP plays for EXACTLY its native duration — not one millisecond more,
-    // not one millisecond less. `onEnded` is the primary completion signal;
-    // this timer is a last-resort backstop pinned to the asset's intrinsic
-    // duration so a buffer stall can never make the overlay outlast the asset.
+
+    // PLAYBACK-TIME-AWARE completion (not wallclock).
+    // Primary signal = native `ended` event (onEnded on the <video>).
+    // Backstop = rAF watcher that completes only once currentTime actually
+    // reaches the asset's native duration. If the video stalls/buffers,
+    // currentTime stops advancing, so the animation stays on screen until
+    // the asset truly finishes — never cut short by a wallclock timer.
+    // Hard ceiling = duration + 6s grace (in case `ended` never fires).
     if (!loop && video.duration > 0 && Number.isFinite(video.duration)) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-      completionTimerRef.current = setTimeout(() => {
-        if (mountedRef.current && !completedRef.current) {
-          completedRef.current = true;
-          onCompleteRef.current?.();
-        }
-      }, Math.round(video.duration * 1000));
-    }
+      const nativeDurationMs = Math.round(video.duration * 1000);
+      const startWallclock = performance.now();
+      const hardCeilingMs = nativeDurationMs + 6000;
+      let watchRaf: number | null = null;
 
+      const fireComplete = () => {
+        if (!mountedRef.current || completedRef.current) return;
+        completedRef.current = true;
+        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        onCompleteRef.current?.();
+      };
+
+      const tick = () => {
+        if (!mountedRef.current || completedRef.current) return;
+        const v = videoRef.current;
+        if (!v) return;
+        const reachedEnd = v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.04);
+        const wallclockElapsed = performance.now() - startWallclock;
+        if (reachedEnd || wallclockElapsed >= hardCeilingMs) {
+          fireComplete();
+          return;
+        }
+        watchRaf = requestAnimationFrame(tick);
+      };
+      watchRaf = requestAnimationFrame(tick);
+
+      completionTimerRef.current = setTimeout(() => {
+        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+      }, hardCeilingMs + 500) as any;
+    }
 
     if (!isComposite) {
       setFallbackCrop([0, 0, 1, 1]);
@@ -485,7 +510,13 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           maxWidth: 'none'
         } : {}}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
-        onEnded={() => !loop && onCompleteRef.current?.()}
+        onEnded={() => {
+          if (loop || completedRef.current) return;
+          completedRef.current = true;
+          onCompleteRef.current?.();
+        }}
+        onWaiting={(e) => { void e.currentTarget.play().catch(() => {}); }}
+        onStalled={(e) => { void e.currentTarget.play().catch(() => {}); }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (
