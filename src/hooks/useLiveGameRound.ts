@@ -453,7 +453,7 @@ export function useLiveGameRound({
       }
 
       console.log('[placeBet] ✅ SUCCESS in <100ms:', newBet.id);
-      return { success: true, new_balance: deductResult?.new_balance ?? (profile.coins - betAmount) };
+      return { success: true, new_balance: deductResult?.new_balance ?? ((profile?.coins ?? 0) - betAmount) };
     } catch (error) {
       console.error('[placeBet] ❌ Error:', error);
       // Rollback on any error
