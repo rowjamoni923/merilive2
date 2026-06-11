@@ -96,10 +96,9 @@ const CreateParty = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
-  // PR-2.2 — Optional room access controls (password + entry fee in coins).
-  // Stored in local state; passed to `create_party_room` RPC on submit.
+  // Party rooms are always public (industry standard — Chamet/Bigo/Poppo).
+  // Entry fee remains as an optional gate; password gating fully removed.
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
-  const [roomPassword, setRoomPassword] = useState('');
   const [roomEntryFee, setRoomEntryFee] = useState<number>(0);
   const preserveStreamRef = useRef(false);
   const isNativeAndroid = isNativeAndroidApp();
