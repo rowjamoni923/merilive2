@@ -610,17 +610,23 @@ const LiveStream = () => {
 
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
-    console.log('[LiveStream] Stream ended via lifecycle hook');
+    console.log('[LiveStream] Stream ended via lifecycle hook', { isHost, alreadyEnded: streamEndedRef.current });
     if (!isHost) {
-      if (streamEndedRef.current) return;
+      if (streamEndedRef.current) {
+        // Still ensure the modal is visible even if a previous path set the ref.
+        setStreamEndedBy(prev => prev || hostInfo?.name || "Host");
+        setShowStreamEndedModal(true);
+        return;
+      }
       streamEndedRef.current = true;
       setStreamEndedBy(hostInfo?.name || "Host");
       setShowStreamEndedModal(true);
+      console.log('[LiveStream] 🟣 Viewer RoomEndedModal opened');
       await leaveChannel().catch(() => {});
       if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
       streamEndRedirectTimerRef.current = setTimeout(() => {
         navigate('/', { replace: true });
-      }, 3000);
+      }, 7000);
       return;
     }
     await leaveChannel();
@@ -1861,15 +1867,18 @@ const LiveStream = () => {
   const [streamEndedBy, setStreamEndedBy] = useState<string>("");
 
   const showViewerStreamEnded = useCallback(async (hostName?: string) => {
-    if (isHost || streamEndedRef.current) return;
+    if (isHost) return;
+    // Even if streamEndedRef was set elsewhere (e.g. realtime row update),
+    // we still want the modal to render with avatar + follow + thank-you.
     streamEndedRef.current = true;
     setStreamEndedBy(hostName || hostInfo?.name || "Host");
     setShowStreamEndedModal(true);
+    console.log('[LiveStream] 🟣 showViewerStreamEnded → modal opened');
     await leaveChannel().catch(() => {});
     if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
     streamEndRedirectTimerRef.current = setTimeout(() => {
       navigate('/', { replace: true });
-    }, 3000);
+    }, 7000);
   }, [hostInfo?.name, isHost, leaveChannel, navigate]);
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
@@ -3404,7 +3413,16 @@ const LiveStream = () => {
   // ⚡ INSTANT ENGAGEMENT: No reconnecting overlay - video keeps playing in background
   // Reconnection happens silently without blocking the user experience
 
-  if (showLiveEndSummary && hostInfo) {
+  if (showLiveEndSummary) {
+    const safeHost = hostInfo ?? {
+      name: streamData?.title || currentUser?.display_name || 'Host',
+      avatar: currentUser?.avatar_url || '/placeholder.svg',
+      level: 1,
+      country: '',
+      language: '',
+      id: streamData?.host_id || currentUser?.id || '',
+    } as typeof hostInfo;
+    console.log('[LiveStream] 🟣 Host Live End Summary rendering', { hasHostInfo: !!hostInfo });
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Animated Background Orbs */}
@@ -3450,10 +3468,10 @@ const LiveStream = () => {
           />
           
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
-            <img loading="lazy" decoding="async" src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={safeHost.avatar || "/placeholder.svg"} alt={safeHost.name} className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg">
-            <span className="text-xs font-bold text-black">Lv{hostInfo.level}</span>
+            <span className="text-xs font-bold text-black">Lv{safeHost.level}</span>
           </div>
         </motion.div>
 
@@ -3465,14 +3483,14 @@ const LiveStream = () => {
           className="text-center mb-4"
         >
           <h2 className="text-2xl font-bold text-white mb-2">
-            {hostInfo.name}
+            {safeHost.name}
           </h2>
           <div className="flex items-center justify-center gap-2">
             <Badge className="bg-white/10 text-white border-white/10">
-              {hostInfo.country}
+              {safeHost.country}
             </Badge>
             <Badge className="bg-white/10 text-white border-white/10">
-              🗣️ {hostInfo.language}
+              🗣️ {safeHost.language}
             </Badge>
           </div>
         </motion.div>
