@@ -568,7 +568,6 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {availableCategories.map((cat, index) => {
-              const giftsInCategory = categoryGiftCountMap[cat.id] || 0;
               const isActive = activeCategory === index;
               return (
                 <button
@@ -593,14 +592,6 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 >
                   <span style={isActive ? { textShadow: '0 1px 2px rgba(0,0,0,0.35)' } : undefined}>
                     {cat.name}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
-                      isActive ? "bg-white/25 text-white" : "bg-white/10 text-white/70"
-                    )}
-                  >
-                    {giftsInCategory}
                   </span>
                 </button>
               );
