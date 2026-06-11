@@ -48,31 +48,21 @@ export const RoomWelcomeBanner = memo(({
 
   if (loading || !welcomeMessage) return null;
 
-  // Ultra Premium Luxury Style - matching chat overlay
+  // Professional system-notice style (Chamet/Bigo standard):
+  // compact fit-content bubble, muted translucent dark bg, no animation,
+  // rendered like a system chat message that blends into the chat column.
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
-        "flex items-start gap-2 py-2 px-3.5 rounded-2xl w-full",
-        "bg-gradient-to-r from-red-500/30 via-pink-500/25 to-purple-500/20",
-        "backdrop-blur-md border border-pink-300/25",
-        "shadow-[0_2px_15px_rgba(236,72,153,0.2),0_0_30px_rgba(236,72,153,0.08)]",
-        "ring-1 ring-pink-400/15",
+        "flex items-start gap-1.5 py-1 px-2.5 rounded-xl w-fit max-w-[92%]",
+        "bg-black/35 backdrop-blur-sm border border-white/10",
         className
       )}
     >
-      {/* Emoji with glow effect */}
-      <motion.span 
-        className="text-sm shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        ⚠️
-      </motion.span>
-      
-      {/* Full text - Premium styling */}
-      <span className="text-[10px] text-white/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
+      <span className="text-[10px] shrink-0 mt-px opacity-70">⚠️</span>
+      <span className="text-[10px] text-white/60 font-normal leading-snug">
         {welcomeMessage.message_text}
       </span>
     </motion.div>
