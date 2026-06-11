@@ -507,7 +507,13 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
           maxWidth: 'none',
         } : {}}
         onLoadedData={(e) => handleVideoReady(e.currentTarget)}
-        onEnded={() => !loop && onCompleteRef.current?.()}
+        onEnded={() => {
+          if (loop || completedRef.current) return;
+          completedRef.current = true;
+          onCompleteRef.current?.();
+        }}
+        onWaiting={(e) => { void e.currentTarget.play().catch(() => {}); }}
+        onStalled={(e) => { void e.currentTarget.play().catch(() => {}); }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (
