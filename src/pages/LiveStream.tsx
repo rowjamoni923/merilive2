@@ -1867,15 +1867,18 @@ const LiveStream = () => {
   const [streamEndedBy, setStreamEndedBy] = useState<string>("");
 
   const showViewerStreamEnded = useCallback(async (hostName?: string) => {
-    if (isHost || streamEndedRef.current) return;
+    if (isHost) return;
+    // Even if streamEndedRef was set elsewhere (e.g. realtime row update),
+    // we still want the modal to render with avatar + follow + thank-you.
     streamEndedRef.current = true;
     setStreamEndedBy(hostName || hostInfo?.name || "Host");
     setShowStreamEndedModal(true);
+    console.log('[LiveStream] 🟣 showViewerStreamEnded → modal opened');
     await leaveChannel().catch(() => {});
     if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
     streamEndRedirectTimerRef.current = setTimeout(() => {
       navigate('/', { replace: true });
-    }, 3000);
+    }, 7000);
   }, [hostInfo?.name, isHost, leaveChannel, navigate]);
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
