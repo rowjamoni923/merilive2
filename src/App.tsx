@@ -706,9 +706,13 @@ const App = () => {
 
     const routeIdleId = idle(preloadCoreRoutes, 1800);
 
-    // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
+    // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner/gift/frame cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW();
+      // Pkg-NetFix: actively populate cross-origin image cache at idle so first
+      // visit thumbnails/banners/gifts/frames appear instantly instead of streaming
+      // tile-by-tile on 3G/4G. Function is no-op safe and bounded (≤500 URLs).
+      m.warmAppImageCache?.().catch(() => {});
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 5000);
