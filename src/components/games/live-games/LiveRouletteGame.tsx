@@ -45,57 +45,57 @@ const getNumberColor = (num: number): 'red' | 'black' | 'green' => {
 
 const NUMBERS = Array.from({ length: 37 }, (_, i) => i);
 
-// 3D Roulette Ball Component - FIXED: Ball stays at TOP (12 o'clock position)
-// In real roulette, the ball indicator/pointer is fixed at the TOP of the wheel
-// The winning number is whichever segment is at the TOP when wheel stops
-// Ball is placed OUTSIDE the rotating wheel so it doesn't rotate with it
-const RouletteBall = ({ 
-  isSpinning, 
-  finalAngle // The angle where the winning segment will be after wheel stops
-}: { 
-  isSpinning: boolean; 
-  finalAngle: number;
-}) => {
-  // Ball is always at the TOP of the wheel (12 o'clock position)
-  // This is where the winning number will be shown after the wheel stops rotating
-  const ballRadius = 80; // Distance from center (on the number ring outer edge)
-  
-  // TOP position = -90 degrees in CSS (12 o'clock)
-  const topAngleRad = -90 * (Math.PI / 180);
-  const ballX = Math.cos(topAngleRad) * ballRadius; // = 0
-  const ballY = Math.sin(topAngleRad) * ballRadius; // = -80 (top)
-  
+// --- Professional SVG wheel helpers (premium casino look, GPU-smooth) ---
+const SEG_ANGLE = 360 / WHEEL_ORDER.length; // ≈ 9.73°
+const polar = (cx: number, cy: number, r: number, deg: number) => {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+};
+const arcPath = (
+  cx: number, cy: number,
+  rOuter: number, rInner: number,
+  startDeg: number, endDeg: number,
+) => {
+  const p1 = polar(cx, cy, rOuter, startDeg);
+  const p2 = polar(cx, cy, rOuter, endDeg);
+  const p3 = polar(cx, cy, rInner, endDeg);
+  const p4 = polar(cx, cy, rInner, startDeg);
+  const large = endDeg - startDeg > 180 ? 1 : 0;
+  return `M ${p1.x} ${p1.y} A ${rOuter} ${rOuter} 0 ${large} 1 ${p2.x} ${p2.y} L ${p3.x} ${p3.y} A ${rInner} ${rInner} 0 ${large} 0 ${p4.x} ${p4.y} Z`;
+};
+
+// Premium ivory ball that orbits the outer track on a single rotating layer.
+// Pure CSS transform = no jitter, no keyframe bounce. Lands at top (12 o'clock)
+// where the winning segment sits after the wheel settles.
+const RouletteBall = ({ isSpinning }: { isSpinning: boolean; finalAngle: number }) => {
   return (
     <motion.div
-      className="absolute w-5 h-5 rounded-full z-50 pointer-events-none"
-      style={{
-        background: 'radial-gradient(circle at 30% 30%, #ffffff 0%, #f8f8f8 15%, #e8e8e8 30%, #d0d0d0 50%, #b0b0b0 70%, #909090 100%)',
-        boxShadow: '0 3px 10px rgba(0,0,0,0.9), inset 0 3px 6px rgba(255,255,255,0.9), inset 0 -2px 4px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.3)',
-        left: '50%',
-        top: '50%',
-      }}
-      animate={isSpinning ? {
-        // During spin - ball bounces around the outer edge
-        x: [0, -72, 68, -75, 70, -68, 0],
-        y: [-80, -65, -70, -62, -72, -68, -80],
-        scale: [1, 0.9, 1.1, 0.95, 1.05, 0.98, 1],
-      } : {
-        // After spin - ball stays at the TOP (where winning number is)
-        x: ballX - 10, // -10 to center (half of ball width)
-        y: ballY - 10, // -10 to center (half of ball height)
-        scale: 1,
-      }}
-      transition={isSpinning ? {
-        duration: 3.5,
-        ease: "linear",
-        repeat: Infinity,
-      } : {
-        duration: 0.5,
-        ease: "easeOut",
-      }}
-    />
+      className="absolute inset-0 z-50 pointer-events-none"
+      style={{ willChange: 'transform' }}
+      animate={{ rotate: isSpinning ? -1440 : 0 }}
+      transition={
+        isSpinning
+          ? { duration: 4, ease: [0.15, 0.85, 0.15, 1] }
+          : { duration: 0.6, ease: 'easeOut' }
+      }
+    >
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: 14,
+          height: 14,
+          left: '50%',
+          top: 6,
+          transform: 'translateX(-50%)',
+          background: 'radial-gradient(circle at 30% 28%, #ffffff 0%, #f4f4f4 28%, #d6d6d6 60%, #8e8e8e 100%)',
+          boxShadow:
+            '0 2px 6px rgba(0,0,0,0.85), inset 0 2px 3px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(0,0,0,0.35)',
+        }}
+      />
+    </motion.div>
   );
 };
+
 
 // Auto-play interval (25 seconds betting + 5 seconds spinning = 30 second cycle)
 const AUTO_PLAY_BETTING_TIME = 25000; // 25 seconds betting phase
@@ -592,127 +592,100 @@ export function LiveRouletteGame({
               transition={{ duration: 0.5, repeat: isSpinning ? Infinity : 0 }}
             />
 
-            {/* Main Wheel */}
+            {/* Main Wheel — pro casino SVG (GPU-smooth single transform) */}
             <motion.div
-              className="w-48 h-48 rounded-full relative shadow-2xl"
+              className="absolute inset-0 flex items-center justify-center"
               animate={{ rotate: rotation }}
               transition={{ duration: 5, ease: [0.15, 0.85, 0.15, 1] }}
-              style={{
-                boxShadow: '0 0 40px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.3)',
-              }}
+              style={{ willChange: 'transform' }}
             >
-              {/* Outer Golden Ring */}
-              <div 
-                className="absolute inset-0 rounded-full p-1"
-                style={{
-                  background: 'linear-gradient(145deg, #ffd700 0%, #b8860b 30%, #daa520 50%, #b8860b 70%, #ffd700 100%)',
-                }}
+              <svg
+                viewBox="0 0 200 200"
+                className="w-full h-full drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
               >
-                {/* Number Segments - Clean Conic Gradient */}
-                <div 
-                  className="w-full h-full rounded-full relative overflow-hidden"
-                  style={{
-                    background: 'conic-gradient(from -85deg, ' + 
-                      WHEEL_ORDER.map((num, i) => {
-                        const colorType = getNumberColor(num);
-                        const color = colorType === 'green' ? '#16a34a' : colorType === 'red' ? '#dc2626' : '#171717';
-                        const start = (i / 37) * 100;
-                        const end = ((i + 1) / 37) * 100;
-                        return `${color} ${start}%, ${color} ${end}%`;
-                      }).join(', ') + ')',
-                  }}
-                >
-                  {/* Segment Divider Lines */}
-                  {WHEEL_ORDER.map((_, i) => {
-                    const angle = i * (360 / 37);
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-[1px] bg-amber-400/60"
-                        style={{
-                          height: '46%',
-                          left: '50%',
-                          top: '4%',
-                          transformOrigin: 'bottom center',
-                          transform: `translateX(-50%) rotate(${angle}deg)`,
-                        }}
-                      />
-                    );
-                  })}
+                <defs>
+                  <linearGradient id="rouletteGoldRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE9A0" />
+                    <stop offset="35%" stopColor="#D4AF37" />
+                    <stop offset="55%" stopColor="#8B6914" />
+                    <stop offset="100%" stopColor="#FFD86B" />
+                  </linearGradient>
+                  <radialGradient id="rouletteWood" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stopColor="#5C3D2E" />
+                    <stop offset="100%" stopColor="#1F1108" />
+                  </radialGradient>
+                  <radialGradient id="rouletteHub" cx="35%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#FFFDE4" />
+                    <stop offset="40%" stopColor="#FFD700" />
+                    <stop offset="80%" stopColor="#A07314" />
+                    <stop offset="100%" stopColor="#5A3F0A" />
+                  </radialGradient>
+                </defs>
 
-                  {/* Number Labels - Larger & Clearer */}
-                  {WHEEL_ORDER.map((num, i) => {
-                    const angle = i * (360 / 37);
-                    const radius = 78;
-                    const angleRad = (angle - 90) * (Math.PI / 180);
-                    const x = Math.cos(angleRad) * radius;
-                    const y = Math.sin(angleRad) * radius;
-                    
-                    return (
-                      <span
-                        key={num}
-                        className="absolute font-bold text-white select-none"
-                        style={{
-                          left: `calc(50% + ${x}px)`,
-                          top: `calc(50% + ${y}px)`,
-                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                          fontSize: '9px',
-                          fontWeight: 800,
-                          textShadow: '0 1px 3px rgba(0,0,0,1), 0 0 6px rgba(0,0,0,0.8)',
-                          letterSpacing: '-0.3px',
-                        }}
-                      >
-                        {num}
-                      </span>
-                    );
-                  })}
-                  
-                  {/* Inner Golden Ring */}
-                  <div 
-                    className="absolute inset-[38%] rounded-full"
-                    style={{
-                      background: 'linear-gradient(135deg, #ffd700 0%, #daa520 30%, #b8860b 50%, #8b6914 70%, #daa520 100%)',
-                      boxShadow: '0 0 10px rgba(218,165,32,0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    {/* Center Wood Ring */}
-                    <div 
-                      className="absolute inset-[4px] rounded-full"
+                {/* Outer gold rim */}
+                <circle cx="100" cy="100" r="99" fill="url(#rouletteGoldRim)" />
+                <circle cx="100" cy="100" r="96.5" fill="#0a0a0a" />
+
+                {/* Number segments */}
+                {WHEEL_ORDER.map((num, i) => {
+                  const startDeg = i * SEG_ANGLE - SEG_ANGLE / 2;
+                  const endDeg = startDeg + SEG_ANGLE;
+                  const colorType = getNumberColor(num);
+                  const fill =
+                    colorType === 'green' ? '#0F8A3C'
+                      : colorType === 'red' ? '#C8102E'
+                      : '#141414';
+                  return (
+                    <path
+                      key={`seg-${num}`}
+                      d={arcPath(100, 100, 95, 38, startDeg, endDeg)}
+                      fill={fill}
+                      stroke="#D4AF37"
+                      strokeWidth="0.35"
+                    />
+                  );
+                })}
+
+                {/* Numbers — crisp SVG text, stroke-on-fill for legibility */}
+                {WHEEL_ORDER.map((num, i) => {
+                  const angle = i * SEG_ANGLE;
+                  const p = polar(100, 100, 78, angle);
+                  return (
+                    <text
+                      key={`txt-${num}`}
+                      x={p.x}
+                      y={p.y}
+                      fontSize="8.5"
+                      fontWeight="800"
+                      fill="#ffffff"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      transform={`rotate(${angle} ${p.x} ${p.y})`}
                       style={{
-                        background: 'linear-gradient(160deg, #5c3d2e 0%, #3d2517 40%, #2a1810 60%, #4a2c1c 100%)',
-                        boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.6)',
+                        paintOrder: 'stroke',
+                        stroke: 'rgba(0,0,0,0.85)',
+                        strokeWidth: 0.9,
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
                       }}
                     >
-                      {/* Center Golden Hub */}
-                      <div 
-                        className="absolute inset-2 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'linear-gradient(145deg, #fff8dc 0%, #ffd700 25%, #daa520 50%, #b8860b 75%, #8b6914 100%)',
-                          boxShadow: 'inset 0 -3px 8px rgba(0,0,0,0.4), inset 0 3px 8px rgba(255,255,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
-                        }}
-                      >
-                        {/* Shine */}
-                        <div 
-                          className="absolute inset-0 rounded-full"
-                          style={{
-                            background: 'radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.5) 0%, transparent 50%)',
-                          }}
-                        />
-                        
-                        {/* Center Jewel */}
-                        <div 
-                          className="w-6 h-6 rounded-full"
-                          style={{
-                            background: 'radial-gradient(circle at 35% 30%, #fffacd 0%, #ffd700 30%, #daa520 60%, #b8860b 100%)',
-                            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -2px 4px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.4)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                      {num}
+                    </text>
+                  );
+                })}
+
+                {/* Inner gold ring */}
+                <circle cx="100" cy="100" r="38" fill="url(#rouletteGoldRim)" />
+                <circle cx="100" cy="100" r="35" fill="url(#rouletteWood)" />
+
+                {/* Hub */}
+                <circle cx="100" cy="100" r="22" fill="url(#rouletteHub)" />
+                <circle cx="100" cy="100" r="6" fill="#FFFDE4" opacity="0.85" />
+
+                {/* Subtle highlight on rim */}
+                <circle cx="100" cy="100" r="97.5" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
+              </svg>
             </motion.div>
+
             
             {/* Ball OUTSIDE the rotating wheel container - positioned in screen coordinates */}
             {/* CRITICAL: Ball is placed OUTSIDE the motion.div so it doesn't rotate with the wheel */}
