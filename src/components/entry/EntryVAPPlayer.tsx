@@ -417,16 +417,37 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     initializedRef.current = true;
     const isComposite = !!config || isLikelyVapCompositeSize(video.videoWidth, video.videoHeight);
 
-    // EXACT native duration — not one millisecond more, not one less.
-    // Matches VAPPlayer behavior; no buffer/grace added.
+    // PLAYBACK-TIME-AWARE completion (not wallclock). Primary = onEnded.
+    // Backstop = rAF watcher that only completes once currentTime actually
+    // reaches the native duration, so a buffer stall can't cut the asset
+    // short. Hard ceiling = duration + 6s grace.
     if (!loop && video.duration > 0 && Number.isFinite(video.duration)) {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-      completionTimerRef.current = setTimeout(() => {
-        if (mountedRef.current && !completedRef.current) {
-          completedRef.current = true;
-          onCompleteRef.current?.();
+      const nativeDurationMs = Math.round(video.duration * 1000);
+      const startWallclock = performance.now();
+      const hardCeilingMs = nativeDurationMs + 6000;
+      let watchRaf: number | null = null;
+      const fireComplete = () => {
+        if (!mountedRef.current || completedRef.current) return;
+        completedRef.current = true;
+        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        onCompleteRef.current?.();
+      };
+      const tick = () => {
+        if (!mountedRef.current || completedRef.current) return;
+        const v = videoRef.current;
+        if (!v) return;
+        const reachedEnd = v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.04);
+        if (reachedEnd || performance.now() - startWallclock >= hardCeilingMs) {
+          fireComplete();
+          return;
         }
-      }, Math.round(video.duration * 1000));
+        watchRaf = requestAnimationFrame(tick);
+      };
+      watchRaf = requestAnimationFrame(tick);
+      completionTimerRef.current = setTimeout(() => {
+        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+      }, hardCeilingMs + 500) as any;
     }
 
     if (!isComposite) {
