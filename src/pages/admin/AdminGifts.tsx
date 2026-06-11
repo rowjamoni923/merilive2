@@ -65,7 +65,7 @@ import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
-import { detectVapSideBySideLayout } from "@/utils/vapDetection";
+import { isLikelyVapCompositeSize } from "@/utils/vapDetection";
 
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
@@ -136,7 +136,8 @@ const detectUploadedAnimationFormat = async (file: File): Promise<AnimationForma
     video.playsInline = true;
     video.preload = 'metadata';
     video.onloadeddata = () => {
-      try { done(detectVapSideBySideLayout(video) ? 'vap' : 'mp4'); }
+      // Size-based check — pixel detection may be null on a blank first frame.
+      try { done(isLikelyVapCompositeSize(video.videoWidth, video.videoHeight) ? 'vap' : 'mp4'); }
       catch { done('mp4'); }
     };
     video.onerror = () => done('mp4');

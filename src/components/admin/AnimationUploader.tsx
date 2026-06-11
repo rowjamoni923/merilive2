@@ -34,7 +34,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import UniversalAnimationPlayer from '@/components/common/UniversalAnimationPlayer';
 import { cn } from '@/lib/utils';
-import { detectVapSideBySideLayout } from '@/utils/vapDetection';
+import { isLikelyVapCompositeSize } from '@/utils/vapDetection';
 
 export type AnimationFormat =
   | 'svga'
@@ -127,7 +127,9 @@ const looksLikeSideBySideVap = async (file: File): Promise<boolean> => {
     video.preload = 'metadata';
     video.onloadeddata = () => {
       try {
-        finish(Boolean(detectVapSideBySideLayout(video)));
+        // Size-based composite check — pixel-side detection can be null on a
+        // blank first frame, which must NOT downgrade the file to plain mp4.
+        finish(isLikelyVapCompositeSize(video.videoWidth, video.videoHeight));
       } catch {
         finish(false);
       }
