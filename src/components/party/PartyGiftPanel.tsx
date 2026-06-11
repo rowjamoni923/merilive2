@@ -255,12 +255,6 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                   )}
                 >
                   <span>{category.name}</span>
-                  <span className={cn(
-                    "text-[9px] px-1 py-0.5 rounded-full min-w-[16px] text-center",
-                    activeCategory === category.id ? "bg-white/25 text-white" : "bg-white/10 text-white/40"
-                  )}>
-                    {getCategoryGifts(category.id).length}
-                  </span>
                 </button>
               ))}
             </div>
