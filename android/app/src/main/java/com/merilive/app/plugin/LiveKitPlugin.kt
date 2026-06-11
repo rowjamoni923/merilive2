@@ -1398,9 +1398,8 @@ class LiveKitPlugin : Plugin() {
             VideoEncoding(maxBitrate = 3_000_000, maxFps = 30)
         }
         val codecForPublish: String? = resolvePublishCodec()
-        val simulcastLayers: List<VideoPreset169> =
-            if (args.resolution != "720p") listOf(VideoPreset169.H180, VideoPreset169.H360)
-            else emptyList()
+        // Simulcast layers inherit from RoomOptions.videoTrackPublishDefaults
+        // set at preview Room creation; SFU adapts per-viewer server-side.
         val videoPublishOptions = VideoTrackPublishOptions(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
