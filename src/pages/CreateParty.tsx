@@ -256,8 +256,14 @@ const CreateParty = () => {
         streamRef.current = null;
         releaseAndroidWebViewCamera('create-party:unmount');
       }
+      // Native prejoin preview: keep alive if PartyRoom will reuse it
+      // (preserveStreamRef === true means user tapped Create). Otherwise
+      // user backed out → release Camera2 immediately.
+      if (isNativeAndroid && !preserveStreamRef.current) {
+        nativeLiveKitController.stopLocalPreview().catch(() => {});
+      }
     };
-  }, []);
+  }, [isNativeAndroid]);
 
   // Sync stream → video element whenever either changes (video element may
   // mount AFTER startCameraInstant set srcObject on a null ref → preview blank).
