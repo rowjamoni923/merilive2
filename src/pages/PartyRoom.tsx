@@ -1070,7 +1070,7 @@ const PartyRoom = () => {
       cleanupNativeLiveKit();
       setTimeout(() => {
         if (isMountedRef.current) navigate('/');
-      }, 3000);
+      }, 7000);
     };
     window.addEventListener('livekit-party-closed', handleLiveKitPartyClosed);
 
@@ -1314,7 +1314,7 @@ const PartyRoom = () => {
             roomClosedRef.current = true;
             setShowRoomClosedModal(true);
             cleanupNativeLiveKit();
-            setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+            setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 7000);
           }
         }
         return;
@@ -1357,7 +1357,7 @@ const PartyRoom = () => {
       playSound('notification');
       setShowRoomClosedModal(true);
       cleanupNativeLiveKit();
-      setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+      setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 7000);
     };
 
     // Direct scoped channel for room close. This is the durable fallback when
@@ -2205,7 +2205,7 @@ const PartyRoom = () => {
       // Clean up the tracking after a delay
       setTimeout(() => {
         recentlyProcessedRequestsRef.current.delete(request.id);
-      }, 3000);
+      }, 7000);
 
     } catch (error) {
       console.error('Error approving seat:', error);
@@ -2257,7 +2257,7 @@ const PartyRoom = () => {
 
       setTimeout(() => {
         recentlyProcessedRequestsRef.current.delete(request.id);
-      }, 3000);
+      }, 7000);
     } catch (error) {
       console.error('Error rejecting seat:', error);
       recordClientError({ label: 'PartyRoom.rejectSeatRequest', message: error instanceof Error ? error.message : String(error) });
