@@ -253,15 +253,33 @@ const Discover = () => {
     fetchCurrentUser();
     void fetchRoomsRef.current(true); // Initial load with loading indicator
 
-    // Use universal realtime system instead of manual channels
+    // Universal realtime (debounced refetch for adds / participant changes).
     const unsubscribe = subscribeToTables(
       `discover-rooms-${Date.now()}`,
       ['party_rooms', 'party_room_participants'],
       () => debouncedFetch()
     );
 
+    // Instant-close: subscribe directly to party_rooms UPDATE so a host
+    // ending their room removes the card immediately (no 1.5s debounce wait).
+    const instantCloseChannel = supabase
+      .channel(`discover-instant-close-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'party_rooms' },
+        (payload: any) => {
+          const row = payload?.new;
+          if (!row) return;
+          if (row.is_active === false || row.ended_at) {
+            setRooms((prev) => prev.filter((r) => r.id !== row.id));
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       unsubscribe();
+      supabase.removeChannel(instantCloseChannel);
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current);
       }
