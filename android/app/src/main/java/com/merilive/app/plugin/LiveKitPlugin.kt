@@ -1390,13 +1390,20 @@ class LiveKitPlugin : Plugin() {
         adaptiveBusy = false
         audioOnlyActive = false
 
-        // Publish encoding ladder — matches legacy 1080p Live path.
-        val publishEncoding = VideoEncoding(maxBitrate = 3_000_000, maxFps = 30)
+        // Publish encoding ladder — mirrors connectInternal legacy path.
+        // 1080p Live → 3Mbps + simulcast (H180/H360 + top). 720p call → 2Mbps single-layer.
+        val publishEncoding: VideoEncoding = if (args.resolution == "720p") {
+            VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
+        } else {
+            VideoEncoding(maxBitrate = 3_000_000, maxFps = 30)
+        }
         val codecForPublish: String? = resolvePublishCodec()
-        val simulcastLayers: List<VideoPreset169> = listOf(VideoPreset169.H180, VideoPreset169.H360)
+        val simulcastLayers: List<VideoPreset169> =
+            if (args.resolution != "720p") listOf(VideoPreset169.H180, VideoPreset169.H360)
+            else emptyList()
         val videoPublishOptions = VideoTrackPublishOptions(
             videoEncoding = publishEncoding,
-            simulcast = true,
+            simulcast = (args.resolution != "720p"),
             simulcastLayers = simulcastLayers,
             videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
