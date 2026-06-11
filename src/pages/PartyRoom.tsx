@@ -1742,11 +1742,11 @@ const PartyRoom = () => {
         p_password: passwordOverride,
       });
       if (enterError) {
-        // PR-2 (P0-5): translate password errors into a retry modal instead
-        // of bouncing the viewer back to the lobby.
         const msg = String(enterError.message || '');
+        // Password gating removed — but if a stale RPC ever raises this, just bounce to lobby cleanly.
         if (/Password required/i.test(msg) || /Invalid password/i.test(msg)) {
-          setPasswordPrompt({ show: true, error: /Invalid/i.test(msg) ? 'Incorrect password — try again' : undefined });
+          toast.error('Room temporarily unavailable');
+          navigate('/party-rooms');
           return;
         }
         if (/Insufficient coins for entry fee/i.test(msg)) {
@@ -2794,35 +2794,7 @@ const PartyRoom = () => {
 
 
 
-      {/* PR-2 (P0-5) — Password prompt for locked party rooms. */}
-      <AlertDialog open={passwordPrompt.show} onOpenChange={(open) => { if (!open) { setPasswordPrompt({ show: false }); navigate('/party-rooms'); } }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>This room is locked</AlertDialogTitle>
-            <AlertDialogDescription>
-              {passwordPrompt.error ?? 'Enter the room password to join.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Input
-            type="password"
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
-            placeholder="Room password"
-            autoFocus
-            onKeyDown={(e) => { if (e.key === 'Enter') void handlePasswordSubmit(); }}
-            disabled={passwordSubmitting}
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={passwordSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); void handlePasswordSubmit(); }}
-              disabled={passwordSubmitting || !passwordInput.trim()}
-            >
-              {passwordSubmitting ? 'Joining…' : 'Join'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Password prompt removed — all party rooms are public (Chamet/Bigo standard). */}
 
 
 

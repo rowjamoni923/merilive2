@@ -96,10 +96,9 @@ const CreateParty = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
-  // PR-2.2 — Optional room access controls (password + entry fee in coins).
-  // Stored in local state; passed to `create_party_room` RPC on submit.
+  // Party rooms are always public (industry standard — Chamet/Bigo/Poppo).
+  // Entry fee remains as an optional gate; password gating fully removed.
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
-  const [roomPassword, setRoomPassword] = useState('');
   const [roomEntryFee, setRoomEntryFee] = useState<number>(0);
   const preserveStreamRef = useRef(false);
   const isNativeAndroid = isNativeAndroidApp();
@@ -365,7 +364,7 @@ const CreateParty = () => {
         p_name: defaultName,
         p_room_type: mode,
         p_game_mode: mode === 'game' ? selectedGame : null,
-        p_password: roomPassword.trim() ? roomPassword.trim() : null,
+        p_password: null,
         p_entry_fee: Math.max(0, Math.floor(Number(roomEntryFee) || 0)),
       });
 
@@ -815,18 +814,18 @@ const CreateParty = () => {
             <Wand2 className="w-7 h-7 text-white" />
           </motion.button>
 
-          {/* PR-2.2 — Room Lock / Entry Fee Button */}
+          {/* Entry Fee Button (password gating removed — all party rooms are public) */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowRoomLockSheet(true)}
             className={cn(
               "w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-amber-200/60 relative",
-              (roomPassword.trim() || roomEntryFee > 0) && "ring-2 ring-amber-300/80"
+              roomEntryFee > 0 && "ring-2 ring-amber-300/80"
             )}
-            aria-label="Room access"
+            aria-label="Entry fee"
           >
             <Lock className="w-6 h-6 text-white" />
-            {(roomPassword.trim() || roomEntryFee > 0) && (
+            {roomEntryFee > 0 && (
               <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-300 border border-purple-900" />
             )}
           </motion.button>
@@ -896,28 +895,16 @@ const CreateParty = () => {
         selectedGame={selectedGame}
       />
 
-      {/* PR-2.2 — Room Lock & Entry Fee Sheet */}
+      {/* Entry Fee Sheet (party rooms are always public — no password) */}
       <Dialog open={showRoomLockSheet} onOpenChange={setShowRoomLockSheet}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Room Access</DialogTitle>
+            <DialogTitle>Entry Fee</DialogTitle>
             <DialogDescription>
-              Optionally protect the room with a password or charge an entry fee in coins.
+              Optionally charge an entry fee in coins. The room stays public for everyone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="room-password">Password (optional)</Label>
-              <Input
-                id="room-password"
-                type="text"
-                inputMode="text"
-                maxLength={64}
-                placeholder="Leave empty for an open room"
-                value={roomPassword}
-                onChange={(e) => setRoomPassword(e.target.value)}
-              />
-            </div>
             <div className="space-y-1.5">
               <Label htmlFor="room-entry-fee">Entry fee (coins)</Label>
               <Input
@@ -940,7 +927,7 @@ const CreateParty = () => {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="ghost"
-              onClick={() => { setRoomPassword(''); setRoomEntryFee(0); setShowRoomLockSheet(false); }}
+              onClick={() => { setRoomEntryFee(0); setShowRoomLockSheet(false); }}
             >
               Clear
             </Button>
