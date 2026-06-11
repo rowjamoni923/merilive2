@@ -151,6 +151,51 @@ const storeResponse = async (namespace: string, key: string, method: string, res
   }
 };
 
+// ============= Pkg-NetFix: timeout + silent retry =============
+// 3G/flaky networks routinely "hang" a TCP connection forever, which freezes
+// every Supabase call (including login, balance, profile fetch) until the user
+// kills the app. We cap each request at REQUEST_TIMEOUT_MS and silently retry
+// once with a tiny backoff on AbortError / network failures. Mirrors what
+// Chamet/Bigo do — users on bad networks see a brief pause, never a stuck UI.
+const REQUEST_TIMEOUT_MS = 12_000;
+const RETRY_BACKOFF_MS = 600;
+
+const fetchWithTimeoutAndRetry = async (
+  input: RequestInfo | URL,
+  init: RequestInit | undefined,
+): Promise<Response> => {
+  // Don't add a timeout to streaming/upload bodies — Supabase storage uploads
+  // and edge function streams can legitimately run >12s on slow links.
+  const hasStreamBody = !!(init?.body && (init.body instanceof FormData || init.body instanceof Blob || init.body instanceof ReadableStream));
+  if (hasStreamBody) return fetch(input, init);
+
+  const externalSignal = init?.signal;
+  const attempt = async (): Promise<Response> => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+    const onExternalAbort = () => ctrl.abort();
+    externalSignal?.addEventListener('abort', onExternalAbort);
+    try {
+      return await fetch(input, { ...(init || {}), signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+      externalSignal?.removeEventListener('abort', onExternalAbort);
+    }
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    // External cancel (component unmount, navigation) — propagate as-is.
+    if (externalSignal?.aborted) throw err;
+    // Network-down — let caller see the failure immediately, no retry.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) throw err;
+    // One silent retry for transient failures (timeout, dropped TCP, 5xx-ish gateway).
+    await new Promise((r) => setTimeout(r, RETRY_BACKOFF_MS));
+    return attempt();
+  }
+};
+
 export function fetchWithInstantRestCache(
   input: RequestInfo | URL,
   init: RequestInit | undefined,
@@ -170,7 +215,7 @@ export function fetchWithInstantRestCache(
     isSensitiveBalanceRead(url) ||
     options.skipUrl?.(url, method)
   ) {
-    return fetch(input, init);
+    return fetchWithTimeoutAndRetry(input, init);
   }
 
   const key = makeCacheKey(options.namespace, url, method, headers);
@@ -180,14 +225,14 @@ export function fetchWithInstantRestCache(
     const age = now - cached.storedAt;
     if (age <= ttlMs) return Promise.resolve(toResponse(cached, method));
     if (age <= ttlMs + staleWhileRevalidateMs) {
-      fetch(input, init)
+      fetchWithTimeoutAndRetry(input, init)
         .then((response) => storeResponse(options.namespace, key, method, response, maxEntries))
         .catch(() => undefined);
       return Promise.resolve(toResponse(cached, method));
     }
   }
 
-  return fetch(input, init).then((response) => {
+  return fetchWithTimeoutAndRetry(input, init).then((response) => {
     void storeResponse(options.namespace, key, method, response, maxEntries);
     return response;
   });

@@ -53,15 +53,31 @@ const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-
 
 export function toSupabaseCdnUrl(
   url: string | null | undefined,
-  _opts: CdnImageOptions = {}
+  opts: CdnImageOptions = {}
 ): string | undefined {
-  // Image-transform endpoint disabled project-wide: it was returning broken /
-  // partial WebP frames (visible "piece by piece" decode) and the onError
-  // fallback to the original URL caused a second request + visible flicker.
-  // Serving the original public URL is faster end-to-end because the asset
-  // is already cached at the Supabase edge after first hit.
+  // Pkg-NetFix: re-enabled on Supabase Pro. Returns a transformed WebP variant
+  // (10-30 KB) instead of the raw 1-3 MB original — kills the "piece-by-piece"
+  // image load on 3G/4G. Callers MUST keep an onError fallback to the raw URL
+  // in case transform 400s on a specific object (e.g. animated GIF, SVG).
   if (!url || typeof url !== "string") return url || undefined;
-  return url;
+  if (!url.includes(OBJECT_PUBLIC)) return url; // not a transformable Supabase object
+  if (url.includes(RENDER_PUBLIC)) return url; // already a render URL
+  if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+  // SVG/GIF can't be transformed without breaking animation/vector — leave raw.
+  if (/\.(svg|gif)(\?|#|$)/i.test(url)) return url;
+
+  const width = opts.width && opts.width > 0 ? Math.min(2000, Math.round(opts.width)) : undefined;
+  const height = opts.height && opts.height > 0 ? Math.min(2000, Math.round(opts.height)) : undefined;
+  const quality = Math.max(20, Math.min(100, opts.quality ?? 70));
+  const resize = opts.resize ?? "contain";
+
+  const params = new URLSearchParams();
+  if (width) params.set("width", String(width));
+  if (height) params.set("height", String(height));
+  params.set("quality", String(quality));
+  params.set("resize", resize);
+
+  return url.replace(OBJECT_PUBLIC, RENDER_PUBLIC) + (url.includes("?") ? "&" : "?") + params.toString();
 }
 
 export function toPublicStorageUrl(bucket: string, path: string): string {
