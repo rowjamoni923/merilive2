@@ -59,7 +59,8 @@ interface EntryVAPPlayerProps {
 
 const getAutoVapRects = (video: HTMLVideoElement, srcUrl?: string) => {
   const cached = srcUrl ? getCachedVapLayout(srcUrl) : null;
-  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-right';
+  // Default 'alpha-left' (RGB right) — measured majority of the asset library.
+  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-left';
   return layout === 'alpha-left'
     ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1], layout }
     : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1], layout };
@@ -326,9 +327,9 @@ const EntryVAPPlayer: React.FC<EntryVAPPlayerProps> = ({
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    // Confirm side via mid-frame seek when first-frame detection was a guess.
+    // Smart multi-frame confirmation when first-frame detection was a guess.
     if (!cfg && initialLayout && !getCachedVapLayout(resolvedSrc)) {
-      void detectVapLayoutWithSeek(video, resolvedSrc).then((confirmed) => {
+      void detectVapLayoutWithSeek(video, resolvedSrc, initialLayout).then((confirmed) => {
         if (!mountedRef.current || confirmed === initialLayout) return;
         const newRgb = confirmed === 'alpha-left' ? [0.5, 0, 0.5, 1] : [0, 0, 0.5, 1];
         const newAlpha = confirmed === 'alpha-left' ? [0, 0, 0.5, 1] : [0.5, 0, 0.5, 1];

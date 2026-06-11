@@ -41,7 +41,9 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 
 const getAutoVapRects = (video: HTMLVideoElement, srcUrl?: string) => {
   const cached = srcUrl ? getCachedVapLayout(srcUrl) : null;
-  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-right';
+  // Default 'alpha-left' (RGB on the right) — measured majority of the real
+  // gift library. The smart resolver corrects per-file within frames anyway.
+  const layout = cached || detectVapSideBySideLayout(video, srcUrl) || 'alpha-left';
   return layout === 'alpha-left'
     ? { rgbRect: [0.5, 0, 0.5, 1], alphaRect: [0, 0, 0.5, 1], layout }
     : { rgbRect: [0, 0, 0.5, 1], alphaRect: [0.5, 0, 0.5, 1], layout };
@@ -322,7 +324,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     if (!cfg && initialLayout) {
       const cached = getCachedVapLayout(resolvedSrc);
       if (!cached) {
-        void detectVapLayoutWithSeek(video, resolvedSrc).then((confirmed) => {
+        void detectVapLayoutWithSeek(video, resolvedSrc, initialLayout).then((confirmed) => {
           if (!mountedRef.current || confirmed === initialLayout) return;
           const newRgb = confirmed === 'alpha-left'
             ? [0.5, 0, 0.5, 1]
