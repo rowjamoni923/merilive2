@@ -20,6 +20,8 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
+import PrivilegeTierManager from "@/components/admin/PrivilegeTierManager";
+import { Layers } from "lucide-react";
 interface LevelPrivilege {
   id: string;
   privilege_type: string;
