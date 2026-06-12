@@ -126,8 +126,12 @@ function CampaignFloatingButton() {
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const [gateways, setGateways] = useState<AutoGateway[]>([]);
   const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
-  // Draggable floating-badge position offset (Framer Motion x/y), persisted per device.
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>(() => {
+  // Draggable floating-badge position — uses MotionValues (NOT React state) so
+  // framer-motion's internal drag value and our controlled value do not fight.
+  // Mixing `style.x = state` with `drag` causes touch drags to look "stuck":
+  // framer snaps internal x back toward 0 on pointerup while React state is one
+  // render behind, so on mobile the badge appears not to move at all.
+  const initialPos = (() => {
     try {
       const raw = localStorage.getItem(FLOATING_POS_KEY);
       if (raw) {
@@ -136,7 +140,9 @@ function CampaignFloatingButton() {
       }
     } catch {}
     return { x: 0, y: 0 };
-  });
+  })();
+  const dragX = useMotionValue(initialPos.x);
+  const dragY = useMotionValue(initialPos.y);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   // Tracks whether the last pointer interaction was a drag — used to swallow
