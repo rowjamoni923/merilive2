@@ -2018,6 +2018,26 @@ export default function AdminLayout() {
         && ('version' in p || 'row_id' in p)
         && !('id' in p) && !('created_at' in p);
 
+    // Cross-source dedupe — same logical INSERT often arrives twice:
+    //   (1) supabaseFetchGuard fires the moment the local admin's POST returns,
+    //   (2) useAdminBroadcastSync fires ~200-500ms later from admin_broadcast.
+    // Without dedupe the admin sees the same toast / hears the sound twice.
+    const recentToastKeys: Record<string, number> = {};
+    const TOAST_DEDUPE_MS = 2500;
+    const isDuplicateToast = (key: string) => {
+      const now = Date.now();
+      const last = recentToastKeys[key] ?? 0;
+      if (now - last < TOAST_DEDUPE_MS) return true;
+      recentToastKeys[key] = now;
+      const keys = Object.keys(recentToastKeys);
+      if (keys.length > 64) {
+        for (const k of keys) {
+          if (now - recentToastKeys[k] > TOAST_DEDUPE_MS * 2) delete recentToastKeys[k];
+        }
+      }
+      return false;
+    };
+
     const handleUnifiedEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail?.table) return;
@@ -2030,11 +2050,15 @@ export default function AdminLayout() {
         if (table === 'notifications') fetchNotifications();
       }
 
-      // Only show toasts for INSERT events (direct path) OR any event from the
-      // broadcast bridge that maps to an alert table (we can't always distinguish
-      // INSERT vs UPDATE from broadcast, so we fire on the topic + last_event).
+      // ✅ Only toast on actual INSERT events. Synthetic broadcast carries the
+      // real `last_event` in eventType, so resolved/updated rows (ticket close,
+      // withdrawal approve, etc.) never falsely fire as new alerts.
       const isInsertish = eventType === 'INSERT';
-      if (!isInsertish && !synthetic) return;
+      if (!isInsertish) return;
+
+      // ✅ Cross-source dedupe — collapse direct + broadcast duplicates.
+      const dedupeId = payload?.id ?? payload?.row_id ?? '';
+      if (isDuplicateToast(`${table}:${eventType}:${dedupeId}`)) return;
 
       // Notification INSERT — handle inline (direct path only; synthetic skipped
       // because we already call fetchNotifications above to refresh the bell).
