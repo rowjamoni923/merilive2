@@ -11,6 +11,8 @@ import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@
 import { GlobalCallGiftSheet } from './GlobalCallGiftSheet';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { useProCamera } from '@/camera/useProCamera';
+import { toast as sonnerToast } from 'sonner';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
@@ -143,6 +145,24 @@ export function CallProvider({ children }: CallProviderProps) {
     }
   }, [incomingCall, callState.callId, callState.status]);
 
+  // Pkg-private-call C-1: gate the prejoin Camera2 preview through the
+  // single ProCameraEngine arbiter (owner='private-call'). If face-verify
+  // (verification family) holds the camera, acquire fails — we surface a
+  // toast and never open Camera2, so the live/party/call families can
+  // never silently race the verification family.
+  const callIsActive =
+    !!incomingCall ||
+    callState.status === 'calling' ||
+    callState.status === 'ringing' ||
+    callState.status === 'connected';
+  const prejoinCamera = useProCamera('private-call', callIsActive);
+
+  useEffect(() => {
+    if (prejoinCamera.error) {
+      sonnerToast.error('Camera is busy with face verification. Please finish that first.');
+    }
+  }, [prejoinCamera.error]);
+
   // Pro single-camera lifecycle (Chamet/Bigo): start native LiveKit
   // prejoin preview the moment an incoming OR outgoing call exists, so
   // the accepted call connect path reuses the SAME LocalVideoTrack via
@@ -150,8 +170,12 @@ export function CallProvider({ children }: CallProviderProps) {
   // accept. Private calls are always video in this app.
   useEffect(() => {
     if (!isNativeAndroidApp()) return;
-    const callIsActive = !!incomingCall || callState.status === 'calling' || callState.status === 'ringing';
-    if (!callIsActive) return;
+    const ringing = !!incomingCall || callState.status === 'calling' || callState.status === 'ringing';
+    if (!ringing) return;
+    // Pkg-private-call C-1: only open Camera2 once the ProCamera arbiter
+    // has granted the 'private-call' slot. If face-verify holds it,
+    // `ready=false` and we never call startLocalPreview.
+    if (!prejoinCamera.ready) return;
     let cancelled = false;
     (async () => {
       try {
@@ -165,7 +189,7 @@ export function CallProvider({ children }: CallProviderProps) {
       }
     })();
     return () => { cancelled = true; };
-  }, [incomingCall, callState.status]);
+  }, [incomingCall, callState.status, prejoinCamera.ready]);
 
   // If a ringing/incoming call resolves without ever connecting (decline,
   // timeout, missed), release the prejoin Camera2 slot.
