@@ -62,12 +62,24 @@ public class AudioRecorderPlugin extends Plugin {
             call.reject("already_recording");
             return;
         }
+        // Pkg-single-mic guard: WebRTC (LiveKit) holds AudioSource.MIC during
+        // any live stream / party / private call. Opening MediaRecorder(MIC)
+        // in parallel races the same hardware mic — Android audio focus lets
+        // LiveKit win, MediaRecorder silently records silence. Refuse cleanly
+        // so the JS side can show a friendly toast instead of saving a dead
+        // voice note.
+        if (CameraOwnership.INSTANCE.owner() != null
+                && CameraOwnership.OWNER_LIVEKIT.equals(CameraOwnership.INSTANCE.owner())) {
+            call.reject("mic_busy_live_session");
+            return;
+        }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
             requestPermissionForAlias("microphone", call, "micPermCallback");
             return;
         }
         beginRecord(call);
     }
+
 
     @PermissionCallback
     private void micPermCallback(PluginCall call) {
