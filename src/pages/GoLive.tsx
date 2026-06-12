@@ -80,6 +80,7 @@ const GoLive = () => {
   const [showGrid, setShowGrid] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
+  const cameraSwitchInFlightRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     streamRef.current = stream;
@@ -670,62 +671,92 @@ const GoLive = () => {
   };
 
   const handleCameraSwitch = async () => {
-    try {
-      if (isNativeAndroid) return;
+    if (cameraSwitchInFlightRef.current) return cameraSwitchInFlightRef.current;
+    const switchPromise = (async () => {
+      try {
+        if (isNativeAndroid) return;
 
-      // Pkg-audit Bug C: only stop the VIDEO tracks on camera flip — keep
-      // the microphone track alive so the host's audio doesn't go silent
-      // (Android WebView won't re-grant mic without a fresh user gesture).
-      if (stream) {
-        stream.getVideoTracks().forEach((track) => track.stop());
-        releaseAndroidWebViewCamera('golive:switch-camera');
-      }
+        const previousStream = streamRef.current;
+        const previousAudioTracks = previousStream?.getAudioTracks().filter((track) => track.readyState === 'live') ?? [];
+        const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
 
+        console.log('[GoLive] Switching camera to:', newFacingMode);
 
-      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-
-      console.log('[GoLive] Switching camera to:', newFacingMode);
-
-      // Progressive fallback for camera switch
-      let mediaStream: MediaStream | null = null;
-      const constraints = [
-        {
-          video: {
-            facingMode: newFacingMode,
-            width: { min: 1280, ideal: 1920, max: 1920 },
-            height: { min: 720, ideal: 1080, max: 1080 },
-            frameRate: { min: 24, ideal: 30, max: 30 },
-            aspectRatio: { ideal: 16 / 9 },
+        // GAP-1 fix: atomic preview swap. Keep the old preview attached until
+        // the next camera has a live video track; if the browser rejects dual
+        // camera opens, release only old VIDEO tracks then retry while keeping mic.
+        const audioConstraint = previousAudioTracks.length === 0
+          ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+          : false;
+        const constraints = [
+          {
+            video: {
+              facingMode: newFacingMode,
+              width: { min: 1280, ideal: 1920, max: 1920 },
+              height: { min: 720, ideal: 1080, max: 1080 },
+              frameRate: { min: 24, ideal: 30, max: 30 },
+              aspectRatio: { ideal: 16 / 9 },
+            },
+            audio: audioConstraint,
           },
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-        },
-        { video: { facingMode: newFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true },
-        { video: { facingMode: newFacingMode }, audio: true },
-        { video: true, audio: true }
-      ];
+          { video: { facingMode: newFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode }, audio: audioConstraint },
+          { video: true, audio: audioConstraint },
+        ];
 
-      for (const constraint of constraints) {
-        try {
-          mediaStream = await claimAndroidWebViewCameraForStream(
-            () => navigator.mediaDevices.getUserMedia(constraint),
-            'golive:switch-camera-new-stream',
-          );
-          break;
-        } catch {
-          continue;
+        const openNextCamera = async () => {
+          for (const constraint of constraints) {
+            try {
+              return await claimAndroidWebViewCameraForStream(
+                () => navigator.mediaDevices.getUserMedia(constraint),
+                'golive:switch-camera-new-stream',
+              );
+            } catch {
+              continue;
+            }
+          }
+          return null;
+        };
+
+        let mediaStream = await openNextCamera();
+        if (!mediaStream && previousStream) {
+          previousStream.getVideoTracks().forEach((track) => track.stop());
+          releaseAndroidWebViewCamera('golive:switch-camera');
+          mediaStream = await openNextCamera();
         }
+
+        const nextVideoTracks = mediaStream?.getVideoTracks().filter((track) => track.readyState === 'live') ?? [];
+        if (!mediaStream || nextVideoTracks.length === 0) return;
+
+        const nextAudioTracks = mediaStream.getAudioTracks().filter((track) => track.readyState === 'live');
+        const combinedStream = new MediaStream([
+          ...nextVideoTracks,
+          ...(nextAudioTracks.length ? nextAudioTracks : previousAudioTracks),
+        ]);
+
+        setStream(combinedStream);
+        setFacingMode(newFacingMode);
+        attachWebPreviewStream(combinedStream);
+
+        if (previousStream && previousStream !== combinedStream) {
+          previousStream.getVideoTracks().forEach((track) => {
+            if (!nextVideoTracks.includes(track)) track.stop();
+          });
+        }
+        if (mediaStream !== combinedStream) {
+          mediaStream.getAudioTracks().forEach((track) => {
+            if (!combinedStream.getAudioTracks().includes(track)) track.stop();
+          });
+        }
+      } catch (error) {
+        console.error("Camera switch error:", error);
+        recordClientError({ label: "GoLive.constraints", message: error instanceof Error ? error.message : String(error) });
       }
-
-      if (!mediaStream) return;
-
-      setStream(mediaStream);
-      setFacingMode(newFacingMode);
-
-      attachWebPreviewStream(mediaStream);
-    } catch (error) {
-      console.error("Camera switch error:", error);
-      recordClientError({ label: "GoLive.constraints", message: error instanceof Error ? error.message : String(error) });
-    }
+    })().finally(() => {
+      cameraSwitchInFlightRef.current = null;
+    });
+    cameraSwitchInFlightRef.current = switchPromise;
+    return switchPromise;
   };
 
   // GAP-7 fix (2026-06-12): GoLive is a pure preview screen — no LiveKit Room
