@@ -505,13 +505,34 @@ export const RoomChatOverlay = memo(({
 
   return (
     <div className={cn(
-      "flex flex-col w-full relative",
+      "flex flex-col w-full relative gap-1.5",
       className
     )}>
-      {/* SCROLLABLE CHAT CONTAINER - Ultra Premium Luxury Style */}
-      {/* flex-col-reverse: newest at bottom, scroll up to see older messages */}
-      {/* ALL content (banner, welcome, messages) scrolls together */}
-      {/* Subtle blur background for premium look */}
+      {/* PERMANENT TOP SECTION — Admin warning + Welcome message.
+          Rendered ABOVE the scrollable chat so it always sits at the top
+          of the chat column and never crowds the bottom composer/buttons.
+          New chat messages and join notifications appear in the scroll
+          area BELOW this section (Chamet/Bigo professional layout). */}
+      {(adminBannerRoomType || (showWelcome && hostName)) && (
+        <div className="flex flex-col gap-1.5 shrink-0 pl-0.5 pr-1">
+          {adminBannerRoomType && (
+            <RoomWelcomeBanner roomType={adminBannerRoomType} />
+          )}
+          {showWelcome && hostName && (
+            <WelcomeMessage
+              hostName={hostName}
+              hostLevel={hostLevel}
+              roomTitle={roomTitle}
+              roomType={roomType}
+            />
+          )}
+        </div>
+      )}
+
+      {/* SCROLLABLE CHAT CONTAINER — messages + join notifications only.
+          flex-col-reverse: newest at bottom, scroll up to see older.
+          The top static section above is excluded so empty/low-traffic
+          rooms still anchor the warning to the top of the chat column. */}
       <div
         ref={chatContainerRef}
         className={cn(
@@ -523,7 +544,7 @@ export const RoomChatOverlay = memo(({
         )}
         style={{ maxHeight: window.innerWidth >= 768 ? '400px' : maxHeight }}
       >
-        {/* REVERSED ORDER: Chat messages first (will appear at bottom) */}
+        {/* Chat messages — first DOM child = visually at the bottom */}
         <AnimatePresence initial={false} mode="sync">
           {displayMessages.slice().reverse().map((msg) => (
             <ChatMessageItem
@@ -534,7 +555,7 @@ export const RoomChatOverlay = memo(({
           ))}
         </AnimatePresence>
 
-        {/* Join Notifications - After messages in reverse (appear above messages) */}
+        {/* Join Notifications — appear above messages */}
         <AnimatePresence initial={false} mode="sync">
           {joinNotifications.slice().reverse().map((notification) => (
             <JoinNotificationItem
@@ -544,25 +565,6 @@ export const RoomChatOverlay = memo(({
             />
           ))}
         </AnimatePresence>
-
-        {/* Welcome Message - INSIDE scroll, will scroll up with messages */}
-        {showWelcome && hostName && (
-          <div className="shrink-0">
-            <WelcomeMessage
-              hostName={hostName}
-              hostLevel={hostLevel}
-              roomTitle={roomTitle}
-              roomType={roomType}
-            />
-          </div>
-        )}
-
-        {/* Admin Room Warning Banner - INSIDE scroll, at very top when scrolled up */}
-        {adminBannerRoomType && (
-          <div className="shrink-0">
-            <RoomWelcomeBanner roomType={adminBannerRoomType} />
-          </div>
-        )}
       </div>
 
       {/* Scroll-to-bottom button — appears when user scrolls up */}
