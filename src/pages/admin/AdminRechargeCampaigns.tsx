@@ -116,7 +116,9 @@ const MILESTONE_PRESETS = [
   { value: 10000000, label: "10M" },
 ];
 
-const PERCENTAGE_PRESETS = [10, 20, 30, 50, 75, 100, 150, 200];
+// Full premium-gold bonus library — 1% to 500%. Admin clicks a card to apply.
+const PERCENTAGE_PRESETS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 300, 400, 500];
+
 
 export default function AdminRechargeCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
