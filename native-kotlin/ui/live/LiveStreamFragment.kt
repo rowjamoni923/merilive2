@@ -29,7 +29,9 @@ import io.github.jan.supabase.realtime.broadcastFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -48,6 +50,8 @@ class LiveStreamFragment : Fragment() {
 
     private var giftAnimationQueue: GiftAnimationQueue? = null
     private var musicPlayer: MusicPlayerManager? = null
+    private var connectedToken: String? = null
+    private var boundHostTrack: io.livekit.android.room.track.VideoTrack? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLiveStreamBinding.inflate(inflater, container, false)
@@ -125,8 +129,16 @@ class LiveStreamFragment : Fragment() {
                         binding.btnMusic.visibility = if (isHost) View.VISIBLE else View.GONE
                         binding.btnPK.visibility = if (isHost) View.VISIBLE else View.GONE
 
-                        // Connect LiveKit
-                        liveKitManager.connect(AppConstants.LIVEKIT_URL, state.token)
+                        if (connectedToken != state.token) {
+                            connectedToken = state.token
+                            withContext(Dispatchers.IO) {
+                                liveKitManager.connect(AppConstants.LIVEKIT_URL, state.token)
+                                if (state.isHost) {
+                                    liveKitManager.enableCamera(true)
+                                    liveKitManager.enableMicrophone(true)
+                                }
+                            }
+                        }
                     }
                     is StreamState.HostBusy -> {
                         binding.hostBusyOverlay.visibility = View.VISIBLE
@@ -155,10 +167,41 @@ class LiveStreamFragment : Fragment() {
                     val videoTrack = host.getTrackPublication(
                         io.livekit.android.room.track.Track.Source.CAMERA
                     )?.track as? io.livekit.android.room.track.VideoTrack
-                    videoTrack?.addRenderer(binding.hostVideoView)
+                    if (videoTrack != null && boundHostTrack !== videoTrack) {
+                        try { boundHostTrack?.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
+                        try { videoTrack.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
+                        videoTrack.addRenderer(binding.hostVideoView)
+                        boundHostTrack = videoTrack
+                    }
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        try { boundHostTrack?.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        boundHostTrack?.let { track ->
+            try { track.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
+            try { track.addRenderer(binding.hostVideoView) } catch (_: Exception) {}
+        }
+    }
+
+    override fun onDestroyView() {
+        try { boundHostTrack?.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
+        boundHostTrack = null
+        connectedToken = null
+        giftAnimationQueue?.release()
+        giftAnimationQueue = null
+        musicPlayer?.release()
+        musicPlayer = null
+        liveKitManager.disconnect()
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun observeGiftBroadcast(streamId: String) {
@@ -241,15 +284,6 @@ class LiveStreamFragment : Fragment() {
         }.show(childFragmentManager, "games")
     }
 
-    override fun onDestroyView() {
-        giftAnimationQueue?.release()
-        giftAnimationQueue = null
-        musicPlayer?.release()
-        musicPlayer = null
-        liveKitManager.disconnect()
-        super.onDestroyView()
-        _binding = null
-    }
 }
 
 // ─── Swipe Gesture Listener ───

@@ -1,6 +1,6 @@
 # Live Streaming Smoothness Fix Plan (2026-06-12)
 
-Research-first protocol: competitor pattern (Chamet/Bigo/Olamet using Agora) → LiveKit translation completed via subagent. Full report in chat history.
+Research-first protocol: competitor pattern (Chamet/Bigo/Olamet using Agora) → LiveKit translation completed via subagent. Android references checked: Agora live quickstart uses `setupLocalVideo` + `startPreview` before `joinChannel` (preview stays owned by same RTC engine); LiveKit Android exposes `LocalParticipant.createVideoTrack` and `publishVideoTrack` for an existing `LocalVideoTrack`; LiveKit Android issue history includes camera flip/background freeze risks, so renderer/camera ownership must not be recreated casually.
 
 ## Gap inventory (Live Streaming only — Private Call & Party next)
 
@@ -14,6 +14,13 @@ Research-first protocol: competitor pattern (Chamet/Bigo/Olamet using Agora) →
 | GAP-3 | Host auto-rejoin calls `room.disconnect(true)` → stops local hardware tracks → 1s black flash + camera re-open every reconnect | 🔴 High | ~15 lines + preload plumbing | ⏳ batch-3 (surgical) |
 | GAP-6 | `switchCamera` uses `deviceId` only — silent no-op on Android with duplicate IDs | 🟡 Low-med | ~10 lines | ⏳ batch-3 |
 | GAP-8 | `forceEndStreamSync` defined but never attached (intentional, Pkg426) — accept 3-min ghost-stream window or add gated `pagehide` | 🟡 Low | doc-only or 5 lines | deferred |
+| ANDROID-GAP-A | GoLive unmount cleanup removed `native-media-active` during preview→live navigation, making WebView opaque over the still-running native TextureView | 🔴 Critical | 1 cleanup guard | ✅ DONE Android batch |
+| ANDROID-GAP-B | Promoted preview renderer stayed in `previewRenderer`; `attachLocal()` then released/recreated local renderer, causing blank TextureView during Android handoff | 🔴 Critical | renderer adoption | ✅ DONE Android batch |
+| ANDROID-GAP-C | JS native live connect omitted `isHost`, so native host grace/classification could fall back to generic call behavior | 🟠 Medium | 1 option | ✅ DONE Android batch |
+| NATIVE-KOTLIN-GAP-A | Standalone Android Kotlin app used CameraX preview + LiveKit camera without an arbiter | 🔴 Critical | CameraOwnership util + release before live | ✅ DONE Android batch |
+| NATIVE-KOTLIN-GAP-B | Native LiveKit connect/switch camera ran on caller thread with no OEM release grace | 🔴 Critical | IO dispatcher + 1200ms grace | ✅ DONE Android batch |
+| NATIVE-KOTLIN-GAP-C | Native renderer was add-only; pause/resume/reconnect could double-bind EGL renderer or lose SurfaceTexture | 🔴 Critical | remove-before-add + lifecycle restore | ✅ DONE Android batch |
+| NATIVE-KOTLIN-GAP-D | Live foreground service returned `START_NOT_STICKY`, no recovery after Android process pressure | 🟠 Medium | sticky service | ✅ DONE Android batch |
 
 ## Open audit questions
 1. `stopLocalTracksOnUnpublish` Room option — currently default `true`, compounds GAP-3

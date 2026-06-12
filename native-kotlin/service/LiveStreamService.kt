@@ -18,7 +18,7 @@ class LiveStreamService : Service() {
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

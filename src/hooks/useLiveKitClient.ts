@@ -475,6 +475,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               audioProfile: 'broadcast',
               callType: 'Live broadcast',
               roomScope: 'live',
+              isHost: config.role === 'host',
             });
             lastNativeErr = null;
             break;

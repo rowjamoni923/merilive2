@@ -150,7 +150,14 @@ const GoLive = () => {
   useEffect(() => {
     if (!isNativeAndroid) return;
     applyNativePreviewTransparency(nativePreviewActive);
-    return () => applyNativePreviewTransparency(false);
+    return () => {
+      // GoLive → LiveStream native handoff keeps the same Android TextureView
+      // visible behind WebView. Clearing this class during route unmount paints
+      // an opaque WebView over the still-running camera and looks like a blank
+      // camera, even though LiveKit is still publishing.
+      if (preservePreviewForLiveRef.current) return;
+      applyNativePreviewTransparency(false);
+    };
   }, [isNativeAndroid, nativePreviewActive, applyNativePreviewTransparency]);
 
 

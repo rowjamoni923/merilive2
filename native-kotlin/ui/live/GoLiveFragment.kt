@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.merilive.app.databinding.FragmentGoLiveBinding
 import com.merilive.app.util.PermissionHelper
+import com.merilive.app.util.CameraOwnership
 import com.merilive.app.service.LiveKitManager
 import com.merilive.app.data.repository.*
 import dagger.hilt.android.AndroidEntryPoint
@@ -102,6 +103,11 @@ class GoLiveFragment : Fragment() {
     }
 
     private fun startCameraPreview() {
+        if (!CameraOwnership.acquire(CameraOwnership.OWNER_PREVIEW)) {
+            binding.btnStartLive.isEnabled = false
+            Toast.makeText(requireContext(), "Camera is busy", Toast.LENGTH_SHORT).show()
+            return
+        }
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             try {
@@ -119,10 +125,17 @@ class GoLiveFragment : Fragment() {
                 provider.unbindAll()
                 provider.bindToLifecycle(viewLifecycleOwner, cameraSelector, preview)
             } catch (_: Exception) {
+                CameraOwnership.release(CameraOwnership.OWNER_PREVIEW)
                 binding.btnStartLive.isEnabled = false
                 Toast.makeText(requireContext(), "Camera failed to initialize", Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    private fun releasePreviewCamera() {
+        try { cameraProvider?.unbindAll() } catch (_: Exception) {}
+        cameraProvider = null
+        CameraOwnership.release(CameraOwnership.OWNER_PREVIEW)
     }
 
     private fun flipCamera() {
@@ -133,8 +146,11 @@ class GoLiveFragment : Fragment() {
         }
 
         if (hasLivePermissions()) {
-            startCameraPreview()
-            liveKitManager.switchCamera()
+            if (liveKitManager.getRoom() != null) {
+                viewLifecycleOwner.lifecycleScope.launch { liveKitManager.switchCamera() }
+            } else {
+                startCameraPreview()
+            }
         }
     }
 
@@ -175,12 +191,6 @@ class GoLiveFragment : Fragment() {
         StickerBottomSheet().show(childFragmentManager, "stickers")
     }
 
-        if (!PermissionHelper.hasCameraPermission(requireContext())) {
-            showPermissionBlockedMessage()
-            return
-        }
-    }
-
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.goLiveState.collect { state ->
@@ -194,6 +204,7 @@ class GoLiveFragment : Fragment() {
                         binding.progressBar.visibility = View.VISIBLE
                     }
                     is GoLiveState.Live -> {
+                        releasePreviewCamera()
                         binding.progressBar.visibility = View.GONE
                         binding.liveIndicator.visibility = View.VISIBLE
                         binding.setupSection.visibility = View.GONE
@@ -210,9 +221,7 @@ class GoLiveFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        cameraProvider?.unbindAll()
-        cameraProvider = null
-        liveKitManager.disconnect()
+        releasePreviewCamera()
         super.onDestroyView()
         _binding = null
     }
