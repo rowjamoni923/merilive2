@@ -214,7 +214,7 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream, isNativeAndroid]);
+  }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner]);
 
   // Initialize everything in parallel on mount
   useEffect(() => {
