@@ -60,6 +60,11 @@ export const useLiveStreamLifecycle = ({
       
       if (error) {
         console.error('[LiveStream Lifecycle] close_live_stream_now failed:', error);
+        const { error: fallbackCloseError } = await supabase
+          .from('live_streams')
+          .update({ is_active: false, ended_at: new Date().toISOString(), viewer_count: 0 } as any)
+          .eq('id', streamId);
+        if (fallbackCloseError) console.error('[LiveStream Lifecycle] fallback close failed:', fallbackCloseError);
         // Fallback: keepalive RPC with user token for page unload scenarios.
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
