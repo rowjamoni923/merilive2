@@ -821,18 +821,9 @@ function CampaignFloatingButton() {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            // Draggable: user can position the badge anywhere on screen. We use
-            // x/y offsets on top of the fixed bottom/right anchor and persist
-            // the offset in localStorage so it survives reloads.
-            drag
-            dragMomentum={false}
-            dragElastic={0.08}
-            dragConstraints={{
-              left: -window.innerWidth + 110,
-              right: 0,
-              top: -window.innerHeight + 220,
-              bottom: 80,
-            }}
+            // Draggable: user can position the badge anywhere on screen. This
+            // uses pointer capture instead of Framer's drag layer because nested
+            // animated wrappers/buttons were stealing mobile WebView gestures.
             style={{
               bottom: bottomOffset,
               right: '12px',
@@ -841,22 +832,10 @@ function CampaignFloatingButton() {
               y: dragY,
               touchAction: 'none',
             }}
-            onDragStart={() => { draggedRef.current = true; }}
-            onDragEnd={() => {
-              // MotionValues are already updated by framer-motion during the drag,
-              // so we just read + persist the final position. No setState round-trip,
-              // no snap-back, no fight between React state and framer internals.
-              try {
-                localStorage.setItem(
-                  FLOATING_POS_KEY,
-                  JSON.stringify({ x: dragX.get(), y: dragY.get() }),
-                );
-              } catch {}
-              // Clear the flag on the next tick so the synthetic click that
-              // immediately follows a drag is suppressed, but a real tap
-              // (no drag) still opens the popup.
-              setTimeout(() => { draggedRef.current = false; }, 0);
-            }}
+            onPointerDown={handleFloatingPointerDown}
+            onPointerMove={handleFloatingPointerMove}
+            onPointerUp={finishFloatingPointerDrag}
+            onPointerCancel={finishFloatingPointerDrag}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
             {/* Close (×) — tiny, transparent, top-left of the card.
