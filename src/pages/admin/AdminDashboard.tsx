@@ -242,6 +242,45 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyActiveUsers, setDailyActiveUsers] = useState(0);
   const [dailyActiveHosts, setDailyActiveHosts] = useState(0);
+  const [todayProfit, setTodayProfit] = useState<number | null>(null);
+  const [todayPayouts, setTodayPayouts] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const now = new Date();
+        const start = new Date(now); start.setHours(0, 0, 0, 0);
+        const end = new Date(now); end.setHours(23, 59, 59, 999);
+        const startTs = start.toISOString();
+        const endTs = end.toISOString();
+        const [pRes, payRes] = await Promise.all([
+          supabase.rpc("compute_profit_for_range", { p_start: startTs, p_end: endTs }),
+          supabase.rpc("compute_payouts_for_range", { p_start: startTs, p_end: endTs }),
+        ]);
+        if (cancelled) return;
+        if (!pRes.error && Array.isArray(pRes.data)) {
+          const total = (pRes.data as any[]).reduce((a, r) => a + (Number(r.net_profit_usd) || 0), 0);
+          setTodayProfit(total);
+        }
+        if (!payRes.error && Array.isArray(payRes.data)) {
+          const total = (payRes.data as any[]).reduce((a, r) => a + (Number(r.payout_usd) || 0), 0);
+          setTodayPayouts(total);
+        }
+      } catch {
+        /* ignore — card will just show — */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const fmtUsdShort = (v: number | null) => {
+    if (v == null) return "—";
+    const abs = Math.abs(v);
+    if (abs >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+    if (abs >= 1_000) return `$${(v / 1_000).toFixed(2)}K`;
+    return `$${v.toFixed(2)}`;
+  };
 
   const loadData = useCallback(async () => {
     let lastError: any = null;
@@ -501,6 +540,30 @@ export default function AdminDashboard() {
         />
       </div>
 
+      {/* ━━━ COMPANY FINANCE — Today ━━━ */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        <StatCard
+          title="Today's Company Profit"
+          value={fmtUsdShort(todayProfit)}
+          icon={BarChart3}
+          accentFrom="from-violet-500"
+          accentTo="to-fuchsia-400"
+          glowColor="#a855f7"
+          delay={0.46}
+          link="/admin/profit-analytics"
+        />
+        <StatCard
+          title="Today's Total Payouts"
+          value={fmtUsdShort(todayPayouts)}
+          icon={Wallet}
+          accentFrom="from-rose-500"
+          accentTo="to-pink-400"
+          glowColor="#f43f5e"
+          delay={0.48}
+          link="/admin/payouts-analytics"
+        />
+      </div>
+
       {/* ━━━ ALERT STRIP ━━━ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
         <AlertCard
@@ -560,8 +623,6 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quick Actions</h3>
           </motion.div>
           
-          <QuickAction title="Profit Analytics" description="Company profit by sector" icon={BarChart3} link="/admin/profit-analytics" accentColor="#a855f7" delay={0.68} />
-          <QuickAction title="Payouts Analytics" description="Withdrawals, helper diamonds, A-Z" icon={Wallet} link="/admin/payouts-analytics" accentColor="#f43f5e" delay={0.69} />
           <QuickAction title="Host Applications" description="Review new applications" icon={Shield} link="/admin/host-applications" accentColor="#a78bfa" delay={0.7} />
           <QuickAction title="Pricing Hub" description="All commissions & rates" icon={Coins} link="/admin/pricing-hub" accentColor="#f97316" delay={0.75} />
           <QuickAction title="Payment Gateways" description="Configure payments" icon={Wallet} link="/admin/payment-gateways" accentColor="#ec4899" delay={0.8} />
