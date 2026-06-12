@@ -173,7 +173,7 @@ describe("native LiveKit bridge — Kotlin plugin events", () => {
   it("preview handoff — JS controller must not stop preview before connect", () => {
     const src = read("src/lib/nativeLiveKitController.ts");
     const beforeConnect = src.slice(src.indexOf("async connectAndPublish"), src.indexOf("const payload: ConnectOptions"));
-    expect(beforeConnect).not.toMatch(/stopLocalPreview\(/);
+    expect(beforeConnect).not.toMatch(/NativeLiveKit\.stopLocalPreview\(/);
     expect(beforeConnect).toMatch(/DO NOT stopLocalPreview\(\) here/);
   });
 
