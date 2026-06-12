@@ -823,8 +823,7 @@ function CampaignFloatingButton() {
               {discountPercent > 0 ? (
                 <button
                   type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => setShowPopup(true)}
+                  onClick={() => { if (draggedRef.current) return; setShowPopup(true); }}
                   className="relative block"
                   style={{ background: 'transparent', border: 'none', padding: 0 }}
                 >
@@ -832,8 +831,7 @@ function CampaignFloatingButton() {
                 </button>
               ) : (
                 <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => setShowPopup(true)}
+                  onClick={() => { if (draggedRef.current) return; setShowPopup(true); }}
                   className="relative w-[78px] h-[78px] rounded-full"
                   style={{
                     filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
