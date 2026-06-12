@@ -39,6 +39,8 @@ import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
+import { useProCamera } from "@/camera/useProCamera";
+import * as ProCameraEngine from "@/camera/ProCameraEngine";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -115,6 +117,15 @@ const CreateParty = () => {
   // Native camera permission hook for proper Android handling
   const { getCameraStream } = useNativeCameraPermission();
 
+  // Pkg-PartyGAP-1 — Acquire the streaming-family slot in ProCameraEngine
+  // for the selected party mode (video/game). Audio party never opens the
+  // camera, so we keep the hook enabled=false there. The arbiter is
+  // ref-counted, so this slot is shared safely with the prejoin Capacitor
+  // plugin / LiveKit publisher when we hand off into the party room.
+  const partyCameraOwner: 'video-party' | 'game-party' =
+    mode === 'game' ? 'game-party' : 'video-party';
+  const proCamera = useProCamera(partyCameraOwner, mode !== 'audio');
+
   // Seat configurations
   const seatConfig = {
     video: 4, // 2x2 grid
@@ -175,6 +186,12 @@ const CreateParty = () => {
       if (videoMode) {
         // Browser preview only. Android native app returns above and never
         // opens WebView getUserMedia for party media setup.
+        // Pkg-PartyGAP-1 — block raw getUserMedia unless ProCameraEngine
+        // has confirmed the streaming-family slot is held by this party.
+        if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+          toast.error('Camera is busy. Close other camera screens and try again.');
+          return;
+        }
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
           setStream(mediaStream);
@@ -183,7 +200,8 @@ const CreateParty = () => {
           // it twice causes a mute-flip on Android WebView → blank preview.
         }
       } else {
-        // Audio only mode
+        // Audio only mode — no camera; ProCameraEngine slot already released
+        // by useProCamera(..., enabled=false) when mode flipped to 'audio'.
         releaseAndroidWebViewCamera('create-party:audio-only');
         const constraints: MediaStreamConstraints = { 
           audio: { echoCancellation: true, noiseSuppression: true } 
@@ -196,7 +214,7 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream, isNativeAndroid]);
+  }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner]);
 
   // Initialize everything in parallel on mount
   useEffect(() => {
@@ -974,6 +992,13 @@ const CreateParty = () => {
             return;
           }
           if (stream) {
+            // Pkg-PartyGAP-1 — gate raw getUserMedia behind the streaming
+            // arbiter so face-verify (verification family) cannot race the
+            // camera flip mid-call.
+            if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+              toast.error('Camera is busy. Close other camera screens and try again.');
+              return;
+            }
             stream.getTracks().forEach(track => track.stop());
             releaseAndroidWebViewCamera('create-party:switch-camera');
             const newFacingMode = facingMode === "user" ? "environment" : "user";
