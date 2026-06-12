@@ -623,8 +623,6 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quick Actions</h3>
           </motion.div>
           
-          <QuickAction title="Profit Analytics" description="Company profit by sector" icon={BarChart3} link="/admin/profit-analytics" accentColor="#a855f7" delay={0.68} />
-          <QuickAction title="Payouts Analytics" description="Withdrawals, helper diamonds, A-Z" icon={Wallet} link="/admin/payouts-analytics" accentColor="#f43f5e" delay={0.69} />
           <QuickAction title="Host Applications" description="Review new applications" icon={Shield} link="/admin/host-applications" accentColor="#a78bfa" delay={0.7} />
           <QuickAction title="Pricing Hub" description="All commissions & rates" icon={Coins} link="/admin/pricing-hub" accentColor="#f97316" delay={0.75} />
           <QuickAction title="Payment Gateways" description="Configure payments" icon={Wallet} link="/admin/payment-gateways" accentColor="#ec4899" delay={0.8} />
