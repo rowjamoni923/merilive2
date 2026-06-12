@@ -41,6 +41,12 @@ const isActivePurchase = (purchase: any) => {
   return !purchase?.expires_at || new Date(purchase.expires_at).getTime() > Date.now();
 };
 
+// Per-user throttle so an autosync storm cannot hammer the DB.
+// We only re-run after MIN_INTERVAL_MS, regardless of how many app-sync events fire.
+const MIN_INTERVAL_MS = 60_000;
+const lastRunAt = new Map<string, number>();
+const inFlight = new Map<string, Promise<void>>();
+
 export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
   useAppSyncEvent(['profiles', 'user_purchases'], () => {
     window.dispatchEvent(new CustomEvent('level-privilege-sync'));
@@ -52,7 +58,17 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
     let cancelled = false;
 
     const syncLevelRewards = async () => {
-      try {
+      // Throttle: skip if we ran recently for this user.
+      const now = Date.now();
+      const last = lastRunAt.get(userId) ?? 0;
+      if (now - last < MIN_INTERVAL_MS) return;
+      // Coalesce concurrent invocations for the same user.
+      const existing = inFlight.get(userId);
+      if (existing) return existing;
+
+      const run = (async () => {
+        lastRunAt.set(userId, Date.now());
+        try {
         const { data: profile } = await supabase
           .from('profiles') // guard-ok: owner-only auto-equip sync for authenticated current user
           .select(`
@@ -96,7 +112,8 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
         const targetType = resolvedLevel.levelType;
 
         const [purchasesRes, assignedFramesRes, framesRes, levelPrivilegesRes, entryNameBarsRes, entryBannersRes, vehicleEntrancesRes] = await Promise.all([
-          supabase.from('user_purchases').select('item_id, is_equipped, expires_at, shop_items(category)').eq('user_id', userId).eq('is_active', true),
+          // Deterministic order so equippedPurchaseBySlot never flips between runs (root cause of update loops).
+          supabase.from('user_purchases').select('item_id, is_equipped, expires_at, purchased_at, shop_items(category)').eq('user_id', userId).eq('is_active', true).order('purchased_at', { ascending: false }),
           supabase.from('user_role_frames').select('frame_id').eq('user_id', userId),
           supabase
             .from('avatar_frames')
@@ -205,12 +222,8 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           ...vehicleCandidates.map((item) => item.id),
         ]);
 
-        // Only auto-equip when the slot is EMPTY. Never override a user's manual pick —
-        // doing so caused equipped items (e.g. Entry Effects like "Bat") to silently revert
-        // back to the highest-level free reward immediately after the user pressed Equip.
-        const canOverride = (currentId: string | null | undefined) => {
-          return !currentId;
-        };
+        // Only auto-equip when the slot is EMPTY. Never override a user's manual pick.
+        const canOverride = (currentId: string | null | undefined) => !currentId;
 
         if (bestFrame && canOverride(nextFrameId) && profile.equipped_frame_id !== bestFrame.id) {
           updateData.equipped_frame_id = bestFrame.id;
@@ -238,29 +251,43 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
             clearEntryAnimationCache();
           }
         }
-      } catch (error) {
-        console.error('[useLevelPrivilegeAutoEquip] sync failed:', error);
-      }
+        } catch (error) {
+          console.error('[useLevelPrivilegeAutoEquip] sync failed:', error);
+        } finally {
+          inFlight.delete(userId);
+        }
+      })();
+      inFlight.set(userId, run);
+      return run;
     };
 
     void syncLevelRewards();
 
+    // Debounce burst events so admin/realtime storms can't trigger N parallel runs.
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => { void syncLevelRewards(); }, 1500);
+    };
+
     const onAdminUpdate = (event: Event) => {
       const table = (event as CustomEvent<{ table?: string }>).detail?.table;
       if (table && ['user_role_frames', 'avatar_frames', 'level_privileges', 'entry_name_bars', 'entry_banners', 'vehicle_entrances'].includes(table)) {
-        void syncLevelRewards();
+        scheduleSync();
       }
     };
-    const onAppSync = () => void syncLevelRewards();
+    const onAppSync = () => scheduleSync();
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     window.addEventListener('level-privilege-sync', onAppSync as EventListener);
 
     return () => {
       cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
       window.removeEventListener('level-privilege-sync', onAppSync as EventListener);
     };
   }, [userId]);
 };
+
 
 export default useLevelPrivilegeAutoEquip;
