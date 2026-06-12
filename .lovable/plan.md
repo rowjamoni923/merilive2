@@ -1,5 +1,12 @@
 ## Goal
 
+## Recharge campaign floating card drag QA — 2026-06-12
+
+- Tested with owner account in mobile preview: the 150% recharge campaign card stayed visually anchored after a drag/drop attempt toward the top header.
+- Professional mobile pattern: floating promo widgets must follow the finger, stay inside safe viewport bounds, persist the final position, and avoid opening the promo when the gesture was a drag.
+- Implementation note: native pointer handling is safer for nested animated/button content in WebView; MDN documents `setPointerCapture()` for routing subsequent pointer events to the dragged element, and `touch-action` for disabling browser touch gestures during custom touch movement.
+- References: MDN `setPointerCapture()` https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture, MDN `touch-action` https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action, Motion drag docs https://www.mintlify.com/motiondivision/motion/api/drag.
+
 Currently each privilege category (Entry Bar, Portrait Frame, Privilege Sticker, Privilege Gift, Entrance Effect, Party Room Background, Customer Service, Medal Display) is **one row with one unlock_level**. You want each category to hold **many items, one per level** (1, 2, 3 … 100), so:
 
 - Admin can upload an Entry Bar for Lv1, a different one for Lv2, Lv3 … and same for every other category.
