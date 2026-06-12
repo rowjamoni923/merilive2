@@ -1,5 +1,12 @@
 import { Check } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface CampaignTemplate {
   id: string;
@@ -220,6 +227,8 @@ interface TemplateSelectorProps {
 }
 
 export function CampaignTemplateSelector({ selectedId, onSelect }: TemplateSelectorProps) {
+  const selected = CAMPAIGN_TEMPLATES.find(t => t.id === selectedId) || CAMPAIGN_TEMPLATES[0];
+
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -228,42 +237,59 @@ export function CampaignTemplateSelector({ selectedId, onSelect }: TemplateSelec
       <p className="text-xs text-muted-foreground">
         Select a template — preview updates instantly
       </p>
-      <div className="grid grid-cols-5 gap-2">
-        {CAMPAIGN_TEMPLATES.map(t => {
-          const isSelected = selectedId === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onSelect(t)}
-              className={`relative rounded-xl overflow-hidden border-2 transition-all aspect-[3/4] ${
-                isSelected
-                  ? "border-primary ring-2 ring-primary/40 scale-105"
-                  : "border-border/30 hover:border-primary/40"
-              }`}
-              title={t.name}
-            >
+      <Select
+        value={selected.id}
+        onValueChange={(id) => {
+          const next = CAMPAIGN_TEMPLATES.find(t => t.id === id);
+          if (next) onSelect(next);
+        }}
+      >
+        <SelectTrigger className="w-full h-11">
+          <SelectValue>
+            <div className="flex items-center gap-2">
               <div
-                className="absolute inset-0 flex flex-col items-center justify-center p-1"
-                style={{ background: t.thumbnail }}
+                className="w-6 h-6 rounded-md border border-border/40 flex items-center justify-center text-sm flex-shrink-0"
+                style={{ background: selected.thumbnail }}
               >
-                <span className="text-lg">{t.icon}</span>
-                <span className="text-[8px] font-bold mt-0.5 text-center leading-tight" style={{ color: t.titleColor }}>
-                  {t.name}
-                </span>
+                <span>{selected.icon}</span>
               </div>
-              {isSelected && (
-                <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="w-2.5 h-2.5 text-primary-foreground" />
+              <span className="font-medium">{selected.name}</span>
+            </div>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="max-h-[320px]">
+          {CAMPAIGN_TEMPLATES.map(t => {
+            const isSelected = selected.id === t.id;
+            return (
+              <SelectItem key={t.id} value={t.id} className="py-2">
+                <div className="flex items-center gap-3 pr-4">
+                  <div
+                    className="w-8 h-8 rounded-md border border-border/40 flex items-center justify-center text-base flex-shrink-0"
+                    style={{ background: t.thumbnail }}
+                  >
+                    <span>{t.icon}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium" style={{ color: undefined }}>
+                      {t.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {isSelected ? "Currently selected" : "Tap to preview"}
+                    </span>
+                  </div>
+                  {isSelected && (
+                    <Check className="w-4 h-4 text-primary ml-auto" />
+                  )}
                 </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
+
 
 interface CampaignPopupPreviewProps {
   template: CampaignTemplate | null;
