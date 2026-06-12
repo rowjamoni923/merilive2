@@ -799,6 +799,24 @@ const App = () => {
         || message.includes('invalid refresh token');
     };
 
+    const isMissingLocalSessionError = (error: unknown) => {
+      const err = error as { code?: string; message?: string } | null | undefined;
+      const message = String(err?.message ?? '').toLowerCase();
+      return err?.code === 'session_not_found' || message.includes('auth session missing');
+    };
+
+    const restoreNativeSessionIfAvailable = async () => {
+      if (!Capacitor.isNativePlatform()) return null;
+      const nativeSession = await getSessionFromNative();
+      if (!nativeSession?.refresh_token) return null;
+      const { data, error } = await supabase.auth.setSession({
+        access_token: nativeSession.access_token,
+        refresh_token: nativeSession.refresh_token,
+      });
+      if (error || !data?.session?.user) return null;
+      return data.session;
+    };
+
     const clearStaleAuthState = async (reason: string) => {
       console.warn(`[App] Clearing stale auth state: ${reason}`);
       if (mounted) setSession(null);
@@ -1015,12 +1033,28 @@ const App = () => {
                   }
                 } else if (isInvalidRefreshTokenError(error)) {
                   await clearStaleAuthState(error?.message || 'invalid refresh token');
+                } else if (isMissingLocalSessionError(error)) {
+                  const restored = await restoreNativeSessionIfAvailable();
+                  if (restored) {
+                    setSession(restored);
+                    setCachedUser({ id: restored.user.id, email: restored.user.email ?? undefined });
+                  } else {
+                    await clearStaleAuthState(error?.message || 'missing auth session');
+                  }
                 } else {
                   console.warn('[App] silent refresh failed — staying put (no auto-logout)', error?.message);
                 }
               } catch (e) {
                 if (isInvalidRefreshTokenError(e)) {
                   await clearStaleAuthState('invalid refresh token exception');
+                } else if (isMissingLocalSessionError(e)) {
+                  const restored = await restoreNativeSessionIfAvailable();
+                  if (restored) {
+                    setSession(restored);
+                    setCachedUser({ id: restored.user.id, email: restored.user.email ?? undefined });
+                  } else {
+                    await clearStaleAuthState('missing auth session exception');
+                  }
                 } else {
                   console.warn('[App] silent refresh threw — staying put (no auto-logout)', e);
                 }
