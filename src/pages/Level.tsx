@@ -613,8 +613,7 @@ const Level = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => {
-                  setSelectedPrivilege(privilege);
-                  setIsPreviewOpen(true);
+                  setTierSheetCategory(privilege);
                 }}
                 className={cn(
                   "w-full flex items-center gap-4 p-4 rounded-2xl transition-all",
