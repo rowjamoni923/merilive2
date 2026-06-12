@@ -201,7 +201,7 @@ export async function warmAppImageCache(): Promise<void> {
       (data || []).forEach((r: any) => push(r.frame_image_url));
     }));
     queries.push(safe(async () => {
-      const { data } = await supabase.from('poster_images').select('image_url').eq('is_active', true).limit(20);
+      const { data } = await supabase.from('poster_images').select('image_url').limit(20);
       (data || []).forEach((r: any) => push(r.image_url));
     }));
 
