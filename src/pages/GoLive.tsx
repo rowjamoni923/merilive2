@@ -688,7 +688,7 @@ const GoLive = () => {
         const audioConstraint = previousAudioTracks.length === 0
           ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
           : false;
-        const constraints = [
+        const constraints: MediaStreamConstraints[] = [
           {
             video: {
               facingMode: newFacingMode,
