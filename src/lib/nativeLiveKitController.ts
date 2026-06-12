@@ -85,10 +85,11 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
-      // Go Live handoff — drop any pre-connect camera preview BEFORE the
-      // real session claims Camera2 (the native side also does this; old
-      // APKs without the method just throw → swallowed).
-      try { await NativeLiveKit.stopLocalPreview(); } catch { /* noop */ }
+      // Preview → session handoff: DO NOT stopLocalPreview() here. The native
+      // Android plugin already promotes the running prejoin Camera2
+      // LocalVideoTrack inside connectInternal() when previewRoom/previewTrack
+      // exist, so Live / video party / game party / private call reuse the
+      // already-open camera instead of closing and reopening it.
       // Never adopt a surviving Room for live / party / private call media.
       // Professional Android apps keep exactly one visible native SDK media
       // owner; stale adoption is what creates "already live" and background
