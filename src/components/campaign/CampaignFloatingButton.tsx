@@ -720,17 +720,38 @@ function CampaignFloatingButton() {
             initial={{ scale: 0, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed z-[45] flex flex-col items-center"
+            // Draggable: user can position the badge anywhere on screen. We use
+            // x/y offsets on top of the fixed bottom/right anchor and persist
+            // the offset in localStorage so it survives reloads.
+            drag
+            dragMomentum={false}
+            dragElastic={0.08}
+            dragConstraints={{
+              left: -window.innerWidth + 110,
+              right: 0,
+              top: -window.innerHeight + 220,
+              bottom: 80,
+            }}
             style={{
               bottom: bottomOffset,
               right: '12px',
               perspective: '600px',
+              x: dragOffset.x,
+              y: dragOffset.y,
+              touchAction: 'none',
             }}
+            onDragEnd={(_, info) => {
+              const next = { x: dragOffset.x + info.offset.x, y: dragOffset.y + info.offset.y };
+              setDragOffset(next);
+              try { localStorage.setItem(FLOATING_POS_KEY, JSON.stringify(next)); } catch {}
+            }}
+            className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing"
           >
             {/* Close (X) — session-only dismiss; reappears on next app open */}
             <button
               type="button"
               aria-label="Dismiss campaign"
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 if (campaign) {
@@ -747,7 +768,7 @@ function CampaignFloatingButton() {
 
             {/* Countdown pill */}
             <motion.div
-              className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-0.5 rounded-full min-w-[58px] text-center"
+              className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-0.5 rounded-full min-w-[58px] text-center pointer-events-none"
               style={{
                 background: 'linear-gradient(135deg, #ff1744, #b71c1c)',
                 boxShadow: '0 6px 18px rgba(255,23,68,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
@@ -759,87 +780,90 @@ function CampaignFloatingButton() {
               <span className="text-[10px] font-bold text-white tabular-nums drop-shadow">{formatCountdown(remainingSeconds)}</span>
             </motion.div>
 
-            {/* 3D floating + tilting wrapper */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ y: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } }}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
+            {/* Float/breathe wrapper */}
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ y: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
               {/* Soft ground shadow */}
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md"
+                className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md pointer-events-none"
                 style={{
                   bottom: '-10px',
-                  width: '60px',
+                  width: '64px',
                   height: '10px',
-                  background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%)',
+                  background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.5), transparent 70%)',
+                  zIndex: 0,
                 }}
                 animate={{ scale: [1, 0.85, 1], opacity: [0.55, 0.35, 0.55] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />
 
-              <button
-                onClick={() => setShowPopup(true)}
-                className="relative w-[78px] h-[78px] rounded-full"
-                style={{
-                  filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
-                  transformStyle: 'preserve-3d',
-                }}
-              >
-                {/* Outer glow halo */}
-                <motion.div
-                  className="absolute -inset-2 rounded-full"
-                  style={{
-                    background: 'radial-gradient(circle, rgba(245,158,11,0.45) 0%, transparent 70%)',
-                  }}
-                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.95, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                />
-
-                {/* Rotating conic ring */}
-                <motion.div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: 'conic-gradient(from 0deg, #fbbf24, #ef4444, #f97316, #eab308, #fbbf24)',
-                    padding: '3px',
-                  }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+              {/* Premium golden percentage badge if % bonus exists,
+                  otherwise keep the legacy banner-image disc. */}
+              {discountPercent > 0 && !campaign.banner_image_url ? (
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setShowPopup(true)}
+                  className="relative block"
+                  style={{ background: 'transparent', border: 'none', padding: 0 }}
                 >
-                  <div className="w-full h-full rounded-full" style={{ background: '#0f0a1a' }} />
-                </motion.div>
-
-                {/* Counter-rotating inner ring (depth) */}
-                <motion.div
-                  className="absolute inset-[5px] rounded-full pointer-events-none"
+                  <PremiumGoldenBadge
+                    percentage={discountPercent}
+                    size={78}
+                    caption="BONUS"
+                  />
+                </button>
+              ) : (
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setShowPopup(true)}
+                  className="relative w-[78px] h-[78px] rounded-full"
                   style={{
-                    background: 'conic-gradient(from 90deg, transparent 0deg, rgba(255,255,255,0.5) 60deg, transparent 120deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)',
-                  }}
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-                />
-
-                {/* Image disc with bevel */}
-                <div
-                  className="absolute inset-[3px] rounded-full overflow-hidden flex items-center justify-center"
-                  style={{
-                    border: campaign.banner_image_url ? 'none' : '1.5px solid rgba(255,255,255,0.6)',
-                    background: campaign.banner_image_url
-                      ? 'transparent'
-                      : 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
-                    boxShadow: campaign.banner_image_url
-                      ? 'none'
-                      : 'inset 0 -4px 10px rgba(0,0,0,0.18), inset 0 3px 8px rgba(255,255,255,0.55)',
+                    filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
+                    transformStyle: 'preserve-3d',
                   }}
                 >
-                  {campaign.banner_image_url ? (
-                    <img loading="lazy" decoding="async" 
-                      src={campaign.banner_image_url}
-                      alt=""
-                      className="absolute inset-0 block h-full w-full scale-[1.18] object-cover"
-                      style={{ objectPosition: 'center center' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                  {/* Outer glow halo */}
+                  <motion.div
+                    className="absolute -inset-2 rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(245,158,11,0.45) 0%, transparent 70%)',
+                    }}
+                    animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.95, 0.6] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  {/* Rotating conic ring */}
+                  <motion.div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: 'conic-gradient(from 0deg, #fbbf24, #ef4444, #f97316, #eab308, #fbbf24)',
+                      padding: '3px',
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <div className="w-full h-full rounded-full" style={{ background: '#0f0a1a' }} />
+                  </motion.div>
+                  {/* Image disc */}
+                  <div
+                    className="absolute inset-[3px] rounded-full overflow-hidden flex items-center justify-center"
+                    style={{
+                      border: campaign.banner_image_url ? 'none' : '1.5px solid rgba(255,255,255,0.6)',
+                      background: campaign.banner_image_url
+                        ? 'transparent'
+                        : 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
+                    }}
+                  >
+                    {campaign.banner_image_url ? (
+                      <img loading="lazy" decoding="async"
+                        src={campaign.banner_image_url}
+                        alt=""
+                        className="absolute inset-0 block h-full w-full scale-[1.18] object-cover"
+                        style={{ objectPosition: 'center center' }} />
+                    ) : (
                       <motion.span
                         className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                         animate={{ scale: [1, 1.12, 1], rotate: [-6, 6, -6] }}
@@ -847,42 +871,15 @@ function CampaignFloatingButton() {
                       >
                         💎
                       </motion.span>
-                    </div>
-                  )}
-                  {/* Top gloss highlight — only on emoji fallback to avoid washing out the logo */}
-                  {!campaign.banner_image_url && (
-                    <div
-                      className="absolute inset-0 rounded-full pointer-events-none"
-                      style={{
-                        background: 'radial-gradient(ellipse 70% 35% at 50% 12%, rgba(255,255,255,0.55), transparent 70%)',
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Sparkle dots */}
-                <motion.div
-                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300"
-                  style={{ boxShadow: '0 0 10px rgba(253,224,71,0.95)' }}
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.8, 1, 0.8] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-                <motion.div
-                  className="absolute -bottom-0.5 -left-0.5 w-2 h-2 rounded-full bg-amber-200"
-                  style={{ boxShadow: '0 0 8px rgba(252,211,77,0.95)' }}
-                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                />
-                <motion.div
-                  className="absolute top-2 -left-1 w-1.5 h-1.5 rounded-full bg-white"
-                  animate={{ scale: [0.6, 1.2, 0.6], opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
-                />
-              </button>
+                    )}
+                  </div>
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {showPopup && (
