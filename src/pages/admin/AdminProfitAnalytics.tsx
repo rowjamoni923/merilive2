@@ -183,16 +183,19 @@ export default function AdminProfitAnalytics() {
         if (sourcesRes.error) throw sourcesRes.error;
 
         let timelineData: TimelineRow[] = [];
+        let payoutTimelineData: PayoutTimelineRow[] = [];
         if (includeTimeline) {
           const dayDiff =
             Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86_400_000) + 1;
           if (dayDiff <= 92) {
-            const { data: tlData, error: tlErr } = await supabase.rpc("compute_profit_timeline", {
-              p_start: startTs,
-              p_end: endTs,
-            });
-            if (tlErr) throw tlErr;
-            timelineData = (tlData as TimelineRow[]) ?? [];
+            const [tlRes, ptlRes] = await Promise.all([
+              supabase.rpc("compute_profit_timeline", { p_start: startTs, p_end: endTs }),
+              supabase.rpc("compute_payouts_timeline", { p_start: startTs, p_end: endTs }),
+            ]);
+            if (tlRes.error) throw tlRes.error;
+            if (ptlRes.error) throw ptlRes.error;
+            timelineData = (tlRes.data as TimelineRow[]) ?? [];
+            payoutTimelineData = (ptlRes.data as PayoutTimelineRow[]) ?? [];
           }
         }
 
@@ -200,12 +203,14 @@ export default function AdminProfitAnalytics() {
         setSectors((sectorRes.data as SectorRow[]) ?? []);
         setSalesSources((sourcesRes.data as any[]) ?? []);
         setTimeline(timelineData);
+        setPayoutTimeline(payoutTimelineData);
       } catch (e: any) {
         if (!cancelled) {
           toast.error(e?.message || "Failed to load profit analytics");
           setSectors([]);
           setSalesSources([]);
           setTimeline([]);
+          setPayoutTimeline([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
