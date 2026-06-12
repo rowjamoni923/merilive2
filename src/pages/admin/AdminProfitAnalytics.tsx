@@ -61,6 +61,14 @@ interface TimelineRow {
   transaction_count: number;
 }
 
+interface PayoutTimelineRow {
+  day: string;
+  category_key: string;
+  payout_usd: number;
+  payout_diamonds: number;
+  transaction_count: number;
+}
+
 const fmtUsd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(
     Number.isFinite(v) ? v : 0,
@@ -129,6 +137,7 @@ export default function AdminProfitAnalytics() {
   const [loading, setLoading] = useState(false);
   const [sectors, setSectors] = useState<SectorRow[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
+  const [payoutTimeline, setPayoutTimeline] = useState<PayoutTimelineRow[]>([]);
   const [salesSources, setSalesSources] = useState<
     Array<{
       source_key: string;
@@ -174,16 +183,19 @@ export default function AdminProfitAnalytics() {
         if (sourcesRes.error) throw sourcesRes.error;
 
         let timelineData: TimelineRow[] = [];
+        let payoutTimelineData: PayoutTimelineRow[] = [];
         if (includeTimeline) {
           const dayDiff =
             Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86_400_000) + 1;
           if (dayDiff <= 92) {
-            const { data: tlData, error: tlErr } = await supabase.rpc("compute_profit_timeline", {
-              p_start: startTs,
-              p_end: endTs,
-            });
-            if (tlErr) throw tlErr;
-            timelineData = (tlData as TimelineRow[]) ?? [];
+            const [tlRes, ptlRes] = await Promise.all([
+              supabase.rpc("compute_profit_timeline", { p_start: startTs, p_end: endTs }),
+              supabase.rpc("compute_payouts_timeline", { p_start: startTs, p_end: endTs }),
+            ]);
+            if (tlRes.error) throw tlRes.error;
+            if (ptlRes.error) throw ptlRes.error;
+            timelineData = (tlRes.data as TimelineRow[]) ?? [];
+            payoutTimelineData = (ptlRes.data as PayoutTimelineRow[]) ?? [];
           }
         }
 
@@ -191,12 +203,14 @@ export default function AdminProfitAnalytics() {
         setSectors((sectorRes.data as SectorRow[]) ?? []);
         setSalesSources((sourcesRes.data as any[]) ?? []);
         setTimeline(timelineData);
+        setPayoutTimeline(payoutTimelineData);
       } catch (e: any) {
         if (!cancelled) {
           toast.error(e?.message || "Failed to load profit analytics");
           setSectors([]);
           setSalesSources([]);
           setTimeline([]);
+          setPayoutTimeline([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -277,6 +291,33 @@ export default function AdminProfitAnalytics() {
     }
     return Array.from(map.values()).sort((a, b) => a.day.localeCompare(b.day));
   }, [timeline]);
+
+  // Per-day Profit vs Payouts (full outflows incl. withdrawals, helper diamonds, host payroll, game winnings)
+  const dailyTotals = useMemo(() => {
+    const map = new Map<string, { day: string; profit: number; payouts: number }>();
+    for (const r of timeline) {
+      const k = r.day;
+      if (!map.has(k)) map.set(k, { day: k, profit: 0, payouts: 0 });
+      map.get(k)!.profit += Number(r.net_profit_usd) || 0;
+    }
+    for (const r of payoutTimeline) {
+      const k = r.day;
+      if (!map.has(k)) map.set(k, { day: k, profit: 0, payouts: 0 });
+      map.get(k)!.payouts += Number(r.payout_usd) || 0;
+    }
+    return Array.from(map.values())
+      .map((r) => ({ ...r, net: r.profit - r.payouts }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+  }, [timeline, payoutTimeline]);
+
+  const dailyTotalsSummary = useMemo(() => {
+    const t = { profit: 0, payouts: 0 };
+    for (const r of dailyTotals) {
+      t.profit += r.profit;
+      t.payouts += r.payouts;
+    }
+    return { ...t, net: t.profit - t.payouts };
+  }, [dailyTotals]);
 
   const handleExport = useCallback(() => {
     if (!sectors.length) return;
@@ -575,6 +616,121 @@ export default function AdminProfitAnalytics() {
                         <td className="px-3 py-2 text-right text-violet-300">{fmtUsd(totals.net)}</td>
                         <td className="px-3 py-2 text-right text-white/70">{margin.toFixed(1)}%</td>
                         <td className="px-3 py-2 text-right text-white/70">{fmtInt(totals.txns)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Daily Totals — Company Profit vs Total Payouts (one glance) */}
+        {includeTimeline && (
+          <Card className="bg-[#0c0c14] border-white/[0.06]">
+            <CardHeader className="border-b border-white/[0.06] pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                <TableIcon className="h-4 w-4 text-emerald-400" />
+                Daily Totals — Profit vs Payouts
+                <span className="ml-auto text-[10px] text-white/40 normal-case font-normal">
+                  Profit kept by company vs total paid out to users / hosts / agencies / helpers
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              {/* Summary tiles */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3">
+                  <div className="text-[10px] uppercase tracking-wider text-emerald-300/80">
+                    Total Company Profit
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-emerald-300">
+                    {fmtUsd(dailyTotalsSummary.profit)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/[0.06] p-3">
+                  <div className="text-[10px] uppercase tracking-wider text-rose-300/80">
+                    Total Payouts (paid out)
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-rose-300">
+                    {fmtUsd(dailyTotalsSummary.payouts)}
+                  </div>
+                </div>
+                <div
+                  className={cn(
+                    "rounded-lg border p-3",
+                    dailyTotalsSummary.net >= 0
+                      ? "border-violet-500/30 bg-violet-500/[0.06]"
+                      : "border-red-500/40 bg-red-500/[0.08]",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "text-[10px] uppercase tracking-wider",
+                      dailyTotalsSummary.net >= 0 ? "text-violet-300/80" : "text-red-300/80",
+                    )}
+                  >
+                    Net Retained (Profit − Payouts)
+                  </div>
+                  <div
+                    className={cn(
+                      "mt-1 text-2xl font-bold",
+                      dailyTotalsSummary.net >= 0 ? "text-violet-300" : "text-red-300",
+                    )}
+                  >
+                    {fmtUsd(dailyTotalsSummary.net)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Per-day table */}
+              {loading ? (
+                <Skeleton className="h-40 w-full bg-white/5" />
+              ) : dailyTotals.length === 0 ? (
+                <div className="p-6 text-center text-white/40 text-sm">No data</div>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-black/40 text-white/60 uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="text-left px-3 py-2">Date</th>
+                        <th className="text-right px-3 py-2">Company Profit</th>
+                        <th className="text-right px-3 py-2">Total Payouts</th>
+                        <th className="text-right px-3 py-2">Net Retained</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...dailyTotals].reverse().map((r) => (
+                        <tr key={r.day} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
+                          <td className="px-3 py-2 font-mono text-white/80">{r.day}</td>
+                          <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(r.profit)}</td>
+                          <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(r.payouts)}</td>
+                          <td
+                            className={cn(
+                              "px-3 py-2 text-right font-semibold",
+                              r.net >= 0 ? "text-violet-300" : "text-red-400",
+                            )}
+                          >
+                            {fmtUsd(r.net)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="border-t-2 border-white/20 bg-black/40 font-bold">
+                        <td className="px-3 py-2">TOTAL</td>
+                        <td className="px-3 py-2 text-right text-emerald-300">
+                          {fmtUsd(dailyTotalsSummary.profit)}
+                        </td>
+                        <td className="px-3 py-2 text-right text-rose-300">
+                          {fmtUsd(dailyTotalsSummary.payouts)}
+                        </td>
+                        <td
+                          className={cn(
+                            "px-3 py-2 text-right",
+                            dailyTotalsSummary.net >= 0 ? "text-violet-300" : "text-red-400",
+                          )}
+                        >
+                          {fmtUsd(dailyTotalsSummary.net)}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
