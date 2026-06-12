@@ -1239,7 +1239,7 @@ const Reels = () => {
       <Sheet open={showSettings} onOpenChange={setShowSettings}>
         <SheetContent
           side="bottom"
-          className="rounded-t-3xl border-t border-white/10 bg-[#0B0F19] p-0 max-h-[85vh] shadow-[0_-12px_40px_rgba(0,0,0,0.6)]"
+          className="rounded-t-3xl border-t border-white/10 !bg-none bg-[#0B0F19] p-0 max-h-[85vh] shadow-[0_-12px_40px_rgba(0,0,0,0.6)] [background-image:none]"
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-1">
