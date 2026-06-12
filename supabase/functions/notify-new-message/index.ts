@@ -111,13 +111,16 @@ const handler = async (req: Request): Promise<Response> => {
     let callerUserId: string | null = null;
     if (!isServiceRoleCall && bearer) {
       try {
-        // Validate the JWT explicitly — passing the token is required in
-        // edge functions because there's no stored auth session for
-        // getUser() to read.
-        const { data: u } = await supabase.auth.getUser(bearer);
-        callerUserId = u?.user?.id ?? null;
+        // Prefer getClaims() — works with the asymmetric signing-keys system.
+        // Fall back to getUser() for legacy HS256 tokens.
+        const { data: c } = await supabase.auth.getClaims(bearer);
+        callerUserId = (c?.claims?.sub as string) ?? null;
+        if (!callerUserId) {
+          const { data: u } = await supabase.auth.getUser(bearer);
+          callerUserId = u?.user?.id ?? null;
+        }
       } catch (e) {
-        console.warn("[MsgPush] auth.getUser failed:", e);
+        console.warn("[MsgPush] token validation failed:", e);
       }
     }
     if (!isServiceRoleCall && (!callerUserId || callerUserId !== senderId)) {
