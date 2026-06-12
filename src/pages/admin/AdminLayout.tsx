@@ -2022,7 +2022,7 @@ export default function AdminLayout() {
     //   (1) supabaseFetchGuard fires the moment the local admin's POST returns,
     //   (2) useAdminBroadcastSync fires ~200-500ms later from admin_broadcast.
     // Without dedupe the admin sees the same toast / hears the sound twice.
-    const recentToastKeys = new Map<string, number>();
+    const recentToastKeys: Record<string, number> = {};
     const TOAST_DEDUPE_MS = 2500;
     const isDuplicateToast = (key: string) => {
       const now = Date.now();
