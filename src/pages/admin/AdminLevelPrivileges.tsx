@@ -134,6 +134,7 @@ const AdminLevelPrivileges = () => {
   const [isAnimationDialogOpen, setIsAnimationDialogOpen] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
+  const [tierManagerCategory, setTierManagerCategory] = useState<typeof PRIVILEGE_CATEGORIES[number] | null>(null);
 
   useAdminRealtime(['level_privileges'], () => fetchData());
 
