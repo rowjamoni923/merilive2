@@ -931,11 +931,10 @@ class LiveKitPlugin : Plugin() {
             call.reject("url and token are required")
             return
         }
-        if (publicConnectInFlight) {
+        if (publicConnectMutex.isLocked) {
             call.reject("LiveKit connect already in progress")
             return
         }
-        publicConnectInFlight = true
 
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
@@ -990,7 +989,8 @@ class LiveKitPlugin : Plugin() {
         hardReconnectAttempts = 0
 
         scope.launch {
-            try {
+            publicConnectMutex.withLock {
+              try {
                 connectInternal(lastConnectArgs!!, isReconnect = false)
                 // Pkg-audit fix: a concurrent disconnect() could null `room`
                 // during the suspend in connectInternal — never force-unwrap.
@@ -1011,8 +1011,7 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
-            } finally {
-                publicConnectInFlight = false
+              }
             }
         }
 
