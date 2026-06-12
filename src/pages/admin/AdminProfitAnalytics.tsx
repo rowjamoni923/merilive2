@@ -61,6 +61,14 @@ interface TimelineRow {
   transaction_count: number;
 }
 
+interface PayoutTimelineRow {
+  day: string;
+  category_key: string;
+  payout_usd: number;
+  payout_diamonds: number;
+  transaction_count: number;
+}
+
 const fmtUsd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(
     Number.isFinite(v) ? v : 0,
