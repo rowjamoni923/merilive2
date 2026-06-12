@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, RefreshCw, Lock, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, Copy } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 
