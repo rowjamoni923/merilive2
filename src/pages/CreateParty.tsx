@@ -39,6 +39,8 @@ import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
+import { useProCamera } from "@/camera/useProCamera";
+import * as ProCameraEngine from "@/camera/ProCameraEngine";
 
 type PartyMode = "video" | "audio" | "game";
 
