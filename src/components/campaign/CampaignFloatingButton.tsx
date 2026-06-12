@@ -14,7 +14,7 @@ import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 import { toSupabaseCdnUrl } from '@/lib/cdnImage';
-import PremiumGoldenBadge from '@/components/campaign/PremiumGoldenBadge';
+import PremiumCampaignCard from '@/components/campaign/PremiumCampaignCard';
 
 // localStorage key for persisted floating-badge position (per device, global).
 const FLOATING_POS_KEY = 'campaign_floating_pos_v1';
