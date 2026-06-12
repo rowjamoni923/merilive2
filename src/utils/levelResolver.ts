@@ -177,7 +177,8 @@ export const resolveLevelFromTiers = async (
   const maxUserLevel = Number(profile.max_user_level ?? 0);
   const resolvedLevel = isFemaleHost
     ? Math.max(storedLevel, derivedLevel, 0)
-    : Math.max(storedLevel, maxUserLevel, derivedLevel, 1);
+    : Math.max(storedLevel, maxUserLevel, derivedLevel, 0);
+
 
   if (!isFemaleHost && profile.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxUserLevel))) {
     void supabase.rpc("recalculate_user_level", { _user_id: profile.id }).then(({ error }) => {
