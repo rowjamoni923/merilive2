@@ -2069,23 +2069,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [loading, profile, isOwnProfile, currentUser, toast]);
 
   if (loading && !profile) {
+    // Use the same light skeleton as the post-auth branch so users never see
+    // a dark/black flash when entering /profile. Matches the actual page bg.
     return (
-      <div
-        className="mobile-page flex flex-col"
-        style={{
-          background:
-            'radial-gradient(ellipse at top, hsl(280 40% 14%) 0%, hsl(260 30% 8%) 55%, hsl(240 20% 4%) 100%)',
-        }}
-      >
-        <div className="h-48 bg-white/5 animate-pulse" />
-        <div className="px-4 -mt-12 space-y-3">
-          <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-amber-200/40 animate-pulse" />
-          <div className="h-5 w-32 bg-white/10 rounded animate-pulse" />
-          <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
-        </div>
-      </div>
+      <PageSkeleton
+        className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-background"
+        headerClassName="bg-purple-200/50 border-b border-purple-200/30"
+        rows={4}
+        hero
+      />
     );
   }
+
 
   if (!currentUser && isOwnProfile) {
     return null;
