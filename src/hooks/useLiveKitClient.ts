@@ -595,6 +595,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         ...(isViewer ? {
           autoSubscribe: true,
         } : {}),
+        // GAP-5 fix (2026-06-12): Chamet/Bigo-parity — never auto-disconnect on
+        // tab visibility / pagehide. Android WebView notification-shade pull
+        // and tab-switch fire `visibilitychange`; LiveKit v2 default would
+        // tear down the Room and force a costly camera re-open via auto-rejoin.
+        // Host stays connected; lifecycle hook controls the only intentional exit.
+        disconnectOnPageLeave: false,
       });
       roomRef.current = room;
       primeLiveKitRoomMedia(room);
