@@ -1411,7 +1411,12 @@ class LiveKitPlugin : Plugin() {
         room = pr
         previewRoom = null
         previewTrack = null
-        // Keep `previewRenderer` mounted — it's already showing live frames.
+        // Keep the mounted preview TextureView and make it the official live
+        // local renderer. attachLocal() must reuse this renderer instead of
+        // releasing/recreating it, otherwise Android paints an opaque WebView
+        // over the still-running camera and the host sees a blank surface.
+        localRenderer = previewRenderer ?: localRenderer
+        previewRenderer = null
 
         attachEventListeners(pr)
         startAudioLevelPoll(pr)
@@ -2029,14 +2034,10 @@ class LiveKitPlugin : Plugin() {
     ) {
         activity?.runOnUiThread {
             try {
-                localRenderer?.let { old ->
-                    try { track.removeRenderer(old) } catch (_: Exception) {}
-                    (old.parent as? ViewGroup)?.removeView(old)
-                    try { old.release() } catch (_: Exception) {}
-                }
-                val renderer = createRenderer()
+                val renderer = localRenderer ?: createRenderer()
                 localRenderer = renderer
                 r.initVideoRenderer(renderer)
+                try { track.removeRenderer(renderer) } catch (_: Exception) {}
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
