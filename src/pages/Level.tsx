@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActiveLevelTiers, isFemaleHostProfile, resolveLevelFromTiers } from "@/utils/levelResolver";
 import PrivilegePreviewModal from "@/components/level/PrivilegePreviewModal";
+import PrivilegeTierSheet from "@/components/level/PrivilegeTierSheet";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
@@ -122,6 +123,7 @@ const Level = () => {
   
   const [selectedPrivilege, setSelectedPrivilege] = useState<LevelPrivilege | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [tierSheetCategory, setTierSheetCategory] = useState<LevelPrivilege | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [levelType, setLevelType] = useState<'user' | 'host'>('user');
   const [levelTierIcons, setLevelTierIcons] = useState<LevelTierIcon[]>([]);
@@ -611,8 +613,7 @@ const Level = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => {
-                  setSelectedPrivilege(privilege);
-                  setIsPreviewOpen(true);
+                  setTierSheetCategory(privilege);
                 }}
                 className={cn(
                   "w-full flex items-center gap-4 p-4 rounded-2xl transition-all",
@@ -653,6 +654,18 @@ const Level = () => {
           onClose={() => setIsPreviewOpen(false)}
           userId={user?.id}
         />
+
+        {/* Per-category Tier Sheet (Lv 0–100 ladder) */}
+        {tierSheetCategory && (
+          <PrivilegeTierSheet
+            open={!!tierSheetCategory}
+            onOpenChange={(open) => { if (!open) setTierSheetCategory(null); }}
+            categoryType={tierSheetCategory.privilege_type}
+            categoryName={tierSheetCategory.name}
+            categoryDescription={tierSheetCategory.description}
+            currentLevel={currentLevel}
+          />
+        )}
       </div>
 
 

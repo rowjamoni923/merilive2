@@ -20,6 +20,8 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
+import PrivilegeTierManager from "@/components/admin/PrivilegeTierManager";
+import { Layers } from "lucide-react";
 interface LevelPrivilege {
   id: string;
   privilege_type: string;
@@ -132,6 +134,7 @@ const AdminLevelPrivileges = () => {
   const [isAnimationDialogOpen, setIsAnimationDialogOpen] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
+  const [tierManagerCategory, setTierManagerCategory] = useState<typeof PRIVILEGE_CATEGORIES[number] | null>(null);
 
   useAdminRealtime(['level_privileges'], () => fetchData());
 
@@ -459,6 +462,20 @@ const AdminLevelPrivileges = () => {
                           Preview
                         </Button>
                       )}
+
+                      {/* Manage Tiers button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 border-purple-500/40 text-purple-300 hover:bg-purple-500/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTierManagerCategory(category);
+                        }}
+                      >
+                        <Layers className="w-4 h-4 mr-1" />
+                        Manage Tiers
+                      </Button>
 
                       {/* Edit button */}
                       <Button
@@ -875,6 +892,18 @@ const AdminLevelPrivileges = () => {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Per-Category Tier Manager */}
+      {tierManagerCategory && (
+        <PrivilegeTierManager
+          open={!!tierManagerCategory}
+          onOpenChange={(open) => { if (!open) setTierManagerCategory(null); }}
+          categoryType={tierManagerCategory.type}
+          categoryName={tierManagerCategory.name}
+          defaultBgColor={tierManagerCategory.bgColor}
+          defaultIconColor={tierManagerCategory.iconColor}
+        />
       )}
     </div>
   );

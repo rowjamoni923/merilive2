@@ -1,62 +1,77 @@
-# Background continuity + Heads-up inline-reply notifications
+## Goal
 
-দুটো বড় native Android feature — দুটোই APK rebuild requires. Lovable preview-এ test হবে না, final QA real device-এ।
+Currently each privilege category (Entry Bar, Portrait Frame, Privilege Sticker, Privilege Gift, Entrance Effect, Party Room Background, Customer Service, Medal Display) is **one row with one unlock_level**. You want each category to hold **many items, one per level** (1, 2, 3 … 100), so:
 
-## What's broken today (audit summary)
+- Admin can upload an Entry Bar for Lv1, a different one for Lv2, Lv3 … and same for every other category.
+- On `/level` (My Level), when a user taps a category, they see the whole ladder Lv0 → Lv100 with what unlocks at each step, locked vs unlocked state, and an "Equip" button for items already unlocked.
 
-App already has `CallForegroundService`, `MeriFirebaseMessagingService`, `MeriConnectionService`, `CameraOwnership`. কিন্তু:
+This matches how Chamet / Bigo / Poppo / Olamet "Noble / VIP Privilege" pages work (verified pattern: category card → tier list → per-tier preview + equip).
 
-- ForegroundService টা শুধু private-call path থেকে start হয়; **Live streaming + Party room** minimize-এ service start করে না → OS WebView/camera/mic kill করে দেয়।
-- LiveKit Room JS-side instance; app background-এ গেলে WebView throttle হয় → publisher track stop, viewers reconnect loop।
-- FCM messages এখন simple `notification` payload — heads-up popup আসে কিন্তু **inline reply (RemoteInput)** নেই; tap করলে app খোলে।
-- কোনো `MessagingStyle` notification builder নেই → WhatsApp-এর মতো conversation thread + quick-reply দেখায় না।
+## Database
 
-## Phase 1 — Background continuity (live / call / party)
+New table `level_privilege_tiers` (one row per uploaded item per level per category):
 
-Goal: home button চাপলে camera/mic/LiveKit chalu thake until user explicitly leaves room.
+```
+id, privilege_type (entry_bar | portrait_frame | privilege_sticker |
+  privilege_gift | entrance_effect | party_background |
+  customer_service | medal_display),
+unlock_level (1–100),
+name, description,
+animation_url, animation_format, preview_url, sound_url, duration_ms,
+icon_bg_color, icon_color,
+is_active, display_order, created_at, updated_at,
+UNIQUE(privilege_type, unlock_level)   -- one item per (category, level)
+```
 
-1. **Promote `CallForegroundService` → `MediaSessionForegroundService`** — accept session type (`private_call` | `live_stream` | `party_room`), foregroundServiceType combine `phoneCall|camera|microphone|mediaPlayback`. Persistent notification with room title + leave button.
-2. **Plugin bridge** — new `LiveSessionPlugin.startSession({ type, title, hostName, roomId })` / `stopSession()` invoked from React when:
-   - `useGoLive` → publisher track published
-   - Party room join confirmed
-   - Private call connected (existing path kept)
-3. **WebView background keep-alive** — `WebView.setWebContentsDebuggingEnabled` already on; add `WebSettings.setOffscreenPreRaster(true)` + acquire `PARTIAL_WAKE_LOCK` while service running. Crucially: keep MainActivity in `onStop` without finishing — LiveKit JS instance survives.
-4. **LiveKit reconnect hardening** — verify `Room.options.adaptiveStream=false` during background (already true for publishers; double-check on `visibilitychange`).
-5. **CameraOwnership audit** — make sure background-camera-stop logic (Camera2 release on pause) is **disabled while session active** — currently it auto-releases, killing the publisher.
-6. **Battery-optimization prompt** — first time user goes live, request `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` via existing `BatteryOptimizationPlugin` (already there, just wire trigger).
+RLS: public can `SELECT` active rows; only admins (`has_role admin`) can insert/update/delete. Grants for `anon`, `authenticated`, `service_role`. Indexed on `(privilege_type, unlock_level)`.
 
-## Phase 2 — WhatsApp-style inline-reply notifications
+The existing `level_privileges` table stays untouched — it keeps powering the category list/metadata. The new table holds the per-level items.
 
-Goal: DM আসলে notification-এ avatar + name + message + "Reply" text field দেখাবে; reply করলে app না খুলেই Supabase-এ message insert হবে।
+(Optional, later) `user_equipped_privileges (user_id, privilege_type, tier_id)` to remember which tier each user has equipped — only one equipped per category. Auto-unequip if user level drops below the tier's `unlock_level`.
 
-1. **FCM payload upgrade** — `notify-new-message` edge function-এ `data` payload-এ যোগ:
-   - `conversation_id`, `sender_id`, `sender_name`, `sender_avatar_url`, `message_id`, `message_text`, `notification_type: "dm"`.
-   - Remove `notification` block (so handler always runs in app code — required for MessagingStyle).
-2. **Native `MeriFirebaseMessagingService` upgrade**:
-   - Use `NotificationCompat.MessagingStyle` per `conversation_id` (thread group).
-   - Add `RemoteInput.Builder("key_reply")` action labeled "Reply".
-   - PendingIntent → new `MessageReplyReceiver` (BroadcastReceiver).
-   - Cache last N messages per conversation in SharedPreferences for thread display.
-3. **`MessageReplyReceiver`** —
-   - Read RemoteInput text, immediately POST to new edge function `send-message-from-notification` (auth via stored user JWT in EncryptedSharedPreferences).
-   - Update the same notification with the sent message appended (so user sees confirmation) — no app launch.
-4. **Edge function `send-message-from-notification`** — validates JWT, inserts into `messages` table with correct sender/recipient/conversation, returns message_id. Reuses existing RLS.
-5. **Notification channel** — dedicated `dm_messages` channel: importance HIGH, vibrate pattern, sound, badge.
-6. **Auth token storage** — store refresh token in `EncryptedSharedPreferences` on login (new `SecureTokenStorePlugin`) so background receiver can authenticate.
+## Admin UI — `AdminLevelPrivileges.tsx`
+
+- The 8 category cards stay as today (category definitions are constant).
+- Clicking a category opens a **Tier Manager** drawer instead of the single-row edit dialog:
+  - Header: category name + icon.
+  - List of existing tiers sorted by `unlock_level`, each row showing: Lv badge, name, preview thumb, active toggle, edit / delete.
+  - "Add Tier" button → opens the existing Create dialog (already has Unlock Level, name, description, colors, AnimationUploader, preview).
+  - Saving writes to `level_privilege_tiers` with `(privilege_type, unlock_level)` unique.
+- Re-use the existing `AnimationUploader` (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4) — no upload UX change.
+- Bulk action: "Copy from previous level" to speed up admin work.
+
+## User UI — `Level.tsx` + new `PrivilegeTierSheet.tsx`
+
+- Category list stays the same.
+- Tapping a category opens a full-height bottom sheet (matches your second screenshot style):
+  - Title = category name.
+  - Vertical list of every uploaded tier (Lv1 → Lv100), each card showing:
+    - Level badge (e.g. "Lv 7")
+    - Preview thumbnail / animation
+    - Name + short description
+    - State chip: **Unlocked** (green) if `user.level ≥ tier.unlock_level`, else **Lv N to unlock** (gray lock).
+    - Equip button when unlocked (calls `equip_privilege_tier(tier_id)`); shows "Equipped" + glow when active.
+  - Auto-scroll so the user's current level tier is centered on open.
+- The existing `PrivilegePreviewModal` is re-used for the full-screen preview when tapping a tier card.
+
+## Behavior rules
+
+- A tier is visible to everyone Lv0 → Lv100 (so users can see what's coming), but Equip is gated by `user.level ≥ tier.unlock_level`.
+- One equipped tier per category. Equipping a new tier replaces the previous.
+- When the user's level drops below an equipped tier's `unlock_level`, it is auto-unequipped (DB trigger on user level change, or check at read time — read-time check is cheaper and matches Bigo behavior).
+- Hooks `useUserPrivileges` / `useLevelPrivilegeAutoEquip` are updated to read from `level_privilege_tiers` and pick the user's currently equipped tier per category for in-room rendering (Entry Bar, Entrance Effect, Frame, etc.).
 
 ## Order of work
 
-1. Phase 1.1 + 1.2 + 1.5 (service + plugin + camera-ownership guard) — unblocks live/party background
-2. Phase 1.3 + 1.4 + 1.6 — robustness
-3. Phase 2.1 + 2.6 (edge function payload + token storage)
-4. Phase 2.2 + 2.3 + 2.4 (MessagingStyle + RemoteInput + reply receiver)
-5. Phase 2.5 + final QA on real device
+1. Migration: `level_privilege_tiers` + grants + RLS + indexes.
+2. Admin Tier Manager drawer in `AdminLevelPrivileges.tsx`.
+3. New `PrivilegeTierSheet.tsx` + wire it into `Level.tsx` category tap.
+4. (Optional follow-up, ask before doing) `user_equipped_privileges` table + equip RPC + update `useUserPrivileges` to read tier-based equipment for in-room rendering.
 
-## What I'll need from you
+Step 4 changes how Entry Bar / Entrance Effect / Frame are resolved in live rooms, so it touches gift/entry animation code paths protected by your "never touch gift/entry animations" rule. I'll only do steps 1–3 now (admin upload + per-level showcase on My Level). Confirm if you also want step 4 (in-room rendering switches to the equipped tier) — that needs a separate go-ahead.
 
-- Confirm "yes proceed" before I start coding — this is **large** native work, multiple files, will require **APK rebuild** (Lovable preview only validates compile, not behavior).
-- After APK build, test scenarios I'll list: go live → home → wait 60s → return; receive DM with screen off → reply from notification → verify message in app.
+## Out of scope
 
-## Honesty checkpoint
-
-আমি Lovable preview-এ Phase 1 verify করতে পারব না (foreground service Android-only)। Phase 2 partial (FCM payload + edge function) preview-এ test হবে; native receiver শুধু APK-তে। শুরু করার অনুমতি দিলে Phase 1.1 থেকে শুরু করব।
+- No design changes to the existing category cards or the My Level page header.
+- No change to how `user_level` / `host_level` are computed.
+- Existing single-row `level_privileges` rows stay as the category catalog and are not deleted.
