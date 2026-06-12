@@ -747,8 +747,9 @@ function CampaignFloatingButton() {
             }}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing"
           >
-            {/* Close (×) — small white pill at top-left of the card, matching
-                pro live-streaming apps (Chamet / Bigo / Olamet style). */}
+            {/* Close (×) — tiny, transparent, top-left of the card.
+                No background pill — just a crisp white glyph with a soft
+                dark shadow so it stays readable on any backdrop. */}
             <button
               type="button"
               aria-label="Dismiss campaign"
@@ -762,10 +763,12 @@ function CampaignFloatingButton() {
                 setCampaign(null);
                 setRemainingSeconds(0);
               }}
-              className="absolute -top-1.5 -left-1.5 z-30 w-[18px] h-[18px] rounded-full flex items-center justify-center bg-white/95 backdrop-blur border border-black/10 shadow-[0_2px_6px_rgba(0,0,0,0.35)] active:scale-90 transition-transform"
+              className="absolute -top-2 -left-1 z-30 w-[14px] h-[14px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.65))' }}
             >
-              <X className="w-2.5 h-2.5 text-black/70" strokeWidth={3} />
+              <X className="w-[12px] h-[12px] text-white" strokeWidth={3.5} />
             </button>
+
 
             {/* Compact countdown pill — top-right corner, professional red gradient */}
             <motion.div
