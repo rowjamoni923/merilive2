@@ -27,13 +27,14 @@ Research-first protocol: competitor pattern (Chamet/Bigo/Olamet using Agora) →
 2. Web GoLive preview switch is atomic: old preview remains visible until a new live video track is ready; mic track is preserved.
 3. Web in-room switch uses LiveKit `LocalVideoTrack.restartTrack({ facingMode })`, with deviceId fallback only for older tracks.
 4. Host web Room replacement preserves still-live local preview tracks when reconnecting instead of calling `disconnect(true)` blindly.
-5. Native Android connect has a public in-flight guard to reject duplicate connect attempts instead of racing two Room/camera sessions.
+5. Native Android connect uses a coroutine `Mutex.tryLock()` guard to reject duplicate connect attempts instead of racing two Room/camera sessions.
 6. Native LiveKit stream-ended registry is registered immediately after native connect succeeds, before React effect timing can race the End button.
 7. Viewer preloaded Rooms now set `disconnectOnPageLeave: false` to prevent handoff/pagehide black screen.
 8. Web ghost close is gated to `beforeunload` only; no pagehide/visibility auto-kill, preserving professional mobile background behavior.
 
 ## Remaining verification honesty
 - Code-side Live Streaming gap list above is complete for the known blank-camera causes.
+- Subagent follow-up audit hardening applied: DB close now has host-scoped `live_streams` fallback if `close_live_stream_now` fails, and native connect guard is a real Mutex rather than a volatile flag.
 - Runtime verification still requires APK rebuild + owner account device test; without that, only code-complete can be claimed, not 100% field-verified.
 
 ## Next flows (after Live verified by owner test account)
