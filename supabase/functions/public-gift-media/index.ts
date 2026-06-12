@@ -66,11 +66,15 @@ const extractGiftPath = (value: string) => {
 };
 
 const isValidGiftPath = (path: string) => {
-  return /^gifts\/[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(path)
-    && !path.includes("..")
-    && !path.includes("\\")
-    && !path.includes("\0")
-    && !/[\s|\]]/.test(path);
+  // Must live under gifts/, no traversal, no null/backslash/whitespace/control
+  // chars, no URL separators. Allow any other printable character (incl. %,
+  // unicode, brackets) so legitimate uploaded filenames aren't rejected.
+  if (!path.startsWith("gifts/")) return false;
+  if (path.includes("..") || path.includes("\\") || path.includes("\0")) return false;
+  if (/[\s?#]/.test(path)) return false;
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1f\x7f]/.test(path)) return false;
+  return true;
 };
 
 Deno.serve(async (req) => {
