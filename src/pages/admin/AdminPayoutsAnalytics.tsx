@@ -31,6 +31,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import CompanyHealthGauge from "@/components/admin/CompanyHealthGauge";
 
 type Preset = "today" | "yesterday" | "week" | "month" | "custom";
 
