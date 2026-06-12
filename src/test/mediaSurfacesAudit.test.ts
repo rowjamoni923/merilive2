@@ -177,6 +177,14 @@ describe("native LiveKit bridge — Kotlin plugin events", () => {
     expect(beforeConnect).toMatch(/DO NOT stopLocalPreview\(\) here/);
   });
 
+  it("preview handoff — GoLive preserves native preview until LiveStream promotes it", () => {
+    const src = read("src/pages/GoLive.tsx");
+    const handoff = src.slice(src.indexOf("// Handoff policy:"), src.indexOf("// Navigate IMMEDIATELY"));
+    expect(handoff).toMatch(/isNativeAndroid && nativePreviewActive/);
+    expect(handoff).toMatch(/preservePreviewForLiveRef\.current = true/);
+    expect(handoff).not.toMatch(/isNativeAndroid && nativePreviewActive[\s\S]*stopNativePreview\(/);
+  });
+
   it("N3b — emits active-speakers / participant-metadata / room-metadata / transcription events", () => {
     const src = read(KOTLIN);
     expect(src).toMatch(/notifyListeners\(\s*"active-speakers-changed"/);
