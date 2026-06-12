@@ -70,6 +70,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.net.HttpURLConnection
@@ -409,7 +411,7 @@ class LiveKitPlugin : Plugin() {
         val autoSubscribe: Boolean = true,
     )
     private var lastConnectArgs: ConnectArgs? = null
-    @Volatile private var publicConnectInFlight: Boolean = false
+    private val publicConnectMutex = Mutex()
     private var reconnectWatchdogJob: Job? = null
     private var reconnectingSinceMs: Long = 0L
     // Phase 6 — 150ms audio-level poll job. LiveKit server emits
