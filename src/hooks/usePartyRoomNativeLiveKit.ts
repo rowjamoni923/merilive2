@@ -41,7 +41,7 @@ import {
 } from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { registerViewerCountRoom, unregisterViewerCountRoom } from '@/lib/livekitViewerCount';
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { NativeLiveKit } from '@/plugins/NativeLiveKit';
@@ -410,7 +410,10 @@ export function usePartyRoomNativeLiveKit(
             if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
 
             consumePreparedHostPreviewStream()?.getTracks().forEach((track) => { try { track.stop(); } catch {} });
-            await releaseAndroidWebViewCameraNow('party:native-before-connect');
+            const cameraOwner = await getAndroidCameraOwner();
+            if (cameraOwner !== 'livekit') {
+              await releaseAndroidWebViewCameraNow('party:native-before-connect');
+            }
             try { await NativeLiveKit.setPreferredCodec({ codec: 'h264' }); } catch { /* noop */ }
 
             await nativeLiveKitController.connectAndPublish({

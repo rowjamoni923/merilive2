@@ -43,7 +43,7 @@ import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
-import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -435,14 +435,18 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
 
         // Section#5 pass-6 (Bug K — DUAL CAMERA CONFLICT): if we are about to use
-        // the native Android publisher, we MUST kill the web-based preview
-        // stream immediately. Otherwise WebView's getUserMedia holds the
-        // hardware handle and Native Camera2 fails to start (black screen).
+        // the native Android publisher from a WEB preview, kill WebView's
+        // getUserMedia stream. If GoLive already has native LiveKit preview
+        // ownership, keep it alive so connectInternal can promote that exact
+        // Camera2 LocalVideoTrack into the live room with no restart.
         clearPreparedHostPreviewStream({ stopTracks: true });
         try { config.preloadedVideoTrack?.stop(); } catch { /* noop */ }
         try { config.preloadedAudioTrack?.stop(); } catch { /* noop */ }
-        await releaseAndroidWebViewCameraNow('live:native-before-connect');
-        await new Promise((resolve) => setTimeout(resolve, 900));
+        const cameraOwner = await getAndroidCameraOwner();
+        if (cameraOwner !== 'livekit') {
+          await releaseAndroidWebViewCameraNow('live:native-before-connect');
+          await new Promise((resolve) => setTimeout(resolve, 900));
+        }
 
         // Native LiveKit publish with one quick retry — Camera2 device may
         // be transiently held by the previous CameraX preview during the

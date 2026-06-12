@@ -119,6 +119,10 @@ const GoLive = () => {
   // "kalo flash" on home when exiting GoLive while native preview was on.
   useLayoutEffect(() => {
     return () => {
+      // Preview → live handoff: keep the native TextureView visible across
+      // the route swap. LiveStream/useLiveKitClient will take over the same
+      // native-media-active surface once the existing preview track is promoted.
+      if (preservePreviewForLiveRef.current) return;
       try {
         document.documentElement.classList.remove('native-face-camera-active', 'native-media-active');
         document.body.classList.remove('native-face-camera-active', 'native-media-active');
@@ -832,8 +836,18 @@ const GoLive = () => {
 
       // Handoff policy:
       // - Web preview: preserve same MediaStream for zero-gap transition
-      // - Native native beauty preview: release camera BEFORE entering LiveStream to avoid Android camera resource crash
-      if (isNativeAndroid) {
+      // - Native preview: preserve the SAME LiveKit Camera2 LocalVideoTrack;
+      //   do NOT stopLocalPreview() here or streaming must reopen Camera2.
+      if (isNativeAndroid && nativePreviewActive) {
+        preservePreviewForLiveRef.current = true;
+        clearPreparedHostPreviewStream({ stopTracks: true });
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+          setStream(null);
+        }
+        applyNativePreviewTransparency(true);
+      } else if (isNativeAndroid) {
         preservePreviewForLiveRef.current = false;
         clearPreparedHostPreviewStream({ stopTracks: true });
         if (streamRef.current) {

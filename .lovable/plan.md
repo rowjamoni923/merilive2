@@ -77,6 +77,8 @@
 - LiveKit Android `LocalVideoTrack.startCapture()` starts the camera capturer before use; `publishVideoTrack(track, options)` publishes an existing `LocalVideoTrack` to the SFU.
 - LiveKit Android docs warn not to create a second camera track while one camera session is already active because mobile devices generally support one active camera session.
 - Professional live apps (Chamet/Bigo/Agora-style prejoin) keep preview capture alive and join/publish using that same running capturer to avoid black flash.
+- LiveKit Android reference confirms `publishVideoTrack(track: LocalVideoTrack, options...)` publishes the supplied local track, so the prejoin `LocalVideoTrack` can be reused instead of creating a second capturer.
+- Agora live quickstart/API examples use the same engine preview→join model (`setupLocalVideo`/preview before `joinChannel`), which maps to LiveKit as `startLocalPreview` → `publishVideoTrack(existingTrack)`.
 
 ## Current implementation evidence
 - Android `LiveKitPlugin.kt` already has `promotePreviewToSession(args)` and publishes the existing `previewTrack` via `publishVideoTrack(ptrack, videoPublishOptions)`.
@@ -85,5 +87,6 @@
 
 ## Fix applied
 - Removed the JS pre-connect `stopLocalPreview()` call so Live Streaming, Video Party, Game Party, and Private Call can reuse the already-open native Camera2 preview through the existing native promote path.
+- Fixed GoLive route handoff: native preview is now preserved when navigating into `/live`, the WebView transparency class is not cleared during that handoff, and `useLiveKitClient` no longer waits on WebView camera release when CameraOwnership already says LiveKit owns the camera.
 
 Approve করলে এক pass-এ implement করব।

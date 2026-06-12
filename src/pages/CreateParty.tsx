@@ -371,9 +371,13 @@ const CreateParty = () => {
       if (error) throw error;
       if (!partyRoomId) throw new Error('Party room was not created');
 
-      // Browser-only seamless handoff. Android PartyRoom opens the native
-      // LiveKit SDK camera itself; no WebView stream is preserved.
-      if (!isNativeAndroid && stream) {
+      // Seamless handoff: browser preserves MediaStream; native Android keeps
+      // the LiveKit prejoin preview alive so PartyRoom promotes the same
+      // Camera2 LocalVideoTrack instead of stopping/reopening the camera.
+      if (isNativeAndroid && mode !== 'audio') {
+        preserveStreamRef.current = true;
+        releaseAndroidWebViewCamera('create-party:native-preview-handoff');
+      } else if (!isNativeAndroid && stream) {
         preserveStreamRef.current = true;
         setPreparedHostPreviewStream(stream);
       } else {
