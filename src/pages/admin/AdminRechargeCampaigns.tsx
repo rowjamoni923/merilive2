@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
 import PremiumGoldenBadge from "@/components/campaign/PremiumGoldenBadge";
+import { PREMIUM_CAMPAIGN_CARDS } from "@/data/premiumCampaignCards";
 
 
 interface Campaign {
@@ -909,6 +910,44 @@ export default function AdminRechargeCampaigns() {
                     </Button>
                   </div>
                 )}
+
+                {/* Premium Card Gallery — 40 AI-rendered designs */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      ✨ Premium Card Gallery ({PREMIUM_CAMPAIGN_CARDS.length})
+                    </Label>
+                    {form.banner_image_url && (
+                      <span className="text-[10px] text-muted-foreground">Click any card to use</span>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto rounded-lg border bg-muted/30 p-2">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                      {PREMIUM_CAMPAIGN_CARDS.map(card => {
+                        const selected = form.banner_image_url === card.url;
+                        return (
+                          <button
+                            key={card.id}
+                            type="button"
+                            onClick={() => setForm(p => ({ ...p, banner_image_url: card.url }))}
+                            title={`${card.theme} — ${card.frame}`}
+                            className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
+                              selected ? "border-amber-400 ring-2 ring-amber-400/50" : "border-transparent hover:border-amber-300/60"
+                            }`}
+                          >
+                            <SmartImage src={card.url} alt={card.name} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
+                            {selected && (
+                              <div className="absolute inset-0 bg-amber-400/20 flex items-center justify-center">
+                                <Check className="w-5 h-5 text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
                 <label>
                   <input
                     type="file"
@@ -923,7 +962,7 @@ export default function AdminRechargeCampaigns() {
                   <Button variant="outline" size="sm" disabled={uploading} asChild>
                     <span>
                       <Upload className="w-4 h-4 mr-2" />
-                      {uploading ? "Uploading..." : "Upload Banner"}
+                      {uploading ? "Uploading..." : "Upload Custom Banner"}
                     </span>
                   </Button>
                 </label>
