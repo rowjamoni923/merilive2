@@ -186,6 +186,7 @@ const VIP = () => {
   const [equipping, setEquipping] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [countdownTick, setCountdownTick] = useState(0);
+  const [currentUserName, setCurrentUserName] = useState<string>("");
 
   // Check and restore expired VIP items automatically  
   useExpiredItemsRestorer(currentUserId);
@@ -233,7 +234,7 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .select("coins, display_name, username, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -277,6 +278,7 @@ const VIP = () => {
       if (profileData) {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
+        setCurrentUserName((profileData as any).display_name || (profileData as any).username || "You");
       }
 
       // Fetch current VIP subscription
@@ -1337,7 +1339,7 @@ const VIP = () => {
                                 ? 'ring-2 ring-green-500 shadow-green-500/30' 
                                 : `ring-1 ring-white/10 ${ringColor}`
                           }`}>
-                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
+                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center relative`}>
                               {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
                                 <UniversalFramePlayer
                                   src={priv.animation_url}
@@ -1353,6 +1355,19 @@ const VIP = () => {
                                   className="w-full h-full object-cover" />
                               ) : (
                                 fallbackIcon
+                              )}
+                              {/* Entry Name Bar preview: overlay user's display name so the user
+                                  can see what the bar will look like in-room (the bar template
+                                  itself never contains a name — it's composited live). */}
+                              {title === 'Entry Name Bar' && currentUserName && (
+                                <div className="absolute inset-0 flex items-center justify-center px-1 pointer-events-none">
+                                  <span
+                                    className="text-[10px] font-black text-white truncate max-w-full"
+                                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }}
+                                  >
+                                    {currentUserName}
+                                  </span>
+                                </div>
                               )}
                             </div>
                             
