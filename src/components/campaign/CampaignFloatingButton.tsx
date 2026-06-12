@@ -139,6 +139,10 @@ function CampaignFloatingButton() {
   });
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
+  // Tracks whether the last pointer interaction was a drag — used to swallow
+  // the synthetic click that fires at the end of a drag gesture so the popup
+  // doesn't open when the user is just repositioning the floating card.
+  const draggedRef = useRef(false);
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
