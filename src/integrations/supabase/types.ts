@@ -20178,6 +20178,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_official_coin_usd_rate: { Args: never; Returns: number }
       get_popular_gift_assets: {
         Args: { _limit?: number }
         Returns: {

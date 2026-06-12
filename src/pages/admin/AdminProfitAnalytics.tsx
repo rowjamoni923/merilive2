@@ -123,6 +123,7 @@ export default function AdminProfitAnalytics() {
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
+  const [coinRate, setCoinRate] = useState<number | null>(null);
 
   const handlePreset = useCallback((p: Preset) => {
     setPreset(p);
@@ -131,6 +132,14 @@ export default function AdminProfitAnalytics() {
     setStartDate(toInputDate(r.start));
     setEndDate(toInputDate(r.end));
   }, []);
+
+  useEffect(() => {
+    supabase.rpc("get_official_coin_usd_rate").then(({ data }) => {
+      if (typeof data === "number" || (typeof data === "string" && !isNaN(Number(data)))) {
+        setCoinRate(Number(data));
+      }
+    });
+  }, [refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -488,13 +497,22 @@ export default function AdminProfitAnalytics() {
           </CardContent>
         </Card>
 
-        <p className="text-[11px] text-white/40 leading-relaxed">
-          Coin/Bean → USD conversion uses rates from <code>profit_config._global</code>. Edit
-          <code> meta.coin_to_usd_rate</code> and <code>meta.bean_to_usd_rate</code> in the
-          database to match your current economy. Party Room / PK Battle / Lucky Gift are listed
-          as informational counters because their coin flow is already captured in the Gift
-          sector and counting them again would double-bill.
-        </p>
+        <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] text-white/60 leading-relaxed space-y-1">
+          <div>
+            <span className="text-white/80 font-semibold">Official coin rate:</span>{" "}
+            {coinRate
+              ? `${(1 / coinRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} coins = $1 USD`
+              : "loading…"}{" "}
+            <span className="text-white/40">
+              (auto-computed from active top-up packages)
+            </span>
+          </div>
+          <div className="text-white/40">
+            Add / edit packages in Admin → Top-up Packages and this rate updates instantly.
+            Party Room / PK Battle / Lucky Gift are informational counters only — their coin
+            flow is already captured in the Gift sector to prevent double-counting.
+          </div>
+        </div>
       </div>
     </div>
   );
