@@ -2609,9 +2609,25 @@ const LiveStream = () => {
           });
           if (fastCloseError || (fastClose as any)?.success === false) {
             console.error('[LiveStream] close_live_stream_now failed:', fastCloseError || fastClose);
+            const { error: fallbackCloseError } = await supabase
+              .from('live_streams')
+              .update({ is_active: false, ended_at: new Date().toISOString(), viewer_count: 0 } as any)
+              .eq('id', id)
+              .eq('host_id', streamData.host_id);
+            if (fallbackCloseError) {
+              console.error('[LiveStream] fallback live_streams close failed:', fallbackCloseError);
+            }
           }
         } catch (e) {
           console.error('[LiveStream] close_live_stream_now exception:', e);
+          const { error: fallbackCloseError } = await supabase
+            .from('live_streams')
+            .update({ is_active: false, ended_at: new Date().toISOString(), viewer_count: 0 } as any)
+            .eq('id', id)
+            .eq('host_id', streamData.host_id);
+          if (fallbackCloseError) {
+            console.error('[LiveStream] fallback live_streams close exception:', fallbackCloseError);
+          }
         }
 
         // 2) Release camera/mic IMMEDIATELY so the host's hardware is freed and
