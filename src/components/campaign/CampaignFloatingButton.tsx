@@ -14,7 +14,7 @@ import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 import { toSupabaseCdnUrl } from '@/lib/cdnImage';
-import PremiumGoldenBadge from '@/components/campaign/PremiumGoldenBadge';
+import PremiumCampaignCard from '@/components/campaign/PremiumCampaignCard';
 
 // localStorage key for persisted floating-badge position (per device, global).
 const FLOATING_POS_KEY = 'campaign_floating_pos_v1';
@@ -747,7 +747,8 @@ function CampaignFloatingButton() {
             }}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing"
           >
-            {/* Close (X) — session-only dismiss; reappears on next app open */}
+            {/* Close (×) — small white pill at top-left of the card, matching
+                pro live-streaming apps (Chamet / Bigo / Olamet style). */}
             <button
               type="button"
               aria-label="Dismiss campaign"
@@ -761,23 +762,27 @@ function CampaignFloatingButton() {
                 setCampaign(null);
                 setRemainingSeconds(0);
               }}
-              className="absolute -top-3 -left-2 z-30 w-5 h-5 rounded-full flex items-center justify-center bg-black/70 backdrop-blur border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] active:scale-90 transition-transform"
+              className="absolute -top-1.5 -left-1.5 z-30 w-[18px] h-[18px] rounded-full flex items-center justify-center bg-white/95 backdrop-blur border border-black/10 shadow-[0_2px_6px_rgba(0,0,0,0.35)] active:scale-90 transition-transform"
             >
-              <X className="w-3 h-3 text-white" strokeWidth={3} />
+              <X className="w-2.5 h-2.5 text-black/70" strokeWidth={3} />
             </button>
 
-            {/* Countdown pill */}
+            {/* Compact countdown pill — top-right corner, professional red gradient */}
             <motion.div
-              className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-0.5 rounded-full min-w-[58px] text-center pointer-events-none"
+              className="absolute -top-2 -right-1 z-20 px-1.5 py-[2px] rounded-full pointer-events-none"
               style={{
-                background: 'linear-gradient(135deg, #ff1744, #b71c1c)',
-                boxShadow: '0 6px 18px rgba(255,23,68,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
-                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'linear-gradient(135deg, #ff3b5c, #c2185b)',
+                boxShadow:
+                  '0 3px 8px rgba(194,24,91,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
+                border: '1px solid rgba(255,255,255,0.35)',
+                minWidth: '38px',
               }}
-              animate={{ y: [0, -2, 0] }}
+              animate={{ y: [0, -1.5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <span className="text-[10px] font-bold text-white tabular-nums drop-shadow">{formatCountdown(remainingSeconds)}</span>
+              <span className="block text-center text-[9px] font-bold text-white tabular-nums leading-none drop-shadow">
+                {formatCountdown(remainingSeconds)}
+              </span>
             </motion.div>
 
             {/* Float/breathe wrapper */}
@@ -791,22 +796,19 @@ function CampaignFloatingButton() {
                 className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md pointer-events-none"
                 style={{
                   bottom: '-10px',
-                  width: '64px',
+                  width: '70px',
                   height: '10px',
-                  background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.5), transparent 70%)',
+                  background:
+                    'radial-gradient(ellipse at center, rgba(0,0,0,0.5), transparent 70%)',
                   zIndex: 0,
                 }}
                 animate={{ scale: [1, 0.85, 1], opacity: [0.55, 0.35, 0.55] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />
 
-              {/* Premium golden percentage badge if % bonus exists,
-                  otherwise keep the legacy banner-image disc. */}
-              {/* Always show the premium gold badge when a bonus % is set —
-                  ignores any legacy banner_image_url so the floating disc is
-                  guaranteed to look premium across all campaigns. */}
+              {/* Premium pre-rendered treasure card with percentage on the
+                  ribbon. Falls back to legacy disc only when no bonus % set. */}
               {discountPercent > 0 ? (
-
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
@@ -814,11 +816,7 @@ function CampaignFloatingButton() {
                   className="relative block"
                   style={{ background: 'transparent', border: 'none', padding: 0 }}
                 >
-                  <PremiumGoldenBadge
-                    percentage={discountPercent}
-                    size={78}
-                    caption="BONUS"
-                  />
+                  <PremiumCampaignCard percentage={discountPercent} width={86} caption="BONUS" />
                 </button>
               ) : (
                 <button
