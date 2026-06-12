@@ -137,6 +137,7 @@ export default function AdminProfitAnalytics() {
   const [loading, setLoading] = useState(false);
   const [sectors, setSectors] = useState<SectorRow[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
+  const [payoutTimeline, setPayoutTimeline] = useState<PayoutTimelineRow[]>([]);
   const [salesSources, setSalesSources] = useState<
     Array<{
       source_key: string;
