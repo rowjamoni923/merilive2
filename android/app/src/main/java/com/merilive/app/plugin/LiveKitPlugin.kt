@@ -409,6 +409,7 @@ class LiveKitPlugin : Plugin() {
         val autoSubscribe: Boolean = true,
     )
     private var lastConnectArgs: ConnectArgs? = null
+    @Volatile private var publicConnectInFlight: Boolean = false
     private var reconnectWatchdogJob: Job? = null
     private var reconnectingSinceMs: Long = 0L
     // Phase 6 — 150ms audio-level poll job. LiveKit server emits
@@ -928,6 +929,11 @@ class LiveKitPlugin : Plugin() {
             call.reject("url and token are required")
             return
         }
+        if (publicConnectInFlight) {
+            call.reject("LiveKit connect already in progress")
+            return
+        }
+        publicConnectInFlight = true
 
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
@@ -1003,6 +1009,8 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
+            } finally {
+                publicConnectInFlight = false
             }
         }
 
