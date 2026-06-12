@@ -162,6 +162,21 @@ describe("media surfaces — token edge function honors roles", () => {
 describe("native LiveKit bridge — Kotlin plugin events", () => {
   const KOTLIN = "android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt";
 
+  it("preview handoff — native promotes the existing Camera2 LocalVideoTrack", () => {
+    const src = read(KOTLIN);
+    expect(src).toMatch(/fun startLocalPreview\(call: PluginCall\)/);
+    expect(src).toMatch(/previewTrack = track/);
+    expect(src).toMatch(/private suspend fun promotePreviewToSession\(args: ConnectArgs\)/);
+    expect(src).toMatch(/publishVideoTrack\(ptrack, videoPublishOptions\)/);
+  });
+
+  it("preview handoff — JS controller must not stop preview before connect", () => {
+    const src = read("src/lib/nativeLiveKitController.ts");
+    const beforeConnect = src.slice(src.indexOf("async connectAndPublish"), src.indexOf("const payload: ConnectOptions"));
+    expect(beforeConnect).not.toMatch(/stopLocalPreview\(/);
+    expect(beforeConnect).toMatch(/DO NOT stopLocalPreview\(\) here/);
+  });
+
   it("N3b — emits active-speakers / participant-metadata / room-metadata / transcription events", () => {
     const src = read(KOTLIN);
     expect(src).toMatch(/notifyListeners\(\s*"active-speakers-changed"/);
