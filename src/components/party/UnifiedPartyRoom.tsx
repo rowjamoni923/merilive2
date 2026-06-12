@@ -69,7 +69,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 // Pkg81b: LiveKit-only participant join/leave (replaces `unified-party-joins-*`
 // and `unified-room-viewers-*` Supabase channels).
 import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPartyEventsSignaling";
-import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
+// RoomWelcomeBanner rendered centrally inside RoomChatOverlay — do not import here (no duplicates).
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
