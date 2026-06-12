@@ -117,6 +117,15 @@ const CreateParty = () => {
   // Native camera permission hook for proper Android handling
   const { getCameraStream } = useNativeCameraPermission();
 
+  // Pkg-PartyGAP-1 — Acquire the streaming-family slot in ProCameraEngine
+  // for the selected party mode (video/game). Audio party never opens the
+  // camera, so we keep the hook enabled=false there. The arbiter is
+  // ref-counted, so this slot is shared safely with the prejoin Capacitor
+  // plugin / LiveKit publisher when we hand off into the party room.
+  const partyCameraOwner: 'video-party' | 'game-party' =
+    mode === 'game' ? 'game-party' : 'video-party';
+  const proCamera = useProCamera(partyCameraOwner, mode !== 'audio');
+
   // Seat configurations
   const seatConfig = {
     video: 4, // 2x2 grid
