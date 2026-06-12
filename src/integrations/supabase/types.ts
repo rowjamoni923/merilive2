@@ -7375,6 +7375,63 @@ export type Database = {
         }
         Relationships: []
       }
+      level_privilege_tiers: {
+        Row: {
+          animation_format: string | null
+          animation_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          duration_ms: number | null
+          icon_bg_color: string | null
+          icon_color: string | null
+          id: string
+          is_active: boolean
+          name: string
+          preview_url: string | null
+          privilege_type: string
+          sound_url: string | null
+          unlock_level: number
+          updated_at: string
+        }
+        Insert: {
+          animation_format?: string | null
+          animation_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_ms?: number | null
+          icon_bg_color?: string | null
+          icon_color?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          preview_url?: string | null
+          privilege_type: string
+          sound_url?: string | null
+          unlock_level: number
+          updated_at?: string
+        }
+        Update: {
+          animation_format?: string | null
+          animation_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_ms?: number | null
+          icon_bg_color?: string | null
+          icon_color?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          preview_url?: string | null
+          privilege_type?: string
+          sound_url?: string | null
+          unlock_level?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       level_privileges: {
         Row: {
           animation_config_url: string | null
