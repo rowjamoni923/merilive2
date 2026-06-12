@@ -744,12 +744,17 @@ function CampaignFloatingButton() {
               y: dragOffset.y,
               touchAction: 'none',
             }}
+            onDragStart={() => { draggedRef.current = true; }}
             onDragEnd={(_, info) => {
               const next = { x: dragOffset.x + info.offset.x, y: dragOffset.y + info.offset.y };
               setDragOffset(next);
               try { localStorage.setItem(FLOATING_POS_KEY, JSON.stringify(next)); } catch {}
+              // Clear the flag on the next tick so the synthetic click that
+              // immediately follows a drag is suppressed, but a real tap
+              // (no drag) still opens the popup.
+              setTimeout(() => { draggedRef.current = false; }, 0);
             }}
-            className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing"
+            className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
             {/* Close (×) — tiny, transparent, top-left of the card.
                 No background pill — just a crisp white glyph with a soft
