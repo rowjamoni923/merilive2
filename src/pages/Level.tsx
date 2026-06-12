@@ -67,6 +67,7 @@ interface LevelPrivilege {
   icon_name: string;
   icon_bg_color: string;
   icon_color: string;
+  icon_url: string | null;
 }
 
 interface LevelAnimation {
