@@ -463,6 +463,20 @@ const AdminLevelPrivileges = () => {
                         </Button>
                       )}
 
+                      {/* Manage Tiers button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 border-purple-500/40 text-purple-300 hover:bg-purple-500/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTierManagerCategory(category);
+                        }}
+                      >
+                        <Layers className="w-4 h-4 mr-1" />
+                        Manage Tiers
+                      </Button>
+
                       {/* Edit button */}
                       <Button
                         variant="outline"
