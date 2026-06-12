@@ -685,20 +685,37 @@ const VIP = () => {
         }
       }
 
-      const visiblePrivileges = allPrivileges.filter((priv) => !isPrivilegeExpired(priv.expires_at));
+      const notExpired = allPrivileges.filter((priv) => !isPrivilegeExpired(priv.expires_at));
 
-      // Debug log to see what privileges we have
-      console.log('[VIP] All privileges loaded:', {
-        total: visiblePrivileges.length,
-        frames: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'frame').length,
-        adminAssigned: visiblePrivileges.filter(p => p.source === 'admin_assigned').length,
-        entryEffects: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'entrance').length,
-        vehicles: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'vehicle').length,
-        categories: [...new Set(visiblePrivileges.map(p => p.category))],
-        equipped: visiblePrivileges.filter(p => p.is_equipped).map(p => ({ name: p.name, category: p.category, source: p.source }))
+      // STRICT LEVEL-TIER RULE (Bigo/Chamet style):
+      // For level-based items (source 'level' or 'frame'), per slot keep ONLY the
+      // highest unlocked tier. Lower-tier items auto-hide as the user levels up.
+      // Shop purchases and admin-assigned items always remain visible.
+      const highestLevelBySlot = new Map<PrivilegeSlot, UserPrivilege>();
+      const finalPrivileges: UserPrivilege[] = [];
+      for (const p of notExpired) {
+        const slot = getPrivilegeSlot(p.category);
+        const isLevelSource = p.source === 'level' || p.source === 'frame';
+        if (!isLevelSource || slot === 'other' || slot === 'noble_card') {
+          finalPrivileges.push(p);
+          continue;
+        }
+        const existing = highestLevelBySlot.get(slot);
+        const lvl = p.unlock_level ?? 0;
+        const existingLvl = existing?.unlock_level ?? -1;
+        if (!existing || lvl > existingLvl) {
+          highestLevelBySlot.set(slot, p);
+        }
+      }
+      for (const p of highestLevelBySlot.values()) finalPrivileges.push(p);
+
+      console.log('[VIP] Privileges after strict-tier filter:', {
+        total: finalPrivileges.length,
+        kept: [...highestLevelBySlot.entries()].map(([slot, p]) => ({ slot, name: p.name, level: p.unlock_level })),
+        equipped: finalPrivileges.filter(p => p.is_equipped).map(p => ({ name: p.name, category: p.category, source: p.source }))
       });
 
-      setUserPrivileges(visiblePrivileges);
+      setUserPrivileges(finalPrivileges);
     } catch (error) {
       console.error("Error fetching VIP data:", error);
       recordClientError({ label: "VIP.visiblePrivileges", message: error instanceof Error ? error.message : String(error) });
