@@ -126,6 +126,17 @@ function CampaignFloatingButton() {
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const [gateways, setGateways] = useState<AutoGateway[]>([]);
   const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
+  // Draggable floating-badge position offset (Framer Motion x/y), persisted per device.
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem(FLOATING_POS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') return parsed;
+      }
+    } catch {}
+    return { x: 0, y: 0 };
+  });
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -137,6 +148,8 @@ function CampaignFloatingButton() {
   const bottomOffset = isProfileRoute
     ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
+
+
 
   const normalizePaymentKey = useCallback((value: string | null | undefined) => {
     return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
