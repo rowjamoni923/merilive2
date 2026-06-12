@@ -721,12 +721,12 @@ const GoLive = () => {
     }
   };
 
+  // GAP-7 fix (2026-06-12): GoLive is a pure preview screen — no LiveKit Room
+  // exists here yet (Room is created in LiveStream). `useLiveKit` was always
+  // `false`, so the `livekitSwitchCamera()` branch was dead code. Mid-stream
+  // camera switching is owned by `useLiveKitClient.switchCamera` in LiveStream.
   const switchCamera = () => {
-    if (useLiveKit && localVideoTrack) {
-      livekitSwitchCamera();
-    } else {
-      handleCameraSwitch();
-    }
+    handleCameraSwitch();
   };
 
 

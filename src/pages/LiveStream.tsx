@@ -2315,14 +2315,24 @@ const LiveStream = () => {
 
   useEffect(() => {
     if (localVideoTrack && hostTransitionPreviewStream) {
-      const activeTrack = (localVideoTrack as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
-      hostTransitionPreviewStream.getTracks().forEach((track) => {
-        if (track !== activeTrack) {
-          try { track.stop(); } catch { /* ignore */ }
-        }
-      });
-      void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
+      // GAP-2 fix (2026-06-12): When the beauty processor is active, the
+      // published `LocalVideoTrack.mediaStreamTrack` is a NEW track wrapping
+      // the preview source — track-identity comparison would `.stop()` the
+      // still-encoding preview track mid-publish, producing a green/black
+      // frame. Chamet/Bigo (Agora) never have two track objects for one
+      // capture. Safer rule: only stop tracks the OS has already ended,
+      // and wait 250ms so the publisher fully assumes hardware ownership.
+      const previewStream = hostTransitionPreviewStream;
+      const cleanupTimer = window.setTimeout(() => {
+        previewStream.getTracks().forEach((track) => {
+          if (track.readyState === 'ended') {
+            try { track.stop(); } catch { /* ignore */ }
+          }
+        });
+        void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
+      }, 250);
       setHostTransitionPreviewStream(null);
+      return () => window.clearTimeout(cleanupTimer);
     }
   }, [localVideoTrack, hostTransitionPreviewStream]);
 
