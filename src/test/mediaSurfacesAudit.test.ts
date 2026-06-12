@@ -189,6 +189,17 @@ describe("native LiveKit bridge — Kotlin plugin events", () => {
     expect(nativePreviewBranch).not.toMatch(/stopNativePreview\(/);
   });
 
+  it("preview handoff — CreateParty preserves native video/game preview for PartyRoom", () => {
+    const src = read("src/pages/CreateParty.tsx");
+    const handoff = src.slice(src.indexOf("// Seamless handoff:"), src.indexOf("navigate(`/party/"));
+    const nativePreviewBranch = handoff.slice(
+      handoff.indexOf("isNativeAndroid && mode !== 'audio'"),
+      handoff.indexOf("} else if (!isNativeAndroid && stream)"),
+    );
+    expect(nativePreviewBranch).toMatch(/preserveStreamRef\.current = true/);
+    expect(nativePreviewBranch).not.toMatch(/stopLocalPreview|stopNativePreview/);
+  });
+
   it("N3b — emits active-speakers / participant-metadata / room-metadata / transcription events", () => {
     const src = read(KOTLIN);
     expect(src).toMatch(/notifyListeners\(\s*"active-speakers-changed"/);
