@@ -165,11 +165,12 @@ export default function AdminProfitAnalytics() {
         const startTs = new Date(`${startDate}T00:00:00`).toISOString();
         const endTs = new Date(`${endDate}T23:59:59.999`).toISOString();
 
-        const { data: sectorData, error: sectorErr } = await supabase.rpc(
-          "compute_profit_for_range",
-          { p_start: startTs, p_end: endTs },
-        );
-        if (sectorErr) throw sectorErr;
+        const [sectorRes, sourcesRes] = await Promise.all([
+          supabase.rpc("compute_profit_for_range", { p_start: startTs, p_end: endTs }),
+          supabase.rpc("compute_sales_by_source", { p_start: startTs, p_end: endTs }),
+        ]);
+        if (sectorRes.error) throw sectorRes.error;
+        if (sourcesRes.error) throw sourcesRes.error;
 
         let timelineData: TimelineRow[] = [];
         if (includeTimeline) {
@@ -186,12 +187,14 @@ export default function AdminProfitAnalytics() {
         }
 
         if (cancelled) return;
-        setSectors((sectorData as SectorRow[]) ?? []);
+        setSectors((sectorRes.data as SectorRow[]) ?? []);
+        setSalesSources((sourcesRes.data as any[]) ?? []);
         setTimeline(timelineData);
       } catch (e: any) {
         if (!cancelled) {
           toast.error(e?.message || "Failed to load profit analytics");
           setSectors([]);
+          setSalesSources([]);
           setTimeline([]);
         }
       } finally {
