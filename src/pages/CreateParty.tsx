@@ -186,6 +186,12 @@ const CreateParty = () => {
       if (videoMode) {
         // Browser preview only. Android native app returns above and never
         // opens WebView getUserMedia for party media setup.
+        // Pkg-PartyGAP-1 — block raw getUserMedia unless ProCameraEngine
+        // has confirmed the streaming-family slot is held by this party.
+        if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+          toast.error('Camera is busy. Close other camera screens and try again.');
+          return;
+        }
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
           setStream(mediaStream);
@@ -194,7 +200,8 @@ const CreateParty = () => {
           // it twice causes a mute-flip on Android WebView → blank preview.
         }
       } else {
-        // Audio only mode
+        // Audio only mode — no camera; ProCameraEngine slot already released
+        // by useProCamera(..., enabled=false) when mode flipped to 'audio'.
         releaseAndroidWebViewCamera('create-party:audio-only');
         const constraints: MediaStreamConstraints = { 
           audio: { echoCancellation: true, noiseSuppression: true } 
