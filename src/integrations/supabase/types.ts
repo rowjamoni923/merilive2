@@ -19460,6 +19460,41 @@ export type Database = {
         Args: { _key: string; _response: Json; _scope: string; _status: string }
         Returns: undefined
       }
+      compute_helper_diamond_payouts: {
+        Args: { p_end: string; p_limit?: number; p_start: string }
+        Returns: {
+          commission_usd: number
+          diamond_withdrawal_reward: number
+          diamonds_topped_up: number
+          helper_id: string
+          helper_name: string
+          order_count: number
+          topup_count: number
+          usd_withdrawn: number
+          withdrawal_count: number
+        }[]
+      }
+      compute_payouts_for_range: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          category_key: string
+          display_name: string
+          payout_diamonds: number
+          payout_usd: number
+          recipient_count: number
+          transaction_count: number
+        }[]
+      }
+      compute_payouts_timeline: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          category_key: string
+          day: string
+          payout_diamonds: number
+          payout_usd: number
+          transaction_count: number
+        }[]
+      }
       compute_profit_for_range: {
         Args: { p_end: string; p_start: string }
         Returns: {
