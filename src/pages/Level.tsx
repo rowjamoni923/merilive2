@@ -654,6 +654,18 @@ const Level = () => {
           onClose={() => setIsPreviewOpen(false)}
           userId={user?.id}
         />
+
+        {/* Per-category Tier Sheet (Lv 0–100 ladder) */}
+        {tierSheetCategory && (
+          <PrivilegeTierSheet
+            open={!!tierSheetCategory}
+            onOpenChange={(open) => { if (!open) setTierSheetCategory(null); }}
+            categoryType={tierSheetCategory.privilege_type}
+            categoryName={tierSheetCategory.name}
+            categoryDescription={tierSheetCategory.description}
+            currentLevel={currentLevel}
+          />
+        )}
       </div>
 
 
