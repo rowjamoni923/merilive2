@@ -69,9 +69,13 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   useEffect(() => {
     if (!open) return;
     setPrefs(getDevicePreferences());
+    // Pkg-LSGAP-1 — wait until ProCameraEngine confirmed the streaming
+    // family is free / owned by us before probing permissions.
+    if (!proCamera.ready) return;
     (async () => {
       // Request permissions so labels are populated.
       try {
+        if (!ProCameraEngine.isHeldBy('live-stream')) return;
         const tmp = await claimAndroidWebViewCameraForStream(
           () => navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
           'prejoin:permission-probe',
@@ -83,7 +87,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
       const list = await enumerateMediaDevices();
       setDevs(list);
     })();
-  }, [open]);
+  }, [open, proCamera.ready]);
 
   // (Re)build preview stream whenever selection changes while dialog open.
   useEffect(() => {
