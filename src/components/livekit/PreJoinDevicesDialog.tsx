@@ -92,11 +92,15 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   // (Re)build preview stream whenever selection changes while dialog open.
   useEffect(() => {
     if (!open) return;
+    // Pkg-LSGAP-1 — never call getUserMedia unless ProCameraEngine has
+    // granted us the streaming-family slot.
+    if (!proCamera.ready) return;
     let cancelled = false;
 
     const start = async () => {
       stopPreview();
       try {
+        if (!ProCameraEngine.isHeldBy('live-stream')) return;
         const stream = await claimAndroidWebViewCameraForStream(
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
@@ -127,7 +131,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
       stopPreview();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, prefs.audioinput, prefs.videoinput]);
+  }, [open, proCamera.ready, prefs.audioinput, prefs.videoinput]);
 
   // Apply selected speaker (audiooutput) live to the preview video element.
   useEffect(() => {
