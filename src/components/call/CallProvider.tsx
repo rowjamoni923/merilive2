@@ -15,7 +15,8 @@ import { useProCamera } from '@/camera/useProCamera';
 import { toast as sonnerToast } from 'sonner';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
-const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
+const importActiveCallScreen = () => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen }));
+const ActiveCallScreen = lazy(importActiveCallScreen);
 
 /**
  * Phase-3 C1: GLOBAL `notifications` realtime mount, attached to the
