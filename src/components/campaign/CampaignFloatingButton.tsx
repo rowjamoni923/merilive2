@@ -3,7 +3,7 @@
  * Uses admin-selected template for popup styling.
  * Payment methods shown inline (no navigation to /recharge).
  */
-import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
@@ -94,6 +94,9 @@ const DISMISSED_SESSION_KEY = 'campaign_dismissed_';
 
 const getCampaignSessionKey = (campaignId: string) => `${SESSION_KEY}_${campaignId}`;
 const getCampaignDismissedKey = (campaignId: string) => `${DISMISSED_SESSION_KEY}${campaignId}`;
+const FLOATING_DRAG_THRESHOLD_PX = 4;
+
+const clampFloatingValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 type PaymentTab = 'google' | 'local' | string; // string = auto gateway id
 type PopupView = 'main' | 'payment_select' | 'payment_number';
@@ -149,6 +152,14 @@ function CampaignFloatingButton() {
   // the synthetic click that fires at the end of a drag gesture so the popup
   // doesn't open when the user is just repositioning the floating card.
   const draggedRef = useRef(false);
+  const pointerDragRef = useRef<{
+    pointerId: number;
+    startClientX: number;
+    startClientY: number;
+    startX: number;
+    startY: number;
+    hasMoved: boolean;
+  } | null>(null);
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -158,6 +169,86 @@ function CampaignFloatingButton() {
   const bottomOffset = isProfileRoute
     ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
+
+  const getFloatingDragBounds = useCallback(() => ({
+    left: -Math.max(0, window.innerWidth - 110),
+    right: 0,
+    top: -Math.max(0, window.innerHeight - 220),
+    bottom: 80,
+  }), []);
+
+  const persistFloatingPosition = useCallback(() => {
+    try {
+      localStorage.setItem(
+        FLOATING_POS_KEY,
+        JSON.stringify({ x: dragX.get(), y: dragY.get() }),
+      );
+    } catch {}
+  }, [dragX, dragY]);
+
+  const handleFloatingPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const target = event.currentTarget;
+    try { target.setPointerCapture(event.pointerId); } catch {}
+    pointerDragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: dragX.get(),
+      startY: dragY.get(),
+      hasMoved: false,
+    };
+  }, [dragX, dragY]);
+
+  const handleFloatingPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    const activeDrag = pointerDragRef.current;
+    if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - activeDrag.startClientX;
+    const deltaY = event.clientY - activeDrag.startClientY;
+    if (Math.hypot(deltaX, deltaY) > FLOATING_DRAG_THRESHOLD_PX) {
+      activeDrag.hasMoved = true;
+      draggedRef.current = true;
+      event.preventDefault();
+    }
+
+    const bounds = getFloatingDragBounds();
+    dragX.set(clampFloatingValue(activeDrag.startX + deltaX, bounds.left, bounds.right));
+    dragY.set(clampFloatingValue(activeDrag.startY + deltaY, bounds.top, bounds.bottom));
+  }, [dragX, dragY, getFloatingDragBounds]);
+
+  const finishFloatingPointerDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    const activeDrag = pointerDragRef.current;
+    if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch {}
+    pointerDragRef.current = null;
+
+    if (activeDrag.hasMoved) {
+      persistFloatingPosition();
+      setTimeout(() => { draggedRef.current = false; }, 160);
+      return;
+    }
+
+    draggedRef.current = false;
+  }, [persistFloatingPosition]);
+
+  useEffect(() => {
+    const clampToViewport = () => {
+      const bounds = getFloatingDragBounds();
+      dragX.set(clampFloatingValue(dragX.get(), bounds.left, bounds.right));
+      dragY.set(clampFloatingValue(dragY.get(), bounds.top, bounds.bottom));
+      persistFloatingPosition();
+    };
+
+    clampToViewport();
+    window.addEventListener('resize', clampToViewport);
+    window.addEventListener('orientationchange', clampToViewport);
+    return () => {
+      window.removeEventListener('resize', clampToViewport);
+      window.removeEventListener('orientationchange', clampToViewport);
+    };
+  }, [dragX, dragY, getFloatingDragBounds, persistFloatingPosition]);
 
 
 
