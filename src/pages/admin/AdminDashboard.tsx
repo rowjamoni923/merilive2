@@ -540,6 +540,30 @@ export default function AdminDashboard() {
         />
       </div>
 
+      {/* ━━━ COMPANY FINANCE — Today ━━━ */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        <StatCard
+          title="Today's Company Profit"
+          value={fmtUsdShort(todayProfit)}
+          icon={BarChart3}
+          accentFrom="from-violet-500"
+          accentTo="to-fuchsia-400"
+          glowColor="#a855f7"
+          delay={0.46}
+          link="/admin/profit-analytics"
+        />
+        <StatCard
+          title="Today's Total Payouts"
+          value={fmtUsdShort(todayPayouts)}
+          icon={Wallet}
+          accentFrom="from-rose-500"
+          accentTo="to-pink-400"
+          glowColor="#f43f5e"
+          delay={0.48}
+          link="/admin/payouts-analytics"
+        />
+      </div>
+
       {/* ━━━ ALERT STRIP ━━━ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
         <AlertCard
