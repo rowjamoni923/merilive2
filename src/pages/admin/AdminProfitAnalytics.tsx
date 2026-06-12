@@ -128,6 +128,15 @@ export default function AdminProfitAnalytics() {
   const [loading, setLoading] = useState(false);
   const [sectors, setSectors] = useState<SectorRow[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
+  const [salesSources, setSalesSources] = useState<
+    Array<{
+      source_key: string;
+      display_name: string;
+      gross_usd: number;
+      transaction_count: number;
+      unique_buyers: number;
+    }>
+  >([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
   const [coinRate, setCoinRate] = useState<number | null>(null);
@@ -156,11 +165,12 @@ export default function AdminProfitAnalytics() {
         const startTs = new Date(`${startDate}T00:00:00`).toISOString();
         const endTs = new Date(`${endDate}T23:59:59.999`).toISOString();
 
-        const { data: sectorData, error: sectorErr } = await supabase.rpc(
-          "compute_profit_for_range",
-          { p_start: startTs, p_end: endTs },
-        );
-        if (sectorErr) throw sectorErr;
+        const [sectorRes, sourcesRes] = await Promise.all([
+          supabase.rpc("compute_profit_for_range", { p_start: startTs, p_end: endTs }),
+          supabase.rpc("compute_sales_by_source", { p_start: startTs, p_end: endTs }),
+        ]);
+        if (sectorRes.error) throw sectorRes.error;
+        if (sourcesRes.error) throw sourcesRes.error;
 
         let timelineData: TimelineRow[] = [];
         if (includeTimeline) {
@@ -177,12 +187,14 @@ export default function AdminProfitAnalytics() {
         }
 
         if (cancelled) return;
-        setSectors((sectorData as SectorRow[]) ?? []);
+        setSectors((sectorRes.data as SectorRow[]) ?? []);
+        setSalesSources((sourcesRes.data as any[]) ?? []);
         setTimeline(timelineData);
       } catch (e: any) {
         if (!cancelled) {
           toast.error(e?.message || "Failed to load profit analytics");
           setSectors([]);
+          setSalesSources([]);
           setTimeline([]);
         }
       } finally {
@@ -567,6 +579,73 @@ export default function AdminProfitAnalytics() {
             </CardContent>
           </Card>
         )}
+
+        {/* Sales by Source — official vs helper level 1..5 */}
+        <Card className="bg-[#0c0c14] border-white/[0.06]">
+          <CardHeader className="border-b border-white/[0.06] pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+              <ShoppingCart className="h-4 w-4 text-cyan-400" />
+              Sales by Source
+              <span className="ml-auto text-[10px] text-white/40 normal-case font-normal">
+                Official + every helper level
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            {loading ? (
+              <Skeleton className="h-24 w-full bg-white/5" />
+            ) : salesSources.length === 0 ? (
+              <div className="text-center text-white/40 py-6 text-sm">No sales in this range</div>
+            ) : (
+              (() => {
+                const totalSales = salesSources.reduce(
+                  (a, s) => a + (Number(s.gross_usd) || 0),
+                  0,
+                );
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {salesSources
+                      .slice()
+                      .sort((a, b) => Number(b.gross_usd) - Number(a.gross_usd))
+                      .map((s) => {
+                        const isOfficial = s.source_key === "official_recharge";
+                        const color = isOfficial ? "#06b6d4" : "#a855f7";
+                        const share =
+                          totalSales > 0 ? (Number(s.gross_usd) / totalSales) * 100 : 0;
+                        return (
+                          <div
+                            key={s.source_key}
+                            className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-black/40 to-black/10 p-3"
+                          >
+                            <div
+                              className="absolute inset-y-0 left-0 w-1"
+                              style={{ background: color }}
+                            />
+                            <div className="text-[10px] uppercase tracking-wider text-white/50">
+                              {isOfficial ? "Official" : "Helper Sales"}
+                            </div>
+                            <div className="text-sm font-semibold mt-0.5 truncate">
+                              {s.display_name}
+                            </div>
+                            <div
+                              className="text-lg font-bold mt-1.5"
+                              style={{ color }}
+                            >
+                              {fmtUsd(Number(s.gross_usd))}
+                            </div>
+                            <div className="text-[10px] text-white/40">
+                              {share.toFixed(1)}% · {fmtInt(Number(s.transaction_count))} txns ·{" "}
+                              {fmtInt(Number(s.unique_buyers))} buyers
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                );
+              })()
+            )}
+          </CardContent>
+        </Card>
 
         {/* Sector grid */}
         <Card className="bg-[#0c0c14] border-white/[0.06]">
