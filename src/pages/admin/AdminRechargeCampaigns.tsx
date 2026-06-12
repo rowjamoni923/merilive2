@@ -18,6 +18,8 @@ import {
   CalendarClock, Trophy, Percent, Check
 } from "lucide-react";
 import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
+import PremiumGoldenBadge from "@/components/campaign/PremiumGoldenBadge";
+
 
 interface Campaign {
   id: string;
@@ -114,7 +116,9 @@ const MILESTONE_PRESETS = [
   { value: 10000000, label: "10M" },
 ];
 
-const PERCENTAGE_PRESETS = [10, 20, 30, 50, 75, 100, 150, 200];
+// Full premium-gold bonus library — 1% to 500%. Admin clicks a card to apply.
+const PERCENTAGE_PRESETS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 300, 400, 500];
+
 
 export default function AdminRechargeCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -645,25 +649,44 @@ export default function AdminRechargeCampaigns() {
                 )}
               </div>
 
-              {/* Bonus Percentage */}
+              {/* Bonus Percentage — Premium Gold Card Library */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Percent className="w-4 h-4" /> Bonus Percentage
+                  <Percent className="w-4 h-4" /> Bonus Percentage — Premium Gold Card
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Set the bonus %. Bonus diamonds = Base diamonds × percentage
+                  Click a golden card to apply. The exact card the user sees on the floating campaign badge.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {PERCENTAGE_PRESETS.map(p => (
-                    <Button
-                      key={p}
-                      variant={form.bonus_percentage === p ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePercentageChange(p)}
-                    >
-                      {p}%
-                    </Button>
-                  ))}
+                {/* Premium gold card gallery (1% → 500%) */}
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-9 gap-3">
+                  {PERCENTAGE_PRESETS.map(p => {
+                    const isSelected = form.bonus_percentage === p;
+                    return (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => handlePercentageChange(p)}
+                        title={`${p}% Bonus`}
+                        className={`relative flex items-center justify-center rounded-xl p-2 transition-all ${
+                          isSelected
+                            ? 'bg-gradient-to-br from-amber-500/20 to-yellow-500/10 ring-2 ring-amber-400 scale-105'
+                            : 'bg-muted/30 hover:bg-muted/50 ring-1 ring-border/40 hover:scale-105'
+                        }`}
+                      >
+                        <PremiumGoldenBadge
+                          percentage={p}
+                          size={56}
+                          caption="BONUS"
+                          animated={false}
+                        />
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-lg">
+                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
                 <div>
                   <Label>Custom Percentage (%)</Label>
@@ -675,6 +698,9 @@ export default function AdminRechargeCampaigns() {
                     onChange={e => handlePercentageChange(parseInt(e.target.value) || 0)}
                     placeholder="e.g. 50"
                   />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Any value 1-500 renders as a premium gold card automatically.
+                  </p>
                 </div>
                 {(form.bonus_percentage || 0) > 0 && (form.diamonds_amount || 0) > 0 && (
                   <div className="p-3 rounded-lg bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20">
@@ -690,6 +716,7 @@ export default function AdminRechargeCampaigns() {
                   </div>
                 )}
               </div>
+
 
               {/* Diamonds (manual override) */}
               <div className="space-y-3">
