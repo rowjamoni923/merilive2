@@ -1,100 +1,109 @@
 /**
- * PKG434 Pass 10 — Idle-time route prefetch
+ * Route prefetch helpers — called on `onPointerDown` / `onTouchStart` of
+ * tappable cards so the destination chunk + critical realtime token start
+ * loading 50-150ms BEFORE the click event fires. By the time React Router
+ * mounts the page, the chunk is already warm in cache.
  *
- * When the app is idle (requestIdleCallback / setTimeout fallback) and the
- * network looks healthy, silently fetch the JS chunks for routes the user is
- * very likely to visit next. The dynamic import() warms the browser module
- * cache; when the user actually navigates, the lazy chunk is already there
- * and the route paints instantly — no blank "loading…" flash.
+ * This is the same technique Instagram / TikTok use for their feed cards:
+ * "instant" navigation = prefetch on touch, not on click.
  *
- * Skipped when:
- *   - save-data / 2g / 3g (cost-aware)
- *   - tab hidden (don't waste battery in background)
- *   - reduce-motion / low-end class on <html> (slow devices)
- *
- * Each chunk is fetched at most once per session (dedupe Set).
- * Errors are swallowed — prefetch is best-effort, never user-visible.
+ * All prefetchers are idempotent (browser caches the import) and silent
+ * on failure — never block UI, never throw.
  */
 
-const TOP_ROUTES: Array<() => Promise<unknown>> = [
-  // Critical user-facing pages (warm first)
-  () => import("@/pages/Profile"),
-  () => import("@/pages/Chat"),
-  () => import("@/pages/Reels"),
-  () => import("@/pages/Recharge"),
-  () => import("@/pages/Settings"),
-  // Agency stack (user explicitly flagged)
-  () => import("@/pages/Agency"),
-  () => import("@/pages/AgencyDashboard"),
-  () => import("@/pages/JoinAgency"),
-  // AI chat / support widgets (lazy-imported from Chat & Settings)
-  () => import("@/components/ai/AIChatbot"),
-  () => import("@/components/support/AISupportChat"),
-  // Secondary
-  () => import("@/pages/Discover"),
-  () => import("@/pages/Tasks"),
-  () => import("@/pages/Shop"),
-  () => import("@/pages/SearchUsers"),
-  () => import("@/pages/FollowingList"),
-];
-
-const fetched = new WeakSet<() => Promise<unknown>>();
+let livePrefetched = false;
+let partyPrefetched = false;
+let profilePrefetched = false;
+let chatPrefetched = false;
 let installed = false;
 
-function isSlowNetwork(): boolean {
-  try {
-    const conn = (navigator as any).connection;
-    if (!conn) return false;
-    if (conn.saveData) return true;
-    const t: string = conn.effectiveType || "";
-    return t === "slow-2g" || t === "2g" || t === "3g";
-  } catch {
-    return false;
+export function prefetchLiveStream(streamId?: string) {
+  if (!livePrefetched) {
+    livePrefetched = true;
+    import('@/pages/LiveStream').catch(() => {});
+  }
+  if (streamId) {
+    import('@/services/livekitService')
+      .then(({ warmLiveKitToken }) => warmLiveKitToken(`live_${streamId}`, 'viewer_stream').catch(() => {}))
+      .catch(() => {});
   }
 }
 
-function isLowEnd(): boolean {
-  try {
-    return document.documentElement.classList.contains("reduce-motion");
-  } catch {
-    return false;
+export function prefetchPartyRoom(roomId?: string) {
+  if (!partyPrefetched) {
+    partyPrefetched = true;
+    import('@/pages/PartyRoom').catch(() => {});
+  }
+  if (roomId) {
+    import('@/services/livekitService')
+      .then(({ warmLiveKitToken }) => warmLiveKitToken(`party_${roomId}`, 'party').catch(() => {}))
+      .catch(() => {});
   }
 }
 
-function schedule(cb: () => void, timeout = 4000) {
-  const ric = (window as any).requestIdleCallback as
-    | ((cb: () => void, opts?: { timeout?: number }) => number)
-    | undefined;
-  if (typeof ric === "function") ric(cb, { timeout });
-  else window.setTimeout(cb, timeout);
+export function prefetchProfileDetail() {
+  if (profilePrefetched) return;
+  profilePrefetched = true;
+  import('@/pages/ProfileDetail').catch(() => {});
 }
 
-function prefetchOne(loader: () => Promise<unknown>) {
-  if (fetched.has(loader)) return;
-  fetched.add(loader);
-  // Fire and forget; never throw.
-  loader().catch(() => {
-    /* network/chunk error — ignore, real nav will retry via lazyRetry */
-  });
+export function prefetchChat() {
+  if (chatPrefetched) return;
+  chatPrefetched = true;
+  import('@/pages/Chat').catch(() => {});
 }
 
-function runPrefetchPass() {
-  if (document.visibilityState !== "visible") return;
-  if (isSlowNetwork()) return;
-  if (isLowEnd()) return;
-  // Spread loads over multiple idle slots so we never block the main thread.
-  TOP_ROUTES.forEach((loader, i) => {
-    schedule(() => prefetchOne(loader), 1500 + i * 400);
-  });
-}
-
+/**
+ * Global delegated pointer-down listener — fires the right prefetcher
+ * the instant the user starts a tap on any element with the matching
+ * `data-prefetch` attribute or a known route href. No per-card wiring
+ * needed; works app-wide.
+ *
+ * Supported attributes (on any clickable ancestor of the touch target):
+ *   data-prefetch="live"   + data-stream-id="..."
+ *   data-prefetch="party"  + data-room-id="..."
+ *   data-prefetch="profile"
+ *   data-prefetch="chat"
+ *
+ * Also auto-detects <a href="/live/:id"> / "/party/:id" / "/profile/..."
+ * patterns so legacy <Link>s benefit without code changes.
+ */
 export function installRoutePrefetch() {
-  if (installed) return;
+  if (installed || typeof window === 'undefined') return;
   installed = true;
-  // Initial pass after first paint settles.
-  schedule(runPrefetchPass, 3500);
-  // Re-attempt when user comes back to the tab (might have skipped before).
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") schedule(runPrefetchPass, 1500);
-  });
+
+  const handler = (ev: Event) => {
+    const target = ev.target as Element | null;
+    if (!target || !('closest' in target)) return;
+
+    // 1) explicit data-prefetch hint
+    const hinted = target.closest<HTMLElement>('[data-prefetch]');
+    if (hinted) {
+      const kind = hinted.dataset.prefetch;
+      if (kind === 'live') prefetchLiveStream(hinted.dataset.streamId || undefined);
+      else if (kind === 'party') prefetchPartyRoom(hinted.dataset.roomId || undefined);
+      else if (kind === 'profile') prefetchProfileDetail();
+      else if (kind === 'chat') prefetchChat();
+      return;
+    }
+
+    // 2) any anchor whose href matches a known instant-tap route
+    const anchor = target.closest<HTMLAnchorElement>('a[href]');
+    if (anchor) {
+      const href = anchor.getAttribute('href') || '';
+      if (href.startsWith('/live/')) {
+        prefetchLiveStream(href.slice(6).split(/[/?#]/)[0]);
+      } else if (href.startsWith('/party/')) {
+        prefetchPartyRoom(href.slice(7).split(/[/?#]/)[0]);
+      } else if (href.startsWith('/profile-detail/') || href.startsWith('/profile/')) {
+        prefetchProfileDetail();
+      } else if (href === '/chat' || href.startsWith('/chat/')) {
+        prefetchChat();
+      }
+    }
+  };
+
+  // `pointerdown` fires ~50-150ms before `click` on touch devices — that's
+  // the head start we exploit. `passive: true` keeps scrolling smooth.
+  window.addEventListener('pointerdown', handler, { passive: true, capture: true });
 }

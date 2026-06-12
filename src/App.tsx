@@ -98,6 +98,13 @@ const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Recharge"),
   () => import("./pages/PartyRooms"),
   () => import("./pages/GoLive"),
+  // 🚀 INSTANT-TAP: the three destinations users tap into most often
+  // from the home grid (live cards / party cards / profile cards). Without
+  // these in the idle-preload set, the very first tap pays a full chunk
+  // round-trip (200-500ms on slow networks) — felt as "lag" by the user.
+  () => import("./pages/LiveStream"),
+  () => import("./pages/PartyRoom"),
+  () => import("./pages/ProfileDetail"),
 ];
 
 let coreChunksPreloaded = false;
