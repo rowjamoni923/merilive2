@@ -27,6 +27,8 @@ import {
   type DevicePreferences,
 } from '@/lib/livekitDevicePreferences';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { useProCamera } from '@/camera/useProCamera';
+import * as ProCameraEngine from '@/camera/ProCameraEngine';
 
 interface Props {
   open: boolean;
@@ -39,6 +41,14 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   // pre-join picker would race the native engine and trigger Android-16
   // permission loops. Render nothing on native Android.
   if (isNativeAndroidApp()) return null;
+
+  // Pkg-LSGAP-1 — Acquire the streaming-family camera slot via the
+  // ref-counted ProCameraEngine arbiter. If GoLive/LiveStream already
+  // holds 'live-stream', this just bumps the refcount and shares the
+  // existing camera (no second getUserMedia conflict on Android). If the
+  // verification family holds it, `ready=false` and we skip preview
+  // entirely instead of racing Camera2.
+  const proCamera = useProCamera('live-stream', open);
 
   const [devices, setDevs] = useState<{
     audioinput: MediaDeviceInfo[];
@@ -59,9 +69,13 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   useEffect(() => {
     if (!open) return;
     setPrefs(getDevicePreferences());
+    // Pkg-LSGAP-1 — wait until ProCameraEngine confirmed the streaming
+    // family is free / owned by us before probing permissions.
+    if (!proCamera.ready) return;
     (async () => {
       // Request permissions so labels are populated.
       try {
+        if (!ProCameraEngine.isHeldBy('live-stream')) return;
         const tmp = await claimAndroidWebViewCameraForStream(
           () => navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
           'prejoin:permission-probe',
@@ -73,16 +87,20 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
       const list = await enumerateMediaDevices();
       setDevs(list);
     })();
-  }, [open]);
+  }, [open, proCamera.ready]);
 
   // (Re)build preview stream whenever selection changes while dialog open.
   useEffect(() => {
     if (!open) return;
+    // Pkg-LSGAP-1 — never call getUserMedia unless ProCameraEngine has
+    // granted us the streaming-family slot.
+    if (!proCamera.ready) return;
     let cancelled = false;
 
     const start = async () => {
       stopPreview();
       try {
+        if (!ProCameraEngine.isHeldBy('live-stream')) return;
         const stream = await claimAndroidWebViewCameraForStream(
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
@@ -113,7 +131,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
       stopPreview();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, prefs.audioinput, prefs.videoinput]);
+  }, [open, proCamera.ready, prefs.audioinput, prefs.videoinput]);
 
   // Apply selected speaker (audiooutput) live to the preview video element.
   useEffect(() => {
