@@ -292,6 +292,33 @@ export default function AdminProfitAnalytics() {
     return Array.from(map.values()).sort((a, b) => a.day.localeCompare(b.day));
   }, [timeline]);
 
+  // Per-day Profit vs Payouts (full outflows incl. withdrawals, helper diamonds, host payroll, game winnings)
+  const dailyTotals = useMemo(() => {
+    const map = new Map<string, { day: string; profit: number; payouts: number }>();
+    for (const r of timeline) {
+      const k = r.day;
+      if (!map.has(k)) map.set(k, { day: k, profit: 0, payouts: 0 });
+      map.get(k)!.profit += Number(r.net_profit_usd) || 0;
+    }
+    for (const r of payoutTimeline) {
+      const k = r.day;
+      if (!map.has(k)) map.set(k, { day: k, profit: 0, payouts: 0 });
+      map.get(k)!.payouts += Number(r.payout_usd) || 0;
+    }
+    return Array.from(map.values())
+      .map((r) => ({ ...r, net: r.profit - r.payouts }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+  }, [timeline, payoutTimeline]);
+
+  const dailyTotalsSummary = useMemo(() => {
+    const t = { profit: 0, payouts: 0 };
+    for (const r of dailyTotals) {
+      t.profit += r.profit;
+      t.payouts += r.payouts;
+    }
+    return { ...t, net: t.profit - t.payouts };
+  }, [dailyTotals]);
+
   const handleExport = useCallback(() => {
     if (!sectors.length) return;
     const headers = [
