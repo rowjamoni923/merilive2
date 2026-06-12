@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } f
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
