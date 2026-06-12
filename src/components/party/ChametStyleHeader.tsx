@@ -260,25 +260,26 @@ export const ChametStyleHeader = ({
                     transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                   />
                 )}
-                <Avatar
+                <div
                   className={cn(
-                    "w-7 h-7 ring-[1.5px] shadow-md relative",
+                    "rounded-full relative",
                     i === 0
-                      ? "ring-amber-400"
+                      ? "ring-[1.5px] ring-amber-400"
                       : i === 1
-                      ? "ring-slate-300"
-                      : "ring-amber-600"
+                      ? "ring-[1.5px] ring-slate-300"
+                      : "ring-[1.5px] ring-amber-600"
                   )}
                   style={i === 0 ? { boxShadow: "0 0 10px rgba(251,191,36,0.55)" } : undefined}
                 >
-                  <AvatarImage
-                    src={viewer.avatarUrl || getDisplayAvatar(viewer.displayName)}
-                    className="object-cover"
+                  <AvatarWithFrame
+                    userId={viewer.id}
+                    src={viewer.avatarUrl}
+                    name={viewer.displayName}
+                    level={viewer.level}
+                    size="xs"
+                    showAnimation
                   />
-                  <AvatarFallback className="text-[8px] bg-purple-700 text-white font-bold">
-                    {viewer.displayName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                </div>
                 <span className="absolute -bottom-0.5 -right-0.5 text-[7px] leading-none drop-shadow-md z-10">
                   {RANK_MEDALS[i]}
                 </span>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Users, Eye, Heart, Share2, X } from "lucide-react";
@@ -15,6 +14,7 @@ const formatFollowerCount = (n: number): string => {
 };
 
 interface HostInfoProps {
+  hostId?: string;
   name: string;
   avatar?: string;
   level: number;
@@ -27,6 +27,7 @@ interface HostInfoProps {
 }
 
 export const ProfessionalHostInfo = ({
+  hostId,
   name,
   avatar,
   level,
@@ -45,12 +46,13 @@ export const ProfessionalHostInfo = ({
     >
       {/* Host Avatar with Frame */}
       <AvatarWithFrame 
+        userId={hostId}
         src={avatar}
         name={name}
         level={level} 
         isHost={true}
         size="sm" 
-        showAnimation={level >= 20}
+        showAnimation
       />
 
       {/* Host Info */}
@@ -123,16 +125,15 @@ export const ProfessionalViewerCount = ({
       {/* Stacked Avatars */}
       <div className="flex -space-x-2">
         {recentViewers.slice(0, 3).map((viewer, index) => (
-          <Avatar 
-            key={viewer.id} 
-            className="w-6 h-6 border-2 border-black/40"
-            style={{ zIndex: 3 - index }}
-          >
-            <AvatarImage src={viewer.avatar} />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white text-[8px] font-bold">
-              {viewer.name[0]}
-            </AvatarFallback>
-          </Avatar>
+          <div key={viewer.id} style={{ zIndex: 3 - index }} className="rounded-full">
+            <AvatarWithFrame
+              userId={viewer.id}
+              src={viewer.avatar}
+              name={viewer.name}
+              size="xs"
+              showAnimation
+            />
+          </div>
         ))}
       </div>
       
