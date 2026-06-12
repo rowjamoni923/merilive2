@@ -42,6 +42,14 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   // permission loops. Render nothing on native Android.
   if (isNativeAndroidApp()) return null;
 
+  // Pkg-LSGAP-1 — Acquire the streaming-family camera slot via the
+  // ref-counted ProCameraEngine arbiter. If GoLive/LiveStream already
+  // holds 'live-stream', this just bumps the refcount and shares the
+  // existing camera (no second getUserMedia conflict on Android). If the
+  // verification family holds it, `ready=false` and we skip preview
+  // entirely instead of racing Camera2.
+  const proCamera = useProCamera('live-stream', open);
+
   const [devices, setDevs] = useState<{
     audioinput: MediaDeviceInfo[];
     videoinput: MediaDeviceInfo[];
