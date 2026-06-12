@@ -216,7 +216,7 @@ export default function AdminProfitAnalytics() {
 
   const margin = totals.gross > 0 ? (totals.net / totals.gross) * 100 : 0;
 
-  // Pivot timeline for stacked area chart
+  // Pivot timeline for stacked net-profit area chart (per sector)
   const chartData = useMemo(() => {
     const map = new Map<string, Record<string, number | string>>();
     for (const row of timeline) {
@@ -234,6 +234,35 @@ export default function AdminProfitAnalytics() {
     const set = new Set<string>();
     timeline.forEach((r) => set.add(r.sector_key));
     return Array.from(set);
+  }, [timeline]);
+
+  // Per-day rollup (all sectors aggregated) — used for Daily Sales chart + table
+  const dailyRollup = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        day: string;
+        gross: number;
+        company_cut: number;
+        payouts: number;
+        gateway: number;
+        net: number;
+        txns: number;
+      }
+    >();
+    for (const r of timeline) {
+      const k = r.day;
+      if (!map.has(k))
+        map.set(k, { day: k, gross: 0, company_cut: 0, payouts: 0, gateway: 0, net: 0, txns: 0 });
+      const o = map.get(k)!;
+      o.gross += Number(r.gross_revenue_usd) || 0;
+      o.company_cut += Number(r.company_cut_usd) || 0;
+      o.payouts += Number(r.payouts_usd) || 0;
+      o.gateway += Number(r.gateway_cost_usd) || 0;
+      o.net += Number(r.net_profit_usd) || 0;
+      o.txns += Number(r.transaction_count) || 0;
+    }
+    return Array.from(map.values()).sort((a, b) => a.day.localeCompare(b.day));
   }, [timeline]);
 
   const handleExport = useCallback(() => {
