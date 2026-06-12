@@ -214,31 +214,67 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
         const bestBubble = pickHighest(bubbleCandidates);
         const bestVehicle = pickHighest(vehicleCandidates.map(({ id, level }) => ({ id, level })));
 
-        const levelOwnedIds = new Set<string>([
-          ...frameCandidates.map((item) => item.id),
-          ...entranceCandidates.map((item) => item.id),
-          ...nameBarCandidates.map((item) => item.id),
-          ...bubbleCandidates.map((item) => item.id),
-          ...vehicleCandidates.map((item) => item.id),
+        // Build sets of every level-tier candidate id (regardless of unlock status)
+        // so we can detect whether the currently-equipped item came from the level
+        // ladder. Manual purchases and admin-assigned frames are NEVER in these sets,
+        // so they stay untouched.
+        const allFrameLevelIds = new Set<string>(((framesRes.data || []) as any[]).map((f: any) => f.id));
+        const allEntranceLevelIds = new Set<string>([
+          ...((entryBannersRes.data || []) as any[]).map((i: any) => i.id),
+          ...levelPrivileges
+            .filter((i: any) => ['entrance', 'entrance_effect', 'entry_banner'].includes(i.privilege_type))
+            .map((i: any) => i.id),
+        ]);
+        const allNameBarLevelIds = new Set<string>([
+          ...((entryNameBarsRes.data || []) as any[]).map((i: any) => i.id),
+          ...levelPrivileges
+            .filter((i: any) => ['entry_bar', 'entry_name_bar', 'entry_bar_effect'].includes(i.privilege_type))
+            .map((i: any) => i.id),
+        ]);
+        const allBubbleLevelIds = new Set<string>(
+          levelPrivileges
+            .filter((i: any) => ['bubble', 'chat_bubble'].includes(i.privilege_type))
+            .map((i: any) => i.id),
+        );
+        const allVehicleLevelIds = new Set<string>([
+          ...((vehicleEntrancesRes.data || []) as any[]).map((i: any) => i.id),
+          ...levelPrivileges
+            .filter((i: any) => i.privilege_type === 'vehicle_entrance')
+            .map((i: any) => i.id),
         ]);
 
-        // Only auto-equip when the slot is EMPTY. Never override a user's manual pick.
-        const canOverride = (currentId: string | null | undefined) => !currentId;
+        const adminAssignedFrameIds = new Set<string>(
+          ((assignedFramesRes.data || []) as any[]).map((f: any) => f.frame_id),
+        );
 
-        if (bestFrame && canOverride(nextFrameId) && profile.equipped_frame_id !== bestFrame.id) {
+        // Replace when: slot is empty, OR currently equipped item is a level-tier
+        // item (so we can swap up to the new highest). Never override manual
+        // purchases or admin-assigned frames.
+        const canSwapLevel = (
+          slot: string,
+          currentId: string | null | undefined,
+          levelIds: Set<string>,
+        ) => {
+          if (!currentId) return true;
+          if (equippedPurchaseBySlot.has(slot)) return false;
+          if (slot === 'frame' && adminAssignedFrameIds.has(currentId)) return false;
+          return levelIds.has(currentId);
+        };
+
+        if (bestFrame && canSwapLevel('frame', nextFrameId, allFrameLevelIds) && profile.equipped_frame_id !== bestFrame.id) {
           updateData.equipped_frame_id = bestFrame.id;
         }
-        if (bestEntrance && canOverride(nextEntranceId)) {
+        if (bestEntrance && canSwapLevel('entrance', nextEntranceId, allEntranceLevelIds)) {
           if (profile.equipped_entrance_id !== bestEntrance.id) updateData.equipped_entrance_id = bestEntrance.id;
           if (profile.equipped_entry_banner_id !== bestEntrance.id) updateData.equipped_entry_banner_id = bestEntrance.id;
         }
-        if (bestNameBar && canOverride(nextNameBarId) && profile.equipped_entry_name_bar_id !== bestNameBar.id) {
+        if (bestNameBar && canSwapLevel('entry_name_bar', nextNameBarId, allNameBarLevelIds) && profile.equipped_entry_name_bar_id !== bestNameBar.id) {
           updateData.equipped_entry_name_bar_id = bestNameBar.id;
         }
-        if (bestBubble && canOverride(nextBubbleId) && profile.equipped_bubble_id !== bestBubble.id) {
+        if (bestBubble && canSwapLevel('bubble', nextBubbleId, allBubbleLevelIds) && profile.equipped_bubble_id !== bestBubble.id) {
           updateData.equipped_bubble_id = bestBubble.id;
         }
-        if (bestVehicle && canOverride(nextVehicleId) && profile.equipped_vehicle_id !== bestVehicle.id) {
+        if (bestVehicle && canSwapLevel('vehicle', nextVehicleId, allVehicleLevelIds) && profile.equipped_vehicle_id !== bestVehicle.id) {
           updateData.equipped_vehicle_id = bestVehicle.id;
         }
 
