@@ -52,6 +52,25 @@
 
 ---
 
+# Fix: Stale Logged-In UI vs Invalid Supabase Session
+
+## Research evidence
+- Supabase `refreshSession()` docs: it uses the current refresh token from session storage; if that refresh token is invalid, the call throws/returns an auth error.
+- Supabase Auth error docs list API-level auth errors separately from network/client errors; `refresh_token_not_found` means the stored refresh token is no longer accepted by Auth, not that LiveKit/SFU is down.
+- Professional call apps must gate paid/private calls on a valid server session, not only cached “logged in” UI, otherwise billing/call RPCs can run with a missing bearer token.
+
+## Current implementation evidence
+- Console/Auth logs show `Invalid Refresh Token: Refresh Token Not Found` and `/token` status 400, then `/user` 403 `session_not_found`.
+- `App.tsx` kept the old React `session` on non-manual `SIGNED_OUT` when silent refresh failed, so protected pages could still render.
+- `ProfileDetail.tsx` and `usePrivateCall.ts` correctly use the live Supabase session/user; when storage was already cleared by Supabase, call initiation showed `Login Required`.
+
+## Fix applied
+- Keep the “don’t kick user out on transient network glitch” behavior.
+- But when the silent refresh error is definitively an invalid/revoked refresh token, clear stale React auth state, cached user, balance cache, and native mirrored session so UI no longer falsely appears logged in.
+- This is a React/WebView auth-state fix only; no LiveKit server or camera/native media code changed.
+
+---
+
 # Audit/Fix: Preview Camera Handoff Gap
 
 ## Research evidence
