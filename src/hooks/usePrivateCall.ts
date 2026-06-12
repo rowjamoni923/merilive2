@@ -719,74 +719,14 @@ export function usePrivateCall(userId: string | null) {
         }
       }, timeoutSeconds * 1000);
 
-      // Caller fallback polling: LiveKit call_accepted is primary; bounded 5s REST check
-      // prevents a stuck calling screen if the DataPacket is missed. No Supabase Realtime.
-      outgoingStatusPollRef.current = setInterval(async () => {
-        if (callEndedRef.current || currentCallIdRef.current !== callIdForTimeout) {
-          if (outgoingStatusPollRef.current) {
-            clearInterval(outgoingStatusPollRef.current);
-            outgoingStatusPollRef.current = null;
-          }
-          return;
-        }
-
-        try {
-          const { data: liveCall } = await supabase
-            .from('private_calls')
-            .select('status, created_at, end_reason')
-            .eq('id', callIdForTimeout)
-            .maybeSingle();
-
-          // If row disappeared unexpectedly, close safely
-          if (!liveCall) {
-            resetCallState();
-            toast({
-              title: 'Call Ended',
-              description: 'Call session is no longer active',
-            });
-            return;
-          }
-
-          if (liveCall.status === 'pending' || liveCall.status === 'ringing') {
-            setCallState(prev => (
-              prev.callId === callIdForTimeout && prev.status === 'calling'
-                ? { ...prev, status: 'ringing' }
-                : prev
-            ));
-          }
-
-          if (liveCall.status === 'connected') {
-            activateCallerConnectedState(callIdForTimeout);
-            return;
-          }
-
-          if (liveCall.status === 'declined' || liveCall.status === 'ended' || liveCall.status === 'missed') {
-            resetCallState();
-            if (liveCall.status === 'declined') {
-              toast({ title: 'Call Declined', description: 'Host declined the call' });
-            } else if (liveCall.status === 'missed') {
-              toast({ title: 'Call Missed', description: 'Host did not answer' });
-            } else {
-              toast({ title: 'Call Ended', description: 'The call has ended' });
-            }
-          }
-
-          // Hard fallback: age-based timeout enforcement
-          const callAgeSec = Math.floor((Date.now() - new Date(liveCall.created_at).getTime()) / 1000);
-          if (callAgeSec >= timeoutSeconds && (liveCall.status === 'pending' || liveCall.status === 'ringing')) {
-            try {
-              await supabase.rpc('timeout_private_call', { _call_id: callIdForTimeout });
-            } catch (_) {}
-            resetCallState();
-            toast({
-              title: 'Call Missed',
-              description: 'Host did not answer in time',
-            });
-          }
-        } catch (err) {
-          console.warn('[Call] Poll fallback error:', err);
-        }
-      }, 5000);
+      // Pkg-private-call C-2: outgoing-call status polling REMOVED.
+      // Truth path is now 100% event-driven:
+      //   • LiveKit DataPacket (`call_accepted` / `call_ended`) — sub-50ms peer notify
+      //   • Supabase `postgres_changes` on `private_calls` (channel `private-call-${userId}`)
+      //   • Hard `callTimeoutRef` above enforces the host-no-answer window
+      // The legacy 5s `setInterval` REST poll was redundant and added DB load
+      // for every outgoing call. Kept `outgoingStatusPollRef` declaration so
+      // cleanup paths remain no-ops; never started again.
 
       return resolvedCallId;
     } catch (error: any) {
