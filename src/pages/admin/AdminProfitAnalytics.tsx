@@ -625,6 +625,121 @@ export default function AdminProfitAnalytics() {
           </Card>
         )}
 
+        {/* Daily Totals — Company Profit vs Total Payouts (one glance) */}
+        {includeTimeline && (
+          <Card className="bg-[#0c0c14] border-white/[0.06]">
+            <CardHeader className="border-b border-white/[0.06] pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                <TableIcon className="h-4 w-4 text-emerald-400" />
+                Daily Totals — Profit vs Payouts
+                <span className="ml-auto text-[10px] text-white/40 normal-case font-normal">
+                  Profit kept by company vs total paid out to users / hosts / agencies / helpers
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              {/* Summary tiles */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3">
+                  <div className="text-[10px] uppercase tracking-wider text-emerald-300/80">
+                    Total Company Profit
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-emerald-300">
+                    {fmtUsd(dailyTotalsSummary.profit)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/[0.06] p-3">
+                  <div className="text-[10px] uppercase tracking-wider text-rose-300/80">
+                    Total Payouts (paid out)
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-rose-300">
+                    {fmtUsd(dailyTotalsSummary.payouts)}
+                  </div>
+                </div>
+                <div
+                  className={cn(
+                    "rounded-lg border p-3",
+                    dailyTotalsSummary.net >= 0
+                      ? "border-violet-500/30 bg-violet-500/[0.06]"
+                      : "border-red-500/40 bg-red-500/[0.08]",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "text-[10px] uppercase tracking-wider",
+                      dailyTotalsSummary.net >= 0 ? "text-violet-300/80" : "text-red-300/80",
+                    )}
+                  >
+                    Net Retained (Profit − Payouts)
+                  </div>
+                  <div
+                    className={cn(
+                      "mt-1 text-2xl font-bold",
+                      dailyTotalsSummary.net >= 0 ? "text-violet-300" : "text-red-300",
+                    )}
+                  >
+                    {fmtUsd(dailyTotalsSummary.net)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Per-day table */}
+              {loading ? (
+                <Skeleton className="h-40 w-full bg-white/5" />
+              ) : dailyTotals.length === 0 ? (
+                <div className="p-6 text-center text-white/40 text-sm">No data</div>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-black/40 text-white/60 uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="text-left px-3 py-2">Date</th>
+                        <th className="text-right px-3 py-2">Company Profit</th>
+                        <th className="text-right px-3 py-2">Total Payouts</th>
+                        <th className="text-right px-3 py-2">Net Retained</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...dailyTotals].reverse().map((r) => (
+                        <tr key={r.day} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
+                          <td className="px-3 py-2 font-mono text-white/80">{r.day}</td>
+                          <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(r.profit)}</td>
+                          <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(r.payouts)}</td>
+                          <td
+                            className={cn(
+                              "px-3 py-2 text-right font-semibold",
+                              r.net >= 0 ? "text-violet-300" : "text-red-400",
+                            )}
+                          >
+                            {fmtUsd(r.net)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="border-t-2 border-white/20 bg-black/40 font-bold">
+                        <td className="px-3 py-2">TOTAL</td>
+                        <td className="px-3 py-2 text-right text-emerald-300">
+                          {fmtUsd(dailyTotalsSummary.profit)}
+                        </td>
+                        <td className="px-3 py-2 text-right text-rose-300">
+                          {fmtUsd(dailyTotalsSummary.payouts)}
+                        </td>
+                        <td
+                          className={cn(
+                            "px-3 py-2 text-right",
+                            dailyTotalsSummary.net >= 0 ? "text-violet-300" : "text-red-400",
+                          )}
+                        >
+                          {fmtUsd(dailyTotalsSummary.net)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Sales by Source — official vs helper level 1..5 */}
         <Card className="bg-[#0c0c14] border-white/[0.06]">
           <CardHeader className="border-b border-white/[0.06] pb-3">
