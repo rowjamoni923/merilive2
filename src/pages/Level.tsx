@@ -123,6 +123,7 @@ const Level = () => {
   
   const [selectedPrivilege, setSelectedPrivilege] = useState<LevelPrivilege | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [tierSheetCategory, setTierSheetCategory] = useState<LevelPrivilege | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [levelType, setLevelType] = useState<'user' | 'host'>('user');
   const [levelTierIcons, setLevelTierIcons] = useState<LevelTierIcon[]>([]);
