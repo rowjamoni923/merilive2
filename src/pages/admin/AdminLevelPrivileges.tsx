@@ -893,6 +893,18 @@ const AdminLevelPrivileges = () => {
           </div>
         </div>
       )}
+
+      {/* Per-Category Tier Manager */}
+      {tierManagerCategory && (
+        <PrivilegeTierManager
+          open={!!tierManagerCategory}
+          onOpenChange={(open) => { if (!open) setTierManagerCategory(null); }}
+          categoryType={tierManagerCategory.type}
+          categoryName={tierManagerCategory.name}
+          defaultBgColor={tierManagerCategory.bgColor}
+          defaultIconColor={tierManagerCategory.iconColor}
+        />
+      )}
     </div>
   );
 };
