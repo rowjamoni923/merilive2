@@ -174,7 +174,7 @@ export default function AdminPartyRooms() {
       // STEP 2: Mark all participants as left
       await supabase
         .from('party_room_participants')
-        .update({ left_at: new Date().toISOString(), position: null })
+        .update({ left_at: new Date().toISOString(), seat_number: null })
         .eq('room_id', selectedRoom.id)
         .is('left_at', null);
 
