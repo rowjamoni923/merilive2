@@ -11362,6 +11362,101 @@ export type Database = {
           },
         ]
       }
+      profit_config: {
+        Row: {
+          category: string
+          company_cut_percent: number
+          created_at: string
+          default_payout_percent: number
+          display_name: string
+          gateway_cost_percent: number
+          is_active: boolean
+          meta: Json
+          notes: string | null
+          sector_key: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          company_cut_percent?: number
+          created_at?: string
+          default_payout_percent?: number
+          display_name: string
+          gateway_cost_percent?: number
+          is_active?: boolean
+          meta?: Json
+          notes?: string | null
+          sector_key: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          company_cut_percent?: number
+          created_at?: string
+          default_payout_percent?: number
+          display_name?: string
+          gateway_cost_percent?: number
+          is_active?: boolean
+          meta?: Json
+          notes?: string | null
+          sector_key?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profit_daily_snapshots: {
+        Row: {
+          company_cut_usd: number
+          created_at: string
+          gateway_cost_usd: number
+          gross_revenue_usd: number
+          meta: Json
+          net_profit_usd: number
+          payouts_usd: number
+          sector_key: string
+          snapshot_date: string
+          transaction_count: number
+          updated_at: string
+        }
+        Insert: {
+          company_cut_usd?: number
+          created_at?: string
+          gateway_cost_usd?: number
+          gross_revenue_usd?: number
+          meta?: Json
+          net_profit_usd?: number
+          payouts_usd?: number
+          sector_key: string
+          snapshot_date: string
+          transaction_count?: number
+          updated_at?: string
+        }
+        Update: {
+          company_cut_usd?: number
+          created_at?: string
+          gateway_cost_usd?: number
+          gross_revenue_usd?: number
+          meta?: Json
+          net_profit_usd?: number
+          payouts_usd?: number
+          sector_key?: string
+          snapshot_date?: string
+          transaction_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profit_daily_snapshots_sector_key_fkey"
+            columns: ["sector_key"]
+            isOneToOne: false
+            referencedRelation: "profit_config"
+            referencedColumns: ["sector_key"]
+          },
+        ]
+      }
       provider_games: {
         Row: {
           created_at: string | null
@@ -19364,6 +19459,28 @@ export type Database = {
       complete_idempotency_key: {
         Args: { _key: string; _response: Json; _scope: string; _status: string }
         Returns: undefined
+      }
+      compute_profit_for_range: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          company_cut_percent: number
+          company_cut_usd: number
+          display_name: string
+          gateway_cost_usd: number
+          gross_revenue_usd: number
+          net_profit_usd: number
+          payouts_usd: number
+          sector_key: string
+          transaction_count: number
+        }[]
+      }
+      compute_profit_timeline: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          day: string
+          net_profit_usd: number
+          sector_key: string
+        }[]
       }
       consume_agency_app_otp_token: {
         Args: {

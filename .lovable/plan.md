@@ -1,84 +1,92 @@
 ## Goal
 
-## Recharge campaign floating card drag QA — 2026-06-12
+Admin dashboard-এ একটা নতুন **"Company Profit Analytics"** section যোগ করব যেখানে:
+- প্রতিটা revenue sector (Gift, Private Call, Agency Withdrawal Fee, Helper, Exchange, Game, Recharge, VIP/Noble/Subscription, Party Room, PK Battle, Lucky Gift, Shop) থেকে কত profit এসেছে
+- **Gross revenue + Net profit side-by-side** (revenue − payouts − gateway cost)
+- Date filter: **Today / Yesterday / This Week / This Month / Custom range** (calendar picker)
+- প্রতিটা sector card click করলে drill-down detail
+- Total app-wide profit + percentage contribution per sector
 
-- Tested with owner account in mobile preview: the 150% recharge campaign card stayed visually anchored after a drag/drop attempt toward the top header.
-- Professional mobile pattern: floating promo widgets must follow the finger, stay inside safe viewport bounds, persist the final position, and avoid opening the promo when the gesture was a drag.
-- Implementation note: native pointer handling is safer for nested animated/button content in WebView; MDN documents `setPointerCapture()` for routing subsequent pointer events to the dragged element, and `touch-action` for disabling browser touch gestures during custom touch movement.
-- References: MDN `setPointerCapture()` https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture, MDN `touch-action` https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action, Motion drag docs https://www.mintlify.com/motiondivision/motion/api/drag.
+## Research (auto-run per rule)
 
-Currently each privilege category (Entry Bar, Portrait Frame, Privilege Sticker, Privilege Gift, Entrance Effect, Party Room Background, Customer Service, Medal Display) is **one row with one unlock_level**. You want each category to hold **many items, one per level** (1, 2, 3 … 100), so:
+**Competitor pattern** (Bigo Live admin, Chamet operator panel, Olamet finance dashboard): সবাই একই pattern follow করে — gross GMV → company commission % → payout cost → gateway fee → net. Granularity day/week/month/custom। Source-of-truth হিসেবে একটা central `commission_config` table থাকে যাতে সব % এক জায়গা থেকে manage হয়।
 
-- Admin can upload an Entry Bar for Lv1, a different one for Lv2, Lv3 … and same for every other category.
-- On `/level` (My Level), when a user taps a category, they see the whole ladder Lv0 → Lv100 with what unlocks at each step, locked vs unlocked state, and an "Equip" button for items already unlocked.
+**Our current state**: Revenue calculation কোথাও centralized নেই — গিফট/কল/withdrawal fee সব আলাদা আলাদা table-এ scattered। কোনো unified analytics view নেই। `recharge_transactions`, `gift_transactions`, `private_calls`, `agency_withdrawals` (fee_percentage column already exists), `helper_orders`, `game_transactions`, `user_beans_exchanges`, `subscription_orders`, `pk_battles`, `lucky_gift_results`, `user_purchases` — সব data আছে কিন্তু aggregate করার কিছু নেই।
 
-This matches how Chamet / Bigo / Poppo / Olamet "Noble / VIP Privilege" pages work (verified pattern: category card → tier list → per-tier preview + equip).
+## Implementation Plan
 
-## Database
+### Phase 1 — Database (migration)
 
-New table `level_privilege_tiers` (one row per uploaded item per level per category):
-
+**Table 1: `profit_config`** (central source of truth, single row per sector)
 ```
-id, privilege_type (entry_bar | portrait_frame | privilege_sticker |
-  privilege_gift | entrance_effect | party_background |
-  customer_service | medal_display),
-unlock_level (1–100),
-name, description,
-animation_url, animation_format, preview_url, sound_url, duration_ms,
-icon_bg_color, icon_color,
-is_active, display_order, created_at, updated_at,
-UNIQUE(privilege_type, unlock_level)   -- one item per (category, level)
+sector_key TEXT PK   -- 'gift','private_call','agency_withdrawal_fee','helper_order',
+                     -- 'exchange','game','recharge','vip_subscription','noble_subscription',
+                     -- 'party_room','pk_battle','lucky_gift','shop_purchase'
+display_name TEXT
+company_cut_percent NUMERIC      -- e.g. 30 = company keeps 30%
+default_payout_percent NUMERIC   -- e.g. 70 = host gets 70% (informational, real config still lives in section's own table)
+gateway_cost_percent NUMERIC     -- avg payment gateway fee (e.g. 3 for recharge, 0 for internal)
+is_active BOOLEAN
+notes TEXT
 ```
+Seed with all 13 sectors using current real config values (read from existing tables: `agency_withdrawals.fee_percentage`, helper level configs, etc.)
 
-RLS: public can `SELECT` active rows; only admins (`has_role admin`) can insert/update/delete. Grants for `anon`, `authenticated`, `service_role`. Indexed on `(privilege_type, unlock_level)`.
+**Table 2: `profit_daily_snapshots`** (materialized for fast historical query)
+```
+snapshot_date DATE
+sector_key TEXT
+gross_revenue_coins BIGINT      -- total coin volume in sector
+gross_revenue_usd NUMERIC        -- converted using currency_rates
+company_cut_coins BIGINT         -- coins kept by company
+company_cut_usd NUMERIC
+payout_coins BIGINT              -- coins paid to hosts/agencies/helpers
+gateway_cost_usd NUMERIC
+net_profit_usd NUMERIC           -- company_cut_usd − gateway_cost_usd
+transaction_count INT
+PK(snapshot_date, sector_key)
+```
+RLS: admin only.
 
-The existing `level_privileges` table stays untouched — it keeps powering the category list/metadata. The new table holds the per-level items.
+**Function: `compute_profit_for_range(start_date, end_date)`** — security definer SQL function returning per-sector aggregate. Reads live from source tables (for current day) + `profit_daily_snapshots` (for historical). Returns gross, company cut, payouts, net profit per sector.
 
-(Optional, later) `user_equipped_privileges (user_id, privilege_type, tier_id)` to remember which tier each user has equipped — only one equipped per category. Auto-unequip if user level drops below the tier's `unlock_level`.
+**Cron: nightly snapshot** — pg_cron job runs at 00:05 UTC, computes previous day's totals per sector, upserts into `profit_daily_snapshots`. Idempotent.
 
-## Admin UI — `AdminLevelPrivileges.tsx`
+### Phase 2 — Edge function
 
-- The 8 category cards stay as today (category definitions are constant).
-- Clicking a category opens a **Tier Manager** drawer instead of the single-row edit dialog:
-  - Header: category name + icon.
-  - List of existing tiers sorted by `unlock_level`, each row showing: Lv badge, name, preview thumb, active toggle, edit / delete.
-  - "Add Tier" button → opens the existing Create dialog (already has Unlock Level, name, description, colors, AnimationUploader, preview).
-  - Saving writes to `level_privilege_tiers` with `(privilege_type, unlock_level)` unique.
-- Re-use the existing `AnimationUploader` (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4) — no upload UX change.
-- Bulk action: "Copy from previous level" to speed up admin work.
+**`admin-profit-analytics`** (verify_jwt=false, admin check inside)
+- Input: `{ start_date, end_date, granularity: 'day'|'week'|'month' }`
+- Validates caller via `admin_users` + `has_role`
+- Calls `compute_profit_for_range` RPC
+- Returns: `{ totals: {gross_usd, company_cut_usd, payouts_usd, gateway_cost_usd, net_profit_usd}, sectors: [...], timeline: [{date, ...}] }`
 
-## User UI — `Level.tsx` + new `PrivilegeTierSheet.tsx`
+### Phase 3 — Frontend
 
-- Category list stays the same.
-- Tapping a category opens a full-height bottom sheet (matches your second screenshot style):
-  - Title = category name.
-  - Vertical list of every uploaded tier (Lv1 → Lv100), each card showing:
-    - Level badge (e.g. "Lv 7")
-    - Preview thumbnail / animation
-    - Name + short description
-    - State chip: **Unlocked** (green) if `user.level ≥ tier.unlock_level`, else **Lv N to unlock** (gray lock).
-    - Equip button when unlocked (calls `equip_privilege_tier(tier_id)`); shows "Equipped" + glow when active.
-  - Auto-scroll so the user's current level tier is centered on open.
-- The existing `PrivilegePreviewModal` is re-used for the full-screen preview when tapping a tier card.
+New page `src/pages/admin/AdminProfitAnalytics.tsx` + route `/admin/profit-analytics`:
 
-## Behavior rules
+- **Header**: date-range picker (Today / Yesterday / Week / Month / Custom). Custom uses shadcn DatePicker with `pointer-events-auto`.
+- **Top KPI row**: Gross Revenue | Company Cut | Payouts | Gateway Cost | **Net Profit** | Profit Margin %
+- **Sector grid** (13 cards): each shows gross, company %, net profit, % of total profit, sparkline. Click → expands to show transaction count + drill-down link.
+- **Timeline chart**: stacked area (recharts) of net profit per sector over selected range.
+- **Export CSV** button.
 
-- A tier is visible to everyone Lv0 → Lv100 (so users can see what's coming), but Equip is gated by `user.level ≥ tier.unlock_level`.
-- One equipped tier per category. Equipping a new tier replaces the previous.
-- When the user's level drops below an equipped tier's `unlock_level`, it is auto-unequipped (DB trigger on user level change, or check at read time — read-time check is cheaper and matches Bigo behavior).
-- Hooks `useUserPrivileges` / `useLevelPrivilegeAutoEquip` are updated to read from `level_privilege_tiers` and pick the user's currently equipped tier per category for in-room rendering (Entry Bar, Entrance Effect, Frame, etc.).
+Add link to AdminDashboard quick-tiles + AdminLayout sidebar ("Profit Analytics").
 
-## Order of work
+### Phase 4 — Verify
 
-1. Migration: `level_privilege_tiers` + grants + RLS + indexes.
-2. Admin Tier Manager drawer in `AdminLevelPrivileges.tsx`.
-3. New `PrivilegeTierSheet.tsx` + wire it into `Level.tsx` category tap.
-4. (Optional follow-up, ask before doing) `user_equipped_privileges` table + equip RPC + update `useUserPrivileges` to read tier-based equipment for in-room rendering.
+- Owner login (smdollarex923@gmail.com), open `/admin/profit-analytics`, select Today/Week/Month, confirm numbers match a hand-spot-check from one sector (e.g. recharge_transactions sum vs displayed gross).
 
-Step 4 changes how Entry Bar / Entrance Effect / Frame are resolved in live rooms, so it touches gift/entry animation code paths protected by your "never touch gift/entry animations" rule. I'll only do steps 1–3 now (admin upload + per-level showcase on My Level). Confirm if you also want step 4 (in-room rendering switches to the equipped tier) — that needs a separate go-ahead.
+## Out of scope (this phase)
 
-## Out of scope
+- Editing the per-sector % from this page (read-only from `profit_config`; separate admin section will manage it later if needed)
+- Forecasting / predictions
+- Per-host or per-agency drill-down (link to existing pages instead)
 
-- No design changes to the existing category cards or the My Level page header.
-- No change to how `user_level` / `host_level` are computed.
-- Existing single-row `level_privileges` rows stay as the category catalog and are not deleted.
+## Technical notes
+
+- All UI strings English (per core rule)
+- No design change to existing dashboard — additive only
+- Snapshot cron makes range queries O(days) instead of O(transactions)
+- Single source of truth = `profit_config`; section-specific configs (e.g. `agency_withdrawals.fee_percentage`) remain authoritative for actual transactions, `profit_config` is for analytics display + new-flow defaults
+- Currency normalization via existing `currency_rates` table
+
+Approve করলে Phase 1 migration দিয়ে শুরু করব।
