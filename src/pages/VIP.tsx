@@ -278,6 +278,7 @@ const VIP = () => {
       if (profileData) {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
+        setCurrentUserName((profileData as any).display_name || (profileData as any).username || "You");
       }
 
       // Fetch current VIP subscription
