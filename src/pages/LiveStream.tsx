@@ -131,7 +131,7 @@ import LiveTasksCard from "@/components/live/LiveTasksCard";
 // TikTok-style swipe between live streams
 import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
 // Room Welcome Banner - Admin configurable
-import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
+// RoomWelcomeBanner rendered centrally inside RoomChatOverlay — do not import here (no duplicates).
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
