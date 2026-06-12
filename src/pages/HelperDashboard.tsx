@@ -346,14 +346,25 @@ const HelperDashboard = () => {
       setCurrentUserId(user.id);
 
 
-      // Check user's face verification status
+      // Check user's face verification status AND agency-owner status.
+      // Helper / Trader Wallet is AGENCY-OWNER ONLY. Regular users cannot become helpers.
       const { data: profile } = await supabase
         .from('profiles') // guard-ok: owner-only face verification read filtered by auth user id
-        .select('is_face_verified')
+        .select('is_face_verified, is_agency_owner')
         .eq('id', user.id)
         .single();
-      
+
       setUserFaceVerified(profile?.is_face_verified || false);
+
+      if (!profile?.is_agency_owner) {
+        toast({
+          title: "Agency Owners Only",
+          description: "The Trader Wallet (Helper system) is available only to agency owners. Create or join an agency to unlock it.",
+          variant: "destructive",
+        });
+        navigate('/agency');
+        return;
+      }
 
       // Get helper data
       const { data: helper } = await supabase
@@ -363,9 +374,8 @@ const HelperDashboard = () => {
         .single();
 
       if (!helper || !helper.is_verified || !helper.is_active) {
-        // Pkg432: instead of kicking the user back to /profile, render the L1 application
-        // form inline so they can apply right here and (on crypto auto-payment) be granted
-        // instantly. Admin deactivations still show the toast below.
+        // Agency owner without a helper row yet → show inline L1 application form so
+        // they can purchase Level 1 and unlock recharge capability.
         if (helper && !helper.is_active) {
           toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin.", variant: "destructive" });
         }
@@ -373,6 +383,7 @@ const HelperDashboard = () => {
         setLoading(false);
         return;
       }
+
 
       setHelperData(helper);
       setHelperCache(helper);
