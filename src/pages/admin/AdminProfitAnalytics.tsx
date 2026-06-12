@@ -123,6 +123,7 @@ export default function AdminProfitAnalytics() {
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
+  const [coinRate, setCoinRate] = useState<number | null>(null);
 
   const handlePreset = useCallback((p: Preset) => {
     setPreset(p);
@@ -131,6 +132,14 @@ export default function AdminProfitAnalytics() {
     setStartDate(toInputDate(r.start));
     setEndDate(toInputDate(r.end));
   }, []);
+
+  useEffect(() => {
+    supabase.rpc("get_official_coin_usd_rate").then(({ data }) => {
+      if (typeof data === "number" || (typeof data === "string" && !isNaN(Number(data)))) {
+        setCoinRate(Number(data));
+      }
+    });
+  }, [refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
