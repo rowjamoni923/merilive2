@@ -59,17 +59,34 @@ public class BatteryOptimizationPlugin extends Plugin {
     public void openAutostartSettings(PluginCall call) {
         Context context = getContext();
         String manufacturer = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase();
+        String brand = Build.BRAND == null ? "" : Build.BRAND.toLowerCase();
         Intent intent = new Intent();
 
         try {
-            if (manufacturer.contains("xiaomi")) {
+            // Pkg-OEM-hardening: research-verified deep-links for every major OEM.
+            // Sources: MIUI/HyperOS securitycenter, ColorOS safecenter, FunTouchOS
+            // permissionmanager, Samsung lool/SleepingAppsActivity, Huawei systemmanager,
+            // Honor systemmanager, Tecno/Infinix transsion.phonemaster.
+            if (manufacturer.contains("xiaomi") || brand.contains("redmi") || brand.contains("poco")) {
                 intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity");
             } else if (manufacturer.contains("oppo")) {
                 intent.setClassName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity");
-            } else if (manufacturer.contains("vivo")) {
-                intent.setClassName("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity");
+            } else if (manufacturer.contains("realme") || brand.contains("realme")) {
+                intent.setClassName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity");
+            } else if (manufacturer.contains("oneplus")) {
+                intent.setClassName("com.oneplus.security", "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
+            } else if (manufacturer.contains("vivo") || manufacturer.contains("iqoo") || brand.contains("iqoo")) {
+                intent.setClassName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity");
+            } else if (manufacturer.contains("samsung")) {
+                // OneUI does not expose a dedicated autostart screen; deep-link to
+                // SleepingAppsActivity (Device Care / battery → never-sleeping apps).
+                intent.setClassName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity");
             } else if (manufacturer.contains("huawei")) {
-                intent.setClassName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity");
+                intent.setClassName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity");
+            } else if (manufacturer.contains("honor") || brand.contains("honor")) {
+                intent.setClassName("com.hihonor.systemmanager", "com.hihonor.systemmanager.startupmgr.ui.StartupNormalAppListActivity");
+            } else if (manufacturer.contains("tecno") || manufacturer.contains("infinix") || manufacturer.contains("itel") || brand.contains("tecno") || brand.contains("infinix")) {
+                intent.setClassName("com.transsion.phonemaster", "com.transsion.autostart.AutoStartActivity");
             } else {
                 intent.setAction(Settings.ACTION_SETTINGS);
             }
@@ -81,13 +98,24 @@ public class BatteryOptimizationPlugin extends Plugin {
             // intent without NEW_TASK and tried again, which crashes
             // (RuntimeException → uncaught). Build a fresh, properly-
             // flagged fallback and swallow secondary failures.
+            // Pkg-OEM-hardening: prefer the per-app details settings so the
+            // user lands on a screen where they can at least toggle battery
+            // restrictions instead of a generic settings root.
             try {
-                Intent fallback = new Intent(Settings.ACTION_SETTINGS);
+                Intent fallback = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                fallback.setData(Uri.parse("package:" + context.getPackageName()));
                 fallback.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(fallback);
                 call.resolve();
             } catch (Throwable t) {
-                call.reject("openAutostartSettings failed: " + t.getMessage());
+                try {
+                    Intent generic = new Intent(Settings.ACTION_SETTINGS);
+                    generic.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(generic);
+                    call.resolve();
+                } catch (Throwable t2) {
+                    call.reject("openAutostartSettings failed: " + t2.getMessage());
+                }
             }
         }
     }

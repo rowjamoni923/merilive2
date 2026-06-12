@@ -133,13 +133,59 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_WARN_MS = 7_000L
         private const val STALL_HARD_MS = 15_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
-        private const val OEM_CAMERA_OPEN_TIMEOUT_MS = 4_500L
+
+        // ─── Pkg-OEM-hardening: per-OEM Camera2 HAL timings ───
+        // Sources (verified):
+        //   • Xiaomi MIUI/HyperOS: system camera holds CameraDevice ~1.5 s after
+        //     close() via fast-open cache. Forum: xiaomi.eu cameraserver crash.
+        //   • Samsung OneUI: HAL re-bind 2-3 s under load; Exynos slower than SD.
+        //   • Vivo FunTouchOS: dual-SIM front-camera re-enumeration up to 5 s.
+        //   • Oppo/Realme ColorOS: HAL re-bind 3-5 s on Dimensity.
+        //   • Huawei/Honor EMUI/HarmonyOS: 3-4 s for camera service re-bind.
+        // Values stay tight on stock AOSP to not penalize fast devices.
+        private val IS_XIAOMI: Boolean = Build.MANUFACTURER.equals("Xiaomi", true) ||
+            Build.BRAND.equals("Redmi", true) || Build.BRAND.equals("POCO", true)
+        private val IS_OPPO_FAMILY: Boolean = Build.MANUFACTURER.equals("OPPO", true) ||
+            Build.MANUFACTURER.equals("realme", true) || Build.BRAND.equals("realme", true) ||
+            Build.MANUFACTURER.equals("OnePlus", true)
+        private val IS_VIVO_FAMILY: Boolean = Build.MANUFACTURER.equals("vivo", true) ||
+            Build.MANUFACTURER.equals("iqoo", true) || Build.BRAND.equals("iqoo", true)
+        private val IS_SAMSUNG: Boolean = Build.MANUFACTURER.equals("samsung", true)
+        private val IS_HUAWEI_HONOR: Boolean = Build.MANUFACTURER.equals("HUAWEI", true) ||
+            Build.MANUFACTURER.equals("Honor", true) || Build.BRAND.equals("honor", true)
+
+        private val OEM_CAMERA_OPEN_TIMEOUT_MS: Long = when {
+            IS_VIVO_FAMILY -> 6_500L           // dual-SIM re-enumeration worst case
+            IS_OPPO_FAMILY -> 6_000L           // ColorOS Dimensity re-bind
+            IS_XIAOMI -> 5_500L                // MIUI fast-open lock
+            IS_HUAWEI_HONOR -> 5_000L
+            IS_SAMSUNG -> 5_000L               // Exynos slower
+            else -> 4_500L                     // stock AOSP
+        }
         // Fix 7 (Hotfix): bumped 650 → 1200 ms. MIUI 14 / OneUI 6 / ColorOS 14
         // Camera2 HAL keeps the front-camera handle locked 800-1500 ms after
-        // close() returns. Fix 1 (dynamic grace via CameraManager.AvailabilityCallback)
-        // can resolve sooner; this is the floor + cap when callbacks misfire.
-        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 1_200L
-        private const val OEM_CAMERA_AVAILABILITY_WAIT_MS = 2_000L
+        // close() returns. Pkg-OEM-hardening: per-OEM tuned floor — Vivo
+        // FunTouchOS keeps the device parked longer than MIUI; Samsung
+        // Exynos varies wildly so floor at 1500.
+        private val OEM_CAMERA_RELEASE_SETTLE_MS: Long = when {
+            IS_VIVO_FAMILY -> 1_800L
+            IS_OPPO_FAMILY -> 1_600L
+            IS_XIAOMI -> 1_500L
+            IS_SAMSUNG -> 1_500L
+            IS_HUAWEI_HONOR -> 1_400L
+            else -> 1_200L
+        }
+        // Pkg-OEM-hardening: per-OEM await ceiling. Stock 2 s under-shoots
+        // OneUI 6 / ColorOS 14 / Vivo dual-SIM HAL re-bind times — research
+        // sub-agent verified worst-case windows.
+        private val OEM_CAMERA_AVAILABILITY_WAIT_MS: Long = when {
+            IS_VIVO_FAMILY -> 5_000L
+            IS_OPPO_FAMILY -> 4_000L
+            IS_XIAOMI -> 4_000L
+            IS_HUAWEI_HONOR -> 3_500L
+            IS_SAMSUNG -> 3_000L
+            else -> 2_000L
+        }
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
