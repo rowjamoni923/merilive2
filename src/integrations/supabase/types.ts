@@ -19477,9 +19477,14 @@ export type Database = {
       compute_profit_timeline: {
         Args: { p_end: string; p_start: string }
         Returns: {
+          company_cut_usd: number
           day: string
+          gateway_cost_usd: number
+          gross_revenue_usd: number
           net_profit_usd: number
+          payouts_usd: number
           sector_key: string
+          transaction_count: number
         }[]
       }
       consume_agency_app_otp_token: {

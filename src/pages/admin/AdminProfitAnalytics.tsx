@@ -12,6 +12,8 @@ import {
   Calendar as CalendarIcon,
   PieChart as PieIcon,
   BarChart3,
+  ShoppingCart,
+  Table as TableIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -50,7 +52,12 @@ interface SectorRow {
 interface TimelineRow {
   day: string;
   sector_key: string;
+  gross_revenue_usd: number;
+  company_cut_usd: number;
+  payouts_usd: number;
+  gateway_cost_usd: number;
   net_profit_usd: number;
+  transaction_count: number;
 }
 
 const fmtUsd = (v: number) =>
@@ -209,7 +216,7 @@ export default function AdminProfitAnalytics() {
 
   const margin = totals.gross > 0 ? (totals.net / totals.gross) * 100 : 0;
 
-  // Pivot timeline for stacked area chart
+  // Pivot timeline for stacked net-profit area chart (per sector)
   const chartData = useMemo(() => {
     const map = new Map<string, Record<string, number | string>>();
     for (const row of timeline) {
@@ -227,6 +234,35 @@ export default function AdminProfitAnalytics() {
     const set = new Set<string>();
     timeline.forEach((r) => set.add(r.sector_key));
     return Array.from(set);
+  }, [timeline]);
+
+  // Per-day rollup (all sectors aggregated) — used for Daily Sales chart + table
+  const dailyRollup = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        day: string;
+        gross: number;
+        company_cut: number;
+        payouts: number;
+        gateway: number;
+        net: number;
+        txns: number;
+      }
+    >();
+    for (const r of timeline) {
+      const k = r.day;
+      if (!map.has(k))
+        map.set(k, { day: k, gross: 0, company_cut: 0, payouts: 0, gateway: 0, net: 0, txns: 0 });
+      const o = map.get(k)!;
+      o.gross += Number(r.gross_revenue_usd) || 0;
+      o.company_cut += Number(r.company_cut_usd) || 0;
+      o.payouts += Number(r.payouts_usd) || 0;
+      o.gateway += Number(r.gateway_cost_usd) || 0;
+      o.net += Number(r.net_profit_usd) || 0;
+      o.txns += Number(r.transaction_count) || 0;
+    }
+    return Array.from(map.values()).sort((a, b) => a.day.localeCompare(b.day));
   }, [timeline]);
 
   const handleExport = useCallback(() => {
@@ -414,6 +450,118 @@ export default function AdminProfitAnalytics() {
                       ))}
                     </AreaChart>
                   </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Daily Sales (gross) vs Net Profit chart */}
+        {includeTimeline && (
+          <Card className="bg-[#0c0c14] border-white/[0.06]">
+            <CardHeader className="border-b border-white/[0.06] pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                <ShoppingCart className="h-4 w-4 text-cyan-400" />
+                Daily Sales vs Net Profit
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {loading ? (
+                <Skeleton className="h-64 w-full bg-white/5" />
+              ) : dailyRollup.length === 0 ? (
+                <div className="h-64 grid place-items-center text-white/40 text-sm">
+                  No data
+                </div>
+              ) : (
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={dailyRollup}>
+                      <defs>
+                        <linearGradient id="grad-gross" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.05} />
+                        </linearGradient>
+                        <linearGradient id="grad-net" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#a855f7" stopOpacity={0.7} />
+                          <stop offset="100%" stopColor="#a855f7" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" />
+                      <XAxis dataKey="day" tick={{ fill: "#ffffff80", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#ffffff80", fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                      <RTooltip
+                        contentStyle={{ background: "#0c0c14", border: "1px solid #ffffff20", borderRadius: 8 }}
+                        labelStyle={{ color: "#fff" }}
+                        formatter={(v: any, name: string) => [fmtUsd(Number(v)), name]}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Area type="monotone" dataKey="gross" name="Gross Sales" stroke="#06b6d4" fill="url(#grad-gross)" />
+                      <Area type="monotone" dataKey="net" name="Net Profit" stroke="#a855f7" fill="url(#grad-net)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Per-day breakdown table */}
+        {includeTimeline && (
+          <Card className="bg-[#0c0c14] border-white/[0.06]">
+            <CardHeader className="border-b border-white/[0.06] pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                <TableIcon className="h-4 w-4 text-amber-400" />
+                Day-by-Day Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="p-4"><Skeleton className="h-40 w-full bg-white/5" /></div>
+              ) : dailyRollup.length === 0 ? (
+                <div className="p-6 text-center text-white/40 text-sm">No data</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-black/40 text-white/60 uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="text-left px-3 py-2">Date</th>
+                        <th className="text-right px-3 py-2">Gross Sales</th>
+                        <th className="text-right px-3 py-2">Company Cut</th>
+                        <th className="text-right px-3 py-2">Payouts</th>
+                        <th className="text-right px-3 py-2">Gateway</th>
+                        <th className="text-right px-3 py-2">Net Profit</th>
+                        <th className="text-right px-3 py-2">Margin</th>
+                        <th className="text-right px-3 py-2">Txns</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...dailyRollup].reverse().map((r) => {
+                        const m = r.gross > 0 ? (r.net / r.gross) * 100 : 0;
+                        return (
+                          <tr key={r.day} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
+                            <td className="px-3 py-2 font-mono text-white/80">{r.day}</td>
+                            <td className="px-3 py-2 text-right text-cyan-300">{fmtUsd(r.gross)}</td>
+                            <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(r.company_cut)}</td>
+                            <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(r.payouts)}</td>
+                            <td className="px-3 py-2 text-right text-yellow-300">{fmtUsd(r.gateway)}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-violet-300">{fmtUsd(r.net)}</td>
+                            <td className="px-3 py-2 text-right text-white/70">{m.toFixed(1)}%</td>
+                            <td className="px-3 py-2 text-right text-white/70">{fmtInt(r.txns)}</td>
+                          </tr>
+                        );
+                      })}
+                      <tr className="border-t-2 border-white/20 bg-black/40 font-bold">
+                        <td className="px-3 py-2">TOTAL</td>
+                        <td className="px-3 py-2 text-right text-cyan-300">{fmtUsd(totals.gross)}</td>
+                        <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(totals.company_cut)}</td>
+                        <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(totals.payouts)}</td>
+                        <td className="px-3 py-2 text-right text-yellow-300">{fmtUsd(totals.gateway)}</td>
+                        <td className="px-3 py-2 text-right text-violet-300">{fmtUsd(totals.net)}</td>
+                        <td className="px-3 py-2 text-right text-white/70">{margin.toFixed(1)}%</td>
+                        <td className="px-3 py-2 text-right text-white/70">{fmtInt(totals.txns)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
