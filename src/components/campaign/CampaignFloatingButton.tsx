@@ -746,15 +746,21 @@ function CampaignFloatingButton() {
               bottom: bottomOffset,
               right: '12px',
               perspective: '600px',
-              x: dragOffset.x,
-              y: dragOffset.y,
+              x: dragX,
+              y: dragY,
               touchAction: 'none',
             }}
             onDragStart={() => { draggedRef.current = true; }}
-            onDragEnd={(_, info) => {
-              const next = { x: dragOffset.x + info.offset.x, y: dragOffset.y + info.offset.y };
-              setDragOffset(next);
-              try { localStorage.setItem(FLOATING_POS_KEY, JSON.stringify(next)); } catch {}
+            onDragEnd={() => {
+              // MotionValues are already updated by framer-motion during the drag,
+              // so we just read + persist the final position. No setState round-trip,
+              // no snap-back, no fight between React state and framer internals.
+              try {
+                localStorage.setItem(
+                  FLOATING_POS_KEY,
+                  JSON.stringify({ x: dragX.get(), y: dragY.get() }),
+                );
+              } catch {}
               // Clear the flag on the next tick so the synthetic click that
               // immediately follows a drag is suppressed, but a real tap
               // (no drag) still opens the popup.
