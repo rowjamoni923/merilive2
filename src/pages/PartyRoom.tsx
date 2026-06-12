@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
+import { useViewerSession } from "@/hooks/useViewerSession";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
@@ -750,6 +751,11 @@ const PartyRoom = () => {
 
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
+
+  // Pkg-bgcontinuity — non-host party participants (audience + listeners) keep
+  // audio + LiveKit subscriber running when minimized/screen-off. Host & active
+  // speakers publish camera/mic so CallForegroundService already covers them.
+  useViewerSession({ active: !!room && !isHost, kind: 'party', title: 'In party room' });
   const isAdmin = myRole === 'admin' || isHost;
   const canManageUsers = isHost || isAdmin;
 

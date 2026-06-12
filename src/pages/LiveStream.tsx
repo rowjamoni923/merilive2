@@ -28,6 +28,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
+import { useViewerSession } from "@/hooks/useViewerSession";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
 import {
@@ -188,6 +189,12 @@ const LiveStream = () => {
   const [isHostVerified, setIsHostVerified] = useState(false);
   const [isHostMicMuted, setIsHostMicMuted] = useState(false);
   const streamTitle = location.state?.title || "";
+
+  // Pkg-bgcontinuity — viewers (not the host) keep audio + LiveKit subscriber
+  // connection alive when the app is minimized or the screen turns off. Host
+  // path is already covered by CallForegroundService (camera + mic FGS) via
+  // LiveKitPlugin.connect().
+  useViewerSession({ active: !isHost, kind: 'live', title: 'Watching live' });
 
   // Pkg245 — auto-PiP when user taps home button while watching/hosting a
   // live stream (Bigo/YouTube parity). 9:16 portrait window; reuses native
