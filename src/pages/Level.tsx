@@ -623,13 +623,17 @@ const Level = () => {
                 )}
               >
                 <div 
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden"
                   style={{ 
-                    backgroundColor: privilege.icon_bg_color,
+                    backgroundColor: privilege.icon_url ? 'transparent' : privilege.icon_bg_color,
                     boxShadow: isUnlocked ? `0 4px 15px ${privilege.icon_bg_color}50` : 'none'
                   }}
                 >
-                  <IconComponent className="w-7 h-7" style={{ color: privilege.icon_color }} />
+                  {privilege.icon_url ? (
+                    <img src={privilege.icon_url} alt={privilege.name} className="w-full h-full object-contain" loading="lazy" />
+                  ) : (
+                    <IconComponent className="w-7 h-7" style={{ color: privilege.icon_color }} />
+                  )}
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className="font-semibold text-slate-800">{privilege.name}</h3>
