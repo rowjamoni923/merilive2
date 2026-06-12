@@ -721,8 +721,8 @@ function CampaignFloatingButton() {
       <AnimatePresence>
         {!showPopup && (
           <motion.div
-            initial={{ scale: 0, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             // Draggable: user can position the badge anywhere on screen. We use
             // x/y offsets on top of the fixed bottom/right anchor and persist
