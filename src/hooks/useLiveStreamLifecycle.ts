@@ -39,7 +39,7 @@ export const useLiveStreamLifecycle = ({
   const cleanupRef = useRef<(() => void) | null>(null);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Force end stream using Supabase client (proper auth)
+  // Force end stream through the canonical close path (DataPacket first, RPC second).
   const forceEndStream = useCallback(async () => {
     if (hasEndedRef.current || !streamId || !isHost) return;
     hasEndedRef.current = true;
@@ -47,34 +47,31 @@ export const useLiveStreamLifecycle = ({
     console.log('[LiveStream Lifecycle] Force ending stream:', streamId);
     
     try {
-      // Pkg78: Supabase `live-stream-close-${streamId}` broadcast REMOVED.
-      // Pkg74 LiveKit DataPacket (publishStreamEnded) + LiveKit ParticipantDisconnected
-      // event on viewer side already deliver instant close. On page-unload the
-      // LiveKit Room disconnect itself triggers viewer-side detection — no Supabase
-      // fallback needed (prevents the $1400-bill dual-path pattern).
+      try {
+        const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+        await publishStreamEnded(streamId, { endedBy: 'host', reason: 'lifecycle' });
+      } catch (e) {
+        console.warn('[LiveStream Lifecycle] stream_ended packet failed:', e);
+      }
 
-
-      // Primary: use Supabase client with user's session
-      const { error } = await supabase
-        .from('live_streams')
-        .update({ is_active: false, ended_at: new Date().toISOString() })
-        .eq('id', streamId);
+      const { error } = await supabase.rpc('close_live_stream_now' as any, {
+        p_stream_id: streamId,
+      });
       
       if (error) {
-        console.error('[LiveStream Lifecycle] Supabase update failed:', error);
-        // Fallback: use fetch with keepalive + user token for page unload scenarios
+        console.error('[LiveStream Lifecycle] close_live_stream_now failed:', error);
+        // Fallback: keepalive RPC with user token for page unload scenarios.
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (token) {
-          await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}`, {
-            method: 'PATCH',
+          await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/close_live_stream_now`, {
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'apikey': getSupabasePublishableKey(),
               'Authorization': `Bearer ${token}`,
-              'Prefer': 'return=minimal',
             },
-            body: JSON.stringify({ is_active: false, ended_at: new Date().toISOString() }),
+            body: JSON.stringify({ p_stream_id: streamId }),
             keepalive: true,
           });
         }
@@ -97,15 +94,14 @@ export const useLiveStreamLifecycle = ({
       const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
       const token = session?.access_token;
       if (token) {
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}`, {
-          method: 'PATCH',
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/close_live_stream_now`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'apikey': getSupabasePublishableKey(),
             'Authorization': `Bearer ${token}`,
-            'Prefer': 'return=minimal',
           },
-          body: JSON.stringify({ is_active: false, ended_at: new Date().toISOString() }),
+          body: JSON.stringify({ p_stream_id: streamId }),
           keepalive: true,
         });
       }
