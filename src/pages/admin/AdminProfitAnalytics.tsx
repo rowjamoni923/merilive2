@@ -12,6 +12,8 @@ import {
   Calendar as CalendarIcon,
   PieChart as PieIcon,
   BarChart3,
+  ShoppingCart,
+  Table as TableIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -50,7 +52,12 @@ interface SectorRow {
 interface TimelineRow {
   day: string;
   sector_key: string;
+  gross_revenue_usd: number;
+  company_cut_usd: number;
+  payouts_usd: number;
+  gateway_cost_usd: number;
   net_profit_usd: number;
+  transaction_count: number;
 }
 
 const fmtUsd = (v: number) =>
