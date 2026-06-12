@@ -1,76 +1,62 @@
+# Background continuity + Heads-up inline-reply notifications
 
-# App-wide Performance Overhaul — Honest Plan
+দুটো বড় native Android feature — দুটোই APK rebuild requires. Lovable preview-এ test হবে না, final QA real device-এ।
 
-## Real numbers I just measured (preview, full network)
+## What's broken today (audit summary)
 
-| Metric | Current | Pro target (Chamet/Bigo class) |
-|---|---|---|
-| FCP (First Contentful Paint) | **11.4s** | < 1.8s |
-| DOM Content Loaded | **7.8s** | < 2.5s |
-| Total JS on first paint | **2.37 MB** across 246 scripts | < 600 KB |
-| Script execution on boot | **2.23s** | < 400ms |
-| Total main-thread task time | **12.25s** | < 2s |
-| Largest single chunk | `App.tsx` = 99 KB (route table alone) | < 30 KB per route |
-| Heap on idle home | 75 MB | < 40 MB |
-| Source files | 1,255 (.ts/.tsx) | — |
-| Files using `useEffect/useState` | 641 | — |
+App already has `CallForegroundService`, `MeriFirebaseMessagingService`, `MeriConnectionService`, `CameraOwnership`. কিন্তু:
 
-**Honest verdict:** the app is heavy because the entire route table, every shadcn icon (`lucide-react` barrel = 157 KB), the full Supabase client, the full LiveKit client, every page component, and a 95 KB `index.css` all get evaluated on first paint. That is the root cause of "lag even on full network" — not the network, the bundle.
+- ForegroundService টা শুধু private-call path থেকে start হয়; **Live streaming + Party room** minimize-এ service start করে না → OS WebView/camera/mic kill করে দেয়।
+- LiveKit Room JS-side instance; app background-এ গেলে WebView throttle হয় → publisher track stop, viewers reconnect loop।
+- FCM messages এখন simple `notification` payload — heads-up popup আসে কিন্তু **inline reply (RemoteInput)** নেই; tap করলে app খোলে।
+- কোনো `MessagingStyle` notification builder নেই → WhatsApp-এর মতো conversation thread + quick-reply দেখায় না।
 
-## What I will NOT do
+## Phase 1 — Background continuity (live / call / party)
 
-- I will **not** claim to "fix 600 sections in one pass". That is dishonest. No professional engineer ships a 1,200-file refactor in one shot without regression.
-- I will **not** touch design / copy / animations (memory rule: design is sacred).
-- I will **not** change LiveKit / camera / call logic (just stabilized).
-- I will **not** add polling or visibility-refresh workarounds.
+Goal: home button চাপলে camera/mic/LiveKit chalu thake until user explicitly leaves room.
 
-## What I WILL do — 4 phases, each shippable and measurable
+1. **Promote `CallForegroundService` → `MediaSessionForegroundService`** — accept session type (`private_call` | `live_stream` | `party_room`), foregroundServiceType combine `phoneCall|camera|microphone|mediaPlayback`. Persistent notification with room title + leave button.
+2. **Plugin bridge** — new `LiveSessionPlugin.startSession({ type, title, hostName, roomId })` / `stopSession()` invoked from React when:
+   - `useGoLive` → publisher track published
+   - Party room join confirmed
+   - Private call connected (existing path kept)
+3. **WebView background keep-alive** — `WebView.setWebContentsDebuggingEnabled` already on; add `WebSettings.setOffscreenPreRaster(true)` + acquire `PARTIAL_WAKE_LOCK` while service running. Crucially: keep MainActivity in `onStop` without finishing — LiveKit JS instance survives.
+4. **LiveKit reconnect hardening** — verify `Room.options.adaptiveStream=false` during background (already true for publishers; double-check on `visibilitychange`).
+5. **CameraOwnership audit** — make sure background-camera-stop logic (Camera2 release on pause) is **disabled while session active** — currently it auto-releases, killing the publisher.
+6. **Battery-optimization prompt** — first time user goes live, request `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` via existing `BatteryOptimizationPlugin` (already there, just wire trigger).
 
-### Phase 1 — Bundle & boot (biggest win, lowest risk) — ~target: FCP 11.4s → < 3s
-1. **Lucide tree-shake**: replace `import { Icon } from 'lucide-react'` (barrel, 157 KB) with `lucide-react/icons/icon-name` deep imports across the 50 heaviest files. Saves ~120 KB on first paint.
-2. **Route-level code-split audit**: `App.tsx` is 99 KB because some routes still resolve eagerly. Audit the `lazy()` table, convert any remaining eager imports, and add `webpackPrefetch`-style idle prefetch only for the next-likely route (Home → Live, Home → Chat).
-3. **Split `index.css`** (95 KB): extract per-feature CSS (party/live/call/games) into route-scoped CSS modules so home doesn't pay for them.
-4. **Defer Supabase realtime channels** until after FCP (not before). Auth session check stays eager.
-5. **Drop dead vendor code**: scan for unused deps and unused imports project-wide via `knip` (read-only audit first, then surgical removal).
+## Phase 2 — WhatsApp-style inline-reply notifications
 
-**Verification:** re-run `browser--performance_profile` after each step; require FCP < 3s before moving on.
+Goal: DM আসলে notification-এ avatar + name + message + "Reply" text field দেখাবে; reply করলে app না খুলেই Supabase-এ message insert হবে।
 
-### Phase 2 — Runtime jank (interaction lag) — target: INP < 200ms everywhere
-1. Wrap the 5 heaviest list pages (Index/Home, Chat, FollowingList, SearchUsers, Reels) in `react-window` virtualization. Currently they render hundreds of `UserCard`s synchronously.
-2. Add `useDeferredValue` to search inputs (Chat search, User search, Gift picker).
-3. Audit the top 20 `useEffect` chains with `lsp--code_intelligence` for redundant re-subscriptions (dup Supabase channels = dup CPU + dup network).
-4. Memoize the 10 heaviest components (`UserCard`, `LiveCard`, `PartySeat`, `GiftItem`, `ChatBubble`, etc.) with `React.memo` + stable prop refs.
+1. **FCM payload upgrade** — `notify-new-message` edge function-এ `data` payload-এ যোগ:
+   - `conversation_id`, `sender_id`, `sender_name`, `sender_avatar_url`, `message_id`, `message_text`, `notification_type: "dm"`.
+   - Remove `notification` block (so handler always runs in app code — required for MessagingStyle).
+2. **Native `MeriFirebaseMessagingService` upgrade**:
+   - Use `NotificationCompat.MessagingStyle` per `conversation_id` (thread group).
+   - Add `RemoteInput.Builder("key_reply")` action labeled "Reply".
+   - PendingIntent → new `MessageReplyReceiver` (BroadcastReceiver).
+   - Cache last N messages per conversation in SharedPreferences for thread display.
+3. **`MessageReplyReceiver`** —
+   - Read RemoteInput text, immediately POST to new edge function `send-message-from-notification` (auth via stored user JWT in EncryptedSharedPreferences).
+   - Update the same notification with the sent message appended (so user sees confirmation) — no app launch.
+4. **Edge function `send-message-from-notification`** — validates JWT, inserts into `messages` table with correct sender/recipient/conversation, returns message_id. Reuses existing RLS.
+5. **Notification channel** — dedicated `dm_messages` channel: importance HIGH, vibrate pattern, sound, badge.
+6. **Auth token storage** — store refresh token in `EncryptedSharedPreferences` on login (new `SecureTokenStorePlugin`) so background receiver can authenticate.
 
-**Verification:** record a 5s profile while scrolling Home + opening Chat; require no long task > 200ms.
+## Order of work
 
-### Phase 3 — Network discipline — target: no duplicate requests, all critical data prefetched
-1. Map every Supabase Realtime subscription, dedupe duplicates (some tables are subscribed in 3+ places — confirmed from earlier audits).
-2. Move TanStack Query `staleTime` defaults from `0` to feature-appropriate values (profiles 60s, settings 10min, gifts 30min).
-3. Prefetch the user's most-likely-next page on idle (Home → recent chat partners, Home → followed lives).
-4. Compress all `public/` PNG assets with `squoosh` (one-time) and add `loading="lazy"` to off-screen images.
+1. Phase 1.1 + 1.2 + 1.5 (service + plugin + camera-ownership guard) — unblocks live/party background
+2. Phase 1.3 + 1.4 + 1.6 — robustness
+3. Phase 2.1 + 2.6 (edge function payload + token storage)
+4. Phase 2.2 + 2.3 + 2.4 (MessagingStyle + RemoteInput + reply receiver)
+5. Phase 2.5 + final QA on real device
 
-### Phase 4 — Two-UI overlap & route-transition guarantees (extends the call-vs-live fix already shipped)
-1. Add a single `<TopLayerHost />` that owns the global modal/sheet stack with deterministic z-order (no more random `z-[99]`/`z-[100]` collisions across 80+ overlays).
-2. Add `aria-modal` + `inert` on background routes when a full-screen overlay is open (also a11y win).
-3. Add a `useExclusiveSession()` hook so live/party/call/games can never have 2 active simultaneously (extends the `RequireNoActiveCall` guard).
+## What I'll need from you
 
-## Honest scope & timing
+- Confirm "yes proceed" before I start coding — this is **large** native work, multiple files, will require **APK rebuild** (Lovable preview only validates compile, not behavior).
+- After APK build, test scenarios I'll list: go live → home → wait 60s → return; receive DM with screen off → reply from notification → verify message in app.
 
-| Phase | Files touched | Risk | What I can verify in Lovable | Owner-account testable |
-|---|---|---|---|---|
-| 1 | ~60 | Low | ✅ FCP / bundle size before+after | ✅ |
-| 2 | ~30 | Medium | ✅ profiler scroll trace | ✅ |
-| 3 | ~40 | Medium | ⚠️ partial (realtime needs prod load) | ✅ partial |
-| 4 | ~15 | Low | ✅ | ✅ |
+## Honesty checkpoint
 
-No APK rebuild needed for Phases 1–4 — all React/Vite/CSS layer. Native Android perf (Camera2, LiveKit) is already in the separate native-pro track.
-
-## What I need from you to start
-
-Pick one:
-
-- **(A) Ship Phase 1 now** — biggest visible win (boot 11s → ~3s), 1 message, ~60 files, no risk to design or features. I run profile before/after and report numbers honestly.
-- **(B) Ship Phase 1+2 back-to-back** — boot fix + interaction fix. Bigger blast radius, I verify each step.
-- **(C) Full 4-phase rollout** — I work through them sequentially across multiple messages, profile after each, and stop if any regression appears. Most honest path but takes several turns.
-
-আমার suggestion: **option A দিয়ে শুরু কর।** এক message এ measurable boot fix পাবি (FCP 11s → 3s target), তারপর সেটা real device এ test করে পরের phase যাবো। এতে কোনো false claim থাকবে না — প্রতিটা step এ profiler দিয়ে before/after number দেখাবো।
+আমি Lovable preview-এ Phase 1 verify করতে পারব না (foreground service Android-only)। Phase 2 partial (FCM payload + edge function) preview-এ test হবে; native receiver শুধু APK-তে। শুরু করার অনুমতি দিলে Phase 1.1 থেকে শুরু করব।
