@@ -139,6 +139,10 @@ function CampaignFloatingButton() {
   });
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
+  // Tracks whether the last pointer interaction was a drag — used to swallow
+  // the synthetic click that fires at the end of a drag gesture so the popup
+  // doesn't open when the user is just repositioning the floating card.
+  const draggedRef = useRef(false);
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -740,12 +744,17 @@ function CampaignFloatingButton() {
               y: dragOffset.y,
               touchAction: 'none',
             }}
+            onDragStart={() => { draggedRef.current = true; }}
             onDragEnd={(_, info) => {
               const next = { x: dragOffset.x + info.offset.x, y: dragOffset.y + info.offset.y };
               setDragOffset(next);
               try { localStorage.setItem(FLOATING_POS_KEY, JSON.stringify(next)); } catch {}
+              // Clear the flag on the next tick so the synthetic click that
+              // immediately follows a drag is suppressed, but a real tap
+              // (no drag) still opens the popup.
+              setTimeout(() => { draggedRef.current = false; }, 0);
             }}
-            className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing"
+            className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
             {/* Close (×) — tiny, transparent, top-left of the card.
                 No background pill — just a crisp white glyph with a soft
@@ -814,8 +823,7 @@ function CampaignFloatingButton() {
               {discountPercent > 0 ? (
                 <button
                   type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => setShowPopup(true)}
+                  onClick={() => { if (draggedRef.current) return; setShowPopup(true); }}
                   className="relative block"
                   style={{ background: 'transparent', border: 'none', padding: 0 }}
                 >
@@ -823,8 +831,7 @@ function CampaignFloatingButton() {
                 </button>
               ) : (
                 <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => setShowPopup(true)}
+                  onClick={() => { if (draggedRef.current) return; setShowPopup(true); }}
                   className="relative w-[78px] h-[78px] rounded-full"
                   style={{
                     filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
