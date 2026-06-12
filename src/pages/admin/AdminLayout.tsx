@@ -2026,12 +2026,13 @@ export default function AdminLayout() {
     const TOAST_DEDUPE_MS = 2500;
     const isDuplicateToast = (key: string) => {
       const now = Date.now();
-      const last = recentToastKeys.get(key) ?? 0;
+      const last = recentToastKeys[key] ?? 0;
       if (now - last < TOAST_DEDUPE_MS) return true;
-      recentToastKeys.set(key, now);
-      if (recentToastKeys.size > 64) {
-        for (const [k, ts] of recentToastKeys) {
-          if (now - ts > TOAST_DEDUPE_MS * 2) recentToastKeys.delete(k);
+      recentToastKeys[key] = now;
+      const keys = Object.keys(recentToastKeys);
+      if (keys.length > 64) {
+        for (const k of keys) {
+          if (now - recentToastKeys[k] > TOAST_DEDUPE_MS * 2) delete recentToastKeys[k];
         }
       }
       return false;
