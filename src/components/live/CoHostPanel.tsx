@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Check, X, Users, Crown, Eye, EyeOff, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import AvatarWithFrame from '@/components/common/AvatarWithFrame';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -145,11 +145,12 @@ export function CoHostPanel({
                         className="flex items-center justify-between p-3 bg-white/5 rounded-xl"
                       >
                         <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback className="bg-primary/30">
-                              {request.userName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <AvatarWithFrame
+                            userId={String(request.uid)}
+                            name={request.userName}
+                            size="sm"
+                            showAnimation
+                          />
                           <div>
                             <p className="text-white font-medium">{request.userName}</p>
                             <p className="text-white/70 text-xs">
@@ -199,11 +200,12 @@ export function CoHostPanel({
                         >
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <Avatar>
-                                <AvatarFallback className="bg-primary/30">
-                                  {uid.toString().slice(0, 2)}
-                                </AvatarFallback>
-                              </Avatar>
+                              <AvatarWithFrame
+                                userId={String(uid)}
+                                name={`Co-Host ${uid}`}
+                                size="sm"
+                                showAnimation
+                              />
                               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black flex items-center justify-center">
                                 <Crown className="w-2.5 h-2.5 text-white" />
                               </div>
