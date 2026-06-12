@@ -19522,6 +19522,16 @@ export type Database = {
           transaction_count: number
         }[]
       }
+      compute_sales_by_source: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          display_name: string
+          gross_usd: number
+          source_key: string
+          transaction_count: number
+          unique_buyers: number
+        }[]
+      }
       consume_agency_app_otp_token: {
         Args: {
           p_purpose?: string
