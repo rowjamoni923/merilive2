@@ -493,6 +493,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = true;
         setNativeActive(true);
         setIsNativeMediaActive(true);
+        if (options.liveSignalingStreamId) {
+          try {
+            const mod = await import('@/lib/livekitLiveSignaling');
+            mod.registerNativeStreamRoom(options.liveSignalingStreamId);
+          } catch (e) {
+            console.warn('[Pkg74] immediate native live signaling register failed:', e);
+          }
+        }
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
@@ -525,7 +533,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
           tokenRefreshDetachRef.current = null;
         }
-        roomRef.current.disconnect(true);
+        // GAP-3 fix: host auto-rejoin can reuse still-live GoLive/previous
+        // local MediaStreamTracks. Do not stop them while replacing only the
+        // stale Room, otherwise the camera closes/reopens and viewers see a
+        // black flash before the fresh publish starts.
+        const preserveLocalTracksForReconnect = config.role === 'host' && (
+          config.preloadedVideoTrack?.readyState === 'live' ||
+          config.preloadedAudioTrack?.readyState === 'live'
+        );
+        roomRef.current.disconnect(!preserveLocalTracksForReconnect);
         roomRef.current = null;
       }
 
