@@ -19460,6 +19460,16 @@ export type Database = {
         Args: { _key: string; _response: Json; _scope: string; _status: string }
         Returns: undefined
       }
+      compute_company_health: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          company_profit_usd: number
+          health_percent: number
+          net_balance_usd: number
+          status: string
+          total_payouts_usd: number
+        }[]
+      }
       compute_helper_diamond_payouts: {
         Args: { p_end: string; p_limit?: number; p_start: string }
         Returns: {
