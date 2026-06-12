@@ -750,7 +750,7 @@ export function ActiveCallScreen({
   const callUi = (
     <div
       data-room-shell
-      className="fixed inset-0 z-[100] flex select-none overflow-hidden"
+      className="fixed inset-0 z-[2147483600] flex select-none overflow-hidden"
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none',

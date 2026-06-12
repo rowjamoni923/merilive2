@@ -74,7 +74,7 @@ export function IncomingCallModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[99] bg-black/45"
+            className="fixed inset-0 z-[2147483640] bg-black/45"
           />
 
           {/* Card notification - slides down from top */}
@@ -84,7 +84,7 @@ export function IncomingCallModal({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -120, opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", damping: 24, stiffness: 300 }}
-            className="fixed top-4 left-3 right-3 z-[100] max-w-md mx-auto"
+            className="fixed top-4 left-3 right-3 z-[2147483641] max-w-md mx-auto"
             style={{ willChange: 'transform, opacity' }}
           >
             <div

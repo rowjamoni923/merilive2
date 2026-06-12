@@ -15,7 +15,8 @@ import { useProCamera } from '@/camera/useProCamera';
 import { toast as sonnerToast } from 'sonner';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
-const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
+const importActiveCallScreen = () => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen }));
+const ActiveCallScreen = lazy(importActiveCallScreen);
 
 /**
  * Phase-3 C1: GLOBAL `notifications` realtime mount, attached to the
@@ -111,6 +112,21 @@ export function CallProvider({ children }: CallProviderProps) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // 🚀 INSTANT CALL UX: preload the ActiveCallScreen chunk (+ livekit-client)
+  // on idle, the moment the authenticated provider mounts. Without this,
+  // the very first call has to wait for a 172KB lazy fetch before the call
+  // UI can paint — perceived as "slow call button". Preloading on idle
+  // makes the first call mount feel instant (matches Chamet/WhatsApp).
+  useEffect(() => {
+    if (!userId) return;
+    const w = typeof window !== 'undefined' ? window : null;
+    const schedule: (cb: () => void) => void =
+      w && 'requestIdleCallback' in w
+        ? (cb) => (w as any).requestIdleCallback(cb, { timeout: 2000 })
+        : (cb) => setTimeout(cb, 800);
+    schedule(() => { importActiveCallScreen().catch(() => {}); });
+  }, [userId]);
 
   const {
     callState,

@@ -427,6 +427,7 @@ const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScre
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
+import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 
@@ -1366,7 +1367,7 @@ const App = () => {
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
                 <Route path="/live-feed" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamKeyWrapper /></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveStreamKeyWrapper /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/chat" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
@@ -1432,8 +1433,8 @@ const App = () => {
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
-                <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><RequireNoActiveCall><PartyRoom /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><GoLive /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/reels" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
                 <Route path="/create-party" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><CreateParty /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
