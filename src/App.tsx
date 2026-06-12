@@ -1461,6 +1461,7 @@ const App = () => {
                 <Route path="/admin/login" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
                 <Route path="/admin" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminLayout /></AdminAccessGuard></Suspense>}>
                   <Route index element={<SubAdminDashboardGuard><AdminDashboard /></SubAdminDashboardGuard>} />
+                  <Route path="profit-analytics" element={<AdminRouteGuard routeSegment="dashboard"><AdminProfitAnalytics /></AdminRouteGuard>} />
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
