@@ -34,6 +34,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import CompanyHealthGauge from "@/components/admin/CompanyHealthGauge";
 
 type Preset = "today" | "yesterday" | "week" | "month" | "custom";
 
@@ -402,6 +403,9 @@ export default function AdminProfitAnalytics() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Company Health Gauge */}
+        <CompanyHealthGauge startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

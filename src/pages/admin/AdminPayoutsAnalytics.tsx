@@ -31,6 +31,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import CompanyHealthGauge from "@/components/admin/CompanyHealthGauge";
 
 type Preset = "today" | "yesterday" | "week" | "month" | "custom";
 
@@ -71,6 +72,7 @@ const CAT_COLORS: Record<string, string> = {
   host_payroll: "#eab308",
   agency_host_transfer: "#22d3ee",
   beans_exchange: "#f97316",
+  game_winnings: "#ec4899",
 };
 
 const fmtUsd = (v: number) =>
@@ -342,6 +344,9 @@ export default function AdminPayoutsAnalytics() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Company Health Gauge */}
+        <CompanyHealthGauge startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
