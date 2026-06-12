@@ -802,7 +802,11 @@ function CampaignFloatingButton() {
 
               {/* Premium golden percentage badge if % bonus exists,
                   otherwise keep the legacy banner-image disc. */}
-              {discountPercent > 0 && !campaign.banner_image_url ? (
+              {/* Always show the premium gold badge when a bonus % is set —
+                  ignores any legacy banner_image_url so the floating disc is
+                  guaranteed to look premium across all campaigns. */}
+              {discountPercent > 0 ? (
+
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
