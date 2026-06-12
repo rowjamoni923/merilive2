@@ -1,5 +1,12 @@
 import { Check } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface CampaignTemplate {
   id: string;
