@@ -113,6 +113,7 @@ export async function preloadStream(streamId: string): Promise<void> {
       reconnectPolicy: {
         nextRetryDelayInMs: (ctx: any) => (ctx.retryCount > 2 ? null : 300),
       },
+      disconnectOnPageLeave: false,
     });
 
     const entry: PreloadedStream = {

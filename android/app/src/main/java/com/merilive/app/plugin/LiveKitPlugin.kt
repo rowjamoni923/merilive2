@@ -70,6 +70,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.net.HttpURLConnection
@@ -409,6 +410,7 @@ class LiveKitPlugin : Plugin() {
         val autoSubscribe: Boolean = true,
     )
     private var lastConnectArgs: ConnectArgs? = null
+    private val publicConnectMutex = Mutex()
     private var reconnectWatchdogJob: Job? = null
     private var reconnectingSinceMs: Long = 0L
     // Phase 6 — 150ms audio-level poll job. LiveKit server emits
@@ -928,7 +930,6 @@ class LiveKitPlugin : Plugin() {
             call.reject("url and token are required")
             return
         }
-
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val callerName = call.getString("callerName", "") ?: ""
@@ -982,6 +983,10 @@ class LiveKitPlugin : Plugin() {
         hardReconnectAttempts = 0
 
         scope.launch {
+            if (!publicConnectMutex.tryLock()) {
+                call.reject("LiveKit connect already in progress")
+                return@launch
+            }
             try {
                 connectInternal(lastConnectArgs!!, isReconnect = false)
                 // Pkg-audit fix: a concurrent disconnect() could null `room`
@@ -1003,6 +1008,8 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
+            } finally {
+                publicConnectMutex.unlock()
             }
         }
 

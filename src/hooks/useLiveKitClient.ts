@@ -493,6 +493,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = true;
         setNativeActive(true);
         setIsNativeMediaActive(true);
+        if (options.liveSignalingStreamId) {
+          try {
+            const mod = await import('@/lib/livekitLiveSignaling');
+            mod.registerNativeStreamRoom(options.liveSignalingStreamId);
+          } catch (e) {
+            console.warn('[Pkg74] immediate native live signaling register failed:', e);
+          }
+        }
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
@@ -525,7 +533,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
           tokenRefreshDetachRef.current = null;
         }
-        roomRef.current.disconnect(true);
+        // GAP-3 fix: host auto-rejoin can reuse still-live GoLive/previous
+        // local MediaStreamTracks. Do not stop them while replacing only the
+        // stale Room, otherwise the camera closes/reopens and viewers see a
+        // black flash before the fresh publish starts.
+        const preserveLocalTracksForReconnect = config.role === 'host' && (
+          config.preloadedVideoTrack?.readyState === 'live' ||
+          config.preloadedAudioTrack?.readyState === 'live'
+        );
+        roomRef.current.disconnect(!preserveLocalTracksForReconnect);
         roomRef.current = null;
       }
 
@@ -1440,14 +1456,25 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const videoPub = Array.from(room.localParticipant.trackPublications.values())
       .find(p => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
     
-    if (videoPub?.track) {
-      const devices = await Room.getLocalDevices('videoinput');
-      if (devices.length > 1) {
-        const currentId = videoPub.track.mediaStreamTrack?.getSettings()?.deviceId;
-        const nextDevice = devices.find(d => d.deviceId !== currentId);
-        if (nextDevice) {
-          await room.switchActiveDevice('videoinput', nextDevice.deviceId);
+    const localVideo = videoPub?.track as any;
+    if (localVideo) {
+      const settings = localVideo.mediaStreamTrack?.getSettings?.() || {};
+      const currentFacing = settings.facingMode === 'environment' ? 'environment' : 'user';
+      const nextFacing = currentFacing === 'user' ? 'environment' : 'user';
+      try {
+        if (typeof localVideo.restartTrack === 'function') {
+          await localVideo.restartTrack({ facingMode: nextFacing });
+        } else {
+          const devices = await Room.getLocalDevices('videoinput');
+          const currentId = settings.deviceId;
+          const nextDevice = devices.find(d => d.deviceId && d.deviceId !== currentId);
+          if (nextDevice) await room.switchActiveDevice('videoinput', nextDevice.deviceId);
         }
+      } finally {
+        const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
+          .find(p => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+        if (refreshedPub?.track) setLocalVideoTrack(refreshedPub.track);
+        try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
       }
     }
   }, []);
