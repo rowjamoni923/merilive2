@@ -985,6 +985,13 @@ const CreateParty = () => {
             return;
           }
           if (stream) {
+            // Pkg-PartyGAP-1 — gate raw getUserMedia behind the streaming
+            // arbiter so face-verify (verification family) cannot race the
+            // camera flip mid-call.
+            if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+              toast.error('Camera is busy. Close other camera screens and try again.');
+              return;
+            }
             stream.getTracks().forEach(track => track.stop());
             releaseAndroidWebViewCamera('create-party:switch-camera');
             const newFacingMode = facingMode === "user" ? "environment" : "user";
