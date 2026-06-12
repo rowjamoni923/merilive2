@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } f
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
@@ -126,8 +126,12 @@ function CampaignFloatingButton() {
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const [gateways, setGateways] = useState<AutoGateway[]>([]);
   const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
-  // Draggable floating-badge position offset (Framer Motion x/y), persisted per device.
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>(() => {
+  // Draggable floating-badge position — uses MotionValues (NOT React state) so
+  // framer-motion's internal drag value and our controlled value do not fight.
+  // Mixing `style.x = state` with `drag` causes touch drags to look "stuck":
+  // framer snaps internal x back toward 0 on pointerup while React state is one
+  // render behind, so on mobile the badge appears not to move at all.
+  const initialPos = (() => {
     try {
       const raw = localStorage.getItem(FLOATING_POS_KEY);
       if (raw) {
@@ -136,7 +140,9 @@ function CampaignFloatingButton() {
       }
     } catch {}
     return { x: 0, y: 0 };
-  });
+  })();
+  const dragX = useMotionValue(initialPos.x);
+  const dragY = useMotionValue(initialPos.y);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   // Tracks whether the last pointer interaction was a drag — used to swallow
@@ -740,15 +746,21 @@ function CampaignFloatingButton() {
               bottom: bottomOffset,
               right: '12px',
               perspective: '600px',
-              x: dragOffset.x,
-              y: dragOffset.y,
+              x: dragX,
+              y: dragY,
               touchAction: 'none',
             }}
             onDragStart={() => { draggedRef.current = true; }}
-            onDragEnd={(_, info) => {
-              const next = { x: dragOffset.x + info.offset.x, y: dragOffset.y + info.offset.y };
-              setDragOffset(next);
-              try { localStorage.setItem(FLOATING_POS_KEY, JSON.stringify(next)); } catch {}
+            onDragEnd={() => {
+              // MotionValues are already updated by framer-motion during the drag,
+              // so we just read + persist the final position. No setState round-trip,
+              // no snap-back, no fight between React state and framer internals.
+              try {
+                localStorage.setItem(
+                  FLOATING_POS_KEY,
+                  JSON.stringify({ x: dragX.get(), y: dragY.get() }),
+                );
+              } catch {}
               // Clear the flag on the next tick so the synthetic click that
               // immediately follows a drag is suppressed, but a real tap
               // (no drag) still opens the popup.
