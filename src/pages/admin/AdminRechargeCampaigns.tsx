@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
 import PremiumGoldenBadge from "@/components/campaign/PremiumGoldenBadge";
+import { PREMIUM_CAMPAIGN_CARDS } from "@/data/premiumCampaignCards";
 
 
 interface Campaign {
