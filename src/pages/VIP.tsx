@@ -443,19 +443,30 @@ const VIP = () => {
       }
 
       // Fetch unlocked entry name bars only
+      // NOTE: admin panel writes the unlock level into `min_level` for most rows
+      // (legacy `level_required` is often 0). Use whichever is set so the
+      // level-ladder Marquis/Emperor/Duke/Baron tiers actually surface here.
       const { data: entryNameBars } = await supabase
         .from("entry_name_bars")
         .select("*")
-        .eq("is_active", true)
-        .order("level_required", { ascending: true });
+        .eq("is_active", true);
 
       if (entryNameBars) {
-        for (const bar of entryNameBars) {
+        for (const bar of entryNameBars as any[]) {
+          const unlockLevel =
+            (bar.level_required && bar.level_required > 0
+              ? bar.level_required
+              : bar.min_level && bar.min_level > 0
+                ? bar.min_level
+                : 1);
+          const previewUrl = bar.preview_url || bar.image_url;
+          const animationUrl = bar.animation_url || bar.preview_url || bar.image_url;
+
           if (
-            !isUnlockedByLevel(bar.level_required, effectiveLevel) ||
-            !shouldShowLevelReward(bar.level_required) ||
+            !isUnlockedByLevel(unlockLevel, effectiveLevel) ||
+            !shouldShowLevelReward(unlockLevel) ||
             isMonetizedAsset(bar) ||
-            !hasRenderableAsset(bar.animation_url, bar.image_url)
+            !hasRenderableAsset(animationUrl, previewUrl)
           ) continue;
 
           const isEquipped = bar.id === equippedEntryNameBarId;
@@ -466,16 +477,17 @@ const VIP = () => {
               item_id: bar.id,
               name: bar.name,
               category: 'entry_name_bar',
-              preview_url: bar.image_url,
-              animation_url: bar.animation_url || bar.image_url,
+              preview_url: previewUrl,
+              animation_url: animationUrl,
               is_equipped: isEquipped,
               expires_at: null,
               source: 'level',
-              unlock_level: bar.level_required || 1,
+              unlock_level: unlockLevel,
             });
           }
         }
       }
+
 
       // Fetch unlocked entry banners only
       const { data: entryBanners } = await supabase
