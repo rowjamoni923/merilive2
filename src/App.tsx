@@ -240,6 +240,7 @@ const AdminSettings = lazy(lazyRetry(() => import("./pages/admin/AdminSettings")
 const AdminAgencies = lazy(lazyRetry(() => import("./pages/admin/AdminAgencies")));
 const AdminAgencyDetail = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyDetail")));
 const AdminProfitAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminProfitAnalytics")));
+const AdminPayoutsAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminPayoutsAnalytics")));
 const AdminUserManagement = lazy(lazyRetry(() => import("./pages/admin/AdminUserManagement")));
 const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraders")));
 const AdminTopupTraderApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminTopupTraderApprovals")));
@@ -1462,6 +1463,7 @@ const App = () => {
                 <Route path="/admin" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminLayout /></AdminAccessGuard></Suspense>}>
                   <Route index element={<SubAdminDashboardGuard><AdminDashboard /></SubAdminDashboardGuard>} />
                   <Route path="profit-analytics" element={<AdminRouteGuard routeSegment="dashboard"><AdminProfitAnalytics /></AdminRouteGuard>} />
+                  <Route path="payouts-analytics" element={<AdminRouteGuard routeSegment="dashboard"><AdminPayoutsAnalytics /></AdminRouteGuard>} />
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
