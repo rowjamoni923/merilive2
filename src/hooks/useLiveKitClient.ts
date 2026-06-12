@@ -1456,14 +1456,25 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const videoPub = Array.from(room.localParticipant.trackPublications.values())
       .find(p => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
     
-    if (videoPub?.track) {
-      const devices = await Room.getLocalDevices('videoinput');
-      if (devices.length > 1) {
-        const currentId = videoPub.track.mediaStreamTrack?.getSettings()?.deviceId;
-        const nextDevice = devices.find(d => d.deviceId !== currentId);
-        if (nextDevice) {
-          await room.switchActiveDevice('videoinput', nextDevice.deviceId);
+    const localVideo = videoPub?.track as any;
+    if (localVideo) {
+      const settings = localVideo.mediaStreamTrack?.getSettings?.() || {};
+      const currentFacing = settings.facingMode === 'environment' ? 'environment' : 'user';
+      const nextFacing = currentFacing === 'user' ? 'environment' : 'user';
+      try {
+        if (typeof localVideo.restartTrack === 'function') {
+          await localVideo.restartTrack({ facingMode: nextFacing });
+        } else {
+          const devices = await Room.getLocalDevices('videoinput');
+          const currentId = settings.deviceId;
+          const nextDevice = devices.find(d => d.deviceId && d.deviceId !== currentId);
+          if (nextDevice) await room.switchActiveDevice('videoinput', nextDevice.deviceId);
         }
+      } finally {
+        const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
+          .find(p => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+        if (refreshedPub?.track) setLocalVideoTrack(refreshedPub.track);
+        try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
       }
     }
   }, []);
