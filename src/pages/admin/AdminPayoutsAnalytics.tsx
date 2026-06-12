@@ -343,6 +343,9 @@ export default function AdminPayoutsAnalytics() {
           </CardContent>
         </Card>
 
+        {/* Company Health Gauge */}
+        <CompanyHealthGauge startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <KPI label="Total USD Out" value={fmtUsd(totals.usd)} icon={Wallet} accent="#f43f5e" loading={loading} highlight />

@@ -403,6 +403,9 @@ export default function AdminProfitAnalytics() {
           </CardContent>
         </Card>
 
+        {/* Company Health Gauge */}
+        <CompanyHealthGauge startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+
         {/* KPI row */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <KPI label="Gross Revenue" value={fmtUsd(totals.gross)} icon={DollarSign} accent="#06b6d4" loading={loading} />
