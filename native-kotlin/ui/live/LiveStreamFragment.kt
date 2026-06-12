@@ -195,6 +195,10 @@ class LiveStreamFragment : Fragment() {
         try { boundHostTrack?.removeRenderer(binding.hostVideoView) } catch (_: Exception) {}
         boundHostTrack = null
         connectedToken = null
+        giftAnimationQueue?.release()
+        giftAnimationQueue = null
+        musicPlayer?.release()
+        musicPlayer = null
         liveKitManager.disconnect()
         super.onDestroyView()
         _binding = null
@@ -280,15 +284,6 @@ class LiveStreamFragment : Fragment() {
         }.show(childFragmentManager, "games")
     }
 
-    override fun onDestroyView() {
-        giftAnimationQueue?.release()
-        giftAnimationQueue = null
-        musicPlayer?.release()
-        musicPlayer = null
-        liveKitManager.disconnect()
-        super.onDestroyView()
-        _binding = null
-    }
 }
 
 // ─── Swipe Gesture Listener ───
