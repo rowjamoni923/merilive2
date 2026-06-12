@@ -18,6 +18,8 @@ import {
   CalendarClock, Trophy, Percent, Check
 } from "lucide-react";
 import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
+import PremiumGoldenBadge from "@/components/campaign/PremiumGoldenBadge";
+
 
 interface Campaign {
   id: string;
