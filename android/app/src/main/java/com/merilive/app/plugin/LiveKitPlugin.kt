@@ -71,7 +71,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.net.HttpURLConnection
@@ -931,11 +930,6 @@ class LiveKitPlugin : Plugin() {
             call.reject("url and token are required")
             return
         }
-        if (publicConnectMutex.isLocked) {
-            call.reject("LiveKit connect already in progress")
-            return
-        }
-
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val callerName = call.getString("callerName", "") ?: ""
@@ -989,8 +983,11 @@ class LiveKitPlugin : Plugin() {
         hardReconnectAttempts = 0
 
         scope.launch {
-            publicConnectMutex.withLock {
-              try {
+            if (!publicConnectMutex.tryLock()) {
+                call.reject("LiveKit connect already in progress")
+                return@launch
+            }
+            try {
                 connectInternal(lastConnectArgs!!, isReconnect = false)
                 // Pkg-audit fix: a concurrent disconnect() could null `room`
                 // during the suspend in connectInternal — never force-unwrap.
@@ -1011,7 +1008,8 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
                 call.reject("LiveKit connect failed: ${e.message}")
-              }
+            } finally {
+                publicConnectMutex.unlock()
             }
         }
 
