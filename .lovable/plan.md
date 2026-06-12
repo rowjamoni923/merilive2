@@ -50,4 +50,21 @@
 - LiveKit SFU config
 - Game logic itself
 
+---
+
+# Audit/Fix: Preview Camera Handoff Gap
+
+## Research evidence
+- LiveKit Android `LocalVideoTrack.startCapture()` starts the camera capturer before use; `publishVideoTrack(track, options)` publishes an existing `LocalVideoTrack` to the SFU.
+- LiveKit Android docs warn not to create a second camera track while one camera session is already active because mobile devices generally support one active camera session.
+- Professional live apps (Chamet/Bigo/Agora-style prejoin) keep preview capture alive and join/publish using that same running capturer to avoid black flash.
+
+## Current implementation evidence
+- Android `LiveKitPlugin.kt` already has `promotePreviewToSession(args)` and publishes the existing `previewTrack` via `publishVideoTrack(ptrack, videoPublishOptions)`.
+- `connectInternal()` already gates promotion when `previewRoom + previewTrack` exist and no real `room` is active.
+- The actual gap was JS-side: `nativeLiveKitController.connectAndPublish()` called `NativeLiveKit.stopLocalPreview()` before `NativeLiveKit.connect()`, destroying `previewTrack` before native promotion could run.
+
+## Fix applied
+- Removed the JS pre-connect `stopLocalPreview()` call so Live Streaming, Video Party, Game Party, and Private Call can reuse the already-open native Camera2 preview through the existing native promote path.
+
 Approve করলে এক pass-এ implement করব।
