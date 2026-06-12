@@ -27,6 +27,8 @@ import {
   type DevicePreferences,
 } from '@/lib/livekitDevicePreferences';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { useProCamera } from '@/camera/useProCamera';
+import * as ProCameraEngine from '@/camera/ProCameraEngine';
 
 interface Props {
   open: boolean;
