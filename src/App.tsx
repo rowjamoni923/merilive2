@@ -791,6 +791,23 @@ const App = () => {
     
     let mounted = true;
 
+    const isInvalidRefreshTokenError = (error: unknown) => {
+      const err = error as { code?: string; message?: string; status?: number } | null | undefined;
+      const message = String(err?.message ?? '').toLowerCase();
+      return err?.code === 'refresh_token_not_found'
+        || message.includes('refresh token not found')
+        || message.includes('invalid refresh token');
+    };
+
+    const clearStaleAuthState = async (reason: string) => {
+      console.warn(`[App] Clearing stale auth state: ${reason}`);
+      if (mounted) setSession(null);
+      invalidateCachedUser();
+      clearBalanceCache();
+      try { localStorage.removeItem('meri_manual_logout'); } catch { /* noop */ }
+      try { await clearNativeSession(); } catch { /* noop */ }
+    };
+
     // Handle deep links for OAuth callback in native apps
     let appUrlOpenListenerPromise: ReturnType<typeof CapApp.addListener> | null = null;
     if (Capacitor.isNativePlatform()) {
@@ -996,11 +1013,17 @@ const App = () => {
                       expires_at: data.session.expires_at,
                     });
                   }
+                } else if (isInvalidRefreshTokenError(error)) {
+                  await clearStaleAuthState(error?.message || 'invalid refresh token');
                 } else {
                   console.warn('[App] silent refresh failed — staying put (no auto-logout)', error?.message);
                 }
               } catch (e) {
-                console.warn('[App] silent refresh threw — staying put (no auto-logout)', e);
+                if (isInvalidRefreshTokenError(e)) {
+                  await clearStaleAuthState('invalid refresh token exception');
+                } else {
+                  console.warn('[App] silent refresh threw — staying put (no auto-logout)', e);
+                }
               }
             })();
           }
