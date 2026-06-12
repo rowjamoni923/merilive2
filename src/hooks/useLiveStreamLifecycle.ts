@@ -189,7 +189,7 @@ export const useLiveStreamLifecycle = ({
       };
     }
 
-    // ============ WEB HANDLING (Pkg426) ============
+    // ============ WEB HANDLING (Pkg426 + GAP-8) ============
     // PROFESSIONAL LIVE STREAMING PATTERN (Bigo/Tango/Chamet):
     // Host stream NEVER ends from `pagehide` / `beforeunload`. iOS Safari and
     // Android WebView fire these on tab switch, notification shade, permission
@@ -197,10 +197,13 @@ export const useLiveStreamLifecycle = ({
     // "2–15 second random cut" the user reported.
     //
     // Truth source for "stream still alive" = host heartbeat every 15s.
-    // Server cron `cleanup_stale_live_streams` (Pkg426: 3 min stale window)
-    // closes abandoned web tabs. Only the in-room End button (handleEndStream
-    // in LiveStream.tsx) may close the stream from the client side.
+    // GAP-8: on true document unload (tab close/reload), use keepalive RPC so
+    // abandoned web hosts do not leave a multi-minute ghost stream. Do NOT use
+    // pagehide/visibilitychange because those fire on mobile app switch and
+    // would randomly kill active broadcasts.
+    window.addEventListener('beforeunload', forceEndStreamSync);
     return () => {
+      window.removeEventListener('beforeunload', forceEndStreamSync);
       cleanupRef.current?.();
     };
   }, [streamId, isHost, isHostVerified, forceEndStream, forceEndStreamSync]);
