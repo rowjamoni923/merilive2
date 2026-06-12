@@ -128,6 +128,15 @@ export default function AdminProfitAnalytics() {
   const [loading, setLoading] = useState(false);
   const [sectors, setSectors] = useState<SectorRow[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
+  const [salesSources, setSalesSources] = useState<
+    Array<{
+      source_key: string;
+      display_name: string;
+      gross_usd: number;
+      transaction_count: number;
+      unique_buyers: number;
+    }>
+  >([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
   const [coinRate, setCoinRate] = useState<number | null>(null);
