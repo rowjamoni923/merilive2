@@ -242,6 +242,45 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyActiveUsers, setDailyActiveUsers] = useState(0);
   const [dailyActiveHosts, setDailyActiveHosts] = useState(0);
+  const [todayProfit, setTodayProfit] = useState<number | null>(null);
+  const [todayPayouts, setTodayPayouts] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const now = new Date();
+        const start = new Date(now); start.setHours(0, 0, 0, 0);
+        const end = new Date(now); end.setHours(23, 59, 59, 999);
+        const startTs = start.toISOString();
+        const endTs = end.toISOString();
+        const [pRes, payRes] = await Promise.all([
+          supabase.rpc("compute_profit_for_range", { p_start: startTs, p_end: endTs }),
+          supabase.rpc("compute_payouts_for_range", { p_start: startTs, p_end: endTs }),
+        ]);
+        if (cancelled) return;
+        if (!pRes.error && Array.isArray(pRes.data)) {
+          const total = (pRes.data as any[]).reduce((a, r) => a + (Number(r.net_profit_usd) || 0), 0);
+          setTodayProfit(total);
+        }
+        if (!payRes.error && Array.isArray(payRes.data)) {
+          const total = (payRes.data as any[]).reduce((a, r) => a + (Number(r.payout_usd) || 0), 0);
+          setTodayPayouts(total);
+        }
+      } catch {
+        /* ignore — card will just show — */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const fmtUsdShort = (v: number | null) => {
+    if (v == null) return "—";
+    const abs = Math.abs(v);
+    if (abs >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+    if (abs >= 1_000) return `$${(v / 1_000).toFixed(2)}K`;
+    return `$${v.toFixed(2)}`;
+  };
 
   const loadData = useCallback(async () => {
     let lastError: any = null;
