@@ -14,6 +14,11 @@ import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 import { toSupabaseCdnUrl } from '@/lib/cdnImage';
+import PremiumGoldenBadge from '@/components/campaign/PremiumGoldenBadge';
+
+// localStorage key for persisted floating-badge position (per device, global).
+const FLOATING_POS_KEY = 'campaign_floating_pos_v1';
+
 
 // Tiny gateway / payment-method logos (24-32px) — ask CDN for 96px WebP.
 const logoCdn = (url: string | null | undefined) => toSupabaseCdnUrl(url, { width: 96, quality: 75 }) || url || '';
