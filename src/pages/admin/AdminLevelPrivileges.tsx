@@ -33,6 +33,7 @@ interface LevelPrivilege {
   icon_name: string;
   icon_bg_color: string;
   icon_color: string;
+  icon_url: string | null;
   is_active: boolean;
   display_order: number;
 }
@@ -329,6 +330,7 @@ const AdminLevelPrivileges = () => {
         icon_name: category.icon.name || 'Star',
         icon_bg_color: category.bgColor,
         icon_color: category.iconColor,
+        icon_url: null,
         is_active: true,
         display_order: PRIVILEGE_CATEGORIES.findIndex(c => c.type === category.type) + 1
       });
@@ -405,15 +407,19 @@ const AdminLevelPrivileges = () => {
                       className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-purple-500/50 transition-colors cursor-pointer"
                       onClick={() => openCategoryEditor(category)}
                     >
-                      {/* Icon */}
+                      {/* Icon (custom uploaded logo, falls back to lucide) */}
                       <div 
-                        className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+                        className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
                         style={{ 
-                          backgroundColor: existingPrivilege?.icon_bg_color || category.bgColor, 
+                          backgroundColor: existingPrivilege?.icon_url ? 'transparent' : (existingPrivilege?.icon_bg_color || category.bgColor), 
                           color: existingPrivilege?.icon_color || category.iconColor 
                         }}
                       >
-                        <CategoryIcon className="w-7 h-7" />
+                        {existingPrivilege?.icon_url ? (
+                          <SmartImage src={existingPrivilege.icon_url} alt={category.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <CategoryIcon className="w-7 h-7" />
+                        )}
                       </div>
 
                       {/* Info */}
@@ -592,6 +598,65 @@ const AdminLevelPrivileges = () => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Category Logo / 3D Icon Upload — shown to admin, host & user everywhere */}
+              <div className="space-y-2">
+                <Label className="text-white/60">Category Logo (3D / PNG — replaces default icon for everyone)</Label>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-16 h-16 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0"
+                    style={{ backgroundColor: editingPrivilege.icon_url ? 'transparent' : editingPrivilege.icon_bg_color }}
+                  >
+                    {editingPrivilege.icon_url ? (
+                      <SmartImage src={editingPrivilege.icon_url} alt="logo" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-white/40 text-xs text-center px-1">No Logo</span>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Input
+                      value={editingPrivilege.icon_url || ''}
+                      onChange={(e) => setEditingPrivilege({ ...editingPrivilege, icon_url: e.target.value || null })}
+                      placeholder="https://… or upload"
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                    <div className="flex gap-2">
+                      <label className="cursor-pointer">
+                        <Button variant="outline" asChild disabled={uploadingFile}>
+                          <span className="flex items-center">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Logo
+                          </span>
+                        </Button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const url = await handleFileUpload(file, 'preview');
+                              if (url) {
+                                setEditingPrivilege({ ...editingPrivilege, icon_url: url });
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                      {editingPrivilege.icon_url && (
+                        <Button
+                          variant="ghost"
+                          className="text-red-400 hover:text-red-300"
+                          onClick={() => setEditingPrivilege({ ...editingPrivilege, icon_url: null })}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" /> Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-white/40">PNG / WebP / SVG recommended (transparent background). Shown to users, hosts & admins identically.</p>
               </div>
 
               {/* Pkg424 — Unified animation uploader (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4) */}
