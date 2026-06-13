@@ -9,6 +9,7 @@
 // Kill-switch: app_settings.livekit_signaling_enabled.room_ops === true (default OFF)
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { RoomServiceClient } from "npm:livekit-server-sdk@2.9.4";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,11 +18,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL") ?? "";
+const LIVEKIT_URL_RAW = Deno.env.get("LIVEKIT_URL") ?? "";
+// LiveKit server SDK needs an HTTP(S) URL; our env is wss:// for the client.
+const LIVEKIT_HTTP_URL = LIVEKIT_URL_RAW.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const json = (status: number, body: unknown) =>
