@@ -35,30 +35,7 @@ const json = (status: number, body: unknown) =>
 type Action = "list_rooms" | "list_participants" | "get_room";
 const ALLOWED: Action[] = ["list_rooms", "list_participants", "get_room"];
 
-async function validateAdminToken(
-  token: string,
-): Promise<{ ok: boolean; role?: "owner" | "sub_admin" }> {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/validate-admin-token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ token, action: "validate" }),
-      },
-    );
-    if (!res.ok) return { ok: false };
-    const data = await res.json().catch(() => ({}));
-    return data?.valid ? { ok: true, role: data.role } : { ok: false };
-  } catch (e) {
-    console.warn("[livekit-room-ops] admin validate failed:", e);
-    return { ok: false };
-  }
-}
+// Auth: validated via requireAdminSession (admin_sessions + admin_users + device check).
 
 async function killSwitchOn(admin: ReturnType<typeof createClient>): Promise<boolean> {
   try {
