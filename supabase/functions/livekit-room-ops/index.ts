@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
-  if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
+  if (!LIVEKIT_HTTP_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     return json(500, { error: "livekit_not_configured" });
   }
 
@@ -92,11 +92,9 @@ Deno.serve(async (req) => {
     return json(403, { error: "room_ops_disabled" });
   }
 
-  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
-  if (!adminToken) return json(401, { error: "missing_admin_token" });
-  const v = await validateAdminToken(adminToken);
-  if (!v.ok) return json(401, { error: "invalid_admin_token" });
-  const role = v.role ?? "sub_admin";
+  const adminAuth = await requireAdminSession(req, adminClient);
+  if (!adminAuth.ok) return json(adminAuth.status, { error: adminAuth.error });
+  const role = adminAuth.admin.role === "owner" ? "owner" : "sub_admin";
 
   const body = await req.json().catch(() => ({}));
   const action = String(body?.action ?? "") as Action;
@@ -111,7 +109,7 @@ Deno.serve(async (req) => {
     return json(400, { error: "missing_room_name" });
   }
 
-  const svc = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+  const svc = new RoomServiceClient(LIVEKIT_HTTP_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
   try {
     if (action === "list_rooms") {
