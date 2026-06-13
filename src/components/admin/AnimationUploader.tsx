@@ -161,11 +161,26 @@ export const AnimationUploader: React.FC<Props> = ({
       const fileName = `${folder}/${kind}_${uploadFormat}_${Date.now()}_${Math.random()
         .toString(36)
         .slice(2, 8)}.${ext}`;
+      // Binary animation formats (SVGA, Lottie .lottie zip, VAP) have no
+      // standard MIME type — browsers report application/octet-stream or empty,
+      // which most admin asset buckets (shop-items, banners, etc.) reject with
+      // "mime type application/octet-stream is not supported". Route those to
+      // the shared `animations` bucket that explicitly whitelists binary mimes.
+      const rawType = (file.type || '').toLowerCase().split(';')[0].trim();
+      const isBinaryAnim =
+        !rawType ||
+        rawType === 'application/octet-stream' ||
+        rawType === 'binary/octet-stream' ||
+        rawType.includes('zip') ||
+        ext === 'svga' ||
+        ext === 'lottie';
+      const effectiveBucket = isBinaryAnim ? 'animations' : bucket;
+      const effectiveContentType = rawType || 'application/octet-stream';
       // Hard 90s timeout so the spinner never gets stuck if the storage
       // request stalls (Supabase SDK has no built-in timeout).
-      const uploadPromise = supabase.storage.from(bucket).upload(fileName, file, {
+      const uploadPromise = supabase.storage.from(effectiveBucket).upload(fileName, file, {
         upsert: true,
-        contentType: file.type || 'application/octet-stream',
+        contentType: effectiveContentType,
         cacheControl: '2592000', // 30 days — animation assets are immutable
       });
       const timeoutPromise = new Promise<never>((_, reject) =>
@@ -175,7 +190,7 @@ export const AnimationUploader: React.FC<Props> = ({
       if (error) throw error;
       const {
         data: { publicUrl },
-      } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      } = supabase.storage.from(effectiveBucket).getPublicUrl(fileName);
       return publicUrl;
     } finally {
       setUploading(null);
