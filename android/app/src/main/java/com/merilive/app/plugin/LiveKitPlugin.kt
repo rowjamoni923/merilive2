@@ -3337,7 +3337,15 @@ class LiveKitPlugin : Plugin() {
             }
 
             try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
-            activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
+            activity?.runOnUiThread {
+                // Camera audit fix: when Activity dies on the GoLive prejoin
+                // screen there is no real `room`, so the normal Room teardown
+                // below cannot close the standalone preview Room/Track. Stop it
+                // here so Camera2 is physically released before the next Activity
+                // tries to open a fresh preview.
+                stopLocalPreviewInternal(restoreOpaque = false)
+                detachAllRenderersInternal(releaseRenderers = true)
+            }
             // Pkg-audit Tier-4: removed the redundant sync `room?.disconnect()`
             // — Room.disconnect() is not safe to call twice concurrently on the
             // same instance; the IO scope above now owns the single call.

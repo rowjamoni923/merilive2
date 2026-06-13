@@ -90,3 +90,31 @@ Add link to AdminDashboard quick-tiles + AdminLayout sidebar ("Profit Analytics"
 - Currency normalization via existing `currency_rates` table
 
 Approve করলে Phase 1 migration দিয়ে শুরু করব।
+
+---
+
+## Camera lifecycle hotfix audit — 2026-06-13
+
+### Research baseline
+
+- Professional Android live streaming apps use a single native RTC/camera owner, deterministic preview/session cleanup, and explicit WebView permission gating when hybrid UI exists.
+- Agora-equivalent pattern: `startPreview` / join channel uses one RTC engine and cleanup must stop preview/leave/destroy before another camera user opens.
+- LiveKit-equivalent pattern: Room/LocalVideoTrack owns capture; teardown must call track stop/release and room disconnect/release, not rely on GC.
+- Sources: Android CameraX lifecycle architecture (`developer.android.com/media/camera/camerax/architecture`), Agora Android live streaming best practices (`docs.agora.io/.../best-practices/api-config-before-joining-channel`), LiveKit Android SDK reference (`docs.livekit.io/reference/client-sdk-android/`).
+
+### Verified code facts
+
+- `CameraOwnership.STALE_OWNER_TTL_MS = 30_000ms`; `OEM_RELEASE_GRACE_MS = 650ms`.
+- BUG-1 already present: `startLocalPreview` catch releases `OWNER_LIVEKIT` when `room == null`.
+- BUG-2 already present: `ActiveCallScreen.handleEndCall` no longer manually calls `proCamera.release()`.
+- Remaining medium bug found: normal `handleOnDestroy` released only advisory ownership via `CameraOwnership.forceRelease()` but did not call `stopLocalPreviewInternal`, so a standalone GoLive prejoin preview `previewRoom`/`previewTrack` could survive Activity destroy until GC.
+
+### Implemented fix
+
+- In `LiveKitPlugin.handleOnDestroy` normal teardown, call `stopLocalPreviewInternal(restoreOpaque = false)` before `detachAllRenderersInternal(releaseRenderers = true)` so prejoin preview `track.stopCapture()`, `track.stop()`, renderer release, `previewRoom.release()`, and CameraOwnership release execute through the existing safe cleanup funnel.
+- Severity low advisory gap left unchanged: JS `ProCameraEngine` can briefly hit zero refs during GoLive → LiveStream router handoff, but native `CameraOwnership` remains `OWNER_LIVEKIT`; no confirmed hardware camera bug.
+
+### Verification required
+
+- Web reload sees React-side fix immediately.
+- Kotlin fix requires Android APK rebuild, then owner/device test: open GoLive preview → destroy/recreate Activity → reopen preview; expected: no `CAMERA_IN_USE`, no blank preview.
