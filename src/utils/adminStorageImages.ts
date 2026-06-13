@@ -43,7 +43,7 @@ const FALLBACK_SIGNING_BUCKETS = [
 ];
 const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
 const VIDEO_FILE_RE = /\.(?:mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2|mpg|mpeg|hevc|ts|m3u8|mpd)(?:$|[?#])/i;
-const LOCAL_APP_MEDIA_RE = /^\/?(?:placeholder\.svg(?:[?#].*)?|favicon\.|icon-|assets\/|src\/assets\/|images\/|lovable-uploads\/)/i;
+const LOCAL_APP_MEDIA_RE = /^\/?(?:placeholder\.svg(?:[?#].*)?|favicon\.|icon-|assets\/|src\/assets\/|images\/|lovable-uploads\/|__l5e\/assets-v1\/)/i;
 
 type AdminBatchSignResponse = {
   success?: boolean;

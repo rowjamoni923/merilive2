@@ -118,3 +118,25 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 
 - Web reload sees React-side fix immediately.
 - Kotlin fix requires Android APK rebuild, then owner/device test: open GoLive preview → destroy/recreate Activity → reopen preview; expected: no `CAMERA_IN_USE`, no blank preview.
+
+---
+
+## Admin campaign premium-card asset hotfix — 2026-06-13
+
+### Research baseline
+
+- Professional live-streaming admin campaign tools keep promotional art in CDN-backed asset libraries and never route immutable app/CDN asset URLs through private storage signing. Missing uploads should show a visual fallback, not admin storage errors.
+- Competitor-equivalent pattern from Chamet/Bigo-style campaign operations: reusable promo art library + cached CDN delivery + fallback thumbnail for broken media; LiveKit is not involved for this admin asset path.
+- Sources: Supabase Storage public URL/signing docs (`supabase.com/docs/guides/storage/serving/downloads`), Vite static asset handling (`vite.dev/guide/assets`), Cloudflare R2/CDN cache behavior (`developers.cloudflare.com/r2/`).
+
+### Verified code facts
+
+- Screenshot error points to `/__l5e/assets-v1/.../card_025.webp Object not found` while editing Recharge Campaign premium cards.
+- `AdminRechargeCampaigns` renders `PREMIUM_CAMPAIGN_CARDS` through `SmartImage`.
+- `SmartImage` itself preserves same-origin `/__l5e/assets-v1/...` URLs, but the global admin media auto-resolver did not classify `/__l5e/assets-v1/` as local/CDN app media.
+- Because `adminStorageImages.LOCAL_APP_MEDIA_RE` missed `/__l5e/assets-v1/`, the resolver treated Lovable CDN assets as raw Supabase storage paths and tried signing phantom objects like `banners/__l5e/assets-v1/.../card_025.webp`, producing `Object not found`.
+
+### Implemented fix
+
+- Added `/__l5e/assets-v1/` to the local app-media allowlist in `adminStorageImages.ts` so admin auto-resolver never signs Lovable CDN assets.
+- Added the same allowlist to `cdnImage.ts` for consistency across SmartImage/public-media normalization.

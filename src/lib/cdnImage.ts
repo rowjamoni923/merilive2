@@ -48,7 +48,7 @@ const PUBLIC_MEDIA_BUCKETS = new Set([
 // like `images/premium-events/eid-special.png` get prepended with the default
 // bucket (`avatars/`) and the admin auto-resolver tries to sign a phantom
 // storage object that doesn't exist → 400 "Object not found".
-const APP_LOCAL_MEDIA_RE = /^\/?(?:src\/assets\/|assets\/|lovable-uploads\/|images\/|img\/|static\/|public\/|premium-(?:events|notifications)\/|placeholder\.svg(?:[?#].*)?$|favicon\.|icon-)/i;
+const APP_LOCAL_MEDIA_RE = /^\/?(?:src\/assets\/|assets\/|lovable-uploads\/|__l5e\/assets-v1\/|images\/|img\/|static\/|public\/|premium-(?:events|notifications)\/|placeholder\.svg(?:[?#].*)?$|favicon\.|icon-)/i;
 const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|svga|json)(?:[?#].*)?$/i;
 
 export function toSupabaseCdnUrl(
