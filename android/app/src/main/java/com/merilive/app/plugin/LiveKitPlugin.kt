@@ -2262,6 +2262,16 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 Log.e(TAG, "startLocalPreview failed", e)
                 withContext(Dispatchers.Main) { stopLocalPreviewInternal(restoreOpaque = true) }
+                // BUG-1 fix: stopLocalPreviewInternal early-returns when no
+                // preview state was assigned (exception before `previewRoom = pr`),
+                // which would leak OWNER_LIVEKIT for up to STALE_OWNER_TTL_MS and
+                // block NativeCamera (face-verify) in the meantime. Explicitly
+                // release the slot here when no real session owns it. Safe to
+                // call when already released — CameraOwnership.release() is a
+                // no-op if `current != owner`.
+                if (room == null) {
+                    try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
+                }
                 call.reject("startLocalPreview failed: ${e.message}")
             }
         }

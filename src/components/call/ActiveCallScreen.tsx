@@ -536,12 +536,13 @@ export function ActiveCallScreen({
     if (endingRef.current) return;
     endingRef.current = true;
     setCallEnded(true);
-    // Pkg-private-call C-3: release the ProCamera slot IMMEDIATELY so a
-    // brand-new call (or face-verify) can claim Camera2 without waiting
-    // for the CallEndedModal round-trip (`isOpen=true` while the DB
-    // select-single resolves). The arbiter slot opens within the same
-    // tick as the user tapping End.
-    try { proCamera.release?.(); } catch { /* ignore */ }
+    // BUG-2 fix: previously called `proCamera.release()` here for an
+    // "immediate" slot drop, but useProCamera's useEffect cleanup ALSO
+    // calls release on unmount. Both firing for the same owner decrements
+    // the ref-count by 2 (from 2 → 0), prematurely clearing the family
+    // while CallProvider's prejoin ref is still logically alive. Rely on
+    // the hook's cleanup as the single source of truth — the CallEnded
+    // modal unmount is the same tick window in practice.
     // End immediately on both sides, but keep the LiveKit room registered until
     // CallProvider publishes the hangup packet. Cleaning media first unregisters
     // the room and makes the peer wait for DB realtime instead of instant close.
