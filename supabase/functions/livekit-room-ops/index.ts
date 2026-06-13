@@ -9,6 +9,7 @@
 // Kill-switch: app_settings.livekit_signaling_enabled.room_ops === true (default OFF)
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { RoomServiceClient } from "npm:livekit-server-sdk@2.9.4";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,11 +18,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL") ?? "";
+const LIVEKIT_URL_RAW = Deno.env.get("LIVEKIT_URL") ?? "";
+// LiveKit server SDK needs an HTTP(S) URL; our env is wss:// for the client.
+const LIVEKIT_HTTP_URL = LIVEKIT_URL_RAW.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const json = (status: number, body: unknown) =>
@@ -33,30 +35,7 @@ const json = (status: number, body: unknown) =>
 type Action = "list_rooms" | "list_participants" | "get_room";
 const ALLOWED: Action[] = ["list_rooms", "list_participants", "get_room"];
 
-async function validateAdminToken(
-  token: string,
-): Promise<{ ok: boolean; role?: "owner" | "sub_admin" }> {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/validate-admin-token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ token, action: "validate" }),
-      },
-    );
-    if (!res.ok) return { ok: false };
-    const data = await res.json().catch(() => ({}));
-    return data?.valid ? { ok: true, role: data.role } : { ok: false };
-  } catch (e) {
-    console.warn("[livekit-room-ops] admin validate failed:", e);
-    return { ok: false };
-  }
-}
+// Auth: validated via requireAdminSession (admin_sessions + admin_users + device check).
 
 async function killSwitchOn(admin: ReturnType<typeof createClient>): Promise<boolean> {
   try {
@@ -103,7 +82,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
-  if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
+  if (!LIVEKIT_HTTP_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     return json(500, { error: "livekit_not_configured" });
   }
 
@@ -113,11 +92,9 @@ Deno.serve(async (req) => {
     return json(403, { error: "room_ops_disabled" });
   }
 
-  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
-  if (!adminToken) return json(401, { error: "missing_admin_token" });
-  const v = await validateAdminToken(adminToken);
-  if (!v.ok) return json(401, { error: "invalid_admin_token" });
-  const role = v.role ?? "sub_admin";
+  const adminAuth = await requireAdminSession(req, adminClient);
+  if (!adminAuth.ok) return json(adminAuth.status, { error: adminAuth.error });
+  const role = adminAuth.admin.role === "owner" ? "owner" : "sub_admin";
 
   const body = await req.json().catch(() => ({}));
   const action = String(body?.action ?? "") as Action;
@@ -132,7 +109,7 @@ Deno.serve(async (req) => {
     return json(400, { error: "missing_room_name" });
   }
 
-  const svc = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+  const svc = new RoomServiceClient(LIVEKIT_HTTP_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
   try {
     if (action === "list_rooms") {

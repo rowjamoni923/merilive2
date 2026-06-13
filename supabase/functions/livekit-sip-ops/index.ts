@@ -24,7 +24,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL") ?? "";
+const LIVEKIT_URL_RAW = Deno.env.get("LIVEKIT_URL") ?? "";
+// LiveKit server SDK needs an HTTP(S) URL; our env is wss:// for the client.
+const LIVEKIT_URL = LIVEKIT_URL_RAW.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
