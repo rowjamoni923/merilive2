@@ -885,7 +885,26 @@ const Chat = () => {
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
-    
+
+    // Unified flying-gift pill — same Bigo/Chamet style as Live/Party/Call
+    addFlyingGift({
+      senderId: currentUserId,
+      senderName: 'You',
+      receiverName: selectedConversation.other_user.display_name || 'User',
+      giftName: gift.name,
+      giftIcon: giftEmoji,
+      giftImageUrl: iconUrl || undefined,
+      animationUrl: giftMediaUrl || undefined,
+      animationFormat: giftAnimationFormat,
+      animationConfigUrl: giftConfigUrl || undefined,
+      soundUrl: giftSoundUrl || undefined,
+      giftColor: 'bg-pink-500/50',
+      count,
+      coins: gift.coins,
+      isOwnGift: true,
+      beansEarned: estimatedBeansEarned,
+    });
+
     // Gift animation is already playing - no toast needed
     
     const optimisticGiftRow: Message = {
