@@ -1518,7 +1518,7 @@ class LiveKitPlugin : Plugin() {
             val lr = localRenderer
             if (lr != null) {
                 withContext(Dispatchers.Main) {
-                    kotlin.runCatching { pr.initVideoRenderer(lr) }
+                    initVideoRendererIdempotent(pr, lr, "promote-local")
                     kotlin.runCatching { ptrack.addRenderer(lr) }
                 }
             }
@@ -2106,7 +2106,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 val renderer = localRenderer ?: createRenderer()
                 localRenderer = renderer
-                kotlin.runCatching { r.initVideoRenderer(renderer) }
+                initVideoRendererIdempotent(r, renderer, "attachLocal")
                 try { track.removeRenderer(renderer) } catch (_: Exception) {}
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
@@ -2171,7 +2171,7 @@ class LiveKitPlugin : Plugin() {
                 }
                 val renderer = createRenderer()
                 remoteRenderers[sid] = renderer
-                kotlin.runCatching { r.initVideoRenderer(renderer) }
+                initVideoRendererIdempotent(r, renderer, "attachRemote:$sid")
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = sid, sid = sid, isLocal = false)
