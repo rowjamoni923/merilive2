@@ -46,8 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *     captions) continue to live in the WebView ABOVE the video, exactly
  *     as today — zero UI regression.
  *   • Camera-conflict safe: ExoPlayer uses MediaCodec DECODER only, never
- *     touches Camera2 — no contention with LiveKit / CameraOwnership /
- *     GPUPixel (verified Pkg415 / Pkg416 / Pkg418).
+ *     touches Camera2 — no contention with LiveKit / CameraOwnership.
  *
  * ZERO-RISK ROLLOUT (Pkg427 mandate, mirrors Pkg426):
  *
