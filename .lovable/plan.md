@@ -148,6 +148,19 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Dead-code deletion:** Skipped. The plan's original wording ("delete unused beauty/light-kit second-camera paths") was speculative — audit shows `useBeautyState`/light-kit hooks already operate on top of the single LiveKit publisher track (no second `getUserMedia` / Camera2 opener exists for them). Nothing safe to delete without a concrete unused-import list. Will revisit if a follow-up audit surfaces actual dead branches.
 
+### Phase 9D — Private Call native surface handoff ✅ DONE 2026-06-14
+
+**Evidence from user's screenshot/video:** Private Call looked like Home/Live feed cards and bottom nav were bleeding through (`DAILY HOST BONUS`, `AGENCY COMMISSION`, feed card, chat bar/control overlap). Video also showed white/blank transitions when entering/leaving party/live surfaces.
+
+**Actual root cause:** the native `PrivateCallActivity` + `NativeCall.openInCallActivity()` API existed, but there was no React call-site for `openInCallActivity`. So Android private calls connected through native LiveKit media but still rendered the heavy web `ActiveCallScreen` chrome as the visible call UI. This kept a second UI/media-control layer alive over the WebView and made background route content look like part of the call when z-index/safe-area timing raced. Also native `PrivateCallActivity.onUserRequestedEnd()` dispatches action=`"end"`, but JS only handled action=`"ended"`, risking a leak if native end button became active.
+
+**Fix (3 files):**
+- `src/hooks/useLiveKitCall.ts` now exposes the native `{url, token}` session used by `NativeLiveKit.connect()`.
+- `src/components/call/ActiveCallScreen.tsx` now launches `NativeCall.openInCallActivity()` exactly once after native LiveKit connects, then suppresses the duplicate React call chrome with a transparent portal while JS signaling/billing hooks stay mounted.
+- `src/plugins/NativeCall.ts` + `src/components/call/CallProvider.tsx` now type/handle native action=`"end"` so native End button runs the JS settle path.
+
+**Verification:** APK rebuild REQUIRED. In Lovable preview this native Activity cannot open. After rebuild: owner starts/accepts private call → native full-screen `PrivateCallActivity` should appear (black/video surface, top peer overlay, PiP self-view, native bottom action bar), Home/live banners must not appear in the call, native End button must settle billing and release the Room.
+
 
 
 ## What I will NOT do without explicit OK
