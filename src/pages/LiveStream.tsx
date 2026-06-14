@@ -3449,14 +3449,10 @@ const LiveStream = () => {
         try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
       }
     } catch { /* ignore */ }
-    // Pkg418: track was just republished — re-apply beauty filters so the
-    // host's professional look survives the recover handshake.
-    try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
     toast.info('Restarting camera…');
   }, []);
 
-  // CSS beauty filter removed permanently — native GPUPixel pipeline is the
-  // single source of truth and already paints the broadcast/local track.
+  // Phase 9K: native beauty removed; never apply CSS/native camera filters.
   const combinedFilterCSS = '';
   void generateSyncedFilterCSS; void getBeautyFilterCSS;
 

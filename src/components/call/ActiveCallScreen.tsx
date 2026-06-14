@@ -102,7 +102,7 @@ export function ActiveCallScreen({
     }
   }, [isOpen, proCameraReady, onEndCall]);
 
-  // REAL native beauty integration (Pkg417 — actually drives GPUPixel now)
+  // Beauty state is UI-only; native beauty was removed for single-camera stability.
   const beauty = useBeautyState();
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);

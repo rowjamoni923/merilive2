@@ -189,21 +189,16 @@ export function BeautyFilterPanel({
       </div>
 
       <p className="text-[10px] text-muted-foreground text-center mt-4">
-        {native
-          ? "Powered by GPUPixel — runs on-device, no cloud, no watermark."
-          : "Live preview uses CSS. Install the Android app for the full pro engine."}
+        Camera stability mode is active. Beauty settings are saved but not applied to the native camera.
       </p>
     </div>
   );
 }
 
-/** Legacy CSS fallback for web preview ONLY. Pkg413: never paint on Android. */
+/** Compatibility helper — camera stability mode never applies visual filters. */
 export function generateBeautyCSS(enabled: boolean, settings: BeautySettings): string {
   if (!enabled || !settings) return "";
-  // On native Android the GPUPixel pipeline owns the camera + broadcast
-  // track. Adding any CSS filter on top of the already-processed local
-  // preview just double-blurs the frame — the exact "old bad blur" the
-  // user has been complaining about. Hard short-circuit here.
+  // Native beauty was removed in Phase 9K; do not add CSS blur fallback.
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cap: any = (globalThis as any).Capacitor;

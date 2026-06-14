@@ -292,7 +292,7 @@ const PartyRoom = () => {
     max_game_participants: 6
   });
   
-  // REAL native beauty integration for Party Rooms (Pkg417 drives GPUPixel)
+  // Beauty state is UI-only; native beauty was removed for single-camera stability.
   const beauty = useBeautyState();
 
   // Pkg416 — claim the single professional camera for video/game party.
