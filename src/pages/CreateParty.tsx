@@ -164,6 +164,11 @@ const CreateParty = () => {
       if (isNativeAndroid) {
         let nativeReady = false;
         if (videoMode) {
+          if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+            toast.error('Camera is busy. Close other camera screens and try again.');
+            setCameraReady(false);
+            return;
+          }
           const permission = await requestCameraPermission({ includeMicrophone: true });
           if (!permission.granted) throw new Error(permission.error || "Camera permission denied.");
           // Pro single-camera lifecycle (Chamet/Bigo): start the native
