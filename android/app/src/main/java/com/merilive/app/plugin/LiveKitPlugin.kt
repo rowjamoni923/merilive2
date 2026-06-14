@@ -44,10 +44,10 @@ import org.webrtc.SurfaceViewRenderer
  *
  * Bigo/Chamet-style continuous camera flow:
  *
- *   startLocalPreview()           → opens Camera2 ONCE, renders behind WebView
+ *   startLocalPreview()           → opens CameraX ONCE, renders behind WebView
  *   connect({ video:true })       → republishes the SAME LocalVideoTrack
  *                                    (no second openCamera, no flicker)
- *   disconnect() / teardownRoom() → unpublish + stop track + release Camera2
+ *   disconnect() / teardownRoom() → unpublish + stop track + release CameraX
  *
  * Single owner by construction: the only `LocalVideoTrack` instance lives in
  * `previewTrack`. Whether we're in "preview only" or "connected + publishing",
