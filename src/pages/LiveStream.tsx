@@ -2437,6 +2437,21 @@ const LiveStream = () => {
               });
         }
       }
+
+      // Phase 5 (Camera Rebuild Plan, 2026-06-14) — F5 defensive sweep.
+      // Even if leaveChannel() raced, force-disconnect any registered
+      // LiveKit Room belonging to this scope so navigation into Party /
+      // Game Party never inherits a half-alive room ref whose events
+      // could resurrect "live session" UI on the next screen.
+      void import('@/lib/livekitStreams')
+        .then(({ disconnectAllRegisteredRooms }) => {
+          try { disconnectAllRegisteredRooms(); } catch { /* ignore */ }
+        })
+        .catch(() => { /* ignore */ });
+      // Belt-and-suspenders: dismiss any sticky live toasts that Phase 4
+      // already handles inside leaveChannel — covers the abrupt unmount
+      // path where leaveChannel never ran.
+      try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
     };
   }, [id, location.state?.isHost]); // Only depends on id and initial isHost
 
