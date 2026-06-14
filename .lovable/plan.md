@@ -40,13 +40,15 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 - [x] Add JS shim `src/native/cameraAuthority.ts` + `src/native/seatRenderer.ts` (safe no-ops on web and pre-Phase-1 APKs).
 - **Verification:** project builds, no behavioral change. APK rebuild NOT required yet (no native call site change).
 
-### Phase 1 — F1 fix: Video Party seat-tile camera binding
-- [ ] Wire `bindSeatRenderer(seatIndex=0, identity=localIdentity)` when host mounts seat 0 in `VideoParty` room.
-- [ ] Wire same for remote seats on `participantConnected` / `trackSubscribed` LiveKit events.
-- [ ] On seat reshuffle / leave: `unbindSeat(seatIndex)`.
-- [ ] Use `ViewVisibility(view)` so off-screen seats stop decoding (saves CPU on mid-range).
-- **Files:** `src/hooks/usePartyRoomNativeLiveKit.ts`, `src/features/party/...` seat tile component, `LiveKitPlugin.kt`.
-- **Verification:** owner enters Video Party as host → seat 0 tile shows live face within 1.5 s. Second device joins as guest → guest's seat shows their face on owner's screen. APK rebuild required.
+### Phase 1 — F1 fix: Video Party seat-tile camera binding ✅ DONE 2026-06-14
+**Actual root cause (deeper than original plan):** Architecture was already correct — `NativeVideoView` → `attachLocalSurface` / `attachRemoteSurface` → `BoundedSurfaceHost` mounts a `TextureViewRenderer` behind the WebView and calls `videoTrack.addRenderer(renderer)`. `RoomEvent.TrackSubscribed` already triggered `BoundedSurfaceHost.rebindForRoom()` for late-arriving REMOTE tracks. **But there was NO `RoomEvent.LocalTrackPublished` handler** — so when the host's seat `NativeVideoView` mounted before the local camera track published (the normal race on room join), the renderer stayed unbound and the tile was permanently black.
+
+**Fix (1 file, ~30 lines):** Added `RoomEvent.LocalTrackPublished` case in `attachEventListeners` that calls `BoundedSurfaceHost.rebindForRoom(r)` on the UI thread when a local VIDEO track publishes. Industry parity: Agora's `onLocalVideoStateChanged(PUBLISHING)` is where Bigo/MICO trigger local VideoCanvas binding; LiveKit's `RoomEvent.LocalTrackPublished` is the direct equivalent. Also emits a `local-track-published` JS event for future React-side observers.
+
+**Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (one event-handler case added, no other behavior touched).
+**Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner enters Video Party as host → seat 0 tile should bind camera within 1.5 s of room join, no black tile. Same fix applies to Go Live host seat and Private Call self-view.
+
+**Note:** Phase 0's `SeatRendererBinder.kt` and `src/native/seatRenderer.ts` are NOT wired — `BoundedSurfaceHost` is already the production seat binder and works correctly once the missing event handler is in place. Phase 0 files remain as forward-looking infrastructure (e.g. for explicit identity-based seat APIs in future PK Battle work) but are dead code today. Safe to leave.
 
 ### Phase 2 — F2 fix: Go Live preview → broadcast (no black flash)
 - [ ] In `LiveKitPlugin.startLocalPreview` (already exists per mem://features/native-prejoin-camera-preview), retain the `Camera2Capturer` instance.
