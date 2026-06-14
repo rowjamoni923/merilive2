@@ -93,12 +93,18 @@ export function ActiveCallScreen({
   // LiveKit (which would otherwise hit a Camera2 ownership race and show
   // a permanent white preview).
   const proCamera = useProCamera('private-call', isOpen);
+  const proCameraEndRef = useRef(false);
   useEffect(() => {
     if (proCamera.error) {
       toast.error('Camera is busy with face verification. Please finish that first.');
       // Pkg418 hard gate: end the call so LiveKit never tries to claim
       // the camera while verification holds it.
-      try { onEndCall?.(); } catch { /* ignore */ }
+      if (!proCameraEndRef.current) {
+        proCameraEndRef.current = true;
+        try { onEndCall?.(); } catch { /* ignore */ }
+      }
+    } else {
+      proCameraEndRef.current = false;
     }
   }, [proCamera.error, onEndCall]);
 

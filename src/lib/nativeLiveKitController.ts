@@ -49,6 +49,7 @@ export interface NativeJoinOptions {
 class NativeLiveKitController {
   private connected = false;
   private busy = false;
+  private autoAttachLocalRenderer = true;
 
   private async attachLocalWithRetry(): Promise<void> {
     const delays = [0, 120, 300, 700, 1200];
@@ -129,8 +130,9 @@ class NativeLiveKitController {
       try {
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
+        this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
-        if (opts.attachLocal !== false) await this.attachLocalWithRetry();
+        if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
 
         return { sid: res.sid, identity: res.identity };
       } catch (error) {
@@ -187,6 +189,7 @@ class NativeLiveKitController {
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
       this.connected = false;
+      this.autoAttachLocalRenderer = true;
       this.busy = false;
     }
   }
@@ -241,7 +244,7 @@ class NativeLiveKitController {
     try {
       const r = await NativeLiveKit.setCameraEnabled({ enabled });
       if (enabled && (r as any)?.skipped) throw new Error((r as any)?.reason || 'camera-enable-skipped');
-      if (enabled) await this.attachLocalWithRetry();
+      if (enabled && this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
     } catch (e) {
       console.warn('[NativeLiveKitController] setCameraEnabled failed:', e);
       if (enabled) await this.reconnectNow().catch(() => false);

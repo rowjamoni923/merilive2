@@ -1051,9 +1051,6 @@ export function usePrivateCall(userId: string | null) {
         toast({ title: "Call Ended", description: `Duration: ${durationStr}` });
       }
 
-      // ☠️ DEAD FOREVER: 3-second cooldown before allowing new calls
-      setTimeout(() => { callEndedRef.current = false; }, 3000);
-
       // 🔵 NON-BLOCKING: Background tasks (finalize, conversation) - fire and forget
       const bgOtherUserId = cs.remoteUserId;
       setTimeout(async () => {
@@ -1084,7 +1081,6 @@ export function usePrivateCall(userId: string | null) {
       // 🔒 EMERGENCY: Force reset is_in_call even on total failure
       try { await supabase.rpc('reset_my_call_status'); } catch (_) {}
       
-      setTimeout(() => { callEndedRef.current = false; }, 3000);
       return false;
     }
   }, [userId, toast, clearAllTimers]);

@@ -64,6 +64,7 @@ import io.livekit.android.e2ee.BaseKeyProvider
 import io.livekit.android.e2ee.E2EEOptions
 import io.livekit.android.room.participant.RemoteTrackPublication
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -2137,6 +2138,13 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         activity?.runOnUiThread {
             try {
+                if (com.merilive.app.rtc.BoundedSurfaceHost.ownsRemote(sid)) {
+                    val ret = JSObject()
+                    ret.put("attached", true)
+                    ret.put("mode", "bounded-surface")
+                    call.resolve(ret)
+                    return@runOnUiThread
+                }
                 val participant = r.remoteParticipants.values.firstOrNull {
                     it.sid.value == sid
                 } ?: return@runOnUiThread call.reject("Participant not found")
@@ -2329,6 +2337,21 @@ class LiveKitPlugin : Plugin() {
         val mirror = call.getBoolean("mirror", true) ?: true
         val webView = bridge?.webView ?: return call.reject("WebView not ready")
         activity?.runOnUiThread {
+            // Party/video grids use bounded NativeVideoView surfaces. If the
+            // legacy fullscreen local renderer was mounted earlier by
+            // attachLocal(), remove it first so the same VideoTrack is not bound
+            // to two TextureViewRenderers on Mali/PowerVR OEM EGL stacks.
+            try {
+                val lr = localRenderer
+                val localTrack = room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)
+                    ?.track as? io.livekit.android.room.track.VideoTrack
+                if (lr != null) {
+                    try { localTrack?.removeRenderer(lr) } catch (_: Exception) {}
+                    try { (lr.parent as? ViewGroup)?.removeView(lr) } catch (_: Exception) {}
+                    try { lr.release() } catch (_: Exception) {}
+                    localRenderer = null
+                }
+            } catch (_: Exception) {}
             val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
                 context = context,
                 webView = webView,
@@ -2353,6 +2376,20 @@ class LiveKitPlugin : Plugin() {
         val h = call.getFloat("height") ?: 0f
         val webView = bridge?.webView ?: return call.reject("WebView not ready")
         activity?.runOnUiThread {
+            // Same rule for remote seats: bounded surface owns the tile. Remove
+            // any legacy full-screen remote renderer before binding the bounded
+            // renderer, otherwise the two renderers can fight over the same
+            // decoded frame stream and leave a permanent black tile.
+            try {
+                remoteRenderers.remove(sid)?.let { old ->
+                    val participant = room?.remoteParticipants?.values?.firstOrNull { it.sid.value == sid }
+                    val track = participant?.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    try { track?.removeRenderer(old) } catch (_: Exception) {}
+                    try { (old.parent as? ViewGroup)?.removeView(old) } catch (_: Exception) {}
+                    try { old.release() } catch (_: Exception) {}
+                }
+            } catch (_: Exception) {}
             val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
                 context = context,
                 webView = webView,
@@ -2508,6 +2545,13 @@ class LiveKitPlugin : Plugin() {
 
     @PermissionCallback
     private fun permsCallback(call: PluginCall) {
+        if (call.getString("url") == null || call.getString("token") == null) {
+            val data = JSObject()
+            data.put("reason", "stale_permission_call")
+            notifyListeners("permission-error", data)
+            call.reject("Permission flow expired; retry connect")
+            return
+        }
         val wantsVideo = call.getBoolean("video", true) ?: true
         val wantsAudio = call.getBoolean("audio", true) ?: true
         val cameraOk = !wantsVideo || getPermissionState("camera") == PermissionState.GRANTED
@@ -3223,7 +3267,6 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnResume() {
         super.handleOnResume()
         if (room == null) return
-        if (!inBackground) return
         inBackground = false
         try {
             val r = room ?: return
@@ -3311,6 +3354,7 @@ class LiveKitPlugin : Plugin() {
             // plugin instance will re-subscribe in its own load().
             try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
             unsubscribeAppLifecycle = null
+            scope.cancel()
             if (INSTANCE === this) INSTANCE = null
             return
         }
@@ -3382,6 +3426,7 @@ class LiveKitPlugin : Plugin() {
         unsubscribeAppLifecycle = null
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
+        scope.cancel()
         if (INSTANCE === this) INSTANCE = null
     }
 

@@ -423,7 +423,10 @@ export function usePartyRoomNativeLiveKit(
               audio: partyCanPublish,
               lens: 'front',
               resolution: '720p',
-              attachLocal: partyCanPublish && isVideoPartyType(roomType),
+              // Party video/game seats render through <NativeVideoView /> bounded
+              // surfaces. Do not also mount the legacy fullscreen local renderer;
+              // double-binding the same native track can black out OEM EGL stacks.
+              attachLocal: false,
               audioProfile: 'broadcast',
               callType: 'Party Room',
               roomScope: 'party',
@@ -439,7 +442,7 @@ export function usePartyRoomNativeLiveKit(
               ...prev,
               isConnected: true,
               isAudioEnabled: partyCanPublish,
-              isVideoEnabled: partyCanPublish && isVideoPartyType(roomType),
+              isVideoEnabled: partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current,
               connectionState: ConnectionState.Connected,
               isNativeMediaActive: true,
             }));

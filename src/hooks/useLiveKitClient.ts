@@ -212,6 +212,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qualityEnforcerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(resolveVideoQuality(getVideoQualityChoice()));
@@ -222,6 +223,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Mirror of usingNativeRef as state to drive the native event-listener
   // subscription (must be a re-rendering value, not a ref).
   const [nativeActive, setNativeActive] = useState(false);
+  const lastNativeReconnectAttemptAtRef = useRef(0);
+
+  const requestNativeReconnect = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNativeReconnectAttemptAtRef.current < 2000) return Promise.resolve(false);
+    lastNativeReconnectAttemptAtRef.current = now;
+    return nativeLiveKitController.reconnectNow();
+  }, []);
 
   // Subscribe to native plugin events while the host session is on the
   // native Android publish path. Surface disconnects back into React.
@@ -239,7 +248,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
       toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-      nativeLiveKitController.reconnectNow().then((ok) => {
+      requestNativeReconnect().then((ok) => {
         if (ok) {
           setNativeActive(true);
           setIsJoined(true);
@@ -261,7 +270,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setConnectionState('CONNECTING');
       } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
@@ -279,13 +288,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
     onVideoStall: (s, isLocal) => {
       if (s === 'failed' && isLocal) {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
@@ -949,8 +958,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             });
           });
         }, 10000);
+        qualityEnforcerRef.current = qualityEnforcer;
 
-        room.on(RoomEvent.Disconnected, () => clearInterval(qualityEnforcer));
+        room.on(RoomEvent.Disconnected, () => {
+          if (qualityEnforcer) clearInterval(qualityEnforcer);
+          if (qualityEnforcerRef.current === qualityEnforcer) qualityEnforcerRef.current = null;
+        });
       }
 
       // === PRELOADED ROOM FAST PATH ===
@@ -963,6 +976,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         if (qualityEnforcer) {
           clearInterval(qualityEnforcer);
           qualityEnforcer = null;
+          qualityEnforcerRef.current = null;
+        }
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+          tokenRefreshDetachRef.current = null;
         }
         room.removeAllListeners();
         roomRef.current = config.preloadedRoom;
@@ -1326,6 +1344,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       return { uid, channel: normalizedChannel };
     } catch (err: any) {
       console.error('[LiveKitClient] Join error:', err);
+      if (qualityEnforcerRef.current) {
+        clearInterval(qualityEnforcerRef.current);
+        qualityEnforcerRef.current = null;
+      }
       setError(err.message || 'Failed to join channel');
       setConnectionState('DISCONNECTED');
       options.onError?.(err);
@@ -1351,6 +1373,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     try {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
+      if (qualityEnforcerRef.current) {
+        clearInterval(qualityEnforcerRef.current);
+        qualityEnforcerRef.current = null;
+      }
       if (tokenRefreshDetachRef.current) {
         try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
         tokenRefreshDetachRef.current = null;

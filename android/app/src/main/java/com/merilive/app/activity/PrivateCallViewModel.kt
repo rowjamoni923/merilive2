@@ -267,18 +267,9 @@ class PrivateCallViewModel : ViewModel() {
             runCatching {
                 r.events.collect { ev ->
                     when (ev) {
-                        is RoomEvent.ParticipantConnected -> {
-                            if (ev.participant.identity?.value == _identity.value?.peerId) {
-                                cancelPeerGrace()
-                            }
-                        }
+                        is RoomEvent.ParticipantConnected -> Unit
 
-                        is RoomEvent.ParticipantDisconnected -> {
-                            // Only react to the peer we are paired with.
-                            if (ev.participant.identity?.value == _identity.value?.peerId) {
-                                startPeerGrace()
-                            }
-                        }
+                        is RoomEvent.ParticipantDisconnected -> Unit
 
                         is RoomEvent.TrackSubscribed -> {
                             val track = ev.track
@@ -313,25 +304,11 @@ class PrivateCallViewModel : ViewModel() {
                             captureLocalTrackIfPossible(r)
                         }
 
-                        is RoomEvent.Reconnecting -> {
-                            if (_state.value != CallState.ENDING && _state.value != CallState.ENDED) {
-                                _state.value = CallState.RECONNECTING
-                            }
-                        }
+                        is RoomEvent.Reconnecting -> Unit
 
-                        is RoomEvent.Reconnected -> {
-                            if (_state.value == CallState.RECONNECTING) {
-                                _state.value =
-                                    if (peerHasVideo(r)) CallState.CONNECTED else CallState.CONNECTING
-                            }
-                        }
+                        is RoomEvent.Reconnected -> Unit
 
-                        is RoomEvent.Disconnected -> {
-                            // The Plugin owns reconnect; if it gave up the
-                            // Room is dead and we should end the Activity.
-                            markEnding("room_disconnected")
-                            markEnded()
-                        }
+                        is RoomEvent.Disconnected -> Unit
 
                         else -> Unit
                     }

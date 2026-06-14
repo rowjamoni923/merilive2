@@ -96,7 +96,11 @@ export const useLiveStreamLifecycle = ({
     // Can't await on unload, so use stored auth token if available
     try {
       const authStorageKey = getSupabaseAuthStorageKey();
-      const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
+      let rawSession = '{}';
+      if (authStorageKey) {
+        try { rawSession = localStorage.getItem(authStorageKey) || '{}'; } catch { rawSession = '{}'; }
+      }
+      const session = JSON.parse(rawSession);
       const token = session?.access_token;
       if (token) {
         fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/close_live_stream_now`, {
