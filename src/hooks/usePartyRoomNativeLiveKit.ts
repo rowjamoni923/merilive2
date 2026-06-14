@@ -284,7 +284,6 @@ export function usePartyRoomNativeLiveKit(
       roomRef.current = null;
     }
 
-    releaseWebViewCameraIfAndroid();
     void releaseAndroidWebViewCameraNow('party-room:cleanup-force');
     detachAllAudio();
     peerStreamsRef.current.clear();
