@@ -2284,6 +2284,7 @@ class LiveKitPlugin : Plugin() {
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
 
         scope.launch {
             try {
@@ -2317,13 +2318,19 @@ class LiveKitPlugin : Plugin() {
                 previewTrack = track
                 track.startCapture()
 
-                withContext(Dispatchers.Main) {
-                    val renderer = createRenderer()
-                    previewRenderer = renderer
-                    initVideoRendererIdempotent(pr, renderer, "preview")
-                    try { renderer.setMirror(mirror) } catch (_: Throwable) {}
-                    track.addRenderer(renderer)
-                    mountBehindWebView(renderer)
+                if (!boundedOnly) {
+                    withContext(Dispatchers.Main) {
+                        val renderer = createRenderer()
+                        previewRenderer = renderer
+                        initVideoRendererIdempotent(pr, renderer, "preview")
+                        try { renderer.setMirror(mirror) } catch (_: Throwable) {}
+                        track.addRenderer(renderer)
+                        mountBehindWebView(renderer)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        bridge?.webView?.setBackgroundColor(Color.TRANSPARENT)
+                    }
                 }
 
                 val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
