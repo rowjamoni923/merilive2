@@ -88,12 +88,23 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 
 
 
-### Phase 5 — F5 fix: zombie Live session timer in Game Party
-- [ ] Single `releaseAll()` exit path: mute → `room.disconnect()` → `localParticipant.cleanup()` → stop foreground service → cancel `viewModelScope`.
-- [ ] `CallProvider` (`src/components/call/CallProvider.tsx`) subscribes to a single `sessionEnded` event and clears its timer state.
-- [ ] Add unit test: simulate live end → assert `CallProvider.state.isLive === false` within 200 ms.
-- **Files:** `CallProvider.tsx`, `LiveKitPlugin.kt`, `useLiveKitClient.ts`.
-- **Verification:** owner ends live → enters Game Party → no "Live session" bar. APK rebuild required.
+### Phase 5 — F5 fix: zombie Live session timer in Game Party ✅ DONE 2026-06-14 (defensive — needs user repro to confirm)
+**Audit result — surprising finding:** the literal string "Live session" does NOT exist anywhere in `src/`, `android/app/src/main/`, or any layout XML. So the "Live session timer bar" the user saw is conceptual, not a single named component. Candidates audited:
+- **`CallProvider` body class `call-overlay-active`** — already cleanly removed on unmount via the cleanup return at line 167.
+- **`LiveStream.tsx` unmount path** — already calls `leaveChannel()` at line 2430 which (after the Phase 4 fix) also dismisses the sticky `lk-live-reconnect` toast.
+- **`usePartyRoomNativeLiveKit` cleanup** — already disconnects the Room, stops local tracks, clears all signaling registrations, releases the WebView camera handle.
+- **No foreground service** — `rg startForeground|stopForeground` returns 0 matches in the LiveKit plugin path, so an Android notification cannot be the leak.
+- **The `lk-live-reconnect` sticky toast (fixed in Phase 4)** is the highest-probability candidate for what the user actually saw bleeding into Game Party.
+
+**Defensive fix applied (1 file, ~10 lines):** `src/pages/LiveStream.tsx` unmount cleanup now ALSO:
+1. Dynamically imports and calls `disconnectAllRegisteredRooms()` (the same helper `CallProvider` uses before accepting a call) — guarantees any half-alive `Room` ref this page registered is torn down even if `leaveChannel()` raced or was skipped.
+2. Calls `sonnerToast.dismiss('lk-live-reconnect')` directly (hybridToast wrapper has no `dismiss`) as a belt-and-suspenders against abrupt unmount paths where `leaveChannel()` never ran.
+
+**Files:** `src/pages/LiveStream.tsx`.
+**Verification:** PREVIEW-TESTABLE (pure JS, no APK needed). Owner: Go Live → end → navigate to Game Party → no stray "Stabilizing live camera…" / live-session UI. If a different element still appears, it is NOT one of the candidates above — please send a screenshot and I'll target it surgically rather than rewriting all session state blindly.
+
+**Honesty:** plan.md's original Phase 5 proposed a global `releaseAll()` refactor + a `CallProvider` `sessionEnded` subscription + a unit test. That was speculative — `CallProvider` is exclusively a Private Call provider in this codebase, not a live-session provider. There is no `CallProvider.state.isLive`. Implementing the original plan would have invented new state machines for a symptom that is most likely already cured by the Phase 4 toast-dismiss + the new defensive unmount sweep. I declined to invent that scope creep.
+
 
 ### Phase 6 — Wire the `CameraAuthorityManager` (the real "single camera" guarantee)
 - [ ] Every camera-opening path (Live / Private Call / Video Party / Game Party / Face Verify) wraps its open in `CameraAuthorityManager.request(owner) { ... }`.
