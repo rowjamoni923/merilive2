@@ -69,7 +69,7 @@ class NativeLiveKitController {
   }
 
   async attachLocal(): Promise<void> {
-    if (!this.connected) return;
+    if (!this.connected || !this.autoAttachLocalRenderer) return;
     await this.attachLocalWithRetry();
   }
 
