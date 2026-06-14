@@ -1119,15 +1119,33 @@ class LiveKitPlugin : Plugin() {
             args.roomScope != "party" &&
             previewRoom != null &&
             previewTrack != null &&
-            room == null &&
-            !boundedSurfacesActive
+            room == null
+            // Phase 2 (Camera Rebuild Plan, 2026-06-14) — F2 fix.
+            // Bounded NativeVideoView surfaces no longer block promotion.
+            // Modern LiveStream page mounts a bounded <NativeVideoView
+            // kind="local"/> for the host BEFORE useLiveKitClient.connect()
+            // fires, which previously forced fall-through to the cold-start
+            // path: stopLocalPreviewInternal → 650 ms OEM Camera2 release
+            // grace → awaitFrontCameraAvailable (up to several seconds) →
+            // reopen Camera2 → publish. That sequence is the 1–3 s black
+            // flash the user reported on Start Live.
+            //
+            // Safe to lift now because Phase 1 added a
+            // RoomEvent.LocalTrackPublished handler that calls
+            // BoundedSurfaceHost.rebindForRoom(r) on the UI thread — any
+            // already-mounted bounded surface for kind="local" resolves the
+            // promoted ptrack immediately. The fullscreen preview renderer
+            // (now held as `localRenderer` post-promotion) keeps painting
+            // its last frame until attachLocalSurface() removes & releases
+            // it as part of its existing bounded-surface handover (line ~2385).
         if (canPromotePreview) {
             promotePreviewToSession(args)
             return
         }
-        if (!isReconnect && previewTrack != null && (args.roomScope == "party" || boundedSurfacesActive)) {
-            Log.i(TAG, "connectInternal: bounded/party video path — cold-starting session instead of promoting fullscreen preview")
+        if (!isReconnect && previewTrack != null && args.roomScope == "party") {
+            Log.i(TAG, "connectInternal: party video path — cold-starting session (no prejoin preview to promote from)")
         }
+
 
         // Legacy rebuild path — release the pre-connect preview camera FIRST
         // so the real session can claim Camera2 cleanly. The CameraOwnership
