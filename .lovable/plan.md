@@ -53,7 +53,7 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 ### Phase 2 — F2 fix: Go Live preview → broadcast (no black flash) ✅ DONE 2026-06-14
 **Actual root cause:** `promotePreviewToSession()` (the proper Agora-style `setupLocalVideo→joinChannel` LiveKit translation that reuses the same Camera2 + `LocalVideoTrack` for prejoin preview and live broadcast) was already implemented in `LiveKitPlugin.kt` (line 1454). But its eligibility gate excluded sessions where a bounded `<NativeVideoView />` was mounted (`!boundedSurfacesActive`). The modern `LiveStream.tsx` page mounts a bounded `<NativeVideoView kind="local" />` for the host the moment it renders — BEFORE `useLiveKitClient.connectAndPublish()` fires. So the gate always failed for the modern Go Live path → fell through to the legacy cold-start: `stopLocalPreviewInternal` (release Camera2) → 650 ms OEM grace → `awaitFrontCameraAvailable` (up to seconds) → reopen Camera2 → connect → publish. That sequence produced the 1–3 s black flash, occasionally permanent on slow OEM HALs.
 
-**Fix (1 file, ~16 effective lines):** Removed the `!boundedSurfacesActive` clause from the promotion gate. Safe because Phase 1 just added a `RoomEvent.LocalTrackPublished` handler that calls `BoundedSurfaceHost.rebindForRoom(r)` — any already-mounted bounded local surface resolves the promoted track immediately. The fullscreen preview renderer continues painting its last frame until `attachLocalSurface` removes & releases the legacy renderer as part of its existing handover (line ~2385). Party-room gate (`args.roomScope != "party"`) kept intact (Video Party has no prejoin preview to promote from).
+**Fix (1 file, ~16 effective lines):** Removed the `!boundedSurfacesActive` clause from the promotion gate. Safe because Phase 1 just added a `RoomEvent.LocalTrackPublished` handler that calls `BoundedSurfaceHost.rebindForRoom(r)` — any already-mounted bounded local surface resolves the promoted track immediately. The fullscreen preview renderer continues painting its last frame until `attachLocalSurface` removes & releases the legacy renderer as part of its existing handover (line ~2385). Phase 9E later removed the party-room exclusion too, so Video Party prejoin now uses the same no-camera-reopen promotion path.
 
 **Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (gate clause removed, comment + log message updated, no other behavior touched).
 **Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner taps Go Live → preview face stays visible into broadcast with no black frame; second device confirms it sees the stream within 2 s. If still black on host: check logcat for `promotePreviewToSession` log line — its absence means a different gate failed (most likely `previewRoom/previewTrack==null` because user skipped prejoin preview or it crashed earlier; that's a separate fix).
@@ -161,6 +161,18 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 - `src/hooks/usePrivateCall.ts` now calls `NativeCall.closeInCallActivity()` on reset, remote soft-end, and local hangup so the native surface cannot survive after JS settles/ends the call.
 
 **Verification:** APK rebuild REQUIRED. In Lovable preview this native Activity cannot open. After rebuild: owner starts/accepts private call → native full-screen `PrivateCallActivity` should appear (black/video surface, top peer overlay, PiP self-view, native bottom action bar), Home/live banners must not appear in the call, native End button must settle billing and release the Room.
+
+### Phase 9E — Sub-agent follow-up camera/call gaps ✅ DONE 2026-06-14
+
+**Research/audit result:** Sub-agents independently confirmed the Phase 9D root cause (`NativeCall.openInCallActivity` had no JS call-site) and surfaced two safe native fixes:
+1. `PrivateCallViewModel` ignored `RoomEvent.Reconnecting` / `RoomEvent.Reconnected`, so its own deferred peer-grace logic never actually entered `RECONNECTING` state. A short ICE restart could still mark the peer as left.
+2. `LiveKitPlugin` still hard-excluded `roomScope == "party"` from preview promotion, forcing Video Party through stop-preview → OEM grace → reopen Camera2, causing the same black flash pattern.
+
+**Fix (2 files):**
+- `android/app/src/main/java/com/merilive/app/activity/PrivateCallViewModel.kt` now cancels peer grace and enters `RECONNECTING` on LiveKit reconnect, then returns to `CONNECTED`/`CONNECTING` on `Reconnected`.
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` removed the party exclusion from `canPromotePreview`, so party prejoin can publish the already-running preview track instead of reopening Camera2.
+
+**Verification:** APK rebuild REQUIRED. Owner tests: weak-network private call should not end during a normal ICE reconnect; Create Party → PartyRoom should keep local preview continuously with no black camera flash.
 
 
 
