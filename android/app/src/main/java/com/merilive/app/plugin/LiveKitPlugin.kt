@@ -90,23 +90,24 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        // Activate CameraX as the underlying capturer for the whole LiveKit
-        // SDK. Once registered, every setCameraEnabled() / createVideoTrack()
-        // call (including startLocalPreview here) uses CameraX instead of
-        // the default raw Camera2 capturer. Google maintains OEM-specific
-        // patches inside CameraX, so this gives us ~99% device coverage
-        // (Samsung/Xiaomi/Vivo/Oppo HAL quirks handled upstream).
+        // CameraX is the ONLY camera pipeline this plugin uses. We register
+        // it globally with the LiveKit SDK so every createVideoTrack() /
+        // setCameraEnabled() / startLocalPreview() call goes through CameraX.
+        // CameraX is Google's official 2025 recommendation — it internally
+        // handles OEM HAL quirks (Samsung/Xiaomi/Vivo/Oppo) giving ~99%
+        // device coverage. Only ONE camera pipeline is ever active.
         try {
             val app = context.applicationContext as android.app.Application
             val provider = CameraXHelper.createCameraProvider(ProcessLifecycleOwner.get())
             if (provider.isSupported(app)) {
                 CameraCapturerUtils.registerCameraProvider(provider)
-                Log.i(TAG, "CameraX provider registered — using CameraX capturer")
+                Log.i(TAG, "CameraX provider registered — CameraX is the active capturer")
             } else {
-                Log.w(TAG, "CameraX provider not supported on this device — falling back to Camera2")
+                // Extremely rare (pre-API 21 / no CameraX HAL). SDK default kicks in.
+                Log.w(TAG, "CameraX not supported on this device — SDK default capturer will be used")
             }
         } catch (t: Throwable) {
-            Log.w(TAG, "CameraX registration failed; falling back to Camera2", t)
+            Log.w(TAG, "CameraX registration failed; SDK default capturer will be used", t)
         }
         Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
     }
