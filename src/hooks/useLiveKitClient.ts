@@ -288,14 +288,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
+        nativeLiveKitController.attachLocal().catch(() => {});
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
       }
     },
     onVideoStall: (s, isLocal) => {
       if (s === 'failed' && isLocal) {
-        toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
+        nativeLiveKitController.attachLocal().catch(() => {});
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
       }
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
