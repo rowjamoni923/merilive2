@@ -4241,7 +4241,10 @@ class LiveKitPlugin : Plugin() {
                 }
                 emitAudioInterruption("loss", change == AudioManager.AUDIOFOCUS_LOSS)
             }
-            AudioManager.AUDIOFOCUS_GAIN -> {
+            AudioManager.AUDIOFOCUS_GAIN,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
                 if (micPausedByFocusLoss) {
                     micPausedByFocusLoss = false
                     val restore = micIntentBeforeLoss
@@ -5870,6 +5873,7 @@ class LiveKitPlugin : Plugin() {
             }
             if (m != null) {
                 m.invoke(track, proc)
+                Log.d(TAG, "setVideoProcessor attached via public method on ${track.javaClass.name}")
                 return true
             }
         } catch (_: Throwable) { /* fall through to reflection */ }
@@ -5887,6 +5891,7 @@ class LiveKitPlugin : Plugin() {
                         it.name == "setVideoProcessor" && it.parameterTypes.size == 1
                     } ?: continue
                     m.invoke(v, proc)
+                    Log.d(TAG, "setVideoProcessor attached via field ${f.name} on ${cls?.name}")
                     return true
                 } catch (_: Throwable) { /* try next field */ }
             }
