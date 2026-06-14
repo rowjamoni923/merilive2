@@ -1082,15 +1082,20 @@ class LiveKitPlugin : Plugin() {
         //   • no existing real session
         // Resolution mismatch is OK — capture frames are downscaled at
         // encode time, no Camera2 restart needed.
+        val boundedSurfacesActive = com.merilive.app.rtc.BoundedSurfaceHost.hasSurfaces()
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
             previewRoom != null &&
             previewTrack != null &&
-            room == null
+            room == null &&
+            !boundedSurfacesActive
         if (canPromotePreview) {
             promotePreviewToSession(args)
             return
+        }
+        if (!isReconnect && previewTrack != null && boundedSurfacesActive) {
+            Log.i(TAG, "connectInternal: bounded NativeVideoView active — cold-starting session instead of promoting fullscreen preview")
         }
 
         // Legacy rebuild path — release the pre-connect preview camera FIRST
@@ -1905,6 +1910,11 @@ class LiveKitPlugin : Plugin() {
                     ret.put("reason", "camera-open-timeout")
                     call.resolve(ret)
                     return@launch
+                }
+                if (enabled) {
+                    withContext(Dispatchers.Main) {
+                        try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                    }
                 }
                 call.resolve(JSObject().put("enabled", enabled))
             } catch (e: Exception) {
