@@ -247,7 +247,7 @@ class LiveKitPlugin : Plugin() {
     }
 
     internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
-        val r = room ?: return
+        if (room == null) return
         try {
             if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
         } catch (e: Exception) {
