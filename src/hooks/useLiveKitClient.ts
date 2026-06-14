@@ -265,6 +265,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     },
     // Step 19 — sticky reconnect toast for live broadcasters/viewers.
     onConnectionState: (s) => {
+      // Guard: during teardown, ignore late native events so they don't
+      // re-raise the sticky 'lk-live-reconnect' toast after dismiss.
+      if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'reconnecting') {
         toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
         setConnectionState('CONNECTING');
@@ -278,11 +281,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     },
     // Step 19 — permanent audio focus loss (PSTN call) — inform broadcaster.
     onAudioInterruption: (s, permanent) => {
+      if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'loss' && permanent) {
         toast.info('Mic paused — interrupted by another app');
       }
     },
     onCameraState: (s) => {
+      // Guard: Android fires camera-state:failed during teardown — without
+      // this guard the sticky toast leaks onto Home / CreateParty.
+      if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'started') {
         window.dispatchEvent(new Event('beauty:reapply'));
         nativeLiveKitController.attachLocal().catch(() => {});
@@ -294,6 +301,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
     },
     onVideoStall: (s, isLocal) => {
+      if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'failed' && isLocal) {
         toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
         nativeLiveKitController.attachLocal().catch(() => {});
