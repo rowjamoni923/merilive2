@@ -1,33 +1,11 @@
 /**
- * AdminTencentBeautySettings — Pkg200 + Pkg201 admin panel for the
- * professional GPUPixel beauty engine. (Filename kept for backwards
- * compatibility with existing admin routes.)
- *
- * Controls:
- *  - Engine status (Apache 2.0 GPUPixel, native on-device)
- *  - Broadcast injection flag (Pkg201, OFF by default — only enable
- *    on a test device first, then roll out to production hosts)
+ * Camera rebuild 2026-06-14: native beauty engine removed.
+ * Filename kept for backwards compatibility with existing admin routes.
  */
-import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Capacitor } from "@capacitor/core";
-import {
-  isBroadcastBeautyEnabled,
-  setBroadcastBeautyFlag,
-} from "@/plugins/GPUPixelBeauty";
 
 export default function AdminTencentBeautySettings() {
-  const isAndroid = Capacitor.getPlatform() === "android";
-  const [broadcast, setBroadcast] = useState(false);
-
-  useEffect(() => setBroadcast(isBroadcastBeautyEnabled()), []);
-
-  const onToggle = (v: boolean) => {
-    setBroadcast(v);
-    setBroadcastBeautyFlag(v);
-  };
-
   return (
     <div className="space-y-6 p-2">
       <div className="rounded-2xl border border-border bg-card p-5">
@@ -37,16 +15,16 @@ export default function AdminTencentBeautySettings() {
           </div>
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              Beauty Engine — GPUPixel
+              Beauty Engine
             </h2>
             <p className="text-xs text-muted-foreground">
-              Apache 2.0 · on-device GPU · no watermark · no cloud
+              Disabled to protect single-camera stability
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-foreground">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          Engine active on {isAndroid ? "this Android device" : "Android APK only (web preview uses CSS)"}.
+        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] p-2">
+          <AlertTriangle className="w-3.5 h-3.5 mt-[2px] shrink-0" />
+          <span>Native beauty was removed from the APK. Live, party, and private call now use only the LiveKit camera path.</span>
         </div>
       </div>
 
@@ -70,7 +48,7 @@ export default function AdminTencentBeautySettings() {
               </span>
             </div>
           </div>
-          <Switch checked={broadcast} onCheckedChange={onToggle} disabled={!isAndroid} />
+          <Switch checked={false} disabled />
         </div>
       </div>
     </div>
