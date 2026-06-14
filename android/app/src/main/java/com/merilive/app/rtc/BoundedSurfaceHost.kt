@@ -122,6 +122,7 @@ object BoundedSurfaceHost {
                 try { prev.removeRenderer(entry.renderer) } catch (_: Exception) {}
             }
             try {
+                initRenderer(room, entry.renderer, viewId)
                 track.addRenderer(entry.renderer)
                 entry.boundTrack = track
                 if (kind == "remote" && sid != null) ownedRemoteSids.add(sid)
@@ -203,6 +204,7 @@ object BoundedSurfaceHost {
                 else -> null
             } ?: continue
             try {
+                initRenderer(room, entry.renderer, viewId)
                 track.addRenderer(entry.renderer)
                 entry.boundTrack = track
                 if (entry.kind == "remote" && entry.sid != null) ownedRemoteSids.add(entry.sid!!)
