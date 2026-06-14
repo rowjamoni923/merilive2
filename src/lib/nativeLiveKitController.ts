@@ -113,20 +113,18 @@ class NativeLiveKitController {
       // Professional Android apps keep exactly one visible native SDK media
       // owner; stale adoption is what creates "already live" and background
       // camera leaks after an explicit end/exit.
-      try {
-        const active = await NativeLiveKit.getActiveSession();
-        if (active?.active) {
-          const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
-          if (requestedFeature && activeScope && activeScope !== requestedFeature) {
-            throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
-          }
+      const active = await NativeLiveKit.getActiveSession().catch(() => null);
+      if (active?.active) {
+        const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
+        if (requestedFeature && activeScope && activeScope !== requestedFeature) {
+          throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
+        }
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
           this.activeFeature = null;
           await new Promise((resolve) => setTimeout(resolve, 300));
-        }
-      } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
+      }
 
       // If a stale session is around, tear it down first to avoid duplicate publishers.
       if (this.connected) {
