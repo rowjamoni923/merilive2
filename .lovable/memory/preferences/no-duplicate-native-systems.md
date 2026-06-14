@@ -29,7 +29,7 @@ Each native concern must have **exactly ONE owner plugin/manager**. No two plugi
 | Audio focus | `AudioFocusPlugin` (single arbiter) | Per-plugin local focus requests |
 | Audio routing (speaker/headset/BT) | `HeadsetRoutingPlugin` | None |
 | Gift/entry SFX | `GiftAudioMixer` (SoundPool + MediaPlayer pool) | No `MediaPlayer.create()` scattered elsewhere |
-| Beauty filter pipeline | ONE of `GPUPixelBeautyPlugin` / `BeautyPipelineBridge` / `video/GPUPixelBeautyProcessor` — must consolidate to one | The other two must be deleted |
+| Beauty filter pipeline | **REMOVED in Phase 9K** — no native beauty camera/processor path in production APK | `GPUPixelBeautyPlugin`, `BeautyPipelineBridge`, `video/GPUPixelBeautyProcessor`, DeepAR/Tencent beauty paths |
 | Virtual background | `VirtualBackgroundProcessor` (single, integrated into chosen beauty pipeline) | None |
 | Call lifecycle | `LiveKitPlugin` + `NativeCallPlugin` consolidated, or one delegates to other — NOT two independent | `MeriConnectionService` + `TelecomBridge` for Telecom API only, must NOT spin its own LiveKit |
 | Foreground service | `CallForegroundService` (single) | No per-feature foreground service |
@@ -53,7 +53,7 @@ Each native concern must have **exactly ONE owner plugin/manager**. No two plugi
 
 ## Current known duplicate suspects (2026-06-07 audit)
 - Camera: `NativeCameraPlugin.java` (Java, legacy) vs `LiveKitPlugin.kt` (Kotlin, RTC) vs `video/NativeVideoEnginePlugin.java` → audit purpose of each, consolidate
-- Beauty: `BeautyPipelineBridge.kt` + `GPUPixelBeautyPlugin.kt` + `video/GPUPixelBeautyProcessor.kt` → 3 paths for one concern
+- Beauty: `BeautyPipelineBridge.kt` + `GPUPixelBeautyPlugin.kt` + `video/GPUPixelBeautyProcessor.kt` were deleted in Phase 9K. Do not re-add without explicit owner approval.
 - Audio engine: `video/NativeAudioEnginePlugin.java` vs `AudioFocusPlugin.java` + LiveKit audio → audit
 - Call: `NativeCallPlugin.kt` vs `LiveKitPlugin.kt` vs `telecom/*` — clarify ownership boundaries
 
