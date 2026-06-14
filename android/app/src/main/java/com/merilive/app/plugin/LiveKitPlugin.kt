@@ -1512,13 +1512,14 @@ class LiveKitPlugin : Plugin() {
         // Pkg416 — re-anchor the EGL context on the existing local renderer
         // AFTER the room has connected. Android 15 / Pixel 9 occasionally
         // detaches the SurfaceTexture during the SFU handshake; re-running
-        // initVideoRenderer + addRenderer is idempotent (runCatching swallows
-        // "Already initialized") and guarantees the local tile keeps painting.
+        // initVideoRenderer is idempotent for the "Already initialized" case;
+        // remove→add avoids double-binding the same renderer on the same track.
         try {
             val lr = localRenderer
             if (lr != null) {
                 withContext(Dispatchers.Main) {
                     initVideoRendererIdempotent(pr, lr, "promote-local")
+                    kotlin.runCatching { ptrack.removeRenderer(lr) }
                     kotlin.runCatching { ptrack.addRenderer(lr) }
                 }
             }
@@ -3061,6 +3062,7 @@ class LiveKitPlugin : Plugin() {
                 // Pkg415: re-bind the preserved renderer + stall sink to the new track.
                 if (keptRenderer != null) {
                     try {
+                        initVideoRendererIdempotent(r, keptRenderer, "adaptive-local")
                         newTrack.addRenderer(keptRenderer)
                     } catch (e: Exception) {
                         Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
