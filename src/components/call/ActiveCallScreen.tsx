@@ -458,14 +458,19 @@ export function ActiveCallScreen({
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
-      // Unified chat trace — same as DM/Live/Party
+      // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
       setChatMessages((prev) => [
         ...prev,
         {
           id: `gift-recv-${detail.senderId}-${Date.now()}`,
           senderId: detail.senderId,
           senderName: detail.senderName || 'User',
-          message: `🎁 sent ${detail.giftName || 'Gift'} ×${detail.count || 1}`,
+          message: encodeInlineGiftMarker({
+            giftName: detail.giftName || 'Gift',
+            count: detail.count || 1,
+            coins: detail.giftCoins || 0,
+            iconUrl: detail.giftIconUrl || '',
+          }),
           timestamp: Date.now(),
         },
       ]);
