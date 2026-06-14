@@ -176,27 +176,38 @@ export function useLiveKitCall(
     onCameraState: (s) => {
       if (deadRef.current) return;
       if (s === 'started') {
+        // Phase 9B: dismiss any pending stabilize toast as soon as frames flow.
+        if (callCameraStabilizeTimerRef.current) {
+          clearTimeout(callCameraStabilizeTimerRef.current);
+          callCameraStabilizeTimerRef.current = null;
+        }
+        toast.dismiss('lk-call-camera-stabilize');
         window.dispatchEvent(new Event('beauty:reapply'));
         setState(p => ({ ...p, localMediaReady: true, isVideoEnabled: true }));
-        // Pkg423 — defense-in-depth: re-attach every remote TextureView after
-        // the local camera (re)starts. If the other party was already in the
-        // room before our event listeners registered, the `track-subscribed`
-        // event may have fired before useNativeLiveKitEvents was wired —
-        // without this sweep the remote video stays black on native Android.
-        // Mirrors useLiveKitClient.ts:266.
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' });
+        // Phase 9B: 2s debounce — transient stalls self-recover before toast.
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (callCameraStabilizeTimerRef.current) return;
+        callCameraStabilizeTimerRef.current = setTimeout(() => {
+          callCameraStabilizeTimerRef.current = null;
+          if (deadRef.current) return;
+          toast.loading('Stabilizing call camera…', { id: 'lk-call-camera-stabilize' });
+        }, 2000);
       }
     },
     onVideoStall: (s, isLocal) => {
       if (deadRef.current) return;
       if (s === 'failed' && isLocal) {
-        toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' });
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (callCameraStabilizeTimerRef.current) return;
+        callCameraStabilizeTimerRef.current = setTimeout(() => {
+          callCameraStabilizeTimerRef.current = null;
+          if (deadRef.current) return;
+          toast.loading('Stabilizing call camera…', { id: 'lk-call-camera-stabilize' });
+        }, 2000);
       }
     },
     onPipChanged: (isInPip) => {
