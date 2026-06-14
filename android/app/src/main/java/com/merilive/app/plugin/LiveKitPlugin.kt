@@ -2300,7 +2300,12 @@ class LiveKitPlugin : Plugin() {
             else -> null
         }
         if (previewTrack != null && previewRoomScope != null && requestedScope != null && previewRoomScope != requestedScope) {
-            stopLocalPreviewInternal(restoreOpaque = false)
+            val act = activity
+            if (act != null) {
+                act.runOnUiThread { stopLocalPreviewInternal(restoreOpaque = false) }
+            } else {
+                stopLocalPreviewInternal(restoreOpaque = false)
+            }
         }
         if (previewTrack != null) {
             val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
