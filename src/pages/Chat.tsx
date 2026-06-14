@@ -3714,7 +3714,18 @@ const Chat = () => {
             </Suspense>
           )}
 
-          {/* Gift Emoji Animation */}
+          {/* Unified Flying Gift Pill — same Bigo/Chamet style as Live/Party/Call */}
+          <AnimatePresence>
+            {flyingGifts.map((g) => (
+              <FlyingGiftAnimation
+                key={g.id}
+                gift={g}
+                onComplete={() => removeFlyingGift(g.id)}
+              />
+            ))}
+          </AnimatePresence>
+
+          {/* Gift Emoji Animation (fullscreen heavy media) */}
           <AnimatePresence>
             {showGiftAnimation && animatingGiftEmoji && (
               <Suspense fallback={null}>
