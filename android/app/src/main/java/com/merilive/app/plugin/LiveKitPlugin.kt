@@ -2830,6 +2830,16 @@ class LiveKitPlugin : Plugin() {
         return renderer
     }
 
+    private fun initVideoRendererIdempotent(r: Room, renderer: TextureViewRenderer, label: String) {
+        try {
+            r.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($label): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($label) failed: ${t.message}")
+        }
+    }
+
     private fun mountBehindWebView(renderer: TextureViewRenderer) {
         val webView = bridge?.webView ?: return
         val root = webView.parent as? ViewGroup ?: return
