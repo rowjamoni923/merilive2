@@ -223,6 +223,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Mirror of usingNativeRef as state to drive the native event-listener
   // subscription (must be a re-rendering value, not a ref).
   const [nativeActive, setNativeActive] = useState(false);
+  const lastNativeReconnectAttemptAtRef = useRef(0);
+
+  const requestNativeReconnect = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNativeReconnectAttemptAtRef.current < 2000) return Promise.resolve(false);
+    lastNativeReconnectAttemptAtRef.current = now;
+    return nativeLiveKitController.reconnectNow();
+  }, []);
 
   // Subscribe to native plugin events while the host session is on the
   // native Android publish path. Surface disconnects back into React.
