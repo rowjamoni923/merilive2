@@ -252,7 +252,6 @@ class NativeLiveKitController {
       if (enabled && this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
     } catch (e) {
       console.warn('[NativeLiveKitController] setCameraEnabled failed:', e);
-      if (enabled) await this.reconnectNow().catch(() => false);
     }
   }
 
