@@ -1,11 +1,9 @@
 /**
- * GPUPixelBeauty — Pkg200 JS bridge for the native GPUPixel plugin (Android).
- *
- * On web the calls are no-ops so the same React code runs in browser preview
- * and in the installed APK. On Android they round-trip to the Kotlin plugin
- * which drives the C++ GPU beauty engine.
+ * Camera rebuild 2026-06-14: native beauty is disabled by design.
+ * Streaming media must use exactly one LiveKit camera track. Face Verification
+ * alone uses NativeCamera/CameraX. Keep this compatibility shim so existing UI
+ * panels do not crash, but every method is a no-op.
  */
-import { Capacitor, registerPlugin } from '@capacitor/core';
 
 export interface GPUPixelBeautyPlugin {
   init(): Promise<{ ok: boolean; alreadyInitialized?: boolean }>;
@@ -32,12 +30,9 @@ const fallback: GPUPixelBeautyPlugin = {
   dispose: noop,
 };
 
-export const isNativeBeautyAvailable = () =>
-  Capacitor.getPlatform() === 'android';
+export const isNativeBeautyAvailable = () => false;
 
-export const GPUPixelBeauty: GPUPixelBeautyPlugin = isNativeBeautyAvailable()
-  ? registerPlugin<GPUPixelBeautyPlugin>('GPUPixelBeauty', { web: fallback })
-  : fallback;
+export const GPUPixelBeauty: GPUPixelBeautyPlugin = fallback;
 
 export interface ProBeautyLevels {
   smooth: number;   // 0..10
@@ -60,19 +55,9 @@ export const DEFAULT_PRO_BEAUTY: ProBeautyLevels = {
 let initialized = false;
 let initRetryCount = 0;
 export async function ensureBeautyInit(): Promise<boolean> {
-  if (!isNativeBeautyAvailable()) return false;
-  if (initialized) return true;
-  if (initRetryCount >= 4) return false;
-  try {
-    initRetryCount += 1;
-    const r = await GPUPixelBeauty.init();
-    initialized = !!r?.ok || !!r?.alreadyInitialized;
-    if (initialized) initRetryCount = 0;
-    return initialized;
-  } catch (e) {
-    console.warn('[GPUPixelBeauty] init failed:', e);
-    return false;
-  }
+  void initialized;
+  void initRetryCount;
+  return false;
 }
 
 export function resetBeautyInit(): void {
@@ -81,31 +66,10 @@ export function resetBeautyInit(): void {
 }
 
 export async function applyProBeauty(levels: ProBeautyLevels) {
-  if (!isNativeBeautyAvailable()) return;
-  await ensureBeautyInit();
-  try {
-    await Promise.all([
-      GPUPixelBeauty.setSmooth({ level: levels.smooth }),
-      GPUPixelBeauty.setWhite({ level: levels.white }),
-      GPUPixelBeauty.setThinFace({ level: levels.thinFace }),
-      GPUPixelBeauty.setBigEye({ level: levels.bigEye }),
-      GPUPixelBeauty.setLipstick({ level: levels.lipstick }),
-      GPUPixelBeauty.setBlusher({ level: levels.blusher }),
-    ]);
-  } catch {
-    /* ignore individual setter failures */
-  }
+  void levels;
 }
 
 export async function setBeautyEnabled(enabled: boolean) {
-  if (!isNativeBeautyAvailable()) return;
-  await ensureBeautyInit();
-  // Pkg416/Pkg201 correction: streaming beauty must NEVER hand camera
-  // ownership away from LiveKit. The real outgoing-video path is
-  // applyBroadcastBeauty() → NativeLiveKit.setBeautyBroadcast(), which
-  // attaches GPUPixel as a VideoProcessor to the existing LocalVideoTrack.
-  // Keep this method as init-only for old UI callers so a Beauty toggle can
-  // no longer call setBeautyPipelineEnabled() and pause the live camera.
   void enabled;
 }
 
@@ -152,22 +116,8 @@ export function setBroadcastBeautyFlag(enabled: boolean) {
  * (detach must not be gated by the flag).
  */
 export async function applyBroadcastBeauty(levels: ProBeautyLevels, enabled: boolean) {
-  if (!isNativeBeautyAvailable()) return;
-  if (enabled && !isBroadcastBeautyEnabled()) return;
-  try {
-    const NativeLiveKit = (await import('@/plugins/NativeLiveKit')).NativeLiveKit;
-    await NativeLiveKit.setBeautyBroadcast({
-      enabled,
-      smooth: levels.smooth / 10,
-      white: levels.white / 10,
-      thinFace: levels.thinFace / 10,
-      bigEye: levels.bigEye / 10,
-      lipstick: levels.lipstick / 10,
-      blusher: levels.blusher / 10,
-    });
-  } catch {
-    /* native optional */
-  }
+  void levels;
+  void enabled;
 }
 
 

@@ -182,11 +182,6 @@ class PrivateCallActivity : ComponentActivity() {
             return
         }
 
-        // Phase C — restore saved beauty levels into GPUPixel filter graph
-        // so reopening a call resumes the user's last "look" without
-        // needing to open the beauty sheet again.
-        runCatching { PrivateCallBeautySheet.restoreLevelsIfReady(this) }
-
         registerCloseReceiver()
         registerBillingReceiver()
         registerResumeReceiver()
@@ -423,9 +418,8 @@ class PrivateCallActivity : ComponentActivity() {
         }
 
         btnFlip.setOnClickListener { vm.flipCamera() }
-        btnBeauty.setOnClickListener {
-            PrivateCallBeautySheet.show(this)
-        }
+        btnBeauty.visibility = View.GONE
+        btnBeauty.setOnClickListener(null)
         btnGift.setOnClickListener {
             // Pkg500 Phase G — inline in-call gift sheet.
             //  1) Broadcast gift_inline → JS GlobalCallGiftSheet opens
