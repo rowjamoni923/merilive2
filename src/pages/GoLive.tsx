@@ -175,6 +175,7 @@ const GoLive = () => {
         lens: 'front',
         resolution: '1080p',
         mirror: true,
+        roomScope: 'live',
       });
       if (started) {
         setNativePreviewActive(true);

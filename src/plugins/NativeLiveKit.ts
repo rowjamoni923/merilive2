@@ -324,6 +324,8 @@ export interface NativeLiveKitPlugin {
     lens?: Lens;
     resolution?: Resolution;
     mirror?: boolean;
+    /** Feature that owns this prejoin preview; connect() only promotes matching scopes. */
+    roomScope?: NativeRoomScope;
     /** Create the native preview track without mounting a fullscreen renderer; bounded <NativeVideoView /> owns visibility. */
     boundedOnly?: boolean;
   }): Promise<{ started?: boolean; mode?: 'preview' | 'session' }>;
