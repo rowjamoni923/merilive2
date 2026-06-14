@@ -1176,6 +1176,16 @@ class LiveKitPlugin : Plugin() {
         withContext(Dispatchers.Main) { detachAllRenderersInternal() }
         // Tear down any previous room first.
         val previousRoom = room
+        if (previousRoom != null) {
+            // Camera audit fix: connect-replace is a teardown too. Stop the
+            // LiveKit capturer before Room.disconnect(), otherwise a hot
+            // live→call / party→live transition can leave Camera2 locked and
+            // the next TextureView paints black until process restart.
+            try { previousRoom.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+            try { previousRoom.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+        }
         try { previousRoom?.disconnect() } catch (_: Exception) {}
         releaseRoomResources(previousRoom, "connect-replace")
         try { com.merilive.app.rtc.RtcEngineManager.unbind("connect-replace", previousRoom) } catch (_: Throwable) {}
