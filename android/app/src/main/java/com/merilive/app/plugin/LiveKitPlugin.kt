@@ -2467,6 +2467,7 @@ class LiveKitPlugin : Plugin() {
                 context = context,
                 webView = webView,
                 room = room,
+                localTrackOverride = null,
                 viewId = viewId,
                 kind = "remote",
                 sid = sid,
