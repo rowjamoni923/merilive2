@@ -49,8 +49,7 @@ android {
         abi {
             enable true
             reset()
-            // GPUPixel AAR ships native libs only for ARM. Do not publish an
-            // x86_64 split that would boot without libgpupixel/libmars-face-kit.
+            // Production Play Store builds target physical Android devices.
             include "armeabi-v7a", "arm64-v8a"
             universalApk false
         }
@@ -89,10 +88,6 @@ repositories {
 }
 
 dependencies {
-    // ===== GPUPixel (Pkg200 — Professional beauty filter, Apache 2.0) =====
-    // Native C++ skin smoothing, whitening, MarsFace 3D landmarks,
-    // face reshape (thin face / big eye), lipstick, blusher, LUT filters.
-    implementation(name: 'gpupixel-release', ext: 'aar')
     // MultiDex (safety for older devices / large method count)
     implementation 'androidx.multidex:multidex:2.0.1'
     // AndroidX Core
