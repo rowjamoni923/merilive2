@@ -6,25 +6,22 @@
  * API surface is intentionally identical to the old stub so the 20+
  * existing call sites compile unchanged.
  */
-import { useState, useRef, useCallback, useEffect } from 'react';
-import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
-import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
+import { useState, useRef, useCallback } from 'react';
+import type { BeautySettings, ProBeautyLevels } from '@/components/live/BeautyFilterPanel';
+import { DEFAULT_BEAUTY, DEFAULT_PRO_BEAUTY } from '@/components/live/BeautyFilterPanel';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
-import {
-  applyProBeauty,
-  applyBroadcastBeauty,
-  ensureBeautyInit,
-  isBroadcastBeautyEnabled,
-  isNativeBeautyAvailable,
-  loadStoredLevels,
-  persistLevels,
-  resetBeautyInit,
-  setBeautyEnabled as setNativeBeautyEnabled,
-  type ProBeautyLevels,
-} from '@/plugins/GPUPixelBeauty';
-import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 
 const ENABLED_KEY = 'pkg417.beauty.enabled.v1';
+const LEVELS_KEY = 'pkg200.beauty.levels.v1';
+
+function loadStoredLevels(): ProBeautyLevels {
+  try { return { ...DEFAULT_PRO_BEAUTY, ...JSON.parse(localStorage.getItem(LEVELS_KEY) || '{}') }; }
+  catch { return { ...DEFAULT_PRO_BEAUTY }; }
+}
+
+function persistLevels(levels: ProBeautyLevels): void {
+  try { localStorage.setItem(LEVELS_KEY, JSON.stringify(levels)); } catch { /* noop */ }
+}
 
 function loadStoredEnabled(): boolean {
   try {
@@ -55,95 +52,6 @@ export function useBeautyState(): any {
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  // Track last-applied so we can replay on track swap / foreground / re-mount.
-  const lastLevelsRef = useRef<ProBeautyLevels>(initialLevels);
-  const lastEnabledRef = useRef<boolean>(initialEnabled);
-  // Pkg443 (Phase 4): unified quality hint damper. We never persist the
-  // damped values — user's sliders stay intact, we just push a scaled copy
-  // into the engine while pressure lasts.
-  const qualityBucketRef = useRef<QualityBucket>(getQualityHint().bucket);
-
-  const dampLevels = useCallback((levels: ProBeautyLevels, bucket: QualityBucket): ProBeautyLevels => {
-    // Scale every slider (0..1 numeric) by a pressure factor.
-    let factor = 1;
-    if (bucket === 'critical') factor = 0;     // disable shaders entirely
-    else if (bucket === 'poor') factor = 0.4;
-    else if (bucket === 'fair') factor = 0.75;
-    if (factor === 1) return levels;
-    const out = { ...(levels as unknown as Record<string, unknown>) };
-    for (const [k, v] of Object.entries(out)) {
-      if (typeof v === 'number') out[k] = Math.max(0, Math.min(1, v * factor));
-    }
-    return out as unknown as ProBeautyLevels;
-  }, []);
-
-  // ---- Core driver: push (levels, enabled) into the native engine. ----
-  const drive = useCallback(async (levels: ProBeautyLevels, enabled: boolean) => {
-    if (!isNativeBeautyAvailable()) return;
-    try {
-      await ensureBeautyInit();
-      const bucket = qualityBucketRef.current;
-      const effectiveLevels = dampLevels(levels, bucket);
-      // Under 'critical' we hard-disable the pipeline (saves GPU/thermal),
-      // even if the user has it enabled — restored when pressure clears.
-      const effectiveEnabled = enabled && bucket !== 'critical';
-      await applyProBeauty(effectiveLevels);
-      await setNativeBeautyEnabled(effectiveEnabled);
-      if (isBroadcastBeautyEnabled()) {
-        await applyBroadcastBeauty(effectiveLevels, effectiveEnabled);
-      } else if (!effectiveEnabled) {
-        await applyBroadcastBeauty(effectiveLevels, false);
-      }
-    } catch (err) {
-      console.warn('[useBeautyState] drive failed:', err);
-    }
-  }, [dampLevels]);
-
-  // Apply on mount and whenever levels/enabled change.
-  useEffect(() => {
-    lastLevelsRef.current = beautySettings.levels ?? initialLevels;
-    lastEnabledRef.current = beautyEnabled;
-    void drive(lastLevelsRef.current, beautyEnabled);
-    // Pkg418: the LiveKit camera track may publish *after* this mount-time
-    // drive() runs (LocalTrackPublished fires later) — schedule a few
-    // retries so the broadcast processor always picks up our levels even
-    // if it wasn't attached on the very first drive.
-    const t1 = setTimeout(() => { void drive(lastLevelsRef.current, lastEnabledRef.current); }, 600);
-    const t2 = setTimeout(() => { void drive(lastLevelsRef.current, lastEnabledRef.current); }, 2000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [beautyEnabled, beautySettings.levels, drive]);
-
-  // Replay on track-republish (LiveKit LocalTrackPublished) and foregrounding.
-  useEffect(() => {
-    if (!isNativeBeautyAvailable()) return;
-    const replay = () => { void drive(lastLevelsRef.current, lastEnabledRef.current); };
-    const onVisible = () => {
-      if (document.visibilityState !== 'visible') return;
-      resetBeautyInit();
-      replay();
-      setTimeout(replay, 700);
-    };
-    window.addEventListener('beauty:reapply', replay);
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      window.removeEventListener('beauty:reapply', replay);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [drive]);
-
-  // Pkg443 (Phase 4): re-drive when the unified quality hint changes so
-  // the damper engages/disengages live (thermal cool-down, network recovery,
-  // power-save toggle, etc.).
-  useEffect(() => {
-    if (!isNativeBeautyAvailable()) return;
-    const unsub = subscribeQualityHint((h) => {
-      if (h.bucket === qualityBucketRef.current) return;
-      qualityBucketRef.current = h.bucket;
-      void drive(lastLevelsRef.current, lastEnabledRef.current);
-    });
-    return () => { unsub(); };
-  }, [drive]);
 
   const handleBeautyEnabledChange = useCallback((v: boolean) => {
     setBeautyEnabledState(v);
@@ -180,7 +88,7 @@ export function useBeautyState(): any {
     facingMode,
     canvasRef,
     videoRef,
-    isReady: isNativeBeautyAvailable(),
+    isReady: false,
     isNativeAndroid: isNativeAndroidApp(),
     handleBeautyEnabledChange,
     handleBeautySettingsChange,
@@ -190,10 +98,7 @@ export function useBeautyState(): any {
     switchNativeCamera,
     startNativeCamera,
     stopNativeCamera,
-    initBeauty: async () => {
-      if (!isNativeBeautyAvailable()) return false;
-      return ensureBeautyInit();
-    },
+    initBeauty: async () => false,
     destroyBeauty: () => {},
     applyToVideoElement: () => {},
     applyToTrack: async <T,>(x: T): Promise<T> => x,
