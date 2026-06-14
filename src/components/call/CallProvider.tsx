@@ -149,6 +149,7 @@ export function CallProvider({ children }: CallProviderProps) {
   });
 
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
+  const callOverlayActiveRef = useRef(false);
 
   // 🎯 Private Call is a portal OVERLAY (not a route). When the call screen
   // is mounted the underlying route (Home/Profile/Chat/…) stays in the DOM
@@ -161,7 +162,10 @@ export function CallProvider({ children }: CallProviderProps) {
   // frame of Home filter chips behind the call overlay.
   useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
-    const active = isInCall || !!incomingCall;
+    const activeSignal = isInCall || !!incomingCall || !!acceptedCallInfo;
+    if (activeSignal) callOverlayActiveRef.current = true;
+    else if (callState.status === 'idle' && !showCallEndedModal) callOverlayActiveRef.current = false;
+    const active = callOverlayActiveRef.current;
     const cls = 'call-overlay-active';
     if (active) {
       document.body.classList.add(cls);
@@ -169,7 +173,7 @@ export function CallProvider({ children }: CallProviderProps) {
       document.body.classList.remove(cls);
     }
     return () => { document.body.classList.remove(cls); };
-  }, [isInCall, incomingCall]);
+  }, [isInCall, incomingCall, acceptedCallInfo, callState.status, showCallEndedModal]);
 
   // Track host status based on incoming call
   useEffect(() => {
@@ -649,6 +653,7 @@ export function CallProvider({ children }: CallProviderProps) {
             onEndCall={handleEndCall}
             onMediaConnected={notifyMediaConnected}
             isHost={isHost}
+            proCameraReady={prejoinCamera.ready}
           />
         </Suspense>
       )}
