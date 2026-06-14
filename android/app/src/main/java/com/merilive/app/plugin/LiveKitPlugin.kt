@@ -2082,17 +2082,26 @@ class LiveKitPlugin : Plugin() {
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = "local", sid = "local", isLocal = true)
-                // Fix 4 — Surface validity check. If the renderer didn't make
-                // it into the window tree (Z-order race vs WebView, parent
-                // detached during reconnect), re-mount once.
-                renderer.postDelayed({
+                // Fix 4 (hardened) — Surface validity check. If the renderer
+                // didn't make it into the window tree (Z-order race vs WebView,
+                // parent detached during reconnect), re-mount once.
+                //
+                // IMPORTANT: post to the Activity's main-thread decorView
+                // Handler, NOT renderer.postDelayed(). During a network
+                // handoff the renderer's EGL/SurfaceView thread can be torn
+                // down before 220 ms elapses, and posting to a dead Handler
+                // throws `IllegalStateException: sending message to a Handler
+                // on a dead thread` (seen in production logcat 2026-06-14).
+                activity?.window?.decorView?.postDelayed({
                     try {
-                        if (localRenderer === renderer && !renderer.isAttachedToWindow) {
+                        val current = localRenderer
+                        if (current !== renderer) return@postDelayed
+                        if (!renderer.isAttachedToWindow) {
                             Log.w(TAG, "attachLocal: renderer not attached to window — re-mounting")
-                            (renderer.parent as? ViewGroup)?.removeView(renderer)
-                            mountBehindWebView(renderer)
+                            try { (renderer.parent as? ViewGroup)?.removeView(renderer) } catch (_: Throwable) {}
+                            try { mountBehindWebView(renderer) } catch (_: Throwable) {}
                         }
-                    } catch (_: Throwable) {}
+                    } catch (_: Throwable) { /* swallow — best-effort */ }
                 }, 220L)
                 call.resolve()
             } catch (e: Exception) {
