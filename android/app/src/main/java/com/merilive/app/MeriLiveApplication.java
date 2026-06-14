@@ -79,16 +79,9 @@ public class MeriLiveApplication extends Application {
             Log.w(TAG, "Telecom registration failed (non-fatal)", t);
         }
 
-        // Phase 1A — Application-scope RTC engine observer. Holds the
-        // last-known LiveKit Room reference across Activity recreation
-        // so future re-entry to Live / Call screens can short-circuit
-        // cold-reconnect (camera blank). Observer only in 1A; full
-        // ownership migration in 1A.2.
-        try {
-            com.merilive.app.rtc.RtcEngineManager.init(this);
-        } catch (Throwable t) {
-            Log.w(TAG, "RtcEngineManager init failed (non-fatal)", t);
-        }
+        // RtcEngineManager removed in 2026-06-14 rebuild — the new minimal
+        // LiveKit plugin creates a fresh Room per session, no app-scope
+        // cross-Activity engine state to preserve.
 
 
         // Pkg-audit Tier-11 (Critical): we MUST chain to the previous
