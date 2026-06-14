@@ -3599,26 +3599,35 @@ class LiveKitPlugin : Plugin() {
                 reconnectingSinceMs = System.currentTimeMillis()
                 stopReconnectWatchdog()
 
-                // Fix 3 — Soft reconnect path. If the Room is still alive,
-                // toggle the camera (off→on) instead of rebuilding the entire
-                // Room + PeerConnection + Camera2 session. This avoids the
-                // 1-3 s black screen of the full rebuild and reuses the
-                // existing ICE state. Falls through to the full path on
-                // failure or when the Room is gone.
+                // Professional camera rule: never implement "reconnect" as a
+                // camera off→on cycle while the Room is still alive. That loop
+                // repeatedly closes and reopens the physical Camera2 device.
+                // First try renderer/surface rebind; only a dead Room falls
+                // through to the full reconnect path below.
                 val existing = room
                 if (existing != null) {
                     try {
-                        val ok = setNativeCameraEnabledWithOemRetry(existing, false, "soft-reconnect-off") &&
-                                 setNativeCameraEnabledWithOemRetry(existing, true, "soft-reconnect-on")
-                        if (ok) {
-                            try { activity?.runOnUiThread { /* re-attach handled by attachLocal call */ } } catch (_: Throwable) {}
-                            val ret = JSObject()
-                            ret.put("connected", true)
-                            ret.put("soft", true)
-                            call.resolve(ret)
-                            return@launch
+                        withContext(Dispatchers.Main) {
+                            try { detachAllRenderersInternal() } catch (_: Throwable) {}
+                            val localTrack = existing.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                                ?.track as? io.livekit.android.room.track.VideoTrack
+                            if (localTrack != null) {
+                                val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
+                                initVideoRendererIdempotent(existing, renderer, "soft-reconnect-rebind")
+                                try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
+                                localTrack.addRenderer(renderer)
+                                mountBehindWebView(renderer)
+                                installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                            }
+                            try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(existing) } catch (_: Exception) {}
+                            attachAllRemoteRenderersInternal(existing)
                         }
-                        Log.w(TAG, "soft reconnect failed — falling back to full rebuild")
+                        val ret = JSObject()
+                        ret.put("connected", true)
+                        ret.put("soft", true)
+                        ret.put("cameraRestarted", false)
+                        call.resolve(ret)
+                        return@launch
                     } catch (t: Throwable) {
                         Log.w(TAG, "soft reconnect threw — falling back: ${t.message}")
                     }
