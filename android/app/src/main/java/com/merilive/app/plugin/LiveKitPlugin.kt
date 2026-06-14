@@ -2137,6 +2137,13 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         activity?.runOnUiThread {
             try {
+                if (com.merilive.app.rtc.BoundedSurfaceHost.ownsRemote(sid)) {
+                    val ret = JSObject()
+                    ret.put("attached", true)
+                    ret.put("mode", "bounded-surface")
+                    call.resolve(ret)
+                    return@runOnUiThread
+                }
                 val participant = r.remoteParticipants.values.firstOrNull {
                     it.sid.value == sid
                 } ?: return@runOnUiThread call.reject("Participant not found")
