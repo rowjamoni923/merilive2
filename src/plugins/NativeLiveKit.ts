@@ -74,7 +74,7 @@ export interface AudioInterruptionEvent { reason?: string; resumed?: boolean }
 // ─── Plugin interface (only the methods Kotlin actually implements) ──
 interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend?: string }>;
-  connect(opts: ConnectOptions): Promise<{ connected: boolean; sid?: string }>;
+  connect(opts: ConnectOptions): Promise<{ connected: boolean; sid?: string; identity?: string }>;
   disconnect(): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
@@ -83,9 +83,12 @@ interface NativeLiveKitPlugin {
   claimCameraForWebView(): Promise<void>;
   releaseCameraForWebView(): Promise<void>;
 
+  // Loose `any` event payload — legacy callers index many ad-hoc fields
+  // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
+  // that aren't worth typing exhaustively for a transitional shim.
   addListener(
     event: string,
-    cb: (e: unknown) => void,
+    cb: (e: any) => void,
   ): Promise<PluginListenerHandle>;
   removeAllListeners(): Promise<void>;
 }
