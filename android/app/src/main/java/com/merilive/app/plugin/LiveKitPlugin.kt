@@ -2089,7 +2089,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 val renderer = localRenderer ?: createRenderer()
                 localRenderer = renderer
-                r.initVideoRenderer(renderer)
+                kotlin.runCatching { r.initVideoRenderer(renderer) }
                 try { track.removeRenderer(renderer) } catch (_: Exception) {}
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
@@ -2154,7 +2154,7 @@ class LiveKitPlugin : Plugin() {
                 }
                 val renderer = createRenderer()
                 remoteRenderers[sid] = renderer
-                r.initVideoRenderer(renderer)
+                kotlin.runCatching { r.initVideoRenderer(renderer) }
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = sid, sid = sid, isLocal = false)
@@ -2251,7 +2251,7 @@ class LiveKitPlugin : Plugin() {
                 withContext(Dispatchers.Main) {
                     val renderer = createRenderer()
                     previewRenderer = renderer
-                    pr.initVideoRenderer(renderer)
+                    kotlin.runCatching { pr.initVideoRenderer(renderer) }
                     try { renderer.setMirror(mirror) } catch (_: Throwable) {}
                     track.addRenderer(renderer)
                     mountBehindWebView(renderer)
@@ -2538,7 +2538,7 @@ class LiveKitPlugin : Plugin() {
         }
         val renderer = remoteRenderers[sid] ?: createRenderer().also { remoteRenderers[sid] = it }
         return try {
-            r.initVideoRenderer(renderer)
+            kotlin.runCatching { r.initVideoRenderer(renderer) }
             try { track.removeRenderer(renderer) } catch (_: Exception) {}
             track.addRenderer(renderer)
             mountBehindWebView(renderer)
@@ -3226,7 +3226,7 @@ class LiveKitPlugin : Plugin() {
                     if (localTrack != null) {
                         val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
                         localRenderer = renderer
-                        r.initVideoRenderer(renderer)
+                        kotlin.runCatching { r.initVideoRenderer(renderer) }
                         try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
                         localTrack.addRenderer(renderer)
                         mountBehindWebView(renderer)

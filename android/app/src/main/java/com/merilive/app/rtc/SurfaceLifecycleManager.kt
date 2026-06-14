@@ -74,11 +74,11 @@ object SurfaceLifecycleManager {
             slots[key] = Slot(renderer = it, track = null, attachedAtMs = 0L)
         }
 
-        // initVideoRenderer is idempotent on LiveKit's TextureViewRenderer
-        // (no-ops when already initialized with the same EglBase context).
-        try { renderer.init(eglBase.eglBaseContext, null) } catch (e: Exception) {
-            Log.d(TAG, "init: already initialised for $key (${e.message})")
-        }
+        // initVideoRenderer can throw IllegalStateException("Already initialized")
+        // during rapid camera switches / network handoffs. runCatching keeps the
+        // existing EGL context bound and avoids tearing down the renderer.
+        kotlin.runCatching { renderer.init(eglBase.eglBaseContext, null) }
+            .onFailure { Log.d(TAG, "init: already initialised for $key (${it.message})") }
 
         // Rebind track only if it actually changed — removeRenderer/addRenderer
         // on the same track triggers a frame-drop hiccup we want to avoid.
