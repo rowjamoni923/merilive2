@@ -304,9 +304,23 @@ class PrivateCallViewModel : ViewModel() {
                             captureLocalTrackIfPossible(r)
                         }
 
-                        is RoomEvent.Reconnecting -> Unit
+                        is RoomEvent.Reconnecting -> {
+                            cancelPeerGrace()
+                            if (_state.value != CallState.ENDED &&
+                                _state.value != CallState.ENDING
+                            ) {
+                                _state.value = CallState.RECONNECTING
+                            }
+                        }
 
-                        is RoomEvent.Reconnected -> Unit
+                        is RoomEvent.Reconnected -> {
+                            cancelPeerGrace()
+                            _state.value = if (peerHasVideo(r)) {
+                                CallState.CONNECTED
+                            } else {
+                                CallState.CONNECTING
+                            }
+                        }
 
                         is RoomEvent.Disconnected -> Unit
 
