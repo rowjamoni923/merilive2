@@ -100,6 +100,9 @@ export function useNativeLiveKitEvents(
 
         const quality = await NativeLiveKit.addListener('connection-quality', (e) => {
           handlersRef.current.onQualityChanged?.(e.sid, e.quality);
+          if (e.sid === 'local' || !e.sid) {
+            handlersRef.current.onSignalQuality?.(e.quality);
+          }
         });
         if (cancelled) { quality.remove(); return; }
         subs.push(quality);
@@ -162,14 +165,6 @@ export function useNativeLiveKitEvents(
         });
         if (cancelled) { pipChanged.remove(); return; }
         subs.push(pipChanged);
-
-        const signalQuality = await NativeLiveKit.addListener('connection-quality' as any, (e: any) => {
-          if (e.sid === 'local' || !e.sid) {
-            handlersRef.current.onSignalQuality?.(e.quality);
-          }
-        });
-        if (cancelled) { signalQuality.remove(); return; }
-        subs.push(signalQuality);
 
         // Phase I.b — music-mode headphone soft warning. Native fires this
         // right after connect when audioProfile='music' and no wired/BT
@@ -414,6 +409,12 @@ export function useNativeLiveKitEvents(
 
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
+        if (cancelled) {
+          for (const s of subs) {
+            try { s.remove(); } catch { /* noop */ }
+          }
+          subs.length = 0;
+        }
       }
     };
 
