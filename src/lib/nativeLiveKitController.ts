@@ -268,7 +268,7 @@ class NativeLiveKitController {
    * Returns false on web/iOS, on old APKs without the method, or when
    * the camera is busy — callers should surface a friendly message.
    */
-  async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean }): Promise<boolean> {
+  async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean; boundedOnly?: boolean }): Promise<boolean> {
     try {
       await NativeLiveKit.startLocalPreview(opts ?? {});
       return true;
