@@ -150,6 +150,23 @@ export function CallProvider({ children }: CallProviderProps) {
 
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
 
+  // 🎯 Private Call is a portal OVERLAY (not a route). When the call screen
+  // is mounted the underlying route (Home/Profile/Chat/…) stays in the DOM
+  // and its opaque cards/banners bleed through the call shell — making the
+  // app look broken. Hide #root entirely while the call overlay is up.
+  // The call portal lives directly on document.body, so it remains visible.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const active = isInCall || !!incomingCall;
+    const cls = 'call-overlay-active';
+    if (active) {
+      document.body.classList.add(cls);
+    } else {
+      document.body.classList.remove(cls);
+    }
+    return () => { document.body.classList.remove(cls); };
+  }, [isInCall, incomingCall]);
+
   // Track host status based on incoming call
   useEffect(() => {
     if (incomingCall) {
