@@ -1203,6 +1203,29 @@ export function ActiveCallScreen({
           <div className="space-y-1.5 pb-1">
             {chatMessages.slice(-30).map((msg) => {
               const isMe = msg.senderId === userId;
+              const giftMarker = parseInlineGiftMarker(msg.message);
+
+              // Unified inline gift row (canonical, same as DM/Live/Party)
+              if (giftMarker) {
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex justify-start"
+                  >
+                    <InlineGiftRow
+                      senderName={msg.senderName}
+                      giftName={giftMarker.giftName}
+                      giftIconUrl={giftMarker.iconUrl || undefined}
+                      count={giftMarker.count}
+                      coins={giftMarker.coins}
+                      compact
+                    />
+                  </motion.div>
+                );
+              }
+
               return (
                 <motion.div
                   key={msg.id}
