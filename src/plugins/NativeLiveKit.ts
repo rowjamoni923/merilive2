@@ -456,20 +456,6 @@ export interface NativeLiveKitPlugin {
   getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
   setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
 
-  // --- Beauty pipeline ↔ camera ownership bridge (Step 21) ----
-  /**
-   * Hand the physical camera over to (or back from) the native beauty beauty
-   * pipeline. When `enabled: true` the LiveKit native camera track is
-   * disabled so native beauty can open the camera; when `false`, LiveKit
-   * resumes its own capture.
-   */
-  setBeautyPipelineEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; hasRoom: boolean }>;
-  // Pkg201 — broadcast beauty injection (feature-flag, off by default).
-  setBeautyBroadcast(opts: {
-    enabled: boolean;
-    smooth?: number; white?: number; thinFace?: number; bigEye?: number; lipstick?: number; blusher?: number;
-  }): Promise<{ enabled: boolean; hasRoom: boolean }>;
-
   // --- Adaptive bitrate fallback (Step 22) ----------------------
   /**
    * Toggle the publisher-side bitrate fallback ladder. When enabled
