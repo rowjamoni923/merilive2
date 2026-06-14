@@ -3,7 +3,7 @@ _Last updated: 2026-06-14. Supersedes prior plan.md content (analytics plan arch
 
 ## Why this plan exists
 
-User's 2026-06-14 video showed 5 concrete failures and reasonably asked for a guarantee that they will be fixed properly. Instead of guarantees, this plan is a **verifiable, owner-tested, phase-gated** rebuild. No phase moves forward until the previous phase is reproducibly green on the owner test account (smdollarex923@gmail.com) in preview, OR honestly marked "APK rebuild needed" for native-only verification.
+User's 2026-06-14 video showed concrete camera/UI failures and asked for a clean single-camera fix. This plan is a **verifiable, owner-tested, phase-gated** rebuild. No phase moves forward until the previous phase is reproducibly green on the owner test account in preview, OR honestly marked "APK rebuild needed" for native-only verification.
 
 **Hard rule:** I will NOT touch any phase before the prior one is checked off. No multi-phase batching.
 
@@ -19,7 +19,7 @@ User's 2026-06-14 video showed 5 concrete failures and reasonably asked for a gu
 
 ## Architectural root cause (one sentence)
 
-We have **multiple cameras and multiple session owners** with no single authority — LiveKit (web JS), LiveKit (Android native), GPUPixel, raw `getUserMedia`, native CameraX (face verify) each try to own Camera2; and "live session" state is split across `CallProvider`, JS reconnect hooks, and Android `CameraResilienceController` with no atomic teardown.
+We had **multiple cameras and multiple session owners** with no single authority — LiveKit (web JS), LiveKit (Android native), native beauty, raw `getUserMedia`, native CameraX (face verify) could each try to own Camera2. Phase 9K removed native beauty and locked the remaining model to LiveKit streaming + separate face verification only.
 
 ## Industry-grounded target architecture (from research, citations in research brief)
 
@@ -60,7 +60,7 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 
 ### Phase 3 — F3 fix: Video Party launch crash / OOM ✅ DONE 2026-06-14 (diagnostic-first)
 **Audit result — most planned mitigations were already in place:**
-- ✅ **GPUPixel consumer-only enforced** — `CameraOwnership.acquire()` hard-rejects `OWNER_GPUPIXEL` (lines 75–78). The old "everyone opens Camera2" race cannot recur.
+- ✅ **Native beauty removed** — Phase 9K deleted the GPUPixel/beauty bridge/processor path entirely. The old "everyone opens Camera2" race cannot recur through beauty.
 - ✅ **LeakCanary** already wired (`debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'` in `android/app/build.gradle:177`).
 - ✅ **Heavy renderer init thread-safety** — `BoundedSurfaceHost.attach`/`detach`/`updateBounds` are always invoked via `activity?.runOnUiThread { … }` from `LiveKitPlugin`'s `@PluginMethod`s; `entries`/`ownedRemoteSids` use `ConcurrentHashMap`. `rebindForRoom` is also wrapped in `withContext(Dispatchers.Main)` at every call site. `android:largeHeap="true"` already set in `AndroidManifest.xml:105`. `TextureViewRenderer` construction MUST stay on UI thread (it's a `View`); moving it off would crash, not help.
 

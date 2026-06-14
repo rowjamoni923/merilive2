@@ -55,7 +55,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.ViewerSessionPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeCallPlugin.class);
         registerPlugin(com.merilive.app.plugin.InstallReferrerPlugin.class);
-        // Camera rebuild 2026-06-14: GPUPixelBeauty is intentionally NOT
+        // Camera rebuild 2026-06-14: native beauty is intentionally NOT
         // registered. Streaming camera is owned only by LiveKitPlugin;
         // Face Verification alone uses NativeCameraPlugin/CameraX.
         registerPlugin(com.merilive.app.plugin.NativeMessageReplyPlugin.class);

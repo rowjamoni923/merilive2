@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference
  *     features. All four reuse the same Camera2 capture session via the
  *     same LiveKitPlugin instance; there is no per-feature camera open.
  *   - NativeCamera is reserved EXCLUSIVELY for Face Verification.
- *   - GPUPixelBeauty NEVER opens the camera — it consumes LiveKit frames.
+ *   - Native beauty is removed from the production camera path.
  *
  * Callers MUST:
  *   1. acquire(owner)   — true on success, false if another owner holds it
@@ -38,7 +38,7 @@ object CameraOwnership {
     const val OWNER_LIVEKIT = "livekit"                 // ALL streaming
     @Deprecated("Pkg416: WebView LiveKit fallback no longer opens camera independently")
     const val OWNER_WEBVIEW_LIVEKIT = "webview-livekit"
-    @Deprecated("Pkg416: GPUPixel must not own the camera; it consumes LiveKit frames")
+    @Deprecated("Phase 9K: native beauty removed; no GPUPixel camera owner allowed")
     const val OWNER_GPUPIXEL = "gpupixel"
 
     private val current = AtomicReference<String?>(null)
@@ -73,7 +73,7 @@ object CameraOwnership {
     @JvmOverloads
     fun acquire(owner: String, force: Boolean = false): Boolean {
         if (owner == OWNER_GPUPIXEL) {
-            Log.e(TAG, "REJECTED acquire by '$owner' — GPUPixel must not own the camera (Pkg416). Current owner=${current.get()}")
+            Log.e(TAG, "REJECTED acquire by '$owner' — native beauty must not own the camera (Phase 9K). Current owner=${current.get()}")
             return false
         }
         if (force) {

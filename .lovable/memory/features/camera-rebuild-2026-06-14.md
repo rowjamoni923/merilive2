@@ -17,7 +17,7 @@ type: feature
 
 2. **Native legacy — `android/.../rtc/CameraOwnership.kt`.**
    - Advisory boolean at the JNI boundary. Consumed by `LiveKitPlugin.connect()`, `NativeCamera`, `WebViewPermissionGate`, `PermissionHelper`.
-   - Hard-rejects `OWNER_GPUPIXEL` acquisition (GPUPixel is consumer-only).
+   - Legacy `OWNER_GPUPIXEL` token remains rejected; native beauty files were removed in Phase 9K.
    - Stays in force. Do not remove.
 
 3. **Native Phase-0 compile-only — `android/.../plugin/CameraAuthorityManager.kt`.**
