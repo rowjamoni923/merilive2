@@ -15,7 +15,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 
-import { useProCamera } from "@/camera/useProCamera";
 import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
@@ -63,6 +62,7 @@ interface ActiveCallScreenProps {
   onEndCall: () => void | Promise<void>;
   onMediaConnected?: (callId: string) => void;
   isHost?: boolean;
+  proCameraReady?: boolean;
 }
 
 export function ActiveCallScreen({
@@ -82,32 +82,25 @@ export function ActiveCallScreen({
   onEndCall,
   onMediaConnected,
   isHost = false,
+  proCameraReady = true,
 }: ActiveCallScreenProps) {
   // Pkg443 Phase-3: keep screen awake for the entire active call.
   useScreenLock(isOpen);
   // Pkg444 Phase-5: own native audio focus + switch to in_communication
   // mode so Spotify/YouTube auto-pause and the earpiece routes correctly.
   useNativeAudioFocus({ enabled: isOpen, intent: 'call' });
-  // Pkg416 — claim the single professional camera for private-call. If
-  // face-verify holds the camera (verification family), this returns a
-  // conflict error and we surface a friendly toast instead of starting
-  // LiveKit (which would otherwise hit a Camera2 ownership race and show
-  // a permanent white preview).
-  const proCamera = useProCamera('private-call', isOpen);
   const proCameraEndRef = useRef(false);
   useEffect(() => {
-    if (proCamera.error) {
-      toast.error('Camera is busy with face verification. Please finish that first.');
-      // Pkg418 hard gate: end the call so LiveKit never tries to claim
-      // the camera while verification holds it.
-      if (!proCameraEndRef.current) {
-        proCameraEndRef.current = true;
-        try { onEndCall?.(); } catch { /* ignore */ }
-      }
-    } else {
+    if (!isOpen || proCameraReady) {
       proCameraEndRef.current = false;
+      return;
     }
-  }, [proCamera.error, onEndCall]);
+    toast.error('Camera is busy with face verification. Please finish that first.');
+    if (!proCameraEndRef.current) {
+      proCameraEndRef.current = true;
+      try { onEndCall?.(); } catch { /* ignore */ }
+    }
+  }, [isOpen, proCameraReady, onEndCall]);
 
   // REAL native beauty integration (Pkg417 — actually drives GPUPixel now)
   const beauty = useBeautyState();
