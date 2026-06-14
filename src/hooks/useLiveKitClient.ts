@@ -248,7 +248,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
       toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-      nativeLiveKitController.reconnectNow().then((ok) => {
+      requestNativeReconnect().then((ok) => {
         if (ok) {
           setNativeActive(true);
           setIsJoined(true);
@@ -270,7 +270,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setConnectionState('CONNECTING');
       } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
@@ -288,13 +288,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
     onVideoStall: (s, isLocal) => {
       if (s === 'failed' && isLocal) {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
