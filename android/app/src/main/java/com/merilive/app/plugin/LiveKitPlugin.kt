@@ -3896,13 +3896,23 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 if (entry.isLocal) {
-                    // Republish camera with a fresh encoder. Cheap and
-                    // doesn't disturb the room — peers see one black frame.
-                    Log.w(TAG, "Stall recovery (local): toggling camera")
-                    val ok = setNativeCameraEnabledWithOemRetry(r, false, "stall-local-off") &&
-                        setNativeCameraEnabledWithOemRetry(r, true, "stall-local-on")
-                    if (!ok && entry.attempts >= 2) {
-                        scheduleHardReconnect("local-camera-stall")
+                    Log.w(TAG, "Stall recovery (local): rebinding renderers without restarting camera")
+                    withContext(Dispatchers.Main) {
+                        try {
+                            val localTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                                ?.track as? io.livekit.android.room.track.VideoTrack
+                            if (localTrack != null) {
+                                val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
+                                initVideoRendererIdempotent(r, renderer, "stall-local-rebind")
+                                try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
+                                localTrack.addRenderer(renderer)
+                                mountBehindWebView(renderer)
+                                installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                            }
+                            try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "Local renderer rebind failed: ${t.message}")
+                        }
                     }
                 } else {
                     val participant = r.remoteParticipants.values.firstOrNull {
