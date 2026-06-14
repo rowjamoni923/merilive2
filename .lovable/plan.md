@@ -231,6 +231,21 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, test sequence: GoLive preview→LiveStream, CreateParty video/game→PartyRoom, Private Call ringing→active call, and Live→Party→Call back-to-back. Expected: same feature preview promotes only into its own room, stale previews are stopped before another feature starts, camera remains stable, and Home/party/live UI does not bleed into private channel or break card backgrounds.
 
+### Phase 9J — Sub-agent follow-up hardening ✅ DONE 2026-06-14
+
+**Sub-agent audit triage:** some reported criticals were stale/incorrect against current code: `PartyRoom.tsx` already uses `useProCamera` at lines 301–318, and `CallProvider.tsx` already owns the private-call camera at lines 189–233. The real remaining gaps were fallback/handoff edges.
+
+**Fixes applied now:**
+- `GoLive.tsx` camera switch web fallback now checks `proCameraReadyRef` / `proCameraErrorRef` before any `getUserMedia` retry.
+- `LiveStream.tsx` host join now refuses `joinChannel()` until `useProCamera('live-stream')` is ready, so host media cannot start while FaceVerification owns the camera.
+- `useLiveKitClient.ts` web recovery and web video-toggle paths now require `ProCameraEngine.isHeldBy('live-stream')` before claiming Android WebView camera.
+- `useNativeAndroidFaceCamera.ts` no longer blindly evicts camera owners. It throws a clear busy error if streaming owns the camera, then only stops a previous FaceVerification `NativeCamera` preview.
+- `FaceVerification.tsx` start path now explicitly checks `faceVerifyCam.ready` before opening its camera, covering the 1.5s auto-bounce window.
+- `nativeMediaSurface.ts` now separates `clearNativeMediaSurface()` from `clearNativeFaceCameraSurface()`; Live/Party cleanup no longer strips `native-face-camera-active`.
+- `useNativeLiveKitLifecycle.ts` uses an active ref in layout cleanup so it only clears native media when this hook actually set it, reducing mid-stream black flashes from cleanup/remount races.
+
+**Verification:** APK rebuild REQUIRED for native Camera2/TextureView behavior. Code-level verification completed with `rg`: scoped roomScope tags exist for live/party/call, previewRoomScope gate exists in Kotlin, live web fallback claims are ProCamera-gated, face camera no longer blind-evicts streaming, and media clear no longer removes face-camera class.
+
 
 
 ## What I will NOT do without explicit OK
