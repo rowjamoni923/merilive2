@@ -732,7 +732,6 @@ class LiveKitPlugin : Plugin() {
                     hardReconnectAttempts = 0
                     try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                     activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                     try { r.disconnect() } catch (_: Exception) {}
@@ -812,7 +811,6 @@ class LiveKitPlugin : Plugin() {
             hardReconnectAttempts = 0
             try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
             try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             delay(OEM_CAMERA_RELEASE_SETTLE_MS)
             activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
             try { r.disconnect() } catch (_: Exception) {}
@@ -1175,7 +1173,6 @@ class LiveKitPlugin : Plugin() {
             // the next TextureView paints black until process restart.
             try { previousRoom.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
             try { previousRoom.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             delay(OEM_CAMERA_RELEASE_SETTLE_MS)
         }
         try { previousRoom?.disconnect() } catch (_: Exception) {}
