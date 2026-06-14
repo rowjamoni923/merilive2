@@ -50,6 +50,7 @@ class NativeLiveKitController {
   private connected = false;
   private busy = false;
   private autoAttachLocalRenderer = true;
+  private activeFeature: NativeRoomScope | null = null;
 
   private async attachLocalWithRetry(): Promise<void> {
     const delays = [0, 120, 300, 700, 1200];
@@ -91,6 +92,10 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
+      const requestedFeature = opts.roomScope ?? null;
+      if (this.connected && this.activeFeature && requestedFeature && this.activeFeature !== requestedFeature) {
+        throw new Error(`NativeLiveKit session already active for ${this.activeFeature}; refusing ${requestedFeature} takeover`);
+      }
       // Preview → session handoff: DO NOT stopLocalPreview() here. The native
       // Android plugin already promotes the running prejoin Camera2
       // LocalVideoTrack inside connectInternal() when previewRoom/previewTrack
@@ -135,6 +140,7 @@ class NativeLiveKitController {
       try {
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
+        this.activeFeature = requestedFeature;
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
@@ -142,6 +148,7 @@ class NativeLiveKitController {
         return { sid: res.sid, identity: res.identity };
       } catch (error) {
         this.connected = false;
+        this.activeFeature = null;
         try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
         throw error;
