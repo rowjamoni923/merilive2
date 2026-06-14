@@ -1509,6 +1509,23 @@ class LiveKitPlugin : Plugin() {
         // already-running rtcTrack to the freshly-negotiated PeerConnection.
         pr.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
 
+        // Pkg416 — re-anchor the EGL context on the existing local renderer
+        // AFTER the room has connected. Android 15 / Pixel 9 occasionally
+        // detaches the SurfaceTexture during the SFU handshake; re-running
+        // initVideoRenderer + addRenderer is idempotent (runCatching swallows
+        // "Already initialized") and guarantees the local tile keeps painting.
+        try {
+            val lr = localRenderer
+            if (lr != null) {
+                withContext(Dispatchers.Main) {
+                    kotlin.runCatching { pr.initVideoRenderer(lr) }
+                    kotlin.runCatching { ptrack.addRenderer(lr) }
+                }
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "promotePreviewToSession: local renderer re-anchor failed: ${t.message}")
+        }
+
         // Mic is independent — opening the mic does NOT touch the camera.
         if (args.audio) {
             try { pr.localParticipant.setMicrophoneEnabled(true) }
