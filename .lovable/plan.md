@@ -214,6 +214,23 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED for native behavior. Code-level verification: searched for removed double private-call acquire, removed party cleanup double-release, call-id init guard, activeFeature guard, and bounded native party preview markers.
 
+### Phase 9I — Scoped preview ownership + UI transparency containment ✅ DONE 2026-06-14
+
+**Latest user requirement:** Live Streaming, Party Room / Group Home, Game Party, and Private Channel must all keep the same stable camera path like a professional app, and no UI design may break/bleed across surfaces.
+
+**Research basis:** Agora live apps use `setupLocalVideo/startPreview → joinChannel` without reopening the camera; LiveKit Android supports the same pattern through `LocalVideoTrack.startCapture()` and `LocalParticipant.publishVideoTrack(track)`. Native Android video behind WebView requires transparent WebView/root only around the actual media surface, not global transparency on every UI card/background.
+
+**Remaining root gap fixed now:** native prejoin preview was not feature-scoped. A stale preview from Live / Party / Call could be reused or promoted by another feature if route timing overlapped, causing the exact "wrong/stale/still camera" and UI handoff break the user described.
+
+**Fixes applied now:**
+- `NativeLiveKit.startLocalPreview()` accepts `roomScope: 'live' | 'party' | 'call'`.
+- `src/lib/nativeLiveKitController.ts` tracks `previewFeature`; cross-feature preview/connect now stops stale preview first instead of promoting or stealing it.
+- `LiveKitPlugin.kt` stores `previewRoomScope` and only promotes preview → session when scope matches `ConnectArgs.roomScope`.
+- GoLive, CreateParty, and Private Call prejoin preview calls now pass explicit scope (`live`, `party`, `call`).
+- `src/index.css` no longer makes every `.bg-muted` / `.bg-background` card transparent during native media. Transparency is contained to root/room shell/native video placeholders so camera shows through without breaking internal UI design surfaces.
+
+**Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, test sequence: GoLive preview→LiveStream, CreateParty video/game→PartyRoom, Private Call ringing→active call, and Live→Party→Call back-to-back. Expected: same feature preview promotes only into its own room, stale previews are stopped before another feature starts, camera remains stable, and Home/party/live UI does not bleed into private channel or break card backgrounds.
+
 
 
 ## What I will NOT do without explicit OK
