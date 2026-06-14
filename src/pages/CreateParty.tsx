@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -232,7 +232,7 @@ const CreateParty = () => {
     }
   }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner, requestCameraPermission]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isNativeAndroid) return;
     setNativeMediaSurface(nativePreviewActive);
     return () => {
