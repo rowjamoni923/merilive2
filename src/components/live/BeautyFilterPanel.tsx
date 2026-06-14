@@ -197,29 +197,7 @@ export function BeautyFilterPanel({
 
 /** Compatibility helper — camera stability mode never applies visual filters. */
 export function generateBeautyCSS(enabled: boolean, settings: BeautySettings): string {
-  if (!enabled || !settings) return "";
-  // Native beauty was removed in Phase 9K; do not add CSS blur fallback.
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cap: any = (globalThis as any).Capacitor;
-    if (cap && typeof cap.getPlatform === 'function' && cap.getPlatform() === 'android') {
-      return "";
-    }
-  } catch { /* not in Capacitor env, fall through to CSS preview */ }
-  // If custom levels exist, derive CSS from smooth + white.
-  if (settings.levels) {
-    const { smooth, white } = settings.levels;
-    if (smooth <= 0 && white <= 0) return "";
-    const blur = (smooth / 10) * 1.2;
-    const bright = 1 + (white / 10) * 0.12;
-    const sat = 1 + (smooth / 10) * 0.12;
-    return `blur(${blur.toFixed(2)}px) brightness(${bright.toFixed(2)}) contrast(1.03) saturate(${sat.toFixed(2)})`;
-  }
-  if (settings.preset === "off") return "";
-  switch (settings.preset) {
-    case "soft":   return "blur(0.4px) brightness(1.04) contrast(1.02) saturate(1.05)";
-    case "strong": return "blur(1.1px) brightness(1.12) contrast(1.05) saturate(1.15)";
-    case "natural":
-    default:       return "blur(0.7px) brightness(1.07) contrast(1.03) saturate(1.08)";
-  }
+  void enabled;
+  void settings;
+  return "";
 }
