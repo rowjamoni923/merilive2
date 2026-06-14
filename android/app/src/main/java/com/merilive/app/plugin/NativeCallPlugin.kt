@@ -65,6 +65,35 @@ class NativeCallPlugin : Plugin() {
         const val ACTION_RESUME_PRIVATE_CALL =
             "com.merilive.app.ACTION_RESUME_PRIVATE_CALL"
 
+        /**
+         * Phase 2 — PrivateCallActivity → JS: the native in-call window
+         * lifecycle (opened / closed). JS listens via the `native-call-window`
+         * Capacitor event so React can stop hiding #root once the Activity
+         * owns the screen, and re-wake the React side if the user dismisses
+         * the Activity without ending the call (system back, force-close).
+         * Extras: call_id (String), state (String: "opened" | "closed").
+         */
+        const val ACTION_PRIVATE_CALL_WINDOW =
+            "com.merilive.app.ACTION_PRIVATE_CALL_WINDOW"
+
+        /**
+         * Phase 2 helper — fire the window lifecycle broadcast. Activity
+         * calls this from onStart / onDestroy; the plugin re-emits as a
+         * Capacitor event to JS listeners.
+         */
+        @JvmStatic
+        fun broadcastWindowState(ctx: Context?, callId: String?, state: String) {
+            val c = ctx ?: return
+            try {
+                val i = android.content.Intent(ACTION_PRIVATE_CALL_WINDOW).apply {
+                    setPackage(c.packageName)
+                    putExtra("call_id", callId ?: "")
+                    putExtra("state", state)
+                }
+                c.sendBroadcast(i)
+            } catch (_: Throwable) {}
+        }
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
