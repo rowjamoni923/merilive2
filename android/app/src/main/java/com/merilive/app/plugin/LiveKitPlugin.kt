@@ -90,6 +90,24 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
+        // Activate CameraX as the underlying capturer for the whole LiveKit
+        // SDK. Once registered, every setCameraEnabled() / createVideoTrack()
+        // call (including startLocalPreview here) uses CameraX instead of
+        // the default raw Camera2 capturer. Google maintains OEM-specific
+        // patches inside CameraX, so this gives us ~99% device coverage
+        // (Samsung/Xiaomi/Vivo/Oppo HAL quirks handled upstream).
+        try {
+            val app = context.applicationContext as android.app.Application
+            val provider = CameraXHelper.createCameraProvider(ProcessLifecycleOwner.get())
+            if (provider.isSupported(app)) {
+                CameraCapturerUtils.registerCameraProvider(provider)
+                Log.i(TAG, "CameraX provider registered — using CameraX capturer")
+            } else {
+                Log.w(TAG, "CameraX provider not supported on this device — falling back to Camera2")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "CameraX registration failed; falling back to Camera2", t)
+        }
         Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
     }
 
