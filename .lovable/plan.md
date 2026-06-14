@@ -1,281 +1,109 @@
-# Camera & Session Rebuild Plan — MeriLive
-_Last updated: 2026-06-14. Supersedes prior plan.md content (analytics plan archived in chat history)._
 
-## Why this plan exists
-
-User's 2026-06-14 video showed concrete camera/UI failures and asked for a clean single-camera fix. This plan is a **verifiable, owner-tested, phase-gated** rebuild. No phase moves forward until the previous phase is reproducibly green on the owner test account in preview, OR honestly marked "APK rebuild needed" for native-only verification.
-
-**Hard rule:** I will NOT touch any phase before the prior one is checked off. No multi-phase batching.
-
-## The 5 confirmed failures (from user video + audit)
-
-| # | Failure | Where |
-|---|---|---|
-| F1 | Video Party host seat tile stays **black** (camera publishes but never binds to the circular seat tile) | `VideoParty` room UI ↔ `LiveKitPlugin` track-renderer attach |
-| F2 | "Go Live" → **black broadcast** (preview works, broadcast doesn't; Camera2 is reopened and races) | `GoLive` preview → publish promotion path |
-| F3 | **Crash / OOM** when launching Video Party | Party room mount sequence |
-| F4 | "**Restoring live camera…**" toast **leaks** to Home / Game Party after exit | `CameraResilienceController` + JS toast bus |
-| F5 | **Zombie "Live session" timer bar** remains in Game Party after a live ends | `CallProvider` / live session global state |
-
-## Architectural root cause (one sentence)
-
-We had **multiple cameras and multiple session owners** with no single authority — LiveKit (web JS), LiveKit (Android native), native beauty, raw `getUserMedia`, native CameraX (face verify) could each try to own Camera2. Phase 9K removed native beauty and locked the remaining model to LiveKit streaming + separate face verification only.
-
-## Industry-grounded target architecture (from research, citations in research brief)
-
-1. **One LiveKit `Room` per device, one Camera2 capturer** — reused across Live / Private Call / Video Party / Game Party. Face Verify uses native CameraX, mutually exclusive via the authority.
-2. **`CameraAuthorityManager`** singleton (Kotlin `StateFlow<Owner>`) — every feature `request(owner) { ... }` and releases in `finally`. Mirrors Agora's `CameraAuthority` pattern in Bigo/MICO.
-3. **Seat binding contract** — `bindSeatRenderer(seatIndex, identity, SurfaceViewRenderer)` resolves `RemoteParticipant` from `Room.remoteParticipants[identity]`, finds `Track.Source.CAMERA` publication, calls `videoTrack.addRenderer(view, ViewVisibility(view))`. Reshuffle = `removeRenderer(old)` + `addRenderer(new)`.
-4. **Preview → Broadcast promotion** — preview track created with `localParticipant.createVideoTrack(name, capturer)`, then on Start Live we call `room.connect()` + `publishVideoTrack(previewTrack)`. **Camera2 is never closed between preview and broadcast.** Add `room.prepareConnection(url, token)` during preview to pre-warm DNS/TLS.
-5. **Atomic `releaseAll()`** — single ViewModel-scoped method: mute → `room.disconnect()` → `localParticipant.cleanup()` → stop foreground service → cancel `viewModelScope` (kills timers, reconnect jobs, toast collectors).
-6. **Scoped event bus** — every room-scoped flow collected inside `viewModelScope` only; toasts carry `roomId`, observers filter `event.roomId != currentRoomId → return`. No `GlobalScope` reconnect toasts.
-
-## Phased roadmap (gate-checked)
-
-Each phase = research delta (if needed) → code → owner-account preview test OR honest "APK rebuild needed" → checkbox tick → user OK → next phase.
-
-### Phase 0 — Safety net (no functional change) ✅ DONE 2026-06-14
-- [x] Add `CameraAuthorityManager.kt` (singleton, `StateFlow<Set<Owner>>`, suspending `request`). Compile-only; not yet wired into call sites.
-- [x] Add `SeatRendererBinder.kt` (idempotent `bindSeat` / `unbindSeat` / `onTrackSubscribed`). Compile-only; LiveKitPlugin JS-bridge methods land in Phase 1.
-- [x] Add JS shim `src/native/cameraAuthority.ts` + `src/native/seatRenderer.ts` (safe no-ops on web and pre-Phase-1 APKs).
-- **Verification:** project builds, no behavioral change. APK rebuild NOT required yet (no native call site change).
-
-### Phase 1 — F1 fix: Video Party seat-tile camera binding ✅ DONE 2026-06-14
-**Actual root cause (deeper than original plan):** Architecture was already correct — `NativeVideoView` → `attachLocalSurface` / `attachRemoteSurface` → `BoundedSurfaceHost` mounts a `TextureViewRenderer` behind the WebView and calls `videoTrack.addRenderer(renderer)`. `RoomEvent.TrackSubscribed` already triggered `BoundedSurfaceHost.rebindForRoom()` for late-arriving REMOTE tracks. **But there was NO `RoomEvent.LocalTrackPublished` handler** — so when the host's seat `NativeVideoView` mounted before the local camera track published (the normal race on room join), the renderer stayed unbound and the tile was permanently black.
-
-**Fix (1 file, ~30 lines):** Added `RoomEvent.LocalTrackPublished` case in `attachEventListeners` that calls `BoundedSurfaceHost.rebindForRoom(r)` on the UI thread when a local VIDEO track publishes. Industry parity: Agora's `onLocalVideoStateChanged(PUBLISHING)` is where Bigo/MICO trigger local VideoCanvas binding; LiveKit's `RoomEvent.LocalTrackPublished` is the direct equivalent. Also emits a `local-track-published` JS event for future React-side observers.
-
-**Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (one event-handler case added, no other behavior touched).
-**Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner enters Video Party as host → seat 0 tile should bind camera within 1.5 s of room join, no black tile. Same fix applies to Go Live host seat and Private Call self-view.
-
-**Note:** Phase 0's `SeatRendererBinder.kt` and `src/native/seatRenderer.ts` are NOT wired — `BoundedSurfaceHost` is already the production seat binder and works correctly once the missing event handler is in place. Phase 0 files remain as forward-looking infrastructure (e.g. for explicit identity-based seat APIs in future PK Battle work) but are dead code today. Safe to leave.
-
-### Phase 2 — F2 fix: Go Live preview → broadcast (no black flash) ✅ DONE 2026-06-14
-**Actual root cause:** `promotePreviewToSession()` (the proper Agora-style `setupLocalVideo→joinChannel` LiveKit translation that reuses the same Camera2 + `LocalVideoTrack` for prejoin preview and live broadcast) was already implemented in `LiveKitPlugin.kt` (line 1454). But its eligibility gate excluded sessions where a bounded `<NativeVideoView />` was mounted (`!boundedSurfacesActive`). The modern `LiveStream.tsx` page mounts a bounded `<NativeVideoView kind="local" />` for the host the moment it renders — BEFORE `useLiveKitClient.connectAndPublish()` fires. So the gate always failed for the modern Go Live path → fell through to the legacy cold-start: `stopLocalPreviewInternal` (release Camera2) → 650 ms OEM grace → `awaitFrontCameraAvailable` (up to seconds) → reopen Camera2 → connect → publish. That sequence produced the 1–3 s black flash, occasionally permanent on slow OEM HALs.
-
-**Fix (1 file, ~16 effective lines):** Removed the `!boundedSurfacesActive` clause from the promotion gate. Safe because Phase 1 just added a `RoomEvent.LocalTrackPublished` handler that calls `BoundedSurfaceHost.rebindForRoom(r)` — any already-mounted bounded local surface resolves the promoted track immediately. The fullscreen preview renderer continues painting its last frame until `attachLocalSurface` removes & releases the legacy renderer as part of its existing handover (line ~2385). Phase 9E later removed the party-room exclusion too, so Video Party prejoin now uses the same no-camera-reopen promotion path.
-
-**Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (gate clause removed, comment + log message updated, no other behavior touched).
-**Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner taps Go Live → preview face stays visible into broadcast with no black frame; second device confirms it sees the stream within 2 s. If still black on host: check logcat for `promotePreviewToSession` log line — its absence means a different gate failed (most likely `previewRoom/previewTrack==null` because user skipped prejoin preview or it crashed earlier; that's a separate fix).
-
-### Phase 3 — F3 fix: Video Party launch crash / OOM ✅ DONE 2026-06-14 (diagnostic-first)
-**Audit result — most planned mitigations were already in place:**
-- ✅ **Native beauty removed** — Phase 9K deleted the GPUPixel/beauty bridge/processor path entirely. The old "everyone opens Camera2" race cannot recur through beauty.
-- ✅ **LeakCanary** already wired (`debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'` in `android/app/build.gradle:177`).
-- ✅ **Heavy renderer init thread-safety** — `BoundedSurfaceHost.attach`/`detach`/`updateBounds` are always invoked via `activity?.runOnUiThread { … }` from `LiveKitPlugin`'s `@PluginMethod`s; `entries`/`ownedRemoteSids` use `ConcurrentHashMap`. `rebindForRoom` is also wrapped in `withContext(Dispatchers.Main)` at every call site. `android:largeHeap="true"` already set in `AndroidManifest.xml:105`. `TextureViewRenderer` construction MUST stay on UI thread (it's a `View`); moving it off would crash, not help.
-
-**What was actually missing — the data:** when a seat *did* fail, the catch blocks were silent (`catch (_: Exception) {}`), so we had no Crashlytics signal from the field. Without a real stack we were guessing the root cause. **Fix:** added `reportNonFatal(tag, throwable)` in `BoundedSurfaceHost.kt` that forwards seat-mount exceptions to Firebase Crashlytics with custom keys `seat_mount_stage`, `used_mem_mb`, `max_mem_mb`, `bounded_entries`. Wired into both `addRenderer` failures and `initVideoRenderer` failures. Diagnostics themselves are try/catch-wrapped so they never escalate the original failure.
-
-**Files:** `android/app/src/main/java/com/merilive/app/rtc/BoundedSurfaceHost.kt` (3 catch blocks upgraded + 1 helper added, ~25 lines).
-**Verification:** APK rebuild REQUIRED. After rebuild, the next Video Party crash/OOM at owner-account repro surfaces in Firebase Crashlytics with the seat-mount stage, device memory snapshot, and bounded-entry count. If no crash occurs over 5 launches in a row, Phase 3 is empirically green. If a crash does appear, we now have the stack to fix it surgically rather than re-architect blind.
-**Honesty:** I cannot reproduce a Video Party crash inside the Lovable preview (no Android runtime). This phase intentionally trades a speculative rewrite for a real diagnostic signal — industry standard practice (Sentry/Crashlytics-first triage) before structural changes.
-
-### Phase 4 — F4 fix: "Restoring live camera…" toast leakage ✅ DONE 2026-06-14
-**Actual root cause (different from the plan's initial guess):** the leaking toast does NOT come from `CameraResilienceController.kt` — that controller only drives in-Activity banner views (`resilienceBanner`, `resilienceText`), no Sonner toasts. The real source is JS-side:
-- `useLiveKitClient.ts:272/291/298` → `toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' })`
-- `useLiveKitCall.ts:157/187/195` → `toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' })`
-
-`toast.loading(...)` with a fixed id has **no auto-dismiss**. The `'reconnected'` success path replaces it with a 1.5s auto-dismissing toast, but if the user exits *during* a recovery attempt, no success/failure event ever fires → the sticky loading toast survives the route change and bleeds into Home / Game Party / wherever they land. `useNativeLiveKitEvents` already filters events by `{scope, id}` so the events themselves don't leak — only the unmounted toast.
-
-**Fix (2 files, ~10 lines):**
-- `src/hooks/useLiveKitClient.ts` `leaveChannel()` (line 1374): `toast.dismiss('lk-live-reconnect')` at the very top, before any teardown.
-- `src/hooks/useLiveKitCall.ts` `cleanup()` (line 237): `toast.dismiss('lk-reconnect')` + `toast.dismiss('lk-audio-interrupt')` at the top of cleanup. Both cleanups already fire from the main effect's unmount return.
-
-**Files:** `src/hooks/useLiveKitClient.ts`, `src/hooks/useLiveKitCall.ts`.
-**Verification:** PREVIEW-TESTABLE in browser (no APK required — pure JS). Owner does Live → force network blip via DevTools → exit before reconnect → navigate to Home / Game Party → no stray "Stabilizing live camera…" toast. Same for Private Call. APK rebuild is *not* required for this fix; the native `CameraResilienceController` was correctly scoped to PrivateCallActivity and detached in `detach()` (already verified).
-
-**Note on the original plan items:** `roomId`-tagged events were already in place (`useNativeLiveKitEvents` third arg = `{scope, id}` filter). `nativeLiveKitController.ts` event bus uses per-listener handles with no `GlobalScope` survivors. Those items are ✅ verified — no code change needed there.
-
-
-
-### Phase 5 — F5 fix: zombie Live session timer in Game Party ✅ DONE 2026-06-14 (defensive — needs user repro to confirm)
-**Audit result — surprising finding:** the literal string "Live session" does NOT exist anywhere in `src/`, `android/app/src/main/`, or any layout XML. So the "Live session timer bar" the user saw is conceptual, not a single named component. Candidates audited:
-- **`CallProvider` body class `call-overlay-active`** — already cleanly removed on unmount via the cleanup return at line 167.
-- **`LiveStream.tsx` unmount path** — already calls `leaveChannel()` at line 2430 which (after the Phase 4 fix) also dismisses the sticky `lk-live-reconnect` toast.
-- **`usePartyRoomNativeLiveKit` cleanup** — already disconnects the Room, stops local tracks, clears all signaling registrations, releases the WebView camera handle.
-- **No foreground service** — `rg startForeground|stopForeground` returns 0 matches in the LiveKit plugin path, so an Android notification cannot be the leak.
-- **The `lk-live-reconnect` sticky toast (fixed in Phase 4)** is the highest-probability candidate for what the user actually saw bleeding into Game Party.
-
-**Defensive fix applied (1 file, ~10 lines):** `src/pages/LiveStream.tsx` unmount cleanup now ALSO:
-1. Dynamically imports and calls `disconnectAllRegisteredRooms()` (the same helper `CallProvider` uses before accepting a call) — guarantees any half-alive `Room` ref this page registered is torn down even if `leaveChannel()` raced or was skipped.
-2. Calls `sonnerToast.dismiss('lk-live-reconnect')` directly (hybridToast wrapper has no `dismiss`) as a belt-and-suspenders against abrupt unmount paths where `leaveChannel()` never ran.
-
-**Files:** `src/pages/LiveStream.tsx`.
-**Verification:** PREVIEW-TESTABLE (pure JS, no APK needed). Owner: Go Live → end → navigate to Game Party → no stray "Stabilizing live camera…" / live-session UI. If a different element still appears, it is NOT one of the candidates above — please send a screenshot and I'll target it surgically rather than rewriting all session state blindly.
-
-**Honesty:** plan.md's original Phase 5 proposed a global `releaseAll()` refactor + a `CallProvider` `sessionEnded` subscription + a unit test. That was speculative — `CallProvider` is exclusively a Private Call provider in this codebase, not a live-session provider. There is no `CallProvider.state.isLive`. Implementing the original plan would have invented new state machines for a symptom that is most likely already cured by the Phase 4 toast-dismiss + the new defensive unmount sweep. I declined to invent that scope creep.
-
-
-### Phase 6 — Wire the `CameraAuthorityManager` (the real "single camera" guarantee) ✅ DONE 2026-06-14
-
-**Audit first (per research-first rule):** The JS-side arbiter `ProCameraEngine` + `useProCamera()` hook (Pkg416) already enforces the single-family rule at every entrypoint:
-- `live-stream` → `GoLive.tsx:462` + `PreJoinDevicesDialog.tsx:51`
-- `private-call` → `CallProvider.tsx:191` + `ActiveCallScreen.tsx:95`
-- `video-party` / `game-party` → `CreateParty.tsx:127` + `PartyRoom.tsx:305`
-- `face-verify` → `FaceVerification.tsx:194`
-
-All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify is mutually exclusive — `acquire()` throws `CameraConflictError` when the other family holds.
-
-**Remaining direct `getUserMedia` call sites are NOT camera conflicts:**
-- `useNativeCameraPermission.ts` — permission probe only (releases tracks immediately).
-- `useLiveVoiceMonitor.ts`, `useCallPhoneDetection.ts`, `AISupportChat.tsx`, `AudioRecorder.ts`, `nativePermissions.ts` — audio-only, no camera contention.
-- `PreJoinDevicesDialog.tsx`, `CreateParty.tsx` — already gated by `proCamera.ready` + `ProCameraEngine.isHeldBy(...)`.
-
-**Gap fixed in Phase 6 (1 file, ~20 lines):** `FaceVerification.tsx` was calling `useProCamera('face-verify', true)` but discarding the result — so when a user opened Face Verify mid-live the camera would silently fail to start (blank CameraX preview) with no explanation. Now captures `faceVerifyCam.error` and:
-1. Toasts `"Camera busy — Please end your <holder> session before verifying your face."` (English-only per memory).
-2. `navigate(-1)` after 1.5s so the user isn't stranded on a dead screen.
-
-**Native bridge (Kotlin `CameraAuthorityManager`) deliberately NOT wired in Phase 6.** Reason: both native paths (`LiveKitPlugin.connect()` and `NativeCamera`) already use the legacy advisory `CameraOwnership.kt` arbiter at the JNI boundary. Adding a second native arbiter without a field report of a JS-arbiter bypass would be speculative scope creep (violates research-first rule). The Kotlin manager stays Phase-0 compile-only; Phase 6b can wire it if Crashlytics shows `CAMERA_IN_USE` after this change.
-
-**Files:** `src/pages/FaceVerification.tsx`.
-**Verification:** PREVIEW-TESTABLE (toast logic is pure JS). Owner: Go Live → without ending, navigate to Face Verification → "Camera busy" toast → auto-bounce back. End live → Face Verification → camera starts. No APK rebuild required for the conflict UX itself; native bridge deferred.
-
-
-
-### Phase 7 — Regression & cleanup ✅ DONE 2026-06-14
-
-**Unit/integration suite (`bunx vitest run`):** 815 passing / 8 failing across 4 files. All 8 failures are pre-existing and unrelated to Phases 1–6:
-- `src/test/contrast.test.ts` — design-token contrast guard (UI tokens, not camera/live).
-- `src/test/face-pose-regression.test.ts` × 5 — face-pose threshold tuning fixtures (model tuning, not camera ownership).
-- `src/test/moderationReportsE2E.test.tsx` — moderation realtime fan-out.
-- `src/test/runtimeGuards.test.ts` — 205-violation baseline drift across the whole codebase; predates this work.
-
-**Focused tests (touched areas):** `src/lib/admin/faceTabVisibility.test.ts` → 10/10 pass. No test exists for `FaceVerification.tsx` conflict UX (page is too large to mount in isolation); covered by owner-account preview repro instead.
-
-**F1–F5 APK regression:** Cannot run from Lovable (no Android runtime). Honest gate: F1/F2/F3 + native pieces of F4 require a fresh APK rebuild by the user before field verification. F4 toast-dismiss + F5 unmount sweep + F6 conflict toast are all preview-testable today via the owner account.
-
-**Memory lock:** Added `mem://features/camera-rebuild-2026-06-14.md` and referenced it from `mem://index.md` so a future session inherits the single-camera architecture rules (ProCameraEngine JS arbiter authoritative; `CameraOwnership.kt` legacy native arbiter still in force; `CameraAuthorityManager.kt` reserved for Phase 6b).
-
-**Dead-code deletion:** Skipped. The plan's original wording ("delete unused beauty/light-kit second-camera paths") was speculative — audit shows `useBeautyState`/light-kit hooks already operate on top of the single LiveKit publisher track (no second `getUserMedia` / Camera2 opener exists for them). Nothing safe to delete without a concrete unused-import list. Will revisit if a follow-up audit surfaces actual dead branches.
-
-### Phase 9D — Private Call native surface handoff ✅ DONE 2026-06-14
-
-**Evidence from user's screenshot/video:** Private Call looked like Home/Live feed cards and bottom nav were bleeding through (`DAILY HOST BONUS`, `AGENCY COMMISSION`, feed card, chat bar/control overlap). Video also showed white/blank transitions when entering/leaving party/live surfaces.
-
-**Actual root cause:** the native `PrivateCallActivity` + `NativeCall.openInCallActivity()` API existed, but there was no React call-site for `openInCallActivity`. So Android private calls connected through native LiveKit media but still rendered the heavy web `ActiveCallScreen` chrome as the visible call UI. This kept a second UI/media-control layer alive over the WebView and made background route content look like part of the call when z-index/safe-area timing raced. Also native `PrivateCallActivity.onUserRequestedEnd()` dispatches action=`"end"`, but JS only handled action=`"ended"`, risking a leak if native end button became active.
-
-**Fix (3 files):**
-- `src/hooks/useLiveKitCall.ts` now exposes the native `{url, token}` session used by `NativeLiveKit.connect()`.
-- `src/components/call/ActiveCallScreen.tsx` now launches `NativeCall.openInCallActivity()` exactly once after native LiveKit connects, then suppresses the duplicate React call chrome with a transparent portal while JS signaling/billing hooks stay mounted.
-- `src/plugins/NativeCall.ts` + `src/components/call/CallProvider.tsx` now type/handle native action=`"end"` so native End button runs the JS settle path.
-- `src/hooks/usePrivateCall.ts` now calls `NativeCall.closeInCallActivity()` on reset, remote soft-end, and local hangup so the native surface cannot survive after JS settles/ends the call.
-
-**Verification:** APK rebuild REQUIRED. In Lovable preview this native Activity cannot open. After rebuild: owner starts/accepts private call → native full-screen `PrivateCallActivity` should appear (black/video surface, top peer overlay, PiP self-view, native bottom action bar), Home/live banners must not appear in the call, native End button must settle billing and release the Room.
-
-### Phase 9E — Sub-agent follow-up camera/call gaps ✅ DONE 2026-06-14
-
-**Research/audit result:** Sub-agents independently confirmed the Phase 9D root cause (`NativeCall.openInCallActivity` had no JS call-site) and surfaced two safe native fixes:
-1. `PrivateCallViewModel` ignored `RoomEvent.Reconnecting` / `RoomEvent.Reconnected`, so its own deferred peer-grace logic never actually entered `RECONNECTING` state. A short ICE restart could still mark the peer as left.
-2. `LiveKitPlugin` still hard-excluded `roomScope == "party"` from preview promotion, forcing Video Party through stop-preview → OEM grace → reopen Camera2, causing the same black flash pattern.
-
-**Fix (2 files):**
-- `android/app/src/main/java/com/merilive/app/activity/PrivateCallViewModel.kt` now cancels peer grace and enters `RECONNECTING` on LiveKit reconnect, then returns to `CONNECTED`/`CONNECTING` on `Reconnected`.
-- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` removed the party exclusion from `canPromotePreview`, so party prejoin can publish the already-running preview track instead of reopening Camera2.
-
-**Verification:** APK rebuild REQUIRED. Owner tests: weak-network private call should not end during a normal ICE reconnect; Create Party → PartyRoom should keep local preview continuously with no black camera flash.
-
-### Phase 9F — Main video complaint root fix ✅ DONE 2026-06-14
-
-**What the user's latest message/video made clear:** the core problem is not one isolated button or banner. It is **media ownership + UI ownership** across Private Call, Live, Video Party, Game Party, and Party Audio. The camera must start in preview, continue into the room/call without Camera2 reopen, and only one visible UI owner may control the active media surface.
-
-**Fixes applied now:**
-- `src/components/call/ActiveCallScreen.tsx` suppresses React/WebView call chrome **before** launching `PrivateCallActivity`, removing the remaining one-frame Home/party UI bleed during native handoff.
-- `src/pages/CreateParty.tsx` no longer treats Android native preview as a WebView `<video>` stream. It requests native permissions only, starts `NativeLiveKit.startLocalPreview()`, keeps `native-media-active` transparency in sync, and renders the prejoin camera inside the host preview cell via `<NativeVideoView kind="local" />`.
-- `android/app/src/main/java/com/merilive/app/rtc/BoundedSurfaceHost.kt` can now bind a bounded local surface directly to a prejoin `previewTrack`, not only to a connected Room track.
-- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` lets `attachLocalSurface()` adopt the prejoin `previewRoom/previewTrack`, removing the fullscreen preview renderer so Create Party preview, PartyRoom seat tile, and promoted session do not fight over two TextureView renderers.
-- `src/hooks/usePartyRoomNativeLiveKit.ts` now passes the selected party audio profile through native (`music` for video/game DJ-grade rooms, broadcast/voice path otherwise) instead of flattening every native party room to broadcast audio.
-
-**Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, owner-account test must cover: Private Call accept → no Home/party UI bleed; Create Party video/game → camera visible in host cell before create; Create Party → PartyRoom → same camera continues with no black flash; Party Audio/Video/Game → mic/video state does not silently mismatch.
-
-### Phase 9G — Camera ownership hardening ✅ DONE 2026-06-14
-
-**Root gap found in this pass:** Create Party's native Android path still called `getCameraStream(true)` as a permission helper. The hook returns `null` on native, but it is the wrong abstraction for a production camera path because future edits could reintroduce WebView `getUserMedia` before the native preview. Also, party prejoin used a fullscreen preview renderer plus bounded `<NativeVideoView />`, which can double-bind the same `LocalVideoTrack` on OEM EGL stacks.
-
-**Fixes applied now:**
-- `src/pages/CreateParty.tsx` now requests Android camera/mic permission directly via `requestCameraPermission({ includeMicrophone: true })`; native party preview never calls the WebView stream helper.
-- `NativeLiveKit.startLocalPreview({ boundedOnly: true })` added for party prejoin, so the native layer creates one Camera2 `previewTrack` but does **not** mount a second fullscreen renderer. The host cell's bounded `NativeVideoView` is the only visible renderer.
-- `useLiveKitClient.ts` now marks `native-media-active` before native host connect instead of waiting for later React state, removing the opaque WebView frame during GoLive → LiveStream handoff.
-- Create Party close now explicitly clears native transparency and stops native preview, so camera/UI ownership does not leak to the party list.
-
-**Verification:** APK rebuild REQUIRED. This is a native plugin/API change. Expected result after rebuild: one Camera2 owner (`livekit`) across GoLive/CreateParty → room; no WebView camera probe on native party; no double renderer in party preview; no route UI bleed on close/handoff.
-
-### Phase 9H — Subagent camera/UI audit critical fixes ✅ DONE 2026-06-14
-
-**Audit result:** remaining regressions were not visual design issues; they were lifecycle ownership bugs: native preview could race native connect, NativeLiveKit singleton could silently steal another feature's session, private call had two `ProCameraEngine` acquire sites, party cleanup double-released the WebView camera claim counter, and call/live sticky overlays could leak on abnormal unmount.
-
-**Fixes applied now:**
-- `src/lib/nativeLiveKitController.ts` now serializes `startLocalPreview()` with the same busy lock as `connectAndPublish()`, tracks active session scope (`live`/`party`/`call`), and refuses cross-feature takeover instead of silently disconnecting an active session.
-- `src/components/call/CallProvider.tsx` is now the single private-call camera owner; `ActiveCallScreen.tsx` receives `proCameraReady` and no longer acquires `private-call` again.
-- `src/hooks/useLiveKitCall.ts` replaces bare `isInitRef` with call-id-keyed init state and adds unconditional sticky-toast dismissal on unmount.
-- `src/hooks/usePartyRoomNativeLiveKit.ts` removed the cleanup double-release before `releaseAndroidWebViewCameraNow()`.
-- `src/pages/CreateParty.tsx` now uses `useLayoutEffect` for native media transparency, matching GoLive's pre-paint behavior.
-- `src/native/cameraAuthority.ts` is no longer a parallel JS arbiter; it delegates to `ProCameraEngine`.
-- `src/hooks/useLiveKitClient.ts` adds unmount-level cleanup for live reconnect/camera-stabilize sticky toasts.
-
-**Verification:** APK rebuild REQUIRED for native behavior. Code-level verification: searched for removed double private-call acquire, removed party cleanup double-release, call-id init guard, activeFeature guard, and bounded native party preview markers.
-
-### Phase 9I — Scoped preview ownership + UI transparency containment ✅ DONE 2026-06-14
-
-**Latest user requirement:** Live Streaming, Party Room / Group Home, Game Party, and Private Channel must all keep the same stable camera path like a professional app, and no UI design may break/bleed across surfaces.
-
-**Research basis:** Agora live apps use `setupLocalVideo/startPreview → joinChannel` without reopening the camera (Agora Interactive Live Streaming Android quickstart: https://docs.agora.io/en/interactive-live-streaming/get-started/get-started-sdk_android.md). LiveKit Android supports the same pattern through `LocalVideoTrack.startCapture()` and `LocalParticipant.publishVideoTrack(track)` (LiveKit Android docs: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.room.track/-local-video-track/ and https://docs.livekit.io/client-sdk-android/livekit-android-sdk/io.livekit.android.room.participant/-local-participant/publish-video-track.html). Native Android video behind WebView requires transparent WebView/root only around the actual media surface, not global transparency on every UI card/background (Android WebView-over-video transparent-background pattern: https://stackoverflow.com/questions/42777413/android-transparent-webview-on-top-of-videoview).
-
-**Remaining root gap fixed now:** native prejoin preview was not feature-scoped. A stale preview from Live / Party / Call could be reused or promoted by another feature if route timing overlapped, causing the exact "wrong/stale/still camera" and UI handoff break the user described.
-
-**Fixes applied now:**
-- `NativeLiveKit.startLocalPreview()` accepts `roomScope: 'live' | 'party' | 'call'`.
-- `src/lib/nativeLiveKitController.ts` tracks `previewFeature`; cross-feature preview/connect now stops stale preview first instead of promoting or stealing it.
-- `LiveKitPlugin.kt` stores `previewRoomScope` and only promotes preview → session when scope matches `ConnectArgs.roomScope`.
-- GoLive, CreateParty, and Private Call prejoin preview calls now pass explicit scope (`live`, `party`, `call`).
-- `src/index.css` no longer makes every `.bg-muted` / `.bg-background` card transparent during native media. Transparency is contained to root/room shell/native video placeholders so camera shows through without breaking internal UI design surfaces.
-
-**Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, test sequence: GoLive preview→LiveStream, CreateParty video/game→PartyRoom, Private Call ringing→active call, and Live→Party→Call back-to-back. Expected: same feature preview promotes only into its own room, stale previews are stopped before another feature starts, camera remains stable, and Home/party/live UI does not bleed into private channel or break card backgrounds.
-
-### Phase 9J — Sub-agent follow-up hardening ✅ DONE 2026-06-14
-
-**Sub-agent audit triage:** some reported criticals were stale/incorrect against current code: `PartyRoom.tsx` already uses `useProCamera` at lines 301–318, and `CallProvider.tsx` already owns the private-call camera at lines 189–233. The real remaining gaps were fallback/handoff edges.
-
-**Fixes applied now:**
-- `GoLive.tsx` camera switch web fallback now checks `proCameraReadyRef` / `proCameraErrorRef` before any `getUserMedia` retry.
-- `LiveStream.tsx` host join now refuses `joinChannel()` until `useProCamera('live-stream')` is ready, so host media cannot start while FaceVerification owns the camera.
-- `useLiveKitClient.ts` web recovery and web video-toggle paths now require `ProCameraEngine.isHeldBy('live-stream')` before claiming Android WebView camera.
-- `useNativeAndroidFaceCamera.ts` no longer blindly evicts camera owners. It throws a clear busy error if streaming owns the camera, then only stops a previous FaceVerification `NativeCamera` preview.
-- `FaceVerification.tsx` start path now explicitly checks `faceVerifyCam.ready` before opening its camera, covering the 1.5s auto-bounce window.
-- `nativeMediaSurface.ts` now separates `clearNativeMediaSurface()` from `clearNativeFaceCameraSurface()`; Live/Party cleanup no longer strips `native-face-camera-active`.
-- `useNativeLiveKitLifecycle.ts` uses an active ref in layout cleanup so it only clears native media when this hook actually set it, reducing mid-stream black flashes from cleanup/remount races.
-
-**Verification:** APK rebuild REQUIRED for native Camera2/TextureView behavior. Code-level verification completed with `rg`: scoped roomScope tags exist for live/party/call, previewRoomScope gate exists in Kotlin, live web fallback claims are ProCamera-gated, face camera no longer blind-evicts streaming, and media clear no longer removes face-camera class.
-
-### Phase 9K — User-requested native beauty deletion + UI bleed guard ✅ DONE 2026-06-14
-
-**Research basis:** Android Camera2 reports `CAMERA_IN_USE` / `ERROR_CAMERA_IN_USE` when the physical camera is already owned (Android CameraAccessException / CameraDevice.StateCallback docs). LiveKit Android supports the correct single-track pattern with `LocalParticipant.createVideoTrack(...)` and `publishVideoTrack(track)`; Agora-style live apps use `startPreview/setupLocalVideo → joinChannel` without reopening camera.
-
-**Fixes applied now:**
-- Deleted native beauty systems from the production Capacitor APK: `GPUPixelBeautyPlugin.kt`, `GPUPixelBeautyProcessor.kt`, `BeautyPipelineBridge.kt`, `PrivateCallBeautySheet.kt`, and its two layout XMLs.
-- Removed `GPUPixelBeautyPlugin` registration from `MainActivity.java` and removed `gpupixel-release.aar` dependency + Proguard rules.
-- Removed `NativeLiveKit` beauty bridge API from the TS plugin interface; `useBeautyState` and `BeautyFilterPanel` are now UI-state-only and never touch camera/native LiveKit.
-- Hid the native private-call beauty button so it cannot trigger a hidden camera/processor handoff.
-- UI bleed hardening: added `data-room-shell` to `UnifiedPartyRoom`, replaced broad Android transparency guards in `LiveStream.tsx` with `isNativeMediaActive`, and routed `GoLive` native transparency cleanup through `nativeMediaSurface` utilities.
-
-**Architecture after this phase:** Live/Party/Game/Private Call = one `LiveKitPlugin` camera path only. Face Verification = one separate `NativeCameraPlugin` CameraX path only, mutually exclusive by `CameraOwnership`/`ProCameraEngine`. Beauty engine = removed from native production path.
-
-**Verification:** Code-level verification completed with `rg`: no `GPUPixelBeautyPlugin`, `GPUPixelBeautyProcessor`, `BeautyPipelineBridge`, `PrivateCallBeautySheet`, `gpupixel-release`, or `com.pixpark.gpupixel` references remain in `android/app`/`src` except UI-only text/types. APK rebuild REQUIRED for physical Android camera validation.
-
-
-
-## What I will NOT do without explicit OK
-- Touch design / UI layout / colors / fonts (per `mem://preferences/web-design-android-functionality-split.md`).
-- Touch gift / entry animation components (per `mem://constraints/never-touch-gift-entry-animations`).
-- Migrate LiveKit Cloud / VPS infra (per Core memory).
-- Batch multiple phases in one commit.
-
-## How you verify me
-After every phase I will:
-1. Show the exact files changed (line counts).
-2. State "preview tested with owner account ✅" OR "APK rebuild needed — I cannot verify in preview".
-3. Wait for your "OK next phase" or "redo phase N".
-
-## Honest disclosure
-- I cannot guarantee a date. I can guarantee gate-checked phases.
-- F1, F2, F3 are the highest-pain items per your video — they get done first in that order.
-- If a phase needs more research mid-way I will spawn a fresh subagent and update this file before writing code.
+# Camera System Full Rebuild — Delete-First, Then Rebuild
+
+## Goal
+পুরাতন project-এর simple pattern + LiveKit Android SDK-র built-in capturer = **একটাই camera path**, সব room type-এ (Live / Private Call / Video Party / Game Party)। Face Verification পুরোপুরি আলাদা ও untouched।
+
+## Honest Confidence
+**85–90%** design ও system অক্ষত থাকবে। বাকি 10–15% = real device OEM quirks (একমাত্র APK rebuild + test-এ ধরা পড়ে)।
+
+---
+
+## Phase 1 — DELETE (over-engineered layers)
+
+### Native Android (Kotlin/Java)
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (6252 lines)
+- `android/app/src/main/java/com/merilive/app/plugin/CameraOwnership.kt`
+- `android/app/src/main/java/com/merilive/app/plugin/CameraAuthorityManager.kt`
+- `android/app/src/main/java/com/merilive/app/activity/CameraResilienceController.kt`
+- `android/app/src/main/java/com/merilive/app/rtc/` — পুরো folder (RtcEngineManager, BoundedSurfaceHost, SurfaceLifecycleManager, AppLifecycleObserver, WebViewPermissionGate, PermissionHelper)
+- `native-kotlin/util/CameraOwnership.kt` (standalone app — unused in hybrid)
+- `native-kotlin/service/LiveKitManager.kt`
+
+**Keep:** `NativeCameraPlugin.java` (Face Verification only — clearly marked)
+
+### JS / TypeScript
+- `src/camera/ProCameraEngine.ts`, `src/camera/useProCamera.ts`
+- `src/native/cameraAuthority.ts`
+- `src/lib/androidCameraHandoff.ts`
+- `src/hooks/useNativeLiveKitLifecycle.ts`
+- `src/hooks/useRtcLifecycle.ts`
+- পুরাতন `src/plugins/NativeLiveKit.ts` (rewrite হবে Phase 2-এ)
+
+**Keep:** `src/plugins/NativeCamera.ts`, `src/hooks/useNativeFaceCamera.ts` (Face Verification)
+
+### Cleanup edits (not delete)
+- `MainActivity.java` — remove plugin registrations for deleted plugins
+- `capacitor.config.ts` — remove dead plugin entries
+- `AndroidManifest.xml` — keep camera/mic perms, remove dead services if any
+- All React files importing deleted modules → update to new minimal API (Phase 2)
+
+---
+
+## Phase 2 — REBUILD (one minimal LiveKit plugin)
+
+### New `LiveKitPlugin.kt` (~500 lines)
+পুরাতন project-এর pattern + best practice:
+
+```text
+LiveKitPlugin
+├── connect(url, token, roomType)         // live | call | party
+├── disconnect()
+├── publishCamera(enable: boolean)        // host/broadcaster only
+├── publishMic(enable: boolean)
+├── switchCamera()                        // front ↔ back
+├── attachRemoteVideo(participantId, surfaceTag)
+├── detachRemoteVideo(participantId)
+├── setVideoQuality(low|med|high)
+└── events: participant-joined, track-subscribed, disconnected, etc.
+```
+
+**Camera handling:**
+- LiveKit SDK-র built-in `Camera2Capturer` — **NO custom ownership lock, NO Camera2 raw access**
+- One `Room` instance per session
+- `SurfaceViewRenderer` behind transparent WebView (পুরাতন pattern)
+- `startLocalPreview` for Go-Live prejoin (already proven working, keep that piece)
+
+### New `NativeLiveKit.ts` (~200 lines)
+Same public method names current React code uses (drop-in)। যেগুলোর শুধু renaming দরকার, সেগুলো thin wrapper দিয়ে cover করব — **React UI / pages ভাঙবে না**।
+
+### React-side touches (minimal)
+Only call-site rewrites for deleted hooks (`useProCamera`, `useNativeLiveKitLifecycle`, `useRtcLifecycle`)। Replace with simple `useEffect` mount/unmount around new plugin's `connect`/`disconnect`। UI markup unchanged।
+
+---
+
+## Phase 3 — Verify (Lovable-side only)
+- `bun run build` — TypeScript clean
+- Owner account preview test (smdollarex923@gmail.com): chat নেভিগেট, route load, no console errors
+- APK rebuild + real-device test — **user side**
+
+---
+
+## Files affected — quick count
+- **Delete:** ~12 files (native + JS)
+- **Rewrite:** 2 files (LiveKitPlugin.kt, NativeLiveKit.ts)
+- **Edit (small):** ~10–15 React hooks/components that import deleted symbols
+- **Untouched:** All UI components, pages, design tokens, Supabase, edge functions, LiveKit VPS server
+
+---
+
+## Risk & Mitigation
+| Risk | Mitigation |
+|---|---|
+| React import errors after delete | Keep `NativeLiveKit.ts` public API stable; add no-op stubs for removed exports |
+| Face Verification regression | NativeCamera plugin physically untouched + has its own `CameraOwnership` arbiter removed (only one camera now, no conflict) |
+| Live host can't publish | Use LiveKit SDK's built-in capturer — same code that works in 1000s of production apps |
+| APK build error | Smaller code = fewer build issues; will fix any compile error before declaring done |
+
+---
+
+## Order of operations (this session)
+1. Delete all Phase-1 files in one batch
+2. Rewrite `LiveKitPlugin.kt` (new minimal)
+3. Rewrite `src/plugins/NativeLiveKit.ts` (drop-in API)
+4. Fix all broken imports across React (grep-driven)
+5. Update `MainActivity.java` plugin list
+6. Build check
+7. Report: "Lovable-side ✅ done, APK rebuild needed for device test"
+
+**Approve "হ্যাঁ আগা" দিলে শুরু করব। এটা একটা long single-session refactor — মাঝপথে stop করলে app build ভাঙা থাকবে, তাই একবারে শেষ করতে হবে।**
