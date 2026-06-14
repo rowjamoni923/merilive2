@@ -239,6 +239,13 @@ export function useLiveKitCall(
       try { callCameraPermissionMonitorRef.current(); } catch { /* ignore */ }
       callCameraPermissionMonitorRef.current = null;
     }
+    // Phase 9B: cancel pending camera-stabilize debounce + dismiss any
+    // surviving toast so it doesn't leak onto the post-call screen.
+    if (callCameraStabilizeTimerRef.current) {
+      clearTimeout(callCameraStabilizeTimerRef.current);
+      callCameraStabilizeTimerRef.current = null;
+    }
+    try { toast.dismiss('lk-call-camera-stabilize'); } catch { /* ignore */ }
     if (callRemoteVideoWatchdogRef.current) {
       clearInterval(callRemoteVideoWatchdogRef.current);
       callRemoteVideoWatchdogRef.current = null;
