@@ -10,7 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
-import com.merilive.app.plugin.CameraOwnership;
+// CameraOwnership removed in 2026-06-14 rebuild — no arbiter needed.
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
@@ -197,19 +197,9 @@ public class MainActivity extends BridgeActivity {
         } catch (Throwable ignored) {}
 
         // Phase 2B — install the WebView permission gate so any stray
-        // getUserMedia() inside the WebView while we're on a native-owned
-        // media route (/live, /private-call, /party, ...) is hard-denied.
-        // Prevents the Chamet-class Android-16 permission loop where the
-        // WebView fights LiveKitPlugin for the same Camera2 handle.
-        try {
-            if (getBridge() != null && getBridge().getWebView() != null) {
-                getBridge().getWebView().setWebChromeClient(
-                    new com.merilive.app.rtc.WebViewPermissionGate(getBridge())
-                );
-            }
-        } catch (Throwable t) {
-            android.util.Log.w("MainActivity", "WebViewPermissionGate install failed: " + t.getMessage());
-        }
+        // 2026-06-14 rebuild: WebViewPermissionGate removed along with the
+        // rtc/ folder. The minimal LiveKit plugin owns Camera2 directly via
+        // the SDK, so there is no in-WebView getUserMedia path to gate.
 
         // Handle notification route on cold start
         handleNotificationRoute(getIntent());
@@ -248,9 +238,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onDestroy() {
-        try {
-            CameraOwnership.forceRelease();
-        } catch (Throwable ignored) {}
+        // CameraOwnership.forceRelease() removed in 2026-06-14 rebuild —
+        // LiveKit SDK owns camera teardown internally.
         super.onDestroy();
     }
 
