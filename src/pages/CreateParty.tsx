@@ -42,7 +42,7 @@ import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { useProCamera } from "@/camera/useProCamera";
 import * as ProCameraEngine from "@/camera/ProCameraEngine";
 import { NativeVideoView } from "@/components/NativeVideoView";
-import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 type PartyMode = "video" | "audio" | "game";
 
