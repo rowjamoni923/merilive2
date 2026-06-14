@@ -1176,6 +1176,16 @@ class LiveKitPlugin : Plugin() {
         withContext(Dispatchers.Main) { detachAllRenderersInternal() }
         // Tear down any previous room first.
         val previousRoom = room
+        if (previousRoom != null) {
+            // Camera audit fix: connect-replace is a teardown too. Stop the
+            // LiveKit capturer before Room.disconnect(), otherwise a hot
+            // live→call / party→live transition can leave Camera2 locked and
+            // the next TextureView paints black until process restart.
+            try { previousRoom.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
+            try { previousRoom.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
+            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
+            delay(OEM_CAMERA_RELEASE_SETTLE_MS)
+        }
         try { previousRoom?.disconnect() } catch (_: Exception) {}
         releaseRoomResources(previousRoom, "connect-replace")
         try { com.merilive.app.rtc.RtcEngineManager.unbind("connect-replace", previousRoom) } catch (_: Throwable) {}
@@ -2284,6 +2294,7 @@ class LiveKitPlugin : Plugin() {
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
 
         scope.launch {
             try {
@@ -2317,13 +2328,19 @@ class LiveKitPlugin : Plugin() {
                 previewTrack = track
                 track.startCapture()
 
-                withContext(Dispatchers.Main) {
-                    val renderer = createRenderer()
-                    previewRenderer = renderer
-                    initVideoRendererIdempotent(pr, renderer, "preview")
-                    try { renderer.setMirror(mirror) } catch (_: Throwable) {}
-                    track.addRenderer(renderer)
-                    mountBehindWebView(renderer)
+                if (!boundedOnly) {
+                    withContext(Dispatchers.Main) {
+                        val renderer = createRenderer()
+                        previewRenderer = renderer
+                        initVideoRendererIdempotent(pr, renderer, "preview")
+                        try { renderer.setMirror(mirror) } catch (_: Throwable) {}
+                        track.addRenderer(renderer)
+                        mountBehindWebView(renderer)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        bridge?.webView?.setBackgroundColor(Color.TRANSPARENT)
+                    }
                 }
 
                 val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")

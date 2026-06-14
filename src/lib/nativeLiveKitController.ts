@@ -50,6 +50,15 @@ class NativeLiveKitController {
   private connected = false;
   private busy = false;
   private autoAttachLocalRenderer = true;
+  private activeFeature: NativeRoomScope | null = null;
+
+  private inferScopeFromCallType(callType?: string | null): NativeRoomScope | null {
+    const s = String(callType || '').toLowerCase();
+    if (s.includes('party')) return 'party';
+    if (s.includes('call')) return 'call';
+    if (s.includes('live') || s.includes('broadcast')) return 'live';
+    return null;
+  }
 
   private async attachLocalWithRetry(): Promise<void> {
     const delays = [0, 120, 300, 700, 1200];
@@ -91,6 +100,10 @@ class NativeLiveKitController {
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
+      const requestedFeature = opts.roomScope ?? null;
+      if (this.connected && this.activeFeature && requestedFeature && this.activeFeature !== requestedFeature) {
+        throw new Error(`NativeLiveKit session already active for ${this.activeFeature}; refusing ${requestedFeature} takeover`);
+      }
       // Preview → session handoff: DO NOT stopLocalPreview() here. The native
       // Android plugin already promotes the running prejoin Camera2
       // LocalVideoTrack inside connectInternal() when previewRoom/previewTrack
@@ -100,20 +113,24 @@ class NativeLiveKitController {
       // Professional Android apps keep exactly one visible native SDK media
       // owner; stale adoption is what creates "already live" and background
       // camera leaks after an explicit end/exit.
-      try {
-        const active = await NativeLiveKit.getActiveSession();
-        if (active?.active) {
+      const active = await NativeLiveKit.getActiveSession().catch(() => null);
+      if (active?.active) {
+        const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
+        if (requestedFeature && activeScope && activeScope !== requestedFeature) {
+          throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
+        }
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
+          this.activeFeature = null;
           await new Promise((resolve) => setTimeout(resolve, 300));
-        }
-      } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
+      }
 
       // If a stale session is around, tear it down first to avoid duplicate publishers.
       if (this.connected) {
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
         this.connected = false;
+        this.activeFeature = null;
       }
 
       const payload: ConnectOptions = {
@@ -135,6 +152,7 @@ class NativeLiveKitController {
       try {
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
+        this.activeFeature = requestedFeature;
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
@@ -142,6 +160,7 @@ class NativeLiveKitController {
         return { sid: res.sid, identity: res.identity };
       } catch (error) {
         this.connected = false;
+        this.activeFeature = null;
         try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
         throw error;
@@ -194,6 +213,7 @@ class NativeLiveKitController {
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
       this.connected = false;
+      this.activeFeature = null;
       this.autoAttachLocalRenderer = true;
       this.busy = false;
     }
@@ -268,13 +288,17 @@ class NativeLiveKitController {
    * Returns false on web/iOS, on old APKs without the method, or when
    * the camera is busy — callers should surface a friendly message.
    */
-  async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean }): Promise<boolean> {
+  async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean; boundedOnly?: boolean }): Promise<boolean> {
+    await this.waitForIdle('startLocalPreview');
+    this.busy = true;
     try {
       await NativeLiveKit.startLocalPreview(opts ?? {});
       return true;
     } catch (e) {
       console.warn('[NativeLiveKitController] startLocalPreview failed:', e);
       return false;
+    } finally {
+      this.busy = false;
     }
   }
 

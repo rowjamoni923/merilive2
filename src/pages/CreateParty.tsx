@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -118,7 +118,7 @@ const CreateParty = () => {
   const [requiredLevel, setRequiredLevel] = useState(0);
 
   // Native camera permission hook for proper Android handling
-  const { getCameraStream } = useNativeCameraPermission();
+  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
 
   // Pkg-PartyGAP-1 — Acquire the streaming-family slot in ProCameraEngine
   // for the selected party mode (video/game). Audio party never opens the
@@ -164,7 +164,13 @@ const CreateParty = () => {
       if (isNativeAndroid) {
         let nativeReady = false;
         if (videoMode) {
-          await getCameraStream(true);
+          if (ProCameraEngine.currentFamily() === 'verification') {
+            toast.error('Camera is busy. Close other camera screens and try again.');
+            setCameraReady(false);
+            return;
+          }
+          const permission = await requestCameraPermission({ includeMicrophone: true });
+          if (!permission.granted) throw new Error(permission.error || "Camera permission denied.");
           // Pro single-camera lifecycle (Chamet/Bigo): start the native
           // LiveKit prejoin camera NOW so PartyRoom can reuse the SAME
           // LocalVideoTrack via promotePreviewToSession — no Camera2
@@ -174,6 +180,7 @@ const CreateParty = () => {
               lens: 'front',
               resolution: '1080p',
               mirror: true,
+              boundedOnly: true,
             });
             setNativePreviewActive(started);
             nativeReady = started;
@@ -223,9 +230,9 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner]);
+  }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner, requestCameraPermission]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isNativeAndroid) return;
     setNativeMediaSurface(nativePreviewActive);
     return () => {
@@ -441,6 +448,11 @@ const CreateParty = () => {
         streamRef.current = null;
         setStream(null);
         releaseAndroidWebViewCamera('create-party:close');
+      }
+      if (isNativeAndroid) {
+        clearNativeMediaSurface();
+        nativeLiveKitController.stopLocalPreview().catch(() => {});
+        setNativePreviewActive(false);
       }
     } catch (e) {
       console.error("Error stopping tracks:", e);
