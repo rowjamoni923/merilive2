@@ -374,6 +374,7 @@ export function useLiveKitCall(
         // back to browser getUserMedia/web LiveKit; fail closed instead.
         const nativeCallRequired = shouldUseNativeLiveKit({ feature: 'private-call' });
         if (!nativeCallRequired) {
+          cleanup();
           toast.error('Private calls require the Android app.');
           setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
           // P0 FIX: reset init guard so a later kill-switch re-enable can retry.
