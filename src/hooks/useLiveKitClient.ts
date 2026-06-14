@@ -1414,6 +1414,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // has no auto-dismiss, so a recovery in progress at exit time used to
     // leak into Home / Game Party / wherever the user navigated next.
     try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
+    // Phase 9B: also dismiss the new debounced camera-stabilize toast +
+    // cancel any pending debounce timer, so it never fires after teardown.
+    try { toast.dismiss('lk-live-camera-stabilize'); } catch { /* ignore */ }
+    if (cameraStabilizeTimerRef.current) {
+      clearTimeout(cameraStabilizeTimerRef.current);
+      cameraStabilizeTimerRef.current = null;
+    }
 
     try {
       clearViewerHardReconnectTimer();
