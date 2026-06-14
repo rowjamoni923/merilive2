@@ -167,3 +167,34 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 - Add explicit `IllegalStateException`-safe renderer initialization before every PrivateCallActivity track attach.
 - Skip duplicate `addRenderer()` when the same track is already bound to the same renderer.
 - Replace broad native live renderer init wrappers with a single `initVideoRendererIdempotent()` helper that only treats `Already initialized` as benign and logs other failures.
+
+---
+
+## Camera works in preview but fails in live/party/call — audit 2026-06-14
+
+### Research baseline
+
+- Professional Chamet/Bigo-class Android RTC keeps exactly one camera owner for the whole flow: prejoin preview → join room → publish → renderer rebind. Agora apps do this with `startPreview()` then `joinChannel()` on the same engine; LiveKit translation is `startLocalPreview()` then `promotePreviewToSession()` publishing the same `LocalVideoTrack`.
+- LiveKit Android renderer rule remains mandatory: initialize the renderer for the active `Room` before `track.addRenderer(renderer)` and treat `IllegalStateException("Already initialized")` as benign during reconnect/network handoffs.
+- Beauty must not open or own Camera2 during live media. The safe professional path is GPUPixel as a `VideoProcessor` on the existing LiveKit `LocalVideoTrack`; old “disable LiveKit camera → enable beauty camera → inject frames” handoff can produce CAMERA_IN_USE / black local publish.
+
+### Verified current reason
+
+- Preview works because it only creates a standalone LiveKit preview `Room`, starts one `LocalVideoTrack`, initializes one renderer, and does not publish to the SFU.
+- Live streaming / video party / game party / private call add more failure points: token publish permission, Room connect, camera publish, renderer init, surface re-anchor, audio focus, network handoff, and beauty processor re-attach.
+- The highest-risk remaining camera-kill path was the legacy beauty handoff: JS/native beauty enable could route through `setBeautyPipelineEnabled`, which previously disabled LiveKit's camera and expected a second GPUPixel camera pipeline. That conflicts with the Pkg416 single-camera contract and can leave live/party/call camera blank even though preview worked.
+
+### Implemented fix
+
+- `GPUPixelBeauty.setBeautyEnabled()` no longer routes to `NativeLiveKit.setBeautyPipelineEnabled()`; UI toggles now rely on `applyBroadcastBeauty()` / `setBeautyBroadcast()` only.
+- `LiveKitPlugin.setBeautyPipelineEnabled()` and native private-call beauty handoff no longer disable/re-enable camera. They only attach/detach the GPUPixel `VideoProcessor` on the current LiveKit camera track.
+
+### Verification required
+
+- Requires Android APK rebuild. Test on owner account/device: GoLive preview → start live; video party seat publish; game party seat publish; private call accept; toggle Beauty on/off; expected: no camera restart, no CAMERA_IN_USE, local/remote video stays visible.
+
+### Follow-up audit from camera-path subagent
+
+- Party/video-game gap confirmed: when `cameraReady=false` at connect time, later `setCameraEnabled(true)` published a camera track but did not remount the native local renderer. Fixed in `nativeLiveKitController.setCameraEnabled(true)` by calling the existing `attachLocalWithRetry()` after a successful camera enable.
+- Slow-OEM gap confirmed: native `attachLocal()` waited only 3s while OEM Camera2 open can take longer. Fixed by extending the native attach deadline to `OEM_CAMERA_OPEN_TIMEOUT_MS + 1500ms` so late-published local camera tracks still bind to the renderer.
+- Private-call double-renderer/wrong-window risk remains an APK/device verification target because current JS usage does not show `openInCallActivity()` being called; do not remove WebView attach until the native activity launch flow is confirmed active on device.

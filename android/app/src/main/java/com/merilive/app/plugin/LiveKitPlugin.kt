@@ -247,17 +247,9 @@ class LiveKitPlugin : Plugin() {
     }
 
     internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
-        val r = room ?: return
+        if (room == null) return
         try {
-            if (enabled) {
-                setNativeCameraEnabledWithOemRetry(r, false, "beauty-on-native")
-                kotlinx.coroutines.delay(OEM_CAMERA_RELEASE_SETTLE_MS)
-                BeautyPipelineBridge.setEnabled(true)
-            } else {
-                BeautyPipelineBridge.setEnabled(false)
-                kotlinx.coroutines.delay(OEM_CAMERA_RELEASE_SETTLE_MS)
-                setNativeCameraEnabledWithOemRetry(r, true, "beauty-off-native")
-            }
+            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
         } catch (e: Exception) {
             Log.w("LiveKitPlugin", "runBeautyHandoffInternal($enabled) failed: ${e.message}")
         }
@@ -2008,36 +2000,15 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun setBeautyPipelineEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
-        val r = room
-        scope.launch {
-            try {
-                if (enabled) {
-                    // Beauty ON: release LiveKit's camera FIRST, then flip
-                    // the bridge flag, then let Camera2 settle (~150ms) so
-                    // GPUPixel can open the device on the JS-side call
-                    // without a CameraAccessException.
-                    if (r != null) {
-                        setNativeCameraEnabledWithOemRetry(r, false, "beauty-on")
-                    }
-                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
-                    BeautyPipelineBridge.setEnabled(true)
-                } else {
-                    // Beauty OFF: flip the bridge flag FIRST so GPUPixel
-                    // sink drains, give Camera2 a beat to release, then
-                    // re-enable LiveKit's native capture.
-                    BeautyPipelineBridge.setEnabled(false)
-                    delay(OEM_CAMERA_RELEASE_SETTLE_MS)
-                    if (r != null) {
-                        setNativeCameraEnabledWithOemRetry(r, true, "beauty-off")
-                    }
-                }
-                val ret = JSObject()
-                ret.put("enabled", enabled)
-                ret.put("hasRoom", r != null)
-                call.resolve(ret)
-            } catch (e: Exception) {
-                call.reject("setBeautyPipelineEnabled failed: ${e.message}")
-            }
+        try {
+            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
+            val ret = JSObject()
+            ret.put("enabled", enabled)
+            ret.put("hasRoom", room != null)
+            ret.put("mode", "livekit-video-processor")
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setBeautyPipelineEnabled failed: ${e.message}")
         }
     }
 
@@ -2071,13 +2042,12 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun attachLocal(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
-        // FIX-A — slow-OEM (MIUI/ColorOS/HyperOS) local camera publish can
-        // take 400-2500 ms after the Room connects. The old code rejected
-        // immediately with "No local camera track yet" and the host preview
-        // stayed permanently black. Retry with backoff for up to ~3 s so the
-        // placeholder always latches once the track is finally published.
+        // FIX-A — slow-OEM (MIUI/ColorOS/HyperOS/Vivo/Oppo) local camera
+        // publish can take longer than the old 3s window. Retry up to the
+        // Camera2 open budget so late-published tracks still latch to the
+        // renderer instead of leaving the host self-view black.
         scope.launch {
-            val deadline = System.currentTimeMillis() + 3_000L
+            val deadline = System.currentTimeMillis() + (OEM_CAMERA_OPEN_TIMEOUT_MS + 1_500L)
             var attempt = 0
             while (true) {
                 val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
@@ -2087,7 +2057,7 @@ class LiveKitPlugin : Plugin() {
                     return@launch
                 }
                 if (System.currentTimeMillis() >= deadline) {
-                    call.reject("attachLocal: camera track not published within 3s")
+                    call.reject("attachLocal: camera track not published within ${OEM_CAMERA_OPEN_TIMEOUT_MS + 1_500L}ms")
                     return@launch
                 }
                 attempt += 1

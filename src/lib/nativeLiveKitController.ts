@@ -241,6 +241,7 @@ class NativeLiveKitController {
     try {
       const r = await NativeLiveKit.setCameraEnabled({ enabled });
       if (enabled && (r as any)?.skipped) throw new Error((r as any)?.reason || 'camera-enable-skipped');
+      if (enabled) await this.attachLocalWithRetry();
     } catch (e) {
       console.warn('[NativeLiveKitController] setCameraEnabled failed:', e);
       if (enabled) await this.reconnectNow().catch(() => false);
