@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { createContext, useContext, ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
 import { useNativeCallBillingSync } from '@/hooks/useNativeCallBillingSync';
@@ -155,7 +155,11 @@ export function CallProvider({ children }: CallProviderProps) {
   // and its opaque cards/banners bleed through the call shell — making the
   // app look broken. Hide #root entirely while the call overlay is up.
   // The call portal lives directly on document.body, so it remains visible.
-  useEffect(() => {
+  // camera-rebuild Phase 8: useLayoutEffect (sync, pre-paint) so the
+  // body.call-overlay-active class is applied BEFORE the first paint of
+  // ActiveCallScreen. Previously useEffect fired post-paint, leaking one
+  // frame of Home filter chips behind the call overlay.
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const active = isInCall || !!incomingCall;
     const cls = 'call-overlay-active';
@@ -239,6 +243,11 @@ export function CallProvider({ children }: CallProviderProps) {
   useEffect(() => {
     if (callState.status !== 'ended' || showCallEndedModal) return;
 
+    // camera-rebuild Phase 8: snapshot the ended call ID at effect entry.
+    // If a NEW call (incoming or outgoing) starts during the async DB fetch,
+    // dismissCall() must NOT clobber the new call's currentCallIdRef + state.
+    const snapCallId = callState.callId;
+
     const captureEndedInfo = async () => {
       let finalDuration = callState.duration;
       let coinsSpent = callState.totalCoinsSpent;
@@ -273,6 +282,12 @@ export function CallProvider({ children }: CallProviderProps) {
         } catch (_) {}
       }
 
+      // Phase 8 race guard: a fresh call may have started during the await.
+      // If so, abandon this teardown — the new call now owns the state.
+      if (callState.callId && snapCallId !== callState.callId) {
+        return;
+      }
+
       const remoteName = isHost
         ? (acceptedCallInfo?.callerName || callState.remoteUserName || 'User')
         : (callState.remoteUserName || 'Host');
@@ -282,6 +297,11 @@ export function CallProvider({ children }: CallProviderProps) {
 
       const { normalizeEndReason } = await import('@/lib/callEndReasons');
       const normalisedReason = normalizeEndReason(dbEndReasonRaw);
+
+      // Re-check after the second await — import() is async too.
+      if (callState.callId && snapCallId !== callState.callId) {
+        return;
+      }
 
       setCallEndedInfo({
         remoteUserName: remoteName,
@@ -301,13 +321,16 @@ export function CallProvider({ children }: CallProviderProps) {
       // arrived within 3s of a prior call end. Per-callId block lives in
       // usePrivateCall.endedCallIdsRef already — that is sufficient.
 
-      // ☠️ DEAD FOREVER: Dismiss ended state → reset to idle
-      dismissCall();
-      setIsHost(false);
+      // ☠️ DEAD FOREVER: Dismiss ended state → reset to idle — but ONLY
+      // if no new call has stolen currentCallIdRef in the meantime.
+      if (!callState.callId || snapCallId === callState.callId) {
+        dismissCall();
+        setIsHost(false);
+      }
     };
 
     captureEndedInfo();
-  }, [callState.status, showCallEndedModal, dismissCall, isHost, acceptedCallInfo]);
+  }, [callState.status, callState.callId, showCallEndedModal, dismissCall, isHost, acceptedCallInfo]);
 
   // Clear accepted call info when call ends
   useEffect(() => {
