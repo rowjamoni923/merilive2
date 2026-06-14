@@ -1,7 +1,12 @@
 package com.merilive.app.plugin
 
 import android.app.Activity
+import android.graphics.Color
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.widget.FrameLayout
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -13,11 +18,10 @@ import io.livekit.android.RoomOptions
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.events.collect
 import io.livekit.android.room.Room
-import io.livekit.android.room.participant.LocalParticipant
 import io.livekit.android.room.participant.Participant
-import io.livekit.android.room.participant.RemoteParticipant
 import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrack
+import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
 import kotlinx.coroutines.CoroutineScope
@@ -27,31 +31,26 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.webrtc.RendererCommon
+import org.webrtc.SurfaceViewRenderer
 
 /**
- * LiveKitPlugin — minimal, single-camera rebuild (2026-06-14).
+ * LiveKitPlugin — minimal, single-camera rebuild (2026-06-14, +preview 2026-06-14b).
  *
- * Replaces the previous 6252-line plugin + CameraOwnership / CameraAuthority
- * / CameraResilience stack. Strategy follows the proven pattern from the old
- * production project + LiveKit Android SDK best practices:
+ * Bigo/Chamet-style continuous camera flow:
  *
- *   • ONE Room instance per session (Live / Private Call / Video Party / Game Party)
- *   • Camera publish goes through LiveKit's built-in Camera2 capturer
- *     (`setCameraEnabled(true)`) — no manual Camera2 handle juggling
- *   • Mic publish via `setMicrophoneEnabled(true)`
- *   • No ownership lock — only one publisher path exists, so there is
- *     nothing to arbitrate against
- *   • Remote video rendering is delegated to the React side (Step 3 will
- *     add SurfaceViewRenderer overlays if/when we need them; for now the
- *     LiveKit web client handles render in the WebView fallback path)
+ *   startLocalPreview()           → opens Camera2 ONCE, renders behind WebView
+ *   connect({ video:true })       → republishes the SAME LocalVideoTrack
+ *                                    (no second openCamera, no flicker)
+ *   disconnect() / teardownRoom() → unpublish + stop track + release Camera2
  *
- * Face Verification continues to use `NativeCameraPlugin` (CameraX) on a
- * completely separate code path; the two cannot overlap because the JS
- * gates ensure only one feature runs at a time.
+ * Single owner by construction: the only `LocalVideoTrack` instance lives in
+ * `previewTrack`. Whether we're in "preview only" or "connected + publishing",
+ * it's the same track object.
  *
- * Static helpers `notifyUserLeaveHint` / `notifyPipModeChanged` exist so
- * `MainActivity` keeps compiling; they are placeholders for a future PiP
- * pass and are safe no-ops today.
+ * Renderer is a SurfaceViewRenderer inserted at index 0 in the WebView's
+ * parent ViewGroup. WebView is made transparent during preview so the camera
+ * shows through; original background is restored on stopLocalPreview().
  */
 @CapacitorPlugin(name = "NativeLiveKit")
 class LiveKitPlugin : Plugin() {
@@ -59,48 +58,120 @@ class LiveKitPlugin : Plugin() {
     companion object {
         private const val TAG = "LiveKitPlugin"
 
-        /** Invoked by MainActivity.onUserLeaveHint — placeholder. */
         @JvmStatic
         fun notifyUserLeaveHint(activity: Activity) {
-            Log.d(TAG, "notifyUserLeaveHint (no-op in minimal plugin)")
+            Log.d(TAG, "notifyUserLeaveHint (no-op)")
         }
 
-        /** Invoked by MainActivity.onPictureInPictureModeChanged — placeholder. */
         @JvmStatic
         fun notifyPipModeChanged(isInPip: Boolean) {
-            Log.d(TAG, "notifyPipModeChanged=$isInPip (no-op in minimal plugin)")
+            Log.d(TAG, "notifyPipModeChanged=$isInPip (no-op)")
         }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // The ONE room. Created lazily either by startLocalPreview() (preview-only,
+    // never connected) or by connect() (connected session). On preview→publish
+    // handoff the same Room instance is connected — no track migration needed.
     private var room: Room? = null
     private var eventsJob: Job? = null
 
+    // The ONE camera track. Survives preview → publish → close.
+    private var previewTrack: LocalVideoTrack? = null
+    private var previewRenderer: SurfaceViewRenderer? = null
+    private var webViewOriginalBg: Int? = null
+    private var isConnected: Boolean = false
+
     override fun load() {
         super.load()
-        Log.i(TAG, "minimal LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
+        Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
     }
 
     override fun handleOnDestroy() {
-        try { teardownRoom() } catch (_: Throwable) {}
+        try { runOnMain { teardownAll() } } catch (_: Throwable) {}
         scope.cancel()
         super.handleOnDestroy()
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Capability probe — JS calls this in `isNativeLiveKitAvailable`
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // Capability probe
+    // ─────────────────────────────────────────────
     @PluginMethod
     fun isAvailable(call: PluginCall) {
-        val res = JSObject()
-        res.put("available", true)
-        res.put("backend", "livekit-android-2.x")
-        call.resolve(res)
+        call.resolve(
+            JSObject()
+                .put("available", true)
+                .put("backend", "livekit-android-2.x")
+                .put("supportsPreview", true)
+        )
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // Preview lifecycle
+    // ─────────────────────────────────────────────
+    @PluginMethod
+    fun startLocalPreview(call: PluginCall) {
+        val lens = call.getString("lens", "front") ?: "front"
+        val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        scope.launch {
+            try {
+                if (previewTrack != null) {
+                    Log.i(TAG, "startLocalPreview: already running, reusing track")
+                    ensureRendererAttached(mirror)
+                    call.resolve(JSObject().put("started", true).put("reused", true))
+                    return@launch
+                }
+                val r = room ?: withContext(Dispatchers.IO) {
+                    LiveKit.create(
+                        appContext = context.applicationContext,
+                        options = RoomOptions(adaptiveStream = true, dynacast = true),
+                    )
+                }
+                room = r
+
+                val opts = LocalVideoTrackOptions(
+                    position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
+                )
+                val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
+                track.startCapture()
+                previewTrack = track
+
+                ensureRendererAttached(mirror)
+                track.addRenderer(previewRenderer!!)
+
+                call.resolve(JSObject().put("started", true).put("reused", false))
+            } catch (t: Throwable) {
+                Log.e(TAG, "startLocalPreview failed", t)
+                safeStopPreviewInternals()
+                call.reject("startLocalPreview: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun stopLocalPreview(call: PluginCall) {
+        scope.launch {
+            try {
+                if (isConnected) {
+                    // Once published, the track is owned by the session; do not
+                    // tear it down here. Caller should disconnect() instead.
+                    Log.i(TAG, "stopLocalPreview: ignored while connected")
+                    call.resolve(JSObject().put("stopped", false).put("reason", "connected"))
+                    return@launch
+                }
+                safeStopPreviewInternals()
+                call.resolve(JSObject().put("stopped", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "stopLocalPreview", t)
+                call.resolve(JSObject().put("stopped", true))
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────
     // Connection lifecycle
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     @PluginMethod
     fun connect(call: PluginCall) {
         val url = call.getString("url")
@@ -114,8 +185,7 @@ class LiveKitPlugin : Plugin() {
 
         scope.launch {
             try {
-                teardownRoom()
-                val r = withContext(Dispatchers.IO) {
+                val r = room ?: withContext(Dispatchers.IO) {
                     LiveKit.create(
                         appContext = context.applicationContext,
                         options = RoomOptions(adaptiveStream = true, dynacast = true),
@@ -124,15 +194,35 @@ class LiveKitPlugin : Plugin() {
                 room = r
                 observeRoomEvents(r)
                 r.connect(url, token, ConnectOptions())
-                if (publishAudio) r.localParticipant.setMicrophoneEnabled(true)
-                if (publishVideo) r.localParticipant.setCameraEnabled(true)
-                val res = JSObject()
-                res.put("connected", true)
-                res.put("sid", r.localParticipant.sid?.value ?: "")
-                call.resolve(res)
+                isConnected = true
+
+                if (publishAudio) {
+                    r.localParticipant.setMicrophoneEnabled(true)
+                }
+                if (publishVideo) {
+                    val existing = previewTrack
+                    if (existing != null) {
+                        // HANDOFF: republish the camera track we already opened
+                        // during preview. No second Camera2 open, no flicker.
+                        r.localParticipant.publishVideoTrack(existing)
+                        Log.i(TAG, "connect: republished preview track (no reopen)")
+                    } else {
+                        r.localParticipant.setCameraEnabled(true)
+                        // Capture the SDK-created track so subsequent switchCamera
+                        // / disconnect can clean it up uniformly.
+                        previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                    }
+                }
+
+                call.resolve(
+                    JSObject()
+                        .put("connected", true)
+                        .put("sid", r.localParticipant.sid?.value ?: "")
+                )
             } catch (t: Throwable) {
                 Log.e(TAG, "connect failed", t)
-                teardownRoom()
+                isConnected = false
+                teardownAll()
                 call.reject("connect failed: ${t.message}", t)
             }
         }
@@ -141,14 +231,14 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun disconnect(call: PluginCall) {
         scope.launch {
-            try { teardownRoom() } catch (t: Throwable) { Log.w(TAG, "disconnect", t) }
+            try { teardownAll() } catch (t: Throwable) { Log.w(TAG, "disconnect", t) }
             call.resolve()
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // Media controls
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     @PluginMethod
     fun setCameraEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
@@ -156,6 +246,9 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 lp.setCameraEnabled(enabled)
+                if (enabled && previewTrack == null) {
+                    previewTrack = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                }
                 call.resolve(JSObject().put("enabled", enabled))
             } catch (t: Throwable) { call.reject("setCameraEnabled: ${t.message}", t) }
         }
@@ -175,44 +268,25 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun switchCamera(call: PluginCall) {
-        val lp = room?.localParticipant ?: run { call.reject("not connected"); return }
+        val track = previewTrack ?: run { call.reject("camera track not active"); return }
         scope.launch {
             try {
-                val cameraTrack = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
-                if (cameraTrack == null) {
-                    call.reject("camera track not published")
-                    return@launch
-                }
-                val nextPos = if (cameraTrack.options.position == CameraPosition.FRONT) {
-                    CameraPosition.BACK
-                } else {
-                    CameraPosition.FRONT
-                }
-                cameraTrack.switchCamera(nextPos)
+                val nextPos = if (track.options.position == CameraPosition.FRONT) CameraPosition.BACK else CameraPosition.FRONT
+                track.switchCamera(nextPos)
+                runOnMain { previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }
                 call.resolve(JSObject().put("position", nextPos.name.lowercase()))
             } catch (t: Throwable) { call.reject("switchCamera: ${t.message}", t) }
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Camera-owner query — kept for JS arbiter shim compatibility.
-    // No more ownership tracking; always reports null.
-    // ─────────────────────────────────────────────────────────────
-    @PluginMethod
-    fun getCameraOwner(call: PluginCall) {
-        call.resolve(JSObject().put("owner", JSObject.NULL))
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // WebView camera handoff shims — minimal plugin owns camera via
-    // LiveKit SDK only, so these are no-ops kept for JS compatibility.
-    // ─────────────────────────────────────────────────────────────
+    // Legacy shims kept for JS arbiter compatibility.
+    @PluginMethod fun getCameraOwner(call: PluginCall) { call.resolve(JSObject().put("owner", JSObject.NULL)) }
     @PluginMethod fun claimCameraForWebView(call: PluginCall) { call.resolve() }
     @PluginMethod fun releaseCameraForWebView(call: PluginCall) { call.resolve() }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // Internals
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     private fun observeRoomEvents(r: Room) {
         eventsJob?.cancel()
         eventsJob = scope.launch {
@@ -226,11 +300,9 @@ class LiveKitPlugin : Plugin() {
                         is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
                         is RoomEvent.Reconnecting -> emit("reconnecting", JSObject())
                         is RoomEvent.Reconnected -> emit("reconnected", JSObject())
-                        else -> { /* ignore the rest for v1 */ }
+                        else -> {}
                     }
-                } catch (t: Throwable) {
-                    Log.w(TAG, "event emit failed", t)
-                }
+                } catch (t: Throwable) { Log.w(TAG, "event emit failed", t) }
             }
         }
     }
@@ -239,24 +311,113 @@ class LiveKitPlugin : Plugin() {
         try { notifyListeners(event, data) } catch (t: Throwable) { Log.w(TAG, "notifyListeners($event)", t) }
     }
 
-    private fun participantJs(p: Participant): JSObject {
-        return JSObject()
-            .put("sid", p.sid?.value ?: "")
-            .put("identity", p.identity?.value ?: "")
+    private fun participantJs(p: Participant) = JSObject()
+        .put("sid", p.sid?.value ?: "")
+        .put("identity", p.identity?.value ?: "")
+
+    private fun trackJs(track: Track, p: Participant) = JSObject()
+        .put("sid", p.sid?.value ?: "")
+        .put("identity", p.identity?.value ?: "")
+        .put("kind", if (track is VideoTrack) "video" else "audio")
+        .put("source", track.name)
+
+    private fun ensureRendererAttached(mirror: Boolean) {
+        val act = activity ?: return
+        val wv = bridge?.webView ?: return
+        val parent = (wv.parent as? ViewGroup) ?: return
+
+        act.runOnUiThread {
+            try {
+                if (previewRenderer == null) {
+                    val renderer = SurfaceViewRenderer(act).apply {
+                        setEnableHardwareScaler(true)
+                        setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+                        setMirror(mirror)
+                    }
+                    room?.initVideoRenderer(renderer)
+                    val lp = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                    parent.addView(renderer, 0, lp)
+                    previewRenderer = renderer
+
+                    // Make WebView transparent so renderer behind it is visible.
+                    if (webViewOriginalBg == null) {
+                        webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+                    }
+                    wv.setBackgroundColor(Color.TRANSPARENT)
+                } else {
+                    previewRenderer?.setMirror(mirror)
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "ensureRendererAttached failed", t)
+            }
+        }
     }
 
-    private fun trackJs(track: Track, p: Participant): JSObject {
-        return JSObject()
-            .put("sid", p.sid?.value ?: "")
-            .put("identity", p.identity?.value ?: "")
-            .put("kind", if (track is VideoTrack) "video" else "audio")
-            .put("source", track.name)
+    private fun detachRenderer() {
+        val act = activity ?: return
+        act.runOnUiThread {
+            try {
+                val r = previewRenderer
+                if (r != null) {
+                    (r.parent as? ViewGroup)?.removeView(r)
+                    try { r.release() } catch (_: Throwable) {}
+                }
+                previewRenderer = null
+                val wv = bridge?.webView
+                if (wv != null) {
+                    wv.setBackgroundColor(webViewOriginalBg ?: Color.WHITE)
+                }
+                webViewOriginalBg = null
+            } catch (t: Throwable) {
+                Log.w(TAG, "detachRenderer failed", t)
+            }
+        }
     }
 
-    private fun teardownRoom() {
+    private fun safeStopPreviewInternals() {
+        try {
+            val track = previewTrack
+            if (track != null) {
+                try { previewRenderer?.let { track.removeRenderer(it) } } catch (_: Throwable) {}
+                try { track.stop() } catch (_: Throwable) {}
+                try { track.dispose() } catch (_: Throwable) {}
+            }
+            previewTrack = null
+        } catch (_: Throwable) {}
+        detachRenderer()
+
+        // If we created a preview-only Room (never connected) just to host the
+        // capturer, release it too. A connected room is kept by teardownAll().
+        if (!isConnected) {
+            try { room?.disconnect() } catch (_: Throwable) {}
+            room = null
+        }
+    }
+
+    private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
+        // Releases publish + stops Camera2 via the SDK.
+        try {
+            val track = previewTrack
+            if (track != null) {
+                try { previewRenderer?.let { track.removeRenderer(it) } } catch (_: Throwable) {}
+                try { track.stop() } catch (_: Throwable) {}
+                try { track.dispose() } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {}
+        previewTrack = null
+        detachRenderer()
         try { room?.disconnect() } catch (_: Throwable) {}
         room = null
+        isConnected = false
+    }
+
+    private fun runOnMain(block: () -> Unit) {
+        val act = activity
+        if (act != null) act.runOnUiThread { block() } else block()
     }
 }
