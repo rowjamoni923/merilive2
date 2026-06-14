@@ -2,6 +2,16 @@
 **Created:** 2026-06-15 · **Owner-approved:** pending
 **Goal:** Match Chamet/Olamet/Bigo pattern — persistent camera, UI-only swap, seat-bounded party tile, separate private-call Activity.
 
+## Addendum — Unified Gift Message Row Fix (2026-06-15)
+
+**User issue:** `/chat` still rendered the old DM gift bubble/card stack instead of the video-style unified gift message row.
+
+**Research-first notes:** Professional live-social apps treat gifts as a platform-wide economy and surface gift delivery consistently across chat/live/call flows; Chamet documents gift delivery/receipts and its diamond→bean economy, while BIGO describes live interaction through real-time chat plus virtual gifts. Sources: Chamet official site (`https://www.ichamet.com/`), Chamet receipt/gift-delivery guide (`https://news.bittopup.com/news/chamet-receipt-guide-how-to-save-prove-gift-delivery`), BIGO official tutorial (`https://www.bigo.tv/blog/use-bigo-live`).
+
+**Verified code gap:** DM gift messages were still using a bespoke vertical card with a fixed `w-10 h-10` gift preview plus separate diamond/bean/lucky badges inside `src/pages/Chat.tsx`, while Call already uses shared `<InlineGiftRow compact />` with the canonical single-row pill pattern. This created the old stacked look shown in the screenshot.
+
+**Fix scope:** Replace only the DM gift-history renderer with shared `<InlineGiftRow>`; keep existing send/receive business logic, realtime, animation broadcast, and current design outside the gift row unchanged.
+
 ---
 
 ## Industry Pattern (from owner video + competitor research)
