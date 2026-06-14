@@ -2298,6 +2298,16 @@ class LiveKitPlugin : Plugin() {
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
         val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
+        val scopeRaw = call.getString("roomScope", null)
+        val requestedScope = when (scopeRaw?.lowercase()) {
+            "live" -> "live"
+            "party" -> "party"
+            "call" -> "call"
+            else -> null
+        }
+        if (previewTrack != null && previewRoomScope != null && requestedScope != null && previewRoomScope != requestedScope) {
+            stopLocalPreviewInternal(restoreOpaque = false)
+        }
 
         scope.launch {
             try {
@@ -2327,6 +2337,7 @@ class LiveKitPlugin : Plugin() {
                     ),
                 )
                 previewRoom = pr
+                previewRoomScope = requestedScope
                 val track = pr.localParticipant.createVideoTrack()
                 previewTrack = track
                 track.startCapture()
@@ -2390,6 +2401,7 @@ class LiveKitPlugin : Plugin() {
         if (track == null && pr == null && renderer == null) return
         previewTrack = null
         previewRoom = null
+        previewRoomScope = null
         previewRenderer = null
         if (renderer != null) {
             if (track != null) try { track.removeRenderer(renderer) } catch (_: Exception) {}

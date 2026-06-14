@@ -894,10 +894,8 @@ video::-webkit-media-controls-toggle-closed-captions-button {
      through. The chat/gift/UI overlays inside the page still render
      normally because they have their own non-transparent surfaces. */
   body.native-media-active .room-viewport,
-  body.native-media-active .room-viewport > div,
   body.native-media-active [data-room-shell],
-  body.native-media-active .bg-muted,
-  body.native-media-active .bg-background {
+  body.native-media-active [data-native-video-view] {
     background: transparent !important;
     background-color: transparent !important;
   }
