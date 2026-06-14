@@ -1647,15 +1647,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
   }, []);
 
-  // Beauty effects — CSS path PERMANENTLY REMOVED (user request, 2026-06-07).
-  // The only real beauty engine is now the native GPUPixel pipeline
-  // (3D MarsFace landmarks + skin smoothing + whitening + thin-face +
-  // big-eye + lipstick + blusher). It is wired into the outgoing LiveKit
-  // broadcast track by `applyBroadcastBeauty()` → `NativeLiveKit.setBeautyBroadcast`,
-  // and the local preview shows the processed track directly. The old CSS
-  // blur/brightness filter was just blur — no 3D face beauty — and looked
-  // ugly. It is gone on every platform; web preview is a visual no-op for
-  // beauty, matching Chamet/Bigo behaviour.
+  // Camera rebuild 2026-06-14: native beauty is disabled. Keep settings state
+  // only so existing panels do not break, but never touch the camera track.
   const applyBeautyEffect = useCallback((settings: BeautySettings) => {
     setBeautySettings(settings);
     setBeautyEnabled(true);
