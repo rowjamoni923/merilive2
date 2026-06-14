@@ -552,10 +552,18 @@ class LiveKitPlugin : Plugin() {
 
     /** Fired from RoomEvent handlers — attach any pending slot waiting on this identity. */
     private fun onIdentityTrackAvailable(identity: String, track: VideoTrack) {
+        val isLocalIdentity = room?.localParticipant?.identity?.value == identity
         runOnMain {
             slots.values
-                .filter { it.identity == identity && it.attachedTrack !== track }
-                .forEach { attachTrackToSlot(it, track) }
+                .filter { slot ->
+                    slot.attachedTrack !== track && (
+                        slot.identity == identity || (isLocalIdentity && slot.isLocal)
+                    )
+                }
+                .forEach { slot ->
+                    if (isLocalIdentity && slot.isLocal && slot.identity == null) slot.identity = identity
+                    attachTrackToSlot(slot, track)
+                }
         }
     }
 
@@ -575,6 +583,11 @@ class LiveKitPlugin : Plugin() {
         val localTrack = previewTrack
             ?: (r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
         slots.values.forEach { slot ->
+            if (slot.isLocal && localTrack != null) {
+                if (slot.identity == null) slot.identity = localId
+                attachTrackToSlot(slot, localTrack)
+                return@forEach
+            }
             val id = slot.identity ?: return@forEach
             if (id == localId && localTrack != null) {
                 attachTrackToSlot(slot, localTrack)
