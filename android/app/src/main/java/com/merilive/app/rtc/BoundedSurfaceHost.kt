@@ -70,6 +70,7 @@ object BoundedSurfaceHost {
         context: Context,
         webView: WebView,
         room: Room?,
+        localTrackOverride: VideoTrack? = null,
         viewId: String,
         kind: String,
         sid: String?,
@@ -108,7 +109,11 @@ object BoundedSurfaceHost {
         }
 
         // Locate the requested track on the current Room.
-        val track: VideoTrack? = resolveTrack(room, kind, sid)
+        val track: VideoTrack? = if (kind == "local" && localTrackOverride != null) {
+            localTrackOverride
+        } else {
+            resolveTrack(room, kind, sid)
+        }
 
         // Bind only when the target track actually differs from the bound one.
         if (track != null && track !== entry.boundTrack) {

@@ -2407,19 +2407,28 @@ class LiveKitPlugin : Plugin() {
             // to two TextureViewRenderers on Mali/PowerVR OEM EGL stacks.
             try {
                 val lr = localRenderer
+                val pr = previewRenderer
                 val localTrack = room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? io.livekit.android.room.track.VideoTrack
+                    ?: previewTrack as? io.livekit.android.room.track.VideoTrack
                 if (lr != null) {
                     try { localTrack?.removeRenderer(lr) } catch (_: Exception) {}
                     try { (lr.parent as? ViewGroup)?.removeView(lr) } catch (_: Exception) {}
                     try { lr.release() } catch (_: Exception) {}
                     localRenderer = null
                 }
+                if (pr != null) {
+                    try { localTrack?.removeRenderer(pr) } catch (_: Exception) {}
+                    try { (pr.parent as? ViewGroup)?.removeView(pr) } catch (_: Exception) {}
+                    try { pr.release() } catch (_: Exception) {}
+                    previewRenderer = null
+                }
             } catch (_: Exception) {}
             val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
                 context = context,
                 webView = webView,
-                room = room,
+                room = room ?: previewRoom,
+                localTrackOverride = previewTrack as? io.livekit.android.room.track.VideoTrack,
                 viewId = viewId,
                 kind = "local",
                 sid = null,
@@ -2458,6 +2467,7 @@ class LiveKitPlugin : Plugin() {
                 context = context,
                 webView = webView,
                 room = room,
+                localTrackOverride = null,
                 viewId = viewId,
                 kind = "remote",
                 sid = sid,

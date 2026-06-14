@@ -427,7 +427,7 @@ export function usePartyRoomNativeLiveKit(
               // surfaces. Do not also mount the legacy fullscreen local renderer;
               // double-binding the same native track can black out OEM EGL stacks.
               attachLocal: false,
-              audioProfile: 'broadcast',
+              audioProfile: audioProfileRef.current === 'music' ? 'music' : 'broadcast',
               callType: 'Party Room',
               roomScope: 'party',
               isHost: _isHost,

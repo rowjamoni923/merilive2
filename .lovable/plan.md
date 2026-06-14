@@ -174,6 +174,19 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED. Owner tests: weak-network private call should not end during a normal ICE reconnect; Create Party → PartyRoom should keep local preview continuously with no black camera flash.
 
+### Phase 9F — Main video complaint root fix ✅ DONE 2026-06-14
+
+**What the user's latest message/video made clear:** the core problem is not one isolated button or banner. It is **media ownership + UI ownership** across Private Call, Live, Video Party, Game Party, and Party Audio. The camera must start in preview, continue into the room/call without Camera2 reopen, and only one visible UI owner may control the active media surface.
+
+**Fixes applied now:**
+- `src/components/call/ActiveCallScreen.tsx` suppresses React/WebView call chrome **before** launching `PrivateCallActivity`, removing the remaining one-frame Home/party UI bleed during native handoff.
+- `src/pages/CreateParty.tsx` no longer treats Android native preview as a WebView `<video>` stream. It requests native permissions only, starts `NativeLiveKit.startLocalPreview()`, keeps `native-media-active` transparency in sync, and renders the prejoin camera inside the host preview cell via `<NativeVideoView kind="local" />`.
+- `android/app/src/main/java/com/merilive/app/rtc/BoundedSurfaceHost.kt` can now bind a bounded local surface directly to a prejoin `previewTrack`, not only to a connected Room track.
+- `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` lets `attachLocalSurface()` adopt the prejoin `previewRoom/previewTrack`, removing the fullscreen preview renderer so Create Party preview, PartyRoom seat tile, and promoted session do not fight over two TextureView renderers.
+- `src/hooks/usePartyRoomNativeLiveKit.ts` now passes the selected party audio profile through native (`music` for video/game DJ-grade rooms, broadcast/voice path otherwise) instead of flattening every native party room to broadcast audio.
+
+**Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, owner-account test must cover: Private Call accept → no Home/party UI bleed; Create Party video/game → camera visible in host cell before create; Create Party → PartyRoom → same camera continues with no black flash; Party Audio/Video/Game → mic/video state does not silently mismatch.
+
 
 
 ## What I will NOT do without explicit OK

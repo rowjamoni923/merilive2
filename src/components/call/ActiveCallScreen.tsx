@@ -311,9 +311,16 @@ export function ActiveCallScreen({
     let cancelled = false;
     (async () => {
       const available = await hasNativeInCallActivity().catch(() => false);
-      if (!available || cancelled) return;
+      if (!available || cancelled) {
+        if (!cancelled) setNativeInCallOpen(false);
+        return;
+      }
       try {
         nativeInCallOpenedForRef.current = callId;
+        // Suppress the duplicate React/WebView call chrome before launching
+        // the Activity. Otherwise one or two frames of Home/party UI can bleed
+        // through while Android is animating the native surface in.
+        setNativeInCallOpen(true);
         await NativeCall.openInCallActivity({
           callId,
           peerId: remoteUserId || '',
@@ -323,9 +330,9 @@ export function ActiveCallScreen({
           livekitUrl: nativeSession.url,
           livekitToken: nativeSession.token,
         });
-        if (!cancelled) setNativeInCallOpen(true);
       } catch (e) {
         nativeInCallOpenedForRef.current = null;
+        if (!cancelled) setNativeInCallOpen(false);
         if (!cancelled) console.warn('[ActiveCall] native PrivateCallActivity open failed:', e);
       }
     })();

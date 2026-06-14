@@ -41,6 +41,8 @@ import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from 
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { useProCamera } from "@/camera/useProCamera";
 import * as ProCameraEngine from "@/camera/ProCameraEngine";
+import { NativeVideoView } from "@/components/NativeVideoView";
+import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -98,6 +100,7 @@ const CreateParty = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
+  const [nativePreviewActive, setNativePreviewActive] = useState(false);
   // Party rooms are always public (industry standard — Chamet/Bigo/Poppo).
   // Entry fee remains as an optional gate; password gating fully removed.
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
@@ -159,27 +162,33 @@ const CreateParty = () => {
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
     try {
       if (isNativeAndroid) {
+        let nativeReady = false;
         if (videoMode) {
-          const mediaPermission = await getCameraStream(true);
-          if (mediaPermission) setStream(mediaPermission);
+          await getCameraStream(true);
           // Pro single-camera lifecycle (Chamet/Bigo): start the native
           // LiveKit prejoin camera NOW so PartyRoom can reuse the SAME
           // LocalVideoTrack via promotePreviewToSession — no Camera2
           // re-open between Create Party → Party Room.
           try {
-            await nativeLiveKitController.startLocalPreview({
+            const started = await nativeLiveKitController.startLocalPreview({
               lens: 'front',
               resolution: '1080p',
               mirror: true,
             });
+            setNativePreviewActive(started);
+            nativeReady = started;
           } catch (e) {
             console.warn('[CreateParty] native prejoin preview failed (non-fatal):', e);
+            setNativePreviewActive(false);
           }
         } else {
+          await nativeLiveKitController.stopLocalPreview().catch(() => {});
           const micGranted = await requestMicrophonePermission();
           if (!micGranted) throw new Error("Microphone permission denied.");
+          setNativePreviewActive(false);
+          nativeReady = true;
         }
-        setCameraReady(true);
+        setCameraReady(nativeReady);
         return;
       }
 
@@ -215,6 +224,15 @@ const CreateParty = () => {
       toast.error(error.message || "Camera access failed");
     }
   }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner]);
+
+  useEffect(() => {
+    if (!isNativeAndroid) return;
+    setNativeMediaSurface(nativePreviewActive);
+    return () => {
+      if (preserveStreamRef.current) return;
+      clearNativeMediaSurface();
+    };
+  }, [isNativeAndroid, nativePreviewActive]);
 
   // Initialize everything in parallel on mount
   useEffect(() => {
@@ -278,6 +296,8 @@ const CreateParty = () => {
       // user backed out → release Camera2 immediately.
       if (isNativeAndroid && !preserveStreamRef.current) {
         nativeLiveKitController.stopLocalPreview().catch(() => {});
+        setNativePreviewActive(false);
+        clearNativeMediaSurface();
       }
     };
   }, [isNativeAndroid]);
@@ -477,7 +497,8 @@ const CreateParty = () => {
 
   // Host Video Cell
   const HostVideoCell = ({ className }: { className?: string }) => {
-    const showVideo = !!stream && isVideoEnabled && cameraReady;
+    const showNativeVideo = isNativeAndroid && nativePreviewActive && isVideoEnabled && cameraReady && mode !== "audio";
+    const showVideo = showNativeVideo || (!!stream && isVideoEnabled && cameraReady);
     return (
       <div className={cn(
         "relative rounded-2xl overflow-hidden bg-purple-800/40 border border-purple-500/30",
@@ -499,6 +520,13 @@ const CreateParty = () => {
             showGlow={true}
           />
         </div>
+        {showNativeVideo && (
+          <NativeVideoView
+            kind="local"
+            mirror={facingMode === "user"}
+            className="absolute inset-0 w-full h-full"
+          />
+        )}
         {stream && isVideoEnabled && (
           <video
             ref={videoRef}
@@ -966,6 +994,19 @@ const CreateParty = () => {
         onClose={() => setShowSettingsPanel(false)}
         isCameraOn={isVideoEnabled}
         onCameraToggle={() => {
+          if (isNativeAndroid) {
+            const next = !isVideoEnabled;
+            setIsVideoEnabled(next);
+            if (next && mode !== "audio") {
+              void startCameraInstant(true);
+            } else {
+              void nativeLiveKitController.stopLocalPreview().then(() => {
+                setNativePreviewActive(false);
+                clearNativeMediaSurface();
+              });
+            }
+            return;
+          }
           if (stream) {
             stream.getVideoTracks().forEach(track => {
               track.enabled = !isVideoEnabled;
@@ -975,6 +1016,10 @@ const CreateParty = () => {
         }}
         isMicOn={isMicEnabled}
         onMicToggle={() => {
+          if (isNativeAndroid) {
+            setIsMicEnabled(!isMicEnabled);
+            return;
+          }
           if (stream) {
             stream.getAudioTracks().forEach(track => {
               track.enabled = !isMicEnabled;
