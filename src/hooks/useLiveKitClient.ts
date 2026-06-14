@@ -45,6 +45,7 @@ import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregiste
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { clearNativeMediaSurface, setNativeMediaSurface } from '@/utils/nativeMediaSurface';
+import { ProCameraEngine } from '@/camera/ProCameraEngine';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -1258,6 +1259,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               .catch(() => {})
               .then(() => new Promise((resolve) => setTimeout(resolve, settleMs)))
               .then(async () => {
+                if (!ProCameraEngine.isHeldBy('live-stream')) throw new Error('live camera lock not held');
                 await claimAndroidWebViewCamera('live:web-recover-camera');
                 return room.localParticipant.setCameraEnabled(true);
               })
@@ -1538,7 +1540,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
-    if (enabled) await claimAndroidWebViewCamera('live:web-toggle-video');
+    if (enabled) {
+      if (!ProCameraEngine.isHeldBy('live-stream')) {
+        toast.error('Camera is in use by another feature. Please close it and try again.');
+        return;
+      }
+      await claimAndroidWebViewCamera('live:web-toggle-video');
+    }
     await room.localParticipant.setCameraEnabled(enabled);
     if (!enabled) releaseAndroidWebViewCamera('live:web-toggle-video-off');
   }, []);

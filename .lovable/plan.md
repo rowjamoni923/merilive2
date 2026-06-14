@@ -214,6 +214,38 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED for native behavior. Code-level verification: searched for removed double private-call acquire, removed party cleanup double-release, call-id init guard, activeFeature guard, and bounded native party preview markers.
 
+### Phase 9I — Scoped preview ownership + UI transparency containment ✅ DONE 2026-06-14
+
+**Latest user requirement:** Live Streaming, Party Room / Group Home, Game Party, and Private Channel must all keep the same stable camera path like a professional app, and no UI design may break/bleed across surfaces.
+
+**Research basis:** Agora live apps use `setupLocalVideo/startPreview → joinChannel` without reopening the camera (Agora Interactive Live Streaming Android quickstart: https://docs.agora.io/en/interactive-live-streaming/get-started/get-started-sdk_android.md). LiveKit Android supports the same pattern through `LocalVideoTrack.startCapture()` and `LocalParticipant.publishVideoTrack(track)` (LiveKit Android docs: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.room.track/-local-video-track/ and https://docs.livekit.io/client-sdk-android/livekit-android-sdk/io.livekit.android.room.participant/-local-participant/publish-video-track.html). Native Android video behind WebView requires transparent WebView/root only around the actual media surface, not global transparency on every UI card/background (Android WebView-over-video transparent-background pattern: https://stackoverflow.com/questions/42777413/android-transparent-webview-on-top-of-videoview).
+
+**Remaining root gap fixed now:** native prejoin preview was not feature-scoped. A stale preview from Live / Party / Call could be reused or promoted by another feature if route timing overlapped, causing the exact "wrong/stale/still camera" and UI handoff break the user described.
+
+**Fixes applied now:**
+- `NativeLiveKit.startLocalPreview()` accepts `roomScope: 'live' | 'party' | 'call'`.
+- `src/lib/nativeLiveKitController.ts` tracks `previewFeature`; cross-feature preview/connect now stops stale preview first instead of promoting or stealing it.
+- `LiveKitPlugin.kt` stores `previewRoomScope` and only promotes preview → session when scope matches `ConnectArgs.roomScope`.
+- GoLive, CreateParty, and Private Call prejoin preview calls now pass explicit scope (`live`, `party`, `call`).
+- `src/index.css` no longer makes every `.bg-muted` / `.bg-background` card transparent during native media. Transparency is contained to root/room shell/native video placeholders so camera shows through without breaking internal UI design surfaces.
+
+**Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, test sequence: GoLive preview→LiveStream, CreateParty video/game→PartyRoom, Private Call ringing→active call, and Live→Party→Call back-to-back. Expected: same feature preview promotes only into its own room, stale previews are stopped before another feature starts, camera remains stable, and Home/party/live UI does not bleed into private channel or break card backgrounds.
+
+### Phase 9J — Sub-agent follow-up hardening ✅ DONE 2026-06-14
+
+**Sub-agent audit triage:** some reported criticals were stale/incorrect against current code: `PartyRoom.tsx` already uses `useProCamera` at lines 301–318, and `CallProvider.tsx` already owns the private-call camera at lines 189–233. The real remaining gaps were fallback/handoff edges.
+
+**Fixes applied now:**
+- `GoLive.tsx` camera switch web fallback now checks `proCameraReadyRef` / `proCameraErrorRef` before any `getUserMedia` retry.
+- `LiveStream.tsx` host join now refuses `joinChannel()` until `useProCamera('live-stream')` is ready, so host media cannot start while FaceVerification owns the camera.
+- `useLiveKitClient.ts` web recovery and web video-toggle paths now require `ProCameraEngine.isHeldBy('live-stream')` before claiming Android WebView camera.
+- `useNativeAndroidFaceCamera.ts` no longer blindly evicts camera owners. It throws a clear busy error if streaming owns the camera, then only stops a previous FaceVerification `NativeCamera` preview.
+- `FaceVerification.tsx` start path now explicitly checks `faceVerifyCam.ready` before opening its camera, covering the 1.5s auto-bounce window.
+- `nativeMediaSurface.ts` now separates `clearNativeMediaSurface()` from `clearNativeFaceCameraSurface()`; Live/Party cleanup no longer strips `native-face-camera-active`.
+- `useNativeLiveKitLifecycle.ts` uses an active ref in layout cleanup so it only clears native media when this hook actually set it, reducing mid-stream black flashes from cleanup/remount races.
+
+**Verification:** APK rebuild REQUIRED for native Camera2/TextureView behavior. Code-level verification completed with `rg`: scoped roomScope tags exist for live/party/call, previewRoomScope gate exists in Kotlin, live web fallback claims are ProCamera-gated, face camera no longer blind-evicts streaming, and media clear no longer removes face-camera class.
+
 
 
 ## What I will NOT do without explicit OK

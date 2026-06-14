@@ -281,6 +281,7 @@ class LiveKitPlugin : Plugin() {
     // connectInternal() and disconnect().
     @Volatile private var previewRoom: Room? = null
     @Volatile private var previewTrack: LocalVideoTrack? = null
+    @Volatile private var previewRoomScope: String? = null
     private var previewRenderer: TextureViewRenderer? = null
 
     // --- Audio routing state (Step 11) -----------------------------
@@ -1118,6 +1119,7 @@ class LiveKitPlugin : Plugin() {
             !args.e2eeOn &&
             previewRoom != null &&
             previewTrack != null &&
+            (previewRoomScope == null || previewRoomScope == args.roomScope) &&
             room == null
             // Phase 2 (Camera Rebuild Plan, 2026-06-14) — F2 fix.
             // Bounded NativeVideoView surfaces no longer block promotion.
@@ -1515,6 +1517,7 @@ class LiveKitPlugin : Plugin() {
         room = pr
         previewRoom = null
         previewTrack = null
+        previewRoomScope = null
         // Keep the mounted preview TextureView and make it the official live
         // local renderer. attachLocal() must reuse this renderer instead of
         // releasing/recreating it, otherwise Android paints an opaque WebView
@@ -2285,16 +2288,26 @@ class LiveKitPlugin : Plugin() {
             attachLocal(call)
             return
         }
+        val lens = call.getString("lens", "front") ?: "front"
+        val resolution = call.getString("resolution", "1080p") ?: "1080p"
+        val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
+        val scopeRaw = call.getString("roomScope", null)
+        val requestedScope = when (scopeRaw?.lowercase()) {
+            "live" -> "live"
+            "party" -> "party"
+            "call" -> "call"
+            else -> null
+        }
+        if (previewTrack != null && previewRoomScope != null && requestedScope != null && previewRoomScope != requestedScope) {
+            call.reject("Preview busy: held by $previewRoomScope")
+            return
+        }
         if (previewTrack != null) {
             val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
             call.resolve(ret)
             return
         }
-
-        val lens = call.getString("lens", "front") ?: "front"
-        val resolution = call.getString("resolution", "1080p") ?: "1080p"
-        val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
-        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
 
         scope.launch {
             try {
@@ -2324,6 +2337,7 @@ class LiveKitPlugin : Plugin() {
                     ),
                 )
                 previewRoom = pr
+                previewRoomScope = requestedScope
                 val track = pr.localParticipant.createVideoTrack()
                 previewTrack = track
                 track.startCapture()
@@ -2387,6 +2401,7 @@ class LiveKitPlugin : Plugin() {
         if (track == null && pr == null && renderer == null) return
         previewTrack = null
         previewRoom = null
+        previewRoomScope = null
         previewRenderer = null
         if (renderer != null) {
             if (track != null) try { track.removeRenderer(renderer) } catch (_: Exception) {}
