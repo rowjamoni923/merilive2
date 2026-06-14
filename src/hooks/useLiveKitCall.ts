@@ -105,6 +105,8 @@ export function useLiveKitCall(
   const remoteAudioKeysRef = useRef<Set<string>>(new Set());
   const callVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callCameraPermissionMonitorRef = useRef<(() => void) | null>(null);
+  // Phase 9B: 2s debounce for the "Stabilizing call camera…" toast.
+  const callCameraStabilizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callRemoteVideoWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callRemoteVideoToastShownRef = useRef(false);
   // Honest-private-call fix (F-12): 15s reconnect-budget timer. Armed on
