@@ -189,6 +189,7 @@ class NativeLiveKitController {
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
       this.connected = false;
+      this.autoAttachLocalRenderer = true;
       this.busy = false;
     }
   }
@@ -243,7 +244,7 @@ class NativeLiveKitController {
     try {
       const r = await NativeLiveKit.setCameraEnabled({ enabled });
       if (enabled && (r as any)?.skipped) throw new Error((r as any)?.reason || 'camera-enable-skipped');
-      if (enabled) await this.attachLocalWithRetry();
+      if (enabled && this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
     } catch (e) {
       console.warn('[NativeLiveKitController] setCameraEnabled failed:', e);
       if (enabled) await this.reconnectNow().catch(() => false);
