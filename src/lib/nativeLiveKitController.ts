@@ -130,6 +130,7 @@ class NativeLiveKitController {
       if (this.connected) {
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
         this.connected = false;
+        this.activeFeature = null;
       }
 
       const payload: ConnectOptions = {
