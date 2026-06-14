@@ -49,6 +49,7 @@ export interface NativeJoinOptions {
 class NativeLiveKitController {
   private connected = false;
   private busy = false;
+  private autoAttachLocalRenderer = true;
 
   private async attachLocalWithRetry(): Promise<void> {
     const delays = [0, 120, 300, 700, 1200];
@@ -129,8 +130,9 @@ class NativeLiveKitController {
       try {
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
+        this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
-        if (opts.attachLocal !== false) await this.attachLocalWithRetry();
+        if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
 
         return { sid: res.sid, identity: res.identity };
       } catch (error) {
