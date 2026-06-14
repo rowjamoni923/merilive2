@@ -177,6 +177,18 @@ export interface NativeCallPlugin {
       ts: number;
     }) => void,
   ): Promise<PluginListenerHandle>;
+
+  /**
+   * Phase 2 — native PrivateCallActivity window lifecycle. Fires when the
+   * Activity comes to the front (`state: "opened"`) and when it is destroyed
+   * (`state: "closed"`). CallProvider uses this to keep React in lockstep with
+   * the native call surface: while "opened", React stops hiding #root (the
+   * Activity already covers the screen) and skips repainting the call shell.
+   */
+  addListener(
+    eventName: 'native-call-window',
+    cb: (e: { callId: string; state: 'opened' | 'closed'; ts: number }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 
