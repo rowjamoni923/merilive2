@@ -214,11 +214,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       return () => { mountedRef.current = false; };
     }
 
-    // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
+    // Non-SVGA: show pill for 1.8s (Chamet/Bigo unified spec) — RESET on every combo bump
     completedRef.current = false;
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
-    }, 3500);
+    }, 1800);
     return () => { mountedRef.current = false; clearTimeout(timer); };
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
@@ -333,12 +333,44 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     );
   };
 
-  // Banner gradient based on gift value (Bigo style)
-  const bannerBg = isPremium
-    ? 'bg-gradient-to-r from-amber-600/95 via-orange-500/90 to-yellow-500/50'
-    : isLuxury
-    ? 'bg-gradient-to-r from-purple-600/95 via-pink-500/90 to-rose-400/50'
-    : 'bg-gradient-to-r from-blue-600/90 via-indigo-500/85 to-purple-400/50';
+  // ============================================================
+  // UNIFIED PILL — single-row, full-rounded
+  // Tier ladder: GOLD (≥10k) / TEAL (≥1k) / ROSE (default)
+  // Same look in DM, Live, Party, Call — Chamet/Bigo/Olamet parity
+  // ============================================================
+  const tier: 'gold' | 'teal' | 'rose' = isPremium ? 'gold' : isLuxury ? 'teal' : 'rose';
+  const tierStyles = {
+    gold: {
+      bg: 'linear-gradient(90deg, rgba(180,120,20,0.95) 0%, rgba(234,179,8,0.92) 45%, rgba(253,224,71,0.88) 100%)',
+      ring: 'rgba(253,224,71,0.65)',
+      glow: '0 8px 24px rgba(234,179,8,0.45), 0 2px 8px rgba(0,0,0,0.4)',
+      countFrom: 'from-amber-100',
+      countVia: 'via-yellow-300',
+      countTo: 'to-orange-400',
+      countShadow: '0 0 14px rgba(255,200,0,0.7)',
+      giftName: 'text-amber-100',
+    },
+    teal: {
+      bg: 'linear-gradient(90deg, rgba(15,118,110,0.95) 0%, rgba(20,184,166,0.92) 45%, rgba(94,234,212,0.88) 100%)',
+      ring: 'rgba(94,234,212,0.6)',
+      glow: '0 8px 24px rgba(20,184,166,0.45), 0 2px 8px rgba(0,0,0,0.4)',
+      countFrom: 'from-cyan-100',
+      countVia: 'via-teal-200',
+      countTo: 'to-emerald-300',
+      countShadow: '0 0 12px rgba(94,234,212,0.7)',
+      giftName: 'text-cyan-100',
+    },
+    rose: {
+      bg: 'linear-gradient(90deg, rgba(159,18,57,0.95) 0%, rgba(225,29,72,0.92) 45%, rgba(251,113,133,0.88) 100%)',
+      ring: 'rgba(251,113,133,0.6)',
+      glow: '0 8px 22px rgba(225,29,72,0.4), 0 2px 8px rgba(0,0,0,0.4)',
+      countFrom: 'from-rose-100',
+      countVia: 'via-pink-200',
+      countTo: 'to-rose-300',
+      countShadow: '0 0 12px rgba(251,113,133,0.7)',
+      giftName: 'text-rose-100',
+    },
+  }[tier];
 
   // CRITICAL: portal to <body> — ancestor transforms (framer-motion / scroll
   // containers in LiveStream/PartyRoom/ActiveCall) would otherwise pin
@@ -354,98 +386,103 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
 
-      {/* ======= BIGO/CHAMET STYLE GIFT BANNER ======= */}
-      {/* Left-side banner: [Avatar] [Name / sent GiftName] [GiftIcon] [xCount] */}
+      {/* ======= UNIFIED FLYING GIFT PILL (single-row, full-rounded) ======= */}
       <motion.div
-        className="absolute left-0 will-change-transform"
+        className="absolute left-2 will-change-transform"
         style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
-        initial={{ x: -360, opacity: 0 }}
+        initial={{ x: -380, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -360, opacity: 0 }}
+        exit={{ x: -380, opacity: 0 }}
         transition={{ type: "spring", damping: 22, stiffness: 340, mass: 0.7 }}
       >
-        <div className={cn(
-          "flex items-center gap-0 rounded-r-full overflow-hidden relative",
-          "backdrop-blur-xl shadow-2xl",
-          "border border-white/25"
-        )}
-          style={{ boxShadow: isPremium
-            ? '0 12px 32px rgba(251,191,36,0.45), 0 4px 12px rgba(0,0,0,0.4)'
-            : isLuxury
-            ? '0 12px 32px rgba(168,85,247,0.4), 0 4px 12px rgba(0,0,0,0.4)'
-            : '0 10px 28px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.4)' }}
+        <div
+          className="relative flex items-center gap-2 pl-1 pr-3 py-1 rounded-full overflow-hidden backdrop-blur-xl"
+          style={{
+            background: tierStyles.bg,
+            boxShadow: tierStyles.glow,
+            border: `1px solid ${tierStyles.ring}`,
+            minHeight: 44,
+          }}
         >
-          {/* Aurora sweep overlay (premium/luxury only) */}
-          {(isPremium || isLuxury) && (
+          {/* Aurora sweep (gold/teal only) */}
+          {tier !== 'rose' && (
             <motion.div
-              className="absolute inset-0 pointer-events-none"
+              className="absolute inset-0 pointer-events-none rounded-full"
               style={{
-                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.32) 50%, transparent 70%)',
                 mixBlendMode: 'overlay',
               }}
               animate={{ x: ['-100%', '120%'] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 0.4 }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 0.3 }}
             />
           )}
-          {/* Left section: avatar + text with colored bg */}
-          <div className={cn(
-            "flex items-center gap-2 pl-2 pr-3 py-2 relative",
-            bannerBg
-          )}>
-            {/* Sender Avatar */}
-            <div className="relative flex-shrink-0">
-              {gift.senderAvatar ? (
-                <img loading="lazy" decoding="async" 
-                  src={gift.senderAvatar}
-                  alt=""
-                  className="w-9 h-9 rounded-full border-2 border-white/60 object-cover" />
-              ) : (
-                <div className="w-9 h-9 rounded-full border-2 border-white/60 flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-pink-400 to-purple-500">
-                  {gift.senderName.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
 
-            {/* Two-row text: Name / sent GiftName */}
-            <div className="flex flex-col min-w-0 leading-tight">
-              <span className="text-white font-bold text-xs truncate max-w-[80px] drop-shadow-sm">
-                {gift.senderName}
-              </span>
-              <div className="flex items-center gap-1">
-                <span className="text-white/70 text-[10px]">sent</span>
-                <span className="text-amber-200 font-semibold text-[11px] truncate max-w-[65px]">
-                  {gift.giftName}
-                </span>
+          {/* Sender avatar (aviator-style ring) */}
+          <div className="relative flex-shrink-0 z-10">
+            {gift.senderAvatar ? (
+              <img
+                loading="lazy"
+                decoding="async"
+                src={gift.senderAvatar}
+                alt=""
+                className="w-9 h-9 rounded-full border-2 object-cover"
+                style={{ borderColor: tierStyles.ring }}
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-pink-400 to-purple-500"
+                style={{ borderColor: tierStyles.ring }}
+              >
+                {gift.senderName.charAt(0).toUpperCase()}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Right section: gift icon on semi-transparent bg */}
-          <div className="flex items-center gap-1 px-2 py-1 bg-black/40">
-            {renderBannerGiftIcon()}
-
-            {/* Combo counter - punchy bouncy number (Bigo-parity) */}
-            <motion.div
-              key={currentCount}
-              className="flex flex-col items-center ml-1 will-change-transform"
-              initial={{ scale: 2.2, opacity: 0, y: -14, rotate: -8 }}
-              animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
-              transition={{ type: "spring", damping: 8, stiffness: 420, mass: 0.5 }}
-            >
-              <span className={cn(
-                "font-black text-2xl leading-none",
-                isPremium
-                  ? "bg-gradient-to-b from-amber-200 via-yellow-300 to-orange-400 bg-clip-text text-transparent"
-                  : "bg-gradient-to-b from-white via-pink-100 to-pink-300 bg-clip-text text-transparent"
-              )} style={{
-                WebkitTextStroke: '0.5px rgba(255,255,255,0.3)',
-                textShadow: isPremium ? '0 0 20px rgba(255,200,0,0.6)' : '0 0 12px rgba(255,255,255,0.4)',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-              }}>
-                x{currentCount}
+          {/* Single-row text: sender · sent · [receiver?] · giftName */}
+          <div className="flex items-center gap-1 min-w-0 z-10">
+            <span className="text-white font-bold text-[12px] truncate max-w-[78px] drop-shadow-sm">
+              {gift.senderName}
+            </span>
+            <span className="text-white/75 text-[10px] font-medium">sent</span>
+            {gift.receiverName && (
+              <span className="text-white font-semibold text-[12px] truncate max-w-[70px] drop-shadow-sm">
+                {gift.receiverName}
               </span>
-            </motion.div>
+            )}
+            <span className={cn("font-bold text-[12px] truncate max-w-[80px] drop-shadow-sm", tierStyles.giftName)}>
+              {gift.giftName}
+            </span>
           </div>
+
+          {/* Gift icon */}
+          <div className="flex-shrink-0 z-10">
+            {renderBannerGiftIcon()}
+          </div>
+
+          {/* Combo counter — punchy bouncy xN */}
+          <motion.div
+            key={currentCount}
+            className="flex-shrink-0 z-10 will-change-transform"
+            initial={{ scale: 2.2, opacity: 0, y: -14, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
+            transition={{ type: "spring", damping: 8, stiffness: 420, mass: 0.5 }}
+          >
+            <span
+              className={cn(
+                "font-black text-2xl leading-none bg-gradient-to-b bg-clip-text text-transparent",
+                tierStyles.countFrom,
+                tierStyles.countVia,
+                tierStyles.countTo
+              )}
+              style={{
+                WebkitTextStroke: '0.5px rgba(255,255,255,0.35)',
+                textShadow: tierStyles.countShadow,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+              }}
+            >
+              x{currentCount}
+            </span>
+          </motion.div>
         </div>
 
         {/* Personal value badge: sender sees diamonds spent, receiver sees beans earned.
