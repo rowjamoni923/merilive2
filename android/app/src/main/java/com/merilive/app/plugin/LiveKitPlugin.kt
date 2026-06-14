@@ -3344,7 +3344,6 @@ class LiveKitPlugin : Plugin() {
                 activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                 try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
                 virtualBackgroundProcessor = null
-                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Drop our local Room reference — the manager retains it.
                 // Do NOT call disconnect/release/unbind, do NOT stop the
                 // foreground service, do NOT abandon audio focus, do NOT
@@ -3392,7 +3391,6 @@ class LiveKitPlugin : Plugin() {
                 }
             }
 
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             activity?.runOnUiThread {
                 // Camera audit fix: when Activity dies on the GoLive prejoin
                 // screen there is no real `room`, so the normal Room teardown
@@ -3419,8 +3417,6 @@ class LiveKitPlugin : Plugin() {
             // Step 36 — release MediaPipe segmenter + RenderScript blur.
             try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
             virtualBackgroundProcessor = null
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
             CameraOwnership.forceRelease()
         } catch (_: Exception) {}
         // Phase 2A — drop ProcessLifecycle subscription on final teardown.
@@ -6012,42 +6008,11 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ============================================================
-    // Pkg201 — GPUPixel broadcast beauty processor (feature-flag).
-    // ============================================================
-    //
-    // Off by default. JS calls `setBeautyBroadcast({enabled, smooth,
-    // white, thinFace, bigEye, lipstick})` to attach the processor to
-    // the current LocalVideoTrack. Same reflective setVideoProcessor
-    // pattern as VirtualBackgroundProcessor. Detach with enabled:false.
-    //
-    // Disabled-by-default + reflective attach means existing live
-    // broadcasts are 100% unchanged unless the operator explicitly
-    // enables the flag from the admin panel.
+    // Camera rebuild 2026-06-14 — broadcast beauty compatibility no-op.
     // ============================================================
 
-    private fun detachBeautyProcessor() {
-        // Camera rebuild 2026-06-14: beauty processors are removed from the
-        // streaming camera path. Never touch LocalVideoTrack processors here.
-    }
-
-    // Phase-E fix: remember the last beauty levels + enable state so we can
-    // re-attach the processor automatically when the camera track is
-    // re-published (camera recovery, resolution switch, reconnect). Without
-    // this, beauty silently turned off after any track swap and the host had
-    // to toggle the panel manually to get it back.
     @Volatile private var beautyBroadcastEnabled: Boolean = false
-    @Volatile private var lastBeautySmooth: Float = 0.6f
-    @Volatile private var lastBeautyWhite: Float = 0.4f
-    @Volatile private var lastBeautyThinFace: Float = 0.3f
-    @Volatile private var lastBeautyBigEye: Float = 0.3f
-    @Volatile private var lastBeautyLipstick: Float = 0f
-    @Volatile private var lastBeautyBlusher: Float = 0f
 
-    /**
-     * Phase-E: call this from camera-publish completion / track-republish
-     * paths so the broadcast beauty processor survives recovery. Safe no-op
-     * when beauty was never enabled or has been explicitly disabled.
-     */
     internal fun reattachBeautyIfEnabled() {
         // Camera rebuild 2026-06-14: disabled by design.
     }
@@ -6055,15 +6020,9 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun setBeautyBroadcast(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
-        val smooth = (call.getFloat("smooth") ?: 0.6f)
-        val white = (call.getFloat("white") ?: 0.4f)
-        val thinFace = (call.getFloat("thinFace") ?: 0.3f)
-        val bigEye = (call.getFloat("bigEye") ?: 0.3f)
-        val lipstick = (call.getFloat("lipstick") ?: 0f)
-        val blusher = (call.getFloat("blusher") ?: 0f)
         try {
+            if (enabled) Log.i(TAG, "setBeautyBroadcast ignored: native beauty removed for single-camera stability")
             beautyBroadcastEnabled = false
-            detachBeautyProcessor()
             val ret = JSObject()
             ret.put("enabled", false)
             ret.put("hasRoom", room != null)
