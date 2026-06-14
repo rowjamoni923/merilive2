@@ -180,6 +180,7 @@ const CreateParty = () => {
             setNativePreviewActive(false);
           }
         } else {
+          await nativeLiveKitController.stopLocalPreview().catch(() => {});
           const micGranted = await requestMicrophonePermission();
           if (!micGranted) throw new Error("Microphone permission denied.");
           setNativePreviewActive(false);
@@ -990,6 +991,19 @@ const CreateParty = () => {
         onClose={() => setShowSettingsPanel(false)}
         isCameraOn={isVideoEnabled}
         onCameraToggle={() => {
+          if (isNativeAndroid) {
+            const next = !isVideoEnabled;
+            setIsVideoEnabled(next);
+            if (next && mode !== "audio") {
+              void startCameraInstant(true);
+            } else {
+              void nativeLiveKitController.stopLocalPreview().then(() => {
+                setNativePreviewActive(false);
+                clearNativeMediaSurface();
+              });
+            }
+            return;
+          }
           if (stream) {
             stream.getVideoTracks().forEach(track => {
               track.enabled = !isVideoEnabled;
@@ -999,6 +1013,10 @@ const CreateParty = () => {
         }}
         isMicOn={isMicEnabled}
         onMicToggle={() => {
+          if (isNativeAndroid) {
+            setIsMicEnabled(!isMicEnabled);
+            return;
+          }
           if (stream) {
             stream.getAudioTracks().forEach(track => {
               track.enabled = !isMicEnabled;
