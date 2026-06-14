@@ -3702,7 +3702,7 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface || showNativeViewerSurface ? 'transparent' : 'hsl(var(--background))' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface || (isHost && Capacitor.getPlatform() === 'android')) ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
@@ -3804,8 +3804,10 @@ const LiveStream = () => {
             }}/>
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
-            {/* Pkg381: No generic user icon — show loading shimmer behind the transparent video element */}
-            <div className={`w-full h-full ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+            {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
+                flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
+            <div className={`w-full h-full ${(isNativeMediaActive || Capacitor.getPlatform() === 'android') ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+
             {showHostCameraRecover && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
                 <div className="text-white text-base font-semibold">Camera not visible</div>
