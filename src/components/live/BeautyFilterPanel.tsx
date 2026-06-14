@@ -1,28 +1,13 @@
-/**
- * BeautyFilterPanel — Pkg200 Pro mode (GPUPixel).
- *
- * On Android (native APK): drives the GPUPixel C++ beauty engine with
- * 6 fine-grained sliders (smooth, white, thin face, big eye, lipstick, blusher).
- * On web preview: shows the same UI but only applies CSS-level beauty so
- * authors can iterate the panel without a native build.
- *
- * The legacy `preset` field stays on BeautySettings so existing call sites
- * (LiveStream, PartyRoom, ActiveCallScreen, GoLive) compile unchanged.
- */
+/** Camera rebuild 2026-06-14: UI-only beauty panel; native beauty engine removed. */
 import { Sparkles, X, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import {
-  DEFAULT_PRO_BEAUTY,
-  applyProBeauty,
-  applyBroadcastBeauty,
-  isBroadcastBeautyEnabled,
-  isNativeBeautyAvailable,
-  loadStoredLevels,
-  persistLevels,
-  setBeautyEnabled,
-  type ProBeautyLevels,
-} from "@/plugins/GPUPixelBeauty";
+
+export interface ProBeautyLevels { smooth: number; white: number; thinFace: number; bigEye: number; lipstick: number; blusher: number }
+export const DEFAULT_PRO_BEAUTY: ProBeautyLevels = { smooth: 6, white: 4, thinFace: 3, bigEye: 3, lipstick: 0, blusher: 0 };
+const STORAGE_KEY = 'pkg200.beauty.levels.v1';
+function loadStoredLevels(): ProBeautyLevels { try { return { ...DEFAULT_PRO_BEAUTY, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; } catch { return { ...DEFAULT_PRO_BEAUTY }; } }
+function persistLevels(levels: ProBeautyLevels) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(levels)); } catch { /* noop */ } }
 
 export interface BeautySettings {
   preset: "off" | "soft" | "natural" | "strong" | "custom";
@@ -94,32 +79,7 @@ export function BeautyFilterPanel({
   );
 
   const [levels, setLevels] = useState<ProBeautyLevels>(initialLevels);
-  const native = isNativeBeautyAvailable();
-
-  // Apply to native engine + persist whenever sliders change.
-  useEffect(() => {
-    if (!panelOpen) return;
-    persistLevels(levels);
-    if (enabled && native) {
-      void applyProBeauty(levels);
-      // Pkg201 — also push to broadcast track when the operator has
-      // explicitly enabled the broadcast flag (off by default).
-      if (isBroadcastBeautyEnabled()) void applyBroadcastBeauty(levels, true);
-    }
-  }, [levels, enabled, native, panelOpen]);
-
-  // Push enabled state to native pipeline.
-  useEffect(() => {
-    if (!panelOpen || !native) return;
-    void setBeautyEnabled(enabled);
-    // Pkg201 — detach broadcast processor when beauty toggled off, or
-    // (re)apply current levels when toggled on with the flag set.
-    if (!enabled) {
-      void applyBroadcastBeauty(levels, false);
-    } else if (isBroadcastBeautyEnabled()) {
-      void applyBroadcastBeauty(levels, true);
-    }
-  }, [enabled, native, panelOpen, levels]);
+  const native = false;
 
   if (!panelOpen) return null;
 
