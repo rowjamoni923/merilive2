@@ -80,6 +80,11 @@ export function useNativeLiveKitEvents(
       nativeLiveKitController.attachAllRemotes().catch(() => {});
     };
 
+    const attachLocalSurface = () => {
+      if (cancelled) return;
+      nativeLiveKitController.attachLocal().catch(() => {});
+    };
+
     const register = async () => {
       try {
         const trackSubscribed = await NativeLiveKit.addListener('track-subscribed', (e) => {
@@ -126,6 +131,7 @@ export function useNativeLiveKitEvents(
         const connState = await NativeLiveKit.addListener('connection-state', (e) => {
           handlersRef.current.onConnectionState?.(e.state);
           if (e.state === 'reconnected') {
+            setTimeout(attachLocalSurface, 40);
             setTimeout(attachAllRemoteSurfaces, 80);
             setTimeout(attachAllRemoteSurfaces, 250);
           }
@@ -143,6 +149,7 @@ export function useNativeLiveKitEvents(
         const cameraState = await NativeLiveKit.addListener('camera-state', (e) => {
           handlersRef.current.onCameraState?.(e.state, e.reason, e.error);
           if (e.state === 'started') {
+            setTimeout(attachLocalSurface, 40);
             setTimeout(attachAllRemoteSurfaces, 80);
             setTimeout(attachAllRemoteSurfaces, 300);
           }
