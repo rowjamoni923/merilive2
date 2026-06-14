@@ -180,6 +180,7 @@ const CreateParty = () => {
               lens: 'front',
               resolution: '1080p',
               mirror: true,
+              roomScope: 'party',
               boundedOnly: true,
             });
             setNativePreviewActive(started);

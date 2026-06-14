@@ -281,6 +281,7 @@ class LiveKitPlugin : Plugin() {
     // connectInternal() and disconnect().
     @Volatile private var previewRoom: Room? = null
     @Volatile private var previewTrack: LocalVideoTrack? = null
+    @Volatile private var previewRoomScope: String? = null
     private var previewRenderer: TextureViewRenderer? = null
 
     // --- Audio routing state (Step 11) -----------------------------
@@ -1118,6 +1119,7 @@ class LiveKitPlugin : Plugin() {
             !args.e2eeOn &&
             previewRoom != null &&
             previewTrack != null &&
+            (previewRoomScope == null || previewRoomScope == args.roomScope) &&
             room == null
             // Phase 2 (Camera Rebuild Plan, 2026-06-14) — F2 fix.
             // Bounded NativeVideoView surfaces no longer block promotion.
@@ -1515,6 +1517,7 @@ class LiveKitPlugin : Plugin() {
         room = pr
         previewRoom = null
         previewTrack = null
+        previewRoomScope = null
         // Keep the mounted preview TextureView and make it the official live
         // local renderer. attachLocal() must reuse this renderer instead of
         // releasing/recreating it, otherwise Android paints an opaque WebView

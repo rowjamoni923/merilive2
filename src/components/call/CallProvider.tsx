@@ -224,6 +224,7 @@ export function CallProvider({ children }: CallProviderProps) {
           lens: 'front',
           resolution: '720p',
           mirror: true,
+          roomScope: 'call',
         });
       } catch (e) {
         if (!cancelled) console.warn('[CallProvider] prejoin preview failed (non-fatal):', e);
