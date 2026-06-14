@@ -15,6 +15,8 @@ export type ProCameraOwner =
   | 'face-verify';
 
 export class CameraConflictError extends Error {
+  public readonly currentFamily: 'streaming' | 'verification' | null = null;
+  public readonly currentOwners: ProCameraOwner[] = [];
   constructor(public readonly requested: ProCameraOwner) {
     super(`[ProCameraEngine] stub: no conflict tracking for '${requested}'`);
     this.name = 'CameraConflictError';
