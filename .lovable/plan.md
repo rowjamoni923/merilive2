@@ -34,10 +34,10 @@ We have **multiple cameras and multiple session owners** with no single authorit
 
 Each phase = research delta (if needed) → code → owner-account preview test OR honest "APK rebuild needed" → checkbox tick → user OK → next phase.
 
-### Phase 0 — Safety net (no functional change)
-- [ ] Add `CameraAuthorityManager.kt` (singleton, `StateFlow<Owner>`, suspending `request`). Compile-only; not yet wired into call sites.
-- [ ] Add `SeatRendererBinder.kt` helper to `LiveKitPlugin` exposing `bindSeatRenderer(seatIndex, identity)` / `unbindSeat(seatIndex)`. Compile-only; not yet called from JS.
-- [ ] Add JS shim `src/native/cameraAuthority.ts` + `src/native/seatRenderer.ts` (safe no-ops on web).
+### Phase 0 — Safety net (no functional change) ✅ DONE 2026-06-14
+- [x] Add `CameraAuthorityManager.kt` (singleton, `StateFlow<Set<Owner>>`, suspending `request`). Compile-only; not yet wired into call sites.
+- [x] Add `SeatRendererBinder.kt` (idempotent `bindSeat` / `unbindSeat` / `onTrackSubscribed`). Compile-only; LiveKitPlugin JS-bridge methods land in Phase 1.
+- [x] Add JS shim `src/native/cameraAuthority.ts` + `src/native/seatRenderer.ts` (safe no-ops on web and pre-Phase-1 APKs).
 - **Verification:** project builds, no behavioral change. APK rebuild NOT required yet (no native call site change).
 
 ### Phase 1 — F1 fix: Video Party seat-tile camera binding
