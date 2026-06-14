@@ -1373,6 +1373,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     lastConfigRef.current = null;
     setIsReconnecting(false);
 
+    // Phase 4 (Camera Rebuild Plan, 2026-06-14) — F4 fix: dismiss the
+    // sticky live-reconnect / camera-stabilizing toast BEFORE teardown.
+    // `toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' })`
+    // has no auto-dismiss, so a recovery in progress at exit time used to
+    // leak into Home / Game Party / wherever the user navigated next.
+    try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
+
     try {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
