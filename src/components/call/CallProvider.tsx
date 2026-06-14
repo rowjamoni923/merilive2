@@ -151,21 +151,50 @@ export function CallProvider({ children }: CallProviderProps) {
   const isInCall = callState.status === 'calling' || callState.status === 'ringing' || callState.status === 'connected';
   const callOverlayActiveRef = useRef(false);
 
+  // Phase 2 — track whether the native PrivateCallActivity owns the screen.
+  // When it does, we MUST NOT keep `#root` hidden — the Activity already
+  // covers everything, and once the user dismisses it we want React visible
+  // again instantly (no blank frame between Activity finish and React paint).
+  const [nativeCallWindowOpen, setNativeCallWindowOpen] = useState(false);
+  useEffect(() => {
+    if (!isNativeCallAvailable()) return;
+    let disposed = false;
+    let listener: { remove: () => Promise<void> } | null = null;
+    void NativeCall.addListener('native-call-window', (e) => {
+      if (disposed) return;
+      setNativeCallWindowOpen(e.state === 'opened');
+    }).then((h) => {
+      if (disposed) { void h.remove().catch(() => undefined); return; }
+      listener = h;
+    }).catch(() => undefined);
+    return () => {
+      disposed = true;
+      void listener?.remove().catch(() => undefined);
+    };
+  }, []);
+
+  // Reset native-window flag whenever the call fully ends so a fresh call
+  // starts from a clean slate.
+  useEffect(() => {
+    if (callState.status === 'idle' || callState.status === 'ended') {
+      setNativeCallWindowOpen(false);
+    }
+  }, [callState.status]);
+
   // 🎯 Private Call is a portal OVERLAY (not a route). When the call screen
   // is mounted the underlying route (Home/Profile/Chat/…) stays in the DOM
   // and its opaque cards/banners bleed through the call shell — making the
   // app look broken. Hide #root entirely while the call overlay is up.
   // The call portal lives directly on document.body, so it remains visible.
-  // camera-rebuild Phase 8: useLayoutEffect (sync, pre-paint) so the
-  // body.call-overlay-active class is applied BEFORE the first paint of
-  // ActiveCallScreen. Previously useEffect fired post-paint, leaking one
-  // frame of Home filter chips behind the call overlay.
+  // Phase 2: skip the #root hide while the native PrivateCallActivity is
+  // foregrounded — the Activity already covers the screen, and keeping
+  // #root visible avoids a blank frame when the user dismisses the Activity.
   useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const activeSignal = isInCall || !!incomingCall || !!acceptedCallInfo;
     if (activeSignal) callOverlayActiveRef.current = true;
     else if (callState.status === 'idle' && !showCallEndedModal) callOverlayActiveRef.current = false;
-    const active = callOverlayActiveRef.current;
+    const active = callOverlayActiveRef.current && !nativeCallWindowOpen;
     const cls = 'call-overlay-active';
     if (active) {
       document.body.classList.add(cls);
@@ -173,7 +202,7 @@ export function CallProvider({ children }: CallProviderProps) {
       document.body.classList.remove(cls);
     }
     return () => { document.body.classList.remove(cls); };
-  }, [isInCall, incomingCall, acceptedCallInfo, callState.status, showCallEndedModal]);
+  }, [isInCall, incomingCall, acceptedCallInfo, callState.status, showCallEndedModal, nativeCallWindowOpen]);
 
   // Track host status based on incoming call
   useEffect(() => {
