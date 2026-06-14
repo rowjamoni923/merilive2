@@ -212,6 +212,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qualityEnforcerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(resolveVideoQuality(getVideoQualityChoice()));
@@ -949,8 +950,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             });
           });
         }, 10000);
+        qualityEnforcerRef.current = qualityEnforcer;
 
-        room.on(RoomEvent.Disconnected, () => clearInterval(qualityEnforcer));
+        room.on(RoomEvent.Disconnected, () => {
+          if (qualityEnforcer) clearInterval(qualityEnforcer);
+          if (qualityEnforcerRef.current === qualityEnforcer) qualityEnforcerRef.current = null;
+        });
       }
 
       // === PRELOADED ROOM FAST PATH ===
@@ -963,6 +968,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         if (qualityEnforcer) {
           clearInterval(qualityEnforcer);
           qualityEnforcer = null;
+          qualityEnforcerRef.current = null;
+        }
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+          tokenRefreshDetachRef.current = null;
         }
         room.removeAllListeners();
         roomRef.current = config.preloadedRoom;
@@ -1326,6 +1336,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       return { uid, channel: normalizedChannel };
     } catch (err: any) {
       console.error('[LiveKitClient] Join error:', err);
+      if (qualityEnforcerRef.current) {
+        clearInterval(qualityEnforcerRef.current);
+        qualityEnforcerRef.current = null;
+      }
       setError(err.message || 'Failed to join channel');
       setConnectionState('DISCONNECTED');
       options.onError?.(err);
