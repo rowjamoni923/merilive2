@@ -2451,7 +2451,10 @@ const LiveStream = () => {
       // Belt-and-suspenders: dismiss any sticky live toasts that Phase 4
       // already handles inside leaveChannel — covers the abrupt unmount
       // path where leaveChannel never ran.
-      try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
+      try {
+        // Use sonner directly — hybridToast wrapper has no dismiss().
+        import('sonner').then(({ toast: t }) => { try { t.dismiss('lk-live-reconnect'); } catch { /* ignore */ } }).catch(() => {});
+      } catch { /* ignore */ }
     };
   }, [id, location.state?.isHost]); // Only depends on id and initial isHost
 
