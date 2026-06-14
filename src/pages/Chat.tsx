@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
 const GroupSettingsPanel = lazy(() => import("@/components/chat/GroupSettingsPanel").then(m => ({ default: m.GroupSettingsPanel })));
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
@@ -30,9 +30,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// Lazy load animation players for gift display
-const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
-const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,10 +68,8 @@ import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 const GiftEmojiAnimation = lazy(() => import("@/components/chat/GiftEmojiAnimation").then(m => ({ default: m.GiftEmojiAnimation })));
-import { FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+import { FlyingGiftAnimation, InlineGiftRow, useFlyingGifts } from "@/features/shared/gifting";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
-import Beans3DIcon from "@/components/common/Beans3DIcon";
-import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
@@ -82,7 +77,6 @@ const ReportUserDialog = lazy(() => import("@/components/report/ReportUserDialog
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import icon3dTranslate from "@/assets/icon-3d-translate.png";
 import icon3dGift from "@/assets/icon-3d-gift.png";
 import icon3dVoice from "@/assets/icon-3d-voice.png";
