@@ -476,6 +476,19 @@ export function CallProvider({ children }: CallProviderProps) {
         return;
       }
 
+      // PrivateCallActivity end button dispatches `end` (user-visible hangup),
+      // while Telecom/system controls dispatch `ended`. Both must run the JS
+      // settle path or the native Room + billing can leak after the Activity closes.
+      if (event.action === 'end') {
+        try {
+          await endCall();
+        } catch (e) {
+          console.warn('[CallProvider] endCall on native "end" failed:', e);
+        }
+        await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+        return;
+      }
+
       // Telecom hold / unhold (call-waiting). Native side already mutes the
       // LiveKit local mic + camera; here we just broadcast a window event so
       // any active in-call web UI can update its mic/camera toggle visuals
