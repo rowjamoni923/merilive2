@@ -1420,6 +1420,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        // Belt-and-suspenders: Android can emit camera-state:failed
+        // synchronously inside disconnect(). Re-dismiss after the await so
+        // any toast re-raised mid-teardown is cleared before unmount.
+        try {
+          toast.dismiss('lk-live-reconnect');
+          toast.dismiss('lk-reconnect');
+          toast.dismiss('lk-audio-interrupt');
+        } catch { /* noop */ }
       }
 
       // Pkg-fix: explicitly stop local hardware tracks BEFORE disconnect so the
