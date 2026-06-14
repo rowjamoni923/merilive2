@@ -236,6 +236,14 @@ export function useLiveKitCall(
     }
     callRemoteVideoToastShownRef.current = false;
 
+    // Phase 4 (Camera Rebuild Plan, 2026-06-14) — F4 fix: dismiss any
+    // sticky reconnect/camera-stabilizing toasts BEFORE we tear the room
+    // down, so a half-finished recovery toast does not leak into Home /
+    // Game Party / next screen. `toast.loading` with a fixed id has no
+    // auto-dismiss; without this it persists across route changes.
+    try { toast.dismiss('lk-reconnect'); } catch { /* ignore */ }
+    try { toast.dismiss('lk-audio-interrupt'); } catch { /* ignore */ }
+
     // Pkg73: drop call-signaling registration before tearing the room down.
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
     try { if (callIdRef.current) unregisterNativeCallRoom(callIdRef.current); } catch { /* ignore */ }
