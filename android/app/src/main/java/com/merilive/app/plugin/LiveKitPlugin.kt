@@ -2042,13 +2042,12 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun attachLocal(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
-        // FIX-A — slow-OEM (MIUI/ColorOS/HyperOS) local camera publish can
-        // take 400-2500 ms after the Room connects. The old code rejected
-        // immediately with "No local camera track yet" and the host preview
-        // stayed permanently black. Retry with backoff for up to ~3 s so the
-        // placeholder always latches once the track is finally published.
+        // FIX-A — slow-OEM (MIUI/ColorOS/HyperOS/Vivo/Oppo) local camera
+        // publish can take longer than the old 3s window. Retry up to the
+        // Camera2 open budget so late-published tracks still latch to the
+        // renderer instead of leaving the host self-view black.
         scope.launch {
-            val deadline = System.currentTimeMillis() + 3_000L
+            val deadline = System.currentTimeMillis() + (OEM_CAMERA_OPEN_TIMEOUT_MS + 1_500L)
             var attempt = 0
             while (true) {
                 val track = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
@@ -2058,7 +2057,7 @@ class LiveKitPlugin : Plugin() {
                     return@launch
                 }
                 if (System.currentTimeMillis() >= deadline) {
-                    call.reject("attachLocal: camera track not published within 3s")
+                    call.reject("attachLocal: camera track not published within ${OEM_CAMERA_OPEN_TIMEOUT_MS + 1_500L}ms")
                     return@launch
                 }
                 attempt += 1
