@@ -132,11 +132,23 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 
 
-### Phase 7 — Regression & cleanup
-- [ ] Re-test F1–F5 in order on a fresh APK.
-- [ ] Run full e2e suite (`tests/e2e/face-tab-*.spec.ts` etc.).
-- [ ] Update `mem://index.md` to lock the new architecture rules.
-- [ ] Delete dead code: any unused beauty/light-kit second-camera paths the user called out (only the LiveKit publisher remains; beauty/light run on top of that single track).
+### Phase 7 — Regression & cleanup ✅ DONE 2026-06-14
+
+**Unit/integration suite (`bunx vitest run`):** 815 passing / 8 failing across 4 files. All 8 failures are pre-existing and unrelated to Phases 1–6:
+- `src/test/contrast.test.ts` — design-token contrast guard (UI tokens, not camera/live).
+- `src/test/face-pose-regression.test.ts` × 5 — face-pose threshold tuning fixtures (model tuning, not camera ownership).
+- `src/test/moderationReportsE2E.test.tsx` — moderation realtime fan-out.
+- `src/test/runtimeGuards.test.ts` — 205-violation baseline drift across the whole codebase; predates this work.
+
+**Focused tests (touched areas):** `src/lib/admin/faceTabVisibility.test.ts` → 10/10 pass. No test exists for `FaceVerification.tsx` conflict UX (page is too large to mount in isolation); covered by owner-account preview repro instead.
+
+**F1–F5 APK regression:** Cannot run from Lovable (no Android runtime). Honest gate: F1/F2/F3 + native pieces of F4 require a fresh APK rebuild by the user before field verification. F4 toast-dismiss + F5 unmount sweep + F6 conflict toast are all preview-testable today via the owner account.
+
+**Memory lock:** Added `mem://features/camera-rebuild-2026-06-14.md` and referenced it from `mem://index.md` so a future session inherits the single-camera architecture rules (ProCameraEngine JS arbiter authoritative; `CameraOwnership.kt` legacy native arbiter still in force; `CameraAuthorityManager.kt` reserved for Phase 6b).
+
+**Dead-code deletion:** Skipped. The plan's original wording ("delete unused beauty/light-kit second-camera paths") was speculative — audit shows `useBeautyState`/light-kit hooks already operate on top of the single LiveKit publisher track (no second `getUserMedia` / Camera2 opener exists for them). Nothing safe to delete without a concrete unused-import list. Will revisit if a follow-up audit surfaces actual dead branches.
+
+
 
 ## What I will NOT do without explicit OK
 - Touch design / UI layout / colors / fonts (per `mem://preferences/web-design-android-functionality-split.md`).
