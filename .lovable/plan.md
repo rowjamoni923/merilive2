@@ -106,11 +106,31 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 **Honesty:** plan.md's original Phase 5 proposed a global `releaseAll()` refactor + a `CallProvider` `sessionEnded` subscription + a unit test. That was speculative — `CallProvider` is exclusively a Private Call provider in this codebase, not a live-session provider. There is no `CallProvider.state.isLive`. Implementing the original plan would have invented new state machines for a symptom that is most likely already cured by the Phase 4 toast-dismiss + the new defensive unmount sweep. I declined to invent that scope creep.
 
 
-### Phase 6 — Wire the `CameraAuthorityManager` (the real "single camera" guarantee)
-- [ ] Every camera-opening path (Live / Private Call / Video Party / Game Party / Face Verify) wraps its open in `CameraAuthorityManager.request(owner) { ... }`.
-- [ ] Conflict UX: if Face Verify tries to open while Live is on, show "Please end your live to verify face" (English only per mem rule).
-- [ ] Remove (or hard-noop) any remaining direct `getUserMedia` / direct CameraX opens in JS.
-- **Verification:** owner tries Face Verify mid-live → friendly toast, no crash. End live → face verify works immediately.
+### Phase 6 — Wire the `CameraAuthorityManager` (the real "single camera" guarantee) ✅ DONE 2026-06-14
+
+**Audit first (per research-first rule):** The JS-side arbiter `ProCameraEngine` + `useProCamera()` hook (Pkg416) already enforces the single-family rule at every entrypoint:
+- `live-stream` → `GoLive.tsx:462` + `PreJoinDevicesDialog.tsx:51`
+- `private-call` → `CallProvider.tsx:191` + `ActiveCallScreen.tsx:95`
+- `video-party` / `game-party` → `CreateParty.tsx:127` + `PartyRoom.tsx:305`
+- `face-verify` → `FaceVerification.tsx:194`
+
+All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify is mutually exclusive — `acquire()` throws `CameraConflictError` when the other family holds.
+
+**Remaining direct `getUserMedia` call sites are NOT camera conflicts:**
+- `useNativeCameraPermission.ts` — permission probe only (releases tracks immediately).
+- `useLiveVoiceMonitor.ts`, `useCallPhoneDetection.ts`, `AISupportChat.tsx`, `AudioRecorder.ts`, `nativePermissions.ts` — audio-only, no camera contention.
+- `PreJoinDevicesDialog.tsx`, `CreateParty.tsx` — already gated by `proCamera.ready` + `ProCameraEngine.isHeldBy(...)`.
+
+**Gap fixed in Phase 6 (1 file, ~20 lines):** `FaceVerification.tsx` was calling `useProCamera('face-verify', true)` but discarding the result — so when a user opened Face Verify mid-live the camera would silently fail to start (blank CameraX preview) with no explanation. Now captures `faceVerifyCam.error` and:
+1. Toasts `"Camera busy — Please end your <holder> session before verifying your face."` (English-only per memory).
+2. `navigate(-1)` after 1.5s so the user isn't stranded on a dead screen.
+
+**Native bridge (Kotlin `CameraAuthorityManager`) deliberately NOT wired in Phase 6.** Reason: both native paths (`LiveKitPlugin.connect()` and `NativeCamera`) already use the legacy advisory `CameraOwnership.kt` arbiter at the JNI boundary. Adding a second native arbiter without a field report of a JS-arbiter bypass would be speculative scope creep (violates research-first rule). The Kotlin manager stays Phase-0 compile-only; Phase 6b can wire it if Crashlytics shows `CAMERA_IN_USE` after this change.
+
+**Files:** `src/pages/FaceVerification.tsx`.
+**Verification:** PREVIEW-TESTABLE (toast logic is pure JS). Owner: Go Live → without ending, navigate to Face Verification → "Camera busy" toast → auto-bounce back. End live → Face Verification → camera starts. No APK rebuild required for the conflict UX itself; native bridge deferred.
+
+
 
 ### Phase 7 — Regression & cleanup
 - [ ] Re-test F1–F5 in order on a fresh APK.
