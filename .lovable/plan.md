@@ -243,3 +243,14 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 
 - Web reload applies TS changes immediately; Kotlin changes require APK rebuild.
 - Device test: owner account → create/join video party and game party → take camera seat → remote viewer sees video → toggle camera off/on → leave/re-enter. Expected: no duplicate renderer, no black seat tile, no fullscreen wrong-window renderer.
+
+### Camera restore/on-off loop fix — 2026-06-14
+
+- Research re-check: LiveKit Android `LocalParticipant.setCameraEnabled(false)` explicitly mutes/stops camera; `setCameraEnabled(true)` creates/publishes/starts camera. Therefore using it as routine recovery physically closes/reopens Camera2. Source: LiveKit Android `setCameraEnabled` docs. Agora professional live-streaming pattern keeps one engine/camera preview lifecycle stable across preview → join; translated here as one LiveKit camera track held for the whole live/call/party session.
+- Verified root cause: native local stall recovery toggled `setCameraEnabled(false)` then `true`, matching the reported 10–15s OnePlus camera-light on/off cycle.
+- Verified root cause: poor-uplink adaptive fallback at LOW disabled camera and later re-enabled it; fluctuating network could repeatedly reopen the physical camera.
+- Verified root cause: JS native handlers treated `camera-state: failed` / local `video-stall: failed` as `reconnectNow()`, and native `reconnectNow()` soft path toggled camera off→on.
+- Implemented fix: local stall recovery now only rebinds local/bounded renderers and never restarts Camera2; remote stall recovery still resubscribes remote tracks only.
+- Implemented fix: adaptive tier changes no longer stop/unpublish/create a new camera track, and poor-uplink floor no longer enters camera-off audio-only fallback.
+- Implemented fix: live/private-call JS handlers no longer call `reconnectNow()` for local camera stall/camera-state failures; they reattach local/remote surfaces only.
+- APK rebuild required for Kotlin changes. Expected owner-device test: live streaming, private call, video party, and game party keep camera indicator continuously ON until the user ends/leaves or manually turns camera off.
