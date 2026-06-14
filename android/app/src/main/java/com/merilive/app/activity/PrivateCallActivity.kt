@@ -653,9 +653,14 @@ class PrivateCallActivity : ComponentActivity() {
         }
         if (track == null) return
         val r = ensureRemoteRenderer()
-        runCatching { track.addRenderer(r) }
-            .onFailure { Log.w(TAG, "attachRemote: ${it.message}") }
-        attachedRemoteTrack = track
+        initRendererForActiveRoom(r, "remote")
+        if (attachedRemoteTrack === track) return
+        try {
+            track.addRenderer(r)
+            attachedRemoteTrack = track
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachRemote: ${t.message}")
+        }
     }
 
     private fun attachLocal(track: VideoTrack?) {
@@ -667,9 +672,29 @@ class PrivateCallActivity : ComponentActivity() {
         }
         if (track == null) return
         val r = ensureLocalRenderer()
-        runCatching { track.addRenderer(r) }
-            .onFailure { Log.w(TAG, "attachLocal: ${it.message}") }
-        attachedLocalTrack = track
+        initRendererForActiveRoom(r, "local")
+        if (attachedLocalTrack === track) return
+        try {
+            track.addRenderer(r)
+            attachedLocalTrack = track
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachLocal: ${t.message}")
+        }
+    }
+
+    private fun initRendererForActiveRoom(renderer: TextureViewRenderer, label: String) {
+        val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+        if (room == null) {
+            Log.w(TAG, "initVideoRenderer($label): no active Room")
+            return
+        }
+        try {
+            room.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($label): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($label): ${t.message}")
+        }
     }
 
     private fun detachAllRenderers(release: Boolean) {
