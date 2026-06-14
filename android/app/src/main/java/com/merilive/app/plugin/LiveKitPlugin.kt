@@ -95,17 +95,20 @@ class LiveKitPlugin : Plugin() {
      *  via {@link bindSeatRenderer}. Used by Video/Game Party rooms. */
     private var boundedMode: Boolean = false
 
-    /** Phase 1: per-seat TextureViewRenderers placed ABOVE the WebView at
+    /** Phase 1: per-viewId TextureViewRenderers placed ABOVE the WebView at
      *  exact CSS-pixel rects (converted via display density). The React seat
      *  tile underneath remains visible for empty-seat UI, gradient overlays,
-     *  badges, etc — only the central video region is covered by the native
-     *  TextureView. */
-    private data class SeatRendererSlot(
-        val seatIndex: Int,
-        var identity: String,
+     *  badges, etc — only the inner video region is covered by the native
+     *  TextureView. Keyed by `viewId` (matches `NativeVideoView` placeholder
+     *  IDs) or `seat:<index>` (legacy bindSeatRenderer path). */
+    private data class RendererSlot(
+        val key: String,
         val renderer: TextureViewRenderer,
+        var identity: String? = null,
+        var attachedTrack: VideoTrack? = null,
+        var mirror: Boolean = false,
     )
-    private val seatSlots = ConcurrentHashMap<Int, SeatRendererSlot>()
+    private val slots = ConcurrentHashMap<String, RendererSlot>()
 
     override fun load() {
         super.load()
