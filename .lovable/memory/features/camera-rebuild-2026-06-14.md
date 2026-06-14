@@ -41,5 +41,6 @@ type: feature
 - `clearNativeMediaSurface()` must only clear `native-media-active`; do not strip `native-face-camera-active` from live/party/call cleanup paths.
 - Web fallback camera claims in live/party/call must check the matching `ProCameraEngine.isHeldBy(...)` owner before `claimAndroidWebViewCamera*` / `getUserMedia`.
 - Toasts MUST be English (memory rule).
-- Beauty / light-kit hooks operate on the single LiveKit publisher track — never let them open a second camera.
+- Native beauty is removed from production APK as of Phase 9K. Do NOT re-add GPUPixel/DeepAR/Tencent/native beauty camera or VideoProcessor paths without explicit user approval.
+- Live/Party/Game/Private Call = `LiveKitPlugin` only. Face Verification = `NativeCameraPlugin` only. Beauty UI may keep inert state but must never touch camera/native LiveKit.
 - All toast `id`s used with `toast.loading(..., { id })` MUST also be dismissed in the corresponding teardown path. Sonner does not auto-dismiss `loading` toasts.

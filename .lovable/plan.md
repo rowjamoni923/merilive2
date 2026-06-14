@@ -246,6 +246,21 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED for native Camera2/TextureView behavior. Code-level verification completed with `rg`: scoped roomScope tags exist for live/party/call, previewRoomScope gate exists in Kotlin, live web fallback claims are ProCamera-gated, face camera no longer blind-evicts streaming, and media clear no longer removes face-camera class.
 
+### Phase 9K — User-requested native beauty deletion + UI bleed guard ✅ DONE 2026-06-14
+
+**Research basis:** Android Camera2 reports `CAMERA_IN_USE` / `ERROR_CAMERA_IN_USE` when the physical camera is already owned (Android CameraAccessException / CameraDevice.StateCallback docs). LiveKit Android supports the correct single-track pattern with `LocalParticipant.createVideoTrack(...)` and `publishVideoTrack(track)`; Agora-style live apps use `startPreview/setupLocalVideo → joinChannel` without reopening camera.
+
+**Fixes applied now:**
+- Deleted native beauty systems from the production Capacitor APK: `GPUPixelBeautyPlugin.kt`, `GPUPixelBeautyProcessor.kt`, `BeautyPipelineBridge.kt`, `PrivateCallBeautySheet.kt`, and its two layout XMLs.
+- Removed `GPUPixelBeautyPlugin` registration from `MainActivity.java` and removed `gpupixel-release.aar` dependency + Proguard rules.
+- Removed `NativeLiveKit` beauty bridge API from the TS plugin interface; `useBeautyState` and `BeautyFilterPanel` are now UI-state-only and never touch camera/native LiveKit.
+- Hid the native private-call beauty button so it cannot trigger a hidden camera/processor handoff.
+- UI bleed hardening: added `data-room-shell` to `UnifiedPartyRoom`, replaced broad Android transparency guards in `LiveStream.tsx` with `isNativeMediaActive`, and routed `GoLive` native transparency cleanup through `nativeMediaSurface` utilities.
+
+**Architecture after this phase:** Live/Party/Game/Private Call = one `LiveKitPlugin` camera path only. Face Verification = one separate `NativeCameraPlugin` CameraX path only, mutually exclusive by `CameraOwnership`/`ProCameraEngine`. Beauty engine = removed from native production path.
+
+**Verification:** Code-level verification completed with `rg`: no `GPUPixelBeautyPlugin`, `GPUPixelBeautyProcessor`, `BeautyPipelineBridge`, `PrivateCallBeautySheet`, `gpupixel-release`, or `com.pixpark.gpupixel` references remain in `android/app`/`src` except UI-only text/types. APK rebuild REQUIRED for physical Android camera validation.
+
 
 
 ## What I will NOT do without explicit OK
