@@ -309,7 +309,16 @@ class NativeLiveKitController {
         this.previewFeature = null;
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
-      await NativeLiveKit.startLocalPreview(opts ?? {});
+      try {
+        await NativeLiveKit.startLocalPreview(opts ?? {});
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e ?? '');
+        if (!/Preview busy|preview busy/i.test(message)) throw e;
+        await NativeLiveKit.stopLocalPreview().catch(() => undefined);
+        this.previewFeature = null;
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await NativeLiveKit.startLocalPreview(opts ?? {});
+      }
       this.previewFeature = requestedFeature;
       return true;
     } catch (e) {
