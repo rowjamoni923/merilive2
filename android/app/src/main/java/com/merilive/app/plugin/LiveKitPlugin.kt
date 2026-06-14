@@ -310,6 +310,70 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * Phase 3 — disconnect from the LiveKit Room WITHOUT killing the preview
+     * track / renderer. Used by the JS retry loop so a failed connect attempt
+     * doesn't black-flash the camera preview between attempts: the next
+     * `connect()` hits `promotePreviewToSession` and republishes the same
+     * LocalVideoTrack with no CameraX reopen.
+     */
+    @PluginMethod
+    fun disconnectSessionOnly(call: PluginCall) {
+        scope.launch {
+            try {
+                eventsJob?.cancel()
+                eventsJob = null
+                try { clearAllSlots() } catch (_: Throwable) {}
+                try { room?.disconnect() } catch (t: Throwable) {
+                    Log.w(TAG, "disconnectSessionOnly room.disconnect failed", t)
+                }
+                isConnected = false
+                // Intentionally KEEP: room (re-used by promotePreviewToSession),
+                // previewTrack, previewRenderer, boundedMode, renderer slots' DOM.
+            } catch (t: Throwable) {
+                Log.w(TAG, "disconnectSessionOnly", t)
+            }
+            val ret = JSObject()
+            ret.put("ok", true)
+            call.resolve(ret)
+        }
+    }
+
+    /**
+     * Phase 3 — Activity lifecycle: mute mic + camera while the host app is
+     * backgrounded so we don't broadcast a black frame + dead air. Reverse on
+     * resume. Skipped when not connected (preview-only path keeps running).
+     */
+    override fun handleOnPause() {
+        super.handleOnPause()
+        try {
+            if (isConnected) {
+                val lp = room?.localParticipant
+                scope.launch {
+                    try { lp?.setMicrophoneEnabled(false) } catch (_: Throwable) {}
+                    try { lp?.setCameraEnabled(false) } catch (_: Throwable) {}
+                }
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "handleOnPause", t)
+        }
+    }
+
+    override fun handleOnResume() {
+        super.handleOnResume()
+        try {
+            if (isConnected) {
+                val lp = room?.localParticipant
+                scope.launch {
+                    try { lp?.setMicrophoneEnabled(true) } catch (_: Throwable) {}
+                    try { lp?.setCameraEnabled(true) } catch (_: Throwable) {}
+                }
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "handleOnResume", t)
+        }
+    }
+
     // ─────────────────────────────────────────────
     // Media controls
     // ─────────────────────────────────────────────

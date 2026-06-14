@@ -227,6 +227,33 @@ class NativeLiveKitController {
     }
   }
 
+  /**
+   * Phase 3 — tear down ONLY the LiveKit session (Room). Preserves the local
+   * preview track / renderer / preview Room so the JS retry loop can re-enter
+   * `connectAndPublish` without a CameraX reopen + black flash.
+   * Safe no-op on older APKs (Proxy swallows the missing method).
+   */
+  async disconnectSessionOnly(): Promise<void> {
+    try {
+      const fn = (NativeLiveKit as unknown as { disconnectSessionOnly?: () => Promise<unknown> })
+        .disconnectSessionOnly;
+      if (typeof fn === 'function') {
+        await fn.call(NativeLiveKit);
+      } else {
+        // Older APK: fall back to a full disconnect — black flash possible but
+        // never hangs the retry loop.
+        try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
+      }
+    } catch (error) {
+      console.warn('[NativeLiveKitController] disconnectSessionOnly failed (non-fatal):', error);
+    } finally {
+      this.connected = false;
+      this.activeFeature = null;
+      // INTENTIONAL: leave previewFeature + autoAttachLocalRenderer untouched
+      // so the preview keeps owning the camera between retries.
+    }
+  }
+
   async sendData(payload: Uint8Array, opts: { reliable?: boolean; topic?: string } = {}): Promise<boolean> {
     if (!this.connected) return false;
     try {

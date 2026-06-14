@@ -799,6 +799,18 @@ const GoLive = () => {
       return;
     }
 
+    // Phase 3 — guard: on native Android the prejoin preview MUST be live
+    // before we navigate to /live, otherwise LiveKit connect starts from a
+    // cold camera and the user sees a 200-800ms black flash on stream open.
+    // One inline retry; if still no preview, abort with a clear toast.
+    if (isNativeAndroid && !nativePreviewActive) {
+      const retried = await startNativePreview().catch(() => false);
+      if (!retried) {
+        toast.error('Camera preview not ready. Please tap again.');
+        return;
+      }
+    }
+
     const shouldPreserveNativePreview = isNativeAndroid && nativePreviewActive;
     if (shouldPreserveNativePreview) {
       preservePreviewForLiveRef.current = true;

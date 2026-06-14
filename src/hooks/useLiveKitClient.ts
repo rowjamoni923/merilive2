@@ -540,7 +540,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             lastNativeErr = e;
             if (nativeAttempt < 2) {
               console.warn('[LiveKitClient/Native] connect failed, retrying in 600ms:', e);
-              try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+              // Phase 3 — session-only teardown preserves the preview track so
+              // the second attempt hits promotePreviewToSession (no CameraX
+              // reopen, no black flash between attempts).
+              try { await nativeLiveKitController.disconnectSessionOnly(); } catch { /* noop */ }
               await new Promise((r) => setTimeout(r, 600));
             }
           }
