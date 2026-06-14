@@ -26,7 +26,7 @@ import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButto
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
 
-import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift, InlineGiftRow, encodeInlineGiftMarker, parseInlineGiftMarker } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
