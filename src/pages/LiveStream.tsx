@@ -3702,7 +3702,7 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface || showNativeViewerSurface ? 'transparent' : 'hsl(var(--background))' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface || (isHost && Capacitor.getPlatform() === 'android')) ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
