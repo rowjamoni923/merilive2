@@ -3004,11 +3004,12 @@ class LiveKitPlugin : Plugin() {
         when (quality) {
             ConnectionQuality.POOR, ConnectionQuality.LOST -> {
                 consecutiveExcellent = 0
-                // Phase I.b — audio-only floor. Already at LOW + still POOR/LOST
-                // means our ~700 kbps uplink can't sustain even 540p/24fps. Mute
-                // the camera track so audio keeps flowing (Bigo/Chamet behavior).
+                // Keep the camera physically open. Older logic entered an
+                // audio-only fallback here, which stopped Camera2 and later
+                // reopened it when quality improved; on OnePlus/ColorOS that
+                // looks like the camera light turning on/off every few seconds.
                 if (currentTier == AdaptiveTier.LOW) {
-                    if (!audioOnlyActive) enterAudioOnlyFallback("uplink-collapse")
+                    notifyCameraHeldDuringPoorUplink("uplink-collapse")
                     return
                 }
                 val next = when (currentTier) {
@@ -3021,12 +3022,7 @@ class LiveKitPlugin : Plugin() {
             ConnectionQuality.EXCELLENT -> {
                 consecutiveExcellent++
                 if (consecutiveExcellent < 2) return
-                // Phase I.b — recover from audio-only floor BEFORE climbing tiers.
-                // Re-enable camera; next quality tick will step LOW → MEDIUM → HIGH.
-                if (audioOnlyActive) {
-                    exitAudioOnlyFallback("uplink-recovered")
-                    return
-                }
+                if (audioOnlyActive) audioOnlyActive = false
                 if (currentTier == baseTier) return // already at ceiling
                 val next = when (currentTier) {
                     AdaptiveTier.LOW    -> AdaptiveTier.MEDIUM
@@ -3082,6 +3078,19 @@ class LiveKitPlugin : Plugin() {
                 Log.w(TAG, "exitAudioOnlyFallback failed: ${e.message}")
             }
         }
+    }
+
+    private fun notifyCameraHeldDuringPoorUplink(reason: String) {
+        val now = System.currentTimeMillis()
+        if (now - lastTierChangeMs < 12_000L) return
+        lastTierChangeMs = now
+        try {
+            val data = JSObject()
+            data.put("active", false)
+            data.put("reason", reason)
+            data.put("cameraHeld", true)
+            notifyListeners("audio-only-fallback", data)
+        } catch (_: Throwable) {}
     }
 
     private fun applyAdaptiveTier(target: AdaptiveTier, reason: String) {
