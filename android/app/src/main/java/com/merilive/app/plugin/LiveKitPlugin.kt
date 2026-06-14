@@ -1521,8 +1521,19 @@ class LiveKitPlugin : Plugin() {
         attachEventListeners(pr)
         startAudioLevelPoll(pr)
 
+        // camera-rebuild Phase 8: make the WebView transparent NOW so the
+        // already-running preview Camera2 frames are visible during the SFU
+        // handshake (300–1500 ms). Without this the WebView paints opaque
+        // dark until attachLocal() runs post-connect, hiding the live camera.
+        try {
+            withContext(Dispatchers.Main) {
+                bridge?.webView?.setBackgroundColor(Color.TRANSPARENT)
+            }
+        } catch (_: Throwable) { /* noop */ }
+
         // Connect over the network. Camera capture continues unaffected.
         pr.connect(args.url, args.token, ConnectOptions(autoSubscribe = args.autoSubscribe))
+
 
         // Bind to Application-scope observer.
         try {
