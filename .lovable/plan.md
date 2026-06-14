@@ -192,3 +192,9 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 ### Verification required
 
 - Requires Android APK rebuild. Test on owner account/device: GoLive preview → start live; video party seat publish; game party seat publish; private call accept; toggle Beauty on/off; expected: no camera restart, no CAMERA_IN_USE, local/remote video stays visible.
+
+### Follow-up audit from camera-path subagent
+
+- Party/video-game gap confirmed: when `cameraReady=false` at connect time, later `setCameraEnabled(true)` published a camera track but did not remount the native local renderer. Fixed in `nativeLiveKitController.setCameraEnabled(true)` by calling the existing `attachLocalWithRetry()` after a successful camera enable.
+- Slow-OEM gap confirmed: native `attachLocal()` waited only 3s while OEM Camera2 open can take longer. Fixed by extending the native attach deadline to `OEM_CAMERA_OPEN_TIMEOUT_MS + 1500ms` so late-published local camera tracks still bind to the renderer.
+- Private-call double-renderer/wrong-window risk remains an APK/device verification target because current JS usage does not show `openInCallActivity()` being called; do not remove WebView attach until the native activity launch flow is confirmed active on device.
