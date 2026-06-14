@@ -89,6 +89,23 @@ class LiveKitPlugin : Plugin() {
     private var previewRenderer: SurfaceViewRenderer? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
+    /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
+     *  SurfaceViewRenderer or make the WebView transparent. The camera track
+     *  is still alive, but rendering is delegated to seat-bound TextureViews
+     *  via {@link bindSeatRenderer}. Used by Video/Game Party rooms. */
+    private var boundedMode: Boolean = false
+
+    /** Phase 1: per-seat TextureViewRenderers placed ABOVE the WebView at
+     *  exact CSS-pixel rects (converted via display density). The React seat
+     *  tile underneath remains visible for empty-seat UI, gradient overlays,
+     *  badges, etc — only the central video region is covered by the native
+     *  TextureView. */
+    private data class SeatRendererSlot(
+        val seatIndex: Int,
+        var identity: String,
+        val renderer: TextureViewRenderer,
+    )
+    private val seatSlots = ConcurrentHashMap<Int, SeatRendererSlot>()
 
     override fun load() {
         super.load()
