@@ -1512,13 +1512,14 @@ class LiveKitPlugin : Plugin() {
         // Pkg416 — re-anchor the EGL context on the existing local renderer
         // AFTER the room has connected. Android 15 / Pixel 9 occasionally
         // detaches the SurfaceTexture during the SFU handshake; re-running
-        // initVideoRenderer + addRenderer is idempotent (runCatching swallows
-        // "Already initialized") and guarantees the local tile keeps painting.
+        // initVideoRenderer is idempotent for the "Already initialized" case;
+        // remove→add avoids double-binding the same renderer on the same track.
         try {
             val lr = localRenderer
             if (lr != null) {
                 withContext(Dispatchers.Main) {
-                    kotlin.runCatching { pr.initVideoRenderer(lr) }
+                    initVideoRendererIdempotent(pr, lr, "promote-local")
+                    kotlin.runCatching { ptrack.removeRenderer(lr) }
                     kotlin.runCatching { ptrack.addRenderer(lr) }
                 }
             }
@@ -2106,7 +2107,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 val renderer = localRenderer ?: createRenderer()
                 localRenderer = renderer
-                kotlin.runCatching { r.initVideoRenderer(renderer) }
+                initVideoRendererIdempotent(r, renderer, "attachLocal")
                 try { track.removeRenderer(renderer) } catch (_: Exception) {}
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
@@ -2171,7 +2172,7 @@ class LiveKitPlugin : Plugin() {
                 }
                 val renderer = createRenderer()
                 remoteRenderers[sid] = renderer
-                kotlin.runCatching { r.initVideoRenderer(renderer) }
+                initVideoRendererIdempotent(r, renderer, "attachRemote:$sid")
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
                 installStallSink(track, key = sid, sid = sid, isLocal = false)
@@ -2268,7 +2269,7 @@ class LiveKitPlugin : Plugin() {
                 withContext(Dispatchers.Main) {
                     val renderer = createRenderer()
                     previewRenderer = renderer
-                    kotlin.runCatching { pr.initVideoRenderer(renderer) }
+                    initVideoRendererIdempotent(pr, renderer, "preview")
                     try { renderer.setMirror(mirror) } catch (_: Throwable) {}
                     track.addRenderer(renderer)
                     mountBehindWebView(renderer)
@@ -2555,7 +2556,7 @@ class LiveKitPlugin : Plugin() {
         }
         val renderer = remoteRenderers[sid] ?: createRenderer().also { remoteRenderers[sid] = it }
         return try {
-            kotlin.runCatching { r.initVideoRenderer(renderer) }
+            initVideoRendererIdempotent(r, renderer, "remote-internal:$sid")
             try { track.removeRenderer(renderer) } catch (_: Exception) {}
             track.addRenderer(renderer)
             mountBehindWebView(renderer)
@@ -2830,6 +2831,16 @@ class LiveKitPlugin : Plugin() {
         return renderer
     }
 
+    private fun initVideoRendererIdempotent(r: Room, renderer: TextureViewRenderer, label: String) {
+        try {
+            r.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($label): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($label) failed: ${t.message}")
+        }
+    }
+
     private fun mountBehindWebView(renderer: TextureViewRenderer) {
         val webView = bridge?.webView ?: return
         val root = webView.parent as? ViewGroup ?: return
@@ -3051,6 +3062,7 @@ class LiveKitPlugin : Plugin() {
                 // Pkg415: re-bind the preserved renderer + stall sink to the new track.
                 if (keptRenderer != null) {
                     try {
+                        initVideoRendererIdempotent(r, keptRenderer, "adaptive-local")
                         newTrack.addRenderer(keptRenderer)
                     } catch (e: Exception) {
                         Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
@@ -3243,7 +3255,7 @@ class LiveKitPlugin : Plugin() {
                     if (localTrack != null) {
                         val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
                         localRenderer = renderer
-                        kotlin.runCatching { r.initVideoRenderer(renderer) }
+                        initVideoRendererIdempotent(r, renderer, "resume-local")
                         try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
                         localTrack.addRenderer(renderer)
                         mountBehindWebView(renderer)
@@ -4229,7 +4241,10 @@ class LiveKitPlugin : Plugin() {
                 }
                 emitAudioInterruption("loss", change == AudioManager.AUDIOFOCUS_LOSS)
             }
-            AudioManager.AUDIOFOCUS_GAIN -> {
+            AudioManager.AUDIOFOCUS_GAIN,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
                 if (micPausedByFocusLoss) {
                     micPausedByFocusLoss = false
                     val restore = micIntentBeforeLoss
@@ -5858,6 +5873,7 @@ class LiveKitPlugin : Plugin() {
             }
             if (m != null) {
                 m.invoke(track, proc)
+                Log.d(TAG, "setVideoProcessor attached via public method on ${track.javaClass.name}")
                 return true
             }
         } catch (_: Throwable) { /* fall through to reflection */ }
@@ -5875,6 +5891,7 @@ class LiveKitPlugin : Plugin() {
                         it.name == "setVideoProcessor" && it.parameterTypes.size == 1
                     } ?: continue
                     m.invoke(v, proc)
+                    Log.d(TAG, "setVideoProcessor attached via field ${f.name} on ${cls?.name}")
                     return true
                 } catch (_: Throwable) { /* try next field */ }
             }

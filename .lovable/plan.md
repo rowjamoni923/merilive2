@@ -140,3 +140,30 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 
 - Added `/__l5e/assets-v1/` to the local app-media allowlist in `adminStorageImages.ts` so admin auto-resolver never signs Lovable CDN assets.
 - Added the same allowlist to `cdnImage.ts` for consistency across SmartImage/public-media normalization.
+
+---
+
+## RTC black-screen renderer audit — 2026-06-14
+
+### Research baseline
+
+- Professional live/call apps keep a single native RTC room/camera owner and treat renderer binding as lifecycle-idempotent: initialize renderer with the active RTC engine/room before attaching a track, never double-add the same renderer to the same track, and rebind surfaces after network/lifecycle handoffs instead of reopening camera.
+- Agora-equivalent pattern: setup local/remote video canvases before/at join and keep preview→channel handoff on the same engine; translated to LiveKit Android this means `startLocalPreview()` → `promotePreviewToSession()` publishes the existing `LocalVideoTrack` and re-anchors renderer after `Room.connect()`.
+- Android 15 / Pixel 9 native-library baseline remains mandatory: `android:extractNativeLibs="true"`, `jniLibs.useLegacyPackaging = true`, `android.bundle.enable16kAlignment=true`, with LiveKit 2.26.0 / MediaPipe 0.10.20 / Media3 1.5.1 not downgraded.
+- Sources: LiveKit Android SDK renderer/track docs (`docs.livekit.io/reference/client-sdk-android/`), Android audio focus guide (`developer.android.com/media/optimize/audio-focus`), Android 16 KB page size guide (`developer.android.com/guide/practices/page-sizes`), Agora Android video best-practice pattern (`docs.agora.io/en/video-calling/best-practices`).
+
+### Verified failure from uploaded video
+
+- The recording shows the live room UI/chat/gift overlay still alive while the video area repeatedly becomes black. That rules out React route/render failure and points to native video renderer/track binding or camera capture continuity.
+
+### Code gaps found
+
+- `PrivateCallActivity.attachRemote()` and `attachLocal()` attached `VideoTrack.addRenderer(renderer)` without `Room.initVideoRenderer(renderer)`, violating the native renderer contract and causing black 1:1 call surfaces on fast handoffs.
+- `PrivateCallActivity.attachRemote()` / `attachLocal()` could call `addRenderer()` again for the same `(track, renderer)` pair when flows re-emitted or Activity resumed, a known EGL/TextureView blanking trigger on Android.
+- Live/party plugin paths already initialized renderers, but several paths used broad `runCatching` and still removed/re-added the same renderer aggressively; this phase tightens idempotent init and prevents duplicate add on the main local attach path.
+
+### Implemented fix target
+
+- Add explicit `IllegalStateException`-safe renderer initialization before every PrivateCallActivity track attach.
+- Skip duplicate `addRenderer()` when the same track is already bound to the same renderer.
+- Replace broad native live renderer init wrappers with a single `initVideoRendererIdempotent()` helper that only treats `Already initialized` as benign and logs other failures.

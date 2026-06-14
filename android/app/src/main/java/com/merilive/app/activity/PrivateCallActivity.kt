@@ -653,9 +653,14 @@ class PrivateCallActivity : ComponentActivity() {
         }
         if (track == null) return
         val r = ensureRemoteRenderer()
-        runCatching { track.addRenderer(r) }
-            .onFailure { Log.w(TAG, "attachRemote: ${it.message}") }
-        attachedRemoteTrack = track
+        initRendererForActiveRoom(r, "remote")
+        if (attachedRemoteTrack === track) return
+        try {
+            track.addRenderer(r)
+            attachedRemoteTrack = track
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachRemote: ${t.message}")
+        }
     }
 
     private fun attachLocal(track: VideoTrack?) {
@@ -667,9 +672,29 @@ class PrivateCallActivity : ComponentActivity() {
         }
         if (track == null) return
         val r = ensureLocalRenderer()
-        runCatching { track.addRenderer(r) }
-            .onFailure { Log.w(TAG, "attachLocal: ${it.message}") }
-        attachedLocalTrack = track
+        initRendererForActiveRoom(r, "local")
+        if (attachedLocalTrack === track) return
+        try {
+            track.addRenderer(r)
+            attachedLocalTrack = track
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachLocal: ${t.message}")
+        }
+    }
+
+    private fun initRendererForActiveRoom(renderer: TextureViewRenderer, label: String) {
+        val room = com.merilive.app.rtc.RtcEngineManager.currentRoom()
+        if (room == null) {
+            Log.w(TAG, "initVideoRenderer($label): no active Room")
+            return
+        }
+        try {
+            room.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($label): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($label): ${t.message}")
+        }
     }
 
     private fun detachAllRenderers(release: Boolean) {
@@ -746,12 +771,12 @@ class PrivateCallActivity : ComponentActivity() {
     // ------------------------------------------------------------------
 
     override fun onResume() {
-        super.onResume()
         // L-7: re-attach the latest tracks to their renderers. Phase B's
         // collect flows handle initial mount; this path covers the case where
         // the user returned from a paused state (background, screen-off, PIP→
         // fullscreen) and the previous detach in onPause cleared the renderer
         // bindings. attach* is idempotent — same track + same renderer no-op.
+        super.onResume()
         runCatching { attachRemote(vm.remoteVideo.value) }
         runCatching { attachLocal(vm.localVideo.value) }
         // L-8: re-acquire proximity wakelock if we're on earpiece while
