@@ -174,6 +174,14 @@ class LiveKitPlugin : Plugin() {
     // ─────────────────────────────────────────────
     // Connection lifecycle
     // ─────────────────────────────────────────────
+    /** Args bundle for the preview→session promotion path. */
+    private data class ConnectArgs(
+        val url: String,
+        val token: String,
+        val publishVideo: Boolean,
+        val publishAudio: Boolean,
+    )
+
     @PluginMethod
     fun connect(call: PluginCall) {
         val url = call.getString("url")
@@ -182,40 +190,17 @@ class LiveKitPlugin : Plugin() {
             call.reject("url and token are required")
             return
         }
-        val publishVideo = call.getBoolean("video", false) ?: false
-        val publishAudio = call.getBoolean("audio", false) ?: false
+        val args = ConnectArgs(
+            url = url,
+            token = token,
+            publishVideo = call.getBoolean("video", false) ?: false,
+            publishAudio = call.getBoolean("audio", false) ?: false,
+        )
 
         scope.launch {
             try {
-                val r = room ?: withContext(Dispatchers.IO) {
-                    LiveKit.create(
-                        appContext = context.applicationContext,
-                        options = RoomOptions(adaptiveStream = true, dynacast = true),
-                    )
-                }
-                room = r
-                observeRoomEvents(r)
-                r.connect(url, token, ConnectOptions())
-                isConnected = true
-
-                if (publishAudio) {
-                    r.localParticipant.setMicrophoneEnabled(true)
-                }
-                if (publishVideo) {
-                    val existing = previewTrack
-                    if (existing != null) {
-                        // HANDOFF: republish the camera track we already opened
-                        // during preview. No second Camera2 open, no flicker.
-                        r.localParticipant.publishVideoTrack(existing)
-                        Log.i(TAG, "connect: republished preview track (no reopen)")
-                    } else {
-                        r.localParticipant.setCameraEnabled(true)
-                        // Capture the SDK-created track so subsequent switchCamera
-                        // / disconnect can clean it up uniformly.
-                        previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
-                    }
-                }
-
+                promotePreviewToSession(args)
+                val r = room!!
                 call.resolve(
                     JSObject()
                         .put("connected", true)
@@ -229,6 +214,41 @@ class LiveKitPlugin : Plugin() {
             }
         }
     }
+
+    /**
+     * Preview → session handoff. If `previewTrack` is non-null we republish
+     * that exact LocalVideoTrack to the new session room — Camera2 is NOT
+     * reopened, so the user sees an uninterrupted feed from the preview
+     * surface into the live / party / call room.
+     */
+    private suspend fun promotePreviewToSession(args: ConnectArgs) {
+        val r = room ?: withContext(Dispatchers.IO) {
+            LiveKit.create(
+                appContext = context.applicationContext,
+                options = RoomOptions(adaptiveStream = true, dynacast = true),
+            )
+        }
+        room = r
+        observeRoomEvents(r)
+        r.connect(args.url, args.token, ConnectOptions())
+        isConnected = true
+
+        if (args.publishAudio) {
+            r.localParticipant.setMicrophoneEnabled(true)
+        }
+        if (args.publishVideo) {
+            val ptrack = previewTrack
+            if (ptrack != null) {
+                val videoPublishOptions = VideoTrackPublishOptions(source = Track.Source.CAMERA)
+                r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
+                Log.i(TAG, "promotePreviewToSession: republished preview track (no reopen)")
+            } else {
+                r.localParticipant.setCameraEnabled(true)
+                previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+            }
+        }
+    }
+
 
     @PluginMethod
     fun disconnect(call: PluginCall) {
