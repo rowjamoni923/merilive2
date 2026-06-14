@@ -1112,7 +1112,7 @@ class LiveKitPlugin : Plugin() {
         //   • no existing real session
         // Resolution mismatch is OK — capture frames are downscaled at
         // encode time, no Camera2 restart needed.
-        val boundedSurfacesActive = com.merilive.app.rtc.BoundedSurfaceHost.hasSurfaces()
+        @Suppress("UNUSED_VARIABLE") val boundedSurfacesActive = com.merilive.app.rtc.BoundedSurfaceHost.hasSurfaces()
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
