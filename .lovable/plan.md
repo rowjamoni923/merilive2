@@ -50,12 +50,13 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 
 **Note:** Phase 0's `SeatRendererBinder.kt` and `src/native/seatRenderer.ts` are NOT wired — `BoundedSurfaceHost` is already the production seat binder and works correctly once the missing event handler is in place. Phase 0 files remain as forward-looking infrastructure (e.g. for explicit identity-based seat APIs in future PK Battle work) but are dead code today. Safe to leave.
 
-### Phase 2 — F2 fix: Go Live preview → broadcast (no black flash)
-- [ ] In `LiveKitPlugin.startLocalPreview` (already exists per mem://features/native-prejoin-camera-preview), retain the `Camera2Capturer` instance.
-- [ ] New `LiveKitPlugin.promotePreviewToRoom(url, token)` — calls `room.prepareConnection` during preview, then `room.connect` + `localParticipant.publishVideoTrack(previewTrack)` reusing same capturer.
-- [ ] Replace current Go Live broadcast start (which currently does `connect` then `setCameraEnabled(true)` from scratch).
-- **Files:** `LiveKitPlugin.kt`, `src/pages/GoLive*.tsx`, `src/lib/nativeLiveKitController.ts`.
-- **Verification:** owner taps Go Live → preview face stays continuous into broadcast, second device sees stream within 2 s, no black frame. APK rebuild required.
+### Phase 2 — F2 fix: Go Live preview → broadcast (no black flash) ✅ DONE 2026-06-14
+**Actual root cause:** `promotePreviewToSession()` (the proper Agora-style `setupLocalVideo→joinChannel` LiveKit translation that reuses the same Camera2 + `LocalVideoTrack` for prejoin preview and live broadcast) was already implemented in `LiveKitPlugin.kt` (line 1454). But its eligibility gate excluded sessions where a bounded `<NativeVideoView />` was mounted (`!boundedSurfacesActive`). The modern `LiveStream.tsx` page mounts a bounded `<NativeVideoView kind="local" />` for the host the moment it renders — BEFORE `useLiveKitClient.connectAndPublish()` fires. So the gate always failed for the modern Go Live path → fell through to the legacy cold-start: `stopLocalPreviewInternal` (release Camera2) → 650 ms OEM grace → `awaitFrontCameraAvailable` (up to seconds) → reopen Camera2 → connect → publish. That sequence produced the 1–3 s black flash, occasionally permanent on slow OEM HALs.
+
+**Fix (1 file, ~16 effective lines):** Removed the `!boundedSurfacesActive` clause from the promotion gate. Safe because Phase 1 just added a `RoomEvent.LocalTrackPublished` handler that calls `BoundedSurfaceHost.rebindForRoom(r)` — any already-mounted bounded local surface resolves the promoted track immediately. The fullscreen preview renderer continues painting its last frame until `attachLocalSurface` removes & releases the legacy renderer as part of its existing handover (line ~2385). Party-room gate (`args.roomScope != "party"`) kept intact (Video Party has no prejoin preview to promote from).
+
+**Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (gate clause removed, comment + log message updated, no other behavior touched).
+**Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner taps Go Live → preview face stays visible into broadcast with no black frame; second device confirms it sees the stream within 2 s. If still black on host: check logcat for `promotePreviewToSession` log line — its absence means a different gate failed (most likely `previewRoom/previewTrack==null` because user skipped prejoin preview or it crashed earlier; that's a separate fix).
 
 ### Phase 3 — F3 fix: Video Party launch crash / OOM
 - [ ] Profile mount path; suspect: simultaneous LiveKit + GPUPixel + WebView `getUserMedia` boot. Force GPUPixel into consumer-only mode (already partially done — verify CameraOwnership rejects GPUPixel acquires).
