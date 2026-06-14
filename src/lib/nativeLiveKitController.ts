@@ -201,6 +201,7 @@ class NativeLiveKitController {
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
       this.connected = false;
+      this.activeFeature = null;
       this.autoAttachLocalRenderer = true;
       this.busy = false;
     }
@@ -276,12 +277,16 @@ class NativeLiveKitController {
    * the camera is busy — callers should surface a friendly message.
    */
   async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean; boundedOnly?: boolean }): Promise<boolean> {
+    await this.waitForIdle('startLocalPreview');
+    this.busy = true;
     try {
       await NativeLiveKit.startLocalPreview(opts ?? {});
       return true;
     } catch (e) {
       console.warn('[NativeLiveKitController] startLocalPreview failed:', e);
       return false;
+    } finally {
+      this.busy = false;
     }
   }
 
