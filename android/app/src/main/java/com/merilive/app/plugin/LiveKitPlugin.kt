@@ -146,11 +146,25 @@ class LiveKitPlugin : Plugin() {
     // ─────────────────────────────────────────────
     @PluginMethod
     fun isAvailable(call: PluginCall) {
+        // Phase 4 — explicit capability surface. JS callers can consult
+        // `methods` to skip wrappers that would otherwise silently no-op
+        // through the Proxy in NativeLiveKit.ts.
+        val methods = com.getcapacitor.JSArray().apply {
+            put("isAvailable")
+            put("startLocalPreview"); put("stopLocalPreview")
+            put("connect"); put("disconnect"); put("disconnectSessionOnly")
+            put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
+            put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
+            put("attachLocalSurface"); put("attachRemoteSurface")
+            put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
+            put("getRemoteParticipants"); put("attachAllRemotes")
+        }
         call.resolve(
             JSObject()
                 .put("available", true)
                 .put("backend", "livekit-android-2.x")
                 .put("supportsPreview", true)
+                .put("methods", methods)
         )
     }
 
