@@ -902,6 +902,15 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     background-color: transparent !important;
   }
 
+  /* 🎯 Private Call is a portal overlay on top of any route. Hide the
+     underlying #root while the call shell is mounted so Home/Profile/Chat
+     cards/banners cannot bleed through the (intentionally transparent)
+     native-media call surface. The call portal itself sits on document.body
+     outside #root, so it remains fully visible. */
+  body.call-overlay-active #root {
+    visibility: hidden !important;
+  }
+
 
   /* ============================================
      UNIVERSAL SCROLL POLISH — Pkg40
