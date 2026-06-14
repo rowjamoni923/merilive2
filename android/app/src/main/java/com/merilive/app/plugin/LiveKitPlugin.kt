@@ -35,9 +35,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * LiveKitPlugin — minimal, single-camera rebuild (2026-06-14, +preview 2026-06-14b).
