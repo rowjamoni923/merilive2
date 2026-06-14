@@ -155,7 +155,11 @@ export function CallProvider({ children }: CallProviderProps) {
   // and its opaque cards/banners bleed through the call shell — making the
   // app look broken. Hide #root entirely while the call overlay is up.
   // The call portal lives directly on document.body, so it remains visible.
-  useEffect(() => {
+  // camera-rebuild Phase 8: useLayoutEffect (sync, pre-paint) so the
+  // body.call-overlay-active class is applied BEFORE the first paint of
+  // ActiveCallScreen. Previously useEffect fired post-paint, leaking one
+  // frame of Home filter chips behind the call overlay.
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const active = isInCall || !!incomingCall;
     const cls = 'call-overlay-active';
