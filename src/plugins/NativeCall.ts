@@ -28,7 +28,10 @@ export type NativeCallAction =
   // PSTN call-waiting interrupt (and resumes after the PSTN call ends).
   // Native side already mutes local mic + camera; JS just updates UI state.
   | 'hold'
-  | 'unhold';
+  | 'unhold'
+  // PrivateCallActivity end button dispatches this action before JS settles
+  // the call and closes native media.
+  | 'end';
 
 export interface NativeCallActionEvent {
   callId: string;
