@@ -3804,8 +3804,10 @@ const LiveStream = () => {
             }}/>
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
-            {/* Pkg381: No generic user icon — show loading shimmer behind the transparent video element */}
-            <div className={`w-full h-full ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+            {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
+                flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
+            <div className={`w-full h-full ${(isNativeMediaActive || Capacitor.getPlatform() === 'android') ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+
             {showHostCameraRecover && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
                 <div className="text-white text-base font-semibold">Camera not visible</div>
