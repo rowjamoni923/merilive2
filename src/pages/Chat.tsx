@@ -2670,128 +2670,36 @@ const Chat = () => {
                         const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
-                        // Gift messages - with SVGA/animation support
+                        // Gift messages - canonical inline row, same shared UI as Live/Party/Call
                         if (isGift) {
-                          // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
-                          // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
-                          const { mediaUrl, emoji, animationFormat } = parseGiftContent(content);
-                          const beansMatch = content.match(/\+(\d+)\s*beans/i);
+                          const { mediaUrl, emoji } = parseGiftContent(content);
                           const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
-                          const luckyMatch = content.match(/\+(\d+)\s*lucky/i);
                           const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
-                          const giftName = nameMatch?.[1]?.trim() || '';
-
-                          // Gift bubble must show THIS gift's own logo first.
-                          // If that gift has no logo, then show its animation preview.
+                          const giftName = nameMatch?.[1]?.trim() || 'Gift';
+                          const giftCount = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
+                          const totalCoins = diamondsMatch?.[1] ? parseInt(diamondsMatch[1], 10) || 0 : 0;
                           const cachedGift = giftName
                             ? getCachedGifts().find(g => (g.name || '').trim().toLowerCase() === giftName.trim().toLowerCase())
                             : null;
                           const catalogIconUrl = normalizeGiftMediaUrl(cachedGift?.icon_url) || null;
-                          const catalogAnimationUrl = normalizeGiftMediaUrl(cachedGift?.animation_url) || null;
-                          let iconUrl = catalogIconUrl || mediaUrl || catalogAnimationUrl;
-                          let resolvedFormat = catalogIconUrl ? detectProfessionalAnimationFormat(catalogIconUrl) : (animationFormat || cachedGift?.animation_format || null);
-                          const giftEmoji = emoji;
-                          const beansAmount = beansMatch ? beansMatch[1] : null;
-                          const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
-                          const luckyAmount = luckyMatch ? luckyMatch[1] : null;
 
-                          // Check if iconUrl is an animation file
-                          const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
-                          const isSvga = resolvedFormat === 'svga' || normalizedGiftUrl.endsWith('.svga');
-                          const isLottie = resolvedFormat === 'lottie' || normalizedGiftUrl.endsWith('.json');
-                          const isImage = !!iconUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(normalizedGiftUrl);
-
-                          
                           return (
-                            <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
-                              <div className="w-10 h-10 flex items-center justify-center relative">
-                                {isSvga && iconUrl ? (
-                                  <Suspense fallback={<Gift className="w-6 h-6 text-muted-foreground" />}>
-                                    <SVGAPlayer
-                                      src={iconUrl}
-                                      className="w-10 h-10"
-                                      loop={true}
-                                      autoPlay={true}
-                                      muted={true}
-                                    />
-                                  </Suspense>
-                                ) : isLottie && iconUrl ? (
-                                  <Suspense fallback={<Gift className="w-6 h-6 text-muted-foreground" />}>
-                                    <UniversalAnimationPlayer
-                                      src={iconUrl}
-                                      className="w-10 h-10"
-                                      loop={true}
-                                      autoPlay={true}
-                                      muted={true}
-                                    />
-                                  </Suspense>
-                                ) : isImage && iconUrl ? (
-                                  <img loading="lazy" decoding="async"
-                                    src={iconUrl}
-                                    alt="Gift"
-                                    className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      const img = e.target as HTMLImageElement;
-                                      img.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <Gift className="w-6 h-6 text-muted-foreground" />
-                                )}
-                              </div>
-                              
-                              {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
-                              {isMine && diamondsAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-destructive rounded-full shadow-md">
-                                  <img loading="lazy" decoding="async" src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
- <span className="text-[9px] font-bold text-primary-foreground">
-                                    -{Number(diamondsAmount).toLocaleString()}
-                                  </span>
-                                </div>
-                              ) : !isMine && beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
-                                  <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-accent-foreground">
-                                    +{Number(beansAmount).toLocaleString()}
-                                  </span>
-                                </div>
-                              ) : beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
-                                  <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-accent-foreground">
-                                    +{Number(beansAmount).toLocaleString()}
-                                  </span>
-                                </div>
-                              ) : null}
-
-                              {/* 🎰 Lucky Gift bonus — only sender sees their bonus diamonds */}
-                              {isMine && luckyAmount && Number(luckyAmount) > 0 ? (
-                                <motion.div
-                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
-                                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                                  transition={{ type: 'spring', stiffness: 320, damping: 16, delay: 0.15 }}
-                                  className="flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full shadow-[0_2px_10px_rgba(168,85,247,0.45)] bg-gradient-to-r from-amber-400 via-fuchsia-500 to-purple-500 border border-white/30"
-                                >
-                                  <span className="text-[9px]">🎰</span>
-                                  <img loading="lazy" decoding="async" src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
-                                  <span className="text-[9px] font-black text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
-                                    +{Number(luckyAmount).toLocaleString()}
-                                  </span>
-                                </motion.div>
-                              ) : null}
-                              
-                              {/* Timestamp + Status */}
-                              <p className="text-[8px] text-muted-foreground/60 mt-0.5 flex items-center justify-center gap-0.5">
+                            <div className={cn("flex flex-col gap-0.5", isMine ? "items-end" : "items-start")}>
+                              <InlineGiftRow
+                                senderName={senderName}
+                                senderAvatar={senderAvatar || undefined}
+                                giftName={giftName}
+                                giftIconUrl={catalogIconUrl || mediaUrl || undefined}
+                                giftEmoji={emoji}
+                                count={giftCount}
+                                coins={totalCoins}
+                                compact
+                              />
+                              <p className={cn("text-[8px] text-muted-foreground/60 flex items-center gap-0.5", isMine ? "pr-2" : "pl-2")}>
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
                               </p>
-                            </motion.div>
+                            </div>
                           );
                         }
 
