@@ -305,7 +305,7 @@ export function ActiveCallScreen({
       nativeInCallOpenedForRef.current = null;
       return;
     }
-    if (!isNativeAndroidApp() || !isNativeMediaActive || !isConnected || !nativeSession) return;
+    if (!isNativeAndroidApp() || !remoteUserId || !isNativeMediaActive || !isConnected || !nativeSession) return;
     if (nativeInCallOpenedForRef.current === callId) return;
 
     let cancelled = false;
