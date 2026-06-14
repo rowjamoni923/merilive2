@@ -1654,8 +1654,6 @@ class LiveKitPlugin : Plugin() {
                 if (pre != null) {
                     try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    // Camera rebuild 2026-06-14: no beauty camera owner exists.
-                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
                 activity?.runOnUiThread {
@@ -1678,7 +1676,6 @@ class LiveKitPlugin : Plugin() {
                 stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
-                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
                 // a future LiveKit reconnect can claim the hardware without racing.
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
@@ -2022,36 +2019,18 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
-    // Step 21 — Beauty pipeline (GPUPixel) ↔ LiveKit camera bridge.
-    //
-    // The GPUPixel plugin owns its own Camera2 capture surface and runs the
-    // GL beauty/AR effect pipeline. Both GPUPixel and LiveKit cannot hold the
-    // physical camera at the same time, so this method coordinates handoff:
-    //
-    //   setBeautyPipelineEnabled({ enabled: true })
-    //     → LiveKit unpublishes & releases its camera track. GPUPixel plugin
-    //       (called separately from JS) opens the camera, processes frames,
-    //       and pushes them into LiveKit via the shared external-frame
-    //       channel registered by BeautyPipelineBridge.
-    //
-    //   setBeautyPipelineEnabled({ enabled: false })
-    //     → GPUPixel releases the camera (called by JS). LiveKit re-publishes
-    //       its native camera track at the previously requested resolution.
-    //
-    // The actual GL texture / NV21 frame transport is implemented inside
-    // BeautyPipelineBridge (singleton) which GPUPixelPlugin pushes to and
-    // LiveKit's custom VideoCapturer pulls from. This method only handles
-    // the ownership flip — keeping the contract small and race-safe.
+    // Camera rebuild 2026-06-14 — compatibility no-op. Native beauty was
+    // removed because it created a second camera/processor path.
     // ------------------------------------------------------------
     @PluginMethod
     fun setBeautyPipelineEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
         try {
-            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
             val ret = JSObject()
-            ret.put("enabled", enabled)
+            ret.put("enabled", false)
             ret.put("hasRoom", room != null)
-            ret.put("mode", "livekit-video-processor")
+            ret.put("disabled", true)
+            ret.put("reason", "camera-single-owner")
             call.resolve(ret)
         } catch (e: Exception) {
             call.reject("setBeautyPipelineEnabled failed: ${e.message}")
