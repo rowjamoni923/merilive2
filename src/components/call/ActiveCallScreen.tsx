@@ -26,7 +26,7 @@ import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButto
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
 
-import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift, InlineGiftRow, encodeInlineGiftMarker, parseInlineGiftMarker } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
@@ -458,14 +458,19 @@ export function ActiveCallScreen({
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
-      // Unified chat trace — same as DM/Live/Party
+      // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
       setChatMessages((prev) => [
         ...prev,
         {
           id: `gift-recv-${detail.senderId}-${Date.now()}`,
           senderId: detail.senderId,
           senderName: detail.senderName || 'User',
-          message: `🎁 sent ${detail.giftName || 'Gift'} ×${detail.count || 1}`,
+          message: encodeInlineGiftMarker({
+            giftName: detail.giftName || 'Gift',
+            count: detail.count || 1,
+            coins: detail.giftCoins || 0,
+            iconUrl: detail.giftIconUrl || '',
+          }),
           timestamp: Date.now(),
         },
       ]);
@@ -558,14 +563,19 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
-      // Unified chat trace — same as DM/Live/Party
+      // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
       setChatMessages((prev) => [
         ...prev,
         {
           id: `gift-send-${Date.now()}`,
           senderId: userId,
           senderName: myDisplayName || 'You',
-          message: `🎁 sent ${gift.name} ×${count}`,
+          message: encodeInlineGiftMarker({
+            giftName: gift.name,
+            count,
+            coins: gift.coins,
+            iconUrl: gift.icon_url || '',
+          }),
           timestamp: Date.now(),
         },
       ]);
@@ -1193,6 +1203,29 @@ export function ActiveCallScreen({
           <div className="space-y-1.5 pb-1">
             {chatMessages.slice(-30).map((msg) => {
               const isMe = msg.senderId === userId;
+              const giftMarker = parseInlineGiftMarker(msg.message);
+
+              // Unified inline gift row (canonical, same as DM/Live/Party)
+              if (giftMarker) {
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex justify-start"
+                  >
+                    <InlineGiftRow
+                      senderName={msg.senderName}
+                      giftName={giftMarker.giftName}
+                      giftIconUrl={giftMarker.iconUrl || undefined}
+                      count={giftMarker.count}
+                      coins={giftMarker.coins}
+                      compact
+                    />
+                  </motion.div>
+                );
+              }
+
               return (
                 <motion.div
                   key={msg.id}

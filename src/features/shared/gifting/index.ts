@@ -30,6 +30,10 @@ export { FlyingGiftAnimation } from '@/components/live/FlyingGiftAnimation';
 export { useFlyingGifts } from '@/hooks/useFlyingGifts';
 export type { FlyingGift } from '@/components/live/FlyingGiftAnimation';
 
+// ========== UNIFIED INLINE GIFT CHAT ROW (DM / Live / Party / Call) ==========
+export { InlineGiftRow, encodeInlineGiftMarker, parseInlineGiftMarker } from '@/components/shared/InlineGiftRow';
+export type { InlineGiftRowProps } from '@/components/shared/InlineGiftRow';
+
 export { default as GiftComboDisplay, MiniGiftNotification } from '@/components/live/GiftComboDisplay';
 export { default as FullScreenGiftAnimation } from '@/components/level/FullScreenGiftAnimation';
 export { default as GiftAnimation } from '@/components/live/GiftAnimation';
