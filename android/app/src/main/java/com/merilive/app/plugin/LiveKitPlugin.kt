@@ -240,15 +240,6 @@ class LiveKitPlugin : Plugin() {
             }
         }
 
-        /** Camera rebuild 2026-06-14: beauty camera handoff is disabled. */
-        @JvmStatic
-        fun setBeautyPipelineEnabledFromNative(enabled: Boolean) {
-            Log.i("LiveKitPlugin", "Beauty pipeline disabled; ignoring native toggle=$enabled")
-        }
-    }
-
-    internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
-        Log.i("LiveKitPlugin", "Beauty pipeline disabled; ignoring handoff=$enabled")
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -1587,8 +1578,6 @@ class LiveKitPlugin : Plugin() {
 
         // Install stall sink on the promoted track so the watchdog can monitor it.
         try { installStallSink(ptrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
-        try { reattachBeautyIfEnabled() } catch (_: Exception) {}
-
         // Standard post-connect setup — copied from connectInternal legacy
         // path (everything below the Publish-local-tracks block).
         setKeepScreenOn(true)
