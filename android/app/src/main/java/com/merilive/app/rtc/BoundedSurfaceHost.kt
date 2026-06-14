@@ -81,7 +81,7 @@ object BoundedSurfaceHost {
         val entry = entries[viewId] ?: Entry(
             viewId = viewId,
             renderer = TextureViewRenderer(context).also {
-                kotlin.runCatching { room?.initVideoRenderer(it) }
+                initRenderer(room, it, viewId)
                 it.setEnableHardwareScaler(true)
                 it.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                 it.setMirror(mirror)
@@ -224,5 +224,16 @@ object BoundedSurfaceHost {
         lp.leftMargin = (x * cssPxPerDp).roundToInt()
         lp.topMargin = (y * cssPxPerDp).roundToInt()
         r.layoutParams = lp
+    }
+
+    private fun initRenderer(room: Room?, renderer: TextureViewRenderer, viewId: String) {
+        val r = room ?: return
+        try {
+            r.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($viewId): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($viewId) failed: ${t.message}")
+        }
     }
 }
