@@ -55,6 +55,10 @@ object BoundedSurfaceHost {
     @JvmStatic
     fun ownsRemote(sid: String): Boolean = ownedRemoteSids.contains(sid)
 
+    /** True when React still owns one or more bounded native video placeholders. */
+    @JvmStatic
+    fun hasSurfaces(): Boolean = entries.isNotEmpty()
+
     /**
      * Ensure a renderer exists for [viewId], position it at the given
      * CSS-pixel bounds, bind it to the appropriate VideoTrack, and mount
@@ -104,17 +108,7 @@ object BoundedSurfaceHost {
         }
 
         // Locate the requested track on the current Room.
-        val track: VideoTrack? = when (kind) {
-            "local" -> room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-            "remote" -> {
-                val targetSid = sid
-                if (targetSid == null) null
-                else room?.remoteParticipants?.values
-                    ?.firstOrNull { p -> p.sid.value == targetSid || p.videoTrackPublications.any { it.first.sid == targetSid } }
-                    ?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-            }
-            else -> null
-        }
+        val track: VideoTrack? = resolveTrack(room, kind, sid)
 
         // Bind only when the target track actually differs from the bound one.
         if (track != null && track !== entry.boundTrack) {
@@ -192,18 +186,12 @@ object BoundedSurfaceHost {
     @JvmStatic
     fun rebindForRoom(room: Room) {
         for ((viewId, entry) in entries) {
-            if (entry.boundTrack != null) continue
-            val track: VideoTrack? = when (entry.kind) {
-                "local" -> room.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-                "remote" -> {
-                    val targetSid = entry.sid ?: continue
-                    room.remoteParticipants.values
-                        .firstOrNull { p -> p.sid.value == targetSid || p.videoTrackPublications.any { it.first.sid == targetSid } }
-                        ?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-                }
-                else -> null
-            } ?: continue
+            val track: VideoTrack = resolveTrack(room, entry.kind, entry.sid) ?: continue
+            if (track === entry.boundTrack) continue
             try {
+                entry.boundTrack?.let { prev ->
+                    try { prev.removeRenderer(entry.renderer) } catch (_: Exception) {}
+                }
                 initRenderer(room, entry.renderer, viewId)
                 track.addRenderer(entry.renderer)
                 entry.boundTrack = track
@@ -212,6 +200,19 @@ object BoundedSurfaceHost {
             } catch (e: Exception) {
                 Log.w(TAG, "rebindForRoom($viewId) failed: ${e.message}")
             }
+        }
+    }
+
+    private fun resolveTrack(room: Room?, kind: String, sid: String?): VideoTrack? {
+        return when (kind) {
+            "local" -> room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+            "remote" -> {
+                val targetSid = sid ?: return null
+                room?.remoteParticipants?.values
+                    ?.firstOrNull { p -> p.sid.value == targetSid || p.videoTrackPublications.any { it.first.sid == targetSid } }
+                    ?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+            }
+            else -> null
         }
     }
 
