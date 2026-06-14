@@ -190,6 +190,7 @@ class NativeCallPlugin : Plugin() {
         // getLastAction() once usePrivateCall has mounted its listener.
         registerRechargeReceiver()
         registerCallEndActionReceiver()
+        registerWindowStateReceiver()
     }
 
 
@@ -199,6 +200,8 @@ class NativeCallPlugin : Plugin() {
         rechargeReceiver = null
         callEndActionReceiver?.let { runCatching { context.unregisterReceiver(it) } }
         callEndActionReceiver = null
+        windowStateReceiver?.let { runCatching { context.unregisterReceiver(it) } }
+        windowStateReceiver = null
         if (INSTANCE === this) INSTANCE = null
     }
 
