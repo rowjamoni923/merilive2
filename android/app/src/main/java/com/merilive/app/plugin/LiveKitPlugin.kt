@@ -2288,12 +2288,6 @@ class LiveKitPlugin : Plugin() {
             attachLocal(call)
             return
         }
-        if (previewTrack != null) {
-            val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
-            call.resolve(ret)
-            return
-        }
-
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
@@ -2307,6 +2301,11 @@ class LiveKitPlugin : Plugin() {
         }
         if (previewTrack != null && previewRoomScope != null && requestedScope != null && previewRoomScope != requestedScope) {
             stopLocalPreviewInternal(restoreOpaque = false)
+        }
+        if (previewTrack != null) {
+            val ret = JSObject(); ret.put("started", true); ret.put("mode", "preview")
+            call.resolve(ret)
+            return
         }
 
         scope.launch {
