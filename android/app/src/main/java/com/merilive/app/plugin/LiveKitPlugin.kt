@@ -1086,6 +1086,7 @@ class LiveKitPlugin : Plugin() {
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
+            args.roomScope != "party" &&
             previewRoom != null &&
             previewTrack != null &&
             room == null &&
@@ -1094,8 +1095,8 @@ class LiveKitPlugin : Plugin() {
             promotePreviewToSession(args)
             return
         }
-        if (!isReconnect && previewTrack != null && boundedSurfacesActive) {
-            Log.i(TAG, "connectInternal: bounded NativeVideoView active — cold-starting session instead of promoting fullscreen preview")
+        if (!isReconnect && previewTrack != null && (args.roomScope == "party" || boundedSurfacesActive)) {
+            Log.i(TAG, "connectInternal: bounded/party video path — cold-starting session instead of promoting fullscreen preview")
         }
 
         // Legacy rebuild path — release the pre-connect preview camera FIRST
