@@ -1657,8 +1657,7 @@ class LiveKitPlugin : Plugin() {
                 if (pre != null) {
                     try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    // Also flip the beauty bridge OFF so GPUPixel releases
-                    // the camera if it currently owns it.
+                    // Camera rebuild 2026-06-14: no beauty camera owner exists.
                     try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
@@ -1682,8 +1681,6 @@ class LiveKitPlugin : Plugin() {
                 stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
-                try { beautyProcessor?.release() } catch (_: Exception) {}
-                beautyProcessor = null
                 try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
                 // a future LiveKit reconnect can claim the hardware without racing.
@@ -3371,8 +3368,6 @@ class LiveKitPlugin : Plugin() {
                 activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                 try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
                 virtualBackgroundProcessor = null
-                try { beautyProcessor?.release() } catch (_: Exception) {}
-                beautyProcessor = null
                 try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Drop our local Room reference — the manager retains it.
                 // Do NOT call disconnect/release/unbind, do NOT stop the
@@ -3448,8 +3443,6 @@ class LiveKitPlugin : Plugin() {
             // Step 36 — release MediaPipe segmenter + RenderScript blur.
             try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
             virtualBackgroundProcessor = null
-            try { beautyProcessor?.release() } catch (_: Exception) {}
-            beautyProcessor = null
             try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
             CameraOwnership.forceRelease()
@@ -6056,32 +6049,9 @@ class LiveKitPlugin : Plugin() {
     // enables the flag from the admin panel.
     // ============================================================
 
-    private var beautyProcessor: com.merilive.app.plugin.video.GPUPixelBeautyProcessor? = null
-
-    private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
-        beautyProcessor?.takeUnless { it.isReleased() }?.let { return it }
-        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
-        beautyProcessor = proc
-        return proc
-    }
-
-    private fun attachBeautyProcessor() {
-        val proc = beautyProcessor ?: return
-        val track = try {
-            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
-                as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null } ?: return
-        if (!invokeSetVideoProcessor(track, proc)) {
-            Log.w(TAG, "[Pkg201] setVideoProcessor not reachable on LocalVideoTrack or its source — beauty broadcast disabled.")
-        }
-    }
-
     private fun detachBeautyProcessor() {
-        val track = try {
-            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
-                as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null } ?: return
-        invokeSetVideoProcessor(track, null)
+        // Camera rebuild 2026-06-14: beauty processors are removed from the
+        // streaming camera path. Never touch LocalVideoTrack processors here.
     }
 
     // Phase-E fix: remember the last beauty levels + enable state so we can
@@ -6103,17 +6073,7 @@ class LiveKitPlugin : Plugin() {
      * when beauty was never enabled or has been explicitly disabled.
      */
     internal fun reattachBeautyIfEnabled() {
-        if (!beautyBroadcastEnabled) return
-        try {
-            val proc = ensureBeautyProcessor()
-            proc.setLevels(
-                lastBeautySmooth, lastBeautyWhite, lastBeautyThinFace,
-                lastBeautyBigEye, lastBeautyLipstick, lastBeautyBlusher,
-            )
-            attachBeautyProcessor()
-        } catch (e: Exception) {
-            Log.w(TAG, "[Pkg201] reattachBeautyIfEnabled failed: ${e.message}")
-        }
+        // Camera rebuild 2026-06-14: disabled by design.
     }
 
     @PluginMethod
@@ -6126,27 +6086,13 @@ class LiveKitPlugin : Plugin() {
         val lipstick = (call.getFloat("lipstick") ?: 0f)
         val blusher = (call.getFloat("blusher") ?: 0f)
         try {
-            if (enabled) {
-                val proc = ensureBeautyProcessor()
-                proc.setLevels(smooth, white, thinFace, bigEye, lipstick, blusher)
-                attachBeautyProcessor()
-                // Phase-E: remember state for auto re-attach on track recovery.
-                lastBeautySmooth = smooth
-                lastBeautyWhite = white
-                lastBeautyThinFace = thinFace
-                lastBeautyBigEye = bigEye
-                lastBeautyLipstick = lipstick
-                lastBeautyBlusher = blusher
-                beautyBroadcastEnabled = true
-            } else {
-                beautyBroadcastEnabled = false
-                detachBeautyProcessor()
-                beautyProcessor?.release()
-                beautyProcessor = null
-            }
+            beautyBroadcastEnabled = false
+            detachBeautyProcessor()
             val ret = JSObject()
-            ret.put("enabled", enabled)
+            ret.put("enabled", false)
             ret.put("hasRoom", room != null)
+            ret.put("disabled", true)
+            ret.put("reason", "camera-single-owner")
             call.resolve(ret)
         } catch (e: Exception) {
             call.reject("setBeautyBroadcast failed: ${e.message}")
