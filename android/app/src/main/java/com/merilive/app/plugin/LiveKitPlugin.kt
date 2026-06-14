@@ -2268,7 +2268,7 @@ class LiveKitPlugin : Plugin() {
                 withContext(Dispatchers.Main) {
                     val renderer = createRenderer()
                     previewRenderer = renderer
-                    kotlin.runCatching { pr.initVideoRenderer(renderer) }
+                    initVideoRendererIdempotent(pr, renderer, "preview")
                     try { renderer.setMirror(mirror) } catch (_: Throwable) {}
                     track.addRenderer(renderer)
                     mountBehindWebView(renderer)
@@ -2555,7 +2555,7 @@ class LiveKitPlugin : Plugin() {
         }
         val renderer = remoteRenderers[sid] ?: createRenderer().also { remoteRenderers[sid] = it }
         return try {
-            kotlin.runCatching { r.initVideoRenderer(renderer) }
+            initVideoRendererIdempotent(r, renderer, "remote-internal:$sid")
             try { track.removeRenderer(renderer) } catch (_: Exception) {}
             track.addRenderer(renderer)
             mountBehindWebView(renderer)
@@ -3253,7 +3253,7 @@ class LiveKitPlugin : Plugin() {
                     if (localTrack != null) {
                         val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
                         localRenderer = renderer
-                        kotlin.runCatching { r.initVideoRenderer(renderer) }
+                        initVideoRendererIdempotent(r, renderer, "resume-local")
                         try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
                         localTrack.addRenderer(renderer)
                         mountBehindWebView(renderer)
