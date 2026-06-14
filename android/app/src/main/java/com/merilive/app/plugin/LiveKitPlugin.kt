@@ -35,9 +35,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * LiveKitPlugin — minimal, single-camera rebuild (2026-06-14, +preview 2026-06-14b).
@@ -87,6 +89,27 @@ class LiveKitPlugin : Plugin() {
     private var previewRenderer: SurfaceViewRenderer? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
+    /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
+     *  SurfaceViewRenderer or make the WebView transparent. The camera track
+     *  is still alive, but rendering is delegated to seat-bound TextureViews
+     *  via {@link bindSeatRenderer}. Used by Video/Game Party rooms. */
+    private var boundedMode: Boolean = false
+
+    /** Phase 1: per-viewId TextureViewRenderers placed ABOVE the WebView at
+     *  exact CSS-pixel rects (converted via display density). The React seat
+     *  tile underneath remains visible for empty-seat UI, gradient overlays,
+     *  badges, etc — only the inner video region is covered by the native
+     *  TextureView. Keyed by `viewId` (matches `NativeVideoView` placeholder
+     *  IDs) or `seat:<index>` (legacy bindSeatRenderer path). */
+    private data class RendererSlot(
+        val key: String,
+        val renderer: TextureViewRenderer,
+        var identity: String? = null,
+        var isLocal: Boolean = false,
+        var attachedTrack: VideoTrack? = null,
+        var mirror: Boolean = false,
+    )
+    private val slots = ConcurrentHashMap<String, RendererSlot>()
 
     override fun load() {
         super.load()
@@ -138,11 +161,13 @@ class LiveKitPlugin : Plugin() {
     fun startLocalPreview(call: PluginCall) {
         val lens = call.getString("lens", "front") ?: "front"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
         scope.launch {
             try {
+                boundedMode = boundedOnly
                 if (previewTrack != null) {
-                    Log.i(TAG, "startLocalPreview: already running, reusing track")
-                    ensureRendererAttached(mirror)
+                    Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
+                    if (!boundedOnly) ensureRendererAttached(mirror)
                     call.resolve(JSObject().put("started", true).put("reused", true))
                     return@launch
                 }
@@ -161,8 +186,15 @@ class LiveKitPlugin : Plugin() {
                 track.startCapture()
                 previewTrack = track
 
-                ensureRendererAttached(mirror)
-                track.addRenderer(previewRenderer!!)
+                if (!boundedOnly) {
+                    ensureRendererAttached(mirror)
+                    track.addRenderer(previewRenderer!!)
+                } else {
+                    // Bounded mode — push to any already-registered seat slots
+                    // that match the local identity once we know it.
+                    Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
+                }
+                rebindSeatSlotsForLocalTrack(track)
 
                 call.resolve(JSObject().put("started", true).put("reused", false))
             } catch (t: Throwable) {
@@ -178,8 +210,6 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 if (isConnected) {
-                    // Once published, the track is owned by the session; do not
-                    // tear it down here. Caller should disconnect() instead.
                     Log.i(TAG, "stopLocalPreview: ignored while connected")
                     call.resolve(JSObject().put("stopped", false).put("reason", "connected"))
                     return@launch
@@ -329,6 +359,253 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod fun releaseCameraForWebView(call: PluginCall) { call.resolve() }
 
     // ─────────────────────────────────────────────
+    // Phase 1 — Seat-bound renderer overlays
+    // (Bigo/Chamet pattern: per-seat TextureView pinned over each tile;
+    //  React tile remains visible for badges/avatar fallback/empty seats.)
+    //
+    // Public API mirrors the one consumed by `NativeVideoView.tsx`:
+    //   attachLocalSurface  / attachRemoteSurface
+    //   updateSurfaceBounds / detachSurface
+    //   getRemoteParticipants
+    // ─────────────────────────────────────────────
+
+    @PluginMethod
+    fun attachLocalSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }
+        val x = call.getDouble("x") ?: 0.0
+        val y = call.getDouble("y") ?: 0.0
+        val w = call.getDouble("width") ?: 0.0
+        val h = call.getDouble("height") ?: 0.0
+        val mirror = call.getBoolean("mirror", true) ?: true
+        runOnMain {
+            try {
+                val slot = ensureSlot(viewId, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }
+                applyRect(slot.renderer, x, y, w, h)
+                slot.isLocal = true
+                slot.identity = room?.localParticipant?.identity?.value
+                val track = previewTrack
+                    ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
+                if (track != null) attachTrackToSlot(slot, track)
+                call.resolve(JSObject().put("attached", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "attachLocalSurface", t)
+                call.reject("attachLocalSurface: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun attachRemoteSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }
+        val sid = call.getString("sid") ?: run { call.reject("sid required"); return }
+        val x = call.getDouble("x") ?: 0.0
+        val y = call.getDouble("y") ?: 0.0
+        val w = call.getDouble("width") ?: 0.0
+        val h = call.getDouble("height") ?: 0.0
+        runOnMain {
+            try {
+                val slot = ensureSlot(viewId, mirror = false) ?: run { call.reject("renderer attach failed"); return@runOnMain }
+                applyRect(slot.renderer, x, y, w, h)
+                val remote = room?.remoteParticipants?.values?.firstOrNull { it.sid?.value == sid }
+                slot.identity = remote?.identity?.value
+                val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+                if (track != null) attachTrackToSlot(slot, track)
+                call.resolve(JSObject().put("attached", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "attachRemoteSurface", t)
+                call.reject("attachRemoteSurface: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun updateSurfaceBounds(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: run { call.resolve(); return }
+        val x = call.getDouble("x") ?: 0.0
+        val y = call.getDouble("y") ?: 0.0
+        val w = call.getDouble("width") ?: 0.0
+        val h = call.getDouble("height") ?: 0.0
+        runOnMain {
+            try {
+                val slot = slots[viewId] ?: run { call.resolve(); return@runOnMain }
+                applyRect(slot.renderer, x, y, w, h)
+                call.resolve()
+            } catch (t: Throwable) {
+                Log.w(TAG, "updateSurfaceBounds", t)
+                call.resolve()
+            }
+        }
+    }
+
+    @PluginMethod
+    fun detachSurface(call: PluginCall) {
+        val viewId = call.getString("viewId") ?: run { call.resolve(); return }
+        runOnMain {
+            try {
+                val slot = slots.remove(viewId)
+                if (slot != null) {
+                    slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
+                    (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+                    try { slot.renderer.release() } catch (_: Throwable) {}
+                }
+                call.resolve()
+            } catch (t: Throwable) {
+                Log.w(TAG, "detachSurface", t)
+                call.resolve()
+            }
+        }
+    }
+
+    @PluginMethod
+    fun detachAll(call: PluginCall) {
+        runOnMain {
+            try { clearAllSlots() } catch (_: Throwable) {}
+            call.resolve()
+        }
+    }
+
+    @PluginMethod
+    fun getRemoteParticipants(call: PluginCall) {
+        val arr = com.getcapacitor.JSArray()
+        try {
+            room?.remoteParticipants?.values?.forEach { p ->
+                arr.put(
+                    JSObject()
+                        .put("sid", p.sid?.value ?: "")
+                        .put("identity", p.identity?.value ?: "")
+                )
+            }
+        } catch (_: Throwable) {}
+        call.resolve(JSObject().put("participants", arr))
+    }
+
+    @PluginMethod
+    fun attachAllRemotes(call: PluginCall) {
+        runOnMain {
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
+            call.resolve()
+        }
+    }
+
+    private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {
+        val act = activity ?: return null
+        val wv = bridge?.webView ?: return null
+        val parent = (wv.parent as? ViewGroup) ?: return null
+        val existing = slots[viewId]
+        if (existing != null) {
+            existing.mirror = mirror
+            existing.renderer.setMirror(mirror)
+            return existing
+        }
+        val renderer = TextureViewRenderer(act).apply {
+            setEnableHardwareScaler(true)
+            setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            setMirror(mirror)
+        }
+        try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
+        // Mount ABOVE the WebView so the camera tile is visible on top of the
+        // (opaque) React seat tile. React layer still renders empty-seat UI,
+        // gradients, badges, etc — only the inner video region is covered.
+        val lp = FrameLayout.LayoutParams(1, 1)
+        parent.addView(renderer, lp)
+        val slot = RendererSlot(viewId, renderer, mirror = mirror)
+        slots[viewId] = slot
+        return slot
+    }
+
+    private fun attachTrackToSlot(slot: RendererSlot, track: VideoTrack) {
+        if (slot.attachedTrack === track) return
+        slot.attachedTrack?.let { prev ->
+            try { prev.removeRenderer(slot.renderer) } catch (_: Throwable) {}
+        }
+        try {
+            track.addRenderer(slot.renderer)
+            slot.attachedTrack = track
+        } catch (t: Throwable) {
+            Log.w(TAG, "attachTrackToSlot", t)
+        }
+    }
+
+    private fun applyRect(view: View, cssX: Double, cssY: Double, cssW: Double, cssH: Double) {
+        val density = context.resources.displayMetrics.density
+        val w = (cssW * density).toInt().coerceAtLeast(1)
+        val h = (cssH * density).toInt().coerceAtLeast(1)
+        val left = (cssX * density).toInt().coerceAtLeast(0)
+        val top = (cssY * density).toInt().coerceAtLeast(0)
+        val lp = (view.layoutParams as? FrameLayout.LayoutParams)
+            ?: FrameLayout.LayoutParams(w, h)
+        lp.width = w
+        lp.height = h
+        lp.leftMargin = left
+        lp.topMargin = top
+        view.layoutParams = lp
+    }
+
+    private fun clearAllSlots() {
+        slots.values.forEach { slot ->
+            slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
+            (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+            try { slot.renderer.release() } catch (_: Throwable) {}
+        }
+        slots.clear()
+    }
+
+    /** Fired from RoomEvent handlers — attach any pending slot waiting on this identity. */
+    private fun onIdentityTrackAvailable(identity: String, track: VideoTrack) {
+        val isLocalIdentity = room?.localParticipant?.identity?.value == identity
+        runOnMain {
+            slots.values
+                .filter { slot ->
+                    slot.attachedTrack !== track && (
+                        slot.identity == identity || (isLocalIdentity && slot.isLocal)
+                    )
+                }
+                .forEach { slot ->
+                    if (isLocalIdentity && slot.isLocal && slot.identity == null) slot.identity = identity
+                    attachTrackToSlot(slot, track)
+                }
+        }
+    }
+
+    private fun onIdentityTrackGone(identity: String) {
+        runOnMain {
+            slots.values.filter { it.identity == identity }.forEach { s ->
+                s.attachedTrack?.let { try { it.removeRenderer(s.renderer) } catch (_: Throwable) {} }
+                s.attachedTrack = null
+            }
+        }
+    }
+
+    /** Sweep all slots and re-attach from current local / remote tracks. */
+    private fun rebindAllSlotsFromCurrentTracks() {
+        val r = room ?: return
+        val localId = r.localParticipant.identity?.value
+        val localTrack = previewTrack
+            ?: (r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
+        slots.values.forEach { slot ->
+            if (slot.isLocal && localTrack != null) {
+                if (slot.identity == null) slot.identity = localId
+                attachTrackToSlot(slot, localTrack)
+                return@forEach
+            }
+            val id = slot.identity ?: return@forEach
+            if (id == localId && localTrack != null) {
+                attachTrackToSlot(slot, localTrack)
+            } else {
+                val remote = r.remoteParticipants.values.firstOrNull { it.identity?.value == id }
+                val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+                if (track != null) attachTrackToSlot(slot, track)
+            }
+        }
+    }
+
+    /** Push local preview track into any slot already bound to local identity. */
+    private fun rebindSeatSlotsForLocalTrack(track: LocalVideoTrack) {
+        val id = room?.localParticipant?.identity?.value ?: return
+        onIdentityTrackAvailable(id, track)
+    }
+
+    // ─────────────────────────────────────────────
     // Internals
     // ─────────────────────────────────────────────
     private fun observeRoomEvents(r: Room) {
@@ -338,9 +615,32 @@ class LiveKitPlugin : Plugin() {
                 try {
                     when (ev) {
                         is RoomEvent.ParticipantConnected -> emit("participant-connected", participantJs(ev.participant))
-                        is RoomEvent.ParticipantDisconnected -> emit("participant-disconnected", participantJs(ev.participant))
-                        is RoomEvent.TrackSubscribed -> emit("track-subscribed", trackJs(ev.track, ev.participant))
-                        is RoomEvent.TrackUnsubscribed -> emit("track-unsubscribed", trackJs(ev.track, ev.participant))
+                        is RoomEvent.ParticipantDisconnected -> {
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
+                            emit("participant-disconnected", participantJs(ev.participant))
+                        }
+                        is RoomEvent.TrackSubscribed -> {
+                            (ev.track as? VideoTrack)?.let { vt ->
+                                ev.participant.identity?.value?.let { id ->
+                                    onIdentityTrackAvailable(id, vt)
+                                }
+                            }
+                            emit("track-subscribed", trackJs(ev.track, ev.participant))
+                        }
+                        is RoomEvent.TrackUnsubscribed -> {
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
+                            emit("track-unsubscribed", trackJs(ev.track, ev.participant))
+                        }
+                        is RoomEvent.LocalTrackPublished -> {
+                            (ev.publication.track as? VideoTrack)?.let { vt ->
+                                r.localParticipant.identity?.value?.let { id ->
+                                    onIdentityTrackAvailable(id, vt)
+                                }
+                            }
+                        }
+                        is RoomEvent.LocalTrackUnpublished -> {
+                            r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
+                        }
                         is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
                         is RoomEvent.Reconnecting -> emit("reconnecting", JSObject())
                         is RoomEvent.Reconnected -> emit("reconnected", JSObject())
@@ -463,6 +763,7 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
+        try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
@@ -477,6 +778,7 @@ class LiveKitPlugin : Plugin() {
         try { room?.disconnect() } catch (_: Throwable) {}
         room = null
         isConnected = false
+        boundedMode = false
     }
 
     private fun runOnMain(block: () -> Unit) {

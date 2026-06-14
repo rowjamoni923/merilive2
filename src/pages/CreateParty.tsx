@@ -42,7 +42,7 @@ import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { useProCamera } from "@/camera/useProCamera";
 import * as ProCameraEngine from "@/camera/ProCameraEngine";
 import { NativeVideoView } from "@/components/NativeVideoView";
-import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -235,7 +235,14 @@ const CreateParty = () => {
 
   useLayoutEffect(() => {
     if (!isNativeAndroid) return;
-    setNativeMediaSurface(nativePreviewActive);
+    // Phase 1 (Camera Rebuild Plan, 2026-06-14): party scope renders the
+    // camera into per-seat TextureView overlays placed ABOVE the WebView
+    // (Bigo/Chamet pattern), so the WebView body MUST stay opaque — the
+    // purple seat-tile background and empty seats need to remain visible.
+    // Therefore we do NOT call `setNativeMediaSurface(true)` here. Any
+    // legacy transparent body class is cleared so we never inherit a stale
+    // transparent surface from a previous Live/Party session.
+    clearNativeMediaSurface();
     return () => {
       if (preserveStreamRef.current) return;
       clearNativeMediaSurface();
