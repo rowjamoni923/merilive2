@@ -1,20 +1,7 @@
 /**
- * useBeautyState — REAL native beauty driver (Pkg417 — replaces Pkg200 stub).
- *
- * Previously this file was a no-op `useState` stub, so every Beauty button
- * in GoLive / LiveStream / ActiveCallScreen / PartyRoom did absolutely
- * nothing. Beauty only worked while `BeautyFilterPanel` was open (because
- * that component talked to GPUPixel directly). This rewrite makes the
- * shared hook the single source of truth that actually drives the native
- * GPUPixel C++ engine (3D MarsFace landmarks + lipstick → blusher → face
- * reshape → skin beauty pipeline) AND survives track swaps / app
- * foregrounding / re-joins by replaying the last-applied levels on:
- *   - mount
- *   - LiveKit `LocalTrackPublished` (dispatched by all 3 connection hooks)
- *   - `visibilitychange` → visible
- *
- * Web preview stays a visual no-op (the underlying GPUPixel functions
- * already short-circuit on non-Android platforms).
+ * useBeautyState — compatibility state only.
+ * Camera rebuild 2026-06-14 removed native beauty from production because
+ * Live/Party/Private Call must use exactly one LiveKit camera path.
  *
  * API surface is intentionally identical to the old stub so the 20+
  * existing call sites compile unchanged.
