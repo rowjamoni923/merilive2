@@ -680,11 +680,9 @@ class LiveKitPlugin : Plugin() {
                 payload.put("role", graceLabel)
                 notifyListeners("live-host-grace-start", payload)
             } catch (_: Exception) {}
-            // Pause camera (mic stays on so listeners keep hearing the host).
-            scope.launch {
-                try { setNativeCameraEnabledWithOemRetry(r, false, "$graceLabel-grace") }
-                catch (e: Exception) { Log.w(TAG, "$graceLabel-grace camera off failed: ${e.message}") }
-            }
+            // Keep camera capture ON during grace. The foreground service owns
+            // the live/party media session; do not close/reopen Camera2 for a
+            // short app-switch because that causes visible hardware flapping.
             liveHostGraceJob = scope.launch {
                 try {
                     delay(LIVE_HOST_BG_GRACE_MS)
@@ -775,12 +773,8 @@ class LiveKitPlugin : Plugin() {
         if (foreground && liveHostGraceJob != null) {
             try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
             liveHostGraceJob = null
-            if (hostGraceEligible) {
-                scope.launch {
-                    try { setNativeCameraEnabledWithOemRetry(r, true, "$graceLabel-grace-resume") }
-                    catch (e: Exception) { Log.w(TAG, "$graceLabel-grace resume failed: ${e.message}") }
-                }
-            }
+            // Camera was never paused for host grace, so foreground return only
+            // restores UI/renderers through the normal resume path.
             try {
                 val resumed = JSObject()
                 resumed.put("reason", "RESUMED")
