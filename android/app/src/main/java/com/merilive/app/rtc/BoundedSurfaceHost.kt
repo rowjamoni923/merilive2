@@ -241,6 +241,26 @@ object BoundedSurfaceHost {
             Log.d(TAG, "initVideoRenderer($viewId): already initialized")
         } catch (t: Throwable) {
             Log.w(TAG, "initVideoRenderer($viewId) failed: ${t.message}")
+            reportNonFatal("BoundedSurfaceHost.initRenderer", t)
         }
+    }
+
+    /**
+     * Phase 3 (Camera Rebuild Plan, 2026-06-14) — F3 diagnostic.
+     * Forward non-fatal seat-mount failures to Crashlytics so the next
+     * Video Party crash/OOM gives us a real stack trace + device key.
+     * Wrapped in a Throwable-catch so a missing FirebaseCrashlytics on
+     * debug builds never escalates the original failure.
+     */
+    private fun reportNonFatal(tag: String, t: Throwable) {
+        try {
+            val fc = com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+            fc.setCustomKey("seat_mount_stage", tag)
+            val rt = Runtime.getRuntime()
+            fc.setCustomKey("used_mem_mb", ((rt.totalMemory() - rt.freeMemory()) / 1048576L).toString())
+            fc.setCustomKey("max_mem_mb", (rt.maxMemory() / 1048576L).toString())
+            fc.setCustomKey("bounded_entries", entries.size.toString())
+            fc.recordException(t)
+        } catch (_: Throwable) { /* never let diagnostics crash the caller */ }
     }
 }
