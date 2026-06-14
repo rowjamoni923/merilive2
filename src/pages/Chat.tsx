@@ -71,6 +71,7 @@ import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 const GiftEmojiAnimation = lazy(() => import("@/components/chat/GiftEmojiAnimation").then(m => ({ default: m.GiftEmojiAnimation })));
+import { FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
@@ -446,6 +447,8 @@ const Chat = () => {
   const [animatingGiftConfigUrl, setAnimatingGiftConfigUrl] = useState<string | null>(null);
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
+  // Unified flying-gift pill (same Bigo/Chamet style as Live/Party/Call)
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
@@ -882,7 +885,26 @@ const Chat = () => {
     setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
-    
+
+    // Unified flying-gift pill — same Bigo/Chamet style as Live/Party/Call
+    addFlyingGift({
+      senderId: currentUserId,
+      senderName: 'You',
+      receiverName: selectedConversation.other_user.display_name || 'User',
+      giftName: gift.name,
+      giftIcon: giftEmoji,
+      giftImageUrl: iconUrl || undefined,
+      animationUrl: giftMediaUrl || undefined,
+      animationFormat: giftAnimationFormat,
+      animationConfigUrl: giftConfigUrl || undefined,
+      soundUrl: giftSoundUrl || undefined,
+      giftColor: 'bg-pink-500/50',
+      count,
+      coins: gift.coins,
+      isOwnGift: true,
+      beansEarned: estimatedBeansEarned,
+    });
+
     // Gift animation is already playing - no toast needed
     
     const optimisticGiftRow: Message = {
@@ -1606,6 +1628,34 @@ const Chat = () => {
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
+
+    // Unified flying-gift pill (Bigo/Chamet parity across DM/Live/Party/Call)
+    const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+    const diamondMatch = content.match(/-(\d+)\s*diamonds/i);
+    const giftName = nameMatch?.[1]?.trim() || 'Gift';
+    const count = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
+    const totalCoins = diamondMatch?.[1] ? parseInt(diamondMatch[1], 10) || 0 : 0;
+    const perGiftCoins = count > 0 ? Math.floor(totalCoins / count) : totalCoins;
+    const isSelf = !!senderId && senderId === currentUserId;
+    const peer = selectedConversationRef.current?.other_user;
+    addFlyingGift({
+      senderId: senderId || undefined,
+      senderName: isSelf ? 'You' : (peer?.display_name || 'User'),
+      senderAvatar: isSelf ? undefined : (peer?.avatar_url || undefined),
+      receiverName: isSelf ? (peer?.display_name || 'User') : 'You',
+      giftName,
+      giftIcon: emoji,
+      giftImageUrl: mediaUrl || undefined,
+      animationUrl: mediaUrl || undefined,
+      animationFormat: animationFormat || parsedFormat || null,
+      animationConfigUrl: normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || undefined,
+      soundUrl: soundUrl || undefined,
+      giftColor: 'bg-pink-500/50',
+      count,
+      coins: perGiftCoins,
+      isOwnGift: isSelf,
+      isReceiverGift: !isSelf,
+    });
   }
 
   useEffect(() => {
@@ -3664,7 +3714,18 @@ const Chat = () => {
             </Suspense>
           )}
 
-          {/* Gift Emoji Animation */}
+          {/* Unified Flying Gift Pill — same Bigo/Chamet style as Live/Party/Call */}
+          <AnimatePresence>
+            {flyingGifts.map((g) => (
+              <FlyingGiftAnimation
+                key={g.id}
+                gift={g}
+                onComplete={() => removeFlyingGift(g.id)}
+              />
+            ))}
+          </AnimatePresence>
+
+          {/* Gift Emoji Animation (fullscreen heavy media) */}
           <AnimatePresence>
             {showGiftAnimation && animatingGiftEmoji && (
               <Suspense fallback={null}>

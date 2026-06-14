@@ -458,6 +458,17 @@ export function ActiveCallScreen({
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
+      // Unified chat trace — same as DM/Live/Party
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `gift-recv-${detail.senderId}-${Date.now()}`,
+          senderId: detail.senderId,
+          senderName: detail.senderName || 'User',
+          message: `🎁 sent ${detail.giftName || 'Gift'} ×${detail.count || 1}`,
+          timestamp: Date.now(),
+        },
+      ]);
       if ((detail.receiverBeans || 0) > 0) {
         window.dispatchEvent(new CustomEvent('own-beans-updated', {
           detail: { userId, beansDelta: Number(detail.receiverBeans || 0) },
@@ -547,6 +558,17 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
+      // Unified chat trace — same as DM/Live/Party
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `gift-send-${Date.now()}`,
+          senderId: userId,
+          senderName: myDisplayName || 'You',
+          message: `🎁 sent ${gift.name} ×${count}`,
+          timestamp: Date.now(),
+        },
+      ]);
       playSound('gift');
 
       const result = await sendGift({

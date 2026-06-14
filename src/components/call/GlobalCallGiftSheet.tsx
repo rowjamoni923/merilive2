@@ -4,9 +4,9 @@
  * Mounted globally inside `CallProvider`. Listens for the
  * `open-call-gift-sheet` window event (fired by the native
  * PrivateCallActivity's in-call Gift button, routed via
- * `useNativeCallBillingSync`) and opens the existing
- * `ChatGiftPanel` over the WebView while the native call
- * surface auto-shrinks into PIP.
+ * `useNativeCallBillingSync`) and opens the canonical
+ * `GiftPanel` (same one used by Live/Party/Call/DM) over the
+ * WebView while the native call surface auto-shrinks into PIP.
  *
  * On close OR gift sent we ask the native side to expand the
  * call activity back to fullscreen via `resumeInCallActivity()`.
@@ -15,13 +15,9 @@
  */
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { sendGift } from '@/features/shared/gifting/GiftingService';
+import { sendGift, GiftPanel, type GiftData } from '@/features/shared/gifting';
 import { NativeCall, isNativeCallAvailable } from '@/plugins/NativeCall';
 import { toast } from 'sonner';
-
-const ChatGiftPanel = lazy(() =>
-  import('@/components/chat/ChatGiftPanel').then((m) => ({ default: m.ChatGiftPanel })),
-);
 
 interface OpenDetail {
   peerId: string;
@@ -82,7 +78,7 @@ export function GlobalCallGiftSheet() {
   }, []);
 
   const handleSendGift = useCallback(
-    async (gift: { id: string; name: string; icon: string; coins: number }) => {
+    async (gift: GiftData, count: number) => {
       if (!target || !senderId) {
         toast.error('Please sign in to send a gift');
         handleClose();
@@ -91,9 +87,10 @@ export function GlobalCallGiftSheet() {
       try {
         const result = await sendGift({
           giftId: gift.id,
+          gift,
           senderId,
           receiverId: target.peerId,
-          quantity: 1,
+          quantity: count,
           context: 'call',
           callId: target.callId,
         });
@@ -114,8 +111,6 @@ export function GlobalCallGiftSheet() {
   if (!open || !target) return null;
 
   return (
-    <Suspense fallback={null}>
-      <ChatGiftPanel isOpen={open} onClose={handleClose} onSendGift={handleSendGift} />
-    </Suspense>
+    <GiftPanel isOpen={open} onClose={handleClose} onSendGift={handleSendGift} />
   );
 }
