@@ -12,6 +12,7 @@ import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import androidx.lifecycle.ProcessLifecycleOwner
 import io.livekit.android.ConnectOptions
 import io.livekit.android.LiveKit
 import io.livekit.android.RoomOptions
@@ -26,6 +27,7 @@ import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
 import io.livekit.android.room.track.VideoTrackPublishOptions
+import io.livekit.android.room.track.video.CameraCapturerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,6 +35,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
 
