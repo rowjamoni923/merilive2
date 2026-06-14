@@ -3094,69 +3094,26 @@ class LiveKitPlugin : Plugin() {
     }
 
     private fun applyAdaptiveTier(target: AdaptiveTier, reason: String) {
-        val r = room ?: return
         if (adaptiveBusy) return
         adaptiveBusy = true
         lastTierChangeMs = System.currentTimeMillis()
         scope.launch {
             try {
-                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                val oldTrack = pub?.track as? LocalVideoTrack
-                if (oldTrack == null) {
-                    // Camera not currently published (mic-only call) — nothing to do.
-                    currentTier = target
-                    return@launch
-                }
-                val newCapture = tierCapture(target)
                 val newEncoding = tierEncoding(target)
-                val simulcast = (target != AdaptiveTier.LOW) // drop simulcast at floor
-                val newOptions = LocalVideoTrackOptions(
-                    position = baseLens,
-                    captureParams = newCapture
-                )
-                // Stop + unpublish the old track, then create + publish a fresh one.
-                // Pkg415: BEFORE killing the old track, detach it from the local
-                // renderer so the renderer's EGL surface is preserved. After the
-                // new track is published, re-attach it to the SAME renderer +
-                // re-install the stall sink — otherwise the local preview goes
-                // black/white permanently (the renderer was bound to a dead
-                // track) and the stall watchdog cycles the camera forever.
-                val keptRenderer = localRenderer
-                if (keptRenderer != null) {
-                    try { oldTrack.removeRenderer(keptRenderer) } catch (_: Exception) {}
-                }
-                // Old track's stall sink dies with the track; new installStallSink below overwrites the "local" entry.
-                try { oldTrack.stopCapture() } catch (_: Exception) {}
-                r.localParticipant.unpublishTrack(oldTrack)
-
-                val newTrack = r.localParticipant.createVideoTrack(options = newOptions)
-                newTrack.startCapture()
-                r.localParticipant.publishVideoTrack(
-                    track = newTrack,
-                    options = VideoTrackPublishOptions(
-                        videoEncoding = newEncoding,
-                        simulcast = simulcast,
-                    )
-                )
-                // Pkg415: re-bind the preserved renderer + stall sink to the new track.
-                if (keptRenderer != null) {
-                    try {
-                        initVideoRendererIdempotent(r, keptRenderer, "adaptive-local")
-                        newTrack.addRenderer(keptRenderer)
-                    } catch (e: Exception) {
-                        Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
-                    }
-                }
-                try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
-                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+                val simulcast = (target != AdaptiveTier.LOW)
+                // Do not stopCapture/unpublish/createVideoTrack here. The live
+                // camera remains open for the whole session; bandwidth adaptation
+                // is left to the initial simulcast/dynacast SFU ladder so the
+                // physical camera never flickers on OnePlus/ColorOS devices.
                 currentTier = target
-                Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
+                Log.i(TAG, "Adaptive tier marker $reason → ${target.name} (camera held open)")
 
                 val data = JSObject()
                 data.put("tier", target.name.lowercase())
                 data.put("reason", reason)
                 data.put("simulcast", simulcast)
                 data.put("maxBitrate", newEncoding.maxBitrate)
+                data.put("cameraRestarted", false)
                 notifyListeners("adaptive-tier", data)
             } catch (e: Exception) {
                 Log.e(TAG, "applyAdaptiveTier failed", e)
