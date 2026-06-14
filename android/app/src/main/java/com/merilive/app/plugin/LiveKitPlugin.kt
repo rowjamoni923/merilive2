@@ -128,12 +128,13 @@ class LiveKitPlugin : Plugin() {
         @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
-        // Step 25 — stall watchdog tunables.
-
+        // Step 25 — stall watchdog tunables. Professional camera rule: local
+        // capture is never toggled by watchdog recovery; only renderer/network
+        // rebinds are allowed while a live/call/party session is active.
         private const val STALL_POLL_MS = 2_500L
         private const val STALL_WARN_MS = 7_000L
-        private const val STALL_HARD_MS = 15_000L
-        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+        private const val STALL_HARD_MS = 20_000L
+        private const val STALL_RECOVERY_COOLDOWN_MS = 10_000L
 
         // ─── Pkg-OEM-hardening: per-OEM Camera2 HAL timings ───
         // Sources (verified):
@@ -373,12 +374,13 @@ class LiveKitPlugin : Plugin() {
     //
     // Watchdog tracks "last decoded frame timestamp" per attached video
     // track via a tiny VideoSink wrapper installed alongside the renderer.
-    // Every 2 s a coroutine inspects the table:
-    //   • > STALL_WARN_MS (5 s) without a frame → emit "video-stall" and
-    //     attempt soft recovery (remote: unsubscribe + resubscribe;
-    //     local: stop+start capture).
-    //   • > STALL_HARD_MS (12 s) and recovery already attempted twice →
-    //     emit "video-stall-failed" so JS can show a banner / fall back.
+    // Every 2.5 s a coroutine inspects the table:
+    //   • remote stalls can request SFU keyframes by resubscribing.
+    //   • local stalls only rebind renderer/surfaces; they MUST NOT stop and
+    //     reopen Camera2 because that creates the visible OnePlus camera-light
+    //     on/off loop reported in live/call/party rooms.
+    //   • prolonged local stalls are escalated to connection-state only; the
+    //     JS layer must not call reconnectNow blindly for every failed frame gap.
     // Counters reset on every successful frame and on attach/detach.
     // Pkg-audit fix: lastFrameMs/frameCount/attempts are written from the
     // WebRTC decoding thread (onFrame) and read from Dispatchers.Main (stall
