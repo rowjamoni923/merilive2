@@ -794,6 +794,12 @@ const GoLive = () => {
       return;
     }
 
+    const shouldPreserveNativePreview = isNativeAndroid && nativePreviewActive;
+    if (shouldPreserveNativePreview) {
+      preservePreviewForLiveRef.current = true;
+      applyNativePreviewTransparency(true);
+    }
+
     // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.
     // Shows "Checking connection…" overlay so the tap feels responsive while
     // we measure RTT; warns on poor network but never blocks Go Live.
@@ -933,6 +939,10 @@ const GoLive = () => {
         : String(rawMessage);
       console.error("Error starting live:", error);
       recordClientError({ label: "GoLive.createStreamPromise", message });
+      if (shouldPreserveNativePreview) {
+        preservePreviewForLiveRef.current = false;
+        applyNativePreviewTransparency(true);
+      }
       toast.error(message || "Failed to start live stream");
       setIsStarting(false);
     }
