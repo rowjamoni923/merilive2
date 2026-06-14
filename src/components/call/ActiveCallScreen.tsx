@@ -8,6 +8,7 @@ import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
+import { NativeCall, hasNativeInCallActivity } from "@/plugins/NativeCall";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
@@ -124,6 +125,8 @@ export function ActiveCallScreen({
   const [chatMessages, setChatMessages] = useState<Array<{id: string; senderId: string; senderName: string; message: string; timestamp: number}>>([]);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
+  const [nativeInCallOpen, setNativeInCallOpen] = useState(false);
+  const nativeInCallOpenedForRef = useRef<string | null>(null);
   const [myDisplayName, setMyDisplayName] = useState<string>("You");
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [myLevel, setMyLevel] = useState<number>(1);
@@ -197,6 +200,7 @@ export function ActiveCallScreen({
     remoteStream,
     remoteVideoTrack,
     localVideoTrack,
+    nativeSession,
     isNativeMediaActive,
     localMediaReady,
     isConnected,
@@ -291,6 +295,42 @@ export function ActiveCallScreen({
   const isLiveConnected = callStatus === 'connected' && isConnected;
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
+
+  // Android professional path: JS connects/signals the LiveKit Room, then the
+  // native PrivateCallActivity adopts that SAME Room and owns the visible call
+  // UI. React must not also render a second call chrome/video surface on top.
+  useEffect(() => {
+    if (!isOpen || !callId) {
+      setNativeInCallOpen(false);
+      nativeInCallOpenedForRef.current = null;
+      return;
+    }
+    if (!isNativeAndroidApp() || !remoteUserId || !isNativeMediaActive || !isConnected || !nativeSession) return;
+    if (nativeInCallOpenedForRef.current === callId) return;
+
+    let cancelled = false;
+    (async () => {
+      const available = await hasNativeInCallActivity().catch(() => false);
+      if (!available || cancelled) return;
+      try {
+        nativeInCallOpenedForRef.current = callId;
+        await NativeCall.openInCallActivity({
+          callId,
+          peerId: remoteUserId || '',
+          peerName: remoteUserName || 'Calling…',
+          peerAvatar: remoteUserAvatar || null,
+          isCaller: !isHost,
+          livekitUrl: nativeSession.url,
+          livekitToken: nativeSession.token,
+        });
+        if (!cancelled) setNativeInCallOpen(true);
+      } catch (e) {
+        nativeInCallOpenedForRef.current = null;
+        if (!cancelled) console.warn('[ActiveCall] native PrivateCallActivity open failed:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, callId, remoteUserId, remoteUserName, remoteUserAvatar, isHost, isNativeMediaActive, isConnected, nativeSession]);
 
   // Pkg207 — Auto-shrink to native Android PiP when user presses home
   // mid-call (WhatsApp / Google Meet parity). 9:16 for video calls, 1:1
@@ -750,6 +790,15 @@ export function ActiveCallScreen({
   };
 
   if (!isOpen || typeof document === 'undefined') return null;
+
+  if (nativeInCallOpen) {
+    return createPortal(
+      <RequireNativeAndroidGate feature="call">
+        <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
+      </RequireNativeAndroidGate>,
+      document.body,
+    );
+  }
 
   // Private calls are Android-native only. The hook also fails closed before
   // any web getUserMedia path can run.

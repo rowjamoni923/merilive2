@@ -54,6 +54,7 @@ interface LiveKitCallState {
   remoteStream: MediaStream | null;
   remoteVideoTrack: Track | null;
   localVideoTrack: Track | null;
+  nativeSession: { url: string; token: string } | null;
   isNativeMediaActive: boolean;
   localMediaReady: boolean;
   isConnected: boolean;
@@ -75,6 +76,7 @@ export function useLiveKitCall(
     remoteStream: null,
     remoteVideoTrack: null,
     localVideoTrack: null,
+    nativeSession: null,
     isNativeMediaActive: false,
     localMediaReady: false,
     isConnected: false,
@@ -335,6 +337,7 @@ export function useLiveKitCall(
       remoteStream: null,
       remoteVideoTrack: null,
       localVideoTrack: null,
+      nativeSession: null,
       isNativeMediaActive: false,
       localMediaReady: false,
       isConnected: false,
@@ -487,6 +490,7 @@ export function useLiveKitCall(
             setNativeActive(true);
             setState(p => ({
               ...p,
+              nativeSession: { url, token },
               isNativeMediaActive: true,
               localMediaReady: true,
               isConnected: true,
