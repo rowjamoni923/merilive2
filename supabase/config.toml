@@ -91,5 +91,10 @@ project_id = "ayjdlvuurscxucatbbah"
     verify_jwt = true
   [functions.pk-battle-tick]
     verify_jwt = false
+  # Diagnostic: validates AGORA_APP_ID + AGORA_APP_CERTIFICATE by minting a test RTC token.
+  [functions.agora-token-mint]
+    verify_jwt = false
+
+
 
 
