@@ -558,6 +558,17 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
+      // Unified chat trace — same as DM/Live/Party
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `gift-send-${Date.now()}`,
+          senderId: userId,
+          senderName: myDisplayName || 'You',
+          message: `🎁 sent ${gift.name} ×${count}`,
+          timestamp: Date.now(),
+        },
+      ]);
       playSound('gift');
 
       const result = await sendGift({
