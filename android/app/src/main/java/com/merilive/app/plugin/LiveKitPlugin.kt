@@ -749,7 +749,7 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
-        try { clearSeatRenderersInternal() } catch (_: Throwable) {}
+        try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
