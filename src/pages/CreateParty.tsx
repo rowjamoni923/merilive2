@@ -164,7 +164,7 @@ const CreateParty = () => {
       if (isNativeAndroid) {
         let nativeReady = false;
         if (videoMode) {
-          if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+          if (ProCameraEngine.currentFamily() === 'verification') {
             toast.error('Camera is busy. Close other camera screens and try again.');
             setCameraReady(false);
             return;
