@@ -143,8 +143,6 @@ export function useLiveKitCall(
         if (ok) {
           setNativeActive(true);
           setState(p => ({ ...p, isConnected: true, connectionState: 'connected' }));
-          window.dispatchEvent(new Event('beauty:reapply'));
-          setTimeout(() => window.dispatchEvent(new Event('beauty:reapply')), 800);
           toast.success('Reconnected', { id: 'lk-reconnect', duration: 1500 });
         }
       }).catch(() => {
@@ -184,7 +182,6 @@ export function useLiveKitCall(
           callCameraStabilizeTimerRef.current = null;
         }
         toast.dismiss('lk-call-camera-stabilize');
-        window.dispatchEvent(new Event('beauty:reapply'));
         setState(p => ({ ...p, localMediaReady: true, isVideoEnabled: true }));
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
@@ -749,8 +746,6 @@ export function useLiveKitCall(
               const mt = track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
-            // Pkg417 — re-apply pro beauty on every (re)publish.
-            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           }
         });
 
@@ -892,7 +887,6 @@ export function useLiveKitCall(
             .then(() => new Promise((resolve) => setTimeout(resolve, 150)))
             .then(() => activeRoom.localParticipant.setCameraEnabled(true))
             .then(() => {
-              try { window.dispatchEvent(new Event('beauty:reapply')); } catch { /* ignore */ }
               const fresh = Array.from(activeRoom.localParticipant.trackPublications.values())
                 .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
               const freshMt = (fresh?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
