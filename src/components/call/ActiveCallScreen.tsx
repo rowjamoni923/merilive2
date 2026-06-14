@@ -791,6 +791,15 @@ export function ActiveCallScreen({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
+  if (nativeInCallOpen) {
+    return createPortal(
+      <RequireNativeAndroidGate feature="call">
+        <div aria-hidden className="fixed inset-0 z-[2147483600] bg-transparent pointer-events-none" />
+      </RequireNativeAndroidGate>,
+      document.body,
+    );
+  }
+
   // Private calls are Android-native only. The hook also fails closed before
   // any web getUserMedia path can run.
 
