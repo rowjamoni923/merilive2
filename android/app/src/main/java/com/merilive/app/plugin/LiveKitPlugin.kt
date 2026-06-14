@@ -602,30 +602,30 @@ class LiveKitPlugin : Plugin() {
                     when (ev) {
                         is RoomEvent.ParticipantConnected -> emit("participant-connected", participantJs(ev.participant))
                         is RoomEvent.ParticipantDisconnected -> {
-                            ev.participant.identity?.value?.let { id -> SeatRendererBinder.onTrackUnpublished(id) }
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                             emit("participant-disconnected", participantJs(ev.participant))
                         }
                         is RoomEvent.TrackSubscribed -> {
                             (ev.track as? VideoTrack)?.let { vt ->
                                 ev.participant.identity?.value?.let { id ->
-                                    SeatRendererBinder.onTrackSubscribed(id, vt)
+                                    onIdentityTrackAvailable(id, vt)
                                 }
                             }
                             emit("track-subscribed", trackJs(ev.track, ev.participant))
                         }
                         is RoomEvent.TrackUnsubscribed -> {
-                            ev.participant.identity?.value?.let { id -> SeatRendererBinder.onTrackUnpublished(id) }
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                             emit("track-unsubscribed", trackJs(ev.track, ev.participant))
                         }
                         is RoomEvent.LocalTrackPublished -> {
                             (ev.publication.track as? VideoTrack)?.let { vt ->
                                 r.localParticipant.identity?.value?.let { id ->
-                                    SeatRendererBinder.onLocalTrackPublished(id, vt)
+                                    onIdentityTrackAvailable(id, vt)
                                 }
                             }
                         }
                         is RoomEvent.LocalTrackUnpublished -> {
-                            r.localParticipant.identity?.value?.let { id -> SeatRendererBinder.onTrackUnpublished(id) }
+                            r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                         }
                         is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
                         is RoomEvent.Reconnecting -> emit("reconnecting", JSObject())
