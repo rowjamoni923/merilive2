@@ -44,6 +44,7 @@ import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { clearNativeMediaSurface, setNativeMediaSurface } from '@/utils/nativeMediaSurface';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -492,8 +493,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const cameraOwner = await getAndroidCameraOwner();
         if (cameraOwner !== 'livekit') {
           await releaseAndroidWebViewCameraNow('live:native-before-connect');
-          await new Promise((resolve) => setTimeout(resolve, 900));
         }
+        if (config.role === 'host') setNativeMediaSurface(true);
 
         // Native LiveKit publish with one quick retry — Camera2 device may
         // be transiently held by the previous CameraX preview during the
@@ -562,6 +563,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        clearNativeMediaSurface();
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         lastConfigRef.current = null;
         setConnectionState('DISCONNECTED');
