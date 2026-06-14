@@ -216,15 +216,8 @@ class CameraResilienceController(
         state = State.AUDIO_ONLY
         captureLastFrameAndFreeze()
         showBannerPersistent(reason, showRetry = false)
-        // Disable camera at the LiveKit layer (best-effort).
-        scope.launch {
-            try {
-                val room = RtcEngineManager.currentRoom() ?: return@launch
-                withContext(Dispatchers.IO) {
-                    try { room.localParticipant.setCameraEnabled(false) } catch (_: Throwable) {}
-                }
-            } catch (_: Throwable) {}
-        }
+        // Do not disable Camera2 automatically. Live/call/party camera must
+        // stay physically open until the user ends/leaves or manually turns it off.
         // After 30 s, surface the Retry chip so the user can try again.
         retryChipJob?.cancel()
         retryChipJob = scope.launch {
