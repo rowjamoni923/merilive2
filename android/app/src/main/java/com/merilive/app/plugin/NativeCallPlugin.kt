@@ -264,6 +264,39 @@ class NativeCallPlugin : Plugin() {
         } catch (_: Throwable) {}
     }
 
+    /**
+     * Phase 2 — bridge PrivateCallActivity window lifecycle into JS via the
+     * `native-call-window` Capacitor event. CallProvider listens and toggles
+     * the React-side overlay state in lockstep so the WebView never argues
+     * with the native Activity over the visible call surface.
+     */
+    private var windowStateReceiver: android.content.BroadcastReceiver? = null
+    private fun registerWindowStateReceiver() {
+        if (windowStateReceiver != null) return
+        val r = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: android.content.Intent?) {
+                intent ?: return
+                val payload = JSObject()
+                payload.put("callId", intent.getStringExtra("call_id").orEmpty())
+                payload.put("state", intent.getStringExtra("state").orEmpty())
+                payload.put("ts", System.currentTimeMillis())
+                try { notifyListeners("native-call-window", payload, true) } catch (_: Throwable) {}
+            }
+        }
+        val filter = android.content.IntentFilter(ACTION_PRIVATE_CALL_WINDOW)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                context.registerReceiver(r, filter)
+            }
+            windowStateReceiver = r
+        } catch (_: Throwable) {}
+    }
+
+
+
     private fun flushPending() {
         if (pending.isEmpty()) return
         try {
