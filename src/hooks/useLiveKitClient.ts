@@ -291,21 +291,47 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // this guard the sticky toast leaks onto Home / CreateParty.
       if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'started') {
+        // Phase 9B: explicitly dismiss any pending camera-stabilize toast
+        // (incl. the one from `onVideoStall` below). Without this, beauty
+        // filter toggles / brief stalls leave a sticky loading toast.
+        if (cameraStabilizeTimerRef.current) {
+          clearTimeout(cameraStabilizeTimerRef.current);
+          cameraStabilizeTimerRef.current = null;
+        }
+        toast.dismiss('lk-live-camera-stabilize');
         window.dispatchEvent(new Event('beauty:reapply'));
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
+        // Phase 9B: debounce 2s — transient stalls (beauty toggle, autofocus,
+        // single dropped frame) self-recover before the toast ever appears.
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (cameraStabilizeTimerRef.current) return;
+        cameraStabilizeTimerRef.current = setTimeout(() => {
+          cameraStabilizeTimerRef.current = null;
+          if (isLeavingRef.current || !usingNativeRef.current) return;
+          toast.loading('Stabilizing live camera…', { id: 'lk-live-camera-stabilize' });
+        }, 2000);
       }
     },
     onVideoStall: (s, isLocal) => {
       if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'failed' && isLocal) {
-        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (cameraStabilizeTimerRef.current) return;
+        cameraStabilizeTimerRef.current = setTimeout(() => {
+          cameraStabilizeTimerRef.current = null;
+          if (isLeavingRef.current || !usingNativeRef.current) return;
+          toast.loading('Stabilizing live camera…', { id: 'lk-live-camera-stabilize' });
+        }, 2000);
+      } else if (s === 'recovered' && isLocal) {
+        if (cameraStabilizeTimerRef.current) {
+          clearTimeout(cameraStabilizeTimerRef.current);
+          cameraStabilizeTimerRef.current = null;
+        }
+        toast.dismiss('lk-live-camera-stabilize');
       }
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
