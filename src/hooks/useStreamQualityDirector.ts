@@ -9,9 +9,8 @@
  *   • Network quality (poor / fair / good / excellent — from NetworkCallback)
  *
  * Emits the worst-of-three as window event 'stream:quality-hint'
- * with detail { level, reasons[] }, so LiveKit adaptive tier,
- * GPUPixel beauty intensity, and gift VAP/SVGA concurrency can all
- * step down together instead of fighting each other.
+ * with detail { level, reasons[] }, so LiveKit adaptive tier and gift
+ * VAP/SVGA concurrency can step down together instead of fighting each other.
  *
  * level: 'excellent' | 'good' | 'fair' | 'poor' | 'critical'
  *

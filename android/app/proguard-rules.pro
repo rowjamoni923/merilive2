@@ -5,9 +5,6 @@
 -keep class io.livekit.** { *; }
 -keep class com.tencent.qgame.vap.** { *; }
 -keep class com.github.yyued.svga.** { *; }
--keep class com.pixpark.gpupixel.** { *; }
--keepclasseswithmembernames class com.pixpark.gpupixel.** { native <methods>; }
-
 # ─── OEM HARDENING (research-verified, prevents release-APK crash on ALL devices) ───
 # WebRTC native + LiveKit's repackaged WebRTC fork. JNI bridges accessed by name from
 # libjingle_peerconnection_so.so / libwebrtc.so — R8 rename = UnsatisfiedLinkError.

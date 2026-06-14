@@ -136,7 +136,6 @@ import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
-import { Capacitor } from "@capacitor/core";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -3449,14 +3448,10 @@ const LiveStream = () => {
         try { await roomAny.localParticipant.setMicrophoneEnabled(true); } catch { /* ignore */ }
       }
     } catch { /* ignore */ }
-    // Pkg418: track was just republished — re-apply beauty filters so the
-    // host's professional look survives the recover handshake.
-    try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
     toast.info('Restarting camera…');
   }, []);
 
-  // CSS beauty filter removed permanently — native GPUPixel pipeline is the
-  // single source of truth and already paints the broadcast/local track.
+  // Phase 9K: native beauty removed; never apply CSS/native camera filters.
   const combinedFilterCSS = '';
   void generateSyncedFilterCSS; void getBeautyFilterCSS;
 
@@ -3638,11 +3633,7 @@ const LiveStream = () => {
       data-room-shell
       className={cn(
         "room-viewport flex flex-col overflow-hidden",
-        // Pkg415: on native Android host path the TextureView lives behind the
-        // WebView — any opaque background here paints WHITE over the camera for
-        // 600-1200ms until nativeActive flips. Default to transparent on Android,
-        // bg-muted only for web/iOS where a CSS-only fallback is in use.
-        isNativeMediaActive || Capacitor.getPlatform() === 'android' ? "bg-transparent" : "bg-muted"
+        isNativeMediaActive ? "bg-transparent" : "bg-muted"
       )}
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
@@ -3705,7 +3696,7 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface || (isHost && Capacitor.getPlatform() === 'android')) ? 'transparent' : 'hsl(var(--background))' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface) ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
@@ -3809,7 +3800,7 @@ const LiveStream = () => {
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
                 flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
-            <div className={`w-full h-full ${(isNativeMediaActive || Capacitor.getPlatform() === 'android') ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+            <div className={`w-full h-full ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
 
             {showHostCameraRecover && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">

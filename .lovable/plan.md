@@ -3,7 +3,7 @@ _Last updated: 2026-06-14. Supersedes prior plan.md content (analytics plan arch
 
 ## Why this plan exists
 
-User's 2026-06-14 video showed 5 concrete failures and reasonably asked for a guarantee that they will be fixed properly. Instead of guarantees, this plan is a **verifiable, owner-tested, phase-gated** rebuild. No phase moves forward until the previous phase is reproducibly green on the owner test account (smdollarex923@gmail.com) in preview, OR honestly marked "APK rebuild needed" for native-only verification.
+User's 2026-06-14 video showed concrete camera/UI failures and asked for a clean single-camera fix. This plan is a **verifiable, owner-tested, phase-gated** rebuild. No phase moves forward until the previous phase is reproducibly green on the owner test account in preview, OR honestly marked "APK rebuild needed" for native-only verification.
 
 **Hard rule:** I will NOT touch any phase before the prior one is checked off. No multi-phase batching.
 
@@ -19,7 +19,7 @@ User's 2026-06-14 video showed 5 concrete failures and reasonably asked for a gu
 
 ## Architectural root cause (one sentence)
 
-We have **multiple cameras and multiple session owners** with no single authority — LiveKit (web JS), LiveKit (Android native), GPUPixel, raw `getUserMedia`, native CameraX (face verify) each try to own Camera2; and "live session" state is split across `CallProvider`, JS reconnect hooks, and Android `CameraResilienceController` with no atomic teardown.
+We had **multiple cameras and multiple session owners** with no single authority — LiveKit (web JS), LiveKit (Android native), native beauty, raw `getUserMedia`, native CameraX (face verify) could each try to own Camera2. Phase 9K removed native beauty and locked the remaining model to LiveKit streaming + separate face verification only.
 
 ## Industry-grounded target architecture (from research, citations in research brief)
 
@@ -60,7 +60,7 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 
 ### Phase 3 — F3 fix: Video Party launch crash / OOM ✅ DONE 2026-06-14 (diagnostic-first)
 **Audit result — most planned mitigations were already in place:**
-- ✅ **GPUPixel consumer-only enforced** — `CameraOwnership.acquire()` hard-rejects `OWNER_GPUPIXEL` (lines 75–78). The old "everyone opens Camera2" race cannot recur.
+- ✅ **Native beauty removed** — Phase 9K deleted the GPUPixel/beauty bridge/processor path entirely. The old "everyone opens Camera2" race cannot recur through beauty.
 - ✅ **LeakCanary** already wired (`debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'` in `android/app/build.gradle:177`).
 - ✅ **Heavy renderer init thread-safety** — `BoundedSurfaceHost.attach`/`detach`/`updateBounds` are always invoked via `activity?.runOnUiThread { … }` from `LiveKitPlugin`'s `@PluginMethod`s; `entries`/`ownedRemoteSids` use `ConcurrentHashMap`. `rebindForRoom` is also wrapped in `withContext(Dispatchers.Main)` at every call site. `android:largeHeap="true"` already set in `AndroidManifest.xml:105`. `TextureViewRenderer` construction MUST stay on UI thread (it's a `View`); moving it off would crash, not help.
 
@@ -245,6 +245,21 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 - `useNativeLiveKitLifecycle.ts` uses an active ref in layout cleanup so it only clears native media when this hook actually set it, reducing mid-stream black flashes from cleanup/remount races.
 
 **Verification:** APK rebuild REQUIRED for native Camera2/TextureView behavior. Code-level verification completed with `rg`: scoped roomScope tags exist for live/party/call, previewRoomScope gate exists in Kotlin, live web fallback claims are ProCamera-gated, face camera no longer blind-evicts streaming, and media clear no longer removes face-camera class.
+
+### Phase 9K — User-requested native beauty deletion + UI bleed guard ✅ DONE 2026-06-14
+
+**Research basis:** Android Camera2 reports `CAMERA_IN_USE` / `ERROR_CAMERA_IN_USE` when the physical camera is already owned (Android CameraAccessException / CameraDevice.StateCallback docs). LiveKit Android supports the correct single-track pattern with `LocalParticipant.createVideoTrack(...)` and `publishVideoTrack(track)`; Agora-style live apps use `startPreview/setupLocalVideo → joinChannel` without reopening camera.
+
+**Fixes applied now:**
+- Deleted native beauty systems from the production Capacitor APK: `GPUPixelBeautyPlugin.kt`, `GPUPixelBeautyProcessor.kt`, `BeautyPipelineBridge.kt`, `PrivateCallBeautySheet.kt`, and its two layout XMLs.
+- Removed `GPUPixelBeautyPlugin` registration from `MainActivity.java` and removed `gpupixel-release.aar` dependency + Proguard rules.
+- Removed `NativeLiveKit` beauty bridge API from the TS plugin interface; `useBeautyState` and `BeautyFilterPanel` are now UI-state-only and never touch camera/native LiveKit.
+- Hid the native private-call beauty button so it cannot trigger a hidden camera/processor handoff.
+- UI bleed hardening: added `data-room-shell` to `UnifiedPartyRoom`, replaced broad Android transparency guards in `LiveStream.tsx` with `isNativeMediaActive`, and routed `GoLive` native transparency cleanup through `nativeMediaSurface` utilities.
+
+**Architecture after this phase:** Live/Party/Game/Private Call = one `LiveKitPlugin` camera path only. Face Verification = one separate `NativeCameraPlugin` CameraX path only, mutually exclusive by `CameraOwnership`/`ProCameraEngine`. Beauty engine = removed from native production path.
+
+**Verification:** Code-level verification completed with `rg`: no `GPUPixelBeautyPlugin`, `GPUPixelBeautyProcessor`, `BeautyPipelineBridge`, `PrivateCallBeautySheet`, `gpupixel-release`, or `com.pixpark.gpupixel` references remain in `android/app`/`src` except UI-only text/types. APK rebuild REQUIRED for physical Android camera validation.
 
 
 

@@ -240,25 +240,6 @@ class LiveKitPlugin : Plugin() {
             }
         }
 
-        /**
-         * Pkg500 Phase C — Native PrivateCallActivity entry point for the
-         * beauty pipeline handoff. Runs the same release → settle → bridge
-         * flip sequence as the JS [setBeautyPipelineEnabled] method.
-         */
-        @JvmStatic
-        fun setBeautyPipelineEnabledFromNative(enabled: Boolean) {
-            val inst = INSTANCE ?: return
-            inst.scope.launch { inst.runBeautyHandoffInternal(enabled) }
-        }
-    }
-
-    internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
-        if (room == null) return
-        try {
-            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
-        } catch (e: Exception) {
-            Log.w("LiveKitPlugin", "runBeautyHandoffInternal($enabled) failed: ${e.message}")
-        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -742,7 +723,6 @@ class LiveKitPlugin : Plugin() {
                     hardReconnectAttempts = 0
                     try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                     activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                     try { r.disconnect() } catch (_: Exception) {}
@@ -822,7 +802,6 @@ class LiveKitPlugin : Plugin() {
             hardReconnectAttempts = 0
             try { r.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
             try { r.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             delay(OEM_CAMERA_RELEASE_SETTLE_MS)
             activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
             try { r.disconnect() } catch (_: Exception) {}
@@ -1185,7 +1164,6 @@ class LiveKitPlugin : Plugin() {
             // the next TextureView paints black until process restart.
             try { previousRoom.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
             try { previousRoom.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             delay(OEM_CAMERA_RELEASE_SETTLE_MS)
         }
         try { previousRoom?.disconnect() } catch (_: Exception) {}
@@ -1600,8 +1578,6 @@ class LiveKitPlugin : Plugin() {
 
         // Install stall sink on the promoted track so the watchdog can monitor it.
         try { installStallSink(ptrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
-        try { reattachBeautyIfEnabled() } catch (_: Exception) {}
-
         // Standard post-connect setup — copied from connectInternal legacy
         // path (everything below the Publish-local-tracks block).
         setKeepScreenOn(true)
@@ -1667,9 +1643,6 @@ class LiveKitPlugin : Plugin() {
                 if (pre != null) {
                     try { pre.localParticipant.setCameraEnabled(false) } catch (_: Exception) {}
                     try { pre.localParticipant.setMicrophoneEnabled(false) } catch (_: Exception) {}
-                    // Also flip the beauty bridge OFF so GPUPixel releases
-                    // the camera if it currently owns it.
-                    try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
                     delay(OEM_CAMERA_RELEASE_SETTLE_MS)
                 }
                 activity?.runOnUiThread {
@@ -1692,9 +1665,6 @@ class LiveKitPlugin : Plugin() {
                 stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
-                try { beautyProcessor?.release() } catch (_: Exception) {}
-                beautyProcessor = null
-                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Pkg415: release the Camera2 arbiter so NativeCamera (face-verify) or
                 // a future LiveKit reconnect can claim the hardware without racing.
                 CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT)
@@ -1954,21 +1924,6 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
-                // Camera arbiter: if the GPUPixel beauty pipeline currently
-                // owns the physical Camera2 device, never let JS turn
-                // LiveKit's native capture back on — both holders would
-                // race for the same device handle and the second opener
-                // gets a CameraAccessException, leaving the preview blank.
-                // Beauty pipeline must be disabled first (see
-                // setBeautyPipelineEnabled).
-                if (enabled && BeautyPipelineBridge.isEnabled()) {
-                    val ret = JSObject()
-                    ret.put("enabled", false)
-                    ret.put("skipped", true)
-                    ret.put("reason", "beauty-pipeline-owns-camera")
-                    call.resolve(ret)
-                    return@launch
-                }
                 val ok = setNativeCameraEnabledWithOemRetry(r, enabled, "setCameraEnabled")
                 if (!ok) {
                     val ret = JSObject()
@@ -2022,10 +1977,9 @@ class LiveKitPlugin : Plugin() {
                 data.put("attempt", attempt + 1)
                 data.put("reason", reason)
                 notifyListeners("camera-state", data)
-                // Phase-E: camera was (re)published — re-attach beauty
-                // processor to the fresh LocalVideoTrack so beauty survives
-                // reconnects, resolution flips, and recovery cycles.
-                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+                // Camera rebuild 2026-06-14: do not attach beauty/video
+                // processors to the camera track. LiveKit remains the only
+                // streaming camera owner.
                 // FIX-B — arm a "first new frame" beacon. JS hides the
                 // poster once `local-video-resumed` fires (≤2 s).
                 armLocalResumeBeacon(reason)
@@ -2054,42 +2008,6 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
-    // Step 21 — Beauty pipeline (GPUPixel) ↔ LiveKit camera bridge.
-    //
-    // The GPUPixel plugin owns its own Camera2 capture surface and runs the
-    // GL beauty/AR effect pipeline. Both GPUPixel and LiveKit cannot hold the
-    // physical camera at the same time, so this method coordinates handoff:
-    //
-    //   setBeautyPipelineEnabled({ enabled: true })
-    //     → LiveKit unpublishes & releases its camera track. GPUPixel plugin
-    //       (called separately from JS) opens the camera, processes frames,
-    //       and pushes them into LiveKit via the shared external-frame
-    //       channel registered by BeautyPipelineBridge.
-    //
-    //   setBeautyPipelineEnabled({ enabled: false })
-    //     → GPUPixel releases the camera (called by JS). LiveKit re-publishes
-    //       its native camera track at the previously requested resolution.
-    //
-    // The actual GL texture / NV21 frame transport is implemented inside
-    // BeautyPipelineBridge (singleton) which GPUPixelPlugin pushes to and
-    // LiveKit's custom VideoCapturer pulls from. This method only handles
-    // the ownership flip — keeping the contract small and race-safe.
-    // ------------------------------------------------------------
-    @PluginMethod
-    fun setBeautyPipelineEnabled(call: PluginCall) {
-        val enabled = call.getBoolean("enabled", false) ?: false
-        try {
-            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
-            val ret = JSObject()
-            ret.put("enabled", enabled)
-            ret.put("hasRoom", room != null)
-            ret.put("mode", "livekit-video-processor")
-            call.resolve(ret)
-        } catch (e: Exception) {
-            call.reject("setBeautyPipelineEnabled failed: ${e.message}")
-        }
-    }
-
     @PluginMethod
     fun switchCamera(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
@@ -3397,9 +3315,6 @@ class LiveKitPlugin : Plugin() {
                 activity?.runOnUiThread { detachAllRenderersInternal(releaseRenderers = true) }
                 try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
                 virtualBackgroundProcessor = null
-                try { beautyProcessor?.release() } catch (_: Exception) {}
-                beautyProcessor = null
-                try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
                 // Drop our local Room reference — the manager retains it.
                 // Do NOT call disconnect/release/unbind, do NOT stop the
                 // foreground service, do NOT abandon audio focus, do NOT
@@ -3447,7 +3362,6 @@ class LiveKitPlugin : Plugin() {
                 }
             }
 
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
             activity?.runOnUiThread {
                 // Camera audit fix: when Activity dies on the GoLive prejoin
                 // screen there is no real `room`, so the normal Room teardown
@@ -3474,10 +3388,6 @@ class LiveKitPlugin : Plugin() {
             // Step 36 — release MediaPipe segmenter + RenderScript blur.
             try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
             virtualBackgroundProcessor = null
-            try { beautyProcessor?.release() } catch (_: Exception) {}
-            beautyProcessor = null
-            try { BeautyPipelineBridge.setEnabled(false) } catch (_: Exception) {}
-            try { BeautyPipelineBridge.registerSink(null) } catch (_: Exception) {}
             CameraOwnership.forceRelease()
         } catch (_: Exception) {}
         // Phase 2A — drop ProcessLifecycle subscription on final teardown.
@@ -6069,116 +5979,6 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ============================================================
-    // Pkg201 — GPUPixel broadcast beauty processor (feature-flag).
-    // ============================================================
-    //
-    // Off by default. JS calls `setBeautyBroadcast({enabled, smooth,
-    // white, thinFace, bigEye, lipstick})` to attach the processor to
-    // the current LocalVideoTrack. Same reflective setVideoProcessor
-    // pattern as VirtualBackgroundProcessor. Detach with enabled:false.
-    //
-    // Disabled-by-default + reflective attach means existing live
-    // broadcasts are 100% unchanged unless the operator explicitly
-    // enables the flag from the admin panel.
-    // ============================================================
-
-    private var beautyProcessor: com.merilive.app.plugin.video.GPUPixelBeautyProcessor? = null
-
-    private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
-        beautyProcessor?.takeUnless { it.isReleased() }?.let { return it }
-        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
-        beautyProcessor = proc
-        return proc
-    }
-
-    private fun attachBeautyProcessor() {
-        val proc = beautyProcessor ?: return
-        val track = try {
-            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
-                as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null } ?: return
-        if (!invokeSetVideoProcessor(track, proc)) {
-            Log.w(TAG, "[Pkg201] setVideoProcessor not reachable on LocalVideoTrack or its source — beauty broadcast disabled.")
-        }
-    }
-
-    private fun detachBeautyProcessor() {
-        val track = try {
-            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
-                as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null } ?: return
-        invokeSetVideoProcessor(track, null)
-    }
-
-    // Phase-E fix: remember the last beauty levels + enable state so we can
-    // re-attach the processor automatically when the camera track is
-    // re-published (camera recovery, resolution switch, reconnect). Without
-    // this, beauty silently turned off after any track swap and the host had
-    // to toggle the panel manually to get it back.
-    @Volatile private var beautyBroadcastEnabled: Boolean = false
-    @Volatile private var lastBeautySmooth: Float = 0.6f
-    @Volatile private var lastBeautyWhite: Float = 0.4f
-    @Volatile private var lastBeautyThinFace: Float = 0.3f
-    @Volatile private var lastBeautyBigEye: Float = 0.3f
-    @Volatile private var lastBeautyLipstick: Float = 0f
-    @Volatile private var lastBeautyBlusher: Float = 0f
-
-    /**
-     * Phase-E: call this from camera-publish completion / track-republish
-     * paths so the broadcast beauty processor survives recovery. Safe no-op
-     * when beauty was never enabled or has been explicitly disabled.
-     */
-    internal fun reattachBeautyIfEnabled() {
-        if (!beautyBroadcastEnabled) return
-        try {
-            val proc = ensureBeautyProcessor()
-            proc.setLevels(
-                lastBeautySmooth, lastBeautyWhite, lastBeautyThinFace,
-                lastBeautyBigEye, lastBeautyLipstick, lastBeautyBlusher,
-            )
-            attachBeautyProcessor()
-        } catch (e: Exception) {
-            Log.w(TAG, "[Pkg201] reattachBeautyIfEnabled failed: ${e.message}")
-        }
-    }
-
-    @PluginMethod
-    fun setBeautyBroadcast(call: PluginCall) {
-        val enabled = call.getBoolean("enabled", false) ?: false
-        val smooth = (call.getFloat("smooth") ?: 0.6f)
-        val white = (call.getFloat("white") ?: 0.4f)
-        val thinFace = (call.getFloat("thinFace") ?: 0.3f)
-        val bigEye = (call.getFloat("bigEye") ?: 0.3f)
-        val lipstick = (call.getFloat("lipstick") ?: 0f)
-        val blusher = (call.getFloat("blusher") ?: 0f)
-        try {
-            if (enabled) {
-                val proc = ensureBeautyProcessor()
-                proc.setLevels(smooth, white, thinFace, bigEye, lipstick, blusher)
-                attachBeautyProcessor()
-                // Phase-E: remember state for auto re-attach on track recovery.
-                lastBeautySmooth = smooth
-                lastBeautyWhite = white
-                lastBeautyThinFace = thinFace
-                lastBeautyBigEye = bigEye
-                lastBeautyLipstick = lipstick
-                lastBeautyBlusher = blusher
-                beautyBroadcastEnabled = true
-            } else {
-                beautyBroadcastEnabled = false
-                detachBeautyProcessor()
-                beautyProcessor?.release()
-                beautyProcessor = null
-            }
-            val ret = JSObject()
-            ret.put("enabled", enabled)
-            ret.put("hasRoom", room != null)
-            call.resolve(ret)
-        } catch (e: Exception) {
-            call.reject("setBeautyBroadcast failed: ${e.message}")
-        }
-    }
-
     // ============================================================
     // N3f — Native LiveKit RPC + Text Streams bridge.
     // ============================================================

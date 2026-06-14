@@ -294,6 +294,7 @@
             android:id="@+id/privateCallBtnBeauty"
             style="@style/PrivateCallActionButton"
             android:src="@android:drawable/ic_menu_view"
+            android:visibility="gone"
             android:contentDescription="Beauty filter" />
 
         <Space android:layout_width="8dp" android:layout_height="wrap_content" />

@@ -822,10 +822,6 @@ export function usePartyRoomNativeLiveKit(
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
-            // Pkg417 — re-apply pro beauty on every (re)publish so
-            // video-party / game-party also keep the GPUPixel processor
-            // attached after seat changes / track recovery.
-            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           }
           rebuildLocalStream();
         });
@@ -985,7 +981,6 @@ export function usePartyRoomNativeLiveKit(
             .then(() => new Promise((resolve) => setTimeout(resolve, 180)))
             .then(() => claimWebViewCameraIfAndroid(true))
             .then(() => activeRoom.localParticipant.setCameraEnabled(true))
-            .then(() => window.dispatchEvent(new Event('beauty:reapply')))
             .catch((e) => console.warn('[PartyLiveKit] camera recovery failed:', e));
         }, 4000);
         delayedTimers.push(partyVideoRecovery as unknown as ReturnType<typeof setTimeout>);

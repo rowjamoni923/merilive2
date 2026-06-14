@@ -1371,7 +1371,9 @@ export function UnifiedPartyRoom({
   };
 
   return (
-    <div className="room-viewport flex flex-col overflow-hidden"
+    <div
+      className="room-viewport flex flex-col overflow-hidden"
+      data-room-shell
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))'

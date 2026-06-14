@@ -42,7 +42,7 @@ import java.util.concurrent.Executors
  *     path. No regression possible.
  *   • Camera-conflict safe: VAP uses MediaCodec DECODER only (input/output
  *     buffers), never claims Camera2 — no contention with LiveKit /
- *     CameraOwnership / GPUPixel.
+ *     CameraOwnership.
  */
 @CapacitorPlugin(name = "NativeVAP")
 class NativeVAPPlugin : Plugin() {

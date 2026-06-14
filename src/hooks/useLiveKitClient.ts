@@ -258,8 +258,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           setNativeActive(true);
           setIsJoined(true);
           setConnectionState('CONNECTED');
-          window.dispatchEvent(new Event('beauty:reapply'));
-          setTimeout(() => window.dispatchEvent(new Event('beauty:reapply')), 800);
           toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         } else {
           setConnectionState('CONNECTING');
@@ -304,7 +302,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           cameraStabilizeTimerRef.current = null;
         }
         toast.dismiss('lk-live-camera-stabilize');
-        window.dispatchEvent(new Event('beauty:reapply'));
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
@@ -981,10 +978,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
             } catch { /* ignore */ }
-            // Pkg417 — re-apply professional GPUPixel beauty on every
-            // (re)publish so adaptive-tier track swaps / recovery
-            // republishes don't drop the beauty processor.
-            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           } else if (publication.track.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
           }
@@ -1097,7 +1090,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         pRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
           if (publication.track?.kind === Track.Kind.Video) {
             setLocalVideoTrack(publication.track);
-            try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
           } else if (publication.track?.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
           }
@@ -1581,7 +1573,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const refreshedPub = Array.from(room.localParticipant.trackPublications.values())
           .find(p => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
         if (refreshedPub?.track) setLocalVideoTrack(refreshedPub.track);
-        try { window.dispatchEvent(new CustomEvent('beauty:reapply')); } catch { /* ignore */ }
       }
     }
   }, []);
@@ -1647,15 +1638,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     }
   }, []);
 
-  // Beauty effects — CSS path PERMANENTLY REMOVED (user request, 2026-06-07).
-  // The only real beauty engine is now the native GPUPixel pipeline
-  // (3D MarsFace landmarks + skin smoothing + whitening + thin-face +
-  // big-eye + lipstick + blusher). It is wired into the outgoing LiveKit
-  // broadcast track by `applyBroadcastBeauty()` → `NativeLiveKit.setBeautyBroadcast`,
-  // and the local preview shows the processed track directly. The old CSS
-  // blur/brightness filter was just blur — no 3D face beauty — and looked
-  // ugly. It is gone on every platform; web preview is a visual no-op for
-  // beauty, matching Chamet/Bigo behaviour.
+  // Camera rebuild 2026-06-14: native beauty is disabled. Keep settings state
+  // only so existing panels do not break, but never touch the camera track.
   const applyBeautyEffect = useCallback((settings: BeautySettings) => {
     setBeautySettings(settings);
     setBeautyEnabled(true);
