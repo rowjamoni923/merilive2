@@ -643,6 +643,7 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
+        try { clearSeatRenderersInternal() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
@@ -657,6 +658,7 @@ class LiveKitPlugin : Plugin() {
         try { room?.disconnect() } catch (_: Throwable) {}
         room = null
         isConnected = false
+        boundedMode = false
     }
 
     private fun runOnMain(block: () -> Unit) {
