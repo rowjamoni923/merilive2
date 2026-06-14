@@ -188,6 +188,12 @@ class PrivateCallActivity : ComponentActivity() {
         wireUiToViewModel()
         wireBackPress()
         attachResilienceController()
+
+        // Phase 2 — tell JS the native call window is now in front so the
+        // React-side #root hide hack stops applying.
+        com.merilive.app.plugin.NativeCallPlugin.broadcastWindowState(
+            applicationContext, vm.identity.value?.callId, "opened"
+        )
     }
 
     /** Pkg500 Phase H — instantiate + attach the camera resilience controller. */
