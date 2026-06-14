@@ -214,11 +214,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       return () => { mountedRef.current = false; };
     }
 
-    // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
+    // Non-SVGA: show pill for 1.8s (Chamet/Bigo unified spec) — RESET on every combo bump
     completedRef.current = false;
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
-    }, 3500);
+    }, 1800);
     return () => { mountedRef.current = false; clearTimeout(timer); };
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
