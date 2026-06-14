@@ -113,7 +113,10 @@ object BoundedSurfaceHost {
         // Bind only when the target track actually differs from the bound one.
         if (track != null && track !== entry.boundTrack) {
             entry.boundTrack?.let { prev ->
-                try { prev.removeRenderer(entry.renderer) } catch (_: Exception) {}
+                try { prev.removeRenderer(entry.renderer) } catch (e: Exception) {
+                    Log.w(TAG, "prev.removeRenderer($viewId) failed: ${e.message}")
+                    reportNonFatal("BoundedSurfaceHost.attach.removePrev", e)
+                }
             }
             try {
                 initRenderer(room, entry.renderer, viewId)
@@ -122,6 +125,7 @@ object BoundedSurfaceHost {
                 if (kind == "remote" && sid != null) ownedRemoteSids.add(sid)
             } catch (e: Exception) {
                 Log.w(TAG, "addRenderer($viewId) failed: ${e.message}")
+                reportNonFatal("BoundedSurfaceHost.attach.addRenderer", e)
             }
         } else if (track == null) {
             Log.d(TAG, "attach($viewId): no VideoTrack yet for kind=$kind sid=$sid — will mount empty")
