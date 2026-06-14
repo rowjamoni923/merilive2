@@ -157,11 +157,13 @@ class LiveKitPlugin : Plugin() {
     fun startLocalPreview(call: PluginCall) {
         val lens = call.getString("lens", "front") ?: "front"
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
+        val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
         scope.launch {
             try {
+                boundedMode = boundedOnly
                 if (previewTrack != null) {
-                    Log.i(TAG, "startLocalPreview: already running, reusing track")
-                    ensureRendererAttached(mirror)
+                    Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
+                    if (!boundedOnly) ensureRendererAttached(mirror)
                     call.resolve(JSObject().put("started", true).put("reused", true))
                     return@launch
                 }
@@ -180,8 +182,15 @@ class LiveKitPlugin : Plugin() {
                 track.startCapture()
                 previewTrack = track
 
-                ensureRendererAttached(mirror)
-                track.addRenderer(previewRenderer!!)
+                if (!boundedOnly) {
+                    ensureRendererAttached(mirror)
+                    track.addRenderer(previewRenderer!!)
+                } else {
+                    // Bounded mode — push to any already-registered seat slots
+                    // that match the local identity once we know it.
+                    Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
+                }
+                rebindSeatSlotsForLocalTrack(track)
 
                 call.resolve(JSObject().put("started", true).put("reused", false))
             } catch (t: Throwable) {
@@ -197,8 +206,6 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 if (isConnected) {
-                    // Once published, the track is owned by the session; do not
-                    // tear it down here. Caller should disconnect() instead.
                     Log.i(TAG, "stopLocalPreview: ignored while connected")
                     call.resolve(JSObject().put("stopped", false).put("reason", "connected"))
                     return@launch
