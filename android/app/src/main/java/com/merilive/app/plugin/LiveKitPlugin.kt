@@ -2329,6 +2329,21 @@ class LiveKitPlugin : Plugin() {
         val mirror = call.getBoolean("mirror", true) ?: true
         val webView = bridge?.webView ?: return call.reject("WebView not ready")
         activity?.runOnUiThread {
+            // Party/video grids use bounded NativeVideoView surfaces. If the
+            // legacy fullscreen local renderer was mounted earlier by
+            // attachLocal(), remove it first so the same VideoTrack is not bound
+            // to two TextureViewRenderers on Mali/PowerVR OEM EGL stacks.
+            try {
+                val lr = localRenderer
+                val localTrack = room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)
+                    ?.track as? io.livekit.android.room.track.VideoTrack
+                if (lr != null) {
+                    try { localTrack?.removeRenderer(lr) } catch (_: Exception) {}
+                    try { (lr.parent as? ViewGroup)?.removeView(lr) } catch (_: Exception) {}
+                    try { lr.release() } catch (_: Exception) {}
+                    localRenderer = null
+                }
+            } catch (_: Exception) {}
             val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
                 context = context,
                 webView = webView,
@@ -2353,6 +2368,20 @@ class LiveKitPlugin : Plugin() {
         val h = call.getFloat("height") ?: 0f
         val webView = bridge?.webView ?: return call.reject("WebView not ready")
         activity?.runOnUiThread {
+            // Same rule for remote seats: bounded surface owns the tile. Remove
+            // any legacy full-screen remote renderer before binding the bounded
+            // renderer, otherwise the two renderers can fight over the same
+            // decoded frame stream and leave a permanent black tile.
+            try {
+                remoteRenderers.remove(sid)?.let { old ->
+                    val participant = room?.remoteParticipants?.values?.firstOrNull { it.sid.value == sid }
+                    val track = participant?.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack
+                    try { track?.removeRenderer(old) } catch (_: Exception) {}
+                    try { (old.parent as? ViewGroup)?.removeView(old) } catch (_: Exception) {}
+                    try { old.release() } catch (_: Exception) {}
+                }
+            } catch (_: Exception) {}
             val attached = com.merilive.app.rtc.BoundedSurfaceHost.attach(
                 context = context,
                 webView = webView,
