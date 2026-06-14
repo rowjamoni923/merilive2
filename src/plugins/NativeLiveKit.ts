@@ -73,7 +73,15 @@ export interface AudioInterruptionEvent { reason?: string; resumed?: boolean }
 
 // ─── Plugin interface (only the methods Kotlin actually implements) ──
 interface NativeLiveKitPlugin {
-  isAvailable(): Promise<{ available: boolean; backend?: string }>;
+  isAvailable(): Promise<{ available: boolean; backend?: string; supportsPreview?: boolean }>;
+  startLocalPreview(opts: {
+    lens?: Lens;
+    resolution?: Resolution;
+    mirror?: boolean;
+    boundedOnly?: boolean;
+    roomScope?: NativeRoomScope;
+  }): Promise<{ started: boolean; reused?: boolean }>;
+  stopLocalPreview(): Promise<{ stopped: boolean; reason?: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid?: string; identity?: string }>;
   disconnect(): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
