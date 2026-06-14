@@ -563,14 +563,19 @@ export function ActiveCallScreen({
         coins: gift.coins,
         isOwnGift: true,
       });
-      // Unified chat trace — same as DM/Live/Party
+      // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
       setChatMessages((prev) => [
         ...prev,
         {
           id: `gift-send-${Date.now()}`,
           senderId: userId,
           senderName: myDisplayName || 'You',
-          message: `🎁 sent ${gift.name} ×${count}`,
+          message: encodeInlineGiftMarker({
+            giftName: gift.name,
+            count,
+            coins: gift.coins,
+            iconUrl: gift.icon_url || '',
+          }),
           timestamp: Date.now(),
         },
       ]);
