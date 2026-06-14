@@ -38,8 +38,7 @@ object CameraOwnership {
     const val OWNER_LIVEKIT = "livekit"                 // ALL streaming
     @Deprecated("Pkg416: WebView LiveKit fallback no longer opens camera independently")
     const val OWNER_WEBVIEW_LIVEKIT = "webview-livekit"
-    @Deprecated("Phase 9K: native beauty removed; no GPUPixel camera owner allowed")
-    const val OWNER_GPUPIXEL = "gpupixel"
+    private const val REMOVED_NATIVE_BEAUTY_OWNER = "removed-native-beauty"
 
     private val current = AtomicReference<String?>(null)
     @Volatile private var acquiredAtMs: Long = 0L
@@ -72,7 +71,7 @@ object CameraOwnership {
     @JvmStatic
     @JvmOverloads
     fun acquire(owner: String, force: Boolean = false): Boolean {
-        if (owner == OWNER_GPUPIXEL) {
+        if (owner == REMOVED_NATIVE_BEAUTY_OWNER) {
             Log.e(TAG, "REJECTED acquire by '$owner' — native beauty must not own the camera (Phase 9K). Current owner=${current.get()}")
             return false
         }
