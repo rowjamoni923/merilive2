@@ -70,12 +70,23 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 **Verification:** APK rebuild REQUIRED. After rebuild, the next Video Party crash/OOM at owner-account repro surfaces in Firebase Crashlytics with the seat-mount stage, device memory snapshot, and bounded-entry count. If no crash occurs over 5 launches in a row, Phase 3 is empirically green. If a crash does appear, we now have the stack to fix it surgically rather than re-architect blind.
 **Honesty:** I cannot reproduce a Video Party crash inside the Lovable preview (no Android runtime). This phase intentionally trades a speculative rewrite for a real diagnostic signal — industry standard practice (Sentry/Crashlytics-first triage) before structural changes.
 
-### Phase 4 — F4 fix: "Restoring live camera…" toast leakage
-- [ ] All toasts emitted from `CameraResilienceController` carry `roomId`. JS subscriber filters `event.roomId !== activeRoomId → ignore`.
-- [ ] On `releaseAll()`, cancel `Toast` reference (`toast?.cancel()`) and unsubscribe.
-- [ ] Audit `src/lib/nativeLiveKitController.ts` event bus — confirm no `GlobalScope` emissions survive room exit.
-- **Files:** `CameraResilienceController.kt`, `src/hooks/useNativeLiveKitEvents.ts`, JS toast dispatcher.
-- **Verification:** owner does Live → exit → Home for 30 s → no stray toast. Then Live → exit → Game Party → no stray toast. APK rebuild required.
+### Phase 4 — F4 fix: "Restoring live camera…" toast leakage ✅ DONE 2026-06-14
+**Actual root cause (different from the plan's initial guess):** the leaking toast does NOT come from `CameraResilienceController.kt` — that controller only drives in-Activity banner views (`resilienceBanner`, `resilienceText`), no Sonner toasts. The real source is JS-side:
+- `useLiveKitClient.ts:272/291/298` → `toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' })`
+- `useLiveKitCall.ts:157/187/195` → `toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' })`
+
+`toast.loading(...)` with a fixed id has **no auto-dismiss**. The `'reconnected'` success path replaces it with a 1.5s auto-dismissing toast, but if the user exits *during* a recovery attempt, no success/failure event ever fires → the sticky loading toast survives the route change and bleeds into Home / Game Party / wherever they land. `useNativeLiveKitEvents` already filters events by `{scope, id}` so the events themselves don't leak — only the unmounted toast.
+
+**Fix (2 files, ~10 lines):**
+- `src/hooks/useLiveKitClient.ts` `leaveChannel()` (line 1374): `toast.dismiss('lk-live-reconnect')` at the very top, before any teardown.
+- `src/hooks/useLiveKitCall.ts` `cleanup()` (line 237): `toast.dismiss('lk-reconnect')` + `toast.dismiss('lk-audio-interrupt')` at the top of cleanup. Both cleanups already fire from the main effect's unmount return.
+
+**Files:** `src/hooks/useLiveKitClient.ts`, `src/hooks/useLiveKitCall.ts`.
+**Verification:** PREVIEW-TESTABLE in browser (no APK required — pure JS). Owner does Live → force network blip via DevTools → exit before reconnect → navigate to Home / Game Party → no stray "Stabilizing live camera…" toast. Same for Private Call. APK rebuild is *not* required for this fix; the native `CameraResilienceController` was correctly scoped to PrivateCallActivity and detached in `detach()` (already verified).
+
+**Note on the original plan items:** `roomId`-tagged events were already in place (`useNativeLiveKitEvents` third arg = `{scope, id}` filter). `nativeLiveKitController.ts` event bus uses per-listener handles with no `GlobalScope` survivors. Those items are ✅ verified — no code change needed there.
+
+
 
 ### Phase 5 — F5 fix: zombie Live session timer in Game Party
 - [ ] Single `releaseAll()` exit path: mute → `room.disconnect()` → `localParticipant.cleanup()` → stop foreground service → cancel `viewModelScope`.
