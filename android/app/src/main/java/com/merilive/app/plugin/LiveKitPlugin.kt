@@ -3031,49 +3031,6 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
-    private fun enterAudioOnlyFallback(reason: String) {
-        val r = room ?: return
-        audioOnlyActive = true
-        lastTierChangeMs = System.currentTimeMillis()
-        scope.launch {
-            try {
-                r.localParticipant.setCameraEnabled(false)
-                Log.i(TAG, "Audio-only fallback ENTERED ($reason)")
-                val data = JSObject()
-                data.put("active", true)
-                data.put("reason", reason)
-                notifyListeners("audio-only-fallback", data)
-            } catch (e: Exception) {
-                Log.w(TAG, "enterAudioOnlyFallback failed: ${e.message}")
-                audioOnlyActive = false
-            }
-        }
-    }
-
-    private fun exitAudioOnlyFallback(reason: String) {
-        val r = room ?: return
-        lastTierChangeMs = System.currentTimeMillis()
-        scope.launch {
-            try {
-                // Re-publish camera via OEM-safe retry path (handles Xiaomi/Vivo
-                // capture-session races that surface after long mute intervals).
-                val ok = setNativeCameraEnabledWithOemRetry(r, true, "audio-only-recover")
-                if (!ok) {
-                    Log.w(TAG, "exitAudioOnlyFallback: camera re-enable failed")
-                    return@launch
-                }
-                audioOnlyActive = false
-                Log.i(TAG, "Audio-only fallback EXITED ($reason)")
-                val data = JSObject()
-                data.put("active", false)
-                data.put("reason", reason)
-                notifyListeners("audio-only-fallback", data)
-            } catch (e: Exception) {
-                Log.w(TAG, "exitAudioOnlyFallback failed: ${e.message}")
-            }
-        }
-    }
-
     private fun notifyCameraHeldDuringPoorUplink(reason: String) {
         val now = System.currentTimeMillis()
         if (now - lastTierChangeMs < 12_000L) return
