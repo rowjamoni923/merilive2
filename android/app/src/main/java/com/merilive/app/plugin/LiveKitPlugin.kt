@@ -240,25 +240,15 @@ class LiveKitPlugin : Plugin() {
             }
         }
 
-        /**
-         * Pkg500 Phase C — Native PrivateCallActivity entry point for the
-         * beauty pipeline handoff. Runs the same release → settle → bridge
-         * flip sequence as the JS [setBeautyPipelineEnabled] method.
-         */
+        /** Camera rebuild 2026-06-14: beauty camera handoff is disabled. */
         @JvmStatic
         fun setBeautyPipelineEnabledFromNative(enabled: Boolean) {
-            val inst = INSTANCE ?: return
-            inst.scope.launch { inst.runBeautyHandoffInternal(enabled) }
+            Log.i("LiveKitPlugin", "Beauty pipeline disabled; ignoring native toggle=$enabled")
         }
     }
 
     internal suspend fun runBeautyHandoffInternal(enabled: Boolean) {
-        if (room == null) return
-        try {
-            if (enabled) reattachBeautyIfEnabled() else detachBeautyProcessor()
-        } catch (e: Exception) {
-            Log.w("LiveKitPlugin", "runBeautyHandoffInternal($enabled) failed: ${e.message}")
-        }
+        Log.i("LiveKitPlugin", "Beauty pipeline disabled; ignoring handoff=$enabled")
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -1954,21 +1944,6 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
-                // Camera arbiter: if the GPUPixel beauty pipeline currently
-                // owns the physical Camera2 device, never let JS turn
-                // LiveKit's native capture back on — both holders would
-                // race for the same device handle and the second opener
-                // gets a CameraAccessException, leaving the preview blank.
-                // Beauty pipeline must be disabled first (see
-                // setBeautyPipelineEnabled).
-                if (enabled && BeautyPipelineBridge.isEnabled()) {
-                    val ret = JSObject()
-                    ret.put("enabled", false)
-                    ret.put("skipped", true)
-                    ret.put("reason", "beauty-pipeline-owns-camera")
-                    call.resolve(ret)
-                    return@launch
-                }
                 val ok = setNativeCameraEnabledWithOemRetry(r, enabled, "setCameraEnabled")
                 if (!ok) {
                     val ret = JSObject()
@@ -2022,10 +1997,9 @@ class LiveKitPlugin : Plugin() {
                 data.put("attempt", attempt + 1)
                 data.put("reason", reason)
                 notifyListeners("camera-state", data)
-                // Phase-E: camera was (re)published — re-attach beauty
-                // processor to the fresh LocalVideoTrack so beauty survives
-                // reconnects, resolution flips, and recovery cycles.
-                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+                // Camera rebuild 2026-06-14: do not attach beauty/video
+                // processors to the camera track. LiveKit remains the only
+                // streaming camera owner.
                 // FIX-B — arm a "first new frame" beacon. JS hides the
                 // poster once `local-video-resumed` fires (≤2 s).
                 armLocalResumeBeacon(reason)
