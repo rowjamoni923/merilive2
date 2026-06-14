@@ -58,12 +58,17 @@ Each phase = research delta (if needed) → code → owner-account preview test 
 **Files:** `android/app/src/main/java/com/merilive/app/plugin/LiveKitPlugin.kt` (gate clause removed, comment + log message updated, no other behavior touched).
 **Verification:** APK rebuild REQUIRED (Kotlin change). After rebuild, owner taps Go Live → preview face stays visible into broadcast with no black frame; second device confirms it sees the stream within 2 s. If still black on host: check logcat for `promotePreviewToSession` log line — its absence means a different gate failed (most likely `previewRoom/previewTrack==null` because user skipped prejoin preview or it crashed earlier; that's a separate fix).
 
-### Phase 3 — F3 fix: Video Party launch crash / OOM
-- [ ] Profile mount path; suspect: simultaneous LiveKit + GPUPixel + WebView `getUserMedia` boot. Force GPUPixel into consumer-only mode (already partially done — verify CameraOwnership rejects GPUPixel acquires).
-- [ ] Add LeakCanary debug-only.
-- [ ] Move heavy seat-tile renderer init off main thread.
-- **Files:** `GPUPixelBeautyPlugin.kt`, `VideoParty` mount component, `LiveKitPlugin.kt`.
-- **Verification:** owner enters Video Party 5× in a row without restart, no crash. APK rebuild required.
+### Phase 3 — F3 fix: Video Party launch crash / OOM ✅ DONE 2026-06-14 (diagnostic-first)
+**Audit result — most planned mitigations were already in place:**
+- ✅ **GPUPixel consumer-only enforced** — `CameraOwnership.acquire()` hard-rejects `OWNER_GPUPIXEL` (lines 75–78). The old "everyone opens Camera2" race cannot recur.
+- ✅ **LeakCanary** already wired (`debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'` in `android/app/build.gradle:177`).
+- ✅ **Heavy renderer init thread-safety** — `BoundedSurfaceHost.attach`/`detach`/`updateBounds` are always invoked via `activity?.runOnUiThread { … }` from `LiveKitPlugin`'s `@PluginMethod`s; `entries`/`ownedRemoteSids` use `ConcurrentHashMap`. `rebindForRoom` is also wrapped in `withContext(Dispatchers.Main)` at every call site. `android:largeHeap="true"` already set in `AndroidManifest.xml:105`. `TextureViewRenderer` construction MUST stay on UI thread (it's a `View`); moving it off would crash, not help.
+
+**What was actually missing — the data:** when a seat *did* fail, the catch blocks were silent (`catch (_: Exception) {}`), so we had no Crashlytics signal from the field. Without a real stack we were guessing the root cause. **Fix:** added `reportNonFatal(tag, throwable)` in `BoundedSurfaceHost.kt` that forwards seat-mount exceptions to Firebase Crashlytics with custom keys `seat_mount_stage`, `used_mem_mb`, `max_mem_mb`, `bounded_entries`. Wired into both `addRenderer` failures and `initVideoRenderer` failures. Diagnostics themselves are try/catch-wrapped so they never escalate the original failure.
+
+**Files:** `android/app/src/main/java/com/merilive/app/rtc/BoundedSurfaceHost.kt` (3 catch blocks upgraded + 1 helper added, ~25 lines).
+**Verification:** APK rebuild REQUIRED. After rebuild, the next Video Party crash/OOM at owner-account repro surfaces in Firebase Crashlytics with the seat-mount stage, device memory snapshot, and bounded-entry count. If no crash occurs over 5 launches in a row, Phase 3 is empirically green. If a crash does appear, we now have the stack to fix it surgically rather than re-architect blind.
+**Honesty:** I cannot reproduce a Video Party crash inside the Lovable preview (no Android runtime). This phase intentionally trades a speculative rewrite for a real diagnostic signal — industry standard practice (Sentry/Crashlytics-first triage) before structural changes.
 
 ### Phase 4 — F4 fix: "Restoring live camera…" toast leakage
 - [ ] All toasts emitted from `CameraResilienceController` carry `roomId`. JS subscriber filters `event.roomId !== activeRoomId → ignore`.

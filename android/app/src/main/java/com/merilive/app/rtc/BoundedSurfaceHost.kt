@@ -113,7 +113,10 @@ object BoundedSurfaceHost {
         // Bind only when the target track actually differs from the bound one.
         if (track != null && track !== entry.boundTrack) {
             entry.boundTrack?.let { prev ->
-                try { prev.removeRenderer(entry.renderer) } catch (_: Exception) {}
+                try { prev.removeRenderer(entry.renderer) } catch (e: Exception) {
+                    Log.w(TAG, "prev.removeRenderer($viewId) failed: ${e.message}")
+                    reportNonFatal("BoundedSurfaceHost.attach.removePrev", e)
+                }
             }
             try {
                 initRenderer(room, entry.renderer, viewId)
@@ -122,6 +125,7 @@ object BoundedSurfaceHost {
                 if (kind == "remote" && sid != null) ownedRemoteSids.add(sid)
             } catch (e: Exception) {
                 Log.w(TAG, "addRenderer($viewId) failed: ${e.message}")
+                reportNonFatal("BoundedSurfaceHost.attach.addRenderer", e)
             }
         } else if (track == null) {
             Log.d(TAG, "attach($viewId): no VideoTrack yet for kind=$kind sid=$sid — will mount empty")
@@ -237,6 +241,26 @@ object BoundedSurfaceHost {
             Log.d(TAG, "initVideoRenderer($viewId): already initialized")
         } catch (t: Throwable) {
             Log.w(TAG, "initVideoRenderer($viewId) failed: ${t.message}")
+            reportNonFatal("BoundedSurfaceHost.initRenderer", t)
         }
+    }
+
+    /**
+     * Phase 3 (Camera Rebuild Plan, 2026-06-14) — F3 diagnostic.
+     * Forward non-fatal seat-mount failures to Crashlytics so the next
+     * Video Party crash/OOM gives us a real stack trace + device key.
+     * Wrapped in a Throwable-catch so a missing FirebaseCrashlytics on
+     * debug builds never escalates the original failure.
+     */
+    private fun reportNonFatal(tag: String, t: Throwable) {
+        try {
+            val fc = com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+            fc.setCustomKey("seat_mount_stage", tag)
+            val rt = Runtime.getRuntime()
+            fc.setCustomKey("used_mem_mb", ((rt.totalMemory() - rt.freeMemory()) / 1048576L).toString())
+            fc.setCustomKey("max_mem_mb", (rt.maxMemory() / 1048576L).toString())
+            fc.setCustomKey("bounded_entries", entries.size.toString())
+            fc.recordException(t)
+        } catch (_: Throwable) { /* never let diagnostics crash the caller */ }
     }
 }
