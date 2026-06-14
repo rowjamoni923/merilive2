@@ -447,6 +447,8 @@ const Chat = () => {
   const [animatingGiftConfigUrl, setAnimatingGiftConfigUrl] = useState<string | null>(null);
   const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
+  // Unified flying-gift pill (same Bigo/Chamet style as Live/Party/Call)
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
