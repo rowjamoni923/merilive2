@@ -381,8 +381,8 @@ class LiveKitPlugin : Plugin() {
             try {
                 val slot = ensureSlot(viewId, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }
                 applyRect(slot.renderer, x, y, w, h)
-                val localId = room?.localParticipant?.identity?.value
-                slot.identity = localId
+                slot.isLocal = true
+                slot.identity = room?.localParticipant?.identity?.value
                 val track = previewTrack
                     ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
                 if (track != null) attachTrackToSlot(slot, track)
