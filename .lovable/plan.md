@@ -158,6 +158,7 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 - `src/hooks/useLiveKitCall.ts` now exposes the native `{url, token}` session used by `NativeLiveKit.connect()`.
 - `src/components/call/ActiveCallScreen.tsx` now launches `NativeCall.openInCallActivity()` exactly once after native LiveKit connects, then suppresses the duplicate React call chrome with a transparent portal while JS signaling/billing hooks stay mounted.
 - `src/plugins/NativeCall.ts` + `src/components/call/CallProvider.tsx` now type/handle native action=`"end"` so native End button runs the JS settle path.
+- `src/hooks/usePrivateCall.ts` now calls `NativeCall.closeInCallActivity()` on reset, remote soft-end, and local hangup so the native surface cannot survive after JS settles/ends the call.
 
 **Verification:** APK rebuild REQUIRED. In Lovable preview this native Activity cannot open. After rebuild: owner starts/accepts private call → native full-screen `PrivateCallActivity` should appear (black/video surface, top peer overlay, PiP self-view, native bottom action bar), Home/live banners must not appear in the call, native End button must settle billing and release the Room.
 
