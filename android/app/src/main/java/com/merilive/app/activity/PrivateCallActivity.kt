@@ -771,12 +771,12 @@ class PrivateCallActivity : ComponentActivity() {
     // ------------------------------------------------------------------
 
     override fun onResume() {
-        super.onResume()
         // L-7: re-attach the latest tracks to their renderers. Phase B's
         // collect flows handle initial mount; this path covers the case where
         // the user returned from a paused state (background, screen-off, PIP→
         // fullscreen) and the previous detach in onPause cleared the renderer
         // bindings. attach* is idempotent — same track + same renderer no-op.
+        super.onResume()
         runCatching { attachRemote(vm.remoteVideo.value) }
         runCatching { attachLocal(vm.localVideo.value) }
         // L-8: re-acquire proximity wakelock if we're on earpiece while
