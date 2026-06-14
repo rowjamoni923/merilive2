@@ -5961,14 +5961,8 @@ class LiveKitPlugin : Plugin() {
             room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
                 as? io.livekit.android.room.track.LocalVideoTrack
         } catch (_: Exception) { null } ?: return
-        try {
-            val m = track.javaClass.methods.firstOrNull {
-                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
-            }
-            m?.invoke(track, proc)
-                ?: Log.w(TAG, "[Pkg201] setVideoProcessor missing — beauty broadcast disabled.")
-        } catch (e: Exception) {
-            Log.w(TAG, "[Pkg201] attachBeautyProcessor failed: ${e.message}")
+        if (!invokeSetVideoProcessor(track, proc)) {
+            Log.w(TAG, "[Pkg201] setVideoProcessor not reachable on LocalVideoTrack or its source — beauty broadcast disabled.")
         }
     }
 
@@ -5976,13 +5970,8 @@ class LiveKitPlugin : Plugin() {
         val track = try {
             room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
                 as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null }
-        try {
-            val m = track?.javaClass?.methods?.firstOrNull {
-                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
-            }
-            m?.invoke(track, null as Any?)
-        } catch (_: Exception) {}
+        } catch (_: Exception) { null } ?: return
+        invokeSetVideoProcessor(track, null)
     }
 
     // Phase-E fix: remember the last beauty levels + enable state so we can
