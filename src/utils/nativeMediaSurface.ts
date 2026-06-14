@@ -12,15 +12,21 @@
  * `navigate(...)` away from any page that uses native camera/LiveKit.
  */
 
-const CLASSES = ['native-media-active', 'native-face-camera-active'] as const;
-
 export function clearNativeMediaSurface(): void {
   if (typeof document === 'undefined') return;
   try {
-    for (const cls of CLASSES) {
-      document.documentElement.classList.remove(cls);
-      document.body.classList.remove(cls);
-    }
+    document.documentElement.classList.remove('native-media-active');
+    document.body.classList.remove('native-media-active');
+  } catch {
+    /* noop */
+  }
+}
+
+export function clearNativeFaceCameraSurface(): void {
+  if (typeof document === 'undefined') return;
+  try {
+    document.documentElement.classList.remove('native-face-camera-active');
+    document.body.classList.remove('native-face-camera-active');
   } catch {
     /* noop */
   }

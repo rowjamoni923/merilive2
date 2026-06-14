@@ -28,14 +28,24 @@ export function useNativeLiveKitLifecycle(
   const { manageCamera = true, manageMicrophone = true } = options;
   const optsRef = useRef({ manageCamera, manageMicrophone });
   optsRef.current = { manageCamera, manageMicrophone };
+  const activeRef = useRef(false);
 
   // Pkg428 — body transparency MUST be toggled synchronously around paint,
   // not in useEffect (which runs after commit). useLayoutEffect's cleanup
   // runs before the next route paints, eliminating the black flash window.
   useLayoutEffect(() => {
-    setNativeMediaSurface(active);
-    return () => {
+    if (active) {
+      setNativeMediaSurface(true);
+      activeRef.current = true;
+    } else if (activeRef.current) {
       clearNativeMediaSurface();
+      activeRef.current = false;
+    }
+    return () => {
+      if (activeRef.current) {
+        clearNativeMediaSurface();
+        activeRef.current = false;
+      }
     };
   }, [active]);
 
