@@ -320,7 +320,13 @@ export interface NativeLiveKitPlugin {
    * through to attachLocal(). connect() / disconnect() tear the
    * preview down automatically.
    */
-  startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean }): Promise<{ started?: boolean; mode?: 'preview' | 'session' }>;
+  startLocalPreview(opts?: {
+    lens?: Lens;
+    resolution?: Resolution;
+    mirror?: boolean;
+    /** Create the native preview track without mounting a fullscreen renderer; bounded <NativeVideoView /> owns visibility. */
+    boundedOnly?: boolean;
+  }): Promise<{ started?: boolean; mode?: 'preview' | 'session' }>;
   /** Stop the pre-connect preview and release the camera. Safe no-op. */
   stopLocalPreview(): Promise<{ stopped: boolean }>;
 
