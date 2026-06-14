@@ -91,7 +91,7 @@ export function useLiveKitCall(
   const roomRef = useRef<Room | null>(null);
   // Pkg189: token refresh detach handle.
   const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
-  const isInitRef = useRef(false);
+  const initForCallIdRef = useRef<string | null>(null);
   const deadRef = useRef(false);
   // Pkg73: keep latest callId visible inside the stable `cleanup` callback
   // (which has `[]` deps to avoid disconnect storms on every render).
@@ -232,7 +232,7 @@ export function useLiveKitCall(
   const cleanup = useCallback(() => {
     console.log('[LiveKitCall] cleanup');
     deadRef.current = true;
-    isInitRef.current = false;
+    initForCallIdRef.current = null;
     if (callVideoRecoveryTimerRef.current) {
       clearInterval(callVideoRecoveryTimerRef.current);
       callVideoRecoveryTimerRef.current = null;
@@ -350,6 +350,14 @@ export function useLiveKitCall(
 
   }, []);
 
+  useEffect(() => {
+    return () => {
+      try { toast.dismiss('lk-reconnect'); } catch { /* ignore */ }
+      try { toast.dismiss('lk-audio-interrupt'); } catch { /* ignore */ }
+      try { toast.dismiss('lk-call-camera-stabilize'); } catch { /* ignore */ }
+    };
+  }, []);
+
   const toggleAudio = useCallback(() => {
     const enabled = !state.isAudioEnabled;
     if (usingNativeRef.current) {
@@ -392,9 +400,9 @@ export function useLiveKitCall(
 
   useEffect(() => {
     if (!callId || !userId) return;
-    if (isInitRef.current) return;
+    if (initForCallIdRef.current === callId) return;
     deadRef.current = false;
-    isInitRef.current = true;
+    initForCallIdRef.current = callId;
 
     const roomName = `call_${callId}`;
 
@@ -412,7 +420,7 @@ export function useLiveKitCall(
           setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
           // P0 FIX: reset init guard so a later kill-switch re-enable can retry.
           // Previously isInitRef stayed true, permanently blocking re-init for the session.
-          isInitRef.current = false;
+          initForCallIdRef.current = null;
           return;
         }
 
