@@ -1628,6 +1628,34 @@ const Chat = () => {
     setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
+
+    // Unified flying-gift pill (Bigo/Chamet parity across DM/Live/Party/Call)
+    const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+    const diamondMatch = content.match(/-(\d+)\s*diamonds/i);
+    const giftName = nameMatch?.[1]?.trim() || 'Gift';
+    const count = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
+    const totalCoins = diamondMatch?.[1] ? parseInt(diamondMatch[1], 10) || 0 : 0;
+    const perGiftCoins = count > 0 ? Math.floor(totalCoins / count) : totalCoins;
+    const isSelf = !!senderId && senderId === currentUserId;
+    const peer = selectedConversationRef.current?.other_user;
+    addFlyingGift({
+      senderId: senderId || undefined,
+      senderName: isSelf ? 'You' : (peer?.display_name || 'User'),
+      senderAvatar: isSelf ? undefined : (peer?.avatar_url || undefined),
+      receiverName: isSelf ? (peer?.display_name || 'User') : 'You',
+      giftName,
+      giftIcon: emoji,
+      giftImageUrl: mediaUrl || undefined,
+      animationUrl: mediaUrl || undefined,
+      animationFormat: animationFormat || parsedFormat || null,
+      animationConfigUrl: normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || undefined,
+      soundUrl: soundUrl || undefined,
+      giftColor: 'bg-pink-500/50',
+      count,
+      coins: perGiftCoins,
+      isOwnGift: isSelf,
+      isReceiverGift: !isSelf,
+    });
   }
 
   useEffect(() => {
