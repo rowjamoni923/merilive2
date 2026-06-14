@@ -41,6 +41,7 @@ import { useProCamera } from "@/camera/useProCamera";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
+import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -108,12 +109,13 @@ const GoLive = () => {
 
   const applyNativePreviewTransparency = useCallback((active: boolean) => {
     if (typeof document === 'undefined') return;
-    // Pkg428 — keep face-camera-active class (preview-specific) alongside
-    // the shared native-media-active class. Both must be cleared on exit.
-    document.documentElement.classList.toggle('native-face-camera-active', active);
-    document.body.classList.toggle('native-face-camera-active', active);
-    document.documentElement.classList.toggle('native-media-active', active);
-    document.body.classList.toggle('native-media-active', active);
+    if (active) {
+      document.documentElement.classList.add('native-face-camera-active');
+      document.body.classList.add('native-face-camera-active');
+    } else {
+      clearNativeFaceCameraSurface();
+    }
+    setNativeMediaSurface(active);
   }, []);
 
   // Pkg428 — synchronous cleanup before next route paints. Prevents the
@@ -124,10 +126,8 @@ const GoLive = () => {
       // the route swap. LiveStream/useLiveKitClient will take over the same
       // native-media-active surface once the existing preview track is promoted.
       if (preservePreviewForLiveRef.current) return;
-      try {
-        document.documentElement.classList.remove('native-face-camera-active', 'native-media-active');
-        document.body.classList.remove('native-face-camera-active', 'native-media-active');
-      } catch { /* noop */ }
+      clearNativeFaceCameraSurface();
+      clearNativeMediaSurface();
     };
   }, []);
 
