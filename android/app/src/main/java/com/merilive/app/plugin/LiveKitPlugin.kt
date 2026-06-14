@@ -5812,19 +5812,8 @@ class LiveKitPlugin : Plugin() {
             room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
                 as? io.livekit.android.room.track.LocalVideoTrack
         } catch (_: Exception) { null } ?: return
-        // LiveKit Android 2.x exposes LocalVideoTrack.addRenderer/removeRenderer
-        // and forwards a VideoProcessor through the underlying VideoSource.
-        try {
-            val m = track.javaClass.methods.firstOrNull {
-                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
-            }
-            if (m != null) {
-                m.invoke(track, proc)
-            } else {
-                Log.w(TAG, "LocalVideoTrack.setVideoProcessor not found — virtual bg disabled.")
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "attachBackgroundProcessor failed: ${e.message}")
+        if (!invokeSetVideoProcessor(track, proc)) {
+            Log.w(TAG, "LocalVideoTrack.setVideoProcessor not reachable — virtual bg disabled.")
         }
     }
 
@@ -5832,13 +5821,49 @@ class LiveKitPlugin : Plugin() {
         val track = try {
             room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
                 as? io.livekit.android.room.track.LocalVideoTrack
-        } catch (_: Exception) { null }
+        } catch (_: Exception) { null } ?: return
+        invokeSetVideoProcessor(track, null)
+    }
+
+    /**
+     * Pkg416/Pkg201 — LiveKit Android 2.x does NOT expose setVideoProcessor on
+     * LocalVideoTrack publicly. The capturer/processor pipeline lives on the
+     * private `source: VideoSource` (or `capturer`) field. We try the public
+     * method first (older SDKs), then fall back to reflecting through every
+     * field whose value exposes a `setVideoProcessor(VideoProcessor)` method.
+     * Returns true when the processor was successfully attached/detached.
+     */
+    private fun invokeSetVideoProcessor(track: Any, proc: Any?): Boolean {
+        // 1. Public method on the track itself (older LiveKit builds).
         try {
-            val m = track?.javaClass?.methods?.firstOrNull {
+            val m = track.javaClass.methods.firstOrNull {
                 it.name == "setVideoProcessor" && it.parameterTypes.size == 1
             }
-            m?.invoke(track, null as Any?)
-        } catch (_: Exception) {}
+            if (m != null) {
+                m.invoke(track, proc)
+                return true
+            }
+        } catch (_: Throwable) { /* fall through to reflection */ }
+
+        // 2. Walk all declared fields up the class hierarchy and call
+        //    setVideoProcessor on whichever one exposes it (this is the
+        //    private `source` / `capturer` field on LiveKit 2.x).
+        var cls: Class<*>? = track.javaClass
+        while (cls != null && cls != Any::class.java) {
+            for (f in cls.declaredFields) {
+                try {
+                    f.isAccessible = true
+                    val v = f.get(track) ?: continue
+                    val m = v.javaClass.methods.firstOrNull {
+                        it.name == "setVideoProcessor" && it.parameterTypes.size == 1
+                    } ?: continue
+                    m.invoke(v, proc)
+                    return true
+                } catch (_: Throwable) { /* try next field */ }
+            }
+            cls = cls.superclass
+        }
+        return false
     }
 
     @PluginMethod
