@@ -181,6 +181,8 @@ export function useNativeCallBillingSync({
     let cancelled = false;
     let balance = 0;
     let rate = 0;
+    let profileChannel: ReturnType<typeof supabase.channel> | null = null;
+    let callChannel: ReturnType<typeof supabase.channel> | null = null;
 
     const maybePush = () => {
       if (cancelled) return;
@@ -215,52 +217,53 @@ export function useNativeCallBillingSync({
           callRow.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number }).coins_per_minute ?? 0,
         );
         maybePush();
+
+        // Realtime — caller wallet (push every balance change). Open channels
+        // only after confirming this device is the caller side, so the host
+        // never briefly subscribes to the caller-scoped billing row channel.
+        profileChannel = supabase
+          .channel(`native-call-billing-profile-${userId}-${callId}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+            (payload) => {
+              const next = Number((payload.new as { coins?: number } | null)?.coins ?? balance);
+              if (Number.isFinite(next)) {
+                balance = next;
+                maybePush();
+              }
+            },
+          )
+          .subscribe();
+
+        callChannel = supabase
+          .channel(`native-call-billing-row-${callId}-${userId}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'private_calls', filter: `id=eq.${callId}` },
+            (payload) => {
+              const row = payload.new as {
+                viewer_rate_per_min?: number;
+                coins_per_minute?: number;
+              } | null;
+              const nextRate = Number(row?.viewer_rate_per_min ?? row?.coins_per_minute ?? rate);
+              if (Number.isFinite(nextRate) && nextRate > 0 && nextRate !== rate) {
+                rate = nextRate;
+              }
+              maybePush();
+            },
+          )
+          .subscribe();
       } catch {
         /* no-op */
       }
     })();
 
-    // Realtime — caller wallet (push every balance change).
-    const profileChannel = supabase
-      .channel(`native-call-billing-profile-${userId}-${callId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
-        (payload) => {
-          const next = Number((payload.new as { coins?: number } | null)?.coins ?? balance);
-          if (Number.isFinite(next)) {
-            balance = next;
-            maybePush();
-          }
-        },
-      )
-      .subscribe();
-
-    // Realtime — call row (rate can change mid-call; minute-tick implies fresh balance push opportunity).
-    const callChannel = supabase
-      .channel(`native-call-billing-row-${callId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'private_calls', filter: `id=eq.${callId}` },
-        (payload) => {
-          const row = payload.new as {
-            viewer_rate_per_min?: number;
-            coins_per_minute?: number;
-          } | null;
-          const nextRate = Number(row?.viewer_rate_per_min ?? row?.coins_per_minute ?? rate);
-          if (Number.isFinite(nextRate) && nextRate > 0 && nextRate !== rate) {
-            rate = nextRate;
-          }
-          maybePush();
-        },
-      )
-      .subscribe();
-
     return () => {
       cancelled = true;
       lastPushedRef.current = null;
-      try { supabase.removeChannel(profileChannel); } catch { /* no-op */ }
-      try { supabase.removeChannel(callChannel); } catch { /* no-op */ }
+      try { if (profileChannel) supabase.removeChannel(profileChannel); } catch { /* no-op */ }
+      try { if (callChannel) supabase.removeChannel(callChannel); } catch { /* no-op */ }
     };
   }, [userId, callId]);
 }
