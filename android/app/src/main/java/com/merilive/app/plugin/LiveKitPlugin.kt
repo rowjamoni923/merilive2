@@ -128,12 +128,13 @@ class LiveKitPlugin : Plugin() {
         @Volatile private var cameraXRegistered = false
         // Pkg500 Phase H — in-process broadcast for camera resilience consumers.
         const val ACTION_VIDEO_STALL = "com.merilive.app.action.VIDEO_STALL"
-        // Step 25 — stall watchdog tunables.
-
+        // Step 25 — stall watchdog tunables. Professional camera rule: local
+        // capture is never toggled by watchdog recovery; only renderer/network
+        // rebinds are allowed while a live/call/party session is active.
         private const val STALL_POLL_MS = 2_500L
         private const val STALL_WARN_MS = 7_000L
-        private const val STALL_HARD_MS = 15_000L
-        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+        private const val STALL_HARD_MS = 20_000L
+        private const val STALL_RECOVERY_COOLDOWN_MS = 10_000L
 
         // ─── Pkg-OEM-hardening: per-OEM Camera2 HAL timings ───
         // Sources (verified):
@@ -373,12 +374,13 @@ class LiveKitPlugin : Plugin() {
     //
     // Watchdog tracks "last decoded frame timestamp" per attached video
     // track via a tiny VideoSink wrapper installed alongside the renderer.
-    // Every 2 s a coroutine inspects the table:
-    //   • > STALL_WARN_MS (5 s) without a frame → emit "video-stall" and
-    //     attempt soft recovery (remote: unsubscribe + resubscribe;
-    //     local: stop+start capture).
-    //   • > STALL_HARD_MS (12 s) and recovery already attempted twice →
-    //     emit "video-stall-failed" so JS can show a banner / fall back.
+    // Every 2.5 s a coroutine inspects the table:
+    //   • remote stalls can request SFU keyframes by resubscribing.
+    //   • local stalls only rebind renderer/surfaces; they MUST NOT stop and
+    //     reopen Camera2 because that creates the visible OnePlus camera-light
+    //     on/off loop reported in live/call/party rooms.
+    //   • prolonged local stalls are escalated to connection-state only; the
+    //     JS layer must not call reconnectNow blindly for every failed frame gap.
     // Counters reset on every successful frame and on attach/detach.
     // Pkg-audit fix: lastFrameMs/frameCount/attempts are written from the
     // WebRTC decoding thread (onFrame) and read from Dispatchers.Main (stall
@@ -678,11 +680,9 @@ class LiveKitPlugin : Plugin() {
                 payload.put("role", graceLabel)
                 notifyListeners("live-host-grace-start", payload)
             } catch (_: Exception) {}
-            // Pause camera (mic stays on so listeners keep hearing the host).
-            scope.launch {
-                try { setNativeCameraEnabledWithOemRetry(r, false, "$graceLabel-grace") }
-                catch (e: Exception) { Log.w(TAG, "$graceLabel-grace camera off failed: ${e.message}") }
-            }
+            // Keep camera capture ON during grace. The foreground service owns
+            // the live/party media session; do not close/reopen Camera2 for a
+            // short app-switch because that causes visible hardware flapping.
             liveHostGraceJob = scope.launch {
                 try {
                     delay(LIVE_HOST_BG_GRACE_MS)
@@ -773,12 +773,8 @@ class LiveKitPlugin : Plugin() {
         if (foreground && liveHostGraceJob != null) {
             try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
             liveHostGraceJob = null
-            if (hostGraceEligible) {
-                scope.launch {
-                    try { setNativeCameraEnabledWithOemRetry(r, true, "$graceLabel-grace-resume") }
-                    catch (e: Exception) { Log.w(TAG, "$graceLabel-grace resume failed: ${e.message}") }
-                }
-            }
+            // Camera was never paused for host grace, so foreground return only
+            // restores UI/renderers through the normal resume path.
             try {
                 val resumed = JSObject()
                 resumed.put("reason", "RESUMED")
@@ -3002,11 +2998,12 @@ class LiveKitPlugin : Plugin() {
         when (quality) {
             ConnectionQuality.POOR, ConnectionQuality.LOST -> {
                 consecutiveExcellent = 0
-                // Phase I.b — audio-only floor. Already at LOW + still POOR/LOST
-                // means our ~700 kbps uplink can't sustain even 540p/24fps. Mute
-                // the camera track so audio keeps flowing (Bigo/Chamet behavior).
+                // Keep the camera physically open. Older logic entered an
+                // audio-only fallback here, which stopped Camera2 and later
+                // reopened it when quality improved; on OnePlus/ColorOS that
+                // looks like the camera light turning on/off every few seconds.
                 if (currentTier == AdaptiveTier.LOW) {
-                    if (!audioOnlyActive) enterAudioOnlyFallback("uplink-collapse")
+                    notifyCameraHeldDuringPoorUplink("uplink-collapse")
                     return
                 }
                 val next = when (currentTier) {
@@ -3019,12 +3016,7 @@ class LiveKitPlugin : Plugin() {
             ConnectionQuality.EXCELLENT -> {
                 consecutiveExcellent++
                 if (consecutiveExcellent < 2) return
-                // Phase I.b — recover from audio-only floor BEFORE climbing tiers.
-                // Re-enable camera; next quality tick will step LOW → MEDIUM → HIGH.
-                if (audioOnlyActive) {
-                    exitAudioOnlyFallback("uplink-recovered")
-                    return
-                }
+                if (audioOnlyActive) audioOnlyActive = false
                 if (currentTier == baseTier) return // already at ceiling
                 val next = when (currentTier) {
                     AdaptiveTier.LOW    -> AdaptiveTier.MEDIUM
@@ -3039,113 +3031,40 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
-    private fun enterAudioOnlyFallback(reason: String) {
-        val r = room ?: return
-        audioOnlyActive = true
-        lastTierChangeMs = System.currentTimeMillis()
-        scope.launch {
-            try {
-                r.localParticipant.setCameraEnabled(false)
-                Log.i(TAG, "Audio-only fallback ENTERED ($reason)")
-                val data = JSObject()
-                data.put("active", true)
-                data.put("reason", reason)
-                notifyListeners("audio-only-fallback", data)
-            } catch (e: Exception) {
-                Log.w(TAG, "enterAudioOnlyFallback failed: ${e.message}")
-                audioOnlyActive = false
-            }
-        }
-    }
-
-    private fun exitAudioOnlyFallback(reason: String) {
-        val r = room ?: return
-        lastTierChangeMs = System.currentTimeMillis()
-        scope.launch {
-            try {
-                // Re-publish camera via OEM-safe retry path (handles Xiaomi/Vivo
-                // capture-session races that surface after long mute intervals).
-                val ok = setNativeCameraEnabledWithOemRetry(r, true, "audio-only-recover")
-                if (!ok) {
-                    Log.w(TAG, "exitAudioOnlyFallback: camera re-enable failed")
-                    return@launch
-                }
-                audioOnlyActive = false
-                Log.i(TAG, "Audio-only fallback EXITED ($reason)")
-                val data = JSObject()
-                data.put("active", false)
-                data.put("reason", reason)
-                notifyListeners("audio-only-fallback", data)
-            } catch (e: Exception) {
-                Log.w(TAG, "exitAudioOnlyFallback failed: ${e.message}")
-            }
-        }
+    private fun notifyCameraHeldDuringPoorUplink(reason: String) {
+        val now = System.currentTimeMillis()
+        if (now - lastTierChangeMs < 12_000L) return
+        lastTierChangeMs = now
+        try {
+            val data = JSObject()
+            data.put("active", false)
+            data.put("reason", reason)
+            data.put("cameraHeld", true)
+            notifyListeners("audio-only-fallback", data)
+        } catch (_: Throwable) {}
     }
 
     private fun applyAdaptiveTier(target: AdaptiveTier, reason: String) {
-        val r = room ?: return
         if (adaptiveBusy) return
         adaptiveBusy = true
         lastTierChangeMs = System.currentTimeMillis()
         scope.launch {
             try {
-                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
-                val oldTrack = pub?.track as? LocalVideoTrack
-                if (oldTrack == null) {
-                    // Camera not currently published (mic-only call) — nothing to do.
-                    currentTier = target
-                    return@launch
-                }
-                val newCapture = tierCapture(target)
                 val newEncoding = tierEncoding(target)
-                val simulcast = (target != AdaptiveTier.LOW) // drop simulcast at floor
-                val newOptions = LocalVideoTrackOptions(
-                    position = baseLens,
-                    captureParams = newCapture
-                )
-                // Stop + unpublish the old track, then create + publish a fresh one.
-                // Pkg415: BEFORE killing the old track, detach it from the local
-                // renderer so the renderer's EGL surface is preserved. After the
-                // new track is published, re-attach it to the SAME renderer +
-                // re-install the stall sink — otherwise the local preview goes
-                // black/white permanently (the renderer was bound to a dead
-                // track) and the stall watchdog cycles the camera forever.
-                val keptRenderer = localRenderer
-                if (keptRenderer != null) {
-                    try { oldTrack.removeRenderer(keptRenderer) } catch (_: Exception) {}
-                }
-                // Old track's stall sink dies with the track; new installStallSink below overwrites the "local" entry.
-                try { oldTrack.stopCapture() } catch (_: Exception) {}
-                r.localParticipant.unpublishTrack(oldTrack)
-
-                val newTrack = r.localParticipant.createVideoTrack(options = newOptions)
-                newTrack.startCapture()
-                r.localParticipant.publishVideoTrack(
-                    track = newTrack,
-                    options = VideoTrackPublishOptions(
-                        videoEncoding = newEncoding,
-                        simulcast = simulcast,
-                    )
-                )
-                // Pkg415: re-bind the preserved renderer + stall sink to the new track.
-                if (keptRenderer != null) {
-                    try {
-                        initVideoRendererIdempotent(r, keptRenderer, "adaptive-local")
-                        newTrack.addRenderer(keptRenderer)
-                    } catch (e: Exception) {
-                        Log.w(TAG, "applyAdaptiveTier: re-attach renderer failed: ${e.message}")
-                    }
-                }
-                try { installStallSink(newTrack, key = "local", sid = "local", isLocal = true) } catch (_: Exception) {}
-                try { reattachBeautyIfEnabled() } catch (_: Exception) {}
+                val simulcast = (target != AdaptiveTier.LOW)
+                // Do not stopCapture/unpublish/createVideoTrack here. The live
+                // camera remains open for the whole session; bandwidth adaptation
+                // is left to the initial simulcast/dynacast SFU ladder so the
+                // physical camera never flickers on OnePlus/ColorOS devices.
                 currentTier = target
-                Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
+                Log.i(TAG, "Adaptive tier marker $reason → ${target.name} (camera held open)")
 
                 val data = JSObject()
                 data.put("tier", target.name.lowercase())
                 data.put("reason", reason)
                 data.put("simulcast", simulcast)
                 data.put("maxBitrate", newEncoding.maxBitrate)
+                data.put("cameraRestarted", false)
                 notifyListeners("adaptive-tier", data)
             } catch (e: Exception) {
                 Log.e(TAG, "applyAdaptiveTier failed", e)
@@ -3588,26 +3507,35 @@ class LiveKitPlugin : Plugin() {
                 reconnectingSinceMs = System.currentTimeMillis()
                 stopReconnectWatchdog()
 
-                // Fix 3 — Soft reconnect path. If the Room is still alive,
-                // toggle the camera (off→on) instead of rebuilding the entire
-                // Room + PeerConnection + Camera2 session. This avoids the
-                // 1-3 s black screen of the full rebuild and reuses the
-                // existing ICE state. Falls through to the full path on
-                // failure or when the Room is gone.
+                // Professional camera rule: never implement "reconnect" as a
+                // camera off→on cycle while the Room is still alive. That loop
+                // repeatedly closes and reopens the physical Camera2 device.
+                // First try renderer/surface rebind; only a dead Room falls
+                // through to the full reconnect path below.
                 val existing = room
                 if (existing != null) {
                     try {
-                        val ok = setNativeCameraEnabledWithOemRetry(existing, false, "soft-reconnect-off") &&
-                                 setNativeCameraEnabledWithOemRetry(existing, true, "soft-reconnect-on")
-                        if (ok) {
-                            try { activity?.runOnUiThread { /* re-attach handled by attachLocal call */ } } catch (_: Throwable) {}
-                            val ret = JSObject()
-                            ret.put("connected", true)
-                            ret.put("soft", true)
-                            call.resolve(ret)
-                            return@launch
+                        withContext(Dispatchers.Main) {
+                            try { detachAllRenderersInternal() } catch (_: Throwable) {}
+                            val localTrack = existing.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                                ?.track as? io.livekit.android.room.track.VideoTrack
+                            if (localTrack != null) {
+                                val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
+                                initVideoRendererIdempotent(existing, renderer, "soft-reconnect-rebind")
+                                try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
+                                localTrack.addRenderer(renderer)
+                                mountBehindWebView(renderer)
+                                installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                            }
+                            try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(existing) } catch (_: Exception) {}
+                            attachAllRemoteRenderersInternal(existing)
                         }
-                        Log.w(TAG, "soft reconnect failed — falling back to full rebuild")
+                        val ret = JSObject()
+                        ret.put("connected", true)
+                        ret.put("soft", true)
+                        ret.put("cameraRestarted", false)
+                        call.resolve(ret)
+                        return@launch
                     } catch (t: Throwable) {
                         Log.w(TAG, "soft reconnect threw — falling back: ${t.message}")
                     }
@@ -3885,13 +3813,23 @@ class LiveKitPlugin : Plugin() {
         scope.launch {
             try {
                 if (entry.isLocal) {
-                    // Republish camera with a fresh encoder. Cheap and
-                    // doesn't disturb the room — peers see one black frame.
-                    Log.w(TAG, "Stall recovery (local): toggling camera")
-                    val ok = setNativeCameraEnabledWithOemRetry(r, false, "stall-local-off") &&
-                        setNativeCameraEnabledWithOemRetry(r, true, "stall-local-on")
-                    if (!ok && entry.attempts >= 2) {
-                        scheduleHardReconnect("local-camera-stall")
+                    Log.w(TAG, "Stall recovery (local): rebinding renderers without restarting camera")
+                    withContext(Dispatchers.Main) {
+                        try {
+                            val localTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                                ?.track as? io.livekit.android.room.track.VideoTrack
+                            if (localTrack != null) {
+                                val renderer = localRenderer ?: createRenderer().also { localRenderer = it }
+                                initVideoRendererIdempotent(r, renderer, "stall-local-rebind")
+                                try { localTrack.removeRenderer(renderer) } catch (_: Exception) {}
+                                localTrack.addRenderer(renderer)
+                                mountBehindWebView(renderer)
+                                installStallSink(localTrack, key = "local", sid = "local", isLocal = true)
+                            }
+                            try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "Local renderer rebind failed: ${t.message}")
+                        }
                     }
                 } else {
                     val participant = r.remoteParticipants.values.firstOrNull {

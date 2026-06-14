@@ -184,15 +184,17 @@ export function useLiveKitCall(
         // Mirrors useLiveKitClient.ts:266.
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' });
+        nativeLiveKitController.attachLocal().catch(() => {});
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
       }
     },
     onVideoStall: (s, isLocal) => {
       if (deadRef.current) return;
       if (s === 'failed' && isLocal) {
-        toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        toast.loading('Stabilizing call camera…', { id: 'lk-reconnect' });
+        nativeLiveKitController.attachLocal().catch(() => {});
+        nativeLiveKitController.attachAllRemotes().catch(() => {});
       }
     },
     onPipChanged: (isInPip) => {
