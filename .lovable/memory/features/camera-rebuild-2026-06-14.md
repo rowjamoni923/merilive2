@@ -35,6 +35,8 @@ type: feature
 ## Hard rules going forward
 
 - Never add a new `getUserMedia` or Camera2 opener outside the ProCameraEngine arbiter. Audio-only `getUserMedia` (mic monitor, AI chat, phone-detection, AudioRecorder) is exempt — it does not contend for the camera.
+- Every native prejoin preview MUST be feature-scoped with `roomScope` (`live` / `party` / `call`). A preview may only promote into a matching session; cross-feature previews must be stopped and restarted, never reused.
+- Do not make all `.bg-muted` / `.bg-background` UI surfaces transparent for native media. Transparency must stay contained to root/room shell/native video placeholders so cards, controls, and private-channel UI do not visually break.
 - Toasts MUST be English (memory rule).
 - Beauty / light-kit hooks operate on the single LiveKit publisher track — never let them open a second camera.
 - All toast `id`s used with `toast.loading(..., { id })` MUST also be dismissed in the corresponding teardown path. Sonner does not auto-dismiss `loading` toasts.
