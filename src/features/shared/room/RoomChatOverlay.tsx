@@ -56,31 +56,19 @@ export const WelcomeMessage = memo(({
   
   return (
     <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
-        "flex items-start gap-2 py-2 px-3.5 rounded-2xl w-full",
-        "bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-orange-400/20",
-        "backdrop-blur-md border border-amber-300/30",
-        "shadow-[0_2px_15px_rgba(251,191,36,0.2),0_0_30px_rgba(251,191,36,0.08)]",
-        "ring-1 ring-amber-400/15"
+        "flex items-center gap-1 py-0.5 px-2 rounded-lg w-fit max-w-[92%]",
+        "bg-amber-500/20 backdrop-blur-sm border border-amber-300/20"
       )}
     >
-      {/* Emoji with glow */}
-      <motion.span 
-        className="text-sm shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-        animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-      >
-        👋
-      </motion.span>
-      
-      {/* Welcome text - Premium styling */}
-      <span className="text-[10px] md:text-xs text-amber-50/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
-        Welcome to {hostName}'s {roomType === 'audio' ? 'Audio Party' : roomType === 'video' ? 'Video Party' : roomType === 'game' ? 'Game Party' : 'Live Stream'}! 
-        {roomTitle && ` — ${roomTitle}`} 
-        <span className="ml-1.5 text-amber-200 font-bold bg-amber-500/20 px-1.5 py-0.5 rounded-md">
-          Lv.{formatLevel(level)}
+      <span className="text-[10px] shrink-0 opacity-80">👋</span>
+      <span className="text-[10px] text-amber-50/90 font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] leading-tight truncate">
+        Welcome to {hostName}'s {roomType === 'audio' ? 'Audio Party' : roomType === 'video' ? 'Video Party' : roomType === 'game' ? 'Game Party' : 'Live Stream'}
+        {roomTitle && ` — ${roomTitle}`}
+        <span className="ml-1 text-amber-200 font-semibold">
+          {formatLevel(level)}
         </span>
       </span>
     </motion.div>
