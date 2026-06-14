@@ -187,6 +187,18 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED. Lovable preview cannot render Android `TextureViewRenderer` or `PrivateCallActivity`. After rebuild, owner-account test must cover: Private Call accept → no Home/party UI bleed; Create Party video/game → camera visible in host cell before create; Create Party → PartyRoom → same camera continues with no black flash; Party Audio/Video/Game → mic/video state does not silently mismatch.
 
+### Phase 9G — Camera ownership hardening ✅ DONE 2026-06-14
+
+**Root gap found in this pass:** Create Party's native Android path still called `getCameraStream(true)` as a permission helper. The hook returns `null` on native, but it is the wrong abstraction for a production camera path because future edits could reintroduce WebView `getUserMedia` before the native preview. Also, party prejoin used a fullscreen preview renderer plus bounded `<NativeVideoView />`, which can double-bind the same `LocalVideoTrack` on OEM EGL stacks.
+
+**Fixes applied now:**
+- `src/pages/CreateParty.tsx` now requests Android camera/mic permission directly via `requestCameraPermission({ includeMicrophone: true })`; native party preview never calls the WebView stream helper.
+- `NativeLiveKit.startLocalPreview({ boundedOnly: true })` added for party prejoin, so the native layer creates one Camera2 `previewTrack` but does **not** mount a second fullscreen renderer. The host cell's bounded `NativeVideoView` is the only visible renderer.
+- `useLiveKitClient.ts` now marks `native-media-active` before native host connect instead of waiting for later React state, removing the opaque WebView frame during GoLive → LiveStream handoff.
+- Create Party close now explicitly clears native transparency and stops native preview, so camera/UI ownership does not leak to the party list.
+
+**Verification:** APK rebuild REQUIRED. This is a native plugin/API change. Expected result after rebuild: one Camera2 owner (`livekit`) across GoLive/CreateParty → room; no WebView camera probe on native party; no double renderer in party preview; no route UI bleed on close/handoff.
+
 
 
 ## What I will NOT do without explicit OK
