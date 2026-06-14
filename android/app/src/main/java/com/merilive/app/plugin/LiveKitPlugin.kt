@@ -2008,24 +2008,6 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
-    // Camera rebuild 2026-06-14 — compatibility no-op. Native beauty was
-    // removed because it created a second camera/processor path.
-    // ------------------------------------------------------------
-    @PluginMethod
-    fun setBeautyPipelineEnabled(call: PluginCall) {
-        val enabled = call.getBoolean("enabled", false) ?: false
-        try {
-            val ret = JSObject()
-            ret.put("enabled", false)
-            ret.put("hasRoom", room != null)
-            ret.put("disabled", true)
-            ret.put("reason", "camera-single-owner")
-            call.resolve(ret)
-        } catch (e: Exception) {
-            call.reject("setBeautyPipelineEnabled failed: ${e.message}")
-        }
-    }
-
     @PluginMethod
     fun switchCamera(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
@@ -5997,32 +5979,6 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ============================================================
-    // Camera rebuild 2026-06-14 — broadcast beauty compatibility no-op.
-    // ============================================================
-
-    @Volatile private var beautyBroadcastEnabled: Boolean = false
-
-    internal fun reattachBeautyIfEnabled() {
-        // Camera rebuild 2026-06-14: disabled by design.
-    }
-
-    @PluginMethod
-    fun setBeautyBroadcast(call: PluginCall) {
-        val enabled = call.getBoolean("enabled", false) ?: false
-        try {
-            if (enabled) Log.i(TAG, "setBeautyBroadcast ignored: native beauty removed for single-camera stability")
-            beautyBroadcastEnabled = false
-            val ret = JSObject()
-            ret.put("enabled", false)
-            ret.put("hasRoom", room != null)
-            ret.put("disabled", true)
-            ret.put("reason", "camera-single-owner")
-            call.resolve(ret)
-        } catch (e: Exception) {
-            call.reject("setBeautyBroadcast failed: ${e.message}")
-        }
-    }
-
     // ============================================================
     // N3f — Native LiveKit RPC + Text Streams bridge.
     // ============================================================
