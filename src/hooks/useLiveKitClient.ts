@@ -329,13 +329,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           if (isLeavingRef.current || !usingNativeRef.current) return;
           toast.loading('Stabilizing live camera…', { id: 'lk-live-camera-stabilize' });
         }, 2000);
-      } else if (s === 'recovered' && isLocal) {
-        if (cameraStabilizeTimerRef.current) {
-          clearTimeout(cameraStabilizeTimerRef.current);
-          cameraStabilizeTimerRef.current = null;
-        }
-        toast.dismiss('lk-live-camera-stabilize');
       }
+      // NOTE: 'recovered' state would be ideal here, but the native plugin
+      // currently only emits 'failed' | 'stalled'. Recovery is handled by
+      // `onCameraState: 'started'` above, which fires when the camera frame
+      // pipeline restarts and dismisses the toast there.
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
 
