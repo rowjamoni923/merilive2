@@ -111,6 +111,14 @@ export function useLiveKitCall(
   // Reconnecting state, cleared on Connected, fires `livekit-call-network-lost`
   // when exhausted so usePrivateCall can endCall('network').
   const reconnectBudgetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastReconnectAttemptAtRef = useRef(0);
+
+  const requestNativeReconnect = useCallback(() => {
+    const now = Date.now();
+    if (now - lastReconnectAttemptAtRef.current < 2000) return Promise.resolve(false);
+    lastReconnectAttemptAtRef.current = now;
+    return nativeLiveKitController.reconnectNow();
+  }, []);
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -126,7 +134,7 @@ export function useLiveKitCall(
       if (deadRef.current) return;
       setState(p => ({ ...p, isConnected: false, connectionState: 'connecting' }));
       toast.loading('Restoring call…', { id: 'lk-reconnect' });
-      nativeLiveKitController.reconnectNow().then((ok) => {
+      requestNativeReconnect().then((ok) => {
         if (deadRef.current) return;
         if (ok) {
           setNativeActive(true);
@@ -147,7 +155,7 @@ export function useLiveKitCall(
         setState(p => ({ ...p, connectionState: 'connecting' }));
       } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring call…', { id: 'lk-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       } else {
         toast.success('Reconnected', { id: 'lk-reconnect', duration: 1500 });
         setState(p => ({ ...p, connectionState: p.isConnected ? 'connected' : p.connectionState }));
@@ -177,14 +185,14 @@ export function useLiveKitCall(
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
     onVideoStall: (s, isLocal) => {
       if (deadRef.current) return;
       if (s === 'failed' && isLocal) {
         toast.loading('Restoring call camera…', { id: 'lk-reconnect' });
-        nativeLiveKitController.reconnectNow().catch(() => {});
+        requestNativeReconnect().catch(() => {});
       }
     },
     onPipChanged: (isInPip) => {
