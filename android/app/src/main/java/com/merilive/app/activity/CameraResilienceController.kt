@@ -168,7 +168,7 @@ class CameraResilienceController(
                 }
             }
             "failed" -> {
-                if (isLocal) enterAudioOnly(reason = "Camera unavailable — audio only")
+                if (isLocal) showBannerPersistent("Camera recovering…", showRetry = false)
                 else {
                     // Remote permanent failure: keep spinner, show banner.
                     remotePoorOverlay.visibility = View.VISIBLE
