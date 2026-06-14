@@ -52,6 +52,14 @@ class NativeLiveKitController {
   private autoAttachLocalRenderer = true;
   private activeFeature: NativeRoomScope | null = null;
 
+  private inferScopeFromCallType(callType?: string | null): NativeRoomScope | null {
+    const s = String(callType || '').toLowerCase();
+    if (s.includes('party')) return 'party';
+    if (s.includes('call')) return 'call';
+    if (s.includes('live') || s.includes('broadcast')) return 'live';
+    return null;
+  }
+
   private async attachLocalWithRetry(): Promise<void> {
     const delays = [0, 120, 300, 700, 1200];
     let lastError: unknown = null;
@@ -108,9 +116,14 @@ class NativeLiveKitController {
       try {
         const active = await NativeLiveKit.getActiveSession();
         if (active?.active) {
+          const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
+          if (requestedFeature && activeScope && activeScope !== requestedFeature) {
+            throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
+          }
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
+          this.activeFeature = null;
           await new Promise((resolve) => setTimeout(resolve, 300));
         }
       } catch { /* getActiveSession not implemented on web/iOS — fall through */ }
