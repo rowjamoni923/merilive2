@@ -162,6 +162,7 @@ const CreateParty = () => {
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
     try {
       if (isNativeAndroid) {
+        let nativeReady = false;
         if (videoMode) {
           await getCameraStream(true);
           // Pro single-camera lifecycle (Chamet/Bigo): start the native
@@ -175,6 +176,7 @@ const CreateParty = () => {
               mirror: true,
             });
             setNativePreviewActive(started);
+            nativeReady = started;
           } catch (e) {
             console.warn('[CreateParty] native prejoin preview failed (non-fatal):', e);
             setNativePreviewActive(false);
@@ -184,8 +186,9 @@ const CreateParty = () => {
           const micGranted = await requestMicrophonePermission();
           if (!micGranted) throw new Error("Microphone permission denied.");
           setNativePreviewActive(false);
+          nativeReady = true;
         }
-        setCameraReady(true);
+        setCameraReady(nativeReady);
         return;
       }
 
