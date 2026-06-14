@@ -73,7 +73,13 @@ export interface AudioInterruptionEvent { reason?: string; resumed?: boolean }
 
 // ─── Plugin interface (only the methods Kotlin actually implements) ──
 interface NativeLiveKitPlugin {
-  isAvailable(): Promise<{ available: boolean; backend?: string; supportsPreview?: boolean }>;
+  isAvailable(): Promise<{
+    available: boolean;
+    backend?: string;
+    supportsPreview?: boolean;
+    /** Phase 4 — list of natively implemented method names. */
+    methods?: string[];
+  }>;
   startLocalPreview(opts: {
     lens?: Lens;
     resolution?: Resolution;
@@ -111,6 +117,33 @@ interface NativeLiveKitPlugin {
 const RealPlugin = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
 
 /**
+ * Phase 4 — methods the JS layer KNOWS are intentionally not implemented
+ * in the new minimal Kotlin plugin. Hitting these resolves to `undefined`
+ * silently (no console noise). Anything outside this list AND outside the
+ * plugin's own surface logs one warning per method name in dev so we can
+ * track real-world dead calls.
+ */
+const KNOWN_UNIMPLEMENTED = new Set<string>([
+  // Legacy / removed in the 2026-06-14 rebuild — callers wrap in try/catch.
+  'attachLocal', 'getActiveSession', 'setSurviveActivityDestroy',
+  'updateLiveStats', 'sendData', 'setPreferredCodec', 'reconnectNow',
+  // Audio routing / mode (web-SDK path handles these)
+  'setSpeakerphoneEnabled', 'setProximityMonitoring', 'setAudioMode',
+  'getAudioDevices', 'setAudioDevice',
+  // Screen share / virtual bg / noise cancellation / PiP
+  'isScreenShareSupported', 'startScreenShare', 'stopScreenShare',
+  'isVirtualBackgroundSupported', 'setVirtualBackground', 'getVirtualBackgroundState',
+  'isNoiseCancellationSupported', 'setNoiseCancellationEnabled', 'getNoiseCancellationState',
+  'isPictureInPictureSupported', 'enterPictureInPicture',
+  'setAutoPipOnLeaveHint', 'getPipState',
+  // Token / RPC / text-stream / metadata
+  'refreshToken', 'respondToRpc', 'registerRpcMethod', 'unregisterRpcMethod',
+  'performRpc', 'sendTextStream',
+]);
+const warnedDeadCalls = new Set<string>();
+const isDev = typeof import.meta !== 'undefined' && (import.meta as any)?.env?.DEV === true;
+
+/**
  * Proxy wrapper: any property access that isn't on the real plugin
  * returns a safe async no-op. This protects legacy callers that may
  * still invoke method names from the deleted 6252-line plugin.
@@ -120,7 +153,20 @@ export const NativeLiveKit: NativeLiveKitPlugin & Record<string, any> =
     get(target, prop: string) {
       const value = (target as any)[prop];
       if (typeof value === 'function') return value.bind(target);
-      // Unknown methods → safe async no-op so callers `.then(...)` works.
+      if (typeof value !== 'undefined') return value;
+      // Unknown methods → safe async no-op. Warn once in dev for
+      // truly-unexpected names so dead callers don't go unnoticed.
+      if (
+        isDev &&
+        typeof prop === 'string' &&
+        !KNOWN_UNIMPLEMENTED.has(prop) &&
+        !prop.startsWith('_') &&
+        prop !== 'then' && // avoid await/Promise resolution noise
+        !warnedDeadCalls.has(prop)
+      ) {
+        warnedDeadCalls.add(prop);
+        console.warn(`[NativeLiveKit] '${String(prop)}' is not implemented natively; resolving as no-op.`);
+      }
       return async (..._args: unknown[]) => undefined;
     },
   });
@@ -133,6 +179,37 @@ export const NativeLiveKit: NativeLiveKitPlugin & Record<string, any> =
 export function isNativeLiveKitAvailable(): boolean {
   if (!Capacitor.isNativePlatform()) return false;
   return Capacitor.getPlatform() === 'android';
+}
+
+/**
+ * Phase 4 — async capability probe. Caches the `methods[]` array returned
+ * by Kotlin so callers can do `await hasNativeMethod('disconnectSessionOnly')`
+ * before invoking optional methods, instead of relying on try/catch.
+ */
+let cachedMethods: Set<string> | null = null;
+let methodsProbe: Promise<Set<string>> | null = null;
+export async function getNativeLiveKitMethods(): Promise<Set<string>> {
+  if (cachedMethods) return cachedMethods;
+  if (!isNativeLiveKitAvailable()) {
+    cachedMethods = new Set();
+    return cachedMethods;
+  }
+  if (!methodsProbe) {
+    methodsProbe = NativeLiveKit.isAvailable()
+      .then((r) => {
+        cachedMethods = new Set(r?.methods ?? []);
+        return cachedMethods;
+      })
+      .catch(() => {
+        cachedMethods = new Set();
+        return cachedMethods;
+      });
+  }
+  return methodsProbe;
+}
+export async function hasNativeMethod(name: string): Promise<boolean> {
+  const m = await getNativeLiveKitMethods();
+  return m.has(name);
 }
 
 export default NativeLiveKit;
