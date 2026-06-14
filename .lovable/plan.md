@@ -198,3 +198,30 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 - Party/video-game gap confirmed: when `cameraReady=false` at connect time, later `setCameraEnabled(true)` published a camera track but did not remount the native local renderer. Fixed in `nativeLiveKitController.setCameraEnabled(true)` by calling the existing `attachLocalWithRetry()` after a successful camera enable.
 - Slow-OEM gap confirmed: native `attachLocal()` waited only 3s while OEM Camera2 open can take longer. Fixed by extending the native attach deadline to `OEM_CAMERA_OPEN_TIMEOUT_MS + 1500ms` so late-published local camera tracks still bind to the renderer.
 - Private-call double-renderer/wrong-window risk remains an APK/device verification target because current JS usage does not show `openInCallActivity()` being called; do not remove WebView attach until the native activity launch flow is confirmed active on device.
+
+---
+
+## Android + web static scan hotfix — party bounded renderer — 2026-06-14
+
+### Research baseline
+
+- LiveKit Android requires `Room.initVideoRenderer(renderer)` before rendering and renderer binding should be idempotent; duplicate renderer paths are a black-surface risk on Android EGL/TextureView stacks. Sources: LiveKit Android `initVideoRenderer` docs and LiveKit Android sample renderer usage.
+- Agora/Bigo/Chamet-equivalent pattern: one RTC engine/camera owner, preview/local canvas before join, then join/rebind surfaces without opening a second camera/renderer path. Sources: Agora Interactive Live Streaming Android quickstart + API-before-join best-practice docs.
+
+### Verified current gap
+
+- Party video/game native path used `attachLocal: true`, mounting the legacy fullscreen local renderer.
+- Party UI also renders seats through `<NativeVideoView />`, which binds bounded native renderers via `attachLocalSurface` / `attachRemoteSurface`.
+- Result: the same LiveKit camera/remote track could be bound to both legacy fullscreen and bounded seat renderers, especially after track-subscribe/reconnect sweeps, matching black seat/camera-in-room failures.
+
+### Implemented fix
+
+- Party native connect now passes `attachLocal: false`; bounded `<NativeVideoView />` owns party video/game seat rendering.
+- `nativeLiveKitController` remembers per session whether legacy auto-local attach is allowed; late `setCameraEnabled(true)` only auto-attaches for live/call, not party bounded seats.
+- `LiveKitPlugin.attachLocalSurface()` and `attachRemoteSurface()` remove/release any legacy renderer before binding bounded surfaces.
+- `LiveKitPlugin.attachRemote()` now no-ops when `BoundedSurfaceHost` already owns that remote sid.
+
+### Verification required
+
+- Web reload applies TS changes immediately; Kotlin changes require APK rebuild.
+- Device test: owner account → create/join video party and game party → take camera seat → remote viewer sees video → toggle camera off/on → leave/re-enter. Expected: no duplicate renderer, no black seat tile, no fullscreen wrong-window renderer.
