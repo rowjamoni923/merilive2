@@ -750,6 +750,11 @@ class PrivateCallActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        // Phase 2 — notify JS the native window is gone so React can re-render
+        // its own call surface (system back, force-close, or normal teardown).
+        com.merilive.app.plugin.NativeCallPlugin.broadcastWindowState(
+            applicationContext, vm.identity.value?.callId, "closed"
+        )
         // Release renderers but DO NOT touch the Room (LiveKitPlugin owns it).
         detachAllRenderers(release = true)
         closeReceiver?.let { runCatching { unregisterReceiver(it) } }
