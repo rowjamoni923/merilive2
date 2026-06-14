@@ -191,7 +191,26 @@ const FaceVerification = () => {
 
   // Pkg416: claim the verification slot. Mutually exclusive with the
   // streaming family (live / private call / video party / game party).
-  useProCamera('face-verify', true);
+  // Phase 6 (Camera Rebuild, 2026-06-14) — surface CameraConflictError as a
+  // friendly English toast so the user knows to end their live/call first
+  // instead of seeing a silent blank CameraX preview.
+  const faceVerifyCam = useProCamera('face-verify', true);
+  useEffect(() => {
+    if (!faceVerifyCam.error) return;
+    const holders = faceVerifyCam.error.currentOwners.join(', ');
+    toast({
+      title: 'Camera busy',
+      description: `Please end your ${holders || 'live/call'} session before verifying your face.`,
+      variant: 'destructive',
+    });
+    // Bounce back so the user isn't stuck on a screen whose camera will
+    // never start while the streaming family holds the slot.
+    const t = setTimeout(() => navigate(-1), 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faceVerifyCam.error]);
+
+
 
   
   // Determine verification type based on user gender
