@@ -1365,6 +1365,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     try {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
+      if (qualityEnforcerRef.current) {
+        clearInterval(qualityEnforcerRef.current);
+        qualityEnforcerRef.current = null;
+      }
       if (tokenRefreshDetachRef.current) {
         try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
         tokenRefreshDetachRef.current = null;
