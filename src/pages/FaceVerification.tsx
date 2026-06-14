@@ -916,6 +916,9 @@ const FaceVerification = () => {
     setFaceCameraStarting(true);
     setCameraReady(false);
     try {
+      if (!faceVerifyCam.ready || faceVerifyCam.error) {
+        throw new Error('Camera busy — Please end your live, party, or call session before verifying your face.');
+      }
       autoFaceStartRef.current = false;
       preloadLocalFacePoseDetector();
       setNativeFaceCameraActive(false);
@@ -967,7 +970,7 @@ const FaceVerification = () => {
     } finally {
       setFaceCameraStarting(false);
     }
-  }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive]);
+  }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive, faceVerifyCam.ready, faceVerifyCam.error]);
   
   useEffect(() => {
     if (faceStream) {
