@@ -71,6 +71,7 @@ import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 const GiftEmojiAnimation = lazy(() => import("@/components/chat/GiftEmojiAnimation").then(m => ({ default: m.GiftEmojiAnimation })));
+import { FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
