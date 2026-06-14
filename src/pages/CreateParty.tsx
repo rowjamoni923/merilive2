@@ -493,7 +493,8 @@ const CreateParty = () => {
 
   // Host Video Cell
   const HostVideoCell = ({ className }: { className?: string }) => {
-    const showVideo = !!stream && isVideoEnabled && cameraReady;
+    const showNativeVideo = isNativeAndroid && nativePreviewActive && isVideoEnabled && cameraReady && mode !== "audio";
+    const showVideo = showNativeVideo || (!!stream && isVideoEnabled && cameraReady);
     return (
       <div className={cn(
         "relative rounded-2xl overflow-hidden bg-purple-800/40 border border-purple-500/30",
@@ -515,6 +516,13 @@ const CreateParty = () => {
             showGlow={true}
           />
         </div>
+        {showNativeVideo && (
+          <NativeVideoView
+            kind="local"
+            mirror={facingMode === "user"}
+            className="absolute inset-0 w-full h-full"
+          />
+        )}
         {stream && isVideoEnabled && (
           <video
             ref={videoRef}
