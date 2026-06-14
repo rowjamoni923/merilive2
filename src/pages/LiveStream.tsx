@@ -2373,6 +2373,9 @@ const LiveStream = () => {
       : undefined;
 
     const enterBeforeJoin = async () => {
+      if (initialHostRole && !liveStreamCamera.ready) {
+        throw new Error('Camera is in use by another feature. Please close it and try again.');
+      }
       if (!initialHostRole) {
         const { data, error } = await supabase.rpc('enter_live_stream', {
           p_stream_id: id,
@@ -2456,7 +2459,7 @@ const LiveStream = () => {
         import('sonner').then(({ toast: t }) => { try { t.dismiss('lk-live-reconnect'); } catch { /* ignore */ } }).catch(() => {});
       } catch { /* ignore */ }
     };
-  }, [id, location.state?.isHost]); // Only depends on id and initial isHost
+  }, [id, location.state?.isHost, liveStreamCamera.ready]); // Only depends on id and initial isHost
 
   // Call button shows only for female hosts - visible to all viewers
   const shouldShowCallButton = hostInfo?.isVerifiedHost && (hostInfo?.gender === "female" || hostInfo?.gender === "Female") && !isHost;
