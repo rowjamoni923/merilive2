@@ -100,24 +100,13 @@ export async function applyProBeauty(levels: ProBeautyLevels) {
 export async function setBeautyEnabled(enabled: boolean) {
   if (!isNativeBeautyAvailable()) return;
   await ensureBeautyInit();
-  try {
-    const r: any = await GPUPixelBeauty.setEnabled({ enabled });
-    // Pkg418: when LiveKit owns the camera the native plugin returns
-    // `{ deferred: true }` (it cannot safely flip the GPUPixel Camera2
-    // session under a live LiveKit (Android native) capture — would race CAMERA_IN_USE).
-    // Route through LiveKit's coordinated setBeautyPipelineEnabled which
-    // does camera-disable → 150ms wait → bridge-flip → camera-enable, so
-    // the broadcast pipeline really turns on/off instead of silently
-    // staying in the previous state.
-    if (r && (r as any).deferred === true) {
-      try {
-        const { NativeLiveKit } = await import('@/plugins/NativeLiveKit');
-        await NativeLiveKit.setBeautyPipelineEnabled({ enabled });
-      } catch (e) {
-        console.warn('[GPUPixelBeauty] LiveKit-routed setEnabled failed:', e);
-      }
-    }
-  } catch { /* ignore */ }
+  // Pkg416/Pkg201 correction: streaming beauty must NEVER hand camera
+  // ownership away from LiveKit. The real outgoing-video path is
+  // applyBroadcastBeauty() → NativeLiveKit.setBeautyBroadcast(), which
+  // attaches GPUPixel as a VideoProcessor to the existing LocalVideoTrack.
+  // Keep this method as init-only for old UI callers so a Beauty toggle can
+  // no longer call setBeautyPipelineEnabled() and pause the live camera.
+  void enabled;
 }
 
 const STORAGE_KEY = 'pkg200.beauty.levels.v1';
