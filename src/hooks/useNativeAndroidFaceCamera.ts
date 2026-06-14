@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { NativeCamera } from '@/plugins/NativeCamera';
+import { ProCameraEngine } from '@/camera/ProCameraEngine';
 import { useNativeFaceCamera as useSharedNativeFaceCamera } from './useNativeFaceCamera';
 
 export function useNativeAndroidFaceCamera() {
@@ -21,14 +22,12 @@ export function useNativeAndroidFaceCamera() {
       await shared.stopPreview();
     }
     
-    // Ensure all other native cameras are stopped before starting face camera
-    // This is the CRITICAL fix for the "Blank Screen" bug where LiveKit
-    // or another native instance holds the hardware handle.
-    try {
-      await NativeCamera.stop();
-    } catch (err) {
-      console.warn('[useNativeAndroidFaceCamera] NativeCamera.stop failed during init', err);
+    if (ProCameraEngine.currentFamily() === 'streaming') {
+      throw new Error('Camera busy — Please end your live, party, or call session before verifying your face.');
     }
+    // Stop only a previous FaceVerification CameraX preview. Never evict
+    // LiveKit/party/call here; ProCameraEngine owns that conflict decision.
+    await NativeCamera.stop().catch(() => undefined);
 
     const ok = await shared.startPreview(resolution);
     setActive(true);

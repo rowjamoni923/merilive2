@@ -676,6 +676,10 @@ const GoLive = () => {
     const switchPromise = (async () => {
       try {
         if (isNativeAndroid) return;
+        if (proCameraErrorRef.current || !proCameraReadyRef.current) {
+          toast.error('Camera is busy. Finish Face Verification and try again.');
+          return;
+        }
 
         const previousStream = streamRef.current;
         const previousAudioTracks = previousStream?.getAudioTracks().filter((track) => track.readyState === 'live') ?? [];
