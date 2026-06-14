@@ -343,6 +343,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // the broadcast or freeze the published video track.
   useNativeLiveKitLifecycle(nativeActive);
 
+  useEffect(() => {
+    return () => {
+      try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
+      try { toast.dismiss('lk-live-camera-stabilize'); } catch { /* ignore */ }
+      if (cameraStabilizeTimerRef.current) {
+        clearTimeout(cameraStabilizeTimerRef.current);
+        cameraStabilizeTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const getUidForParticipant = useCallback((identity: string): number => {
     if (participantUidMapRef.current.has(identity)) {
       return participantUidMapRef.current.get(identity)!;
