@@ -2732,6 +2732,35 @@ class LiveKitPlugin : Plugin() {
                             }
                         }
                     }
+                    // Phase 1 (Camera Rebuild Plan, 2026-06-14) — F1 fix.
+                    // When the LOCAL participant publishes its camera track
+                    // (e.g. host joins a Video Party room and the SDK
+                    // auto-publishes, OR connect()+setCameraEnabled(true)
+                    // races with the NativeVideoView mount), no
+                    // `TrackSubscribed` event fires for our own track —
+                    // that's a remote-only event. Without this handler the
+                    // host's seat tile stayed permanently black because
+                    // `BoundedSurfaceHost.attach` ran before the track
+                    // existed and nothing told it to retry.
+                    //
+                    // Industry parity: Agora's `onLocalVideoStateChanged`
+                    // (PUBLISHING state) is where Bigo / MICO trigger their
+                    // local VideoCanvas binding. LiveKit's equivalent is
+                    // `RoomEvent.LocalTrackPublished` — same semantics.
+                    is RoomEvent.LocalTrackPublished -> {
+                        if (event.publication.track?.kind == Track.Kind.VIDEO) {
+                            activity?.runOnUiThread {
+                                try {
+                                    com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r)
+                                } catch (_: Exception) {}
+                            }
+                        }
+                        val data = JSObject()
+                        data.put("sid", event.publication.sid)
+                        data.put("kind", event.publication.track?.kind?.name?.lowercase() ?: "unknown")
+                        data.put("source", event.publication.source.name.lowercase())
+                        notifyListeners("local-track-published", data)
+                    }
                     is RoomEvent.TrackUnsubscribed -> {
                         val data = JSObject()
                         data.put("sid", event.participant.sid.value)
@@ -2739,6 +2768,7 @@ class LiveKitPlugin : Plugin() {
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-unsubscribed", data)
                     }
+
                     is RoomEvent.DataReceived -> {
                         val data = JSObject()
                         data.put("payloadBase64", Base64.encodeToString(event.data, Base64.NO_WRAP))
