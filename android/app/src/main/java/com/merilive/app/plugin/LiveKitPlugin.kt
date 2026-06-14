@@ -322,6 +322,25 @@ class LiveKitPlugin : Plugin() {
                         is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
                         is RoomEvent.Reconnecting -> emit("reconnecting", JSObject())
                         is RoomEvent.Reconnected -> emit("reconnected", JSObject())
+                        is RoomEvent.ActiveSpeakersChanged -> {
+                            val arr = com.getcapacitor.JSArray()
+                            ev.speakers.forEach { arr.put(it.identity?.value ?: "") }
+                            notifyListeners("active-speakers-changed", JSObject().put("speakers", arr))
+                        }
+                        is RoomEvent.ParticipantMetadataChanged -> {
+                            notifyListeners(
+                                "participant-metadata-changed",
+                                JSObject()
+                                    .put("identity", ev.participant.identity?.value ?: "")
+                                    .put("metadata", ev.participant.metadata ?: "")
+                            )
+                        }
+                        is RoomEvent.RoomMetadataChanged -> {
+                            notifyListeners("room-metadata-changed", JSObject().put("metadata", ev.newMetadata ?: ""))
+                        }
+                        is RoomEvent.TranscriptionReceived -> {
+                            notifyListeners("transcription-received", JSObject())
+                        }
                         else -> {}
                     }
                 } catch (t: Throwable) { Log.w(TAG, "event emit failed", t) }
