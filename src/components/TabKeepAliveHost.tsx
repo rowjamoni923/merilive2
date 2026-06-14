@@ -74,15 +74,26 @@ export default function TabKeepAliveHost() {
 
   const hostVisible = activeKey !== null;
 
+  // Phase 9A: when the user is on a NON-tab route (e.g. /live/:id, /call,
+  // /profile, /reels-viewer), do NOT render any kept-alive tab tree. The
+  // inactive Home/Discover/Chat trees include children (gift sheets, win
+  // popups, call overlays, dialing pills, banners) that render via
+  // createPortal(document.body) — those portals escape our `display:none`
+  // wrapper and stack on top of the active screen, causing the visible
+  // "ghost chips / duplicate pill" bleed-through reported on /live and
+  // during incoming calls. Unmounting the whole host on non-tab routes
+  // kills the portals at the source. When the user returns to a tab path,
+  // each tab is rebuilt from its own preserved scroll/list state via the
+  // existing per-page caches (React Query, Zustand) — visually identical
+  // to before, just without the portal leak.
+  if (!hostVisible) return null;
+
   return (
     <div
-      aria-hidden={!hostVisible}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: hostVisible ? 0 : -1,
-        visibility: hostVisible ? 'visible' : 'hidden',
-        pointerEvents: hostVisible ? 'auto' : 'none',
+        zIndex: 0,
         overflow: 'hidden',
       }}
     >
@@ -94,6 +105,11 @@ export default function TabKeepAliveHost() {
           <div
             key={key}
             aria-hidden={!isActive}
+            // Phase 9A: `inert` (where supported) blocks focus + interactions
+            // for inactive tabs even if a stray portal child tries to capture
+            // events. Combined with `display:none`, this fully isolates the
+            // hidden tabs from the active one.
+            {...(!isActive ? { inert: '' as unknown as boolean } : {})}
             style={{
               position: 'absolute',
               inset: 0,
