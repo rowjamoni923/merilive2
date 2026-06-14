@@ -355,6 +355,137 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod fun releaseCameraForWebView(call: PluginCall) { call.resolve() }
 
     // ─────────────────────────────────────────────
+    // Phase 1 — Seat-bound renderer overlays
+    // (Bigo/Chamet pattern: per-seat TextureView pinned over each tile;
+    //  React tile remains visible for badges/avatar fallback/empty seats.)
+    // ─────────────────────────────────────────────
+    @PluginMethod
+    fun bindSeatRenderer(call: PluginCall) {
+        val seatIndex = call.getInt("seatIndex") ?: run { call.reject("seatIndex required"); return }
+        val identity = call.getString("identity") ?: run { call.reject("identity required"); return }
+        val mirror = call.getBoolean("mirror", false) ?: false
+        val rect = call.getObject("rect") ?: run { call.reject("rect required"); return }
+        val x = rect.optDouble("x", 0.0)
+        val y = rect.optDouble("y", 0.0)
+        val w = rect.optDouble("w", 0.0)
+        val h = rect.optDouble("h", 0.0)
+        runOnMain {
+            try {
+                val slot = ensureSeatSlot(seatIndex, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }
+                applyRect(slot.renderer, x, y, w, h)
+                if (slot.identity != identity) slot.identity = identity
+                SeatRendererBinder.bindSeat(room, seatIndex, identity, slot.renderer)
+                call.resolve(JSObject().put("bound", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "bindSeatRenderer", t)
+                call.reject("bindSeatRenderer: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun updateSeatRendererRect(call: PluginCall) {
+        val seatIndex = call.getInt("seatIndex") ?: run { call.reject("seatIndex required"); return }
+        val rect = call.getObject("rect") ?: run { call.reject("rect required"); return }
+        val x = rect.optDouble("x", 0.0)
+        val y = rect.optDouble("y", 0.0)
+        val w = rect.optDouble("w", 0.0)
+        val h = rect.optDouble("h", 0.0)
+        runOnMain {
+            try {
+                val slot = seatSlots[seatIndex] ?: run { call.resolve(); return@runOnMain }
+                applyRect(slot.renderer, x, y, w, h)
+                call.resolve()
+            } catch (t: Throwable) {
+                Log.w(TAG, "updateSeatRendererRect", t)
+                call.resolve()
+            }
+        }
+    }
+
+    @PluginMethod
+    fun unbindSeatRenderer(call: PluginCall) {
+        val seatIndex = call.getInt("seatIndex") ?: run { call.resolve(); return }
+        runOnMain {
+            try {
+                SeatRendererBinder.unbindSeat(seatIndex)
+                val slot = seatSlots.remove(seatIndex)
+                if (slot != null) {
+                    (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+                    try { slot.renderer.release() } catch (_: Throwable) {}
+                }
+                call.resolve()
+            } catch (t: Throwable) {
+                Log.w(TAG, "unbindSeatRenderer", t)
+                call.resolve()
+            }
+        }
+    }
+
+    @PluginMethod
+    fun clearAllSeatRenderers(call: PluginCall) {
+        runOnMain {
+            try { clearSeatRenderersInternal() } catch (_: Throwable) {}
+            call.resolve()
+        }
+    }
+
+    private fun clearSeatRenderersInternal() {
+        SeatRendererBinder.clear()
+        seatSlots.values.forEach { slot ->
+            (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+            try { slot.renderer.release() } catch (_: Throwable) {}
+        }
+        seatSlots.clear()
+    }
+
+    private fun ensureSeatSlot(seatIndex: Int, mirror: Boolean): SeatRendererSlot? {
+        val act = activity ?: return null
+        val wv = bridge?.webView ?: return null
+        val parent = (wv.parent as? ViewGroup) ?: return null
+        val existing = seatSlots[seatIndex]
+        if (existing != null) {
+            existing.renderer.setMirror(mirror)
+            return existing
+        }
+        val renderer = TextureViewRenderer(act).apply {
+            setEnableHardwareScaler(true)
+            setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            setMirror(mirror)
+        }
+        try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer seat=$seatIndex", t) }
+        // Mount ABOVE WebView so the camera tile is visible on top of the
+        // (opaque) React seat background. React tile underneath still
+        // provides empty-seat UI, gradients, badges, etc.
+        val lp = FrameLayout.LayoutParams(1, 1)
+        parent.addView(renderer, lp)
+        val slot = SeatRendererSlot(seatIndex, "", renderer)
+        seatSlots[seatIndex] = slot
+        return slot
+    }
+
+    private fun applyRect(view: View, cssX: Double, cssY: Double, cssW: Double, cssH: Double) {
+        val density = context.resources.displayMetrics.density
+        val w = (cssW * density).toInt().coerceAtLeast(1)
+        val h = (cssH * density).toInt().coerceAtLeast(1)
+        val left = (cssX * density).toInt().coerceAtLeast(0)
+        val top = (cssY * density).toInt().coerceAtLeast(0)
+        val lp = (view.layoutParams as? FrameLayout.LayoutParams)
+            ?: FrameLayout.LayoutParams(w, h)
+        lp.width = w
+        lp.height = h
+        lp.leftMargin = left
+        lp.topMargin = top
+        view.layoutParams = lp
+    }
+
+    /** Push local preview track into any seat slot already bound to local identity. */
+    private fun rebindSeatSlotsForLocalTrack(track: LocalVideoTrack) {
+        val id = room?.localParticipant?.identity?.value ?: return
+        SeatRendererBinder.onLocalTrackPublished(id, track)
+    }
+
+    // ─────────────────────────────────────────────
     // Internals
     // ─────────────────────────────────────────────
     private fun observeRoomEvents(r: Room) {
