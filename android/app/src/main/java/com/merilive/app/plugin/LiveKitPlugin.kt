@@ -2545,6 +2545,13 @@ class LiveKitPlugin : Plugin() {
 
     @PermissionCallback
     private fun permsCallback(call: PluginCall) {
+        if (call.getString("url") == null || call.getString("token") == null) {
+            val data = JSObject()
+            data.put("reason", "stale_permission_call")
+            notifyListeners("permission-error", data)
+            call.reject("Permission flow expired; retry connect")
+            return
+        }
         val wantsVideo = call.getBoolean("video", true) ?: true
         val wantsAudio = call.getBoolean("audio", true) ?: true
         val cameraOk = !wantsVideo || getPermissionState("camera") == PermissionState.GRANTED
