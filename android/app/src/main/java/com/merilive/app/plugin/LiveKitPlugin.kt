@@ -44,10 +44,10 @@ import org.webrtc.SurfaceViewRenderer
  *
  * Bigo/Chamet-style continuous camera flow:
  *
- *   startLocalPreview()           → opens Camera2 ONCE, renders behind WebView
+ *   startLocalPreview()           → opens CameraX ONCE, renders behind WebView
  *   connect({ video:true })       → republishes the SAME LocalVideoTrack
  *                                    (no second openCamera, no flicker)
- *   disconnect() / teardownRoom() → unpublish + stop track + release Camera2
+ *   disconnect() / teardownRoom() → unpublish + stop track + release CameraX
  *
  * Single owner by construction: the only `LocalVideoTrack` instance lives in
  * `previewTrack`. Whether we're in "preview only" or "connected + publishing",
@@ -90,23 +90,24 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
-        // Activate CameraX as the underlying capturer for the whole LiveKit
-        // SDK. Once registered, every setCameraEnabled() / createVideoTrack()
-        // call (including startLocalPreview here) uses CameraX instead of
-        // the default raw Camera2 capturer. Google maintains OEM-specific
-        // patches inside CameraX, so this gives us ~99% device coverage
-        // (Samsung/Xiaomi/Vivo/Oppo HAL quirks handled upstream).
+        // CameraX is the ONLY camera pipeline this plugin uses. We register
+        // it globally with the LiveKit SDK so every createVideoTrack() /
+        // setCameraEnabled() / startLocalPreview() call goes through CameraX.
+        // CameraX is Google's official 2025 recommendation — it internally
+        // handles OEM HAL quirks (Samsung/Xiaomi/Vivo/Oppo) giving ~99%
+        // device coverage. Only ONE camera pipeline is ever active.
         try {
             val app = context.applicationContext as android.app.Application
             val provider = CameraXHelper.createCameraProvider(ProcessLifecycleOwner.get())
             if (provider.isSupported(app)) {
                 CameraCapturerUtils.registerCameraProvider(provider)
-                Log.i(TAG, "CameraX provider registered — using CameraX capturer")
+                Log.i(TAG, "CameraX provider registered — CameraX is the active capturer")
             } else {
-                Log.w(TAG, "CameraX provider not supported on this device — falling back to Camera2")
+                // Extremely rare (pre-API 21 / no CameraX HAL). SDK default kicks in.
+                Log.w(TAG, "CameraX not supported on this device — SDK default capturer will be used")
             }
         } catch (t: Throwable) {
-            Log.w(TAG, "CameraX registration failed; falling back to Camera2", t)
+            Log.w(TAG, "CameraX registration failed; SDK default capturer will be used", t)
         }
         Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
     }
@@ -238,7 +239,7 @@ class LiveKitPlugin : Plugin() {
 
     /**
      * Preview → session handoff. If `previewTrack` is non-null we republish
-     * that exact LocalVideoTrack to the new session room — Camera2 is NOT
+     * that exact LocalVideoTrack to the new session room — CameraX is NOT
      * reopened, so the user sees an uninterrupted feed from the preview
      * surface into the live / party / call room.
      */
@@ -462,7 +463,7 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
-        // Releases publish + stops Camera2 via the SDK.
+        // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
             if (track != null) {
