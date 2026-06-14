@@ -239,7 +239,7 @@ class LiveKitPlugin : Plugin() {
 
     /**
      * Preview → session handoff. If `previewTrack` is non-null we republish
-     * that exact LocalVideoTrack to the new session room — Camera2 is NOT
+     * that exact LocalVideoTrack to the new session room — CameraX is NOT
      * reopened, so the user sees an uninterrupted feed from the preview
      * surface into the live / party / call room.
      */
