@@ -108,6 +108,7 @@
         android:allowAudioPlaybackCapture="false"
         android:localeConfig="@xml/locales_config"
         android:enableOnBackInvokedCallback="true"
+        android:extractNativeLibs="true"
         tools:targetApi="34">
 
         <activity
