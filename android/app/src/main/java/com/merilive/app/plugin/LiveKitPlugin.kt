@@ -3267,7 +3267,6 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnResume() {
         super.handleOnResume()
         if (room == null) return
-        if (!inBackground) return
         inBackground = false
         try {
             val r = room ?: return
