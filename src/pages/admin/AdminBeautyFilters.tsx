@@ -1,13 +1,10 @@
-/**
- * AdminBeautyFilters — REMOVED (Pkg200 prep).
- * GPUPixel admin panel আসছে।
- */
+/** Camera rebuild 2026-06-14: native beauty engine removed. */
 export default function AdminBeautyFilters() {
   return (
     <div className="p-8 text-center">
-      <h2 className="text-lg font-semibold text-foreground mb-2">Beauty Filter Studio — Rebuilding</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-2">Beauty Filter Studio — Disabled</h2>
       <p className="text-sm text-muted-foreground">
-        নতুন GPUPixel professional beauty engine integration চলছে।
+        Native beauty was removed to protect the single-camera LiveKit path.
       </p>
     </div>
   );
