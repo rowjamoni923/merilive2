@@ -199,6 +199,21 @@ All streaming owners coexist (refcount, shared LiveKit publisher). Face-verify i
 
 **Verification:** APK rebuild REQUIRED. This is a native plugin/API change. Expected result after rebuild: one Camera2 owner (`livekit`) across GoLive/CreateParty → room; no WebView camera probe on native party; no double renderer in party preview; no route UI bleed on close/handoff.
 
+### Phase 9H — Subagent camera/UI audit critical fixes ✅ DONE 2026-06-14
+
+**Audit result:** remaining regressions were not visual design issues; they were lifecycle ownership bugs: native preview could race native connect, NativeLiveKit singleton could silently steal another feature's session, private call had two `ProCameraEngine` acquire sites, party cleanup double-released the WebView camera claim counter, and call/live sticky overlays could leak on abnormal unmount.
+
+**Fixes applied now:**
+- `src/lib/nativeLiveKitController.ts` now serializes `startLocalPreview()` with the same busy lock as `connectAndPublish()`, tracks active session scope (`live`/`party`/`call`), and refuses cross-feature takeover instead of silently disconnecting an active session.
+- `src/components/call/CallProvider.tsx` is now the single private-call camera owner; `ActiveCallScreen.tsx` receives `proCameraReady` and no longer acquires `private-call` again.
+- `src/hooks/useLiveKitCall.ts` replaces bare `isInitRef` with call-id-keyed init state and adds unconditional sticky-toast dismissal on unmount.
+- `src/hooks/usePartyRoomNativeLiveKit.ts` removed the cleanup double-release before `releaseAndroidWebViewCameraNow()`.
+- `src/pages/CreateParty.tsx` now uses `useLayoutEffect` for native media transparency, matching GoLive's pre-paint behavior.
+- `src/native/cameraAuthority.ts` is no longer a parallel JS arbiter; it delegates to `ProCameraEngine`.
+- `src/hooks/useLiveKitClient.ts` adds unmount-level cleanup for live reconnect/camera-stabilize sticky toasts.
+
+**Verification:** APK rebuild REQUIRED for native behavior. Code-level verification: searched for removed double private-call acquire, removed party cleanup double-release, call-id init guard, activeFeature guard, and bounded native party preview markers.
+
 
 
 ## What I will NOT do without explicit OK
