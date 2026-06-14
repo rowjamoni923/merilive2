@@ -463,7 +463,7 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
-        // Releases publish + stops Camera2 via the SDK.
+        // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
             if (track != null) {
