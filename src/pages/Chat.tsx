@@ -2682,6 +2682,7 @@ const Chat = () => {
                             ? getCachedGifts().find(g => (g.name || '').trim().toLowerCase() === giftName.trim().toLowerCase())
                             : null;
                           const catalogIconUrl = normalizeGiftMediaUrl(cachedGift?.icon_url) || null;
+                          const inlineIconUrl = catalogIconUrl || (mediaUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(mediaUrl.split('?')[0]) ? mediaUrl : null);
 
                           return (
                             <div className={cn("flex flex-col gap-0.5", isMine ? "items-end" : "items-start")}>
@@ -2689,7 +2690,7 @@ const Chat = () => {
                                 senderName={senderName}
                                 senderAvatar={senderAvatar || undefined}
                                 giftName={giftName}
-                                giftIconUrl={catalogIconUrl || mediaUrl || undefined}
+                                giftIconUrl={inlineIconUrl || undefined}
                                 giftEmoji={emoji}
                                 count={giftCount}
                                 coins={totalCoins}
