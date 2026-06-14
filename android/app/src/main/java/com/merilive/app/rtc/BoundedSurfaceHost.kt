@@ -81,7 +81,7 @@ object BoundedSurfaceHost {
         val entry = entries[viewId] ?: Entry(
             viewId = viewId,
             renderer = TextureViewRenderer(context).also {
-                try { room?.initVideoRenderer(it) } catch (_: Exception) {}
+                kotlin.runCatching { room?.initVideoRenderer(it) }
                 it.setEnableHardwareScaler(true)
                 it.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                 it.setMirror(mirror)
