@@ -217,6 +217,7 @@ export function useNativeCallBillingSync({
           callRow.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number }).coins_per_minute ?? 0,
         );
         maybePush();
+        if (cancelled) return;
 
         // Realtime — caller wallet (push every balance change). Open channels
         // only after confirming this device is the caller side, so the host
