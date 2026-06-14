@@ -84,6 +84,13 @@ interface NativeLiveKitPlugin {
   stopLocalPreview(): Promise<{ stopped: boolean; reason?: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid?: string; identity?: string }>;
   disconnect(): Promise<void>;
+  /**
+   * Phase 3 — tear down the LiveKit Room WITHOUT killing the local preview
+   * track / renderer. Use between connect retries so the preview camera feed
+   * survives a failed first attempt (no black flash between retries).
+   * Safe no-op on web / iOS / older APKs (Proxy swallows).
+   */
+  disconnectSessionOnly?(): Promise<{ ok: boolean }>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   switchCamera(): Promise<{ position: Lens }>;
