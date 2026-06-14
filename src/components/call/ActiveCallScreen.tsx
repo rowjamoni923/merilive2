@@ -794,7 +794,7 @@ export function ActiveCallScreen({
   if (nativeInCallOpen) {
     return createPortal(
       <RequireNativeAndroidGate feature="call">
-        <div aria-hidden className="fixed inset-0 z-[2147483600] bg-transparent pointer-events-none" />
+        <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
       </RequireNativeAndroidGate>,
       document.body,
     );
