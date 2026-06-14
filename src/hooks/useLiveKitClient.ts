@@ -212,6 +212,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Phase 9B: 2s debounce timer for the "Stabilizing live camera…" toast so
+  // transient stalls (beauty toggle, autofocus) don't flash a sticky toast.
+  const cameraStabilizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qualityEnforcerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
@@ -291,22 +294,46 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // this guard the sticky toast leaks onto Home / CreateParty.
       if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'started') {
+        // Phase 9B: explicitly dismiss any pending camera-stabilize toast
+        // (incl. the one from `onVideoStall` below). Without this, beauty
+        // filter toggles / brief stalls leave a sticky loading toast.
+        if (cameraStabilizeTimerRef.current) {
+          clearTimeout(cameraStabilizeTimerRef.current);
+          cameraStabilizeTimerRef.current = null;
+        }
+        toast.dismiss('lk-live-camera-stabilize');
         window.dispatchEvent(new Event('beauty:reapply'));
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
-        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
+        // Phase 9B: debounce 2s — transient stalls (beauty toggle, autofocus,
+        // single dropped frame) self-recover before the toast ever appears.
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (cameraStabilizeTimerRef.current) return;
+        cameraStabilizeTimerRef.current = setTimeout(() => {
+          cameraStabilizeTimerRef.current = null;
+          if (isLeavingRef.current || !usingNativeRef.current) return;
+          toast.loading('Stabilizing live camera…', { id: 'lk-live-camera-stabilize' });
+        }, 2000);
       }
     },
     onVideoStall: (s, isLocal) => {
       if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'failed' && isLocal) {
-        toast.loading('Stabilizing live camera…', { id: 'lk-live-reconnect' });
         nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
+        if (cameraStabilizeTimerRef.current) return;
+        cameraStabilizeTimerRef.current = setTimeout(() => {
+          cameraStabilizeTimerRef.current = null;
+          if (isLeavingRef.current || !usingNativeRef.current) return;
+          toast.loading('Stabilizing live camera…', { id: 'lk-live-camera-stabilize' });
+        }, 2000);
       }
+      // NOTE: 'recovered' state would be ideal here, but the native plugin
+      // currently only emits 'failed' | 'stalled'. Recovery is handled by
+      // `onCameraState: 'started'` above, which fires when the camera frame
+      // pipeline restarts and dismisses the toast there.
     },
   }, options.liveSignalingStreamId ? { scope: 'live', id: options.liveSignalingStreamId } : undefined);
 
@@ -1387,6 +1414,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // has no auto-dismiss, so a recovery in progress at exit time used to
     // leak into Home / Game Party / wherever the user navigated next.
     try { toast.dismiss('lk-live-reconnect'); } catch { /* ignore */ }
+    // Phase 9B: also dismiss the new debounced camera-stabilize toast +
+    // cancel any pending debounce timer, so it never fires after teardown.
+    try { toast.dismiss('lk-live-camera-stabilize'); } catch { /* ignore */ }
+    if (cameraStabilizeTimerRef.current) {
+      clearTimeout(cameraStabilizeTimerRef.current);
+      cameraStabilizeTimerRef.current = null;
+    }
 
     try {
       clearViewerHardReconnectTimer();
