@@ -1116,7 +1116,6 @@ class LiveKitPlugin : Plugin() {
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
-            args.roomScope != "party" &&
             previewRoom != null &&
             previewTrack != null &&
             room == null
@@ -1142,11 +1141,6 @@ class LiveKitPlugin : Plugin() {
             promotePreviewToSession(args)
             return
         }
-        if (!isReconnect && previewTrack != null && args.roomScope == "party") {
-            Log.i(TAG, "connectInternal: party video path — cold-starting session (no prejoin preview to promote from)")
-        }
-
-
         // Legacy rebuild path — release the pre-connect preview camera FIRST
         // so the real session can claim Camera2 cleanly. The CameraOwnership
         // release below arms the OEM settle grace which the claim code
