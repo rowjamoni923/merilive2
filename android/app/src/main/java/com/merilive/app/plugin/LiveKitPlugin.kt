@@ -105,6 +105,7 @@ class LiveKitPlugin : Plugin() {
         val key: String,
         val renderer: TextureViewRenderer,
         var identity: String? = null,
+        var isLocal: Boolean = false,
         var attachedTrack: VideoTrack? = null,
         var mirror: Boolean = false,
     )
