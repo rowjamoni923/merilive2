@@ -212,6 +212,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Phase 9B: 2s debounce timer for the "Stabilizing live camera…" toast so
+  // transient stalls (beauty toggle, autofocus) don't flash a sticky toast.
+  const cameraStabilizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qualityEnforcerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
