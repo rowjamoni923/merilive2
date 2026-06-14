@@ -3354,6 +3354,7 @@ class LiveKitPlugin : Plugin() {
             // plugin instance will re-subscribe in its own load().
             try { unsubscribeAppLifecycle?.invoke() } catch (_: Exception) {}
             unsubscribeAppLifecycle = null
+            scope.cancel()
             if (INSTANCE === this) INSTANCE = null
             return
         }
@@ -3425,6 +3426,7 @@ class LiveKitPlugin : Plugin() {
         unsubscribeAppLifecycle = null
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
+        scope.cancel()
         if (INSTANCE === this) INSTANCE = null
     }
 
