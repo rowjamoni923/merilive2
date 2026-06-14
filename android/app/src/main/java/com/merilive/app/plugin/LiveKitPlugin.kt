@@ -336,7 +336,7 @@ class LiveKitPlugin : Plugin() {
                             )
                         }
                         is RoomEvent.RoomMetadataChanged -> {
-                            notifyListeners("room-metadata-changed", JSObject().put("metadata", ev.newMetadata ?: ""))
+                            notifyListeners("room-metadata-changed", JSObject())
                         }
                         is RoomEvent.TranscriptionReceived -> {
                             notifyListeners("transcription-received", JSObject())
