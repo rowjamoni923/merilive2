@@ -197,6 +197,10 @@ class LiveKitPlugin : Plugin() {
         // If the host returns before this elapses, video resumes instantly.
         // Otherwise the existing process-background teardown runs.
         private const val LIVE_HOST_BG_GRACE_MS = 60_000L
+        // Viewers / party audience need a shorter tolerance window too. A
+        // notification shade, OTP peek, or app-switch must not instantly destroy
+        // their subscriber renderers and return to a black room.
+        private const val LIVE_VIEWER_BG_GRACE_MS = 20_000L
 
 
         // Step 29 — Picture-in-Picture bridge from MainActivity.
@@ -656,6 +660,7 @@ class LiveKitPlugin : Plugin() {
         val isPartyHost = scopeName == "party" && lastConnectArgs?.isHost == true
         val hostGraceEligible = isLiveHost || isPartyHost
         val graceLabel = if (isPartyHost) "party-host" else "live-host"
+        val audienceGraceEligible = !hostGraceEligible && (scopeName == "live" || scopeName == "party")
 
         // Phase I.b / III.c — Bigo/Chamet-class 60s background grace for hosts.
         // FGS keeps mic + Room alive; we only pause the camera so viewers see
@@ -699,8 +704,35 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        // Viewers + party audience + private call → preserve existing immediate teardown.
-        if (!foreground && (scopeName == "live" || scopeName == "party" || scopeName == "call")) {
+        // Live/party viewers and non-host seats should tolerate short app-switches
+        // without tearing down the native Room. They do not own camera/mic here;
+        // keep the subscriber session alive and only disconnect if backgrounded
+        // beyond the grace window.
+        if (!foreground && audienceGraceEligible) {
+            try {
+                liveHostGraceJob?.cancel()
+                val endsAtMs = System.currentTimeMillis() + LIVE_VIEWER_BG_GRACE_MS
+                val payload = JSObject()
+                payload.put("endsAtMs", endsAtMs)
+                payload.put("graceMs", LIVE_VIEWER_BG_GRACE_MS)
+                payload.put("scope", scopeName)
+                payload.put("role", "audience")
+                notifyListeners("live-host-grace-start", payload)
+            } catch (_: Exception) {}
+            liveHostGraceJob = scope.launch {
+                try {
+                    delay(LIVE_VIEWER_BG_GRACE_MS)
+                    if (processInBackground) {
+                        Log.i(TAG, "audience grace expired — ending native $scopeName session")
+                        endLiveSessionAfterGrace(r)
+                    }
+                } catch (_: kotlinx.coroutines.CancellationException) {}
+            }
+            return
+        }
+
+        // Private call keeps immediate teardown for privacy/resource safety.
+        if (!foreground && scopeName == "call") {
             scope.launch {
                 try {
                     Log.i(TAG, "Process background: ending native $scopeName media session")
@@ -737,19 +769,21 @@ class LiveKitPlugin : Plugin() {
             return
         }
 
-        // Foreground transition for a host inside grace: cancel timer, restore camera.
-        if (foreground && hostGraceEligible && liveHostGraceJob != null) {
+        // Foreground transition inside grace: cancel timer; restore camera only for hosts.
+        if (foreground && liveHostGraceJob != null) {
             try { liveHostGraceJob?.cancel() } catch (_: Exception) {}
             liveHostGraceJob = null
-            scope.launch {
-                try { setNativeCameraEnabledWithOemRetry(r, true, "$graceLabel-grace-resume") }
-                catch (e: Exception) { Log.w(TAG, "$graceLabel-grace resume failed: ${e.message}") }
+            if (hostGraceEligible) {
+                scope.launch {
+                    try { setNativeCameraEnabledWithOemRetry(r, true, "$graceLabel-grace-resume") }
+                    catch (e: Exception) { Log.w(TAG, "$graceLabel-grace resume failed: ${e.message}") }
+                }
             }
             try {
                 val resumed = JSObject()
                 resumed.put("reason", "RESUMED")
                 resumed.put("scope", scopeName)
-                resumed.put("role", graceLabel)
+                resumed.put("role", if (hostGraceEligible) graceLabel else "audience")
                 notifyListeners("live-host-grace-end", resumed)
             } catch (_: Exception) {}
             return
@@ -1082,15 +1116,21 @@ class LiveKitPlugin : Plugin() {
         //   • no existing real session
         // Resolution mismatch is OK — capture frames are downscaled at
         // encode time, no Camera2 restart needed.
+        val boundedSurfacesActive = com.merilive.app.rtc.BoundedSurfaceHost.hasSurfaces()
         val canPromotePreview = !isReconnect &&
             args.video &&
             !args.e2eeOn &&
+            args.roomScope != "party" &&
             previewRoom != null &&
             previewTrack != null &&
-            room == null
+            room == null &&
+            !boundedSurfacesActive
         if (canPromotePreview) {
             promotePreviewToSession(args)
             return
+        }
+        if (!isReconnect && previewTrack != null && (args.roomScope == "party" || boundedSurfacesActive)) {
+            Log.i(TAG, "connectInternal: bounded/party video path — cold-starting session instead of promoting fullscreen preview")
         }
 
         // Legacy rebuild path — release the pre-connect preview camera FIRST
@@ -1905,6 +1945,11 @@ class LiveKitPlugin : Plugin() {
                     ret.put("reason", "camera-open-timeout")
                     call.resolve(ret)
                     return@launch
+                }
+                if (enabled) {
+                    withContext(Dispatchers.Main) {
+                        try { com.merilive.app.rtc.BoundedSurfaceHost.rebindForRoom(r) } catch (_: Exception) {}
+                    }
                 }
                 call.resolve(JSObject().put("enabled", enabled))
             } catch (e: Exception) {

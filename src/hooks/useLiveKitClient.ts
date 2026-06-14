@@ -285,6 +285,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     onCameraState: (s) => {
       if (s === 'started') {
         window.dispatchEvent(new Event('beauty:reapply'));
+        nativeLiveKitController.attachLocal().catch(() => {});
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });

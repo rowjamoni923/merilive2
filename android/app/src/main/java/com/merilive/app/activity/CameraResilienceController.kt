@@ -282,7 +282,7 @@ class CameraResilienceController(
     private suspend fun tryEnableCamera(): Boolean {
         return try {
             val room = RtcEngineManager.currentRoom() ?: return false
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
                 try {
                     room.localParticipant.setCameraEnabled(true)
                     true

@@ -218,6 +218,24 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 
 - Party native connect now passes `attachLocal: false`; bounded `<NativeVideoView />` owns party video/game seat rendering.
 - `nativeLiveKitController` remembers per session whether legacy auto-local attach is allowed; late `setCameraEnabled(true)` only auto-attaches for live/call, not party bounded seats.
+
+### Follow-up camera black hotfix — 2026-06-14
+
+- Research re-check: LiveKit Android requires `Room.initVideoRenderer(renderer)` before `VideoTrack.addRenderer(renderer)` and renderer rebind after track availability; Agora/Bigo-equivalent live rooms avoid competing preview/canvas renderers during join. Sources: LiveKit Android `initVideoRenderer`, `VideoTrack.addRenderer/removeRenderer`, `publishVideoTrack` docs; Agora Interactive Live Streaming quickstart + optimized rendering docs.
+- Verified gap: `BoundedSurfaceHost.rebindForRoom()` only late-bound empty placeholders; if a local bounded party tile was already bound then camera was republished (`setCameraEnabled(true)`, reconnect, delayed face-verify ready), it did not swap from the old dead `VideoTrack` to the fresh one.
+- Verified gap: CreateParty starts a fullscreen native prejoin preview, but Party room renders through bounded `<NativeVideoView />`; promoting that fullscreen preview into party can leave stale fullscreen renderer state competing with the bounded tile.
+- Implemented fix: `BoundedSurfaceHost.rebindForRoom()` now resolves current local/remote tracks every time and swaps renderer from old track to new track idempotently.
+- Implemented fix: native `setCameraEnabled(true)` triggers bounded-surface rebind after successful camera publish.
+- Implemented fix: party scope (and already-mounted bounded NativeVideoView surfaces) skips fullscreen preview promotion and cold-starts the session so party bounded tiles are the only visible renderers.
+- Verification required: APK rebuild, owner-device test: Create video party → enter room → local seat visible; toggle camera off/on; leave/re-enter; expected no black local tile and no fullscreen preview bleed.
+
+### Research-agent follow-up fixes — 2026-06-14
+
+- Critical gap fixed: live/party audience sessions no longer instant-disconnect on short process background transitions. They now get a 20s grace window; private call keeps immediate teardown for privacy.
+- High gap fixed: hard reconnect / `camera-state: started` now re-attaches the local renderer for live/call sessions through `nativeLiveKitController.attachLocal()`; party remains protected by `autoAttachLocalRenderer=false` so bounded seats do not get a legacy fullscreen renderer.
+- High gap fixed: `CameraResilienceController.tryEnableCamera()` now calls `room.localParticipant.setCameraEnabled(true)` on `Dispatchers.Main`, not `Dispatchers.IO`.
+- Targeted verification: `bunx vitest run src/test/mediaSurfacesAudit.test.ts` passed (32/32).
+- Remaining APK/device verification: owner account, Android rebuild, test notification shade/app switch as live viewer, host hard reconnect, private call resilience retry.
 - `LiveKitPlugin.attachLocalSurface()` and `attachRemoteSurface()` remove/release any legacy renderer before binding bounded surfaces.
 - `LiveKitPlugin.attachRemote()` now no-ops when `BoundedSurfaceHost` already owns that remote sid.
 
