@@ -8,7 +8,6 @@ import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.Room
 import io.livekit.android.room.participant.RemoteParticipant
 import io.livekit.android.room.track.VideoTrack
-import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import java.util.concurrent.ConcurrentHashMap
 
@@ -62,7 +61,7 @@ object SurfaceLifecycleManager {
     @JvmStatic
     fun attachOrReuse(
         context: Context,
-        eglBase: EglBase,
+        room: Room,
         key: String,
         track: VideoTrack,
         parent: ViewGroup,
@@ -77,8 +76,13 @@ object SurfaceLifecycleManager {
         // initVideoRenderer can throw IllegalStateException("Already initialized")
         // during rapid camera switches / network handoffs. runCatching keeps the
         // existing EGL context bound and avoids tearing down the renderer.
-        kotlin.runCatching { renderer.init(eglBase.eglBaseContext, null) }
-            .onFailure { Log.d(TAG, "init: already initialised for $key (${it.message})") }
+        try {
+            room.initVideoRenderer(renderer)
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, "initVideoRenderer($key): already initialized")
+        } catch (t: Throwable) {
+            Log.w(TAG, "initVideoRenderer($key) failed: ${t.message}")
+        }
 
         // Rebind track only if it actually changed — removeRenderer/addRenderer
         // on the same track triggers a frame-drop hiccup we want to avoid.
