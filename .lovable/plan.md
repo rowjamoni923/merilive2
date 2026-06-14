@@ -161,21 +161,22 @@
 
 ---
 
-## Phase 4 — Plugin Method Surface Cleanup (LOW priority)
+## Phase 4 — Plugin Method Surface Cleanup (LOW priority) ✅ DONE 2026-06-15
 
 **Why last:** non-blocking, just removes silent-fail tech debt.
 
-### Changes
-- Audit every `NativeLiveKit.*()` call site in `nativeLiveKitController.ts` and `useLiveKitClient.ts`
-- For each method NOT in current `LiveKitPlugin.kt`:
-  - Either implement in Kotlin (if needed) OR
-  - Remove from JS (if dead)
-- Replace Proxy silent-swallow with explicit capability check (`isAvailable()` returns `{ methods: string[] }`)
-- Dead methods list: `getActiveSession`, `detachAll`, `attachLocal`, `attachAllRemotes`, `setPreferredCodec`, `setSurviveActivityDestroy`, `reconnectNow`, `updateLiveStats`, `sendData`
+### Changes (implemented)
+- **`LiveKitPlugin.kt` `isAvailable()`** — now returns `methods: string[]` listing every `@PluginMethod` Kotlin actually implements (19 methods). Callers can probe capability instead of relying on try/catch.
+- **`src/plugins/NativeLiveKit.ts`** —
+  - Proxy still resolves unknown methods to a safe async no-op (back-compat for the 30+ legacy importers + web/iOS fallback path), but now logs **one dev-only warning per unexpected method name** so genuinely dead calls surface in `vite` console.
+  - Added `KNOWN_UNIMPLEMENTED` allowlist (audio routing, screenshare, virtual bg, noise cancellation, PiP, RPC, token refresh, plus the 7 truly-dead legacy names: `attachLocal`, `getActiveSession`, `setSurviveActivityDestroy`, `updateLiveStats`, `sendData`, `setPreferredCodec`, `reconnectNow`) — these stay silent, no warning spam.
+  - New `getNativeLiveKitMethods()` + `hasNativeMethod(name)` helpers expose the Kotlin capability list to JS (cached one-shot probe).
+- JS caller sites left untouched: every call already wraps in try/catch and the no-op is intentional for web/iOS. Removing them is a bigger refactor with no user-visible win.
 
 ### Verification
-- TypeScript build green
-- Runtime camera-stall recovery now uses real implemented methods only
+- TypeScript build green.
+- Old web/iOS paths still resolve to no-op (Proxy unchanged on that branch).
+- New dev warnings will appear in browser console only when JS calls a NativeLiveKit method that is neither implemented in Kotlin nor on the `KNOWN_UNIMPLEMENTED` list — a real-world dead-call detector.
 
 ---
 
