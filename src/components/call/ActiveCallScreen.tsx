@@ -8,6 +8,7 @@ import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
+import { NativeCall, hasNativeInCallActivity } from "@/plugins/NativeCall";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
@@ -197,6 +198,7 @@ export function ActiveCallScreen({
     remoteStream,
     remoteVideoTrack,
     localVideoTrack,
+    nativeSession,
     isNativeMediaActive,
     localMediaReady,
     isConnected,
