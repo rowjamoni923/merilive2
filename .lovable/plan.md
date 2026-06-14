@@ -226,7 +226,7 @@ Approve করলে Phase 1 migration দিয়ে শুরু করব।
 - Verified gap: CreateParty starts a fullscreen native prejoin preview, but Party room renders through bounded `<NativeVideoView />`; promoting that fullscreen preview into party can leave stale fullscreen renderer state competing with the bounded tile.
 - Implemented fix: `BoundedSurfaceHost.rebindForRoom()` now resolves current local/remote tracks every time and swaps renderer from old track to new track idempotently.
 - Implemented fix: native `setCameraEnabled(true)` triggers bounded-surface rebind after successful camera publish.
-- Implemented fix: if bounded NativeVideoView surfaces are active, `connectInternal()` skips fullscreen preview promotion and cold-starts the session so party bounded tiles are the only visible renderers.
+- Implemented fix: party scope (and already-mounted bounded NativeVideoView surfaces) skips fullscreen preview promotion and cold-starts the session so party bounded tiles are the only visible renderers.
 - Verification required: APK rebuild, owner-device test: Create video party → enter room → local seat visible; toggle camera off/on; leave/re-enter; expected no black local tile and no fullscreen preview bleed.
 - `LiveKitPlugin.attachLocalSurface()` and `attachRemoteSurface()` remove/release any legacy renderer before binding bounded surfaces.
 - `LiveKitPlugin.attachRemote()` now no-ops when `BoundedSurfaceHost` already owns that remote sid.
