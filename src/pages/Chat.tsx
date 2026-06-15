@@ -1075,15 +1075,10 @@ const Chat = () => {
     // otherwise leave the view stuck at the top (WhatsApp/imo always open at
     // the latest message).
     if (!initialScrollDoneRef.current) {
-      container.scrollTop = container.scrollHeight;
       requestAnimationFrame(() => {
         if (!chatScrollRef.current) return;
         chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
       });
-      setTimeout(() => {
-        if (!chatScrollRef.current) return;
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      }, 80);
       if (currentLen > 0) {
         initialScrollDoneRef.current = true;
       }
