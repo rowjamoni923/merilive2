@@ -18,6 +18,11 @@ import {
   requestGender,
   ensureViewerLoaded,
 } from '@/utils/avatarGenderCache';
+import {
+  getPersistedAvatar,
+  persistAvatarUrl,
+  persistFrame,
+} from '@/utils/persistentAvatarCache';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
@@ -268,8 +273,18 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   onClick,
   frameId: propFrameId,
 }: AvatarWithFrameProps, ref) => {
-  const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(null);
-  const [activeFrameType, setActiveFrameType] = useState<string>('static');
+  // ───── Synchronous hydration from persistent cache ─────
+  // This is what makes the avatar + frame appear INSTANTLY on every
+  // mount — even offline, even on a cold app launch. We read the last
+  // known URL/type from localStorage in the useState initializer so the
+  // very first render already has the right <img src>.
+  const persisted = userId ? getPersistedAvatar(userId) : null;
+  const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(
+    persisted?.frameUrl ?? null,
+  );
+  const [activeFrameType, setActiveFrameType] = useState<string>(
+    persisted?.frameType || 'static',
+  );
   const [frameError, setFrameError] = useState(false);
 
   // ───────── Gender-aware AI placeholder resolution ─────────
@@ -324,6 +339,13 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   // but the avatar photo silently 404s and the user only sees a letter.
   const originalSrc = useMemo(() => {
     if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
+    // No live src — try persistent cache first (instant, offline-safe)
+    // before falling back to the gendered AI placeholder. This is what
+    // keeps the user's own photo visible on cold boot / no network.
+    if (userId) {
+      const cachedUrl = getPersistedAvatar(userId)?.avatarUrl;
+      if (cachedUrl) return cachedUrl;
+    }
     if (!userId) return undefined;
     if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
     return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
@@ -452,11 +474,19 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   // Warm assets instantly (Amazon/R2 URLs) so frame/avatar show without delay
   useEffect(() => {
     warmFrameAsset(activeFrameUrl, activeFrameType);
-  }, [activeFrameUrl, activeFrameType]);
+    // Persist resolved frame to localStorage so it's instant on next mount
+    if (userId && !frameError) {
+      persistFrame(userId, activeFrameUrl, activeFrameType);
+    }
+  }, [activeFrameUrl, activeFrameType, userId, frameError]);
 
   useEffect(() => {
     warmAvatarAsset(effectiveSrc);
-  }, [effectiveSrc]);
+    // Persist real avatar URL (skip placeholders / cache-busted retries)
+    if (userId && hasRealSrc && effectiveSrc && !retriedRef.current) {
+      persistAvatarUrl(userId, effectiveSrc);
+    }
+  }, [effectiveSrc, userId, hasRealSrc]);
 
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
