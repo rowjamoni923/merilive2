@@ -125,6 +125,7 @@ const Reels = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<Comment['user'] | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
   const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
@@ -203,10 +204,16 @@ const Reels = () => {
         setCurrentUserId(user.id);
         // Fetch profile and categories in parallel
         const [profileRes, categoriesRes] = await Promise.all([
-          supabase.from('profiles').select('is_host, coins').eq('id', user.id).single(),
+          supabase.from('profiles').select('is_host, coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
+        setCurrentUserProfile(profileRes.data ? {
+          id: user.id,
+          display_name: profileRes.data.display_name,
+          avatar_url: profileRes.data.avatar_url,
+          user_level: profileRes.data.user_level,
+        } : null);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
         if (categoriesRes.data) {
@@ -259,7 +266,7 @@ const Reels = () => {
           const reelId = row.reel_id;
           if (!reelId) return;
           if (event === 'INSERT') {
-            bumpCount(reelId, 'comment_count', 1);
+            if (row.user_id !== currentUserIdRef.current) bumpCount(reelId, 'comment_count', 1);
             // If user has the comments sheet open on this reel, prepend live
             if (showComments && reels[currentIndex]?.id === reelId && row.user_id !== currentUserIdRef.current) {
               // Re-fetch with profile join for the avatar/name
@@ -311,7 +318,7 @@ const Reels = () => {
       `)
       .eq('is_active', true)
       .eq('is_approved', true)
-      .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
     if (selectedCategory !== 'all') {
       const category = categories.find(c => c.slug === selectedCategory);
@@ -460,13 +467,28 @@ const Reels = () => {
     const currentReel = reels[currentIndex];
     if (!currentReel) return;
 
+    const content = newComment.trim();
+    const optimisticId = `temp-comment-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: optimisticId,
+      content,
+      created_at: new Date().toISOString(),
+      user: currentUserProfile || { id: currentUserId, display_name: 'You', avatar_url: null, user_level: null },
+    };
+
     setSendingComment(true);
+    setNewComment("");
+    setComments(prev => [...prev, optimisticComment]);
+    setReels(prev => prev.map(r => 
+      r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
+    ));
+
     const { data, error } = await supabase
       .from('reel_comments')
       .insert({
         reel_id: currentReel.id,
         user_id: currentUserId,
-        content: newComment.trim()
+        content
       })
       .select(`
         *,
@@ -475,11 +497,14 @@ const Reels = () => {
       .single();
 
     if (!error && data) {
-      setComments(prev => [data, ...prev]);
+      setComments(prev => prev.map(comment => comment.id === optimisticId ? data : comment));
+    } else if (error) {
+      setComments(prev => prev.filter(comment => comment.id !== optimisticId));
       setReels(prev => prev.map(r => 
-        r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
+        r.id === currentReel.id ? { ...r, comment_count: Math.max(0, r.comment_count - 1) } : r
       ));
-      setNewComment("");
+      setNewComment(content);
+      toast.error("Failed to send comment");
     }
     setSendingComment(false);
   };
@@ -1113,7 +1138,7 @@ const Reels = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
 
           {/* List */}
-          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px))' }}>
+          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}>
             {comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
@@ -1175,7 +1200,9 @@ const Reels = () => {
                   placeholder="Add a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendComment()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !(e.nativeEvent as KeyboardEvent).isComposing) sendComment();
+                  }}
                   maxLength={500}
                   className="h-11 rounded-full bg-white/[0.06] border-white/10 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:border-pink-400/40 px-4"
                 />

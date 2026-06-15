@@ -88,6 +88,7 @@ import { warmGiftForInstantPlay, warmGiftUrlsForInstantPlay } from "@/utils/inst
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
+import { DirectChatBubble } from "@/components/chat/UnifiedChatMessage";
 import { getCachedGifts } from "@/hooks/useGiftPrefetch";
 
 interface Conversation {
@@ -2807,29 +2808,17 @@ const Chat = () => {
                           );
                         }
 
-                        // Regular text messages - premium WhatsApp-style bubbles
+                        // Regular text messages - shared DM bubble primitive
                         return (
-                          <div
-                            className={cn(
-                              "px-3 py-[7px] max-w-full text-[14.5px] leading-[1.38] tracking-[-0.005em] antialiased",
-                              isMine
-                                ? "bg-primary text-primary-foreground rounded-[18px] rounded-br-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-                                : "bg-card text-card-foreground rounded-[18px] rounded-bl-[6px] border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
-                              msg._optimistic && "opacity-70"
-                            )}
+                          <DirectChatBubble
+                            message={content}
+                            isMine={isMine}
+                            createdAt={msg.created_at}
+                            status={msg.status || (msg.is_read ? 'read' : 'sent')}
+                            optimistic={msg._optimistic}
                           >
                             <span className="break-words whitespace-pre-wrap">{content}</span>
-                            <span className={cn(
-                              "text-[10px] ml-1.5 float-right mt-[5px] flex items-center gap-1 font-medium",
-                              isMine ? "text-primary-foreground/75" : "text-muted-foreground/80"
-                            )}>
-                              {formatTime(msg.created_at)}
-                              <MessageStatusIndicator 
-                                status={msg.status || (msg.is_read ? 'read' : 'sent')} 
-                                isMine={isMine} 
-                              />
-                            </span>
-                          </div>
+                          </DirectChatBubble>
                         );
                       })()}
                       {/* Reactions */}
@@ -3076,7 +3065,7 @@ const Chat = () => {
           
           {/* Quick Reply Chips - Show when no messages or conversation just started */}
           {!isRecording && !audioBlob && !pendingMedia && !message.trim() && (selectedConversation || selectedGroup) && (
-            <div className="px-4 pb-1">
+            <div className="px-4 pb-1 kb-hide-when-open">
               <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                 {(selectedConversation?.other_user?.is_host ? [
                   // Messages for HOSTS (from user perspective)
@@ -3162,7 +3151,7 @@ const Chat = () => {
           {replyingTo && (() => {
             const preview = summarizeMessageForReply(replyingTo.content, replyingTo.messageType);
             return (
-              <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
+            <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200 kb-hide-when-open">
                 <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
                   <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -3457,7 +3446,7 @@ const Chat = () => {
           
           {/* Action Buttons Row — premium 3D orbs */}
           {!isGroup && (
-            <div className="px-4 pb-3">
+            <div className="px-4 pb-3 kb-hide-when-open">
               <div className="flex justify-center gap-5">
                 {/* Translator */}
                 <motion.button

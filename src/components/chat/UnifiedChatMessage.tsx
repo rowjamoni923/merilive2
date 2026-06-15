@@ -254,7 +254,7 @@ export interface DirectChatBubbleProps {
   message: string;
   isMine: boolean;
   createdAt?: string | number | Date;
-  status?: "sending" | "sent" | "delivered" | "read";
+  status?: "sending" | "queued" | "sent" | "delivered" | "read";
   optimistic?: boolean;
   children?: React.ReactNode; // optional rich content (image, audio…)
 }
@@ -278,25 +278,16 @@ export const DirectChatBubble = memo(function DirectChatBubble({
         className={cn(
           "max-w-[75%] rounded-2xl px-2.5 py-1.5 text-[13px] leading-[1.35] shadow-sm",
           isMine
-            ? "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-slate-900 rounded-br-sm shadow-purple-500/20"
-            : "text-slate-800 rounded-bl-sm",
+            ? "bg-primary text-primary-foreground rounded-br-sm shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+            : "bg-card text-card-foreground rounded-bl-sm border border-border/60",
           optimistic && "opacity-70",
         )}
-        style={
-          !isMine
-            ? {
-                background:
-                  "linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)",
-                border: "1px solid hsl(40 35% 88% / 0.7)",
-              }
-            : undefined
-        }
       >
         {children ?? <span className="break-words">{message}</span>}
         <span
           className={cn(
             "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-            isMine ? "text-slate-600" : "text-slate-500",
+            isMine ? "text-primary-foreground/75" : "text-muted-foreground/80",
           )}
         >
           {time}

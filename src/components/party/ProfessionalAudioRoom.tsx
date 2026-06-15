@@ -24,16 +24,15 @@ import { Badge } from "@/components/ui/badge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { ChametStyleBottomBar } from "./ChametStyleBottomBar";
-import { ChametStyleChatPanel } from "./ChametStyleChatPanel";
 import { ChametStyleViewerPanel } from "./ChametStyleViewerPanel";
 import { ChametStyleCloseModal } from "./ChametStyleCloseModal";
 import { ChametStyleSettingsPanel } from "./ChametStyleSettingsPanel";
 import { BackgroundPickerPanel } from "./BackgroundPickerPanel";
-import { getLevelBadgeStyle, ensureValidLevel, formatLevel } from "@/features/shared/level";
 import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
 
 interface SpeakerInfo {
   id: string;
@@ -874,10 +873,9 @@ export function ProfessionalAudioRoom({
         </div>
       </main>
 
-      {/* Ultra-Premium Floating Chat with Avatar+Frame */}
+      {/* Professional floating chat — same compact room style as Live/Party/Private Call */}
       <div className="absolute left-0 right-[56px] z-20 px-3 chat-composer-stable" style={{ bottom: 'calc(var(--kb-h, 0px) + 72px)' }}>
-        {/* Chat Messages with user avatars */}
-        <div className="space-y-1.5 max-h-36 overflow-hidden pointer-events-none mb-2">
+        <div className="space-y-1.5 max-h-[34vh] overflow-y-auto overflow-x-hidden pointer-events-auto mb-2 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch' }}>
           <AnimatePresence mode="popLayout">
             {chatMessages.slice(-6).map((msg) => (
               <motion.div
@@ -887,74 +885,15 @@ export function ProfessionalAudioRoom({
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                {msg.type === 'system' ? (
-                  <div className="inline-flex items-center py-1 px-2.5 rounded-full bg-black/30 backdrop-blur-sm w-fit">
-                    <span className="text-purple-200/90 text-[10px]">🔔 {msg.message}</span>
-                  </div>
-                ) : msg.type === 'join' ? (
-                  <div className="inline-flex items-center gap-1.5 py-1 pl-1 pr-3 rounded-full w-fit"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.2))',
-                      backdropFilter: 'blur(8px)',
-                      border: '0.5px solid rgba(34,197,94,0.3)'
-                    }}
-                  >
-                    {/* Mini Avatar with Frame */}
-                    <div className="flex-shrink-0">
-                      <AvatarWithFrame
-                        userId={msg.userId}
-                        src={msg.avatarUrl}
-                        name={msg.userName}
-                        level={msg.userLevel || 1}
-                        size="xs"
-                        showFrame={true}
-                        showAnimation={false}
-                        showGlow={false}
-                      />
-                    </div>
-                    <span 
-                      className="inline-flex items-center h-4 px-1.5 rounded text-[8px] font-bold text-white shadow-sm"
-                      style={getLevelBadgeStyle(ensureValidLevel(msg.userLevel))}
-                    >
-                      {formatLevel(msg.userLevel)}
-                    </span>
-                    <span className="text-green-300 font-semibold text-[10px]">{msg.userName}</span>
-                    <span className="text-green-200/80 text-[9px]">{msg.message}</span>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-1 pl-1 pr-2.5 py-1 rounded-2xl w-fit"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(0,0,0,0.45), rgba(30,0,60,0.4))',
-                      backdropFilter: 'blur(8px)',
-                      border: '0.5px solid rgba(255,255,255,0.1)'
-                    }}
-                  >
-                    {/* Mini Avatar with Frame */}
-                    <div className="flex-shrink-0">
-                      <AvatarWithFrame
-                        userId={msg.userId}
-                        src={msg.avatarUrl}
-                        name={msg.userName}
-                        level={msg.userLevel || 1}
-                        size="xs"
-                        showFrame={true}
-                        showAnimation={false}
-                        showGlow={false}
-                      />
-                    </div>
-                    {/* Level Badge */}
-                    <span 
-                      className="inline-flex items-center h-4 px-1.5 rounded text-[8px] font-bold text-white shadow-sm"
-                      style={getLevelBadgeStyle(ensureValidLevel(msg.userLevel))}
-                    >
-                      {formatLevel(msg.userLevel)}
-                    </span>
-                    {/* Username */}
-                    <span className="text-pink-300 font-semibold text-[10px]">{msg.userName}</span>
-                    {/* Message */}
-                    <span className="text-white/90 text-[10px]">{msg.message}</span>
-                  </div>
-                )}
+                <RoomChatBubble
+                  id={msg.id}
+                  userName={msg.userName}
+                  userLevel={msg.userLevel || 1}
+                  message={msg.message}
+                  type={msg.type === 'join' ? 'join' : msg.type === 'leave' ? 'leave' : msg.type === 'system' ? 'system' : 'message'}
+                  isHost={msg.userId === hostInfo?.id}
+                  createdAt={msg.timestamp}
+                />
               </motion.div>
             ))}
           </AnimatePresence>

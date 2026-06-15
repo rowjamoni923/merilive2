@@ -485,7 +485,7 @@ export const RoomChatOverlay = memo(({
 
   return (
     <div className={cn(
-      "flex flex-col w-full relative gap-1.5",
+      "flex flex-col relative gap-1.5 w-[68vw] max-w-[520px] min-w-0",
       className
     )}>
       {/* NOTE: Admin rule banner + host welcome moved OUT of this overlay.
@@ -505,6 +505,7 @@ export const RoomChatOverlay = memo(({
         className={cn(
           "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
           "scrollbar-thin scrollbar-thumb-white/25 scrollbar-track-transparent",
+          "chat-scroll-stable",
           "pr-1 pl-0.5 py-1 rounded-2xl",
           "bg-gradient-to-t from-black/25 via-black/5 to-transparent",
           "backdrop-blur-[3px]"
