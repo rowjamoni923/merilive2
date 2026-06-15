@@ -1423,7 +1423,7 @@ const PartyRoom = () => {
       const { data: publicProfiles } = userIds.length
         ? await supabase
             .from('profiles_public')
-            .select('id, display_name, avatar_url, user_level, frame_id, equipped_frame_id')
+            .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, frame_id, equipped_frame_id')
             .in('id', userIds)
         : { data: [] as any[] };
       const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, {
@@ -1482,7 +1482,7 @@ const PartyRoom = () => {
     const { data: requesterProfiles } = requesterIds.length
       ? await supabase
           .from('profiles_public')
-          .select('id, display_name, avatar_url, user_level')
+          .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
           .in('id', requesterIds)
       : { data: [] as any[] };
     const requesterMap = new Map((requesterProfiles || []).map((profile: any) => [profile.id, profile]));
