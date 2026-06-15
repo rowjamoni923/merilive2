@@ -1129,14 +1129,14 @@ const LiveStream = () => {
         // even if profiles_public fetch silently fails (RLS race / network / deleted).
         {
           const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
-          const hostLevel = Number(hostProfile?.host_level || hostProfile?.user_level || 1);
+          const hostLevel = getRequiredDisplayLevel(hostProfile);
           setHostInfo({
             name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
             country: hostProfile?.country_flag || "🌍",
             language: "English",
             gender: hostProfile?.gender || "female",
-            level: hostLevel > 0 ? hostLevel : 1,
+            level: hostLevel,
             id: hostProfile?.id || stream.host_id,
             frameId: hostProfile?.equipped_frame_id || hostProfile?.frame_id || null,
             appUid: hostProfile?.app_uid || null,
@@ -1227,7 +1227,7 @@ const LiveStream = () => {
           // Show self-join notification (viewer sees their own entry)
           if (selfProfile) {
             const userName = selfProfile.display_name || "User";
-            const userLevel = selfProfile.user_level || 1;
+            const userLevel = getRequiredDisplayLevel(selfProfile);
             const avatarUrl = normalizeProfileMediaUrl(selfProfile.avatar_url) || selfProfile.avatar_url || undefined;
             
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
@@ -1502,12 +1502,12 @@ const LiveStream = () => {
               // the entry animation when LiveKit publish never arrived.
               const { data: prof } = await supabase
                 .from('profiles_public')
-                .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
+                .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
                 .eq('id', uid)
                 .maybeSingle();
               if (!mountedRef.current) return;
               const userName = prof?.display_name || 'User';
-              const userLevel = prof?.user_level || 1;
+              const userLevel = getRequiredDisplayLevel(prof);
               const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
               activeViewerIdsRef.current.add(uid);
               setRecentViewerAvatars((prev) => [
