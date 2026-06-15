@@ -2515,7 +2515,7 @@ const LiveStream = () => {
       initial: (currentUser?.display_name || "U").charAt(0),
       message: contentToSend,
       color: "text-white",
-      userLevel: currentUser?.user_level || 1,
+      userLevel: getRequiredDisplayLevel(currentUser),
       userAvatar: currentUser?.avatar_url || undefined,
       isHost: currentUserId === streamData?.host_id,
       isNewUser: false,
@@ -2550,7 +2550,7 @@ const LiveStream = () => {
         userId: currentUserId,
         displayName: currentUser?.display_name || "User",
         avatarUrl: currentUser?.avatar_url || undefined,
-        userLevel: currentUser?.user_level || 1,
+        userLevel: getRequiredDisplayLevel(currentUser),
         isHost: currentUserId === streamData?.host_id,
         countryFlag: currentUser?.country_flag || undefined,
         message: contentToSend,
@@ -2781,7 +2781,7 @@ const LiveStream = () => {
     try {
       const { data: profile } = await supabase
         .from("profiles_public")
-        .select("id, display_name, avatar_url, user_level, is_verified, country_name, country_flag, bio, app_uid")
+        .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_verified, country_name, country_flag, bio, app_uid")
         .eq("id", userId)
         .single();
       
@@ -2808,11 +2808,11 @@ const LiveStream = () => {
           id: profile.id,
           name: profile.display_name || "User",
           avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
-          level: profile.user_level || 1,
+          level: getRequiredDisplayLevel(profile),
           coins: 0,
           beans: 0,
           isFollowing,
-          isVIP: (profile.user_level || 1) >= 30,
+          isVIP: getRequiredDisplayLevel(profile) >= 30,
           isVerified: profile.is_verified || false,
           totalGiftsSent: 0,
           totalGiftsReceived: 0,
