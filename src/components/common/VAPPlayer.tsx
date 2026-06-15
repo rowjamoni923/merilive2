@@ -240,7 +240,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const gl = canvas.getContext('webgl', {
       alpha: true,
-      antialias: true, // Enable antialiasing for smoother edges
+      // Antialiasing on a video-derived texture provides no visible benefit
+      // (the source is already raster) but costs a full MSAA buffer per draw
+      // on mobile GPUs — disabling removes a major source of mid-frame jank.
+      antialias: false,
       depth: false,
       stencil: false,
       premultipliedAlpha: true, // Switched to true for professional blending
@@ -292,21 +295,28 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     let rgbRect: number[], alphaRect: number[];
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
-    const dpr = window.devicePixelRatio || 1;
+    // SMOOTHNESS: Cap effective DPR at 1.5 for the GL canvas. On a 3× DPR
+    // phone a 720×1280 VAP would otherwise allocate a 2160×3840 backbuffer
+    // and upload ~8M pixels per frame to the GPU — the dominant cause of
+    // VAP lag/freezes on mid-range Android. 1.5× keeps gifts visually crisp
+    // (the canvas is upscaled via CSS) while cutting texture-upload + fill
+    // cost by ~4×. Matches what native VAP/SVGA players do on Android.
+    const rawDpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+    const dpr = Math.min(rawDpr, 1.5);
     let initialLayout: 'alpha-left' | 'alpha-right' | undefined;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w * dpr; 
-      canvas.height = cfg.h * dpr;
+      canvas.width = Math.round(cfg.w * dpr);
+      canvas.height = Math.round(cfg.h * dpr);
     } else {
       const rects = getAutoVapRects(video, resolvedSrc);
       rgbRect = rects.rgbRect;
       alphaRect = rects.alphaRect;
       initialLayout = rects.layout;
-      canvas.width = (videoWidth / 2) * dpr; 
-      canvas.height = videoHeight * dpr;
+      canvas.width = Math.round((videoWidth / 2) * dpr);
+      canvas.height = Math.round(videoHeight * dpr);
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
@@ -426,31 +436,35 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const nativeDurationMs = Math.round(video.duration * 1000);
       const startWallclock = performance.now();
       const hardCeilingMs = nativeDurationMs + 6000;
-      let watchRaf: number | null = null;
+      let watchInterval: ReturnType<typeof setInterval> | null = null;
 
       const fireComplete = () => {
         if (!mountedRef.current || completedRef.current) return;
         completedRef.current = true;
-        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        if (watchInterval !== null) clearInterval(watchInterval);
         onCompleteRef.current?.();
       };
 
-      const tick = () => {
-        if (!mountedRef.current || completedRef.current) return;
+      // SMOOTHNESS: Previously a parallel rAF loop polled at 60fps just to
+      // detect completion — that's a second rAF per VAP instance competing
+      // with the render loop. End detection only needs ~200ms granularity,
+      // so a setInterval frees ~60 frame slots/sec for actual rendering.
+      watchInterval = setInterval(() => {
+        if (!mountedRef.current || completedRef.current) {
+          if (watchInterval !== null) clearInterval(watchInterval);
+          return;
+        }
         const v = videoRef.current;
         if (!v) return;
         const reachedEnd = v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.04);
         const wallclockElapsed = performance.now() - startWallclock;
         if (reachedEnd || wallclockElapsed >= hardCeilingMs) {
           fireComplete();
-          return;
         }
-        watchRaf = requestAnimationFrame(tick);
-      };
-      watchRaf = requestAnimationFrame(tick);
+      }, 200);
 
       completionTimerRef.current = setTimeout(() => {
-        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        if (watchInterval !== null) clearInterval(watchInterval);
       }, hardCeilingMs + 500) as any;
     }
 
@@ -515,8 +529,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }}
-        onWaiting={(e) => { void e.currentTarget.play().catch(() => {}); }}
-        onStalled={(e) => { void e.currentTarget.play().catch(() => {}); }}
+        onWaiting={() => { /* let the browser auto-resume; calling play() here causes play/pause churn during buffering and produces visible stutter */ }}
+        onStalled={() => { /* see onWaiting */ }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (
