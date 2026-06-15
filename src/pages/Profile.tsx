@@ -1583,11 +1583,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       return Math.max(resolvedUserLevel ?? profile?.host_level ?? userLevel ?? 0, 0);
     }
 
-    return Math.max(resolvedUserLevel ?? profile?.user_level ?? userLevel ?? 1, 1);
+    return Math.max(resolvedUserLevel ?? profile?.user_level ?? profile?.max_user_level ?? userLevel ?? 1, 1);
   }, [isFemaleHost, resolvedUserLevel, profile?.host_level, profile?.user_level, userLevel]);
   
   useEffect(() => {
-    setUserLevel(isFemaleHost ? Math.max(resolvedUserLevel ?? 0, 0) : Math.max(resolvedUserLevel ?? 1, 1));
+    if (resolvedUserLevel === null || resolvedUserLevel === undefined) return;
+    setUserLevel(isFemaleHost ? Math.max(resolvedUserLevel, 0) : Math.max(resolvedUserLevel, 1));
     setNextLevel(Math.max(resolvedNextLevel ?? ((resolvedUserLevel ?? 1) + 1), (resolvedUserLevel ?? 1) + 1));
     setLevelProgress(Math.min(Math.max(resolvedLevelProgress ?? 0, 0), 100));
   }, [resolvedUserLevel, resolvedNextLevel, resolvedLevelProgress, isFemaleHost]);
