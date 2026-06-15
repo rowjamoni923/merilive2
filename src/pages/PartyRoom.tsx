@@ -118,6 +118,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface PartyRoom {
   id: string;
@@ -1579,12 +1580,12 @@ const PartyRoom = () => {
             processedBroadcastJoinsRef.current.add(joinKey);
             const { data: prof } = await supabase
               .from('profiles_public')
-              .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
+              .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
               .eq('id', uid)
               .maybeSingle();
             if (!isMountedRef.current) return;
             const userName = prof?.display_name || 'User';
-            const userLevel = prof?.user_level || 1;
+            const userLevel = getRequiredDisplayLevel(prof);
             const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
             addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
             setJoinMessages(prev => [...prev.slice(-20), {
@@ -1732,7 +1733,7 @@ const PartyRoom = () => {
     try {
       const isHostUser = room?.host_id === currentUser.id;
       const userName = currentUser.profile?.display_name || 'User';
-      const userLevel = currentUser.profile?.user_level || 1;
+      const userLevel = getRequiredDisplayLevel(currentUser.profile);
       const avatarUrl = normalizeProfileMediaUrl(currentUser.profile?.avatar_url) || currentUser.profile?.avatar_url || undefined;
 
       // First, leave all other active rooms to prevent stale participant records
