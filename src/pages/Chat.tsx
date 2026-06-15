@@ -2016,12 +2016,35 @@ const Chat = () => {
     });
   }, [myProfile]);
 
-  const anchorChatToBottomSoon = useCallback(() => {
-    requestAnimationFrame(() => {
+  // Robust scroll-to-bottom: re-anchors across multiple frames to absorb
+  // async layout shifts from late-loading avatars, gift logos, sticker
+  // images, link previews, video posters, etc. Mirrors WhatsApp/Messenger
+  // behavior where the latest message is always reliably visible.
+  const anchorChatToBottomSoon = useCallback((smooth = false) => {
+    const stick = () => {
+      const c = chatScrollRef.current;
+      const end = messagesEndRef.current;
+      if (!c) return;
+      if (smooth && end && typeof end.scrollIntoView === 'function') {
+        end.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      } else {
+        c.scrollTop = c.scrollHeight;
+      }
+      // Mark user as "at bottom" so newly arriving messages auto-stick.
+      wasNearBottomRef.current = true;
+    };
+    // Multiple passes catch reflow from media that decodes after first paint.
+    requestAnimationFrame(stick);
+    setTimeout(stick, 60);
+    setTimeout(stick, 180);
+    setTimeout(() => {
       const c = chatScrollRef.current;
       if (!c) return;
+      // Final hard snap (no smooth) so we always finish exactly at the bottom
+      // even if the smooth animation was interrupted by another reflow.
       c.scrollTop = c.scrollHeight;
-    });
+      wasNearBottomRef.current = true;
+    }, 420);
   }, []);
 
   const handleSend = async (overrideText?: string) => {
