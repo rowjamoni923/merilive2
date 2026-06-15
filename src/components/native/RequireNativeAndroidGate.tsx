@@ -35,13 +35,14 @@ function isPreviewHost(hostname: string): boolean {
 function shouldBypassGate(): boolean {
   try {
     if (typeof window === "undefined") return false;
+    const isSafeDevHost = isPreviewHost(window.location.hostname);
     const params = new URLSearchParams(window.location.search);
-    if (isPreviewHost(window.location.hostname)) return true;
-    if (params.get("bypassNativeGate") === "1") {
+    if (isSafeDevHost) return true;
+    if (isSafeDevHost && params.get("bypassNativeGate") === "1") {
       localStorage.setItem(BYPASS_KEY, "1");
       return true;
     }
-    if (localStorage.getItem(BYPASS_KEY) === "1") return true;
+    if (isSafeDevHost && localStorage.getItem(BYPASS_KEY) === "1") return true;
   } catch { /* noop */ }
   return false;
 }
