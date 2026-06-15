@@ -273,8 +273,18 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   onClick,
   frameId: propFrameId,
 }: AvatarWithFrameProps, ref) => {
-  const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(null);
-  const [activeFrameType, setActiveFrameType] = useState<string>('static');
+  // ───── Synchronous hydration from persistent cache ─────
+  // This is what makes the avatar + frame appear INSTANTLY on every
+  // mount — even offline, even on a cold app launch. We read the last
+  // known URL/type from localStorage in the useState initializer so the
+  // very first render already has the right <img src>.
+  const persisted = userId ? getPersistedAvatar(userId) : null;
+  const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(
+    persisted?.frameUrl ?? null,
+  );
+  const [activeFrameType, setActiveFrameType] = useState<string>(
+    persisted?.frameType || 'static',
+  );
   const [frameError, setFrameError] = useState(false);
 
   // ───────── Gender-aware AI placeholder resolution ─────────
