@@ -778,7 +778,7 @@ const ProfileDetail = () => {
   const fallbackLevel = isFemaleHost 
     ? (profile.host_level ?? 0)
     : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
-  const level = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
+  const level = resolvedLevelLoading ? fallbackLevel : (resolvedLevel ?? fallbackLevel);
   const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
   const isProfileLive = !!activeLiveStream;
   const isProfileInParty = !!activePartyRoom;
