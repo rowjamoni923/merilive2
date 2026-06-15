@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { getOptimizedImageUrl } from "@/utils/imageOptimize";
 
 interface WinPopupProps {
   show: boolean;
