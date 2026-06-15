@@ -4022,7 +4022,7 @@ const LiveStream = () => {
                         userId={viewer.id}
                         src={viewer.avatar_url}
                         name={viewer.name}
-                        level={viewer.user_level || 1}
+                        level={viewer.user_level}
                         size="xxs"
                         showAnimation={false}
                         showFrame={true}
@@ -4192,7 +4192,7 @@ const LiveStream = () => {
                         userId={viewer.id}
                         src={viewer.avatar_url}
                         name={viewer.name}
-                        level={viewer.user_level || 1}
+                        level={viewer.user_level}
                         size="xs"
                         showAnimation={false}
                         showFrame={true}
@@ -4645,7 +4645,7 @@ const LiveStream = () => {
           // Get sender info for animation (from currentUser - already loaded)
           const senderName = currentUser?.display_name || "User";
           const senderAvatar = currentUser?.avatar_url || undefined;
-          const senderLevel = currentUser?.user_level || 1;
+          const senderLevel = getRequiredDisplayLevel(currentUser);
           
           const optimisticReceiverBeans = Math.floor(totalCost * adminGiftCommission / 100);
           const giftKey = getGiftRealtimeKey(currentUserId, gift.id, totalCost, count);
@@ -4780,7 +4780,7 @@ const LiveStream = () => {
                     userId: currentUserId,
                     displayName: currentUser?.display_name || "User",
                     avatarUrl: currentUser?.avatar_url || undefined,
-                    userLevel: currentUser?.user_level || 1,
+                    userLevel: getRequiredDisplayLevel(currentUser),
                     isHost: currentUserId === streamData?.host_id,
                     countryFlag: currentUser?.country_flag || undefined,
                     message: finalGiftMessage,
