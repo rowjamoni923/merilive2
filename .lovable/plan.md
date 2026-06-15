@@ -81,3 +81,16 @@ The reference video shows the warning at the **true top** (just under status bar
 - Gift instant counting + entry-animation timing + viewer header — already correct in current code per audit table. Will add device-test follow-up only if user reports issue after testing this fix.
 
 **Verification:** Pure React/CSS change. APK rebuild NOT required. Owner test account ready.
+
+---
+
+## Execution log — 2026-06-15 preview gate fix
+
+**Done:**
+- Fixed `RequireNativeAndroidGate` so Lovable preview / localhost auto-bypasses the Android-only gate for QA.
+- Published/custom domains remain Android-only; no query/localStorage bypass is accepted outside preview hosts.
+
+**Verified with owner account:**
+- `/go-live` no longer shows “Android app required”; it reaches the Go Live permission screen.
+- `/create-party` no longer shows “Android app required”; it reaches the Party Room creation screen.
+- APK rebuild NOT required for preview testing; Android production behavior unchanged.
