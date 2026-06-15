@@ -4,6 +4,7 @@ import { ArrowLeft, UserX, Trash2 } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -168,12 +169,15 @@ const Blacklist = () => {
               className="flex items-center justify-between px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={enhanceThumbnail(blocked.blocked_profile?.avatar_url, { width: 96, quality: 82 })} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {blocked.blocked_profile?.display_name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  userId={blocked.blocked_id}
+                  src={blocked.blocked_profile?.avatar_url || undefined}
+                  name={blocked.blocked_profile?.display_name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div>
                   <p className="font-medium">
                     {blocked.blocked_profile?.display_name || "Unknown User"}

@@ -26,6 +26,7 @@ import {
 import { ImageCropModal } from "@/components/profile/ImageCropModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast as sonnerToast } from "@/utils/hybridToast";
@@ -559,12 +560,16 @@ const EditProfile = () => {
                 <div className="relative">
                   {/* Outer glow ring */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
-                  <Avatar className="relative w-28 h-28 ring-4 ring-amber-200 shadow-2xl">
-                    <AvatarImage src={profile?.avatar_url || undefined} className="object-contain" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-on-dark text-3xl font-bold">
-                      {displayName?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AvatarWithFrame
+                    userId={profile?.id}
+                    src={profile?.avatar_url || undefined}
+                    name={displayName || "U"}
+                    level={(profile as any)?.user_level || 1}
+                    isOwner={true}
+                    size="xl"
+                    showFrame={true}
+                    showAnimation={true}
+                  />
                   {/* Camera button */}
                   <div className="absolute bottom-0 right-0 w-9 h-9 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-200">
                     {uploading ? (
@@ -616,12 +621,16 @@ const EditProfile = () => {
                 <span className="font-medium text-heading">My Avatar</span>
               </div>
               <div className="flex items-center gap-3">
-                <Avatar className="w-9 h-9 ring-2 ring-purple-500/30">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-on-dark text-xs">
-                    {displayName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  userId={profile?.id}
+                  src={profile?.avatar_url || undefined}
+                  name={displayName || "U"}
+                  level={(profile as any)?.user_level || 1}
+                  isOwner={true}
+                  size="xs"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <ChevronRight className="w-5 h-5 text-body" />
               </div>
               <input
