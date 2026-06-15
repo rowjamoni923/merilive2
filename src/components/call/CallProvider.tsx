@@ -340,7 +340,7 @@ export function CallProvider({ children }: CallProviderProps) {
       setCallEndedInfo({
         remoteUserName: remoteName,
         remoteUserAvatar: remoteAvatar,
-        remoteUserLevel: callState.remoteUserLevel || 1,
+        remoteUserLevel: callState.remoteUserLevel ?? 1,
         duration: finalDuration,
         coinsSpent,
         hostEarned: hostEarnedAmount,
@@ -631,7 +631,7 @@ export function CallProvider({ children }: CallProviderProps) {
       isOpen={!!incomingCall}
       callerName={incomingCall?.callerName || ''}
       callerAvatar={incomingCall?.callerAvatar || null}
-      callerLevel={incomingCall?.callerLevel || 1}
+      callerLevel={incomingCall?.callerLevel ?? 1}
       onAccept={() => {
         // Auto-close call ended modal if a new call comes in
         if (showCallEndedModal) {
@@ -673,7 +673,7 @@ export function CallProvider({ children }: CallProviderProps) {
             remoteUserId={remoteUserId}
             remoteUserName={remoteUserName}
             remoteUserAvatar={remoteUserAvatar}
-            remoteUserLevel={callState.remoteUserLevel || 1}
+            remoteUserLevel={callState.remoteUserLevel ?? 1}
             callStatus={callState.status}
             duration={callState.duration}
             coinsPerMinute={callState.coinsPerMinute}
@@ -694,7 +694,7 @@ export function CallProvider({ children }: CallProviderProps) {
         onClose={handleCallEndedModalClose}
         remoteUserName={callEndedInfo?.remoteUserName || ''}
         remoteUserAvatar={callEndedInfo?.remoteUserAvatar || null}
-        remoteUserLevel={callEndedInfo?.remoteUserLevel || 1}
+        remoteUserLevel={callEndedInfo?.remoteUserLevel ?? 1}
         duration={callEndedInfo?.duration || 0}
         coinsSpent={callEndedInfo?.coinsSpent || 0}
         hostEarned={callEndedInfo?.hostEarned || 0}
