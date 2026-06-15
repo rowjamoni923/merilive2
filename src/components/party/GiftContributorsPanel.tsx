@@ -8,6 +8,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { useNavigate } from "react-router-dom";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface GiftContributor {
   userId: string;
@@ -88,6 +89,10 @@ export function GiftContributorsPanel({
               display_name,
               avatar_url,
               user_level,
+              host_level,
+              max_user_level,
+              gender,
+              is_host,
               frame_id
             )
           `)
@@ -121,7 +126,7 @@ export function GiftContributorsPanel({
               userId: senderId,
               displayName: profile.display_name || 'User',
               avatarUrl: profile.avatar_url,
-              level: profile.user_level || 1,
+              level: getRequiredDisplayLevel(profile),
               totalBeans: hostBeans,
               giftCount: 1,
               frameId: profile.frame_id
