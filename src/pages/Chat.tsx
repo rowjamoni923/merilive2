@@ -1122,6 +1122,7 @@ const Chat = () => {
   useEffect(() => {
     const container = chatScrollRef.current;
     if (!container) return;
+    wasNearBottomRef.current = true;
     const onScroll = () => {
       const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
       wasNearBottomRef.current = distanceFromBottom < 120;
