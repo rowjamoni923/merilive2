@@ -388,10 +388,18 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
 
-      {/* ======= UNIFIED PROFESSIONAL FLYING GIFT CAPSULE ======= */}
+      {/* ======= UNIFIED PROFESSIONAL FLYING GIFT CAPSULE =======
+          Stacked vertically when multiple gifts are active simultaneously.
+          `stackIndex` is supplied by the caller's .map((g, i) => ...) so
+          concurrent capsules appear above each other (Bigo / Chamet style)
+          instead of overlapping at the same bottom position. */}
       <motion.div
         className="absolute left-2 will-change-transform"
-        style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+        style={{
+          bottom: `calc(22% + ${Math.min(stackIndex, MAX_VISIBLE_STACK - 1) * STACK_OFFSET_PX}px)`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+        }}
         initial={{ x: -276, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: -230, opacity: 0 }}
