@@ -500,8 +500,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                 className="w-7 h-7 rounded-lg flex items-center justify-center shadow-lg overflow-hidden relative bg-gradient-to-tr from-[#D4AF37] to-[#F9E498] shrink-0"
               >
                 {currentGame.logo_url ? (
-                  <img loading="lazy" decoding="async"
-                    src={getProxiedUrl(currentGame.logo_url)}
+                  <img loading="eager" decoding="async"
+                    src={getOptimizedImageUrl(getProxiedUrl(currentGame.logo_url), { width: 56, quality: 80 })}
                     alt={currentGame.game_name}
                     className="w-full h-full object-contain rounded-lg"
                    
