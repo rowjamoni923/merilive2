@@ -36,7 +36,22 @@ export interface FlyingGift {
 interface FlyingGiftAnimationProps {
   gift: FlyingGift;
   onComplete: () => void;
+  /**
+   * Stack position (0 = bottom-most, 1 = above, 2 = above that, ...).
+   * Each level shifts the capsule up by STACK_OFFSET_PX so concurrent gifts
+   * appear as a vertical stack (Bigo / Chamet behaviour) instead of overlapping
+   * on the same line. Pass `index` from your `.map((gift, index) => ...)`.
+   * Defaults to 0 for legacy callers — fully backwards compatible.
+   */
+  stackIndex?: number;
 }
+
+// Vertical gap between two stacked capsules. Capsule height is ~36px so
+// 44px leaves a 8px gutter — visually clean and matches Bigo/Chamet spacing.
+const STACK_OFFSET_PX = 44;
+// Hard cap visible stack. Anything beyond renders off-screen-ish but the
+// underlying queue (useFlyingGifts) keeps merging combos so this is rare.
+const MAX_VISIBLE_STACK = 3;
 
 const getAnimationType = (url?: string, format?: string | null): 'svga' | 'lottie' | 'pag' | 'vap' | 'video' | 'image' | null => {
   if (!url) return null;
