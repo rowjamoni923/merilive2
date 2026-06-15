@@ -1584,7 +1584,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
 
     return Math.max(resolvedUserLevel ?? profile?.user_level ?? profile?.max_user_level ?? userLevel ?? 1, 1);
-  }, [isFemaleHost, resolvedUserLevel, profile?.host_level, profile?.user_level, userLevel]);
+  }, [isFemaleHost, resolvedUserLevel, profile?.host_level, profile?.user_level, profile?.max_user_level, userLevel]);
   
   useEffect(() => {
     if (resolvedUserLevel === null || resolvedUserLevel === undefined) return;
