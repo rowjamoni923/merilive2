@@ -1109,6 +1109,17 @@ const Chat = () => {
     return () => container.removeEventListener('scroll', onScroll);
   }, [selectedConversation?.id, selectedGroup?.id]);
 
+  // Track unread messages that arrive while the user is scrolled up.
+  const prevMessageCountRef = useRef(0);
+  useEffect(() => {
+    const total = (messages?.length || 0) + (groupMessages?.length || 0);
+    const prev = prevMessageCountRef.current;
+    if (total > prev && showScrollToBottom) {
+      setUnreadBelow((n) => n + (total - prev));
+    }
+    prevMessageCountRef.current = total;
+  }, [messages, groupMessages, showScrollToBottom]);
+
   // Keep the thread pinned to the bottom when content reflows (avatars,
   // images, gift media loading after first paint). Mirrors WhatsApp/imo
   // behavior where opening a chat always lands on the latest message.
