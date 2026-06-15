@@ -801,7 +801,7 @@ const AgencyCoinTrader = () => {
                     >
                       <AvatarWithFrame
                   src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={user.display_name || user.agency_name || user.name || "U"}
+                  name={(user as any).display_name || (user as any).agency_name || (user as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -823,7 +823,7 @@ const AgencyCoinTrader = () => {
                     <div className="flex items-center gap-3">
                       <AvatarWithFrame
                   src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
+                  name={(selectedUser as any).display_name || (selectedUser as any).agency_name || (selectedUser as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -964,7 +964,7 @@ const AgencyCoinTrader = () => {
             <div className="flex items-center gap-3 pb-3 border-b">
               <AvatarWithFrame
                   src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
+                  name={(selectedUser as any).display_name || (selectedUser as any).agency_name || (selectedUser as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

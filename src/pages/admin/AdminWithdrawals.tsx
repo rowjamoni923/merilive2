@@ -737,7 +737,7 @@ export default function AdminWithdrawals() {
                           <div className="flex items-center gap-3">
                             <AvatarWithFrame
                   src={withdrawal.agency?.owner?.avatar_url || undefined}
-                  name={withdrawal.agency?.owner.display_name || withdrawal.agency?.owner.agency_name || withdrawal.agency?.owner.name || "U"}
+                  name={(withdrawal.agency?.owner as any).display_name || (withdrawal.agency?.owner as any).agency_name || (withdrawal.agency?.owner as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

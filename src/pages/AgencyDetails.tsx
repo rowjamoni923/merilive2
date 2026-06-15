@@ -207,7 +207,7 @@ const AgencyDetailsPage = () => {
               <div className={`p-[2px] rounded-full bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')}`}>
                 <AvatarWithFrame
                   src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82})}
-                  name={hostAgency.display_name || hostAgency.agency_name || hostAgency.name || "U"}
+                  name={(hostAgency as any).display_name || (hostAgency as any).agency_name || (hostAgency as any).name || "U"}
                   level={1}
                   size="lg"
                   showFrame={true}
