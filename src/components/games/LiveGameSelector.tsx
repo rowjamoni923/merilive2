@@ -81,7 +81,7 @@ const Game3DCard = ({
             <img
               loading="eager"
               decoding="async"
-              src={getProxiedUrl(game.logo_url!)}
+              src={getOptimizedImageUrl(getProxiedUrl(game.logo_url!), { width: 180, quality: 78 })}
               alt={game.game_name}
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
