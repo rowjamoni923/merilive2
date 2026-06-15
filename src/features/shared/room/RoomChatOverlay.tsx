@@ -288,31 +288,22 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       exit={{ opacity: 0, x: 60, transition: { duration: 0.15 } }}
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
       className={cn(
-        "flex flex-wrap items-center gap-2 w-fit",
-        // Only apply default gradient bubble styling when there's NO designer bubble
+        "flex flex-wrap items-center gap-1.5 w-fit",
+        // Only apply default pill styling when there's NO designer bubble
         !hasDesignerBubble && [
-          "rounded-[20px] max-w-[94%] md:max-w-[70%]",
+          "rounded-full max-w-[94%] md:max-w-[72%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
           getGlowStyle(),
-          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4 md:py-2.5 md:px-5",
+          isGiftMessage ? "py-1 px-2.5" : "py-1 px-3",
         ],
       )}
     >
-      {/* Mini Avatar — Bigo-spacious sizing */}
-      {message.userAvatar && (
-        <Avatar className={cn(
-          "border-[1.5px] border-white/50 shrink-0 shadow-md",
-          isGiftMessage ? "w-5 h-5" : "w-6 h-6"
-        )}>
-          <AvatarImage src={message.userAvatar} alt={message.user} />
-          <AvatarFallback className="bg-violet-500 text-white text-[7px] font-bold">
-            {message.initial}
-          </AvatarFallback>
-        </Avatar>
-      )}
+      {/* Pro-app style: NO inline avatar in chat row (Bigo/Chamet/Olamet pattern).
+          Identity is conveyed by Level badge + colored username instead. */}
+
 
       {/* HOST Badge */}
       {isHost && !isGiftMessage && (
