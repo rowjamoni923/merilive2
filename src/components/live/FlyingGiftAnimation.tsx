@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
@@ -134,13 +132,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
 
-  // Diamonds spent (sender view) and beans earned (receiver view)
-  const totalDiamonds = gift.coins * gift.count;
-  const totalBeans = useMemo(() => {
-    if (typeof gift.beansEarned === 'number') return gift.beansEarned;
-    return Math.floor(totalDiamonds * hostPercent / 100);
-  }, [gift.beansEarned, totalDiamonds, hostPercent]);
-
 
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
@@ -158,7 +149,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     soundPlayedRef.current = true;
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
     playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
-  }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
+  }, [isSVGA, gift.soundUrl, hasFullscreenSlot, gift.giftName]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
