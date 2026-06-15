@@ -260,8 +260,7 @@ Each phase is independently shippable. Owner approves each phase end before next
 ### Celebration tiers (frontend `LuckyGiftCelebration`)
 | Multi range | UX |
 |---|---|
-| < 2x | tiny toast (existing) |
-| 2x – 49x | center pop with multiplier ribbon, 2.5s, golden ring |
+| >0x – 49x | fullscreen/center reward with Bonus Diamond amount, 2.8s |
 | 50x – 999x | fullscreen "BIG WIN" with coin shower + amount, 4s |
 | ≥ 1000x | fullscreen "MEGA JACKPOT!" golden explosion + sender name + amount, 6s, room-broadcast TODO |
 
