@@ -131,8 +131,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const needsFullscreenSlot = completesFromPlayer;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
-
-
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 
