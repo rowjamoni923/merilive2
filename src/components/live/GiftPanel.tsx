@@ -388,14 +388,17 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const handleSend = useCallback(() => {
     if (!selectedGift) return;
     warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
-    const cost = selectedGift.coins * count;
+    // Premium gifts (≥ 50k) are single-send only — ignore any stale combo count.
+    const effectiveCount = selectedGift.coins >= SINGLE_ONLY_THRESHOLD ? 1 : count;
+    const cost = selectedGift.coins * effectiveCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
-    onSendGift(selectedGift, count);
+    onSendGift(selectedGift, effectiveCount);
     setUserCoins(userCoinsRef.current);
-    setComboCount(prev => prev + count);
+    setComboCount(prev => prev + effectiveCount);
     startComboTimer();
   }, [selectedGift, count, onSendGift, startComboTimer]);
+
 
   const handleQuickSend = useCallback((quickCount: number) => {
     if (!selectedGift) return;
