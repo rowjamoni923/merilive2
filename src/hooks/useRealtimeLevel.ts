@@ -306,7 +306,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
       setNextLevelXP(isHost ? currentTier.min_earning_amount : currentTier.min_topup_amount);
       setNextLevelNumber(displayLevel + 1);
     }
-  }, [levelData, tiers, isHost]);
+  }, [levelData, tiers, isHost, level]);
 
   return {
     level,
