@@ -375,6 +375,10 @@ const Chat = () => {
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollConvIdRef = useRef<string | null>(null);
+  const wasNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
+  const latestPinTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadBelow, setUnreadBelow] = useState(0);
   
