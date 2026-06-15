@@ -295,21 +295,28 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
     let rgbRect: number[], alphaRect: number[];
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
-    const dpr = window.devicePixelRatio || 1;
+    // SMOOTHNESS: Cap effective DPR at 1.5 for the GL canvas. On a 3× DPR
+    // phone a 720×1280 VAP would otherwise allocate a 2160×3840 backbuffer
+    // and upload ~8M pixels per frame to the GPU — the dominant cause of
+    // VAP lag/freezes on mid-range Android. 1.5× keeps gifts visually crisp
+    // (the canvas is upscaled via CSS) while cutting texture-upload + fill
+    // cost by ~4×. Matches what native VAP/SVGA players do on Android.
+    const rawDpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+    const dpr = Math.min(rawDpr, 1.5);
     let initialLayout: 'alpha-left' | 'alpha-right' | undefined;
 
     if (cfg) {
       rgbRect = [cfg.rgbFrame[0]/videoWidth, cfg.rgbFrame[1]/videoHeight, cfg.rgbFrame[2]/videoWidth, cfg.rgbFrame[3]/videoHeight];
       alphaRect = [cfg.aFrame[0]/videoWidth, cfg.aFrame[1]/videoHeight, cfg.aFrame[2]/videoWidth, cfg.aFrame[3]/videoHeight];
-      canvas.width = cfg.w * dpr; 
-      canvas.height = cfg.h * dpr;
+      canvas.width = Math.round(cfg.w * dpr);
+      canvas.height = Math.round(cfg.h * dpr);
     } else {
       const rects = getAutoVapRects(video, resolvedSrc);
       rgbRect = rects.rgbRect;
       alphaRect = rects.alphaRect;
       initialLayout = rects.layout;
-      canvas.width = (videoWidth / 2) * dpr; 
-      canvas.height = videoHeight * dpr;
+      canvas.width = Math.round((videoWidth / 2) * dpr);
+      canvas.height = Math.round(videoHeight * dpr);
     }
 
     setFallbackCrop(rgbRect as [number, number, number, number]);
