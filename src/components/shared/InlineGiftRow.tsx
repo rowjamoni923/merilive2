@@ -65,95 +65,121 @@ const InlineGiftRowInner = ({
 
   const isOverlay = surface === "overlay";
 
-  const containerCls = isOverlay
-    ? "bg-black/55 border border-white/15 text-white backdrop-blur-md"
-    : "bg-muted/70 border border-border/60 text-foreground";
+  // Chamet-style chat card: white card with soft border, gift icon left,
+  // centered "You/Name send {gift}" text, "x N" on the right.
+  // Overlay variant: dark translucent pill for live/party/call overlays.
+  if (!isOverlay) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 4, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", damping: 22, stiffness: 320 }}
+        className={cn(
+          "flex items-center gap-2.5 rounded-2xl w-full max-w-[260px]",
+          "bg-card border border-border/70 shadow-sm",
+          compact ? "px-3 py-2" : "px-3.5 py-2.5",
+          className
+        )}
+      >
+        {/* Gift icon — large, left */}
+        <div className={cn("flex-shrink-0 flex items-center justify-center", compact ? "w-9 h-9" : "w-10 h-10")}>
+          {giftIconUrl ? (
+            <img
+              loading="lazy"
+              decoding="async"
+              src={giftIconUrl}
+              alt=""
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <span className={compact ? "text-2xl" : "text-3xl"}>{giftEmoji || "🎁"}</span>
+          )}
+        </div>
 
-  const subTextCls = isOverlay ? "text-white/70" : "text-muted-foreground";
-  const nameCls = isOverlay ? "text-white" : "text-foreground";
-  const giftNameCls = isOverlay ? "text-white" : "text-foreground";
+        {/* Centered label: "You send World cup" */}
+        <div className="flex-1 min-w-0 flex items-center">
+          <span
+            className={cn(
+              "truncate text-foreground/85 font-normal",
+              compact ? "text-[13px]" : "text-[14px]"
+            )}
+          >
+            {isSelf ? "You" : senderName} send{" "}
+            <span className="font-medium text-foreground">{giftName}</span>
+          </span>
+        </div>
 
-  const padding = compact ? "pl-1 pr-2 py-0.5" : "pl-1 pr-2 py-1";
-  const gap = compact ? "gap-1" : "gap-1.5";
-  const avatarSize = compact ? "w-4 h-4" : "w-5 h-5";
-  const iconSize = compact ? "w-5 h-5" : "w-6 h-6";
-  const textSize = compact ? "text-[11px]" : "text-[12px]";
-  const subSize = compact ? "text-[10px]" : "text-[11px]";
-  const countSize = compact ? "text-[12px]" : "text-[13px]";
+        {/* x N — muted, right */}
+        <span
+          className={cn(
+            "flex-shrink-0 font-medium text-muted-foreground tabular-nums",
+            compact ? "text-[13px]" : "text-[14px]"
+          )}
+        >
+          x {count}
+        </span>
+      </motion.div>
+    );
+  }
 
+  // OVERLAY surface (Live/Party/Call) — dark translucent pill
   return (
     <motion.div
       initial={{ opacity: 0, y: 4, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", damping: 22, stiffness: 320 }}
       className={cn(
-        "inline-flex items-center rounded-full w-fit max-w-full",
-        containerCls,
-        padding,
-        gap,
+        "inline-flex items-center gap-1.5 rounded-full w-fit max-w-full",
+        "bg-black/55 border border-white/15 text-white backdrop-blur-md",
+        compact ? "pl-1 pr-2 py-0.5" : "pl-1 pr-2 py-1",
         className
       )}
     >
-      {/* Sender avatar */}
       {senderAvatar ? (
         <img
           loading="lazy"
           decoding="async"
           src={senderAvatar}
           alt=""
-          className={cn(avatarSize, "rounded-full object-cover flex-shrink-0")}
+          className="w-5 h-5 rounded-full object-cover flex-shrink-0"
         />
       ) : (
-        <div
-          className={cn(
-            avatarSize,
-            "rounded-full flex items-center justify-center text-white font-bold text-[9px] bg-gradient-to-br from-pink-400 to-purple-500 flex-shrink-0"
-          )}
-        >
+        <div className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-[9px] bg-gradient-to-br from-pink-400 to-purple-500 flex-shrink-0">
           {senderName.charAt(0).toUpperCase()}
         </div>
       )}
-
-      {/* "You" / sender name */}
-      <span className={cn("font-semibold truncate flex-shrink min-w-0", nameCls, textSize)} style={{ maxWidth: 84 }}>
+      <span className="font-semibold truncate flex-shrink min-w-0 text-white text-[12px]" style={{ maxWidth: 84 }}>
         {isSelf ? "You" : senderName}
       </span>
-
-      {/* "sent" */}
-      <span className={cn("font-normal flex-shrink-0", subTextCls, subSize)}>sent</span>
-
-      {/* Gift name */}
-      <span
-        className={cn("font-semibold truncate flex-shrink min-w-0", giftNameCls, textSize)}
-        style={{ maxWidth: 100 }}
-      >
+      <span className="font-normal flex-shrink-0 text-white/70 text-[11px]">sent</span>
+      <span className="font-semibold truncate flex-shrink min-w-0 text-white text-[12px]" style={{ maxWidth: 100 }}>
         {giftName}
       </span>
-
-      {/* Gift icon */}
-      <div className={cn(iconSize, "flex-shrink-0 flex items-center justify-center")}>
+      <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
         {giftIconUrl ? (
           <img
             loading="lazy"
             decoding="async"
             src={giftIconUrl}
             alt=""
-            className={cn(iconSize, "object-contain")}
+            className="w-6 h-6 object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
         ) : (
-          <span className={compact ? "text-[14px]" : "text-[15px]"}>{giftEmoji || "🎁"}</span>
+          <span className="text-[15px]">{giftEmoji || "🎁"}</span>
         )}
       </div>
-
-      {/* xN */}
-      <span className={cn("font-bold leading-none flex-shrink-0", accent, countSize)}>
+      <span className={cn("font-bold leading-none flex-shrink-0 text-[13px]", accent)}>
         x{count}
       </span>
     </motion.div>
   );
+
 };
 
 export const InlineGiftRow = memo(InlineGiftRowInner);
