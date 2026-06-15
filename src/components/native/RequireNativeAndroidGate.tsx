@@ -7,8 +7,9 @@
  * any of these pages from a desktop or mobile web browser, this gate replaces the
  * page with a full-screen "Please use the Android app" screen.
  *
- * DEV BYPASS: add `?bypassNativeGate=1` to the URL (or set localStorage
- * `merilive.dev.bypassNativeGate = "1"`) to test in the Lovable preview.
+ * DEV BYPASS: Lovable preview / localhost auto-bypasses this route gate so QA
+ * can open Go Live and Party Room in the web preview. Production/custom domain
+ * remains Android-only.
  *
  * 📱 PORTRAIT CAMERA ONLY rule preserved — the gate itself is portrait-friendly.
  *
@@ -20,14 +21,19 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
 
-const BYPASS_KEY = "merilive.dev.bypassNativeGate";
+function isPreviewHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".lovableproject.com") ||
+    /^id-preview--[a-z0-9-]+\.lovable\.app$/i.test(hostname)
+  );
+}
 
 function shouldBypassGate(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("bypassNativeGate") === "1") return true;
-    if (localStorage.getItem(BYPASS_KEY) === "1") return true;
+    return isPreviewHost(window.location.hostname);
   } catch { /* noop */ }
   return false;
 }
