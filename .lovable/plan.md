@@ -1,283 +1,67 @@
-# Camera & Surface Architecture Rebuild — Master Plan
-**Created:** 2026-06-15 · **Owner-approved:** pending
-**Goal:** Match Chamet/Olamet/Bigo pattern — persistent camera, UI-only swap, seat-bounded party tile, separate private-call Activity.
+## Goal
+Bring the LiveStream / PartyRoom / PrivateCall in-room overlay to Bigo/Chamet-grade by fixing the **2 warning banners' placement**, **chat-zone geometry**, **entry-animation + join-row ordering**, **instant gift counting**, and **viewer header** — without touching the gift/entry animation engines themselves (those follow the locked rules).
 
-## Addendum — Unified Gift Message Row Fix (2026-06-15)
+## Current state (audit)
 
-**User issue:** `/chat` still rendered the old DM gift bubble/card stack instead of the video-style unified gift message row.
+Read from code + your reference video frames (5, 10, 15, 30, 40, 45):
 
-**Research-first notes:** Professional live-social apps treat gifts as a platform-wide economy and surface gift delivery consistently across chat/live/call flows; Chamet documents gift delivery/receipts and its diamond→bean economy, while BIGO describes live interaction through real-time chat plus virtual gifts. Sources: Chamet official site (`https://www.ichamet.com/`), Chamet receipt/gift-delivery guide (`https://news.bittopup.com/news/chamet-receipt-guide-how-to-save-prove-gift-delivery`), BIGO official tutorial (`https://www.bigo.tv/blog/use-bigo-live`).
-
-**Verified code gap:** DM gift messages were still using a bespoke vertical card with a fixed `w-10 h-10` gift preview plus separate diamond/bean/lucky badges inside `src/pages/Chat.tsx`, while Call already uses shared `<InlineGiftRow compact />` with the canonical single-row pill pattern. This created the old stacked look shown in the screenshot.
-
-**Fix scope:** Replace only the DM gift-history renderer with shared `<InlineGiftRow>`; keep existing send/receive business logic, realtime, animation broadcast, and current design outside the gift row unchanged.
-
-## Addendum — Professional Flying Gift Banner Fix (2026-06-15)
-
-**User issue:** The flying gift combo banner still looked larger and harsher than the professional app reference. In the uploaded reference, the banner is a slim left-flying capsule: roughly 220–264px wide on a 390px mobile viewport, about 34–38px tall, 30–32px avatar, 32–36px gift icon, two compact text lines, soft blue/violet premium gradient, and a small `xN` combo on the right. Our current component used `minHeight: 44`, a `w-12 h-12` gift icon, `text-2xl` combo, bright tier gradients, sparkle trails, and an extra spent/earned badge below the pill — making it visually non-professional and too bulky.
-
-**Research-first notes:** Chamet/BIGO-style live-social products surface virtual gifts as lightweight real-time overlays over chat/live/call experiences, keeping the interaction readable while not blocking the room UI. Sources already reviewed for gift economy and live interaction parity: Chamet official (`https://www.ichamet.com/`), Chamet gift/receipt guide (`https://news.bittopup.com/news/chamet-receipt-guide-how-to-save-prove-gift-delivery`), BIGO live interaction tutorial (`https://www.bigo.tv/blog/use-bigo-live`).
-
-**Fix scope:** Update only the shared `FlyingGiftAnimation` pill styling and motion. Because DM chat, Live streaming, Party room, Private call, and Profile details all render this same component, the flying gift banner becomes identical everywhere without changing gift sending/realtime/business logic.
-
----
-
-## Industry Pattern (from owner video + competitor research)
-
-1. **Go Live:** preview camera == published camera. Same `LocalVideoTrack`, same renderer instance. Only UI overlay swaps (warning banner, gift widgets, chat bar appear on top).
-2. **Party Room:** seat-1 (host) camera renders inside a **bounded tile** (~half width, square aspect). Purple background + 3 empty seat slots remain visible around it. "Let's Party" tap only swaps bottom controls — camera tile content unchanged.
-3. **Private Call:** completely **separate Android Activity**. Never injected into main React tree. Returning from call brings user back to prior screen untouched. Main UI's React state preserved, never visually leaked.
-
----
-
-## Current State — Honest Audit
-
-| Area | Status | Root Cause |
-|---|---|---|
-| Go Live happy path | 🟢 Already correct | `promotePreviewToSession()` reuses preview track + renderer |
-| Go Live error path | 🔴 Black flash on retry | `disconnect()` in retry loop kills preview track |
-| Go Live lifecycle | 🟡 Camera/mic run in background | No `handleOnPause/Resume()` in plugin |
-| Party seat-bound camera | 🔴 Fullscreen instead of seat tile | `boundedOnly` flag ignored in Kotlin; `SeatRendererBinder` is dead code (0 callers) |
-| Party seat tile visual | 🔴 Empty avatar | React `<LiveKitVideoPlayer>` has no `localStream` on native path |
-| Private Call surface | 🔴 Renders in main React tree | `ActiveCallScreen` is `{children}` sibling under `CallProvider`; CSS `display:none` hack |
-| IncomingCall Accept | 🔴 Bounces through MainActivity (WebView) | `IncomingCallActivity` launches `MainActivity`, not `PrivateCallActivity` |
-| Plugin method surface | 🟡 10+ dead methods (silent fail via Proxy) | Old 6252-line plugin deleted, JS callers never cleaned |
-
----
-
-## Phase 1 — Party Seat-Bound Camera (HIGH priority)
-
-**Why first:** most visible bug. Matches owner's video pattern exactly. Foundation for all multi-party features (Game Room, PK Battle, future co-host on live).
-
-### Changes
-
-#### 1.1 — `LiveKitPlugin.kt` — honor `boundedOnly` flag
-- In `startLocalPreview()`, read `boundedOnly` boolean (default false)
-- If `true`, skip `ensureRendererAttached()` entirely; `previewTrack` stays alive but **no fullscreen SurfaceViewRenderer mounts**
-- Renderer ownership transfers to seat binder
-
-#### 1.2 — `LiveKitPlugin.kt` — add 3 new `@PluginMethod`s
-```kotlin
-@PluginMethod fun bindSeatRenderer(call: PluginCall)
-  // args: { seatIndex: Int, identity: String, anchorRect: { x, y, w, h } in px }
-  // Creates TextureViewRenderer sized to anchorRect, adds to FrameLayout overlay
-  // behind WebView at exact coords, calls SeatRendererBinder.bindSeat(...)
-
-@PluginMethod fun updateSeatRendererRect(call: PluginCall)
-  // args: { seatIndex, anchorRect }
-  // Repositions existing TextureView (scroll/resize handler)
-
-@PluginMethod fun unbindSeatRenderer(call: PluginCall)
-  // args: { seatIndex }
-```
-- Track renderers per seatIndex in `ConcurrentHashMap<Int, TextureViewRenderer>`
-- On `disconnect()` / `teardownAll()`: clear all via `SeatRendererBinder.clear()`
-
-#### 1.3 — `LiveKitPlugin.kt` — wire `LocalTrackPublished` event
-- In `observeRoomEvents()`, on `RoomEvent.LocalTrackPublished` with video track → `SeatRendererBinder.onLocalTrackPublished(localIdentity, track)`
-- Same for `RoomEvent.TrackSubscribed` → `onTrackSubscribed(identity, track)`
-- And `RoomEvent.TrackUnpublished` → `onTrackUnpublished(identity)`
-
-#### 1.4 — `src/native/seatRenderer.ts` — finalize JS API
-- Already stubbed; add `anchorRect` calculation helper `domRectToDevicePx(el, dpr)`
-- Add `useSeatRendererBinding(seatIndex, identity, anchorEl)` React hook:
-  - Calls `bindSeatRenderer` on mount
-  - `ResizeObserver` + `scroll` listener → `updateSeatRendererRect`
-  - `unbindSeatRenderer` on unmount
-
-#### 1.5 — `ChametStyleVideoRoom.tsx` — mount native seat renderer
-- For each seat tile div, attach `ref` + call `useSeatRendererBinding(seatIndex, occupantIdentity, ref)` when `isNativeMediaActive`
-- Keep existing `<LiveKitVideoPlayer>` for web fallback (gated by `!isNativeAndroidApp()`)
-- **NO design changes** — same JSX structure, same Tailwind classes
-
-#### 1.6 — `CreateParty.tsx` cleanup
-- Already passes `boundedOnly: true` — verify Kotlin now honors it
-- Remove `setNativeMediaSurface(true)` for party scope (no fullscreen renderer means WebView must stay opaque, purple bg shows through)
-
-### Verification
-- Owner login → Create Party → camera shows in seat-1 tile only, 3 empty seats visible with purple bg around
-- "Let's Party" tap → tile unchanged, bottom bar swaps
-- Reshuffle seats → camera follows seat without restart
-- APK rebuild **REQUIRED**
-
----
-
-## Phase 2 — Private Call Separate Activity (HIGH priority)
-
-**Why second:** affects every call, currently leaks call UI over Home/Profile in fallback paths.
-
-### Changes
-
-#### 2.1 — `IncomingCallActivity.java` — Accept goes directly to `PrivateCallActivity`
-- Replace `MainActivity` intent in btnAccept handler with `PrivateCallActivity.newIntent(...)` + `FLAG_ACTIVITY_NEW_TASK`
-- JS still gets the `acceptCall()` signal via `getLastAction()` and connects LiveKit; result delivered to the already-foregrounded `PrivateCallActivity` via `onNewIntent`
-- Caller-side: `startCall()` (CallProvider) launches `PrivateCallActivity` BEFORE LiveKit connect (Activity renders its own "Calling…" ringing UI)
-
-#### 2.2 — `PrivateCallActivity.kt` — own the ringing → connected → ended lifecycle
-- Accept ringing state via intent extras (callId, peer info)
-- Render native ringing UI (avatar + name + cancel) until JS broadcasts `call:connected` with LiveKit URL/token
-- Connect LiveKit using its OWN Room instance (not the WebView's)
-- Mount TextureViewRenderer for remote + local PiP in native FrameLayout
-- On `call:ended` event from JS, finish Activity → back stack returns user to prior screen
-
-#### 2.3 — `CallProvider.tsx` — remove in-tree `ActiveCallScreen` for native path
-- On Android native: `startCall` / `acceptCall` triggers Activity launch, NEVER renders `<ActiveCallScreen />` in React
-- Web fallback only: keep `createPortal(<ActiveCallScreen/>, document.body)` (escape stacking context)
-- Delete `body.call-overlay-active` CSS hack
-- `{children}` (main app) keeps running untouched — no display:none, no z-index war
-
-#### 2.4 — `ActiveCallScreen.tsx` — strip native-path code
-- File becomes web-only call surface
-- Remove `openInCallActivity`, `nativeInCallOpen` state, transparent portal placeholder
-- Cleaner ~200-line web fallback component
-
-#### 2.5 — Bridge messages JS ↔ Activity
-- New Capacitor plugin events: `call:state-changed` (state: ringing/connecting/connected/ended)
-- New plugin method: `notifyCallActivity({ state, livekitUrl?, livekitToken? })`
-- `PrivateCallActivity` listens via LocalBroadcastManager
-
-### Verification
-- Owner → call peer → `PrivateCallActivity` opens immediately, native ringing UI shown
-- Peer accepts → LiveKit connects, video frames appear in native renderer
-- Press Home → Activity goes to background, back button returns to it (not Home)
-- Hang up → Activity finishes, returns to original screen (Home/Profile/Chat) untouched
-- APK rebuild **REQUIRED**
-
----
-
-## Phase 3 — Go Live Error-Path Hardening (MEDIUM priority)
-
-**Why third:** happy path already works (80% of users fine). This eliminates the 20% black-flash edge cases.
-
-### Changes
-
-#### 3.1 — `LiveKitPlugin.kt` — add `disconnectSessionOnly()`
-```kotlin
-@PluginMethod fun disconnectSessionOnly(call: PluginCall)
-  // room?.disconnect()
-  // isConnected = false
-  // DO NOT touch previewTrack, previewRenderer
-```
-
-#### 3.2 — `LiveKitPlugin.kt` — lifecycle pause/resume
-- Override `handleOnPause()` → if `isConnected`, call `localParticipant.setMicrophoneEnabled(false)` + `setCameraEnabled(false)` (or just `track.pauseCapture()` if SDK supports)
-- Override `handleOnResume()` → reverse
-- Skip pause when `pauseCameraOnBackground == false` in connect opts
-
-#### 3.3 — `useLiveKitClient.ts` retry loop
-- Replace full `disconnect()` between attempts with `NativeLiveKit.disconnectSessionOnly()`
-- 2nd connect attempt now hits `promotePreviewToSession()` happy path (preview still alive)
-
-#### 3.4 — `GoLive.tsx` — `nativePreviewActive=false` guard
-- If native preview never started, do NOT navigate; either retry `startNativePreview()` inline or surface clear error toast
-- Prevents cold-camera startup flash in LiveStream
-
-### Verification
-- Force connect failure (kill VPS briefly) → owner sees ringing/retry without camera black flash
-- Background app during live → camera + mic mute; resume → restore
-- APK rebuild **REQUIRED**
-
----
-
-## Phase 4 — Plugin Method Surface Cleanup (LOW priority) ✅ DONE 2026-06-15
-
-**Why last:** non-blocking, just removes silent-fail tech debt.
-
-### Changes (implemented)
-- **`LiveKitPlugin.kt` `isAvailable()`** — now returns `methods: string[]` listing every `@PluginMethod` Kotlin actually implements (19 methods). Callers can probe capability instead of relying on try/catch.
-- **`src/plugins/NativeLiveKit.ts`** —
-  - Proxy still resolves unknown methods to a safe async no-op (back-compat for the 30+ legacy importers + web/iOS fallback path), but now logs **one dev-only warning per unexpected method name** so genuinely dead calls surface in `vite` console.
-  - Added `KNOWN_UNIMPLEMENTED` allowlist (audio routing, screenshare, virtual bg, noise cancellation, PiP, RPC, token refresh, plus the 7 truly-dead legacy names: `attachLocal`, `getActiveSession`, `setSurviveActivityDestroy`, `updateLiveStats`, `sendData`, `setPreferredCodec`, `reconnectNow`) — these stay silent, no warning spam.
-  - New `getNativeLiveKitMethods()` + `hasNativeMethod(name)` helpers expose the Kotlin capability list to JS (cached one-shot probe).
-- JS caller sites left untouched: every call already wraps in try/catch and the no-op is intentional for web/iOS. Removing them is a bigger refactor with no user-visible win.
-
-### Verification
-- TypeScript build green.
-- Old web/iOS paths still resolve to no-op (Proxy unchanged on that branch).
-- New dev warnings will appear in browser console only when JS calls a NativeLiveKit method that is neither implemented in Kotlin nor on the `KNOWN_UNIMPLEMENTED` list — a real-world dead-call detector.
-
----
-
-## Cross-Cutting Constraints
-
-- **WEB DESIGN SACRED:** zero changes to React JSX structure, Tailwind classes, copy, icons. Only refs/hooks added.
-- **English UI strings** for any new toasts/errors.
-- **APK rebuild needed** for Phases 1, 2, 3. Web preview cannot verify native rendering — owner test on real device required at each phase end.
-- **No VPS work.** Pure Lovable code only.
-- **Research-first satisfied:** Bigo (Agora `VideoCanvas` per uid) / Chamet (Agora `setupRemoteVideo`) / Olamet patterns all map 1:1 to LiveKit `videoTrack.addRenderer(textureView)` per identity. SeatRendererBinder design already follows this.
-
----
-
-## Execution Order
-
-```
-Phase 1 (Party) → APK test → Phase 2 (Call) → APK test → Phase 3 (Go Live hardening) → APK test → Phase 4 (cleanup)
-```
-
-Each phase is independently shippable. Owner approves each phase end before next starts.
-
----
-
-## Open Risks
-
-- **LiveKit Android SDK pre-connect track creation** (Gap B in audit): unclear if pre-connect `createVideoTrack()` survives `Room.connect()`. May need to refactor `startLocalPreview` to use standalone `CameraXCapturer` not bound to Room, then attach to Room on connect. Investigate during Phase 1 implementation.
-- **TextureView z-order on some OEM (Vivo/Oppo):** may need `setZOrderMediaOverlay(true)`. Will test on Vivo during Phase 1 APK QA.
-- **`PrivateCallActivity` cold start vs JS `acceptCall()` race:** Activity may foreground before JS connects LiveKit. Mitigation: native ringing UI shown until `call:connected` broadcast received.
-
----
-
-## Lucky Gift Lottery — Chamet-Style Mega Jackpot (2026-06-15)
-
-### Research summary (Chamet, Bigo, Poppo, Olamet)
-- Tiered RNG with 0.5x–10000x multipliers.
-- **RTP target 75–85%** (house edge 15–25%).
-- Visual feedback scales with tier: toast → room sparkles → full-screen → global broadcast.
-- MEGA JACKPOT (≥1000x) is ~1 in 100k–500k, drives global FOMO ("lottery effect").
-- Wallet shows two line items: red `Sent Lucky Gift -N` and gold `Lucky Reward +M`.
-
-### Current state (audit)
-- Backend `process_gift_transaction` already rolls per-unit lottery, respects admin `lucky_gift_config`, falls back to default ladder. EV ≈ 0.285x — **too stingy, no jackpot tail**.
-- Default ladder: 85% 0x · 10% 0.5x · 3% 2x · 1.5% 5x · 0.5% 20x. No mega tier.
-- Frontend (`GiftingService.ts` L275-282): only a 4s `toast.success(...)` regardless of multiplier. No celebration animation, no tier mapping.
-
-### New default ladder (EV ≈ 0.791, RTP ≈ 79%)
-| Tier | Multi | % | EV |
+| Surface | Pro pattern (video) | Our current code | Gap |
 |---|---|---|---|
-| No win | 0x | 55.0% | 0 |
-| Small | 0.5x | 30.0% | 0.150 |
-| Modest | 1x | 10.0% | 0.100 |
-| Nice | 2x | 3.0% | 0.060 |
-| Great | 5x | 1.5% | 0.075 |
-| Big | 20x | 0.4% | 0.080 |
-| Huge | 100x | 0.08% | 0.080 |
-| Epic | 500x | 0.018% | 0.090 |
-| Mega | 2000x | 0.0018% | 0.036 |
-| Legend | 10000x | 0.0002% | 0.020 |
+| Warning + Welcome banner | True TOP of screen, compact yellow pill, ONE line, scrolls below status bar | Rendered inside `RoomChatOverlay` top — but overlay itself is bottom-anchored, so warnings appear **right above bottom buttons** | Detach from chat column → move to true top zone |
+| Chat list | bottom-LEFT, ~60% width, 5–7 rows visible, ends ~12% above bottom buttons (never overlaps) | Same anchor but warnings eat top of zone; `maxHeight` not always clearing the action bar | Reserve real estate above bottom action bar |
+| Join messages | Inline chat row with badge ("Lucky_ joined the room ✨") in same scroll list as chat | Already inline via `JoinNotificationItem` ✅ | OK — keep |
+| Entry animation order | Fires the **instant** user joins (top-anchored sliding banner), join chat row appears in parallel | `useUnifiedEntryDispatcher` already does this ✅ | OK — verify timing only |
+| Gift in chat | Instant "X send Y 🎁 x1" row, combo counter updates in place (x1 → x12 → x77) | Inline row exists; combo aggregation per-sender per-gift needs verification | Verify combo merge window |
+| Viewer header | Top: host avatar capsule + live viewer count + scrolling avatar stack of recent viewers | `UnifiedViewerPanel` + viewerCount exist; recent-viewer avatars rendered in header ✅ | OK — verify scroll/refresh |
+| Scroll-to-bottom FAB | Present in Bigo (down arrow above input) | Already present in `ScrollToBottomButton` ✅ | OK |
 
-- Sum = 100.000%, EV = 0.791x → house edge 20.9%.
-- Mega/Legend odds ≈ 1 in 50k / 1 in 500k → genuine lottery feel, sustainable.
+**Root issue user is complaining about: warning banners sitting above bottom buttons.** This is real — confirmed in `RoomChatOverlay.tsx` lines 499–518.
 
-### Celebration tiers (frontend `LuckyGiftCelebration`)
-| Multi range | UX |
-|---|---|
-| >0x – 49x | fullscreen/center reward with Bonus Diamond amount, 2.8s |
-| 50x – 999x | fullscreen "BIG WIN" with coin shower + amount, 4s |
-| ≥ 1000x | fullscreen "MEGA JACKPOT!" golden explosion + sender name + amount, 6s, room-broadcast TODO |
+## Changes
 
-### Implementation
-1. Migration: replace inline default ladder in `process_gift_transaction` with the new tiers.
-2. New `src/components/lucky/LuckyGiftCelebration.tsx` — tier-aware overlay, portal-rendered, design-system tokens only.
-3. New `src/components/lucky/LuckyGiftHost.tsx` — singleton mount that listens to a tiny event bus.
-4. `GiftingService.ts` — replace bare toast with `showLuckyWin({ spent, bonus })`; route through host.
-5. Mount `LuckyGiftHost` once in `App.tsx`.
-6. ZERO changes to existing flying-gift / entry / SVGA animations.
+### 1. Detach warnings from chat overlay (the main complaint)
+- Remove `RoomWelcomeBanner` + `WelcomeMessage` from the **top of `RoomChatOverlay`**.
+- Add a new `RoomTopNoticeStack` slot rendered by the parent screens (LiveStream / PartyRoom / ActiveCallScreen) **at the true top of the room**, below the header avatar bar.
+- Style: single-line pill, `bg-black/35 backdrop-blur-sm`, auto-collapses after 6s for welcome (admin rule banner stays sticky like pro apps).
 
-### Validation
-- Spec: spent 1000 → bonus 2000 = 2x → Nice tier ribbon.
-- Spec: spent 1000 → bonus 100000 = 100x → fullscreen BIG WIN.
-- Spec: spent 1000 → bonus 2000000 = 2000x → MEGA JACKPOT.
+### 2. Chat zone geometry
+- `RoomChatOverlay` `maxHeight` formula → `min(45vh, viewport - header - bottomBar - 16px)` so chat **never** runs into the action bar.
+- Width clamp: `max-w-[68%]` mobile (matches video frame 5/45 measurement).
+- Keep `flex-col-reverse` (newest at bottom) — already correct.
 
-### Fix follow-up (2026-06-15)
-- Verified DB is paying lucky bonuses: 30 active lucky gifts, recent `lucky_gift_results` rows include sender payouts.
-- Gap fixed: frontend only opened fullscreen for `>=2x`, so common 0.5x/1x lucky returns looked like “not working”. Now every positive bonus opens the fullscreen reward display and labels the amount as Bonus Diamond / Jackpot Diamond.
-- Gap fixed: direct DM gift path calls `callGiftService` directly, bypassing shared `GiftingService`; it now emits the same lucky reward overlay after the backend returns `diamondBonus`.
+### 3. Verify + tighten gift instant counting
+- `gift_combo_window` table already exists. Confirm `ChatMessageItem` merges same `senderId+giftId` within combo window into one row with live `xN` count instead of stacking new rows.
+- Add a defensive client-side dedup if server window misses.
+
+### 4. Verify entry-animation + join-row timing
+- `useUnifiedEntryDispatcher` already fires animation on viewer-join LiveKit event. Add a console-traced timing assertion (animation start ≤ 200ms from join, join chat row ≤ 500ms) — log only, no UX change.
+
+### 5. Apply same overlay contract to PartyRoom + ActiveCallScreen
+- Same `RoomTopNoticeStack` slot wired into both.
+- Same chat geometry props passed to `RoomChatOverlay`.
+
+## Out of scope
+- No edits to FlyingGiftAnimation / FullScreenGiftAnimation / EntryBarAnimation engines (locked).
+- No DB schema changes (uses existing `room_welcome_messages`, `stream_chat`, `party_room_messages`, `gift_combo_window`).
+- No backend / edge-function changes.
+- VPS work deferred (per project memory).
+
+## Files
+
+```text
+src/features/shared/room/RoomChatOverlay.tsx          (edit — remove top notice slot)
+src/components/room/RoomTopNoticeStack.tsx            (new — true-top notice container)
+src/components/room/RoomWelcomeBanner.tsx             (edit — auto-collapse welcome after 6s)
+src/pages/LiveStream.tsx                              (edit — mount RoomTopNoticeStack at top)
+src/pages/PartyRoom.tsx                               (edit — mount RoomTopNoticeStack at top)
+src/components/call/ActiveCallScreen.tsx              (edit — mount RoomTopNoticeStack at top)
+.lovable/plan.md                                      (edit — record audit + decisions)
+```
+
+## Verification
+- Owner test account (smdollarex923@gmail.com) → enter own live → confirm yellow warning at TOP (not above bottom buttons), chat ends above action bar, send gift x12 → combo merges into ONE row counter.
+- Repeat in Party Audio + Private Call.
+- APK rebuild **not** required (pure React/CSS).
+
+## Open question for you before I start
+The reference video shows the warning at the **true top** (just under status bar / above host avatar capsule). Our app has the host header capsule at top — should the warning go (a) **above** the host header capsule, or (b) **below** the header but above the video? Bigo uses (b). Confirm and I'll execute.
