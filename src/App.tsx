@@ -1007,6 +1007,11 @@ const App = () => {
             });
           }
           window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
+          // Prime own avatar+frame in persistent cache so they render
+          // instantly on every cold launch, even offline.
+          import('@/utils/frameCache').then(({ primeOwnAvatarCache }) => {
+            void primeOwnAvatarCache(session.user.id);
+          }).catch(() => undefined);
         } else if (event === 'SIGNED_OUT') {
           // 🛡️ CRITICAL: Only clear session if user MANUALLY logged out
           const isManualLogout = localStorage.getItem('meri_manual_logout') === 'true';

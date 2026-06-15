@@ -3,6 +3,7 @@
  * Eliminates N+1 queries by batching all frame lookups
  */
 import { supabase } from '@/integrations/supabase/client';
+import { persistFrame, persistAvatarUrl } from './persistentAvatarCache';
 
 interface FrameData {
   id: string;
@@ -273,33 +274,81 @@ const executeBatch = async () => {
   // Resolve all remaining users
   const now = Date.now();
   ids.forEach(userId => {
-    if (resolvedFrameUrlCache.has(userId) && isValid(resolvedFrameUrlCache.get(userId)!.timestamp)) return;
-    
+    if (resolvedFrameUrlCache.has(userId) && isValid(resolvedFrameUrlCache.get(userId)!.timestamp)) {
+      // Even already-resolved entries should be mirrored to disk so a fresh
+      // tab/cold launch can render the frame on the very first paint.
+      const r = resolvedFrameUrlCache.get(userId)!;
+      persistFrame(userId, r.url, r.type);
+      return;
+    }
+
     const cached = userFrameInfoCache.get(userId);
     if (!cached) {
       resolvedFrameUrlCache.set(userId, { url: null, type: 'static', timestamp: now });
+      persistFrame(userId, null, 'static');
       return;
     }
 
     const { equipped_frame_id, frame_id } = cached.data;
-    
+
     // Priority: equipped_frame_id > frame_id
     const checkId = equipped_frame_id || frame_id;
     if (checkId) {
       const frame = frameDataCache.get(checkId);
       if (frame) {
         resolvedFrameUrlCache.set(userId, { url: frame.frame_url, type: frame.frame_type || 'static', timestamp: now });
+        persistFrame(userId, frame.frame_url, frame.frame_type || 'static');
         return;
       }
     }
-    
-    resolvedFrameUrlCache.set(userId, { url: null, type: 'static', timestamp: now });
+
+    // Some users were resolved earlier in this batch via shop_items / role_frames —
+    // those write directly to resolvedFrameUrlCache, so mirror those too.
+    const post = resolvedFrameUrlCache.get(userId);
+    if (post) {
+      persistFrame(userId, post.url, post.type);
+    } else {
+      resolvedFrameUrlCache.set(userId, { url: null, type: 'static', timestamp: now });
+      persistFrame(userId, null, 'static');
+    }
   });
 
   notify();
   batchResolvers.forEach(r => r());
   batchResolvers = [];
   batchPromise = null;
+};
+
+/**
+ * Prime the persistent avatar cache for the signed-in user as early as
+ * possible (called from App.tsx onAuthStateChange). Guarantees the
+ * user's OWN photo + frame are in localStorage before any avatar
+ * component mounts — so they paint instantly on every cold launch,
+ * even offline.
+ */
+export const primeOwnAvatarCache = async (userId: string): Promise<void> => {
+  if (!userId) return;
+  try {
+    const { data } = await supabase
+      .from('profiles_public')
+      .select('id, avatar_url, frame_id, equipped_frame_id')
+      .eq('id', userId)
+      .maybeSingle();
+    if (!data) return;
+    if ((data as any).avatar_url) {
+      persistAvatarUrl(userId, (data as any).avatar_url);
+      // Warm HTTP cache so bytes are on disk too
+      if (typeof window !== 'undefined') {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = (data as any).avatar_url;
+      }
+    }
+    // Resolve frame via the regular batch path → also persists via executeBatch
+    await requestUserFrame(userId);
+  } catch {
+    // best-effort; offline launch falls back to whatever is already cached
+  }
 };
 
 /**
