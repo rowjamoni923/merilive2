@@ -199,14 +199,38 @@ export async function getLiveKitToken(
   const inFlight = inFlightTokenRequests.get(cacheKey);
   if (inFlight) return inFlight;
 
-  const tokenPromise = requestFreshToken(request, accessToken)
-    .then((freshToken) => {
-      setTokenCache(cacheKey, freshToken);
-      return freshToken;
-    })
-    .finally(() => {
-      inFlightTokenRequests.delete(cacheKey);
-    });
+  // Race-safe retry: if the edge fn returns a `fallback: true` quiet error
+  // (e.g. `must_enter_party_first` / `must_enter_stream_first`), the client
+  // raced enter_party_room / enter_live_stream. Back off and retry up to a
+  // few times instead of bubbling the error into a runtime overlay.
+  const tokenPromise = (async (): Promise<LiveKitTokenResponse> => {
+    const backoffsMs = [400, 800, 1500, 2500];
+    let lastQuiet: (Error & { code?: string; quiet?: boolean }) | null = null;
+    for (let attempt = 0; attempt <= backoffsMs.length; attempt++) {
+      try {
+        const fresh = await requestFreshToken(request, accessToken);
+        setTokenCache(cacheKey, fresh);
+        return fresh;
+      } catch (err) {
+        const quiet = err as Error & { code?: string; quiet?: boolean };
+        if (quiet?.quiet && (
+          quiet.code === 'must_enter_party_first' ||
+          quiet.code === 'must_enter_stream_first'
+        )) {
+          lastQuiet = quiet;
+          if (attempt < backoffsMs.length) {
+            await new Promise((r) => setTimeout(r, backoffsMs[attempt]));
+            continue;
+          }
+        }
+        throw err;
+      }
+    }
+    // Exhausted retries — surface the last quiet error so callers can decide.
+    throw lastQuiet ?? new Error('Failed to get LiveKit token');
+  })().finally(() => {
+    inFlightTokenRequests.delete(cacheKey);
+  });
 
   inFlightTokenRequests.set(cacheKey, tokenPromise);
   return tokenPromise;
