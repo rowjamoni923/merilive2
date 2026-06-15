@@ -758,9 +758,11 @@ export function ActiveCallScreen({
 
   // Auto-scroll chat
   useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
+    requestAnimationFrame(() => {
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }
+    });
   }, [chatMessages]);
 
   // Pkg83 LiveKit-Purist: in-call chat via LiveKit DataPacket (Pkg79 chat
@@ -1197,8 +1199,8 @@ export function ActiveCallScreen({
       {chatMessages.length > 0 && !isInNativePip && (
         <div
           ref={chatScrollRef}
-          className="absolute bottom-[108px] sm:bottom-[116px] left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto"
-          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+          className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
+          style={{ bottom: 'calc(var(--kb-h, 0px) + 108px)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           <div className="space-y-1.5 pb-1">
             {chatMessages.slice(-30).map((msg) => {
@@ -1310,7 +1312,7 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       {!isInNativePip && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
+        <div className="absolute bottom-kb left-0 right-0 z-20 safe-area-bottom chat-composer-stable">
           <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">

@@ -24,6 +24,14 @@ function setKb(px: number) {
 export function useKeyboardInsets() {
   useEffect(() => {
     setKb(0);
+    let lastKb = 0;
+    let raf = 0;
+    const commitKb = (next: number) => {
+      const rounded = Math.max(0, Math.round(next));
+      if (Math.abs(rounded - lastKb) < 4) return;
+      lastKb = rounded;
+      setKb(rounded);
+    };
 
     if (isNativeApp()) {
       let showHandle: { remove: () => Promise<void> } | null = null;
@@ -34,10 +42,10 @@ export function useKeyboardInsets() {
         .then(async ({ Keyboard }) => {
           if (cancelled) return;
           showHandle = await Keyboard.addListener('keyboardWillShow', (info) => {
-            setKb(info?.keyboardHeight ?? 0);
+            commitKb(info?.keyboardHeight ?? 0);
           });
           hideHandle = await Keyboard.addListener('keyboardWillHide', () => {
-            setKb(0);
+            commitKb(0);
           });
         })
         .catch(() => { /* plugin missing on web build — ignore */ });
@@ -56,12 +64,16 @@ export function useKeyboardInsets() {
     }
     const vv = window.visualViewport;
     const onResize = () => {
-      const diff = window.innerHeight - vv.height - vv.offsetTop;
-      setKb(diff > 80 ? diff : 0); // 80px guard against browser chrome jitter
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const diff = window.innerHeight - vv.height - vv.offsetTop;
+        commitKb(diff > 100 ? diff : 0); // 100px guard against browser chrome jitter
+      });
     };
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onResize);
     return () => {
+      cancelAnimationFrame(raf);
       vv.removeEventListener('resize', onResize);
       vv.removeEventListener('scroll', onResize);
       setKb(0);

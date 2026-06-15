@@ -1694,9 +1694,9 @@ export function UnifiedPartyRoom({
         {/* Welcome message at bottom, messages stack upward */}
         {/* z-30 = BEHIND game board (z-50) */}
         <div 
-          className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end"
+          className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
-            bottom: '72px',
+            bottom: 'calc(var(--kb-h, 0px) + 72px)',
             maxHeight: (roomType === 'game' || showGameBoard) ? '22vh' : '42vh',
           }}
         >
@@ -1805,7 +1805,7 @@ export function UnifiedPartyRoom({
       </main>
 
       {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+      <div className="absolute bottom-kb left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] chat-composer-stable">
         <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-3">
           {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 

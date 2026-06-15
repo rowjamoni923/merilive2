@@ -94,3 +94,44 @@ The reference video shows the warning at the **true top** (just under status bar
 - `/go-live` no longer shows “Android app required”; it reaches the Go Live permission screen.
 - `/create-party` no longer shows “Android app required”; it reaches the Party Room creation screen.
 - APK rebuild NOT required for preview testing; Android production behavior unchanged.
+
+---
+
+## Message section smoothness audit — 2026-06-15
+
+**Reference videos analyzed:**
+- Professional app video: 19.17s. Behavior: message list remains visually anchored while keyboard opens, composer stays pinned directly above keyboard, quick chips/tool rows do not reflow the whole screen, latest messages stay stable without hard scroll jumps.
+- Our app video: 11.97s. Behavior: chat body visibly jumps/repositions around the composer/quick chips; input area and message list are not following one shared keyboard inset contract.
+
+**Code gaps found:**
+- Global `useKeyboardInsets` already exposes `--kb-h`, but LiveStream, PartyRoom, PrivateCall, and Chat page composers do not consistently consume it.
+- LiveStream / PartyRoom / ActiveCall bottom bars are `absolute bottom-0`, so keyboard opening resizes viewport underneath them instead of smoothly lifting one stable composer layer.
+- Room chat overlays use static `bottom: 72px`, not keyboard-aware bottom clearance.
+- DM Chat auto-scroll uses repeated hard scroll writes (`layoutEffect + rAF + timeout`), which is good for first open but too aggressive around keyboard/composer height changes.
+
+**Professional contract to apply:**
+- One keyboard-aware bottom composer layer: `bottom: var(--kb-h)` with safe-area padding inside the bar.
+- Chat overlay bottom clearance must be `composerHeight + --kb-h`, so chat never gets pushed/jumped by the keyboard.
+- Scroll containers keep `overflow-anchor: none` and only auto-scroll when already near bottom or after user sends.
+- No visual redesign; only movement/layout mechanics.
+
+**Implemented:**
+- Added shared `.chat-scroll-stable` and `.chat-composer-stable` utilities.
+- LiveStream: bottom composer lifts by `--kb-h`; room chat overlay bottom clearance also includes `--kb-h`.
+- PartyRoom / UnifiedPartyRoom: same keyboard-aware composer + chat overlay clearance.
+- ActiveCallScreen private call: bottom composer lifts by `--kb-h`.
+- Legacy ProfessionalAudioRoom fallback: chat dock clearance includes `--kb-h`.
+- DM/Message page: scroll container disables browser scroll anchoring, reserves keyboard bottom padding, and composer translates above keyboard; auto-scroll no longer hard-scrolls while an input is focused, but send/quick-reply explicitly anchors to latest.
+- `useKeyboardInsets`: rAF batching + 4px hysteresis + stronger browser-chrome guard to prevent visualViewport micro-jitter.
+- `capacitor.config.ts`: changed Keyboard resize from `body` to `none`; body resize was the main Android-side jump source.
+
+**Verification note:**
+- Code-level grep confirms all target surfaces now consume the shared keyboard-stable contract.
+- Browser preview reached auth wall for `/chat`, so destructive/message-send testing was not performed in this session.
+- Because `capacitor.config.ts` changed, APK rebuild is REQUIRED for the Android no-jump behavior to apply. Web preview reflects React/CSS parts after hot reload.
+
+**Subagent follow-up applied:**
+- Video analyzer confirmed the core visual defect: our app keyboard open/close teleports in ~1 frame, while the professional app transitions over multiple frames with the composer glued to keyboard top.
+- Code audit found missed drawer/private-call gaps; patched `ChametStyleChatPanel`, `ActiveCallScreen` chat-log offset + rAF autoscroll, and `RoomChatOverlay` CSS-only max-height.
+- Removed the DM triple-scroll timeout that could snap after user interaction.
+- Removed duplicate `visualViewport.resize` React-state listener from `useMobileOptimization`; keyboard animation now flows through the CSS-var bridge only.

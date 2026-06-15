@@ -185,6 +185,20 @@ a[href]:active,
   transition: padding-bottom 180ms ease-out, margin-bottom 180ms ease-out, bottom 180ms ease-out;
 }
 
+/* Professional chat/composer stability: prevents keyboard/composer changes from
+   anchoring the scroll container to a random child and keeps bottom bars on the
+   compositor while they lift above the keyboard. */
+.chat-scroll-stable {
+  overflow-anchor: none;
+  scroll-behavior: smooth;
+}
+
+.chat-composer-stable {
+  transform: translateZ(0);
+  will-change: bottom, transform;
+  transition: bottom 180ms ease-out, padding-bottom 180ms ease-out, transform 180ms ease-out;
+}
+
 input,
 select,
 textarea {

@@ -1075,22 +1075,17 @@ const Chat = () => {
     // otherwise leave the view stuck at the top (WhatsApp/imo always open at
     // the latest message).
     if (!initialScrollDoneRef.current) {
-      container.scrollTop = container.scrollHeight;
       requestAnimationFrame(() => {
         if (!chatScrollRef.current) return;
         chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
       });
-      setTimeout(() => {
-        if (!chatScrollRef.current) return;
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      }, 80);
       if (currentLen > 0) {
         initialScrollDoneRef.current = true;
       }
       return;
     }
 
-    if (wasNearBottom) {
+    if (wasNearBottom && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
       requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
       });
@@ -2020,6 +2015,14 @@ const Chat = () => {
     });
   }, [myProfile]);
 
+  const anchorChatToBottomSoon = useCallback(() => {
+    requestAnimationFrame(() => {
+      const c = chatScrollRef.current;
+      if (!c) return;
+      c.scrollTop = c.scrollHeight;
+    });
+  }, []);
+
   const handleSend = async (overrideText?: string) => {
     const rawText = (overrideText ?? message).trim();
     if (!rawText || sending) return;
@@ -2045,6 +2048,7 @@ const Chat = () => {
         _optimistic: true,
       };
       setMessages(prev => [...prev, optimisticMsg]);
+      anchorChatToBottomSoon();
     }
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
@@ -2095,6 +2099,7 @@ const Chat = () => {
         // Clear reply after successful send
 
         setReplyingTo(null);
+        anchorChatToBottomSoon();
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -2148,6 +2153,7 @@ const Chat = () => {
 
         if (error) throw error;
         appendSentGroupMessage(newMsg);
+        anchorChatToBottomSoon();
           
         // Track + background phone check
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -2542,8 +2548,8 @@ const Chat = () => {
             setShowScrollToBottom(shouldShow);
             if (!shouldShow) setUnreadBelow(0);
           }}
-          className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper chat-scroll-stable"
+          style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}
         >
           {currentMessages.length > 0 && <div className="mt-auto" aria-hidden />}
           {hasOlder && (
@@ -2952,7 +2958,10 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
+        <div
+          className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border chat-composer-stable"
+          style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}
+        >
           {/* Media Uploader (direct gallery) */}
           {showMediaUploader && (
             <Suspense fallback={null}>
@@ -3102,6 +3111,7 @@ const Chat = () => {
                         if (!content || sending) return;
                         setSending(true);
                         setMessage("");
+                        anchorChatToBottomSoon();
                         
                         if (selectedConversation) {
                           persistDirectMessage(
@@ -3128,6 +3138,7 @@ const Chat = () => {
                           }).select().single()).then(({ data, error }) => {
                             if (error) throw error;
                             appendSentGroupMessage(data);
+                            anchorChatToBottomSoon();
                             setSending(false);
                           }).catch(() => {
                             toast.error("Failed to send message");
