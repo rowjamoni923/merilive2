@@ -359,6 +359,12 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }, COMBO_WINDOW_MS);
   }, [resetCombo]);
 
+  // Premium gifts (≥ 50,000 diamonds) are single-send only — no combo presets,
+  // no quantity stepper. Keeps lottery-tier gifts feeling intentional & exclusive.
+  const SINGLE_ONLY_THRESHOLD = 50000;
+  const COMBO_PRESETS = [1, 11, 37, 77] as const;
+  const isSingleOnly = !!selectedGift && selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+
   const handleGiftTap = useCallback((gift: GiftData) => {
     if (selectedGift?.id === gift.id) {
       setSelectedGift(null);
@@ -370,6 +376,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       warmSelectedVideoGift(gift.animation_url || gift.icon_url);
     }
   }, [selectedGift, resetCombo]);
+
 
   // Keep ref in sync with userCoins (mirror, not state-source).
   useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
