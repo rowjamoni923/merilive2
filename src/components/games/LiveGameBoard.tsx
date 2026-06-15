@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { getOptimizedImageUrl } from "@/utils/imageOptimize";
 import { 
   Coins, 
   Trophy, 
