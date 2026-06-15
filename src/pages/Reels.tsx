@@ -1033,7 +1033,7 @@ const Reels = () => {
                             userId={currentReel.user_id}
                             src={currentReel.user?.avatar_url || ''}
                             name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
-                            level={currentReel.user?.user_level || 1}
+                            level={getRequiredDisplayLevel(currentReel.user)}
                             size="sm"
                           />
                         </button>
@@ -1060,7 +1060,7 @@ const Reels = () => {
                             <span className="text-white text-[9px] font-black leading-none">✓</span>
                           </div>
                         )}
-                        <LevelBadge level={currentReel.user?.user_level || 1} size="sm" />
+                        <LevelBadge level={getRequiredDisplayLevel(currentReel.user)} size="sm" />
                       </div>
 
                       {/* Caption */}
@@ -1182,8 +1182,8 @@ const Reels = () => {
                           <span className="text-sm font-semibold text-white truncate max-w-[140px]">
                             {comment.user?.display_name || 'User'}
                           </span>
-                          {comment.user?.user_level ? (
-                            <LevelBadge level={comment.user.user_level} size="xs" />
+                          {comment.user ? (
+                            <LevelBadge level={getRequiredDisplayLevel(comment.user)} size="xs" />
                           ) : null}
                           <span className="text-[11px] text-white/40">
                             {formatRelativeTime(comment.created_at)}
