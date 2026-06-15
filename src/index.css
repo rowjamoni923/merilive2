@@ -199,6 +199,10 @@ a[href]:active,
   transition: bottom 180ms ease-out, padding-bottom 180ms ease-out, transform 180ms ease-out;
 }
 
+html[data-kb-open="true"] .kb-hide-when-open {
+  display: none !important;
+}
+
 input,
 select,
 textarea {
