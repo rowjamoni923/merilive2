@@ -517,7 +517,7 @@ export const RoomChatOverlay = memo(({
           "bg-gradient-to-t from-black/25 via-black/5 to-transparent",
           "backdrop-blur-[3px]"
         )}
-        style={{ maxHeight: window.innerWidth >= 768 ? '400px' : maxHeight }}
+        style={{ maxHeight: `min(${maxHeight}, 400px)` }}
       >
         {/* Chat messages — first DOM child = visually at the bottom */}
         <AnimatePresence initial={false} mode="sync">
