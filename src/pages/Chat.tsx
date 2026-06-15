@@ -381,6 +381,34 @@ const Chat = () => {
   const latestPinTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadBelow, setUnreadBelow] = useState(0);
+
+  const hardPinChatToLatest = useCallback(() => {
+    const c = chatScrollRef.current;
+    if (!c) return;
+    const previousBehavior = c.style.scrollBehavior;
+    c.style.scrollBehavior = 'auto';
+    c.scrollTop = c.scrollHeight;
+    c.style.scrollBehavior = previousBehavior;
+    wasNearBottomRef.current = true;
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
+  }, []);
+
+  const anchorChatToBottomSoon = useCallback(() => {
+    latestPinTimersRef.current.forEach(clearTimeout);
+    latestPinTimersRef.current = [];
+    const stick = () => hardPinChatToLatest();
+    stick();
+    requestAnimationFrame(stick);
+    [40, 100, 180, 320, 560, 900, 1400].forEach((delay) => {
+      latestPinTimersRef.current.push(setTimeout(stick, delay));
+    });
+  }, [hardPinChatToLatest]);
+
+  useEffect(() => () => {
+    latestPinTimersRef.current.forEach(clearTimeout);
+    latestPinTimersRef.current = [];
+  }, []);
   
   // Group creation
   const [showGroupActions, setShowGroupActions] = useState(false);
