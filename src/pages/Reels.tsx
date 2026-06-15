@@ -467,13 +467,28 @@ const Reels = () => {
     const currentReel = reels[currentIndex];
     if (!currentReel) return;
 
+    const content = newComment.trim();
+    const optimisticId = `temp-comment-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: optimisticId,
+      content,
+      created_at: new Date().toISOString(),
+      user: currentUserProfile || { id: currentUserId, display_name: 'You', avatar_url: null, user_level: null },
+    };
+
     setSendingComment(true);
+    setNewComment("");
+    setComments(prev => [...prev, optimisticComment]);
+    setReels(prev => prev.map(r => 
+      r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
+    ));
+
     const { data, error } = await supabase
       .from('reel_comments')
       .insert({
         reel_id: currentReel.id,
         user_id: currentUserId,
-        content: newComment.trim()
+        content
       })
       .select(`
         *,
@@ -482,11 +497,14 @@ const Reels = () => {
       .single();
 
     if (!error && data) {
-      setComments(prev => [...prev, data]);
+      setComments(prev => prev.map(comment => comment.id === optimisticId ? data : comment));
+    } else if (error) {
+      setComments(prev => prev.filter(comment => comment.id !== optimisticId));
       setReels(prev => prev.map(r => 
-        r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
+        r.id === currentReel.id ? { ...r, comment_count: Math.max(0, r.comment_count - 1) } : r
       ));
-      setNewComment("");
+      setNewComment(content);
+      toast.error("Failed to send comment");
     }
     setSendingComment(false);
   };
