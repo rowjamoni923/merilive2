@@ -2020,6 +2020,14 @@ const Chat = () => {
     });
   }, [myProfile]);
 
+  const anchorChatToBottomSoon = useCallback(() => {
+    requestAnimationFrame(() => {
+      const c = chatScrollRef.current;
+      if (!c) return;
+      c.scrollTop = c.scrollHeight;
+    });
+  }, []);
+
   const handleSend = async (overrideText?: string) => {
     const rawText = (overrideText ?? message).trim();
     if (!rawText || sending) return;
@@ -2045,6 +2053,7 @@ const Chat = () => {
         _optimistic: true,
       };
       setMessages(prev => [...prev, optimisticMsg]);
+      anchorChatToBottomSoon();
     }
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
