@@ -125,6 +125,7 @@ const Reels = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<Comment['user'] | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
   const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
@@ -203,10 +204,16 @@ const Reels = () => {
         setCurrentUserId(user.id);
         // Fetch profile and categories in parallel
         const [profileRes, categoriesRes] = await Promise.all([
-          supabase.from('profiles').select('is_host, coins').eq('id', user.id).single(),
+          supabase.from('profiles').select('is_host, coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
+        setCurrentUserProfile(profileRes.data ? {
+          id: user.id,
+          display_name: profileRes.data.display_name,
+          avatar_url: profileRes.data.avatar_url,
+          user_level: profileRes.data.user_level,
+        } : null);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
         if (categoriesRes.data) {
