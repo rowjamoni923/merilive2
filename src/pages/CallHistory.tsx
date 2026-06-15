@@ -306,12 +306,15 @@ const CallHistory = () => {
               >
                 {/* Avatar */}
                 <div className="relative">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={call.other_user?.avatar_url ? enhanceThumbnail(call.other_user.avatar_url, { width: 48, quality: 82 }) : undefined} />
-                    <AvatarFallback>
-                      {call.other_user?.display_name?.[0] || '?'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AvatarWithFrame
+                    userId={call.other_user?.id}
+                    src={call.other_user?.avatar_url || undefined}
+                    name={call.other_user?.display_name || '?'}
+                    level={call.other_user?.level || 1}
+                    size="sm"
+                    showFrame={true}
+                    showAnimation={false}
+                  />
                   {call.other_user?.is_verified && (
                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                       <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">

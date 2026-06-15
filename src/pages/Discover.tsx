@@ -789,12 +789,15 @@ const Discover = () => {
                                   : '0 2px 6px -2px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.4)',
                             }}
                           >
-                            <Avatar className="w-7 h-7 border-2 border-card">
-                              <AvatarImage src={hostAvatar || undefined} />
-                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[9px]">
-                                {room.host?.display_name?.charAt(0) || 'H'}
-                              </AvatarFallback>
-                            </Avatar>
+                            <AvatarWithFrame
+                              userId={room.host?.id}
+                              src={hostAvatar || undefined}
+                              name={room.host?.display_name || 'H'}
+                              level={hostLevel}
+                              size="xs"
+                              showFrame={true}
+                              showAnimation={false}
+                            />
                           </div>
                         </div>
                         
@@ -883,12 +886,15 @@ const Discover = () => {
                   <div className="rounded-full p-[3px] bg-gradient-to-br from-secondary to-primary"
                     style={{ boxShadow: '0 8px 24px -6px rgba(79,70,229,0.45), inset 0 1px 0 rgba(255,255,255,0.4)' }}
                   >
-                    <Avatar className="w-16 h-16 border-4 border-background">
-                      <AvatarImage src={cdnAvatar(normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || '', 64) || normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-primary text-on-dark text-lg">
-                        {entryPreview.host?.display_name?.[0] || "H"}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                      userId={entryPreview.host?.id}
+                      src={cdnAvatar(normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || '', 64) || normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined}
+                      name={entryPreview.host?.display_name || "H"}
+                      level={getRequiredDisplayLevel(entryPreview.host)}
+                      size="lg"
+                      showFrame={true}
+                      showAnimation={true}
+                    />
                   </div>
                 </div>
               </div>

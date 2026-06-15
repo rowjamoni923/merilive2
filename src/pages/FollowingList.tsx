@@ -293,12 +293,15 @@ const FollowingList = () => {
             className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-400 opacity-70 blur-[2px] group-hover:opacity-100 transition-opacity"
             aria-hidden
           />
-          <Avatar className="w-14 h-14 relative ring-2 ring-background">
-            <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-semibold">
-              {profile.display_name?.[0] || '?'}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarWithFrame
+            userId={profile.id}
+            src={profile.avatar_url || undefined}
+            name={profile.display_name || '?'}
+            level={profile.level || 1}
+            size="sm"
+            showFrame={true}
+            showAnimation={false}
+          />
           {profile.is_online && (
             <div
               className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-card"
