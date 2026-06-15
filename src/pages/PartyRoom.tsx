@@ -1855,11 +1855,13 @@ const PartyRoom = () => {
 
   useEffect(() => {
     if (!room?.id || !currentUser?.id) return;
-    setMediaReady(true);
     const joinKey = `${room.id}:${currentUser.id}`;
     if (joinedRoomKeyRef.current === joinKey) return;
     joinedRoomKeyRef.current = joinKey;
-    void joinRoom();
+    // Must await enter_party_room (which inserts the participant row) BEFORE
+    // enabling the LiveKit hook — otherwise livekit-token edge fn checks
+    // party_room_participants and returns 403 not_party_participant.
+    void joinRoom().then(() => setMediaReady(true));
   }, [room?.id, currentUser?.id]);
 
   // PR-2 (P0-5): retry handler invoked from password prompt modal.
