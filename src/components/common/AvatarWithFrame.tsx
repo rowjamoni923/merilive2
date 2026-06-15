@@ -339,6 +339,13 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   // but the avatar photo silently 404s and the user only sees a letter.
   const originalSrc = useMemo(() => {
     if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
+    // No live src — try persistent cache first (instant, offline-safe)
+    // before falling back to the gendered AI placeholder. This is what
+    // keeps the user's own photo visible on cold boot / no network.
+    if (userId) {
+      const cachedUrl = getPersistedAvatar(userId)?.avatarUrl;
+      if (cachedUrl) return cachedUrl;
+    }
     if (!userId) return undefined;
     if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
     return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
