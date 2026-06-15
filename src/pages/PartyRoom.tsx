@@ -1272,7 +1272,7 @@ const PartyRoom = () => {
             return prev.filter(p => p.user_id !== userId);
           });
           const userName = leftParticipant?.user?.display_name || 'A viewer';
-          const userLevel = leftParticipant?.user?.user_level || 1;
+          const userLevel = getRequiredDisplayLevel(leftParticipant?.user);
           const userAvatar = normalizeProfileMediaUrl(leftParticipant?.user?.avatar_url) || leftParticipant?.user?.avatar_url || undefined;
           setJoinMessages(prev => [...prev.slice(-20), {
             id: `lk_leave_${Date.now()}_${userId}`,
@@ -2562,7 +2562,7 @@ const PartyRoom = () => {
           position: participants.find(p => p.user_id === room.host?.id)?.position ?? 0,
           displayName: room.host.display_name || 'Host',
           avatarUrl: room.host.avatar_url || undefined,
-          level: Math.max(room.host.host_level || 0, room.host.user_level || 1),
+          level: getRequiredDisplayLevel(room.host),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
           isSpeaking: room.host?.id ? activeSpeakers.has(room.host.id) : false,
@@ -2587,7 +2587,7 @@ const PartyRoom = () => {
             position: p.position || 0,
             displayName: p.user?.display_name || 'User',
             avatarUrl: p.user?.avatar_url || undefined,
-            level: p.user?.user_level || 1,
+            level: getRequiredDisplayLevel(p.user),
             countryFlag: '🌍',
             beansCount: seatBeansReceived[p.user_id] || 0,
             isSpeaking: activeSpeakers.has(p.user_id),
