@@ -128,27 +128,6 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
           💎
         </span>
       </div>
-      </div>
-
-      {/* Coin shower — big/mega only */}
-      {(tier === 'big' || tier === 'mega') && mounted && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: tier === 'mega' ? 24 : 14 }).map((_, i) => (
-            <span
-              key={i}
-              className="absolute top-[-20px] text-2xl select-none"
-              style={{
-                left: `${(i * 97) % 100}%`,
-                animation: `lgc-fall ${1800 + (i % 7) * 220}ms linear ${i * 60}ms infinite`,
-              }}
-              aria-hidden
-            >
-              💎
-            </span>
-          ))}
-          <style>{`@keyframes lgc-fall { 0% { transform: translateY(-20px) rotate(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0.7; } }`}</style>
-        </div>
-      )}
     </div>
   );
 
