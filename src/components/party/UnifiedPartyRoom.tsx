@@ -949,7 +949,7 @@ export function UnifiedPartyRoom({
         const { data: publicProfiles } = senderIds.length
           ? await supabase
               .from('profiles_public')
-              .select('id, display_name, user_level, avatar_url, is_host')
+              .select('id, display_name, user_level, host_level, max_user_level, gender, avatar_url, is_host')
               .in('id', senderIds)
           : { data: [] as any[] };
         const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
@@ -964,7 +964,7 @@ export function UnifiedPartyRoom({
             initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
             message: m.content,
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
-            userLevel: profile?.user_level || 1,
+            userLevel: getRequiredDisplayLevel(profile),
             userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
             isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
@@ -1071,7 +1071,7 @@ export function UnifiedPartyRoom({
         // Resolve sender profile (cached miss → 1 small fetch per new sender)
         const { data: profile } = await supabase
           .from('profiles_public')
-          .select('display_name, user_level, avatar_url, is_host')
+          .select('display_name, user_level, host_level, max_user_level, gender, avatar_url, is_host')
           .eq('id', row.user_id)
           .maybeSingle();
         if (roomIdRef.current !== roomId) return;
@@ -1084,7 +1084,7 @@ export function UnifiedPartyRoom({
           initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
           message: row.content,
           color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-          userLevel: profile?.user_level || 1,
+          userLevel: getRequiredDisplayLevel(profile),
           userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
           isHost: !!profile?.is_host || (row.user_id === hostIdRef.current),
           isNewUser: false,
