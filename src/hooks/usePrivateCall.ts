@@ -14,6 +14,7 @@ import { NativeCamera } from '@/plugins/NativeCamera';
 import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitKillSwitch';
+import { getRequiredDisplayLevel } from '@/utils/stableLevel';
 
 interface CallState {
   callId: string | null;
@@ -121,7 +122,7 @@ export function usePrivateCall(userId: string | null) {
 
     const { data: callerProfile } = await supabase
       .from('profiles_public')
-      .select('display_name, avatar_url, user_level')
+      .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
       .eq('id', call.caller_id)
       .maybeSingle();
 
@@ -139,7 +140,7 @@ export function usePrivateCall(userId: string | null) {
       callerId: call.caller_id,
       callerName: callerProfile?.display_name || 'User',
       callerAvatar: callerProfile?.avatar_url || null,
-      callerLevel: callerProfile?.user_level || 1,
+      callerLevel: getRequiredDisplayLevel(callerProfile),
     });
     return true;
   }, [userId]);
@@ -840,7 +841,7 @@ export function usePrivateCall(userId: string | null) {
       const callerProfilePromise = callData?.caller_id
         ? supabase
             .from('profiles_public')
-            .select('display_name, avatar_url, user_level')
+            .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
             .eq('id', callData.caller_id)
             .single()
         : Promise.resolve({ data: null } as any);
@@ -851,7 +852,7 @@ export function usePrivateCall(userId: string | null) {
             ...prev,
             remoteUserName: callerProfile.display_name || 'User',
             remoteUserAvatar: callerProfile.avatar_url || null,
-            remoteUserLevel: callerProfile.user_level || 1,
+            remoteUserLevel: getRequiredDisplayLevel(callerProfile),
           }));
         }
       }).catch(() => {});
