@@ -1155,7 +1155,7 @@ const Chat = () => {
     ro.observe(container);
     Array.from(container.children).forEach((child) => ro.observe(child as Element));
     return () => ro.disconnect();
-  }, [selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest]);
+  }, [selectedConversation?.id, selectedGroup?.id, messages.length, groupMessages.length, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
