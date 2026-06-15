@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
@@ -2245,12 +2246,14 @@ const HelperDashboard = () => {
                 {searchedUser && (
                   <div className="bg-slate-50 rounded-xl p-4 border border-sky-200/30">
                     <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="w-12 h-12 border-2 border-sky-200">
-                        <AvatarImage src={enhanceThumbnail(searchedUser.avatar_url, { width: 96, quality: 82 })} />
-                        <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
- <User className="w-5 h-5 text-white" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(searchedUser.avatar_url, { width: 96, quality: 82}
+                  name={searchedUser.display_name || searchedUser.agency_name || searchedUser.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div>
                         <p className="text-slate-900 font-semibold">{searchedUser.display_name}</p>
                         <p className="text-slate-700 text-xs">ID: {searchedUser.app_uid}</p>
@@ -2442,12 +2445,14 @@ const HelperDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     {transfer.sender_type === 'trader_to_user' ? (
-                      <Avatar className="w-10 h-10 border-2 border-sky-300">
-                        <AvatarImage src={enhanceThumbnail(transfer.receiver?.avatar_url, { width: 96, quality: 82 })} />
-                        <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
-                          <User className="w-4 h-4 text-white" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(transfer.receiver?.avatar_url, { width: 96, quality: 82}
+                  name={transfer.receiver.display_name || transfer.receiver.agency_name || transfer.receiver.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow">
                         <Building2 className="w-5 h-5 text-white" />

@@ -28,6 +28,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -516,12 +517,14 @@ const AgentWallet = () => {
           <div className="space-y-3">
             {transfers.slice(0, 5).map((tx) => (
               <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82 })} />
-                  <AvatarFallback>
-                    <User className="w-5 h-5" />
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82}
+                  name={tx.display_name || tx.agency_name || tx.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div className="flex-1">
                   <p className="font-medium text-sm">
                     {tx.receiver_name || "Unknown User"}
@@ -599,12 +602,14 @@ const AgentWallet = () => {
                     onClick={() => handleSelectUser(user)}
                     className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 border-t transition-colors"
                   >
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82 })} />
-                      <AvatarFallback>
-                        <User className="w-5 h-5" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                  src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82}
+                  name={user.display_name || user.agency_name || user.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     <div className="flex-1 text-left">
                       <p className="font-medium text-sm">
                         {user.display_name || user.username || "Unknown"}
@@ -625,12 +630,14 @@ const AgentWallet = () => {
             {/* Found User Display */}
             {foundUser && (
               <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
-                <Avatar className="w-12 h-12 border-2 border-success-300">
-                  <AvatarImage src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82 })} />
-                  <AvatarFallback>
-                    <User className="w-6 h-6" />
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82}
+                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div className="flex-1">
                   <p className="font-semibold text-success-800">
                     {foundUser.display_name || foundUser.username || "Unknown"}

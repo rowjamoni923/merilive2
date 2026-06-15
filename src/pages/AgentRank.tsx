@@ -16,6 +16,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -409,12 +410,14 @@ const AgentRank = () => {
                       transition={{ repeat: Infinity, duration: 2.5 }}
                       className={`${config.ringSize} rounded-full bg-gradient-to-b ${config.ring} ${config.glow}`}
                     >
-                      <Avatar className={`${config.size} border-2 border-black/30`}>
-                        <AvatarImage src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82 })} className="object-contain" />
-                        <AvatarFallback className={`bg-gradient-to-br ${config.badge} text-slate-800 font-black ${isChamp ? 'text-xl' : 'text-lg'}`}>
-                          {entry.agency_name?.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82}
+                  name={entry.display_name || entry.agency_name || entry.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     </motion.div>
                   </div>
 
@@ -502,12 +505,14 @@ const AgentRank = () => {
                   
                   {/* Avatar */}
                   <div className="relative">
-                    <Avatar className="w-11 h-11 border border-amber-300">
-                      <AvatarImage src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82 })} className="object-contain" />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white font-bold text-sm">
-                        {agency.agency_name?.slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                  src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82}
+                  name={agency.display_name || agency.agency_name || agency.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     <span className="absolute -bottom-0.5 -right-0.5 text-xs">{agency.country_flag}</span>
                   </div>
                   
@@ -554,12 +559,14 @@ const AgentRank = () => {
             <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
               <span className="text-sm font-black text-white">#{currentUserAgency.rank_position}</span>
             </div>
-            <Avatar className="w-9 h-9 border border-amber-200/60">
-              <AvatarImage src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82 })} />
-              <AvatarFallback className="bg-white/10 text-white font-bold text-xs">
-                {currentUserAgency.agency_name?.slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <AvatarWithFrame
+                  src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82}
+                  name={currentUserAgency.display_name || currentUserAgency.agency_name || currentUserAgency.name || "U"}
+                  level={1}
+                  size="xs"
+                  showFrame={true}
+                  showAnimation={false}
+                />
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold text-sm truncate">{currentUserAgency.agency_name}</p>
               <p className="text-white/75 text-[10px]">Your Agency</p>

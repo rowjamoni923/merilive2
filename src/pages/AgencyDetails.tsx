@@ -18,6 +18,7 @@ import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -204,12 +205,14 @@ const AgencyDetailsPage = () => {
             <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')} opacity-[0.08] blur-3xl pointer-events-none`} />
             <div className="relative flex items-center gap-4">
               <div className={`p-[2px] rounded-full bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')}`}>
-                <Avatar className="w-16 h-16 border-2 border-white">
-                  <AvatarImage src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82 })} />
-                  <AvatarFallback className={`bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')} text-white text-xl font-semibold`}>
-                    {hostAgency.name?.charAt(0) || 'A'}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82}
+                  name={hostAgency.display_name || hostAgency.agency_name || hostAgency.name || "U"}
+                  level={1}
+                  size="lg"
+                  showFrame={true}
+                  showAnimation={false}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">

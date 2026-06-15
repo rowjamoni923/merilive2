@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { playSynthSequence } from "@/utils/soundPlayer";
@@ -948,12 +949,14 @@ const AgencyDashboard = () => {
               {pendingHosts.map((ph) => (
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
-                    <Avatar className="w-9 h-9 border-2 border-amber-500/40">
-                      <AvatarImage src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82 })} />
-                      <AvatarFallback className="bg-amber-500/20 text-amber-200 text-xs">
-                        {ph.profile?.display_name?.charAt(0) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                  src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82}
+                  name={ph.profile.display_name || ph.profile.agency_name || ph.profile.name || "U"}
+                  level={1}
+                  size="xs"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     <div>
                       <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
                       <p className="text-amber-300/60 text-[10px]">
@@ -1022,12 +1025,14 @@ const AgencyDashboard = () => {
               
               {parentAgency.owner_profile && (
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
-                  <Avatar className="w-8 h-8 border border-white/30">
-                    <AvatarImage src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82 })} />
-                    <AvatarFallback className="bg-white/20 text-white text-xs">
-                      {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AvatarWithFrame
+                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82}
+                  name={parentAgency.owner_profile.display_name || parentAgency.owner_profile.agency_name || parentAgency.owner_profile.name || "U"}
+                  level={1}
+                  size="xs"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
@@ -1635,10 +1640,14 @@ const AgencyDashboard = () => {
                       }`}>
                         {index + 1}
                       </span>
-                      <Avatar className="w-10 h-10 border-2 border-border">
-                        <AvatarImage src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82 })} />
-                        <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82}
+                  name={host.profile.display_name || host.profile.agency_name || host.profile.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
@@ -1767,10 +1776,14 @@ const AgencyDashboard = () => {
                   <div className="space-y-3">
                     {subAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
-                        <Avatar className="w-10 h-10 border-2 border-border">
-                          <AvatarImage src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82 })} />
-                          <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
-                        </Avatar>
+                        <AvatarWithFrame
+                  src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82}
+                  name={sa.profile.display_name || sa.profile.agency_name || sa.profile.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -2110,12 +2123,14 @@ const AgencyDashboard = () => {
 
                 {parentAgency.owner_profile && (
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
-                    <Avatar className="w-12 h-12 border-2 border-purple-200">
-                      <AvatarImage src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82 })} />
-                      <AvatarFallback className="bg-purple-100 text-purple-700">
-                        {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82}
+                  name={parentAgency.owner_profile.display_name || parentAgency.owner_profile.agency_name || parentAgency.owner_profile.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     <div className="flex-1">
                       <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
                       <p className="text-xs text-gray-500">Agency Owner</p>

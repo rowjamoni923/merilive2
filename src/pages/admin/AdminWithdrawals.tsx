@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import {
   Table,
   TableBody,
@@ -734,12 +735,14 @@ export default function AdminWithdrawals() {
                       <TableRow key={withdrawal.id} className="border-slate-100 hover:bg-slate-50">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={withdrawal.agency?.owner?.avatar_url || undefined} />
-                              <AvatarFallback className="bg-primary/20 text-primary">
-                                <Building2 className="w-5 h-5" />
-                              </AvatarFallback>
-                            </Avatar>
+                            <AvatarWithFrame
+                  src={withdrawal.agency?.owner?.avatar_url || undefined}
+                  name={withdrawal.agency?.owner.display_name || withdrawal.agency?.owner.agency_name || withdrawal.agency?.owner.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                             <div>
                               <p className="text-slate-800 font-medium">{withdrawal.agency?.name || "Unknown"}</p>
                               <p className="text-slate-500 text-xs">#{withdrawal.agency?.agency_code}</p>
