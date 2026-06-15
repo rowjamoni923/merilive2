@@ -902,7 +902,7 @@ const AISupportChat = ({
 
       {/* Messages Area */}
       {phase !== "category" && (
-        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
           <div className="space-y-4">
             {messages.map((message) => {
               if (message.role === "system") {
