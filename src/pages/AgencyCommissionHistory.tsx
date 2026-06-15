@@ -332,7 +332,7 @@ const AgencyCommissionHistory = () => {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <AvatarWithFrame
-                  src={enhanceThumbnail(commission.host_profile?.avatar_url || "", { width: 96, quality: 82}
+                  src={enhanceThumbnail(commission.host_profile?.avatar_url || "", { width: 96, quality: 82})}
                   name={commission.host_profile.display_name || commission.host_profile.agency_name || commission.host_profile.name || "U"}
                   level={1}
                   size="sm"

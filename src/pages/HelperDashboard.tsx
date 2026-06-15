@@ -2247,7 +2247,7 @@ const HelperDashboard = () => {
                   <div className="bg-slate-50 rounded-xl p-4 border border-sky-200/30">
                     <div className="flex items-center gap-3 mb-3">
                       <AvatarWithFrame
-                  src={enhanceThumbnail(searchedUser.avatar_url, { width: 96, quality: 82}
+                  src={enhanceThumbnail(searchedUser.avatar_url, { width: 96, quality: 82})}
                   name={searchedUser.display_name || searchedUser.agency_name || searchedUser.name || "U"}
                   level={1}
                   size="sm"
@@ -2446,7 +2446,7 @@ const HelperDashboard = () => {
                   <div className="flex items-center gap-3">
                     {transfer.sender_type === 'trader_to_user' ? (
                       <AvatarWithFrame
-                  src={enhanceThumbnail(transfer.receiver?.avatar_url, { width: 96, quality: 82}
+                  src={enhanceThumbnail(transfer.receiver?.avatar_url, { width: 96, quality: 82})}
                   name={transfer.receiver.display_name || transfer.receiver.agency_name || transfer.receiver.name || "U"}
                   level={1}
                   size="sm"

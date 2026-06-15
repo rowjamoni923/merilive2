@@ -518,7 +518,7 @@ const AgentWallet = () => {
             {transfers.slice(0, 5).map((tx) => (
               <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <AvatarWithFrame
-                  src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82}
+                  src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82})}
                   name={tx.display_name || tx.agency_name || tx.name || "U"}
                   level={1}
                   size="sm"
@@ -603,7 +603,7 @@ const AgentWallet = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 border-t transition-colors"
                   >
                     <AvatarWithFrame
-                  src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82}
+                  src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82})}
                   name={user.display_name || user.agency_name || user.name || "U"}
                   level={1}
                   size="sm"
@@ -631,7 +631,7 @@ const AgentWallet = () => {
             {foundUser && (
               <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
                 <AvatarWithFrame
-                  src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82}
+                  src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82})}
                   name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
                   level={1}
                   size="sm"
