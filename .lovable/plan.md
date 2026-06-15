@@ -12,6 +12,14 @@
 
 **Fix scope:** Replace only the DM gift-history renderer with shared `<InlineGiftRow>`; keep existing send/receive business logic, realtime, animation broadcast, and current design outside the gift row unchanged.
 
+## Addendum — Professional Flying Gift Banner Fix (2026-06-15)
+
+**User issue:** The flying gift combo banner still looked larger and harsher than the professional app reference. In the uploaded reference, the banner is a slim left-flying capsule: roughly 220–264px wide on a 390px mobile viewport, about 34–38px tall, 30–32px avatar, 32–36px gift icon, two compact text lines, soft blue/violet premium gradient, and a small `xN` combo on the right. Our current component used `minHeight: 44`, a `w-12 h-12` gift icon, `text-2xl` combo, bright tier gradients, sparkle trails, and an extra spent/earned badge below the pill — making it visually non-professional and too bulky.
+
+**Research-first notes:** Chamet/BIGO-style live-social products surface virtual gifts as lightweight real-time overlays over chat/live/call experiences, keeping the interaction readable while not blocking the room UI. Sources already reviewed for gift economy and live interaction parity: Chamet official (`https://www.ichamet.com/`), Chamet gift/receipt guide (`https://news.bittopup.com/news/chamet-receipt-guide-how-to-save-prove-gift-delivery`), BIGO live interaction tutorial (`https://www.bigo.tv/blog/use-bigo-live`).
+
+**Fix scope:** Update only the shared `FlyingGiftAnimation` pill styling and motion. Because DM chat, Live streaming, Party room, Private call, and Profile details all render this same component, the flying gift banner becomes identical everywhere without changing gift sending/realtime/business logic.
+
 ---
 
 ## Industry Pattern (from owner video + competitor research)

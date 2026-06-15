@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
@@ -24,9 +22,9 @@ export interface FlyingGift {
   animationFormat?: string | null;
   animationConfigUrl?: string | null;
   soundUrl?: string;
-  /** True if the current viewer SENT this gift — shows diamonds spent badge */
+  /** True if the current viewer SENT this gift */
   isOwnGift?: boolean;
-  /** True if the current viewer is the RECEIVER (host) — shows beans earned badge */
+  /** True if the current viewer is the RECEIVER (host) */
   isReceiverGift?: boolean;
   /** Optional explicit beans amount (overrides client-side calculation) */
   beansEarned?: number;
@@ -124,7 +122,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
-  const hostPercent = useHostGiftPercent();
 
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
@@ -133,15 +130,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const needsFullscreenSlot = completesFromPlayer;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
-
-  // Diamonds spent (sender view) and beans earned (receiver view)
-  const totalDiamonds = gift.coins * gift.count;
-  const totalBeans = useMemo(() => {
-    if (typeof gift.beansEarned === 'number') return gift.beansEarned;
-    return Math.floor(totalDiamonds * hostPercent / 100);
-  }, [gift.beansEarned, totalDiamonds, hostPercent]);
-
-
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 
@@ -158,7 +146,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     soundPlayedRef.current = true;
     console.log('[GiftAnim] 🔊 Playing sound for:', gift.giftName);
     playSoundUrl(gift.soundUrl, { volume: 0.8, maxConcurrent: 2 });
-  }, [isSVGA, gift.soundUrl, hasFullscreenSlot]);
+  }, [isSVGA, gift.soundUrl, hasFullscreenSlot, gift.giftName]);
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
@@ -253,10 +241,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
         <motion.img
           src={giftIconSrc}
           alt={gift.giftName}
-          className="w-12 h-12 object-contain drop-shadow-lg"
-          initial={{ scale: 0, rotate: -20 }}
-          animate={{ scale: [0, 1.3, 1], rotate: [0, 10, 0] }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
+          className="h-[34px] w-[34px] object-contain"
+          style={{ filter: 'drop-shadow(0 3px 5px rgba(22, 23, 48, 0.28))' }}
+          initial={{ scale: 0.72, rotate: -6, opacity: 0 }}
+          animate={{ scale: [0.72, 1.08, 1], rotate: [0, 3, 0], opacity: 1 }}
+          transition={{ duration: 0.32, ease: "easeOut", delay: 0.08 }}
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
           }}
@@ -265,10 +254,11 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }
     return (
       <motion.span
-        className="text-4xl drop-shadow-lg"
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.3, 1] }}
-        transition={{ duration: 0.4, delay: 0.15 }}
+        className="text-[28px] leading-none"
+        style={{ filter: 'drop-shadow(0 3px 5px rgba(22, 23, 48, 0.28))' }}
+        initial={{ scale: 0.72, opacity: 0 }}
+        animate={{ scale: [0.72, 1.08, 1], opacity: 1 }}
+        transition={{ duration: 0.28, delay: 0.08 }}
       >
         {gift.giftIcon || '🎁'}
       </motion.span>
@@ -334,43 +324,39 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   };
 
   // ============================================================
-  // UNIFIED PILL — single-row, full-rounded
-  // Tier ladder: GOLD (≥10k) / TEAL (≥1k) / ROSE (default)
-  // Same look in DM, Live, Party, Call — Chamet/Bigo/Olamet parity
+  // PROFESSIONAL FLYING GIFT CAPSULE
+  // Compact two-line Chamet/BIGO-style banner shared by DM / Live /
+  // Party / Private Call / Profile. Soft premium color, no bulky
+  // value badge, no oversized gift icon, no harsh neon tier blocks.
   // ============================================================
-  const tier: 'gold' | 'teal' | 'rose' = isPremium ? 'gold' : isLuxury ? 'teal' : 'rose';
+  const tier: 'premium' | 'luxury' | 'standard' = isPremium ? 'premium' : isLuxury ? 'luxury' : 'standard';
   const tierStyles = {
-    gold: {
-      bg: 'linear-gradient(90deg, rgba(180,120,20,0.95) 0%, rgba(234,179,8,0.92) 45%, rgba(253,224,71,0.88) 100%)',
-      ring: 'rgba(253,224,71,0.65)',
-      glow: '0 8px 24px rgba(234,179,8,0.45), 0 2px 8px rgba(0,0,0,0.4)',
-      countFrom: 'from-amber-100',
-      countVia: 'via-yellow-300',
-      countTo: 'to-orange-400',
-      countShadow: '0 0 14px rgba(255,200,0,0.7)',
-      giftName: 'text-amber-100',
+    premium: {
+      background: 'linear-gradient(90deg, rgba(44,55,186,0.96) 0%, rgba(92,99,224,0.92) 45%, rgba(176,190,255,0.55) 82%, rgba(255,255,255,0.18) 100%)',
+      border: 'rgba(246, 221, 133, 0.44)',
+      avatarRing: 'rgba(246, 221, 133, 0.82)',
+      count: '#fff0a6',
+      countShadow: '0 1px 5px rgba(89, 63, 9, 0.35)',
+      glow: '0 7px 18px rgba(50, 54, 168, 0.28), inset 0 1px 0 rgba(255,255,255,0.28)',
     },
-    teal: {
-      bg: 'linear-gradient(90deg, rgba(15,118,110,0.95) 0%, rgba(20,184,166,0.92) 45%, rgba(94,234,212,0.88) 100%)',
-      ring: 'rgba(94,234,212,0.6)',
-      glow: '0 8px 24px rgba(20,184,166,0.45), 0 2px 8px rgba(0,0,0,0.4)',
-      countFrom: 'from-cyan-100',
-      countVia: 'via-teal-200',
-      countTo: 'to-emerald-300',
-      countShadow: '0 0 12px rgba(94,234,212,0.7)',
-      giftName: 'text-cyan-100',
+    luxury: {
+      background: 'linear-gradient(90deg, rgba(45,67,194,0.95) 0%, rgba(106,110,222,0.9) 48%, rgba(185,196,255,0.48) 84%, rgba(255,255,255,0.16) 100%)',
+      border: 'rgba(203, 213, 255, 0.38)',
+      avatarRing: 'rgba(205, 214, 255, 0.72)',
+      count: '#f3e9ff',
+      countShadow: '0 1px 5px rgba(45, 36, 102, 0.36)',
+      glow: '0 7px 16px rgba(55, 65, 185, 0.24), inset 0 1px 0 rgba(255,255,255,0.24)',
     },
-    rose: {
-      bg: 'linear-gradient(90deg, rgba(159,18,57,0.95) 0%, rgba(225,29,72,0.92) 45%, rgba(251,113,133,0.88) 100%)',
-      ring: 'rgba(251,113,133,0.6)',
-      glow: '0 8px 22px rgba(225,29,72,0.4), 0 2px 8px rgba(0,0,0,0.4)',
-      countFrom: 'from-rose-100',
-      countVia: 'via-pink-200',
-      countTo: 'to-rose-300',
-      countShadow: '0 0 12px rgba(251,113,133,0.7)',
-      giftName: 'text-rose-100',
+    standard: {
+      background: 'linear-gradient(90deg, rgba(48,72,196,0.94) 0%, rgba(99,111,220,0.88) 50%, rgba(190,200,255,0.44) 84%, rgba(255,255,255,0.14) 100%)',
+      border: 'rgba(204, 214, 255, 0.32)',
+      avatarRing: 'rgba(216, 223, 255, 0.64)',
+      count: '#ffffff',
+      countShadow: '0 1px 5px rgba(40, 50, 128, 0.34)',
+      glow: '0 6px 14px rgba(54, 72, 174, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
     },
   }[tier];
+  const displayedCount = Math.max(1, currentCount || gift.count || 1);
 
   // CRITICAL: portal to <body> — ancestor transforms (framer-motion / scroll
   // containers in LiveStream/PartyRoom/ActiveCall) would otherwise pin
@@ -386,38 +372,34 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
 
-      {/* ======= UNIFIED FLYING GIFT PILL (single-row, full-rounded) ======= */}
+      {/* ======= UNIFIED PROFESSIONAL FLYING GIFT CAPSULE ======= */}
       <motion.div
         className="absolute left-2 will-change-transform"
         style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
-        initial={{ x: -380, opacity: 0 }}
+        initial={{ x: -276, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -380, opacity: 0 }}
-        transition={{ type: "spring", damping: 22, stiffness: 340, mass: 0.7 }}
+        exit={{ x: -230, opacity: 0 }}
+        transition={{ type: "spring", damping: 26, stiffness: 360, mass: 0.68 }}
       >
         <div
-          className="relative flex items-center gap-2 pl-1 pr-3 py-1 rounded-full overflow-hidden backdrop-blur-xl"
+          className="relative flex items-center rounded-full overflow-visible"
           style={{
-            background: tierStyles.bg,
+            width: 'clamp(224px, 63vw, 264px)',
+            minHeight: 36,
+            padding: '2px 7px 2px 2px',
+            background: tierStyles.background,
             boxShadow: tierStyles.glow,
-            border: `1px solid ${tierStyles.ring}`,
-            minHeight: 44,
+            border: `1px solid ${tierStyles.border}`,
           }}
         >
-          {/* Aurora sweep (gold/teal only) */}
-          {tier !== 'rose' && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none rounded-full"
-              style={{
-                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.32) 50%, transparent 70%)',
-                mixBlendMode: 'overlay',
-              }}
-              animate={{ x: ['-100%', '120%'] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 0.3 }}
-            />
-          )}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.06) 48%, rgba(25,30,118,0.08) 100%)',
+            }}
+          />
 
-          {/* Sender avatar (aviator-style ring) */}
+          {/* Sender avatar */}
           <div className="relative flex-shrink-0 z-10">
             {gift.senderAvatar ? (
               <img
@@ -425,134 +407,65 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
                 decoding="async"
                 src={gift.senderAvatar}
                 alt=""
-                className="w-9 h-9 rounded-full border-2 object-cover"
-                style={{ borderColor: tierStyles.ring }}
+                className="h-8 w-8 rounded-full border-2 object-cover"
+                style={{ borderColor: tierStyles.avatarRing, boxShadow: '0 2px 7px rgba(19, 25, 91, 0.3)' }}
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-pink-400 to-purple-500"
-                style={{ borderColor: tierStyles.ring }}
+                className="flex h-8 w-8 items-center justify-center rounded-full border-2 text-[12px] font-bold"
+                style={{
+                  borderColor: tierStyles.avatarRing,
+                  color: '#ffffff',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                  boxShadow: '0 2px 7px rgba(19, 25, 91, 0.3)',
+                }}
               >
                 {gift.senderName.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
 
-          {/* Single-row text: sender · sent · [receiver?] · giftName */}
-          <div className="flex items-center gap-1 min-w-0 z-10">
-            <span className="text-white font-bold text-[12px] truncate max-w-[78px] drop-shadow-sm">
+          {/* Two-line professional copy */}
+          <div className="relative z-10 ml-1.5 min-w-0 flex-1 leading-none">
+            <div
+              className="truncate text-[12px] font-semibold"
+              style={{ color: '#ffffff', textShadow: '0 1px 3px rgba(20, 27, 92, 0.32)' }}
+            >
               {gift.senderName}
-            </span>
-            <span className="text-white/75 text-[10px] font-medium">sent</span>
-            {gift.receiverName && (
-              <span className="text-white font-semibold text-[12px] truncate max-w-[70px] drop-shadow-sm">
-                {gift.receiverName}
-              </span>
-            )}
-            <span className={cn("font-bold text-[12px] truncate max-w-[80px] drop-shadow-sm", tierStyles.giftName)}>
-              {gift.giftName}
-            </span>
+            </div>
+            <div
+              className="mt-1 truncate text-[10px] font-medium"
+              style={{ color: 'rgba(255,255,255,0.78)', textShadow: '0 1px 2px rgba(20, 27, 92, 0.22)' }}
+            >
+              🎁 to {gift.receiverName || gift.giftName}
+            </div>
           </div>
 
           {/* Gift icon */}
-          <div className="flex-shrink-0 z-10">
+          <div className="relative z-10 ml-1 flex h-9 w-9 flex-shrink-0 items-center justify-center">
             {renderBannerGiftIcon()}
           </div>
 
-          {/* Combo counter — punchy bouncy xN */}
+          {/* Combo counter — small, premium, non-blocking */}
           <motion.div
-            key={currentCount}
-            className="flex-shrink-0 z-10 will-change-transform"
-            initial={{ scale: 2.2, opacity: 0, y: -14, rotate: -8 }}
-            animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
-            transition={{ type: "spring", damping: 8, stiffness: 420, mass: 0.5 }}
+            key={displayedCount}
+            className="relative z-10 ml-0.5 flex-shrink-0 will-change-transform"
+            initial={{ scale: 1.36, opacity: 0.75, y: -3 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", damping: 12, stiffness: 360, mass: 0.55 }}
           >
             <span
-              className={cn(
-                "font-black text-2xl leading-none bg-gradient-to-b bg-clip-text text-transparent",
-                tierStyles.countFrom,
-                tierStyles.countVia,
-                tierStyles.countTo
-              )}
+              className="block min-w-[24px] text-right text-[18px] font-black italic leading-none"
               style={{
-                WebkitTextStroke: '0.5px rgba(255,255,255,0.35)',
+                color: tierStyles.count,
                 textShadow: tierStyles.countShadow,
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                WebkitTextStroke: '0.35px rgba(255,255,255,0.25)',
               }}
             >
-              x{currentCount}
+              x{displayedCount}
             </span>
           </motion.div>
         </div>
-
-        {/* Personal value badge: sender sees diamonds spent, receiver sees beans earned.
-            Hidden for everyone else so spectators don't see private settlement values. */}
-        {(gift.isOwnGift || gift.isReceiverGift) && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.25, type: 'spring', damping: 14, stiffness: 280 }}
-            className="mt-1.5 ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20 bg-black/55 shadow-lg"
-          >
-            {gift.isOwnGift ? (
-              <>
-                <span className="text-[13px] leading-none">💎</span>
-                <span className="text-cyan-200 font-bold text-[11px] leading-none">
-                  -{totalDiamonds.toLocaleString()}
-                </span>
-                <span className="text-white/60 text-[9px] leading-none ml-0.5">spent</span>
-              </>
-            ) : (
-              <>
-                <span className="text-[13px] leading-none">🫘</span>
-                <span className="text-emerald-200 font-bold text-[11px] leading-none">
-                  +{totalBeans.toLocaleString()}
-                </span>
-                <span className="text-white/60 text-[9px] leading-none ml-0.5">earned</span>
-              </>
-            )}
-          </motion.div>
-        )}
-
-        {/* Sparkle trail — premium (6 particles, varied tracks) */}
-        {isPremium && (
-          <div className="absolute -right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full"
-                style={{
-                  width: i % 2 === 0 ? 6 : 4,
-                  height: i % 2 === 0 ? 6 : 4,
-                  background: i % 3 === 0 ? '#fde047' : i % 3 === 1 ? '#fbbf24' : '#fed7aa',
-                  boxShadow: '0 0 8px rgba(251,191,36,0.8)',
-                  top: (i - 3) * 4,
-                }}
-                animate={{
-                  x: [0, 32 + i * 6],
-                  y: [0, (i % 2 === 0 ? -1 : 1) * (4 + i)],
-                  opacity: [1, 0],
-                  scale: [1, 0.2],
-                }}
-                transition={{ duration: 0.85, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.6, ease: 'easeOut' }}
-              />
-            ))}
-          </div>
-        )}
-        {/* Luxury (non-premium) — pink/purple sparkle trail */}
-        {!isPremium && isLuxury && (
-          <div className="absolute -right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-            {[...Array(4)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1.5 h-1.5 rounded-full"
-                style={{ background: i % 2 === 0 ? '#f0abfc' : '#e9d5ff', boxShadow: '0 0 6px rgba(236,72,153,0.7)' }}
-                animate={{ x: [0, 24 + i * 7], opacity: [1, 0], scale: [1, 0.25] }}
-                transition={{ duration: 0.8, delay: i * 0.1, repeat: Infinity, repeatDelay: 0.7 }}
-              />
-            ))}
-          </div>
-        )}
       </motion.div>
     </div>,
     portalTarget
