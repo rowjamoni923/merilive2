@@ -113,7 +113,10 @@ const config: CapacitorConfig = {
     },
     // Keyboard handling
     Keyboard: {
-      resize: 'body',
+      // Pro chat contract: keep the WebView/body stable and lift only the
+      // active composer with --kb-h. Body resize causes visible message-list
+      // jumps across DM, live, party and private-call surfaces.
+      resize: 'none',
       resizeOnFullScreen: true
     },
     // Status bar customization
