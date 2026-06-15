@@ -3,6 +3,7 @@
  * Eliminates N+1 queries by batching all frame lookups
  */
 import { supabase } from '@/integrations/supabase/client';
+import { persistFrame, persistAvatarUrl } from './persistentAvatarCache';
 
 interface FrameData {
   id: string;
