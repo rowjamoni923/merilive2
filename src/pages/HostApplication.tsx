@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -459,12 +460,14 @@ const HostApplication = () => {
                 {foundUser && (
                   <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 border-2 border-green-300">
-                        <AvatarImage src={foundUser.avatar_url || undefined} />
-                        <AvatarFallback className="bg-green-200 text-green-700">
-                          {foundUser.display_name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={foundUser.avatar_url || undefined}
+                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold">{foundUser.display_name || "User"}</p>
@@ -561,12 +564,14 @@ const HostApplication = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-2xl p-4 shadow-sm border mb-4">
             <div className="flex items-center gap-3">
-              <Avatar className="w-14 h-14 border-2 border-purple-200">
-                <AvatarImage src={foundUser?.avatar_url || undefined} />
-                <AvatarFallback className="bg-purple-100 text-purple-700">
-                  {foundUser?.display_name?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
+              <AvatarWithFrame
+                  src={foundUser?.avatar_url || undefined}
+                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  level={1}
+                  size="md"
+                  showFrame={true}
+                  showAnimation={false}
+                />
               <div>
                 <p className="font-semibold">{foundUser?.display_name || "User"}</p>
                 <p className="text-xs text-gray-500">Level {foundUser?.user_level || 0}</p>

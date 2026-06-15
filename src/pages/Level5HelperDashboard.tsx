@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1573,12 +1574,14 @@ const Level5HelperDashboard = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-orange-200">
-                          <AvatarImage src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82 })} />
-                          <AvatarFallback className="bg-orange-50">
-                            <Building2 className="w-5 h-5 text-orange-600" />
-                          </AvatarFallback>
-                        </Avatar>
+                        <AvatarWithFrame
+                  src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82}
+                  name={withdrawal.agency.display_name || withdrawal.agency.agency_name || withdrawal.agency.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                         <div className="flex-1 min-w-0">
  <p className="text-slate-900 font-semibold truncate">{withdrawal.agency?.name ||'Unknown Agency'}</p>
                           <p className="text-slate-700 text-xs">Code: {withdrawal.agency?.agency_code}</p>
@@ -1731,12 +1734,14 @@ const Level5HelperDashboard = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 border-2 border-sky-200">
-                        <AvatarImage src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82 })} />
-                        <AvatarFallback className="bg-sky-50 text-sky-700">
-                          {order.user?.display_name?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82}
+                  name={order.user.display_name || order.user.agency_name || order.user.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
  <p className="text-slate-900 font-medium truncate text-sm">
@@ -2031,12 +2036,14 @@ const Level5HelperDashboard = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-slate-200">
-                          <AvatarImage src={enhanceThumbnail(request.agency?.logo_url || request.host?.avatar_url, { width: 96, quality: 82 })} />
-                          <AvatarFallback className="bg-slate-100">
-                            {request.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
-                          </AvatarFallback>
-                        </Avatar>
+                        <AvatarWithFrame
+                  src={enhanceThumbnail(request.agency?.logo_url || request.host?.avatar_url, { width: 96, quality: 82}
+                  name={request.agency.display_name || request.agency.agency_name || request.agency.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
  <p className="font-semibold text-slate-900 truncate">
@@ -2223,12 +2230,14 @@ const Level5HelperDashboard = () => {
                         <Card key={withdrawal.id} className={cn("bg-white border-amber-200/60 shadow-sm border-l-4", config.card)}>
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10 border-2 border-slate-200">
-                                <AvatarImage src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82 })} />
-                                <AvatarFallback className="bg-slate-100 text-orange-600">
-                                  <Building2 className="w-4 h-4" />
-                                </AvatarFallback>
-                              </Avatar>
+                              <AvatarWithFrame
+                  src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82}
+                  name={withdrawal.agency.display_name || withdrawal.agency.agency_name || withdrawal.agency.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                               <div className="flex-1 min-w-0">
  <p className="text-slate-900 font-medium text-sm truncate">
                                   {withdrawal.agency?.name || 'Agency'}
@@ -2270,12 +2279,14 @@ const Level5HelperDashboard = () => {
                       <Card key={order.id} className="bg-white border-amber-200/60 shadow-sm border-l-4 border-l-green-500">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 border-2 border-sky-200">
-                              <AvatarImage src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82 })} />
-                              <AvatarFallback className="bg-sky-50 text-sky-700">
-                                {order.user?.display_name?.charAt(0) || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
+                            <AvatarWithFrame
+                  src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82}
+                  name={order.user.display_name || order.user.agency_name || order.user.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                             <div className="flex-1 min-w-0">
  <p className="text-slate-900 font-medium text-sm truncate">
                                 {order.user?.display_name || 'User'}
@@ -2733,12 +2744,14 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={enhanceThumbnail(selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url, { width: 96, quality: 82 })} />
-                      <AvatarFallback className="bg-slate-100">
-                        {selectedWithdrawal.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                  src={enhanceThumbnail(selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url, { width: 96, quality: 82}
+                  name={selectedWithdrawal.agency.display_name || selectedWithdrawal.agency.agency_name || selectedWithdrawal.agency.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                     <div>
  <p className="font-semibold text-slate-900">
                         {selectedWithdrawal.agency?.name || selectedWithdrawal.host?.display_name}
@@ -3232,12 +3245,14 @@ const Level5HelperDashboard = () => {
             <div className="space-y-4">
               {/* Agency Info */}
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <Avatar className="w-14 h-14 border-2 border-orange-200">
-                  <AvatarImage src={enhanceThumbnail(selectedAgencyWithdrawal.agency?.logo_url, { width: 96, quality: 82 })} />
-                  <AvatarFallback className="bg-orange-50">
-                    <Building2 className="w-6 h-6 text-orange-600" />
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  src={enhanceThumbnail(selectedAgencyWithdrawal.agency?.logo_url, { width: 96, quality: 82}
+                  name={selectedAgencyWithdrawal.agency.display_name || selectedAgencyWithdrawal.agency.agency_name || selectedAgencyWithdrawal.agency.name || "U"}
+                  level={1}
+                  size="md"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div>
  <p className="text-slate-900 font-semibold">{selectedAgencyWithdrawal.agency?.name}</p>
                   <p className="text-slate-700 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>

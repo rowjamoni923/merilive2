@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -798,10 +799,14 @@ const AgencyCoinTrader = () => {
                       }}
                       className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
                     >
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82 })} />
-                        <AvatarFallback>{user.display_name?.charAt(0) || "U"}</AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82}
+                  name={user.display_name || user.agency_name || user.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div className="flex-1">
                         <p className="font-medium">{user.display_name || "Unknown"}</p>
                         <p className="text-xs text-muted-foreground">UID: {user.app_uid}</p>
@@ -816,10 +821,14 @@ const AgencyCoinTrader = () => {
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82 })} />
-                        <AvatarFallback>{selectedUser.display_name?.charAt(0) || "U"}</AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                  src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82}
+                  name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                       <div>
                         <p className="font-semibold">{selectedUser.display_name}</p>
                         <p className="text-xs text-muted-foreground">UID: {selectedUser.app_uid}</p>
@@ -953,10 +962,14 @@ const AgencyCoinTrader = () => {
           
           <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-3 pb-3 border-b">
-              <Avatar>
-                <AvatarImage src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82 })} />
-                <AvatarFallback>{selectedUser?.display_name?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
+              <AvatarWithFrame
+                  src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82}
+                  name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
               <div>
                 <p className="font-medium">{selectedUser?.display_name}</p>
                 <p className="text-xs text-muted-foreground">UID: {selectedUser?.app_uid}</p>
