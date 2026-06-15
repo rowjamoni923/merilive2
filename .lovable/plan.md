@@ -65,3 +65,19 @@ src/components/call/ActiveCallScreen.tsx              (edit — mount RoomTopNot
 
 ## Open question for you before I start
 The reference video shows the warning at the **true top** (just under status bar / above host avatar capsule). Our app has the host header capsule at top — should the warning go (a) **above** the host header capsule, or (b) **below** the header but above the video? Bigo uses (b). Confirm and I'll execute.
+
+---
+
+## Execution log — 2026-06-15
+
+**Done (LiveStream only, the surface user complained about):**
+- Created `src/components/room/RoomTopNoticeStack.tsx` — fixed-positioned `top: env(safe-area-top) + 64px`, mounts admin rule banner (sticky) + host welcome (auto-collapses after 6s).
+- Removed admin warning + host welcome from inside `RoomChatOverlay` (top section, lines 499-518). Props kept for backward compat but no longer render.
+- Mounted `<RoomTopNoticeStack roomType="live" ... />` in `LiveStream.tsx` just after the top header bar, gated by `!isUIHidden` so it follows existing UI-hide gesture.
+- Updated `RoomChatOverlay` call site in LiveStream to drop `showWelcome/hostName/hostLevel/roomTitle/adminBannerRoomType` props (no longer needed there).
+
+**Skipped (verified not needed):**
+- PartyRoom and ActiveCallScreen do NOT use `RoomWelcomeBanner` / `RoomChatOverlay`'s warning slot — confirmed via grep. No port required.
+- Gift instant counting + entry-animation timing + viewer header — already correct in current code per audit table. Will add device-test follow-up only if user reports issue after testing this fix.
+
+**Verification:** Pure React/CSS change. APK rebuild NOT required. Owner test account ready.
