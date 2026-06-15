@@ -180,7 +180,7 @@ export function AIChatbot() {
             </div>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(0.75rem + var(--kb-h, 0px))' }}>
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 flex items-center justify-center mb-4">
@@ -244,7 +244,7 @@ export function AIChatbot() {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-amber-200/60">
+            <div className="p-3 border-t border-amber-200/60 chat-composer-stable" style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}>
               <div className="flex gap-2">
                 <input
                   ref={inputRef}

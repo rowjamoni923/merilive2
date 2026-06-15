@@ -1113,7 +1113,7 @@ const Reels = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
 
           {/* List */}
-          <ScrollArea className="flex-1 min-h-0">
+          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px))' }}>
             {comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
@@ -1165,7 +1165,10 @@ const Reels = () => {
           </ScrollArea>
 
           {/* Input */}
-          <div className="shrink-0 border-t border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div
+            className="shrink-0 border-t border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] chat-composer-stable"
+            style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}
+          >
             <div className="flex items-center gap-2">
               <div className="flex-1 relative">
                 <Input

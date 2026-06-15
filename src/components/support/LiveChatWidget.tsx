@@ -293,7 +293,7 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -381,7 +381,8 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
             e.preventDefault();
             handleSend();
           }}
-          className="p-4 border-t bg-background"
+          className="p-4 border-t bg-background chat-composer-stable"
+          style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}
         >
           <div className="flex gap-2">
             <Input
