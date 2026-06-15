@@ -129,3 +129,9 @@ The reference video shows the warning at the **true top** (just under status bar
 - Code-level grep confirms all target surfaces now consume the shared keyboard-stable contract.
 - Browser preview reached auth wall for `/chat`, so destructive/message-send testing was not performed in this session.
 - Because `capacitor.config.ts` changed, APK rebuild is REQUIRED for the Android no-jump behavior to apply. Web preview reflects React/CSS parts after hot reload.
+
+**Subagent follow-up applied:**
+- Video analyzer confirmed the core visual defect: our app keyboard open/close teleports in ~1 frame, while the professional app transitions over multiple frames with the composer glued to keyboard top.
+- Code audit found missed drawer/private-call gaps; patched `ChametStyleChatPanel`, `ActiveCallScreen` chat-log offset + rAF autoscroll, and `RoomChatOverlay` CSS-only max-height.
+- Removed the DM triple-scroll timeout that could snap after user interaction.
+- Removed duplicate `visualViewport.resize` React-state listener from `useMobileOptimization`; keyboard animation now flows through the CSS-var bridge only.
