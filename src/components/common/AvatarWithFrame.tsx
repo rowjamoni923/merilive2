@@ -474,11 +474,19 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   // Warm assets instantly (Amazon/R2 URLs) so frame/avatar show without delay
   useEffect(() => {
     warmFrameAsset(activeFrameUrl, activeFrameType);
-  }, [activeFrameUrl, activeFrameType]);
+    // Persist resolved frame to localStorage so it's instant on next mount
+    if (userId && !frameError) {
+      persistFrame(userId, activeFrameUrl, activeFrameType);
+    }
+  }, [activeFrameUrl, activeFrameType, userId, frameError]);
 
   useEffect(() => {
     warmAvatarAsset(effectiveSrc);
-  }, [effectiveSrc]);
+    // Persist real avatar URL (skip placeholders / cache-busted retries)
+    if (userId && hasRealSrc && effectiveSrc && !retriedRef.current) {
+      persistAvatarUrl(userId, effectiveSrc);
+    }
+  }, [effectiveSrc, userId, hasRealSrc]);
 
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
