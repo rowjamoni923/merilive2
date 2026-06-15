@@ -1090,7 +1090,7 @@ const Chat = () => {
       return;
     }
 
-    if (wasNearBottom) {
+    if (wasNearBottom && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
       requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
       });
@@ -2542,8 +2542,8 @@ const Chat = () => {
             setShowScrollToBottom(shouldShow);
             if (!shouldShow) setUnreadBelow(0);
           }}
-          className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper chat-scroll-stable"
+          style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}
         >
           {currentMessages.length > 0 && <div className="mt-auto" aria-hidden />}
           {hasOlder && (
@@ -2952,7 +2952,7 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
+        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border chat-composer-stable">
           {/* Media Uploader (direct gallery) */}
           {showMediaUploader && (
             <Suspense fallback={null}>
