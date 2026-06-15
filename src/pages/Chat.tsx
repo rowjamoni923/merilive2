@@ -2917,6 +2917,29 @@ const Chat = () => {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Scroll-to-bottom FAB (WhatsApp-style) */}
+        {showScrollToBottom && (
+          <button
+            type="button"
+            aria-label="Scroll to latest message"
+            onClick={() => {
+              const c = chatScrollRef.current;
+              if (c) c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' });
+              setShowScrollToBottom(false);
+              setUnreadBelow(0);
+            }}
+            className="absolute right-3 bottom-3 z-20 h-10 w-10 rounded-full bg-background/95 border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-transform animate-fade-in"
+          >
+            <ChevronDown className="w-5 h-5" />
+            {unreadBelow > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {unreadBelow > 99 ? '99+' : unreadBelow}
+              </span>
+            )}
+          </button>
+        )}
+        </div>
+
         {/* Message Input - Ultra Premium Dark Glass */}
         <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
           {/* Media Uploader (direct gallery) */}
