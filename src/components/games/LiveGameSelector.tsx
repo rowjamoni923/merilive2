@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
 import { GameErrorBoundary } from "./GameErrorBoundary";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { getOptimizedImageUrl } from "@/utils/imageOptimize";
 import { Skeleton } from "@/components/Skeleton";
 interface GameItem {
   game_id: string;
