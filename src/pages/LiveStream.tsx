@@ -1163,12 +1163,12 @@ const LiveStream = () => {
           // Resolve challenger and opponent profiles
           const challengerProfileRes = await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, user_level")
+            .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
             .eq("id", activeBattle.challenger_id)
             .maybeSingle();
           const opponentProfileRes = await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, user_level")
+            .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
             .eq("id", activeBattle.opponent_id)
             .maybeSingle();
           const cp = challengerProfileRes.data;
@@ -1183,14 +1183,14 @@ const LiveStream = () => {
             challengerInfo: {
               name: cp?.display_name || "Host",
               avatar: challengerAvatar,
-              level: cp?.user_level || 1,
+              level: getRequiredDisplayLevel(cp),
               id: activeBattle.challenger_id || "",
               streamId: activeBattle.challenger_stream_id || "",
             },
             opponentInfo: {
               name: op?.display_name || "Host",
               avatar: opponentAvatar,
-              level: op?.user_level || 1,
+              level: getRequiredDisplayLevel(op),
               id: activeBattle.opponent_id || "",
               streamId: activeBattle.opponent_stream_id || "",
             },
