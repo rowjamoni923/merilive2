@@ -333,7 +333,7 @@ export const ChametStyleChatPanel = ({
 
             {/* Input Area */}
             <div
-              className="px-3 py-3 pb-kb-safe"
+              className="px-3 py-3 pb-safe"
               style={{
                 background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06))",
                 borderTop: "1px solid rgba(255,255,255,0.06)",
