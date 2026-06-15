@@ -1903,11 +1903,19 @@ const Chat = () => {
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
+    lastScrollConvIdRef.current = null;
+    initialScrollDoneRef.current = false;
+    wasNearBottomRef.current = true;
     setSelectedConversation(conv);
     setSelectedGroup(null);
+    setMessages([]);
+    setGroupMessages([]);
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
     setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     setOtherUserTrader({ isTrader: false, traderLevel: 0 });
     await fetchMessages(conv.id);
+    anchorChatToBottomSoon();
     
     // Check if other user is a trader
     if (conv.other_user?.id) {
@@ -1924,10 +1932,18 @@ const Chat = () => {
   };
 
   const handleSelectGroup = (group: Group) => {
+    lastScrollConvIdRef.current = null;
+    initialScrollDoneRef.current = false;
+    wasNearBottomRef.current = true;
     setSelectedGroup(group);
     setSelectedConversation(null);
+    setMessages([]);
+    setGroupMessages([]);
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
     setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     fetchGroupMessages(group.id);
+    anchorChatToBottomSoon();
   };
 
   // Check if the other user in conversation is a helper/payroll helper
