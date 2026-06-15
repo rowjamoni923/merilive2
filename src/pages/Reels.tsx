@@ -311,7 +311,7 @@ const Reels = () => {
       `)
       .eq('is_active', true)
       .eq('is_approved', true)
-      .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
     if (selectedCategory !== 'all') {
       const category = categories.find(c => c.slug === selectedCategory);
@@ -475,7 +475,7 @@ const Reels = () => {
       .single();
 
     if (!error && data) {
-      setComments(prev => [data, ...prev]);
+      setComments(prev => [...prev, data]);
       setReels(prev => prev.map(r => 
         r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
       ));
@@ -1113,7 +1113,7 @@ const Reels = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
 
           {/* List */}
-          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px))' }}>
+          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}>
             {comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">

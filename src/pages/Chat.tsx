@@ -3076,7 +3076,7 @@ const Chat = () => {
           
           {/* Quick Reply Chips - Show when no messages or conversation just started */}
           {!isRecording && !audioBlob && !pendingMedia && !message.trim() && (selectedConversation || selectedGroup) && (
-            <div className="px-4 pb-1">
+            <div className="px-4 pb-1 kb-hide-when-open">
               <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                 {(selectedConversation?.other_user?.is_host ? [
                   // Messages for HOSTS (from user perspective)
@@ -3162,7 +3162,7 @@ const Chat = () => {
           {replyingTo && (() => {
             const preview = summarizeMessageForReply(replyingTo.content, replyingTo.messageType);
             return (
-              <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
+            <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200 kb-hide-when-open">
                 <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
                   <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -3457,7 +3457,7 @@ const Chat = () => {
           
           {/* Action Buttons Row — premium 3D orbs */}
           {!isGroup && (
-            <div className="px-4 pb-3">
+            <div className="px-4 pb-3 kb-hide-when-open">
               <div className="flex justify-center gap-5">
                 {/* Translator */}
                 <motion.button
