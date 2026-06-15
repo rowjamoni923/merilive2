@@ -240,7 +240,10 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     const gl = canvas.getContext('webgl', {
       alpha: true,
-      antialias: true, // Enable antialiasing for smoother edges
+      // Antialiasing on a video-derived texture provides no visible benefit
+      // (the source is already raster) but costs a full MSAA buffer per draw
+      // on mobile GPUs — disabling removes a major source of mid-frame jank.
+      antialias: false,
       depth: false,
       stencil: false,
       premultipliedAlpha: true, // Switched to true for professional blending
