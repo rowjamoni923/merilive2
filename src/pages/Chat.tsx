@@ -1105,22 +1105,18 @@ const Chat = () => {
     // otherwise leave the view stuck at the top (WhatsApp/imo always open at
     // the latest message).
     if (!initialScrollDoneRef.current) {
-      requestAnimationFrame(() => {
-        if (!chatScrollRef.current) return;
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      });
+      requestAnimationFrame(hardPinChatToLatest);
       if (currentLen > 0) {
         initialScrollDoneRef.current = true;
+        anchorChatToBottomSoon();
       }
       return;
     }
 
     if (wasNearBottom && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
+      requestAnimationFrame(hardPinChatToLatest);
     }
-  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id]);
+  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest, anchorChatToBottomSoon]);
 
   // Track whether the user is sitting near the bottom of the thread.
   useEffect(() => {
@@ -1153,13 +1149,13 @@ const Chat = () => {
     if (!container || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
       if (wasNearBottomRef.current) {
-        container.scrollTop = container.scrollHeight;
+        hardPinChatToLatest();
       }
     });
     ro.observe(container);
     Array.from(container.children).forEach((child) => ro.observe(child as Element));
     return () => ro.disconnect();
-  }, [selectedConversation?.id, selectedGroup?.id]);
+  }, [selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
