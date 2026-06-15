@@ -142,6 +142,7 @@ import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
 import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
@@ -245,6 +246,7 @@ const LiveStream = () => {
     avatar_url?: string;
     user_level?: number;
     host_level?: number;
+    max_user_level?: number;
     country_flag?: string;
   } | null>(null);
   
@@ -400,7 +402,7 @@ const LiveStream = () => {
       initial: displayName.charAt(0),
       message: msg.message || "",
       color: "text-white",
-      userLevel: profile?.user_level || 1,
+      userLevel: getRequiredDisplayLevel(profile),
       userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
       isHost: msg.user_id === hostId,
       isNewUser,
