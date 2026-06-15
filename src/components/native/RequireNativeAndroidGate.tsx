@@ -9,7 +9,7 @@
  *
  * DEV BYPASS: Lovable preview / localhost auto-bypasses this route gate so QA
  * can open Go Live and Party Room in the web preview. Production/custom domain
- * remains Android-only. Manual: add `?bypassNativeGate=1` to persist bypass.
+ * remains Android-only.
  *
  * 📱 PORTRAIT CAMERA ONLY rule preserved — the gate itself is portrait-friendly.
  *
@@ -20,8 +20,6 @@ import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
-
-const BYPASS_KEY = "merilive.dev.bypassNativeGate";
 
 function isPreviewHost(hostname: string): boolean {
   return (
@@ -35,14 +33,7 @@ function isPreviewHost(hostname: string): boolean {
 function shouldBypassGate(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    const isSafeDevHost = isPreviewHost(window.location.hostname);
-    const params = new URLSearchParams(window.location.search);
-    if (isSafeDevHost) return true;
-    if (isSafeDevHost && params.get("bypassNativeGate") === "1") {
-      localStorage.setItem(BYPASS_KEY, "1");
-      return true;
-    }
-    if (isSafeDevHost && localStorage.getItem(BYPASS_KEY) === "1") return true;
+    return isPreviewHost(window.location.hostname);
   } catch { /* noop */ }
   return false;
 }
