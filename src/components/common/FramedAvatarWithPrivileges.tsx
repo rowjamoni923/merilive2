@@ -12,10 +12,17 @@ import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 // browser shows a broken-image icon with alt text "Frame".
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
 
-const detectFrameType = (url: string): 'svga' | 'lottie' | 'gif' | 'webp' | 'static' => {
-  const path = url.split('?')[0].toLowerCase();
+type FrameKind = 'svga' | 'lottie' | 'vap' | 'mp4' | 'webm' | 'gif' | 'webp' | 'static';
+const detectFrameType = (url: string): FrameKind => {
+  const lower = url.toLowerCase();
+  const path = lower.split('?')[0].split('#')[0];
   if (path.endsWith('.svga')) return 'svga';
   if (path.endsWith('.json')) return 'lottie';
+  if (path.endsWith('.mp4')) {
+    if (lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_')) return 'vap';
+    return 'mp4';
+  }
+  if (path.endsWith('.webm')) return 'webm';
   if (path.endsWith('.gif')) return 'gif';
   if (path.endsWith('.webp')) return 'webp';
   return 'static';
@@ -181,7 +188,8 @@ const FramedAvatarWithPrivileges = ({
   const customFrame = privileges?.frame || privileges?.portrait_frame;
   const frameUrl = customFrame?.animation_file_url || customFrame?.animation_url || customFrame?.preview_url;
   const frameType = frameUrl ? detectFrameType(frameUrl) : 'static';
-  const isAnimatedFrame = frameType === 'svga' || frameType === 'lottie';
+  // Anything that an <img> tag cannot decode must go through the universal player.
+  const isAnimatedFrame = frameType === 'svga' || frameType === 'lottie' || frameType === 'vap' || frameType === 'mp4' || frameType === 'webm';
 
   const avatarContent = (
     <Avatar
@@ -321,7 +329,7 @@ const FramedAvatarWithPrivileges = ({
               <Suspense fallback={null}>
                 <UniversalFramePlayer
                   src={frameUrl!}
-                  type={frameType as 'svga' | 'lottie'}
+                  type={frameType as any}
                   className="w-full h-full"
                   loop
                   autoPlay
