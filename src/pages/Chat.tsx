@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Languages, Phone, ChevronRight, ChevronDown, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
 const GroupSettingsPanel = lazy(() => import("@/components/chat/GroupSettingsPanel").then(m => ({ default: m.GroupSettingsPanel })));
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
@@ -374,6 +374,8 @@ const Chat = () => {
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [unreadBelow, setUnreadBelow] = useState(0);
   
   // Group creation
   const [showGroupActions, setShowGroupActions] = useState(false);
@@ -2519,7 +2521,19 @@ const Chat = () => {
         />
         
         {/* Messages */}
-        <div ref={chatScrollRef} className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="relative flex flex-col flex-1 min-h-0">
+        <div
+          ref={chatScrollRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+            const shouldShow = dist > 240;
+            setShowScrollToBottom(shouldShow);
+            if (!shouldShow) setUnreadBelow(0);
+          }}
+          className="flex flex-col flex-1 min-h-0 px-3 py-3 overflow-y-auto overscroll-contain chat-wallpaper"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {currentMessages.length > 0 && <div className="mt-auto" aria-hidden />}
           {hasOlder && (
             <div className="flex justify-center py-2">
