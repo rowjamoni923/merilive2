@@ -632,8 +632,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                     
                     {/* Show logo from Admin Panel BIG or fallback to emoji */}
                     {game.logo_url ? (
-                      <img loading="lazy" decoding="async" 
-                        src={getProxiedUrl(game.logo_url)} 
+                      <img loading="eager" decoding="async" 
+                        src={getOptimizedImageUrl(getProxiedUrl(game.logo_url), { width: 112, quality: 78 })} 
                         alt={game.game_name}
                         className="w-14 h-14 object-contain rounded-xl"
                        
