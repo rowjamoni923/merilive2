@@ -269,7 +269,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
 
   // Calculate progress whenever level data or tiers change
   useEffect(() => {
-    if (!levelData || tiers.length === 0) return;
+    if (!levelData || tiers.length === 0 || level === null) return;
 
     // Hosts use weekly beans earnings only. Users/agencies use total top-up only.
     const xp = isHost 
@@ -318,7 +318,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
     refetch,
     tiers,
     isHost,
-    hostLevel: levelData?.host_level ?? 0,
-    userLevel: levelData?.user_level ?? 1,
+    hostLevel: levelData?.host_level ?? null,
+    userLevel: levelData?.user_level ?? null,
   };
 };
