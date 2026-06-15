@@ -18,6 +18,11 @@ import {
   requestGender,
   ensureViewerLoaded,
 } from '@/utils/avatarGenderCache';
+import {
+  getPersistedAvatar,
+  persistAvatarUrl,
+  persistFrame,
+} from '@/utils/persistentAvatarCache';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
