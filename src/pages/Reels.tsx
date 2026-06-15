@@ -1165,7 +1165,10 @@ const Reels = () => {
           </ScrollArea>
 
           {/* Input */}
-          <div className="shrink-0 border-t border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div
+            className="shrink-0 border-t border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] chat-composer-stable"
+            style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}
+          >
             <div className="flex items-center gap-2">
               <div className="flex-1 relative">
                 <Input
