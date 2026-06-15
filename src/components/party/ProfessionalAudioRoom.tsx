@@ -28,7 +28,6 @@ import { ChametStyleViewerPanel } from "./ChametStyleViewerPanel";
 import { ChametStyleCloseModal } from "./ChametStyleCloseModal";
 import { ChametStyleSettingsPanel } from "./ChametStyleSettingsPanel";
 import { BackgroundPickerPanel } from "./BackgroundPickerPanel";
-import { getLevelBadgeStyle, ensureValidLevel, formatLevel } from "@/features/shared/level";
 import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { useNavigate } from "react-router-dom";
