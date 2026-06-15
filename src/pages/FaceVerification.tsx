@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -2834,12 +2835,15 @@ const FaceVerification = () => {
             >
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Existing Account Detected</p>
               <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                  <AvatarImage src={duplicateInfo.avatar} />
-                  <AvatarFallback className="bg-slate-200 text-slate-400">
-                    <User className="w-8 h-8" />
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  userId={(duplicateInfo as any).user_id || (duplicateInfo as any).id}
+                  src={duplicateInfo.avatar || undefined}
+                  name={duplicateInfo.name || "U"}
+                  level={1}
+                  size="lg"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-slate-900 font-bold truncate text-lg">{duplicateInfo.name}</p>
                   <p className="text-slate-500 text-xs font-mono bg-slate-200/50 inline-block px-2 py-0.5 rounded-md mt-1">ID: {duplicateInfo.uid}</p>

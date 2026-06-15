@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import {
   Dialog,
   DialogContent,
@@ -2201,12 +2202,15 @@ const Auth = () => {
                 onClick={handleLastUserLogin}
                 className="w-full flex items-center gap-3 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:bg-white transition-all"
               >
-                <Avatar className="w-12 h-12 border-2 border-amber-400">
-                  <AvatarImage src={lastUser.avatarUrl || undefined} />
-  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white"> {/* dark-ok */}
-                    {lastUser.displayName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithFrame
+                  userId={(lastUser as any).userId}
+                  src={lastUser.avatarUrl || undefined}
+                  name={lastUser.displayName || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={true}
+                  showAnimation={false}
+                />
                 <div className="flex-1 text-left">
                   <p className="font-semibold text-foreground">{lastUser.displayName || "User"}</p>
                   <p className="text-xs text-muted-foreground">{lastUser.email}</p>
