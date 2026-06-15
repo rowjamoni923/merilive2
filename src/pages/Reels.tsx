@@ -28,6 +28,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
 import { tryHeartBurst } from "@/plugins/NativeHeartBurst";
 import { isNativeHeartBurstFlagOn } from "@/utils/nativeHeartBurstFlag";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
@@ -88,6 +89,9 @@ interface Reel {
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
     is_verified: boolean | null;
     is_host: boolean | null;
     frame_id?: string | null;
@@ -106,6 +110,10 @@ interface Comment {
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
+    is_host?: boolean | null;
   } | null;
 }
 
