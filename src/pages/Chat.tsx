@@ -2104,6 +2104,7 @@ const Chat = () => {
         // Clear reply after successful send
 
         setReplyingTo(null);
+        anchorChatToBottomSoon();
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -2157,6 +2158,7 @@ const Chat = () => {
 
         if (error) throw error;
         appendSentGroupMessage(newMsg);
+        anchorChatToBottomSoon();
           
         // Track + background phone check
         trackTaskProgress('messages_sent', { increment: 1 });
