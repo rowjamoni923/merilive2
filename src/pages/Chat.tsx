@@ -3621,10 +3621,11 @@ const Chat = () => {
 
           {/* Unified Flying Gift Pill — same Bigo/Chamet style as Live/Party/Call */}
           <AnimatePresence>
-            {flyingGifts.map((g) => (
+            {flyingGifts.map((g, idx) => (
               <FlyingGiftAnimation
                 key={g.id}
                 gift={g}
+                stackIndex={idx}
                 onComplete={() => removeFlyingGift(g.id)}
               />
             ))}

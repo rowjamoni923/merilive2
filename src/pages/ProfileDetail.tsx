@@ -1817,10 +1817,11 @@ const ProfileDetail = () => {
 
       {/* Full-screen SVGA Gift Animations (own gift instant feedback) */}
       <AnimatePresence>
-        {flyingGifts.map(g => (
+        {flyingGifts.map((g, idx) => (
           <FlyingGiftAnimation
             key={g.id}
             gift={g}
+            stackIndex={idx}
             onComplete={() => removeFlyingGift(g.id)}
           />
         ))}
