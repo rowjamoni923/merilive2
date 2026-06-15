@@ -890,7 +890,7 @@ const Discover = () => {
                     <AvatarWithFrame
                       userId={entryPreview.host?.id}
                       src={cdnAvatar(normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || '', 64) || normalizeProfileMediaUrl(entryPreview.host?.avatar_url) || entryPreview.host?.avatar_url || undefined}
-                      name={(entryPreview.host? as any).display_name || "H"}
+                      name={(entryPreview.host as any)?.display_name || "H"}
                       level={getRequiredDisplayLevel(entryPreview.host)}
                       size="lg"
                       showFrame={true}
