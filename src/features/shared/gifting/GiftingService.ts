@@ -19,7 +19,6 @@ import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 import { getVapCompositeHint, markVapCompositeHint } from '@/utils/vapDetection';
 import { detectProfessionalAnimationFormat } from '@/utils/animationFormat';
 import { warmGiftForInstantPlay } from '@/utils/instantGiftWarmup';
-import { toast } from 'sonner';
 import { emitLuckyWin } from '@/components/lucky/LuckyGiftHost';
 
 
@@ -271,34 +270,27 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       } catch {}
     }
 
-    // 🎰 LUCKY GIFT WIN — tier-aware celebration. Lottery-style UX:
-    //   <2x  → tiny toast (frequent rebate, don't interrupt)
-    //   ≥2x  → fullscreen LuckyGiftCelebration (Nice / Big Win / MEGA JACKPOT)
+    // 🎰 LUCKY GIFT WIN — tier-aware fullscreen celebration. Lottery-style UX:
+    //   Any paid bonus → LuckyGiftCelebration, so users always see the returned
+    //   bonus diamonds immediately after sending a lucky gift.
     // See plan.md → "Lucky Gift Lottery — Chamet-Style Mega Jackpot".
     if (result.isLucky && (result.diamondBonus || 0) > 0) {
       const spent = result.coinsSpent || 0;
       const bonus = result.diamondBonus || 0;
-      const multiplier = spent > 0 ? bonus / spent : 0;
       try {
-        if (multiplier >= 2) {
-          // Resolve gift meta for the celebration card icon.
-          let giftIconUrl: string | undefined;
-          let giftName: string | undefined;
-          try {
-            const cached = getCachedGifts?.() || [];
-            const g = cached.find((x: any) => x.id === giftId);
-            if (g) {
-              giftIconUrl = (g as any).icon_url || undefined;
-              giftName = (g as any).name || undefined;
-            }
-          } catch {}
-          emitLuckyWin({ spent, bonus, giftIconUrl, giftName });
-        } else {
-          toast.success(`🎉 Lucky Win! +${bonus.toLocaleString()} 💎`, {
-            description: 'Bonus diamonds added to your wallet',
-            duration: 3500,
-          });
+        // Resolve gift meta for the celebration card icon.
+        let giftIconUrl: string | undefined;
+        let giftName: string | undefined;
+        try {
+          const cached = getCachedGifts?.() || [];
+          const g = cached.find((x: any) => x.id === giftId);
+          if (g) {
+            giftIconUrl = (g as any).icon_url || undefined;
+            giftName = (g as any).name || undefined;
+          }
         }
+        catch {}
+        emitLuckyWin({ spent, bonus, giftIconUrl, giftName });
       } catch {}
     }
 

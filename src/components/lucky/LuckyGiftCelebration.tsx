@@ -1,10 +1,10 @@
 /**
  * LuckyGiftCelebration — tier-aware fullscreen celebration overlay shown after
- * a winning lucky-gift roll. Replaces the bare toast for any win >= 2x.
+ * a winning lucky-gift roll. Every paid lucky bonus renders here so the sender
+ * always sees exactly how many bonus diamonds were returned after the gift.
  *
  * Tier mapping (research-locked, see plan.md "Lucky Gift Lottery" section):
- *   <2x         → tiny toast (handled in GiftingService, NOT this component)
- *   2x – 49x    → "Nice Win" centered ribbon (2.5s)
+ *   >0x – 49x   → "Lucky Bonus" centered ribbon (2.8s)
  *   50x – 999x  → "BIG WIN" fullscreen golden (4s)
  *   ≥1000x      → "MEGA JACKPOT" epic fullscreen (6s)
  *
@@ -25,14 +25,14 @@ export type LuckyWinPayload = {
 type Tier = 'nice' | 'big' | 'mega';
 
 function pickTier(multiplier: number): Tier | null {
-  if (multiplier < 2) return null;
+  if (multiplier <= 0) return null;
   if (multiplier < 50) return 'nice';
   if (multiplier < 1000) return 'big';
   return 'mega';
 }
 
 const TIER_DURATION_MS: Record<Tier, number> = {
-  nice: 2600,
+  nice: 2800,
   big: 4200,
   mega: 6200,
 };
@@ -132,7 +132,7 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
           {tier === 'big' && <Trophy className="w-3.5 h-3.5" />}
           {tier === 'nice' && <Sparkles className="w-3.5 h-3.5" />}
           <span>
-            {tier === 'mega' ? 'Mega Jackpot' : tier === 'big' ? 'Big Win' : 'Lucky Win'}
+            {tier === 'mega' ? 'Mega Jackpot' : tier === 'big' ? 'Jackpot Win' : 'Lucky Bonus'}
           </span>
         </div>
 
@@ -170,17 +170,22 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
         </div>
 
         {/* Bonus amount — large, prominent (the user's main request) */}
-        <div className="mt-2 flex items-center gap-1.5">
-          <span className="text-[15px] font-medium opacity-90">+</span>
-          <span
-            className={[
-              'font-extrabold tabular-nums',
-              tier === 'mega' ? 'text-[28px]' : tier === 'big' ? 'text-[24px]' : 'text-[20px]',
-            ].join(' ')}
-          >
-            {formatDiamonds(payload.bonus)}
-          </span>
-          <span className="text-[18px]" aria-hidden>💎</span>
+        <div className="mt-2 flex flex-col items-center gap-1">
+          <div className="text-[11px] font-bold uppercase tracking-[0.16em] opacity-85">
+            {tier === 'nice' ? 'Bonus Diamond' : 'Jackpot Diamond'}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[15px] font-medium opacity-90">+</span>
+            <span
+              className={[
+                'font-extrabold tabular-nums',
+                tier === 'mega' ? 'text-[28px]' : tier === 'big' ? 'text-[24px]' : 'text-[20px]',
+              ].join(' ')}
+            >
+              {formatDiamonds(payload.bonus)}
+            </span>
+            <span className="text-[18px]" aria-hidden>💎</span>
+          </div>
         </div>
 
         {/* Spent reference */}

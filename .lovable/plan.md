@@ -260,8 +260,7 @@ Each phase is independently shippable. Owner approves each phase end before next
 ### Celebration tiers (frontend `LuckyGiftCelebration`)
 | Multi range | UX |
 |---|---|
-| < 2x | tiny toast (existing) |
-| 2x – 49x | center pop with multiplier ribbon, 2.5s, golden ring |
+| >0x – 49x | fullscreen/center reward with Bonus Diamond amount, 2.8s |
 | 50x – 999x | fullscreen "BIG WIN" with coin shower + amount, 4s |
 | ≥ 1000x | fullscreen "MEGA JACKPOT!" golden explosion + sender name + amount, 6s, room-broadcast TODO |
 
@@ -277,3 +276,8 @@ Each phase is independently shippable. Owner approves each phase end before next
 - Spec: spent 1000 → bonus 2000 = 2x → Nice tier ribbon.
 - Spec: spent 1000 → bonus 100000 = 100x → fullscreen BIG WIN.
 - Spec: spent 1000 → bonus 2000000 = 2000x → MEGA JACKPOT.
+
+### Fix follow-up (2026-06-15)
+- Verified DB is paying lucky bonuses: 30 active lucky gifts, recent `lucky_gift_results` rows include sender payouts.
+- Gap fixed: frontend only opened fullscreen for `>=2x`, so common 0.5x/1x lucky returns looked like “not working”. Now every positive bonus opens the fullscreen reward display and labels the amount as Bonus Diamond / Jackpot Diamond.
+- Gap fixed: direct DM gift path calls `callGiftService` directly, bypassing shared `GiftingService`; it now emits the same lucky reward overlay after the backend returns `diamondBonus`.
