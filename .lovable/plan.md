@@ -277,3 +277,8 @@ Each phase is independently shippable. Owner approves each phase end before next
 - Spec: spent 1000 → bonus 2000 = 2x → Nice tier ribbon.
 - Spec: spent 1000 → bonus 100000 = 100x → fullscreen BIG WIN.
 - Spec: spent 1000 → bonus 2000000 = 2000x → MEGA JACKPOT.
+
+### Fix follow-up (2026-06-15)
+- Verified DB is paying lucky bonuses: 30 active lucky gifts, recent `lucky_gift_results` rows include sender payouts.
+- Gap fixed: frontend only opened fullscreen for `>=2x`, so common 0.5x/1x lucky returns looked like “not working”. Now every positive bonus opens the fullscreen reward display and labels the amount as Bonus Diamond / Jackpot Diamond.
+- Gap fixed: direct DM gift path calls `callGiftService` directly, bypassing shared `GiftingService`; it now emits the same lucky reward overlay after the backend returns `diamondBonus`.
