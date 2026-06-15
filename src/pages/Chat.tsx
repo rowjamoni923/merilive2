@@ -43,6 +43,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { getCachedHostGiftPercent, ensureHostGiftPercentLoaded } from "@/hooks/useHostGiftPercent";
 import { callGiftService } from "@/utils/giftServiceClient";
+import { emitLuckyWin } from "@/components/lucky/LuckyGiftHost";
 import {
   Sheet,
   SheetContent,
@@ -961,6 +962,14 @@ const Chat = () => {
           ? (response.diamondBonus || 0)
           : 0;
         const luckySuffix = luckyBonus > 0 ? ` | +${luckyBonus} lucky` : '';
+        if (luckyBonus > 0) {
+          emitLuckyWin({
+            spent: totalCost,
+            bonus: luckyBonus,
+            giftName: gift.name,
+            giftIconUrl: iconUrl || undefined,
+          });
+        }
 
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | +LUCKY lucky]
