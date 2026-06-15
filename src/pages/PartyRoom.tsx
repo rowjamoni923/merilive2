@@ -2493,8 +2493,32 @@ const PartyRoom = () => {
 
 
   if (!room) {
-    return null;
+    // Pro-app behavior: never flash a white screen during the brief window
+    // between route mount and the first DB fetch. Render a backdrop that
+    // matches the party room visual (deep purple gradient + subtle spinner)
+    // so the transition from CreateParty → /party/:id (or back-nav into a
+    // party) looks like a smooth in-place UI change instead of a blank tab.
+    return (
+      <div
+        className="fixed inset-0 z-0 flex items-center justify-center"
+        style={{
+          background:
+            'radial-gradient(ellipse at top, hsl(270 60% 22%) 0%, hsl(265 55% 14%) 45%, hsl(260 50% 8%) 100%)',
+        }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-full border-2 border-white/15 border-t-white/85 animate-spin"
+            aria-label="Loading party room"
+          />
+          <span className="text-white/70 text-xs font-medium tracking-wide">
+            Preparing room…
+          </span>
+        </div>
+      </div>
+    );
   }
+
 
   // ==================== ALL ROOM TYPES USE UNIFIED COMPONENT ====================
   // Video, Audio, Game - same component, same design, same features
