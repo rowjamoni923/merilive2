@@ -95,42 +95,39 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
         ].join(' ')}
       />
 
-      {/* Card */}
+      {/* Card — background matches FlyingGiftAnimation capsule (blue/indigo) */}
       <div
         className={[
-          'relative z-10 flex flex-col items-center justify-center px-6 py-7 rounded-3xl',
+          'relative z-10 flex flex-col items-center justify-center rounded-2xl',
           'border shadow-2xl text-center',
-          'transition-all duration-500 ease-out',
+          'transition-all duration-300 ease-out',
           mounted ? 'scale-100 opacity-100' : 'scale-90 opacity-0',
-          tier === 'nice' ? 'min-w-[260px] max-w-[320px]' : '',
-          tier === 'big' ? 'min-w-[300px] max-w-[360px]' : '',
-          tier === 'mega' ? 'min-w-[320px] max-w-[380px]' : '',
+          tier === 'nice' ? 'min-w-[180px] max-w-[220px] px-4 py-3.5' : '',
+          tier === 'big' ? 'min-w-[220px] max-w-[270px] px-5 py-4' : '',
+          tier === 'mega' ? 'min-w-[250px] max-w-[300px] px-5 py-5' : '',
         ].join(' ')}
         style={{
           background:
             tier === 'mega'
-              ? 'linear-gradient(140deg, hsl(45 95% 60% / 0.95), hsl(28 95% 55% / 0.95) 55%, hsl(340 85% 55% / 0.95))'
+              ? 'linear-gradient(135deg, rgba(44,55,186,0.97) 0%, rgba(92,99,224,0.95) 45%, rgba(176,140,255,0.85) 100%)'
               : tier === 'big'
-                ? 'linear-gradient(140deg, hsl(45 90% 58% / 0.94), hsl(35 90% 55% / 0.94))'
-                : 'linear-gradient(140deg, hsl(var(--primary) / 0.96), hsl(var(--primary) / 0.85))',
-          borderColor:
-            tier === 'mega' || tier === 'big'
-              ? 'hsl(45 95% 70% / 0.7)'
-              : 'hsl(var(--primary) / 0.5)',
+                ? 'linear-gradient(135deg, rgba(44,55,186,0.96) 0%, rgba(92,99,224,0.93) 55%, rgba(176,190,255,0.78) 100%)'
+                : 'linear-gradient(135deg, rgba(44,55,186,0.96) 0%, rgba(92,99,224,0.92) 60%, rgba(176,190,255,0.75) 100%)',
+          borderColor: 'rgba(176,190,255,0.45)',
           color: 'hsl(0 0% 100%)',
           boxShadow:
             tier === 'mega'
-              ? '0 30px 80px -10px hsl(45 95% 50% / 0.6), 0 0 0 1px hsl(45 95% 80% / 0.4)'
+              ? '0 18px 40px -10px rgba(44,55,186,0.55), 0 0 0 1px rgba(255,255,255,0.18)'
               : tier === 'big'
-                ? '0 20px 50px -10px hsl(45 90% 50% / 0.5)'
-                : '0 15px 35px -10px hsl(var(--primary) / 0.5)',
+                ? '0 14px 32px -10px rgba(44,55,186,0.5)'
+                : '0 10px 24px -10px rgba(44,55,186,0.45)',
         }}
       >
         {/* Tier badge */}
-        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] opacity-95">
-          {tier === 'mega' && <Crown className="w-3.5 h-3.5" />}
-          {tier === 'big' && <Trophy className="w-3.5 h-3.5" />}
-          {tier === 'nice' && <Sparkles className="w-3.5 h-3.5" />}
+        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] opacity-95">
+          {tier === 'mega' && <Crown className="w-3 h-3" />}
+          {tier === 'big' && <Trophy className="w-3 h-3" />}
+          {tier === 'nice' && <Sparkles className="w-3 h-3" />}
           <span>
             {tier === 'mega' ? 'Mega Jackpot' : tier === 'big' ? 'Jackpot Win' : 'Lucky Bonus'}
           </span>
@@ -138,17 +135,17 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
 
         {/* Gift icon (if available) */}
         {payload.giftIconUrl && (
-          <div className="mt-3 relative">
+          <div className="mt-2 relative">
             <div
-              className="absolute inset-0 rounded-full blur-2xl opacity-60"
-              style={{ background: 'hsl(45 95% 70% / 0.6)' }}
+              className="absolute inset-0 rounded-full blur-xl opacity-50"
+              style={{ background: 'rgba(176,190,255,0.6)' }}
             />
             <img
               src={payload.giftIconUrl}
               alt={payload.giftName || 'Gift'}
               className={[
                 'relative rounded-full object-contain',
-                tier === 'mega' ? 'w-20 h-20' : tier === 'big' ? 'w-16 h-16' : 'w-12 h-12',
+                tier === 'mega' ? 'w-14 h-14' : tier === 'big' ? 'w-12 h-12' : 'w-9 h-9',
               ].join(' ')}
               draggable={false}
             />
@@ -158,44 +155,44 @@ export function LuckyGiftCelebration({ payload, onClose }: Props) {
         {/* Multiplier — the hero element */}
         <div
           className={[
-            'mt-3 font-black leading-none tabular-nums',
+            'mt-2 font-black leading-none tabular-nums',
             tier === 'mega'
-              ? 'text-[64px] drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]'
+              ? 'text-[44px] drop-shadow-[0_3px_10px_rgba(0,0,0,0.45)]'
               : tier === 'big'
-                ? 'text-[52px] drop-shadow-[0_3px_10px_rgba(0,0,0,0.45)]'
-                : 'text-[40px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]',
+                ? 'text-[36px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
+                : 'text-[28px] drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]',
           ].join(' ')}
         >
           {multiplierLabel}
         </div>
 
         {/* Bonus amount — large, prominent (the user's main request) */}
-        <div className="mt-2 flex flex-col items-center gap-1">
-          <div className="text-[11px] font-bold uppercase tracking-[0.16em] opacity-85">
+        <div className="mt-1.5 flex flex-col items-center gap-0.5">
+          <div className="text-[9px] font-bold uppercase tracking-[0.14em] opacity-85">
             {tier === 'nice' ? 'Bonus Diamond' : 'Jackpot Diamond'}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-medium opacity-90">+</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[12px] font-medium opacity-90">+</span>
             <span
               className={[
                 'font-extrabold tabular-nums',
-                tier === 'mega' ? 'text-[28px]' : tier === 'big' ? 'text-[24px]' : 'text-[20px]',
+                tier === 'mega' ? 'text-[22px]' : tier === 'big' ? 'text-[19px]' : 'text-[16px]',
               ].join(' ')}
             >
               {formatDiamonds(payload.bonus)}
             </span>
-            <span className="text-[18px]" aria-hidden>💎</span>
+            <span className="text-[14px]" aria-hidden>💎</span>
           </div>
         </div>
 
         {/* Spent reference */}
-        <div className="mt-1.5 text-[11px] opacity-80">
+        <div className="mt-1 text-[10px] opacity-80">
           Spent {formatDiamonds(payload.spent)} 💎
         </div>
 
         {/* Mega only: extra hype line */}
         {tier === 'mega' && (
-          <div className="mt-3 text-[12px] font-semibold uppercase tracking-[0.2em] opacity-90">
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] opacity-90">
             One in 500,000!
           </div>
         )}
