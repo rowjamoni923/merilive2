@@ -223,3 +223,57 @@ Each phase is independently shippable. Owner approves each phase end before next
 - **LiveKit Android SDK pre-connect track creation** (Gap B in audit): unclear if pre-connect `createVideoTrack()` survives `Room.connect()`. May need to refactor `startLocalPreview` to use standalone `CameraXCapturer` not bound to Room, then attach to Room on connect. Investigate during Phase 1 implementation.
 - **TextureView z-order on some OEM (Vivo/Oppo):** may need `setZOrderMediaOverlay(true)`. Will test on Vivo during Phase 1 APK QA.
 - **`PrivateCallActivity` cold start vs JS `acceptCall()` race:** Activity may foreground before JS connects LiveKit. Mitigation: native ringing UI shown until `call:connected` broadcast received.
+
+---
+
+## Lucky Gift Lottery — Chamet-Style Mega Jackpot (2026-06-15)
+
+### Research summary (Chamet, Bigo, Poppo, Olamet)
+- Tiered RNG with 0.5x–10000x multipliers.
+- **RTP target 75–85%** (house edge 15–25%).
+- Visual feedback scales with tier: toast → room sparkles → full-screen → global broadcast.
+- MEGA JACKPOT (≥1000x) is ~1 in 100k–500k, drives global FOMO ("lottery effect").
+- Wallet shows two line items: red `Sent Lucky Gift -N` and gold `Lucky Reward +M`.
+
+### Current state (audit)
+- Backend `process_gift_transaction` already rolls per-unit lottery, respects admin `lucky_gift_config`, falls back to default ladder. EV ≈ 0.285x — **too stingy, no jackpot tail**.
+- Default ladder: 85% 0x · 10% 0.5x · 3% 2x · 1.5% 5x · 0.5% 20x. No mega tier.
+- Frontend (`GiftingService.ts` L275-282): only a 4s `toast.success(...)` regardless of multiplier. No celebration animation, no tier mapping.
+
+### New default ladder (EV ≈ 0.791, RTP ≈ 79%)
+| Tier | Multi | % | EV |
+|---|---|---|---|
+| No win | 0x | 55.0% | 0 |
+| Small | 0.5x | 30.0% | 0.150 |
+| Modest | 1x | 10.0% | 0.100 |
+| Nice | 2x | 3.0% | 0.060 |
+| Great | 5x | 1.5% | 0.075 |
+| Big | 20x | 0.4% | 0.080 |
+| Huge | 100x | 0.08% | 0.080 |
+| Epic | 500x | 0.018% | 0.090 |
+| Mega | 2000x | 0.0018% | 0.036 |
+| Legend | 10000x | 0.0002% | 0.020 |
+
+- Sum = 100.000%, EV = 0.791x → house edge 20.9%.
+- Mega/Legend odds ≈ 1 in 50k / 1 in 500k → genuine lottery feel, sustainable.
+
+### Celebration tiers (frontend `LuckyGiftCelebration`)
+| Multi range | UX |
+|---|---|
+| < 2x | tiny toast (existing) |
+| 2x – 49x | center pop with multiplier ribbon, 2.5s, golden ring |
+| 50x – 999x | fullscreen "BIG WIN" with coin shower + amount, 4s |
+| ≥ 1000x | fullscreen "MEGA JACKPOT!" golden explosion + sender name + amount, 6s, room-broadcast TODO |
+
+### Implementation
+1. Migration: replace inline default ladder in `process_gift_transaction` with the new tiers.
+2. New `src/components/lucky/LuckyGiftCelebration.tsx` — tier-aware overlay, portal-rendered, design-system tokens only.
+3. New `src/components/lucky/LuckyGiftHost.tsx` — singleton mount that listens to a tiny event bus.
+4. `GiftingService.ts` — replace bare toast with `showLuckyWin({ spent, bonus })`; route through host.
+5. Mount `LuckyGiftHost` once in `App.tsx`.
+6. ZERO changes to existing flying-gift / entry / SVGA animations.
+
+### Validation
+- Spec: spent 1000 → bonus 2000 = 2x → Nice tier ribbon.
+- Spec: spent 1000 → bonus 100000 = 100x → fullscreen BIG WIN.
+- Spec: spent 1000 → bonus 2000000 = 2000x → MEGA JACKPOT.
