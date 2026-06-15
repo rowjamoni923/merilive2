@@ -212,7 +212,7 @@ const Reels = () => {
         setCurrentUserId(user.id);
         // Fetch profile and categories in parallel
         const [profileRes, categoriesRes] = await Promise.all([
-          supabase.from('profiles').select('is_host, coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
+          supabase.from('profiles').select('is_host, gender, coins, display_name, avatar_url, user_level, host_level, max_user_level').eq('id', user.id).single(),
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
@@ -221,6 +221,10 @@ const Reels = () => {
           display_name: profileRes.data.display_name,
           avatar_url: profileRes.data.avatar_url,
           user_level: profileRes.data.user_level,
+          host_level: (profileRes.data as any).host_level,
+          max_user_level: (profileRes.data as any).max_user_level,
+          gender: (profileRes.data as any).gender,
+          is_host: profileRes.data.is_host,
         } : null);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
