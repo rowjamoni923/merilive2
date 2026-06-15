@@ -22,9 +22,9 @@ export interface FlyingGift {
   animationFormat?: string | null;
   animationConfigUrl?: string | null;
   soundUrl?: string;
-  /** True if the current viewer SENT this gift — shows diamonds spent badge */
+  /** True if the current viewer SENT this gift */
   isOwnGift?: boolean;
-  /** True if the current viewer is the RECEIVER (host) — shows beans earned badge */
+  /** True if the current viewer is the RECEIVER (host) */
   isReceiverGift?: boolean;
   /** Optional explicit beans amount (overrides client-side calculation) */
   beansEarned?: number;
@@ -390,7 +390,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
             background: tierStyles.background,
             boxShadow: tierStyles.glow,
             border: `1px solid ${tierStyles.border}`,
-            backdropFilter: 'blur(8px)',
           }}
         >
           <div
