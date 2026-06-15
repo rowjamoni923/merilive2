@@ -12,10 +12,17 @@ import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 // browser shows a broken-image icon with alt text "Frame".
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
 
-const detectFrameType = (url: string): 'svga' | 'lottie' | 'gif' | 'webp' | 'static' => {
-  const path = url.split('?')[0].toLowerCase();
+type FrameKind = 'svga' | 'lottie' | 'vap' | 'mp4' | 'webm' | 'gif' | 'webp' | 'static';
+const detectFrameType = (url: string): FrameKind => {
+  const lower = url.toLowerCase();
+  const path = lower.split('?')[0].split('#')[0];
   if (path.endsWith('.svga')) return 'svga';
   if (path.endsWith('.json')) return 'lottie';
+  if (path.endsWith('.mp4')) {
+    if (lower.includes('vap') || lower.includes('_bmp') || lower.includes('file_vap_')) return 'vap';
+    return 'mp4';
+  }
+  if (path.endsWith('.webm')) return 'webm';
   if (path.endsWith('.gif')) return 'gif';
   if (path.endsWith('.webp')) return 'webp';
   return 'static';
