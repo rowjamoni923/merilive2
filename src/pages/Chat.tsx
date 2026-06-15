@@ -1052,9 +1052,6 @@ const Chat = () => {
   //  • On new incoming/outgoing messages → smooth-scroll only if user is already
   //    near the bottom; otherwise leave them where they are (so they can read
   //    older messages without being yanked away).
-  const lastScrollConvIdRef = useRef<string | null>(null);
-  const wasNearBottomRef = useRef(true);
-  const initialScrollDoneRef = useRef(false);
   useLayoutEffect(() => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
