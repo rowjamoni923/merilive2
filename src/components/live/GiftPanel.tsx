@@ -359,6 +359,12 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }, COMBO_WINDOW_MS);
   }, [resetCombo]);
 
+  // Premium gifts (≥ 50,000 diamonds) are single-send only — no combo presets,
+  // no quantity stepper. Keeps lottery-tier gifts feeling intentional & exclusive.
+  const SINGLE_ONLY_THRESHOLD = 50000;
+  const COMBO_PRESETS = [1, 11, 37, 77] as const;
+  const isSingleOnly = !!selectedGift && selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+
   const handleGiftTap = useCallback((gift: GiftData) => {
     if (selectedGift?.id === gift.id) {
       setSelectedGift(null);
@@ -371,6 +377,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
   }, [selectedGift, resetCombo]);
 
+
   // Keep ref in sync with userCoins (mirror, not state-source).
   useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
 
@@ -381,27 +388,42 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const handleSend = useCallback(() => {
     if (!selectedGift) return;
     warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
-    const cost = selectedGift.coins * count;
+    // Premium gifts (≥ 50k) are single-send only — ignore stale combo count
+    // and skip combo accumulation so the lottery-tier UI stays clean.
+    const singleOnly = selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+    const effectiveCount = singleOnly ? 1 : count;
+    const cost = selectedGift.coins * effectiveCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
-    onSendGift(selectedGift, count);
+    onSendGift(selectedGift, effectiveCount);
     setUserCoins(userCoinsRef.current);
-    setComboCount(prev => prev + count);
-    startComboTimer();
+    if (!singleOnly) {
+      setComboCount(prev => prev + effectiveCount);
+      startComboTimer();
+    }
   }, [selectedGift, count, onSendGift, startComboTimer]);
+
+
 
   const handleQuickSend = useCallback((quickCount: number) => {
     if (!selectedGift) return;
     warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
-    const cost = selectedGift.coins * quickCount;
+    // Premium gifts (≥ 50k) clamp to single send and skip combo accumulation.
+    const singleOnly = selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+    const effectiveCount = singleOnly ? 1 : quickCount;
+    const cost = selectedGift.coins * effectiveCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
-    setCount(quickCount);
-    onSendGift(selectedGift, quickCount);
+    setCount(effectiveCount);
+    onSendGift(selectedGift, effectiveCount);
     setUserCoins(userCoinsRef.current);
-    setComboCount(prev => prev + quickCount);
-    startComboTimer();
+    if (!singleOnly) {
+      setComboCount(prev => prev + effectiveCount);
+      startComboTimer();
+    }
   }, [selectedGift, onSendGift, startComboTimer]);
+
+
 
 
   // Reset combo on close / category switch / unmount
@@ -703,72 +725,54 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
             </div>
 
             {/* Controls Row */}
-            <div className="flex items-center gap-1.5 mb-2">
-              {/* Quick Send: 1, 2, 3 */}
-              <div className="flex gap-0.5">
-                {[1, 2, 3].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => handleQuickSend(n)}
-                    disabled={userCoins < selectedGift.coins * n}
-                    className={cn(
-                      "w-8 h-8 rounded-lg font-bold text-sm flex items-center justify-center active:scale-95 transition-transform",
-                      userCoins >= selectedGift.coins * n
-                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white"
-                        : "bg-white/10 text-white/30"
-                    )}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    {n}
-                  </button>
-                ))}
+            {isSingleOnly ? (
+              <div className="flex items-center justify-center mb-2">
+                <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-400/30">
+                  <span className="text-[10px] font-bold tracking-wide text-amber-200">
+                    Premium gift · Single send only
+                  </span>
+                </div>
               </div>
+            ) : (
+              <div className="flex items-center gap-1.5 mb-2">
+                {/* Combo Presets: 1, 11, 37, 77 — Chamet style */}
+                <div className="flex gap-1 flex-1 justify-between">
+                  {COMBO_PRESETS.map((n) => {
+                    const canAfford = userCoins >= selectedGift.coins * n;
+                    const isActive = count === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCount(n);
+                          if (n === 1) {
+                            handleSend();
+                          } else {
+                            handleQuickSend(n);
+                          }
+                        }}
+                        disabled={!canAfford}
+                        className={cn(
+                          "flex-1 h-9 rounded-xl text-xs font-extrabold border active:scale-95 transition-all tabular-nums",
+                          !canAfford
+                            ? "bg-white/5 text-white/25 border-white/5"
+                            : isActive
+                              ? "bg-gradient-to-br from-amber-400 via-pink-500 to-purple-500 text-white border-pink-300/50 shadow-[0_4px_14px_-4px_rgba(236,72,153,0.5)]"
+                              : "bg-white/10 text-white/85 border-white/10 hover:bg-white/15"
+                        )}
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        x{n}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-              {/* Quantity Selector */}
-              <div className="flex items-center gap-1 flex-1 justify-center">
-                <button
-                  onClick={() => setCount(Math.max(1, count - 1))}
-                  className="w-6 h-6 rounded bg-white/10 text-white/60 flex items-center justify-center active:bg-white/20 transition-colors"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="text-white font-bold text-sm w-6 text-center">
-                  {count}
-                </span>
-                <button
-                  onClick={() => setCount(count + 1)}
-                  className="w-6 h-6 rounded bg-white/10 text-white/60 flex items-center justify-center active:bg-white/20 transition-colors"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Preset Quantities */}
-              <div className="flex gap-1">
-                {[10, 99].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setCount(n);
-                    }}
-                    className={cn(
-                      "px-2 py-1.5 rounded-lg text-[10px] font-bold border active:scale-95 transition-all",
-                      count === n
-                        ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white border-pink-400/50"
-                        : "bg-white/10 text-white/70 border-white/10"
-                    )}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    x{n}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Send / COMBO Button — Bigo / TikTok Live style */}
             {comboCount === 0 ? (
