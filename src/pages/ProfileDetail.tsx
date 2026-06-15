@@ -83,6 +83,7 @@ import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface ProfileData {
   id: string;
@@ -478,11 +479,11 @@ const ProfileDetail = () => {
 
     // SECOND PARALLEL BATCH - Dependent on profile data
     if (profileData) {
-      const userLevel = Math.max(profileData.user_level || 1, profileData.max_user_level || 1);
-      const hostLevel = profileData.host_level || 0;
+      const userLevel = getRequiredDisplayLevel({ ...profileData, is_host: false });
+      const hostLevel = Math.max(profileData.host_level || 0, 0);
       const isHostUser = profileData.is_host && (profileData.gender === 'female' || profileData.gender === 'Female');
       const fallbackLevel = isHostUser ? hostLevel : userLevel;
-      const effectiveLevel = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
+      const effectiveLevel = resolvedLevelLoading ? fallbackLevel : (resolvedLevel ?? fallbackLevel);
       const targetType = isHostUser ? 'host' : 'user';
 
       const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
