@@ -917,18 +917,16 @@ export function ActiveCallScreen({
                 )}
               </div>
 
-              {/* Remote user avatar mini */}
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden border-2 border-white/30"
-                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px -4px rgba(236,72,153,0.4)' }}
-              >
-                {remoteUserAvatar ? (
-                  <img loading="lazy" decoding="async" src={enhanceThumbnail(normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar, { width: 512, quality: 82 })} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-extrabold">
-                    {remoteUserName?.charAt(0)}
-                  </div>
-                )}
-              </div>
+              {/* Remote user avatar mini (with frame) */}
+              <AvatarWithFrame
+                userId={remoteUserId}
+                src={remoteUserAvatar}
+                name={remoteUserName}
+                level={remoteUserLevel}
+                size="xxs"
+                showFrame={true}
+                showAnimation={false}
+              />
 
               <div className="flex flex-col leading-tight">
                 <span

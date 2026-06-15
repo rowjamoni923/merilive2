@@ -2684,12 +2684,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 {searchedUser && (
                   <div className="bg-white rounded-2xl p-4 border border-cyan-500/30 space-y-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-14 h-14 border-2 border-cyan-500">
-                        <AvatarImage src={searchedUser.avatar_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500">
- <User className="w-6 h-6 text-display" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithFrame
+                        userId={searchedUser.id}
+                        src={searchedUser.avatar_url}
+                        name={searchedUser.display_name}
+                        level={getRequiredDisplayLevel(searchedUser)}
+                        size="sm"
+                        showFrame={true}
+                        showAnimation={false}
+                      />
                       <div className="flex-1">
                         <p className="text-heading font-bold text-lg">{searchedUser.display_name}</p>
                         <p className="text-body text-sm">ID: {searchedUser.app_uid}</p>
