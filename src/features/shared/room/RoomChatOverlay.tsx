@@ -496,26 +496,13 @@ export const RoomChatOverlay = memo(({
       "flex flex-col w-full relative gap-1.5",
       className
     )}>
-      {/* PERMANENT TOP SECTION — Admin warning + Welcome message.
-          Rendered ABOVE the scrollable chat so it always sits at the top
-          of the chat column and never crowds the bottom composer/buttons.
-          New chat messages and join notifications appear in the scroll
-          area BELOW this section (Chamet/Bigo professional layout). */}
-      {(adminBannerRoomType || (showWelcome && hostName)) && (
-        <div className="flex flex-col gap-1.5 shrink-0 pl-0.5 pr-1">
-          {adminBannerRoomType && (
-            <RoomWelcomeBanner roomType={adminBannerRoomType} />
-          )}
-          {showWelcome && hostName && (
-            <WelcomeMessage
-              hostName={hostName}
-              hostLevel={hostLevel}
-              roomTitle={roomTitle}
-              roomType={roomType}
-            />
-          )}
-        </div>
-      )}
+      {/* NOTE: Admin rule banner + host welcome moved OUT of this overlay.
+          They are rendered by the parent screen via <RoomTopNoticeStack />
+          at the TRUE TOP of the room, so they never crowd the bottom
+          action buttons (Bigo/Chamet/Olamet reference pattern). The
+          `adminBannerRoomType`, `showWelcome`, `hostName`, `hostLevel`,
+          and `roomTitle` props are still accepted for backward
+          compatibility but intentionally not rendered here. */}
 
       {/* SCROLLABLE CHAT CONTAINER — messages + join notifications only.
           flex-col-reverse: newest at bottom, scroll up to see older.
