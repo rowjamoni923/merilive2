@@ -436,31 +436,35 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       const nativeDurationMs = Math.round(video.duration * 1000);
       const startWallclock = performance.now();
       const hardCeilingMs = nativeDurationMs + 6000;
-      let watchRaf: number | null = null;
+      let watchInterval: ReturnType<typeof setInterval> | null = null;
 
       const fireComplete = () => {
         if (!mountedRef.current || completedRef.current) return;
         completedRef.current = true;
-        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        if (watchInterval !== null) clearInterval(watchInterval);
         onCompleteRef.current?.();
       };
 
-      const tick = () => {
-        if (!mountedRef.current || completedRef.current) return;
+      // SMOOTHNESS: Previously a parallel rAF loop polled at 60fps just to
+      // detect completion — that's a second rAF per VAP instance competing
+      // with the render loop. End detection only needs ~200ms granularity,
+      // so a setInterval frees ~60 frame slots/sec for actual rendering.
+      watchInterval = setInterval(() => {
+        if (!mountedRef.current || completedRef.current) {
+          if (watchInterval !== null) clearInterval(watchInterval);
+          return;
+        }
         const v = videoRef.current;
         if (!v) return;
         const reachedEnd = v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.04);
         const wallclockElapsed = performance.now() - startWallclock;
         if (reachedEnd || wallclockElapsed >= hardCeilingMs) {
           fireComplete();
-          return;
         }
-        watchRaf = requestAnimationFrame(tick);
-      };
-      watchRaf = requestAnimationFrame(tick);
+      }, 200);
 
       completionTimerRef.current = setTimeout(() => {
-        if (watchRaf !== null) cancelAnimationFrame(watchRaf);
+        if (watchInterval !== null) clearInterval(watchInterval);
       }, hardCeilingMs + 500) as any;
     }
 
