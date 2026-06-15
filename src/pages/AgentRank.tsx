@@ -411,7 +411,7 @@ const AgentRank = () => {
                       className={`${config.ringSize} rounded-full bg-gradient-to-b ${config.ring} ${config.glow}`}
                     >
                       <AvatarWithFrame
-                  src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82})}
                   name={entry.display_name || entry.agency_name || entry.name || "U"}
                   level={1}
                   size="sm"
@@ -506,7 +506,7 @@ const AgentRank = () => {
                   {/* Avatar */}
                   <div className="relative">
                     <AvatarWithFrame
-                  src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82})}
                   name={agency.display_name || agency.agency_name || agency.name || "U"}
                   level={1}
                   size="sm"
@@ -560,7 +560,7 @@ const AgentRank = () => {
               <span className="text-sm font-black text-white">#{currentUserAgency.rank_position}</span>
             </div>
             <AvatarWithFrame
-                  src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82})}
                   name={currentUserAgency.display_name || currentUserAgency.agency_name || currentUserAgency.name || "U"}
                   level={1}
                   size="xs"

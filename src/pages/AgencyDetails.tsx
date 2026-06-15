@@ -206,7 +206,7 @@ const AgencyDetailsPage = () => {
             <div className="relative flex items-center gap-4">
               <div className={`p-[2px] rounded-full bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')}`}>
                 <AvatarWithFrame
-                  src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(hostAgency.logo_url || undefined, { width: 96, quality: 82})}
                   name={hostAgency.display_name || hostAgency.agency_name || hostAgency.name || "U"}
                   level={1}
                   size="lg"

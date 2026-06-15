@@ -800,7 +800,7 @@ const AgencyCoinTrader = () => {
                       className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
                     >
                       <AvatarWithFrame
-                  src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82})}
                   name={user.display_name || user.agency_name || user.name || "U"}
                   level={1}
                   size="sm"
@@ -822,7 +822,7 @@ const AgencyCoinTrader = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <AvatarWithFrame
-                  src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82})}
                   name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
                   level={1}
                   size="sm"
@@ -963,7 +963,7 @@ const AgencyCoinTrader = () => {
           <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-3 pb-3 border-b">
               <AvatarWithFrame
-                  src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82}
+                  src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82})}
                   name={selectedUser.display_name || selectedUser.agency_name || selectedUser.name || "U"}
                   level={1}
                   size="sm"
