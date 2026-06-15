@@ -1777,7 +1777,7 @@ const LiveStream = () => {
             initial: leftName.charAt(0),
             message: 'left the live room',
             color: 'text-white/70',
-            userLevel: leftViewer?.user_level || 1,
+            userLevel: leftViewer?.user_level ?? 1,
             userAvatar: leftViewer?.avatar_url || undefined,
             type: 'leave',
           }];
@@ -2070,7 +2070,7 @@ const LiveStream = () => {
       if (viewerIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles_public")
-          .select("id, app_uid, display_name, avatar_url, user_level")
+          .select("id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
           .in("id", viewerIds);
 
         if (profilesError) {
@@ -2091,7 +2091,7 @@ const LiveStream = () => {
           app_uid: profile?.app_uid || null,
           avatar_url: profile?.avatar_url || null,
           name: profile?.display_name || "User",
-          user_level: profile?.user_level || 1,
+          user_level: getRequiredDisplayLevel(profile),
         };
       });
 
