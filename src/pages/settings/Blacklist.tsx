@@ -172,7 +172,7 @@ const Blacklist = () => {
                 <AvatarWithFrame
                   userId={blocked.blocked_id}
                   src={blocked.blocked_profile?.avatar_url || undefined}
-                  name={(blocked.blocked_profile? as any).display_name || "U"}
+                  name={(blocked.blocked_profile as any)?.display_name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
