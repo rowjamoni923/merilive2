@@ -1200,7 +1200,9 @@ const Reels = () => {
                   placeholder="Add a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendComment()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !(e.nativeEvent as KeyboardEvent).isComposing) sendComment();
+                  }}
                   maxLength={500}
                   className="h-11 rounded-full bg-white/[0.06] border-white/10 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:border-pink-400/40 px-4"
                 />
