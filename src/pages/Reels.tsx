@@ -1113,7 +1113,7 @@ const Reels = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
 
           {/* List */}
-          <ScrollArea className="flex-1 min-h-0">
+          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px))' }}>
             {comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
