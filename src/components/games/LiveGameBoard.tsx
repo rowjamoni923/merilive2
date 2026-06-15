@@ -33,6 +33,7 @@ import {
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 // LiveGame3DStage removed — 3D visuals now live INSIDE each game (wheel/board) per spec
 import { LiveFerrisWheelGame } from "./live-games/LiveFerrisWheelGame";
 import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
@@ -243,7 +244,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       setCurrentUserId(user.id);
       const { data } = await supabase
         .from('profiles') // guard-ok: own-row read (id=eq.user.id), not cross-user
-        .select('coins, username, user_level')
+        .select('coins, username, user_level, host_level, max_user_level, gender, is_host')
         .eq('id', user.id)
         .single();
 
@@ -251,7 +252,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
         setUserCoins(data.coins);
         setCurrentUserProfile({
           username: data.username || 'Player',
-          level: data.user_level || 1
+          level: getRequiredDisplayLevel(data)
         });
       }
     }
