@@ -2647,7 +2647,7 @@ const PartyRoom = () => {
           user_id: sr.requester_id, // User ID for Accept/Reject callbacks
           displayName: sr.requester?.display_name || 'User',
           avatarUrl: sr.requester?.avatar_url || undefined,
-          level: sr.requester?.user_level || 1,
+          level: getRequiredDisplayLevel(sr.requester),
           requestedAt: new Date(sr.created_at)
         }))}
         onAcceptSeatRequest={(userId) => {
@@ -2675,7 +2675,7 @@ const PartyRoom = () => {
           id: p.user_id,
           displayName: p.user?.display_name || 'User',
           avatarUrl: p.user?.avatar_url || undefined,
-          level: p.user?.user_level || 1,
+          level: getRequiredDisplayLevel(p.user),
           countryFlag: '🌍',
           frameId: (p.user as any)?.frame_id || undefined
         }))}
@@ -2686,13 +2686,13 @@ const PartyRoom = () => {
           (() => {
             const filtered = participants
               .filter(p => p.user_id !== room.host_id)
-              .sort((a, b) => (b.user?.user_level || 1) - (a.user?.user_level || 1))
+              .sort((a, b) => getRequiredDisplayLevel(b.user) - getRequiredDisplayLevel(a.user))
               .slice(0, 4)
               .map(p => ({
                 id: p.user_id, // userId for AvatarWithFrame
                 displayName: p.user?.display_name || 'User',
                 avatarUrl: p.user?.avatar_url || undefined,
-                level: p.user?.user_level || 1,
+                level: getRequiredDisplayLevel(p.user),
                 frameId: (p.user as any)?.frame_id // Pass frame_id for proper frame rendering
               }));
             console.log('[PartyRoom] topViewers:', filtered.length, filtered);
@@ -2914,7 +2914,7 @@ const PartyRoom = () => {
               const giftKey = getPartyGiftRealtimeKey(sendingUserId, gift.id, totalCost, count);
               const senderName = sendingUser?.profile?.display_name || 'You';
               const senderAvatar = sendingUser?.profile?.avatar_url || undefined;
-              const senderLevel = sendingUser?.profile?.user_level || 1;
+              const senderLevel = getRequiredDisplayLevel(sendingUser?.profile);
               const giftAnimationData = {
                 senderId: sendingUserId,
                 senderName,
