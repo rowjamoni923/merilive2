@@ -3114,6 +3114,7 @@ const Chat = () => {
                         if (!content || sending) return;
                         setSending(true);
                         setMessage("");
+                        anchorChatToBottomSoon();
                         
                         if (selectedConversation) {
                           persistDirectMessage(
@@ -3140,6 +3141,7 @@ const Chat = () => {
                           }).select().single()).then(({ data, error }) => {
                             if (error) throw error;
                             appendSentGroupMessage(data);
+                            anchorChatToBottomSoon();
                             setSending(false);
                           }).catch(() => {
                             toast.error("Failed to send message");
