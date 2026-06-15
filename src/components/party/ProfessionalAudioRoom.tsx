@@ -875,7 +875,7 @@ export function ProfessionalAudioRoom({
       </main>
 
       {/* Ultra-Premium Floating Chat with Avatar+Frame */}
-      <div className="absolute bottom-[72px] left-0 right-[56px] z-20 px-3">
+      <div className="absolute left-0 right-[56px] z-20 px-3 chat-composer-stable" style={{ bottom: 'calc(var(--kb-h, 0px) + 72px)' }}>
         {/* Chat Messages with user avatars */}
         <div className="space-y-1.5 max-h-36 overflow-hidden pointer-events-none mb-2">
           <AnimatePresence mode="popLayout">
