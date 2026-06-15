@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
@@ -6,6 +6,20 @@ import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+
+// Animated frame formats (SVGA / Lottie) can NOT be decoded by an <img> tag —
+// they're binary animation containers that need a player. Without this the
+// browser shows a broken-image icon with alt text "Frame".
+const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
+
+const detectFrameType = (url: string): 'svga' | 'lottie' | 'gif' | 'webp' | 'static' => {
+  const path = url.split('?')[0].toLowerCase();
+  if (path.endsWith('.svga')) return 'svga';
+  if (path.endsWith('.json')) return 'lottie';
+  if (path.endsWith('.gif')) return 'gif';
+  if (path.endsWith('.webp')) return 'webp';
+  return 'static';
+};
 import {
   getCachedGender,
   getCachedViewerId,
