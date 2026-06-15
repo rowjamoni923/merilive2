@@ -329,7 +329,7 @@ const FramedAvatarWithPrivileges = ({
               <Suspense fallback={null}>
                 <UniversalFramePlayer
                   src={frameUrl!}
-                  type={frameType as 'svga' | 'lottie'}
+                  type={frameType as any}
                   className="w-full h-full"
                   loop
                   autoPlay
