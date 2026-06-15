@@ -326,7 +326,7 @@ const Reels = () => {
       .from('reels')
       .select(`
         *,
-        user:profiles_public!reels_user_id_fkey(id, app_uid, display_name, avatar_url, user_level, is_verified, is_host, frame_id, equipped_frame_id)
+        user:profiles_public!reels_user_id_fkey(id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_verified, is_host, frame_id, equipped_frame_id)
       `)
       .eq('is_active', true)
       .eq('is_approved', true)
@@ -459,7 +459,7 @@ const Reels = () => {
       .from('reel_comments')
       .select(`
         *,
-        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host)
       `)
       .eq('reel_id', reelId)
       .eq('is_active', true)
@@ -504,7 +504,7 @@ const Reels = () => {
       })
       .select(`
         *,
-        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host)
       `)
       .single();
 
