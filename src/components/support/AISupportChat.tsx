@@ -1078,7 +1078,7 @@ const AISupportChat = ({
 
       {/* Input Area - only show when ticket is not closed */}
       {phase !== "category" && !isTicketClosed && (
-        <form onSubmit={handleSubmit} className="p-4 border-t bg-background">
+        <form onSubmit={handleSubmit} className="p-4 border-t bg-background chat-composer-stable" style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}>
           <div className="flex gap-2 items-center">
             {/* Attachment buttons */}
             <input
