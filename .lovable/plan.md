@@ -160,3 +160,15 @@ The reference video shows the warning at the **true top** (just under status bar
 - One keyboard contract everywhere: scroll container gets `.chat-scroll-stable`; composer/sheet gets `.chat-composer-stable`; movement uses `--kb-h`, not body resize.
 - Profile message buttons stay unchanged visually; they open the already-fixed DM chat surface.
 - If Matters/Feed is later added, it must reuse the Reels/DM keyboard contract, not invent another composer.
+
+**Implemented in this pass:**
+- `RoomChatOverlay` now has a fixed pro-width chat column (`68vw`, max `520px`) and explicit `.chat-scroll-stable`, covering LiveStream + UnifiedPartyRoom audio/video/game.
+- `ProfessionalAudioRoom` fallback chat rows now use shared `RoomChatBubble` instead of avatar-heavy custom bubbles.
+- `ActiveCallScreen` private-call text rows now use shared `RoomChatBubble`, so call chat matches live/party overlay density.
+- `Chat.tsx` regular DM text rows now use shared `DirectChatBubble`, eliminating the duplicate inline bubble implementation for normal messages.
+- `Reels.tsx` comments now render oldest→newest, optimistic-send immediately, rollback on error, and avoid double-counting own realtime inserts.
+- Added `.kb-hide-when-open` and applied it to DM quick chips/reply/actions so keyboard open does not reflow multiple stacked rows.
+
+**Verification:**
+- Browser preview rendered without a blank/runtime error after hot reload. Console only showed existing preview manifest 401 + missing gift asset 400s, not errors from the changed chat components.
+- Android keyboard smoothness still requires APK rebuild because `capacitor.config.ts` keyboard resize changed earlier to `none`.
