@@ -361,7 +361,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(!hadConvCache);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number; host_level: number; max_user_level: number; gender: string | null; is_host: boolean } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -1418,9 +1418,9 @@ const Chat = () => {
         setMyProfile({
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,
-          user_level: profileResult.data.user_level || 1,
-          host_level: (profileResult.data as any).host_level || 0,
-          max_user_level: (profileResult.data as any).max_user_level || 0,
+          user_level: profileResult.data.user_level ?? null,
+          host_level: (profileResult.data as any).host_level ?? null,
+          max_user_level: (profileResult.data as any).max_user_level ?? null,
           gender: (profileResult.data as any).gender || null,
           is_host: profileResult.data.is_host === true,
         });
