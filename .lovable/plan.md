@@ -114,3 +114,18 @@ The reference video shows the warning at the **true top** (just under status bar
 - Chat overlay bottom clearance must be `composerHeight + --kb-h`, so chat never gets pushed/jumped by the keyboard.
 - Scroll containers keep `overflow-anchor: none` and only auto-scroll when already near bottom or after user sends.
 - No visual redesign; only movement/layout mechanics.
+
+**Implemented:**
+- Added shared `.chat-scroll-stable` and `.chat-composer-stable` utilities.
+- LiveStream: bottom composer lifts by `--kb-h`; room chat overlay bottom clearance also includes `--kb-h`.
+- PartyRoom / UnifiedPartyRoom: same keyboard-aware composer + chat overlay clearance.
+- ActiveCallScreen private call: bottom composer lifts by `--kb-h`.
+- Legacy ProfessionalAudioRoom fallback: chat dock clearance includes `--kb-h`.
+- DM/Message page: scroll container disables browser scroll anchoring, reserves keyboard bottom padding, and composer translates above keyboard; auto-scroll no longer hard-scrolls while an input is focused, but send/quick-reply explicitly anchors to latest.
+- `useKeyboardInsets`: rAF batching + 4px hysteresis + stronger browser-chrome guard to prevent visualViewport micro-jitter.
+- `capacitor.config.ts`: changed Keyboard resize from `body` to `none`; body resize was the main Android-side jump source.
+
+**Verification note:**
+- Code-level grep confirms all target surfaces now consume the shared keyboard-stable contract.
+- Browser preview reached auth wall for `/chat`, so destructive/message-send testing was not performed in this session.
+- Because `capacitor.config.ts` changed, APK rebuild is REQUIRED for the Android no-jump behavior to apply. Web preview reflects React/CSS parts after hot reload.
