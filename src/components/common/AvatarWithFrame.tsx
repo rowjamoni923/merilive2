@@ -380,38 +380,13 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       return;
     }
 
-    // If propFrameId provided, use direct lookup with batched request
-    if (propFrameId) {
-      if (frameCache.has(`frame-${propFrameId}`)) {
-        const cached = frameCache.get(`frame-${propFrameId}`);
-        if (cached?.frame_url) {
-          setActiveFrameUrl(cached.frame_url);
-          setActiveFrameType(cached.frame_type || 'static');
-        } else {
-          setActiveFrameUrl(null);
-        }
-        return;
-      }
-
-      requestFrameById(propFrameId).then(() => {
-        if (cancelled) return;
-
-        const resolved = frameCache.get(`frame-${propFrameId}`);
-        if (resolved?.frame_url) {
-          setActiveFrameUrl(resolved.frame_url);
-          setActiveFrameType(resolved.frame_type || 'static');
-        } else {
-          setActiveFrameUrl(null);
-        }
-      });
-
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
-    // Idle deferral caused 100-250ms frame lag on Profile/Chat/etc. Frame must be instant.
+    // CANONICAL FRAME RESOLUTION:
+    // When userId is provided, ALWAYS resolve via the user's equipped frame
+    // (frameCache uses `equipped_frame_id || frame_id` — the single source of
+    // truth set when the user equips a frame from the shop / level reward).
+    // propFrameId is honored ONLY when there's no userId (anonymous payloads),
+    // because legacy `profiles.frame_id` columns passed by some list views can
+    // be stale and don't reflect the user's currently-equipped frame.
     if (userId) {
       const cached = getUserFrameUrl(userId);
       if (cached) {
@@ -426,10 +401,52 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         if (result) {
           setActiveFrameUrl(result.url);
           setActiveFrameType(result.type);
+        } else if (propFrameId) {
+          // Fallback to caller-provided frameId only when user lookup empty
+          requestFrameById(propFrameId).then(() => {
+            if (cancelled) return;
+            const resolved = frameCache.get(`frame-${propFrameId}`);
+            if (resolved?.frame_url) {
+              setActiveFrameUrl(resolved.frame_url);
+              setActiveFrameType(resolved.frame_type || 'static');
+            } else {
+              setActiveFrameUrl(null);
+            }
+          });
         }
       });
       return () => { cancelled = true; };
     }
+
+    // No userId — use direct propFrameId lookup with batched request
+    if (propFrameId) {
+      if (frameCache.has(`frame-${propFrameId}`)) {
+        const cached = frameCache.get(`frame-${propFrameId}`);
+        if (cached?.frame_url) {
+          setActiveFrameUrl(cached.frame_url);
+          setActiveFrameType(cached.frame_type || 'static');
+        } else {
+          setActiveFrameUrl(null);
+        }
+        return;
+      }
+
+      requestFrameById(propFrameId).then(() => {
+        if (cancelled) return;
+        const resolved = frameCache.get(`frame-${propFrameId}`);
+        if (resolved?.frame_url) {
+          setActiveFrameUrl(resolved.frame_url);
+          setActiveFrameType(resolved.frame_type || 'static');
+        } else {
+          setActiveFrameUrl(null);
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
 
     // No userId or propFrameId - use level-based frame
     const fetchLevelFrame = async () => {
