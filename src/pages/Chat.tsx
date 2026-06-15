@@ -2061,35 +2061,10 @@ const Chat = () => {
     });
   }, [myProfile]);
 
-  const hardPinChatToLatest = useCallback(() => {
-    const c = chatScrollRef.current;
-    if (!c) return;
-    c.scrollTop = c.scrollHeight;
-    wasNearBottomRef.current = true;
-    setShowScrollToBottom(false);
-    setUnreadBelow(0);
-  }, []);
-
   // Robust scroll-to-bottom: re-anchors across multiple frames to absorb
   // async layout shifts from late-loading avatars, gift logos, sticker
   // images, link previews, video posters, etc. Mirrors WhatsApp/Messenger
   // behavior where the latest message is always reliably visible.
-  const anchorChatToBottomSoon = useCallback(() => {
-    latestPinTimersRef.current.forEach(clearTimeout);
-    latestPinTimersRef.current = [];
-    const stick = () => hardPinChatToLatest();
-    stick();
-    requestAnimationFrame(stick);
-    [40, 100, 180, 320, 560, 900, 1400].forEach((delay) => {
-      latestPinTimersRef.current.push(setTimeout(stick, delay));
-    });
-  }, [hardPinChatToLatest]);
-
-  useEffect(() => () => {
-    latestPinTimersRef.current.forEach(clearTimeout);
-    latestPinTimersRef.current = [];
-  }, []);
-
   const handleSend = async (overrideText?: string) => {
     const rawText = (overrideText ?? message).trim();
     if (!rawText || sending) return;
