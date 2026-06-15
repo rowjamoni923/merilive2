@@ -188,7 +188,8 @@ const FramedAvatarWithPrivileges = ({
   const customFrame = privileges?.frame || privileges?.portrait_frame;
   const frameUrl = customFrame?.animation_file_url || customFrame?.animation_url || customFrame?.preview_url;
   const frameType = frameUrl ? detectFrameType(frameUrl) : 'static';
-  const isAnimatedFrame = frameType === 'svga' || frameType === 'lottie';
+  // Anything that an <img> tag cannot decode must go through the universal player.
+  const isAnimatedFrame = frameType === 'svga' || frameType === 'lottie' || frameType === 'vap' || frameType === 'mp4' || frameType === 'webm';
 
   const avatarContent = (
     <Avatar
