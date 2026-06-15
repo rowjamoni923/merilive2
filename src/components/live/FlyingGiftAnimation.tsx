@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useM
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { playSoundUrl } from "@/utils/soundPlayer";
 import { detectProfessionalAnimationFormat } from "@/utils/animationFormat";
 
@@ -399,9 +400,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
             }}
           />
 
-          {/* Sender avatar */}
+          {/* Sender avatar + equipped frame (level / VIP / shop frame).
+              AvatarWithFrame auto-loads the user's active frame from userId.
+              Falls back to a plain ringed avatar if userId is missing. */}
           <div className="relative flex-shrink-0 z-10">
-            {gift.senderAvatar ? (
+            {gift.senderId ? (
+              <AvatarWithFrame
+                userId={gift.senderId}
+                src={gift.senderAvatar || undefined}
+                name={gift.senderName}
+                size="xs"
+                showFrame
+                showAnimation
+              />
+            ) : gift.senderAvatar ? (
               <img
                 loading="lazy"
                 decoding="async"
