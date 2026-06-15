@@ -244,7 +244,7 @@ export function AIChatbot() {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-amber-200/60">
+            <div className="p-3 border-t border-amber-200/60 chat-composer-stable" style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}>
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
