@@ -52,7 +52,6 @@ export const ChametStyleChatPanel = ({
   hostId,
 }: ChametStyleChatPanelProps) => {
   const [inputValue, setInputValue] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,9 +100,10 @@ export const ChametStyleChatPanel = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0.4 }}
           transition={SPRING_FAST}
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-col will-change-transform"
+          className="fixed inset-x-0 z-50 flex flex-col will-change-transform chat-composer-stable"
           style={{
-            height: "58dvh",
+            bottom: "var(--kb-h, 0px)",
+            height: "min(58dvh, calc(100dvh - var(--kb-h, 0px) - 48px))",
             transform: "translateZ(0)",
           }}
         >
@@ -310,7 +310,6 @@ export const ChametStyleChatPanel = ({
                     </motion.div>
                   );
                 })}
-                <div ref={messagesEndRef} />
               </div>
             </div>
 
@@ -334,7 +333,7 @@ export const ChametStyleChatPanel = ({
 
             {/* Input Area */}
             <div
-              className="px-3 py-3 pb-safe"
+              className="px-3 py-3 pb-kb-safe"
               style={{
                 background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06))",
                 borderTop: "1px solid rgba(255,255,255,0.06)",
