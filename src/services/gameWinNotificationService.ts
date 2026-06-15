@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 /**
  * Sends a game win notification to the party room chat
@@ -49,18 +50,18 @@ export const sendGameWinNotification = async ({
 
     // Resolve display name + level via public view (no cross-user profiles read)
     let displayName = userName || 'Player';
-    let level = userLevel || 1;
+    let level = userLevel ?? 1;
 
     if (!userName || !userLevel) {
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('display_name, user_level')
+        .select('display_name, user_level, host_level, max_user_level, gender, is_host')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
         displayName = (profile as any).display_name || 'Player';
-        level = (profile as any).user_level || 1;
+        level = getRequiredDisplayLevel(profile);
       }
     }
 
