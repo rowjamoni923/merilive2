@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
 import { GameErrorBoundary } from "./GameErrorBoundary";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { getOptimizedImageUrl } from "@/utils/imageOptimize";
 import { Skeleton } from "@/components/Skeleton";
 interface GameItem {
   game_id: string;
@@ -80,7 +81,7 @@ const Game3DCard = ({
             <img
               loading="eager"
               decoding="async"
-              src={getProxiedUrl(game.logo_url!)}
+              src={getOptimizedImageUrl(getProxiedUrl(game.logo_url!), { width: 180, quality: 78 })}
               alt={game.game_name}
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}

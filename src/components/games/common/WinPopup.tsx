@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
+import { getOptimizedImageUrl } from "@/utils/imageOptimize";
 
 interface WinPopupProps {
   show: boolean;
@@ -167,8 +168,8 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                 {/* Show Game Logo from Admin Panel if available, otherwise emoji */}
                 {showLogo ? (
                   <div className="relative z-10 w-14 h-14 rounded-xl bg-white/90 p-1.5 shadow-lg border-2 border-yellow-300/50 flex items-center justify-center">
-                    <img loading="lazy" decoding="async" 
-                      src={getProxiedUrl(logoUrl)} 
+                    <img loading="eager" decoding="async" 
+                      src={getOptimizedImageUrl(getProxiedUrl(logoUrl), { width: 80, quality: 82 })} 
                       alt="Game"
                       className="w-10 h-10 object-contain"
                       onError={() => setImageError(true)}
