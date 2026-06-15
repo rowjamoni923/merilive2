@@ -1412,10 +1412,11 @@ export function ActiveCallScreen({
       
       {/* Flying Gift Animations */}
       <AnimatePresence>
-        {flyingGifts.map((gift) => (
+        {flyingGifts.map((gift, idx) => (
           <FlyingGiftAnimation
             key={gift.id}
             gift={gift}
+            stackIndex={idx}
             onComplete={() => removeFlyingGift(gift.id)}
           />
         ))}

@@ -1226,10 +1226,11 @@ const Reels = () => {
 
       {/* Flying Gift Animations */}
       <AnimatePresence>
-        {flyingGifts.map(gift => (
+        {flyingGifts.map((gift, idx) => (
           <FlyingGiftAnimation 
             key={gift.id}
             gift={gift} 
+            stackIndex={idx}
             onComplete={() => removeGift(gift.id)}
           />
         ))}
