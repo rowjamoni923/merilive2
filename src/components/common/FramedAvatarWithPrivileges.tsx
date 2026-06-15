@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
@@ -6,6 +6,20 @@ import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+
+// Animated frame formats (SVGA / Lottie) can NOT be decoded by an <img> tag —
+// they're binary animation containers that need a player. Without this the
+// browser shows a broken-image icon with alt text "Frame".
+const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
+
+const detectFrameType = (url: string): 'svga' | 'lottie' | 'gif' | 'webp' | 'static' => {
+  const path = url.split('?')[0].toLowerCase();
+  if (path.endsWith('.svga')) return 'svga';
+  if (path.endsWith('.json')) return 'lottie';
+  if (path.endsWith('.gif')) return 'gif';
+  if (path.endsWith('.webp')) return 'webp';
+  return 'static';
+};
 import {
   getCachedGender,
   getCachedViewerId,
@@ -166,6 +180,8 @@ const FramedAvatarWithPrivileges = ({
   // Check if user has a custom frame
   const customFrame = privileges?.frame || privileges?.portrait_frame;
   const frameUrl = customFrame?.animation_file_url || customFrame?.animation_url || customFrame?.preview_url;
+  const frameType = frameUrl ? detectFrameType(frameUrl) : 'static';
+  const isAnimatedFrame = frameType === 'svga' || frameType === 'lottie';
 
   const avatarContent = (
     <Avatar
@@ -288,29 +304,54 @@ const FramedAvatarWithPrivileges = ({
             </motion.div>
           )}
 
-          {/* The Animated Frame Image - extends slightly past the avatar disc */}
-          <motion.img
-            src={frameUrl}
-            alt="Frame"
-            className="absolute w-auto h-auto object-contain pointer-events-none"
-            style={{
-              inset: frameInsetPx[size],
-              width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
-              height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
-              zIndex: 20,
-            }}
-            animate={showAnimation ? {
-              scale: [1, 1.03, 1],
-              filter: level >= 20 
-                ? ["brightness(1)", "brightness(1.15)", "brightness(1)"] 
-                : undefined,
-            } : {}}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
+          {/* The Animated Frame - extends slightly past the avatar disc.
+              SVGA/Lottie need a player (an <img> tag can't decode them and
+              would show broken-image alt text). Static/GIF/WebP render as
+              a regular <img>. */}
+          {isAnimatedFrame ? (
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                inset: frameInsetPx[size],
+                width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                zIndex: 20,
+              }}
+            >
+              <Suspense fallback={null}>
+                <UniversalFramePlayer
+                  src={frameUrl!}
+                  type={frameType as 'svga' | 'lottie'}
+                  className="w-full h-full"
+                  loop
+                  autoPlay
+                />
+              </Suspense>
+            </div>
+          ) : (
+            <motion.img
+              src={frameUrl}
+              alt=""
+              className="absolute w-auto h-auto object-contain pointer-events-none"
+              style={{
+                inset: frameInsetPx[size],
+                width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                zIndex: 20,
+              }}
+              animate={showAnimation ? {
+                scale: [1, 1.03, 1],
+                filter: level >= 20
+                  ? ["brightness(1)", "brightness(1.15)", "brightness(1)"]
+                  : undefined,
+              } : {}}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          )}
           
           {/* Avatar fills the entire container — no inner padding gap */}
           <div 
