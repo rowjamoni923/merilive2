@@ -233,7 +233,15 @@ Deno.serve(async (req) => {
               .eq("user_id", identity)
               .is("left_at", null)
               .maybeSingle();
-            if (!participant) return json(403, { error: "not_party_participant" });
+            if (!participant) {
+              // Race-safe fallback (matches the public live-stream path):
+              // the client may request a token in parallel with enter_party_room
+              // or right after a beforeunload beacon set left_at on a remount.
+              // Returning a 200 + fallback flag lets livekitService throw a
+              // quiet error so the SDK can back off and retry instead of
+              // exploding into a runtime "encountered an error" overlay.
+              return json(200, { error: "must_enter_party_first", fallback: true });
+            }
 
             const { data: allowed } = await svc.rpc("can_access_party_room", {
               p_user_id: identity,
