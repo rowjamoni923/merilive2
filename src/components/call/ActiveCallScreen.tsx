@@ -1310,7 +1310,7 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       {!isInNativePip && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
+        <div className="absolute bottom-kb left-0 right-0 z-20 safe-area-bottom chat-composer-stable">
           <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
