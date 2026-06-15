@@ -122,7 +122,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
-  const hostPercent = useHostGiftPercent();
 
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl, gift.animationFormat), [displayAnimationUrl, gift.animationFormat]);
