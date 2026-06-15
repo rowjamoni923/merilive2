@@ -9,6 +9,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
 import Skeleton from "@/components/Skeleton";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 
 interface Viewer {
@@ -58,6 +59,10 @@ export const ViewerListPanel = ({
             display_name,
             avatar_url,
             user_level,
+            host_level,
+            max_user_level,
+            gender,
+            is_host,
             coins
           )
         `)
@@ -76,7 +81,7 @@ export const ViewerListPanel = ({
           id: sv.profiles?.id || sv.viewer_id,
           display_name: sv.profiles?.display_name || "Anonymous",
           avatar_url: sv.profiles?.avatar_url,
-          user_level: sv.profiles?.user_level || 1,
+          user_level: getRequiredDisplayLevel(sv.profiles),
           coins: sv.profiles?.coins || 0,
           is_vip: (sv.profiles?.coins || 0) >= 10000,
           joined_at: sv.joined_at,

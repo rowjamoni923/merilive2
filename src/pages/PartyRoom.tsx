@@ -118,6 +118,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface PartyRoom {
   id: string;
@@ -1271,7 +1272,7 @@ const PartyRoom = () => {
             return prev.filter(p => p.user_id !== userId);
           });
           const userName = leftParticipant?.user?.display_name || 'A viewer';
-          const userLevel = leftParticipant?.user?.user_level || 1;
+          const userLevel = getRequiredDisplayLevel(leftParticipant?.user);
           const userAvatar = normalizeProfileMediaUrl(leftParticipant?.user?.avatar_url) || leftParticipant?.user?.avatar_url || undefined;
           setJoinMessages(prev => [...prev.slice(-20), {
             id: `lk_leave_${Date.now()}_${userId}`,
@@ -1422,7 +1423,7 @@ const PartyRoom = () => {
       const { data: publicProfiles } = userIds.length
         ? await supabase
             .from('profiles_public')
-            .select('id, display_name, avatar_url, user_level, frame_id, equipped_frame_id')
+            .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, frame_id, equipped_frame_id')
             .in('id', userIds)
         : { data: [] as any[] };
       const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, {
@@ -1481,7 +1482,7 @@ const PartyRoom = () => {
     const { data: requesterProfiles } = requesterIds.length
       ? await supabase
           .from('profiles_public')
-          .select('id, display_name, avatar_url, user_level')
+          .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
           .in('id', requesterIds)
       : { data: [] as any[] };
     const requesterMap = new Map((requesterProfiles || []).map((profile: any) => [profile.id, profile]));
@@ -1579,12 +1580,12 @@ const PartyRoom = () => {
             processedBroadcastJoinsRef.current.add(joinKey);
             const { data: prof } = await supabase
               .from('profiles_public')
-              .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
+              .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
               .eq('id', uid)
               .maybeSingle();
             if (!isMountedRef.current) return;
             const userName = prof?.display_name || 'User';
-            const userLevel = prof?.user_level || 1;
+            const userLevel = getRequiredDisplayLevel(prof);
             const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
             addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
             setJoinMessages(prev => [...prev.slice(-20), {
@@ -1732,7 +1733,7 @@ const PartyRoom = () => {
     try {
       const isHostUser = room?.host_id === currentUser.id;
       const userName = currentUser.profile?.display_name || 'User';
-      const userLevel = currentUser.profile?.user_level || 1;
+      const userLevel = getRequiredDisplayLevel(currentUser.profile);
       const avatarUrl = normalizeProfileMediaUrl(currentUser.profile?.avatar_url) || currentUser.profile?.avatar_url || undefined;
 
       // First, leave all other active rooms to prevent stale participant records
@@ -2561,7 +2562,7 @@ const PartyRoom = () => {
           position: participants.find(p => p.user_id === room.host?.id)?.position ?? 0,
           displayName: room.host.display_name || 'Host',
           avatarUrl: room.host.avatar_url || undefined,
-          level: Math.max(room.host.host_level || 0, room.host.user_level || 1),
+          level: getRequiredDisplayLevel(room.host),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
           isSpeaking: room.host?.id ? activeSpeakers.has(room.host.id) : false,
@@ -2586,7 +2587,7 @@ const PartyRoom = () => {
             position: p.position || 0,
             displayName: p.user?.display_name || 'User',
             avatarUrl: p.user?.avatar_url || undefined,
-            level: p.user?.user_level || 1,
+            level: getRequiredDisplayLevel(p.user),
             countryFlag: '🌍',
             beansCount: seatBeansReceived[p.user_id] || 0,
             isSpeaking: activeSpeakers.has(p.user_id),
@@ -2646,7 +2647,7 @@ const PartyRoom = () => {
           user_id: sr.requester_id, // User ID for Accept/Reject callbacks
           displayName: sr.requester?.display_name || 'User',
           avatarUrl: sr.requester?.avatar_url || undefined,
-          level: sr.requester?.user_level || 1,
+          level: getRequiredDisplayLevel(sr.requester),
           requestedAt: new Date(sr.created_at)
         }))}
         onAcceptSeatRequest={(userId) => {
@@ -2674,7 +2675,7 @@ const PartyRoom = () => {
           id: p.user_id,
           displayName: p.user?.display_name || 'User',
           avatarUrl: p.user?.avatar_url || undefined,
-          level: p.user?.user_level || 1,
+          level: getRequiredDisplayLevel(p.user),
           countryFlag: '🌍',
           frameId: (p.user as any)?.frame_id || undefined
         }))}
@@ -2685,13 +2686,13 @@ const PartyRoom = () => {
           (() => {
             const filtered = participants
               .filter(p => p.user_id !== room.host_id)
-              .sort((a, b) => (b.user?.user_level || 1) - (a.user?.user_level || 1))
+              .sort((a, b) => getRequiredDisplayLevel(b.user) - getRequiredDisplayLevel(a.user))
               .slice(0, 4)
               .map(p => ({
                 id: p.user_id, // userId for AvatarWithFrame
                 displayName: p.user?.display_name || 'User',
                 avatarUrl: p.user?.avatar_url || undefined,
-                level: p.user?.user_level || 1,
+                level: getRequiredDisplayLevel(p.user),
                 frameId: (p.user as any)?.frame_id // Pass frame_id for proper frame rendering
               }));
             console.log('[PartyRoom] topViewers:', filtered.length, filtered);
@@ -2913,7 +2914,7 @@ const PartyRoom = () => {
               const giftKey = getPartyGiftRealtimeKey(sendingUserId, gift.id, totalCost, count);
               const senderName = sendingUser?.profile?.display_name || 'You';
               const senderAvatar = sendingUser?.profile?.avatar_url || undefined;
-              const senderLevel = sendingUser?.profile?.user_level || 1;
+              const senderLevel = getRequiredDisplayLevel(sendingUser?.profile);
               const giftAnimationData = {
                 senderId: sendingUserId,
                 senderName,

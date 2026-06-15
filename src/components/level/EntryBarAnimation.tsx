@@ -7,6 +7,7 @@ import { getEquippedPrivilegesForUser } from "@/hooks/useUserPrivileges";
 import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { playSoundUrl, playSynthSequence } from "@/utils/soundPlayer";
 import { isNativeEntryPipelineActive } from "@/utils/nativeAnimRuntime";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface UserInfo {
   displayName: string;
@@ -295,7 +296,7 @@ const EntryBarAnimation = ({
       if (!userInfo) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('display_name, avatar_url, user_level')
+          .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
           .eq('id', userId)
           .single();
         
@@ -303,7 +304,7 @@ const EntryBarAnimation = ({
           setUser({
             displayName: profile.display_name || 'User',
             avatarUrl: profile.avatar_url || undefined,
-            level: profile.user_level || 1
+            level: getRequiredDisplayLevel(profile)
           });
         }
       }

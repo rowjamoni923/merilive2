@@ -172,3 +172,28 @@ The reference video shows the warning at the **true top** (just under status bar
 **Verification:**
 - Browser preview rendered without a blank/runtime error after hot reload. Console only showed existing preview manifest 401 + missing gift asset 400s, not errors from the changed chat components.
 - Android keyboard smoothness still requires APK rebuild because `capacitor.config.ts` keyboard resize changed earlier to `none`.
+
+---
+
+## Stable level display fix — 2026-06-15
+
+**User scope:** Android app must never show a fake Lv1 first and then correct level after refresh. Applies to Live Stream, Party Audio/Video/Game, Private Call/shared chat, Reels, Profile Details, DM/message surfaces, and level-gated Go Live/Create Party paths.
+
+**Research notes / citations:**
+- BIGO Live is a 500M+ download live streaming/social app with realtime live rooms, chat, interactive content and in-app purchases; level/status display must be trustworthy on first paint, not after manual refresh. Source: Google Play BIGO LIVE result (`play.google.com/store/apps/details?id=sg.bigo.live`).
+- Tencent Cloud TUILiveKit exposes a dedicated **Live Comments (Android)** module for mobile live broadcasting / voice rooms, confirming chat/comment rows are first-class realtime room surfaces and should render from complete user metadata, not temporary defaults. Source: Tencent Cloud “Live Comments (Android)” (`tencentcloud.com/document/product/1071/76782`).
+- Android WebView uses separate layout and visual viewports; system UI/keyboard can change visual viewport dynamically, so Android WebView apps must avoid transient wrong UI state and rely on cached/loaded data contracts instead of refresh buttons. Source: Android Developers “Understand window insets in WebView” (`developer.android.com/develop/ui/views/layout/webapps/understand-window-insets`).
+
+**Root cause found:**
+- `useRealtimeLevel` initialized `level` to `1` whenever no local cache existed. Any consumer rendered that value before Supabase profile/tier resolution completed, so Lv10/Lv3/Lv4 users briefly appeared as Lv1 until a refresh/re-render.
+- Several live/party/reels send/join/profile paths used `profile.user_level || 1`, which also collapsed missing async data and legitimate host/user persona fields into Lv1.
+
+**Implemented:**
+- `useRealtimeLevel` now returns `level: null` while unknown instead of fake Lv1; cached last-known level still renders instantly when available.
+- Added shared `stableLevel` helper using persona-aware `pickDisplayLevel`: female host → `host_level`; others → max(`user_level`, `max_user_level`).
+- Live Stream, Party Room, Reels, Chat, Profile/Profile Detail, Go Live, and Create Party now use the stable helper or hold/cached data instead of fake Lv1 fallbacks.
+- Public profile selects used by live join rows, PK, party participants, Reels, and comments now fetch complete level persona fields (`user_level`, `host_level`, `max_user_level`, `gender`, `is_host`) where needed.
+
+**Verification note:**
+- Static scan confirms requested surfaces no longer contain `user_level || 1` / `host_level || user_level || 1` fallback patterns.
+- No polling/visibility refresh added. Realtime/app-sync behavior remains unchanged.

@@ -43,6 +43,7 @@ import { useProCamera } from "@/camera/useProCamera";
 import * as ProCameraEngine from "@/camera/ProCameraEngine";
 import { NativeVideoView } from "@/components/NativeVideoView";
 import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -533,7 +534,7 @@ const CreateParty = () => {
             userId={currentUser?.id}
             src={currentUser?.profile?.avatar_url}
             name={currentUser?.profile?.display_name}
-            level={currentUser?.profile?.user_level || currentUser?.profile?.host_level || 1}
+            level={getRequiredDisplayLevel(currentUser?.profile)}
             isHost={currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female'}
             size="md"
             showAnimation={true}
@@ -589,7 +590,7 @@ const CreateParty = () => {
           userId={currentUser?.id}
           src={currentUser?.profile?.avatar_url}
           name={currentUser?.profile?.display_name}
-          level={currentUser?.profile?.user_level || currentUser?.profile?.host_level || 1}
+          level={getRequiredDisplayLevel(currentUser?.profile)}
           isHost={currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female'}
           size="md"
           showAnimation={true}
@@ -684,7 +685,7 @@ const CreateParty = () => {
             userId={currentUser?.id}
             src={currentUser?.profile?.avatar_url}
             name={currentUser?.profile?.display_name}
-            level={currentUser?.profile?.user_level || currentUser?.profile?.host_level || 1}
+            level={getRequiredDisplayLevel(currentUser?.profile)}
             isHost={currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female'}
             size="md"
             showAnimation={true}

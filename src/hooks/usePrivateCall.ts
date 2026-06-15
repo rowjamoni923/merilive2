@@ -14,6 +14,7 @@ import { NativeCamera } from '@/plugins/NativeCamera';
 import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitKillSwitch';
+import { getRequiredDisplayLevel } from '@/utils/stableLevel';
 
 interface CallState {
   callId: string | null;
@@ -121,7 +122,7 @@ export function usePrivateCall(userId: string | null) {
 
     const { data: callerProfile } = await supabase
       .from('profiles_public')
-      .select('display_name, avatar_url, user_level')
+      .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
       .eq('id', call.caller_id)
       .maybeSingle();
 
@@ -139,7 +140,7 @@ export function usePrivateCall(userId: string | null) {
       callerId: call.caller_id,
       callerName: callerProfile?.display_name || 'User',
       callerAvatar: callerProfile?.avatar_url || null,
-      callerLevel: callerProfile?.user_level || 1,
+      callerLevel: getRequiredDisplayLevel(callerProfile),
     });
     return true;
   }, [userId]);
@@ -495,8 +496,8 @@ export function usePrivateCall(userId: string | null) {
       // NOTE: Do NOT query the host's `profiles` row directly — RLS blocks non-owner SELECT.
       // Host busy/blocked/face-verified checks all run server-side inside `start_private_call` RPC.
       const [userProfileRes, hostProfileRes, callRatesSetting] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', userId).single(),
-        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level, call_rate_per_minute').eq('id', hostId).maybeSingle(),
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', userId).single(),
+        supabase.from('profiles_public').select('display_name, avatar_url, is_online, user_level, host_level, max_user_level, gender, is_host, call_rate_per_minute').eq('id', hostId).maybeSingle(),
         getAppSetting<unknown>('call_rates'),
       ]);
 
@@ -630,7 +631,7 @@ export function usePrivateCall(userId: string | null) {
         hostId: hostId,
         remoteUserName: hostProfile?.display_name || 'Host',
         remoteUserAvatar: hostProfile?.avatar_url,
-        remoteUserLevel: hostProfile?.host_level || 1,
+        remoteUserLevel: getRequiredDisplayLevel(hostProfile),
         coinsPerMinute: resolvedCoinsPerMinute,
         totalCoinsSpent: 0,
         hostEarned: 0,
@@ -784,7 +785,7 @@ export function usePrivateCall(userId: string | null) {
         remoteUserId: incomingSnapshot?.callerId || prev.remoteUserId || null,
         remoteUserName: incomingSnapshot?.callerName || prev.remoteUserName || 'User',
         remoteUserAvatar: incomingSnapshot?.callerAvatar || prev.remoteUserAvatar || null,
-        remoteUserLevel: incomingSnapshot?.callerLevel || prev.remoteUserLevel || 1,
+        remoteUserLevel: incomingSnapshot?.callerLevel ?? prev.remoteUserLevel ?? 1,
         duration: 0,
         totalCoinsSpent: 0,
         hostEarned: 0,
@@ -840,7 +841,7 @@ export function usePrivateCall(userId: string | null) {
       const callerProfilePromise = callData?.caller_id
         ? supabase
             .from('profiles_public')
-            .select('display_name, avatar_url, user_level')
+            .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
             .eq('id', callData.caller_id)
             .single()
         : Promise.resolve({ data: null } as any);
@@ -851,7 +852,7 @@ export function usePrivateCall(userId: string | null) {
             ...prev,
             remoteUserName: callerProfile.display_name || 'User',
             remoteUserAvatar: callerProfile.avatar_url || null,
-            remoteUserLevel: callerProfile.user_level || 1,
+            remoteUserLevel: getRequiredDisplayLevel(callerProfile),
           }));
         }
       }).catch(() => {});

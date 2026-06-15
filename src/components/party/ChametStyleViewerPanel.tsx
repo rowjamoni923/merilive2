@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { supabase } from "@/integrations/supabase/client";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 
 interface Viewer {
@@ -87,6 +88,10 @@ export const ChametStyleViewerPanel = ({
             display_name,
             avatar_url,
             user_level,
+            host_level,
+            max_user_level,
+            gender,
+            is_host,
             coins,
             frame_id,
             country_flag
@@ -107,7 +112,7 @@ export const ChametStyleViewerPanel = ({
           id: pv.profiles?.id || pv.user_id,
           displayName: pv.profiles?.display_name || "Anonymous",
           avatarUrl: pv.profiles?.avatar_url,
-          level: pv.profiles?.user_level || 1,
+          level: getRequiredDisplayLevel(pv.profiles),
           countryFlag: pv.profiles?.country_flag || '🌍',
           isVIP: (pv.profiles?.coins || 0) >= 10000,
           frameId: pv.profiles?.frame_id || undefined,

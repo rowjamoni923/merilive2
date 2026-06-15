@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Viewer } from "./types";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface UseViewersOptions {
   streamId?: string;
@@ -25,7 +26,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     const map = new Map<string, any>();
     const { data, error } = await supabase
       .from("profiles_public" as any)
-      .select("id, app_uid, display_name, avatar_url, user_level")
+      .select("id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
       .in("id", ids);
     if (error) {
       console.warn("[useViewers] profiles_public fetch error:", error.message);
@@ -39,8 +40,8 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     app_uid: profile?.app_uid || null,
     display_name: profile?.display_name || "Anonymous",
     avatar_url: profile?.avatar_url || null,
-    user_level: profile?.user_level || 1,
-    is_vip: (profile?.user_level || 1) >= 5,
+    user_level: getRequiredDisplayLevel(profile),
+    is_vip: getRequiredDisplayLevel(profile) >= 5,
     joined_at,
   });
 
@@ -128,8 +129,8 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
           app_uid: payload.appUid || null,
           display_name: payload.userName || 'User',
           avatar_url: payload.userAvatar || null,
-          user_level: payload.userLevel || 1,
-          is_vip: (payload.userLevel || 1) >= 5,
+          user_level: payload.userLevel ?? 1,
+          is_vip: (payload.userLevel ?? 1) >= 5,
           joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
         });
       }
@@ -149,8 +150,8 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
           id: payload.userId,
           display_name: payload.userName || 'User',
           avatar_url: payload.userAvatar || null,
-          user_level: payload.userLevel || 1,
-          is_vip: (payload.userLevel || 1) >= 5,
+          user_level: payload.userLevel ?? 1,
+          is_vip: (payload.userLevel ?? 1) >= 5,
           joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
         });
       }

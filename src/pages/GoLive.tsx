@@ -42,6 +42,7 @@ import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -940,7 +941,7 @@ const GoLive = () => {
             id: userProfile.id,
             name: userProfile.display_name || 'Host',
             avatar: userProfile.avatar_url || '',
-            level: Number(userProfile.host_level || userProfile.user_level || 1),
+            level: getRequiredDisplayLevel(userProfile),
             gender: userProfile.gender || 'female',
           } : undefined,
         } 

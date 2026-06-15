@@ -142,6 +142,7 @@ import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
 import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
@@ -229,7 +230,7 @@ const LiveStream = () => {
     country: location.state.hostInfo.country || "🌍",
     language: location.state.hostInfo.language || "English",
     gender: location.state.hostInfo.gender || "female",
-    level: Number(location.state.hostInfo.level || 1),
+    level: Number(location.state.hostInfo.level ?? 1),
     id: location.state.hostInfo.id || "",
     frameId: location.state.hostInfo.frameId || null,
     appUid: location.state.hostInfo.appUid || null,
@@ -245,6 +246,7 @@ const LiveStream = () => {
     avatar_url?: string;
     user_level?: number;
     host_level?: number;
+    max_user_level?: number;
     country_flag?: string;
   } | null>(null);
   
@@ -400,7 +402,7 @@ const LiveStream = () => {
       initial: displayName.charAt(0),
       message: msg.message || "",
       color: "text-white",
-      userLevel: profile?.user_level || 1,
+      userLevel: getRequiredDisplayLevel(profile),
       userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
       isHost: msg.user_id === hostId,
       isNewUser,
@@ -1063,7 +1065,7 @@ const LiveStream = () => {
       const { data: hostProfile } = stream?.host_id
         ? await supabase
             .from("profiles_public")
-            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
+            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, max_user_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
             .eq("id", stream.host_id)
             .maybeSingle()
         : { data: null };
@@ -1078,11 +1080,11 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
-        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
       if (cancelled || !mountedRef.current) return;
       
@@ -1097,8 +1099,9 @@ const LiveStream = () => {
           is_host: profile.is_host === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
-          user_level: profile.user_level || 1,
+          user_level: Number(profile.user_level ?? 0),
           host_level: profile.host_level || 0,
+          max_user_level: (profile as any).max_user_level || 0,
           country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
@@ -1126,14 +1129,14 @@ const LiveStream = () => {
         // even if profiles_public fetch silently fails (RLS race / network / deleted).
         {
           const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
-          const hostLevel = Number(hostProfile?.host_level || hostProfile?.user_level || 1);
+          const hostLevel = getRequiredDisplayLevel(hostProfile);
           setHostInfo({
             name: hostProfile?.display_name || "Host",
             avatar: hostAvatar,
             country: hostProfile?.country_flag || "🌍",
             language: "English",
             gender: hostProfile?.gender || "female",
-            level: hostLevel > 0 ? hostLevel : 1,
+            level: hostLevel,
             id: hostProfile?.id || stream.host_id,
             frameId: hostProfile?.equipped_frame_id || hostProfile?.frame_id || null,
             appUid: hostProfile?.app_uid || null,
@@ -1160,12 +1163,12 @@ const LiveStream = () => {
           // Resolve challenger and opponent profiles
           const challengerProfileRes = await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, user_level")
+            .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
             .eq("id", activeBattle.challenger_id)
             .maybeSingle();
           const opponentProfileRes = await supabase
             .from("profiles_public")
-            .select("id, display_name, avatar_url, user_level")
+            .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
             .eq("id", activeBattle.opponent_id)
             .maybeSingle();
           const cp = challengerProfileRes.data;
@@ -1180,14 +1183,14 @@ const LiveStream = () => {
             challengerInfo: {
               name: cp?.display_name || "Host",
               avatar: challengerAvatar,
-              level: cp?.user_level || 1,
+              level: getRequiredDisplayLevel(cp),
               id: activeBattle.challenger_id || "",
               streamId: activeBattle.challenger_stream_id || "",
             },
             opponentInfo: {
               name: op?.display_name || "Host",
               avatar: opponentAvatar,
-              level: op?.user_level || 1,
+              level: getRequiredDisplayLevel(op),
               id: activeBattle.opponent_id || "",
               streamId: activeBattle.opponent_stream_id || "",
             },
@@ -1224,7 +1227,7 @@ const LiveStream = () => {
           // Show self-join notification (viewer sees their own entry)
           if (selfProfile) {
             const userName = selfProfile.display_name || "User";
-            const userLevel = selfProfile.user_level || 1;
+            const userLevel = getRequiredDisplayLevel(selfProfile);
             const avatarUrl = normalizeProfileMediaUrl(selfProfile.avatar_url) || selfProfile.avatar_url || undefined;
             
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
@@ -1450,7 +1453,7 @@ const LiveStream = () => {
           initial: (detail.displayName || "U").charAt(0),
           message: detail.message,
           color: "text-white",
-          userLevel: detail.userLevel || 1,
+          userLevel: detail.userLevel ?? 1,
           userAvatar: detail.avatarUrl,
           isHost: detail.userId === hostId,
           isNewUser: false,
@@ -1499,12 +1502,12 @@ const LiveStream = () => {
               // the entry animation when LiveKit publish never arrived.
               const { data: prof } = await supabase
                 .from('profiles_public')
-                .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
+                .select('display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
                 .eq('id', uid)
                 .maybeSingle();
               if (!mountedRef.current) return;
               const userName = prof?.display_name || 'User';
-              const userLevel = prof?.user_level || 1;
+              const userLevel = getRequiredDisplayLevel(prof);
               const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
               activeViewerIdsRef.current.add(uid);
               setRecentViewerAvatars((prev) => [
@@ -1723,7 +1726,7 @@ const LiveStream = () => {
         initial: (data.senderName || 'U').charAt(0),
         message: giftChatMessage,
         color: 'text-pink-400',
-        userLevel: data.senderLevel || 1,
+        userLevel: data.senderLevel ?? 1,
         userAvatar: data.senderAvatar,
         isHost: false,
         isNewUser: false,
@@ -1774,7 +1777,7 @@ const LiveStream = () => {
             initial: leftName.charAt(0),
             message: 'left the live room',
             color: 'text-white/70',
-            userLevel: leftViewer?.user_level || 1,
+            userLevel: leftViewer?.user_level ?? 1,
             userAvatar: leftViewer?.avatar_url || undefined,
             type: 'leave',
           }];
@@ -1799,7 +1802,7 @@ const LiveStream = () => {
           app_uid: p.appUid || null,
           avatar_url: p.userAvatar || null,
           name: p.userName || 'User',
-          user_level: p.userLevel || 1,
+          user_level: p.userLevel ?? 1,
         },
         ...prev.filter((v: any) => v.id !== p.userId),
       ].slice(0, 5));
@@ -2067,7 +2070,7 @@ const LiveStream = () => {
       if (viewerIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles_public")
-          .select("id, app_uid, display_name, avatar_url, user_level")
+          .select("id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host")
           .in("id", viewerIds);
 
         if (profilesError) {
@@ -2088,7 +2091,7 @@ const LiveStream = () => {
           app_uid: profile?.app_uid || null,
           avatar_url: profile?.avatar_url || null,
           name: profile?.display_name || "User",
-          user_level: profile?.user_level || 1,
+          user_level: getRequiredDisplayLevel(profile),
         };
       });
 
@@ -2512,7 +2515,7 @@ const LiveStream = () => {
       initial: (currentUser?.display_name || "U").charAt(0),
       message: contentToSend,
       color: "text-white",
-      userLevel: currentUser?.user_level || 1,
+      userLevel: getRequiredDisplayLevel(currentUser),
       userAvatar: currentUser?.avatar_url || undefined,
       isHost: currentUserId === streamData?.host_id,
       isNewUser: false,
@@ -2547,7 +2550,7 @@ const LiveStream = () => {
         userId: currentUserId,
         displayName: currentUser?.display_name || "User",
         avatarUrl: currentUser?.avatar_url || undefined,
-        userLevel: currentUser?.user_level || 1,
+        userLevel: getRequiredDisplayLevel(currentUser),
         isHost: currentUserId === streamData?.host_id,
         countryFlag: currentUser?.country_flag || undefined,
         message: contentToSend,
@@ -2778,7 +2781,7 @@ const LiveStream = () => {
     try {
       const { data: profile } = await supabase
         .from("profiles_public")
-        .select("id, display_name, avatar_url, user_level, is_verified, country_name, country_flag, bio, app_uid")
+        .select("id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_verified, country_name, country_flag, bio, app_uid")
         .eq("id", userId)
         .single();
       
@@ -2805,11 +2808,11 @@ const LiveStream = () => {
           id: profile.id,
           name: profile.display_name || "User",
           avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
-          level: profile.user_level || 1,
+          level: getRequiredDisplayLevel(profile),
           coins: 0,
           beans: 0,
           isFollowing,
-          isVIP: (profile.user_level || 1) >= 30,
+          isVIP: getRequiredDisplayLevel(profile) >= 30,
           isVerified: profile.is_verified || false,
           totalGiftsSent: 0,
           totalGiftsReceived: 0,
@@ -4019,7 +4022,7 @@ const LiveStream = () => {
                         userId={viewer.id}
                         src={viewer.avatar_url}
                         name={viewer.name}
-                        level={viewer.user_level || 1}
+                        level={viewer.user_level}
                         size="xxs"
                         showAnimation={false}
                         showFrame={true}
@@ -4189,7 +4192,7 @@ const LiveStream = () => {
                         userId={viewer.id}
                         src={viewer.avatar_url}
                         name={viewer.name}
-                        level={viewer.user_level || 1}
+                        level={viewer.user_level}
                         size="xs"
                         showAnimation={false}
                         showFrame={true}
@@ -4642,7 +4645,7 @@ const LiveStream = () => {
           // Get sender info for animation (from currentUser - already loaded)
           const senderName = currentUser?.display_name || "User";
           const senderAvatar = currentUser?.avatar_url || undefined;
-          const senderLevel = currentUser?.user_level || 1;
+          const senderLevel = getRequiredDisplayLevel(currentUser);
           
           const optimisticReceiverBeans = Math.floor(totalCost * adminGiftCommission / 100);
           const giftKey = getGiftRealtimeKey(currentUserId, gift.id, totalCost, count);
@@ -4777,7 +4780,7 @@ const LiveStream = () => {
                     userId: currentUserId,
                     displayName: currentUser?.display_name || "User",
                     avatarUrl: currentUser?.avatar_url || undefined,
-                    userLevel: currentUser?.user_level || 1,
+                    userLevel: getRequiredDisplayLevel(currentUser),
                     isHost: currentUserId === streamData?.host_id,
                     countryFlag: currentUser?.country_flag || undefined,
                     message: finalGiftMessage,

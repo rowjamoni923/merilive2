@@ -28,6 +28,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
 import { tryHeartBurst } from "@/plugins/NativeHeartBurst";
 import { isNativeHeartBurstFlagOn } from "@/utils/nativeHeartBurstFlag";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 const formatRelativeTime = (iso: string): string => {
   const then = new Date(iso).getTime();
@@ -88,6 +89,9 @@ interface Reel {
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
     is_verified: boolean | null;
     is_host: boolean | null;
     frame_id?: string | null;
@@ -106,6 +110,10 @@ interface Comment {
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
+    is_host?: boolean | null;
   } | null;
 }
 
@@ -204,7 +212,7 @@ const Reels = () => {
         setCurrentUserId(user.id);
         // Fetch profile and categories in parallel
         const [profileRes, categoriesRes] = await Promise.all([
-          supabase.from('profiles').select('is_host, coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
+          supabase.from('profiles').select('is_host, gender, coins, display_name, avatar_url, user_level, host_level, max_user_level').eq('id', user.id).single(),
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
@@ -213,6 +221,10 @@ const Reels = () => {
           display_name: profileRes.data.display_name,
           avatar_url: profileRes.data.avatar_url,
           user_level: profileRes.data.user_level,
+          host_level: (profileRes.data as any).host_level,
+          max_user_level: (profileRes.data as any).max_user_level,
+          gender: (profileRes.data as any).gender,
+          is_host: profileRes.data.is_host,
         } : null);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
@@ -314,7 +326,7 @@ const Reels = () => {
       .from('reels')
       .select(`
         *,
-        user:profiles_public!reels_user_id_fkey(id, app_uid, display_name, avatar_url, user_level, is_verified, is_host, frame_id, equipped_frame_id)
+        user:profiles_public!reels_user_id_fkey(id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_verified, is_host, frame_id, equipped_frame_id)
       `)
       .eq('is_active', true)
       .eq('is_approved', true)
@@ -447,7 +459,7 @@ const Reels = () => {
       .from('reel_comments')
       .select(`
         *,
-        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host)
       `)
       .eq('reel_id', reelId)
       .eq('is_active', true)
@@ -492,7 +504,7 @@ const Reels = () => {
       })
       .select(`
         *,
-        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host)
       `)
       .single();
 
@@ -1021,7 +1033,7 @@ const Reels = () => {
                             userId={currentReel.user_id}
                             src={currentReel.user?.avatar_url || ''}
                             name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
-                            level={currentReel.user?.user_level || 1}
+                            level={getRequiredDisplayLevel(currentReel.user)}
                             size="sm"
                           />
                         </button>
@@ -1048,7 +1060,7 @@ const Reels = () => {
                             <span className="text-white text-[9px] font-black leading-none">✓</span>
                           </div>
                         )}
-                        <LevelBadge level={currentReel.user?.user_level || 1} size="sm" />
+                        <LevelBadge level={getRequiredDisplayLevel(currentReel.user)} size="sm" />
                       </div>
 
                       {/* Caption */}
@@ -1170,8 +1182,8 @@ const Reels = () => {
                           <span className="text-sm font-semibold text-white truncate max-w-[140px]">
                             {comment.user?.display_name || 'User'}
                           </span>
-                          {comment.user?.user_level ? (
-                            <LevelBadge level={comment.user.user_level} size="xs" />
+                          {comment.user ? (
+                            <LevelBadge level={getRequiredDisplayLevel(comment.user)} size="xs" />
                           ) : null}
                           <span className="text-[11px] text-white/40">
                             {formatRelativeTime(comment.created_at)}

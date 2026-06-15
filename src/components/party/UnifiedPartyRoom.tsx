@@ -38,6 +38,7 @@ import { ChametStyleViewerPanel } from "./ChametStyleViewerPanel";
 import { ChametStyleCloseModal } from "./ChametStyleCloseModal";
 import { ChametStyleSettingsPanel } from "./ChametStyleSettingsPanel";
 import { BackgroundPickerPanel } from "./BackgroundPickerPanel";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { SeatSelectorPanel } from "./SeatSelectorPanel";
@@ -787,7 +788,7 @@ export function UnifiedPartyRoom({
         const { data: publicProfiles } = userIds.length
           ? await supabase
               .from("profiles_public")
-              .select("id, app_uid, display_name, avatar_url, user_level, frame_id")
+              .select("id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, frame_id")
               .in("id", userIds)
           : { data: [] as any[] };
         const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
@@ -799,7 +800,7 @@ export function UnifiedPartyRoom({
               id: profile?.id || pv.user_id,
               displayName: profile?.display_name || profile?.app_uid || "Anonymous",
               avatarUrl: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
-              level: profile?.user_level || 1,
+              level: getRequiredDisplayLevel(profile),
               frameId: profile?.frame_id || undefined,
             };
           })
@@ -948,7 +949,7 @@ export function UnifiedPartyRoom({
         const { data: publicProfiles } = senderIds.length
           ? await supabase
               .from('profiles_public')
-              .select('id, display_name, user_level, avatar_url, is_host')
+              .select('id, display_name, user_level, host_level, max_user_level, gender, avatar_url, is_host')
               .in('id', senderIds)
           : { data: [] as any[] };
         const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
@@ -963,7 +964,7 @@ export function UnifiedPartyRoom({
             initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
             message: m.content,
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
-            userLevel: profile?.user_level || 1,
+            userLevel: getRequiredDisplayLevel(profile),
             userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
             isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
@@ -1070,7 +1071,7 @@ export function UnifiedPartyRoom({
         // Resolve sender profile (cached miss → 1 small fetch per new sender)
         const { data: profile } = await supabase
           .from('profiles_public')
-          .select('display_name, user_level, avatar_url, is_host')
+          .select('display_name, user_level, host_level, max_user_level, gender, avatar_url, is_host')
           .eq('id', row.user_id)
           .maybeSingle();
         if (roomIdRef.current !== roomId) return;
@@ -1083,7 +1084,7 @@ export function UnifiedPartyRoom({
           initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
           message: row.content,
           color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-          userLevel: profile?.user_level || 1,
+          userLevel: getRequiredDisplayLevel(profile),
           userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
           isHost: !!profile?.is_host || (row.user_id === hostIdRef.current),
           isNewUser: false,

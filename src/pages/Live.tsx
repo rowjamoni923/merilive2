@@ -9,6 +9,7 @@ import { preloadAllStreams, cleanupAllPreloaded, markPreloadedStreamForHandoff }
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface LiveStream {
   id: string;
@@ -98,7 +99,7 @@ const Live = () => {
             });
             return [host.id, result.level] as const;
           } catch {
-            return [host.id, Math.max(host.host_level || 0, host.user_level || 1)] as const;
+            return [host.id, getRequiredDisplayLevel(host)] as const;
           }
         })
       );
@@ -243,7 +244,7 @@ const Live = () => {
                   countryFlag={stream.host?.country_flag || '🌍'}
                   countryCode={stream.host?.country_code || null}
                   tags={['Live']}
-                  userLevel={stream.host?.host_level || stream.host?.user_level || 1}
+                  userLevel={getRequiredDisplayLevel(stream.host)}
                   isVIP={stream.host?.is_verified || false}
                   giftCount={0}
                 />

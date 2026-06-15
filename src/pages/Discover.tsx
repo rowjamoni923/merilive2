@@ -53,6 +53,7 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { cdnAvatar } from "@/lib/cdnImage";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 interface PartyRoom {
   id: string;
@@ -212,7 +213,7 @@ const Discover = () => {
               });
               hostLevelMap.set(host.id, res.level);
             } catch {
-              hostLevelMap.set(host.id, host.host_level || host.user_level || 1);
+              hostLevelMap.set(host.id, getRequiredDisplayLevel(host));
             }
           })
       );
@@ -221,7 +222,7 @@ const Discover = () => {
         .filter(room => activeRoomIds.has(room.id))
         .map((room) => {
           const host = Array.isArray(room.host) ? room.host[0] : room.host;
-          const resolvedHostLevel = host ? (hostLevelMap.get(host.id) ?? (host.host_level || host.user_level || 1)) : 1;
+          const resolvedHostLevel = host ? (hostLevelMap.get(host.id) ?? getRequiredDisplayLevel(host)) : 1;
           return {
             ...room,
             host: host ? { ...host, user_level: resolvedHostLevel } : null,
@@ -675,7 +676,7 @@ const Discover = () => {
             <>
               {filteredRooms.map((room, index) => {
                 const TypeIcon = getRoomTypeIcon(room.room_type);
-                const hostLevel = room.host?.user_level || 1;
+                const hostLevel = getRequiredDisplayLevel(room.host);
                 const hostAvatarFull = normalizeProfileMediaUrl(room.host?.avatar_url) || room.host?.avatar_url;
                 // Card thumbnail is ~170×96 dp — CDN-resize to 360px to save 2G/3G bandwidth.
                 // Same visual at 2× DPR, ~70% smaller download.
@@ -899,7 +900,7 @@ const Discover = () => {
                   <div className="flex items-center justify-center gap-1.5 mt-1 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">{entryPreview.host?.display_name || "Host"}</span>
                     {entryPreview.host?.country_flag && <span>{entryPreview.host.country_flag}</span>}
-                    <LevelBadge level={entryPreview.host?.user_level || 1} size="sm" showIcon className="text-[9px] px-1 py-0" />
+                    <LevelBadge level={getRequiredDisplayLevel(entryPreview.host)} size="sm" showIcon className="text-[9px] px-1 py-0" />
                   </div>
                 </div>
 
