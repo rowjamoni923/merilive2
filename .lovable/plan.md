@@ -197,3 +197,26 @@ The reference video shows the warning at the **true top** (just under status bar
 **Verification note:**
 - Static scan confirms requested surfaces no longer contain `user_level || 1` / `host_level || user_level || 1` fallback patterns.
 - No polling/visibility refresh added. Realtime/app-sync behavior remains unchanged.
+
+---
+
+## DM latest-message anchoring fix — 2026-06-15
+
+**User video analyzed:** 10.15s recording (`Recording_2026-06-15_084125.mp4`). Frames show `/chat` already inside a DM; tapping the down/latest button repeatedly lands around older gift/text rows (`Load older messages`, Saturday/Yesterday area, middle gift rows) instead of the true latest bottom message.
+
+**Professional reference:** Tencent TUILiveKit documents a dedicated mobile Live Comments module, and Tencent Chat UIKit uses RecyclerView-style chat presenters; the professional pattern is deterministic bottom anchoring on thread open/send/latest-button while preserving position only when the user explicitly loads older history. Source found: Tencent Cloud “Live Comments (Android)” (`tencentcloud.com/document/product/647/74601`) and TencentCloud `chat-uikit-android` public repo.
+
+**Root cause in current code:**
+- `Chat.tsx` had bottom-pin refs declared near the layout effect, so conversation select/open paths could not force a deterministic latest pin before/after `fetchMessages`.
+- The latest button had its own one-off scroll logic instead of using the same thread-open/send anchoring contract.
+- `ResizeObserver` only observed the first rendered children; after message/media changes, later gift/avatar/image reflows could still move the viewport back to a stale first/middle offset.
+- `.chat-scroll-stable` globally uses smooth scroll, so hard latest jumps must temporarily force `scrollBehavior='auto'`.
+
+**Implemented:**
+- Moved bottom-pin refs/helper to component state scope so conversation list taps, `?user=` profile-message opens, sends, and FAB all share one `anchorChatToBottomSoon()` helper.
+- `hardPinChatToLatest()` now temporarily disables smooth behavior, sets `scrollTop = scrollHeight`, clears the latest FAB/unread badge, and marks the user as at-bottom.
+- Conversation/group selection now resets stale scroll state, clears old message arrays immediately, resets the visible window, and anchors again after the latest page loads.
+- Profile/detail `openOrCreateConversation()` path now applies the same reset + bottom anchor for existing and new conversations.
+- Reflow observer now reattaches on message-count changes so late-loading gift/sticker/avatar-frame/media rows keep the viewport pinned to the true latest message.
+
+**Scope:** Pure React chat logic only. No design change, no DB change, no polling, no VPS work. APK rebuild not required for web logic; Android WebView will receive it after normal app build.

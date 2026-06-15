@@ -375,8 +375,40 @@ const Chat = () => {
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollConvIdRef = useRef<string | null>(null);
+  const wasNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
+  const latestPinTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadBelow, setUnreadBelow] = useState(0);
+
+  const hardPinChatToLatest = useCallback(() => {
+    const c = chatScrollRef.current;
+    if (!c) return;
+    const previousBehavior = c.style.scrollBehavior;
+    c.style.scrollBehavior = 'auto';
+    c.scrollTop = c.scrollHeight;
+    c.style.scrollBehavior = previousBehavior;
+    wasNearBottomRef.current = true;
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
+  }, []);
+
+  const anchorChatToBottomSoon = useCallback(() => {
+    latestPinTimersRef.current.forEach(clearTimeout);
+    latestPinTimersRef.current = [];
+    const stick = () => hardPinChatToLatest();
+    stick();
+    requestAnimationFrame(stick);
+    [40, 100, 180, 320, 560, 900, 1400].forEach((delay) => {
+      latestPinTimersRef.current.push(setTimeout(stick, delay));
+    });
+  }, [hardPinChatToLatest]);
+
+  useEffect(() => () => {
+    latestPinTimersRef.current.forEach(clearTimeout);
+    latestPinTimersRef.current = [];
+  }, []);
   
   // Group creation
   const [showGroupActions, setShowGroupActions] = useState(false);
@@ -1048,9 +1080,6 @@ const Chat = () => {
   //  • On new incoming/outgoing messages → smooth-scroll only if user is already
   //    near the bottom; otherwise leave them where they are (so they can read
   //    older messages without being yanked away).
-  const lastScrollConvIdRef = useRef<string | null>(null);
-  const wasNearBottomRef = useRef(true);
-  const initialScrollDoneRef = useRef(false);
   useLayoutEffect(() => {
     const container = chatScrollRef.current;
     const end = messagesEndRef.current;
@@ -1076,27 +1105,24 @@ const Chat = () => {
     // otherwise leave the view stuck at the top (WhatsApp/imo always open at
     // the latest message).
     if (!initialScrollDoneRef.current) {
-      requestAnimationFrame(() => {
-        if (!chatScrollRef.current) return;
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      });
+      requestAnimationFrame(hardPinChatToLatest);
       if (currentLen > 0) {
         initialScrollDoneRef.current = true;
+        anchorChatToBottomSoon();
       }
       return;
     }
 
     if (wasNearBottom && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
+      requestAnimationFrame(hardPinChatToLatest);
     }
-  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id]);
+  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest, anchorChatToBottomSoon]);
 
   // Track whether the user is sitting near the bottom of the thread.
   useEffect(() => {
     const container = chatScrollRef.current;
     if (!container) return;
+    wasNearBottomRef.current = true;
     const onScroll = () => {
       const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
       wasNearBottomRef.current = distanceFromBottom < 120;
@@ -1124,13 +1150,13 @@ const Chat = () => {
     if (!container || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
       if (wasNearBottomRef.current) {
-        container.scrollTop = container.scrollHeight;
+        hardPinChatToLatest();
       }
     });
     ro.observe(container);
     Array.from(container.children).forEach((child) => ro.observe(child as Element));
     return () => ro.disconnect();
-  }, [selectedConversation?.id, selectedGroup?.id]);
+  }, [selectedConversation?.id, selectedGroup?.id, messages.length, groupMessages.length, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
@@ -1541,6 +1567,14 @@ const Chat = () => {
         .eq('id', otherUserId)
         .maybeSingle();
 
+      lastScrollConvIdRef.current = null;
+      initialScrollDoneRef.current = false;
+      wasNearBottomRef.current = true;
+      setMessages([]);
+      setGroupMessages([]);
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
+      setShowScrollToBottom(false);
+      setUnreadBelow(0);
       setSelectedConversation({
         ...existing,
         other_user: profile,
@@ -1548,6 +1582,7 @@ const Chat = () => {
         unread_count: 0
       });
       fetchMessages(existing.id);
+      anchorChatToBottomSoon();
     } else {
       const { data: newConv, error } = await supabase
         .from('conversations')
@@ -1575,7 +1610,14 @@ const Chat = () => {
         last_message: '',
         unread_count: 0
       });
+      lastScrollConvIdRef.current = null;
+      initialScrollDoneRef.current = false;
+      wasNearBottomRef.current = true;
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
+      setShowScrollToBottom(false);
+      setUnreadBelow(0);
       setMessages([]);
+      anchorChatToBottomSoon();
     }
   };
 
@@ -1902,11 +1944,19 @@ const Chat = () => {
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
+    lastScrollConvIdRef.current = null;
+    initialScrollDoneRef.current = false;
+    wasNearBottomRef.current = true;
     setSelectedConversation(conv);
     setSelectedGroup(null);
+    setMessages([]);
+    setGroupMessages([]);
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
     setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     setOtherUserTrader({ isTrader: false, traderLevel: 0 });
     await fetchMessages(conv.id);
+    anchorChatToBottomSoon();
     
     // Check if other user is a trader
     if (conv.other_user?.id) {
@@ -1923,10 +1973,18 @@ const Chat = () => {
   };
 
   const handleSelectGroup = (group: Group) => {
+    lastScrollConvIdRef.current = null;
+    initialScrollDoneRef.current = false;
+    wasNearBottomRef.current = true;
     setSelectedGroup(group);
     setSelectedConversation(null);
+    setMessages([]);
+    setGroupMessages([]);
+    setShowScrollToBottom(false);
+    setUnreadBelow(0);
     setVisibleMessageCount(MESSAGES_PAGE_SIZE);
     fetchGroupMessages(group.id);
+    anchorChatToBottomSoon();
   };
 
   // Check if the other user in conversation is a helper/payroll helper
@@ -2020,33 +2078,6 @@ const Chat = () => {
   // async layout shifts from late-loading avatars, gift logos, sticker
   // images, link previews, video posters, etc. Mirrors WhatsApp/Messenger
   // behavior where the latest message is always reliably visible.
-  const anchorChatToBottomSoon = useCallback((smooth = false) => {
-    const stick = () => {
-      const c = chatScrollRef.current;
-      const end = messagesEndRef.current;
-      if (!c) return;
-      if (smooth && end && typeof end.scrollIntoView === 'function') {
-        end.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      } else {
-        c.scrollTop = c.scrollHeight;
-      }
-      // Mark user as "at bottom" so newly arriving messages auto-stick.
-      wasNearBottomRef.current = true;
-    };
-    // Multiple passes catch reflow from media that decodes after first paint.
-    requestAnimationFrame(stick);
-    setTimeout(stick, 60);
-    setTimeout(stick, 180);
-    setTimeout(() => {
-      const c = chatScrollRef.current;
-      if (!c) return;
-      // Final hard snap (no smooth) so we always finish exactly at the bottom
-      // even if the smooth animation was interrupted by another reflow.
-      c.scrollTop = c.scrollHeight;
-      wasNearBottomRef.current = true;
-    }, 420);
-  }, []);
-
   const handleSend = async (overrideText?: string) => {
     const rawText = (overrideText ?? message).trim();
     if (!rawText || sending) return;
@@ -2952,38 +2983,7 @@ const Chat = () => {
             type="button"
             aria-label="Scroll to latest message"
             onClick={() => {
-              const c = chatScrollRef.current;
-              if (!c) return;
-              // Hard, immediate jump to the absolute bottom. We deliberately
-              // do NOT use smooth scroll here — smooth animations can be
-              // aborted by late-decoding sticker/gift images mid-flight,
-              // which is what caused the chevron to land on a first/middle
-              // message instead of the latest one. Then we re-pin across
-              // ~1.5s via rAF + ResizeObserver so any post-paint reflow
-              // (image decode, avatar frame swap, link previews) keeps us
-              // glued to the true bottom.
-              const slam = () => { c.scrollTop = c.scrollHeight; };
-              slam();
-              wasNearBottomRef.current = true;
-              setShowScrollToBottom(false);
-              setUnreadBelow(0);
-              requestAnimationFrame(slam);
-              const t1 = setTimeout(slam, 60);
-              const t2 = setTimeout(slam, 180);
-              const t3 = setTimeout(slam, 360);
-              const t4 = setTimeout(slam, 700);
-              let ro: ResizeObserver | null = null;
-              if (typeof ResizeObserver !== 'undefined') {
-                ro = new ResizeObserver(slam);
-                ro.observe(c);
-                // Also observe the inner content so child reflows re-pin.
-                Array.from(c.children).forEach((child) => ro!.observe(child as Element));
-              }
-              const tEnd = setTimeout(() => {
-                slam();
-                ro?.disconnect();
-                clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
-              }, 1500);
+              anchorChatToBottomSoon();
             }}
             className="absolute right-3 bottom-3 z-20 h-10 w-10 rounded-full bg-background/95 border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-transform animate-fade-in"
           >
