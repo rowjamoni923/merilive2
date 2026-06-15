@@ -1598,12 +1598,14 @@ const ProfileDetail = () => {
                     }}
                     className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-all bg-slate-50/60 border border-slate-200"
                   >
-                    <Avatar className="w-12 h-12 border border-fuchsia-500/30">
-                      <AvatarImage src={gift.sender_avatar || undefined} />
-  <AvatarFallback className="bg-gradient-to-br from-fuchsia-600 to-purple-600 text-white font-bold">
-                        {gift.sender_name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithFrame
+                      userId={gift.sender_id}
+                      src={gift.sender_avatar || undefined}
+                      name={gift.sender_name}
+                      size="sm"
+                      showFrame={true}
+                      showAnimation={false}
+                    />
                     
                     <div className="flex-1 min-w-0">
   <p className="font-semibold text-sm truncate text-slate-900">{gift.sender_name}</p>
