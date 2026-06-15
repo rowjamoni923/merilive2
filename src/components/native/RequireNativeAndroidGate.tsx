@@ -7,15 +7,30 @@
  * any of these pages from a desktop or mobile web browser, this gate replaces the
  * page with a full-screen "Please use the Android app" screen.
  *
+ * DEV BYPASS: add `?bypassNativeGate=1` to the URL (or set localStorage
+ * `merilive.dev.bypassNativeGate = "1"`) to test in the Lovable preview.
+ *
  * 📱 PORTRAIT CAMERA ONLY rule preserved — the gate itself is portrait-friendly.
  *
  * Zero new Supabase channels, zero polls, zero cross-user reads.
  */
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeAndroidApp } from "@/utils/nativeUtils";
+
+const BYPASS_KEY = "merilive.dev.bypassNativeGate";
+
+function shouldBypassGate(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("bypassNativeGate") === "1") return true;
+    if (localStorage.getItem(BYPASS_KEY) === "1") return true;
+  } catch { /* noop */ }
+  return false;
+}
 
 interface RequireNativeAndroidGateProps {
   feature: "live" | "call" | "party";
@@ -39,7 +54,10 @@ const FEATURE_COPY: Record<RequireNativeAndroidGateProps["feature"], { title: st
 
 export function RequireNativeAndroidGate({ feature, children }: RequireNativeAndroidGateProps) {
   const navigate = useNavigate();
-  if (isNativeAndroidApp()) return <>{children}</>;
+  const [searchParams] = useSearchParams();
+  const bypass = useMemo(() => shouldBypassGate(), [searchParams]);
+
+  if (isNativeAndroidApp() || bypass) return <>{children}</>;
 
   const copy = FEATURE_COPY[feature];
 
@@ -52,6 +70,9 @@ export function RequireNativeAndroidGate({ feature, children }: RequireNativeAnd
         <div className="space-y-2">
           <h1 className="text-2xl font-bold leading-tight">{copy.title}</h1>
           <p className="text-sm leading-6 text-muted-foreground">{copy.body}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Preview testing: add <code className="bg-muted px-1 rounded">?bypassNativeGate=1</code> to the URL.
+          </p>
         </div>
         <Button onClick={() => navigate(-1)} className="w-full">
           Go Back
