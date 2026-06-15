@@ -136,7 +136,8 @@ export const useRealtimeLevel = (userId: string | null) => {
       });
 
       const isFemaleHost = resolved.isFemaleHost;
-      const displayLevel = resolved.level || getBestStoredDisplayLevel(data) || null;
+      const storedDisplayLevel = getBestStoredDisplayLevel(data);
+      const displayLevel = resolved.level ?? storedDisplayLevel;
       if (displayLevel === null) {
         setLoading(false);
         return;
