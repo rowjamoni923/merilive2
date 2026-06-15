@@ -1566,18 +1566,20 @@ const Chat = () => {
         .eq('id', otherUserId)
         .maybeSingle();
 
+      lastScrollConvIdRef.current = null;
+      initialScrollDoneRef.current = false;
+      wasNearBottomRef.current = true;
+      setMessages([]);
+      setGroupMessages([]);
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
+      setShowScrollToBottom(false);
+      setUnreadBelow(0);
       setSelectedConversation({
         ...existing,
         other_user: profile,
         last_message: '',
         unread_count: 0
       });
-      lastScrollConvIdRef.current = null;
-      initialScrollDoneRef.current = false;
-      wasNearBottomRef.current = true;
-      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
-      setShowScrollToBottom(false);
-      setUnreadBelow(0);
       fetchMessages(existing.id);
       anchorChatToBottomSoon();
     } else {
