@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, PhoneOff, Star, Clock, Coins, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
@@ -310,7 +311,7 @@ const CallHistory = () => {
                     userId={call.other_user?.id}
                     src={call.other_user?.avatar_url || undefined}
                     name={call.other_user?.display_name || '?'}
-                    level={call.other_user?.level || 1}
+                    level={1}
                     size="sm"
                     showFrame={true}
                     showAnimation={false}

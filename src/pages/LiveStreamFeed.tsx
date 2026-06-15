@@ -18,6 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronUp, ChevronDown, Eye, Loader2, Radio } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
@@ -257,10 +258,10 @@ export default function LiveStreamFeed() {
         <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+1rem)]">
           <div className="flex items-center gap-2 mb-3">
             <AvatarWithFrame
-              userId={currentStream.host?.id}
+              userId={currentStream.host_id}
               src={currentStream.host?.avatar_url || undefined}
               name={currentStream.host?.display_name || "L"}
-              level={currentStream.host?.level || 1}
+              level={currentStream.host?.user_level || 1}
               size="sm"
               showFrame={true}
               showAnimation={false}

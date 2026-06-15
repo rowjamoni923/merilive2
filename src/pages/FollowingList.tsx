@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Heart, Users, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -297,7 +298,7 @@ const FollowingList = () => {
             userId={profile.id}
             src={profile.avatar_url || undefined}
             name={profile.display_name || '?'}
-            level={profile.level || 1}
+            level={1}
             size="sm"
             showFrame={true}
             showAnimation={false}
