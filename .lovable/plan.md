@@ -135,3 +135,28 @@ The reference video shows the warning at the **true top** (just under status bar
 - Code audit found missed drawer/private-call gaps; patched `ChametStyleChatPanel`, `ActiveCallScreen` chat-log offset + rAF autoscroll, and `RoomChatOverlay` CSS-only max-height.
 - Removed the DM triple-scroll timeout that could snap after user interaction.
 - Removed duplicate `visualViewport.resize` React-state listener from `useMobileOptimization`; keyboard animation now flows through the CSS-var bridge only.
+
+---
+
+## Message section professional parity pass — 2026-06-15
+
+**User scope:** Live streaming, Party Audio, Party Video, Party Game, Private Call, Reels comments, Profile Details → Message, and Matters/Feed share flow must all feel professional and stable for host/viewer.
+
+**Research notes / citations:**
+- BIGO positions itself around live streams, live games, chat rooms and large-scale interactive rooms (500M+ downloads), so the expected baseline is dense in-room messaging, gifts, comments and live interaction rather than full-width DM bubbles inside video rooms. Sources: Google Play BIGO LIVE result; BIGO web landing result.
+- Tencent/TUILiveKit documents a dedicated **Live Comments** module for mobile live broadcasting / voice chat rooms, confirming that live chat is treated as a room overlay surface separate from regular DM. Source: Tencent Cloud “Live Comments (Android)” result.
+- Android WebView keyboard smoothness remains a known hard problem because native keyboard movement and web-layer input movement can desync; professional fixes keep one composer layer glued to keyboard top and prevent page/body resize from moving the transcript. Sources: Ionic forum “Possible to have smooth keyboard slide-ins?” and StackOverflow mobile keyboard shift result.
+
+**Gap vs pro apps found in current code:**
+- `RoomChatOverlay` was improved, but `ProfessionalAudioRoom` still rendered avatar-heavy rows with different styling from Live/Party/Private Call.
+- `ActiveCallScreen` private-call chat used a regular two-line bubble style, not the compact live-room pill style shown in pro apps.
+- Reels comments were keyboard-aware but newest comments inserted at top while the sheet reads top-down, so send feedback can feel unlike normal comment sheets.
+- DM composer still has optional action rows below the input, increasing keyboard-time layout movement.
+- Profile Details/Profile already route to `/chat?user=...`; the professional fix belongs in the shared `/chat` surface, not duplicate profile UI.
+- Matters/Feed route is not registered in `App.tsx`; `ShareReceive` points to `/feed?compose=1`, so no active matters message surface exists to patch yet. The chat/share entry still needs stable routing.
+
+**Implementation rules now locked for this pass:**
+- One room-style message primitive for live/video surfaces: compact pill, no inline avatar, level badge + name + text in one row, max 64–68% width.
+- One keyboard contract everywhere: scroll container gets `.chat-scroll-stable`; composer/sheet gets `.chat-composer-stable`; movement uses `--kb-h`, not body resize.
+- Profile message buttons stay unchanged visually; they open the already-fixed DM chat surface.
+- If Matters/Feed is later added, it must reuse the Reels/DM keyboard contract, not invent another composer.
