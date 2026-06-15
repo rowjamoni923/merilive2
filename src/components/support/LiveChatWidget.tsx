@@ -293,7 +293,7 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
