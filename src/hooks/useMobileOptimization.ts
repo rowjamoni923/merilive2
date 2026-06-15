@@ -44,20 +44,12 @@ export function useMobileOptimization(): MobileInfo {
     window.addEventListener('resize', updateMobileInfo);
     window.addEventListener('orientationchange', updateMobileInfo);
     
-    // Also update on viewport resize (for mobile browser address bar changes)
-    if ('visualViewport' in window && window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateMobileInfo);
-    }
-
     // Initial update
     updateMobileInfo();
 
     return () => {
       window.removeEventListener('resize', updateMobileInfo);
       window.removeEventListener('orientationchange', updateMobileInfo);
-      if ('visualViewport' in window && window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateMobileInfo);
-      }
     };
   }, []);
 
