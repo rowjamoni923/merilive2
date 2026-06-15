@@ -438,6 +438,7 @@ import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
+import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 
 
@@ -1289,6 +1290,8 @@ const App = () => {
               <AudioUnlockOverlay />
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
               <DisconnectReasonToaster />
+              {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
+              <LuckyGiftHost />
               <CallProvider>
                   {/* Pkg434 — Phase 14 — Tab keep-alive host (opt-in via localStorage 'tabKeepAlive=on') */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
