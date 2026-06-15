@@ -130,7 +130,7 @@ const releaseFullscreen = (id: string) => {
 // BIGO LIVE / CHAMET STYLE GIFT BANNER
 // Professional 2-row layout with gift icon + combo counter
 // ============================================================
-const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimationProps) => {
+const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: FlyingGiftAnimationProps) => {
   const [currentCount, setCurrentCount] = useState(0);
   const [showFullScreen, setShowFullScreen] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
