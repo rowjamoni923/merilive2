@@ -698,14 +698,14 @@ const CreateParty = () => {
         </div>
 
         {/* Close Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-12 h-12 rounded-full bg-white/80 text-white backdrop-blur-md hover:bg-gray-700/50"
+        <button
+          type="button"
           onClick={handleClose}
+          aria-label="Close"
+          className="group relative w-11 h-11 rounded-full bg-black/30 backdrop-blur-xl border border-white/15 text-white/90 flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] transition-all duration-200 hover:bg-black/45 hover:border-white/25 hover:text-white active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/30"
         >
-          <X className="w-6 h-6" />
-        </Button>
+          <X className="w-5 h-5" strokeWidth={2.5} />
+        </button>
       </header>
 
       {/* Campaign Banner */}
