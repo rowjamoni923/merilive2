@@ -40,6 +40,10 @@ const Game3DCard = ({
   onClick: () => void;
   index: number;
 }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const showFallback = !game.logo_url || imgError;
+
   return (
     <motion.button
       initial={{ opacity: 0, y: 20 }}
@@ -60,25 +64,34 @@ const Game3DCard = ({
           border: '1px solid rgba(255,255,255,0.08)'
         }}
       >
+        {/* Fallback gradient + emoji is ALWAYS rendered behind the image so the
+            card is never visually empty while the (sometimes large) logo loads
+            or if the request fails entirely. */}
+        <div className={cn("absolute inset-0 bg-gradient-to-br", game.game_color || "from-purple-600 to-pink-600")} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-5xl drop-shadow-2xl select-none">{game.game_emoji || "🎮"}</span>
+        </div>
+
         {/* Top glossy sheen */}
         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none z-10" />
-        <div className="absolute inset-0 flex items-center justify-center p-1.5">
-          {game.logo_url ? (
-            <img loading="lazy" decoding="async"
-              src={getProxiedUrl(game.logo_url)}
+
+        {!showFallback && (
+          <div className="absolute inset-0 flex items-center justify-center p-1.5">
+            <img
+              loading="eager"
+              decoding="async"
+              src={getProxiedUrl(game.logo_url!)}
               alt={game.game_name}
-              className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+              className={cn(
+                "w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] transition-opacity duration-200",
+                imgLoaded ? "opacity-100" : "opacity-0"
+              )}
               draggable={false}
- />
-          ) : (
-            <>
-              <div className={cn("absolute inset-0 bg-gradient-to-br rounded-2xl", game.game_color)} />
-              <span className="relative text-6xl drop-shadow-2xl">
-                {game.game_emoji}
-              </span>
-            </>
-          )}
-        </div>
+            />
+          </div>
+        )}
       </div>
     </motion.button>
   );
