@@ -2952,8 +2952,9 @@ const Chat = () => {
             type="button"
             aria-label="Scroll to latest message"
             onClick={() => {
-              const c = chatScrollRef.current;
-              if (c) c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' });
+              // Robust multi-frame anchor so we always reach the true bottom,
+              // even when gift logos / images / stickers reflow late.
+              anchorChatToBottomSoon(true);
               setShowScrollToBottom(false);
               setUnreadBelow(0);
             }}
