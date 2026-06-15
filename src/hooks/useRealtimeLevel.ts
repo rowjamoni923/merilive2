@@ -30,6 +30,17 @@ interface LevelCache {
   timestamp: number;
 }
 
+const getBestStoredDisplayLevel = (data: Partial<LevelData> | null | undefined): number | null => {
+  if (!data) return null;
+  const isFemaleHost = Boolean(data.is_host) && String(data.gender ?? "").toLowerCase() === "female";
+  if (isFemaleHost) return Math.max(Number(data.host_level ?? 0), 0);
+  return Math.max(
+    Number(data.user_level ?? 0),
+    Number(data.max_user_level ?? 0),
+    1,
+  );
+};
+
 const getCachedLevel = (userId: string): LevelCache | null => {
   try {
     const raw = localStorage.getItem(LEVEL_CACHE_KEY);
@@ -60,13 +71,30 @@ const setCachedLevel = (userId: string, level: number, levelData: LevelData) => 
 export const useRealtimeLevel = (userId: string | null) => {
   // Initialize from cache to prevent level=0 flash
   const cached = userId ? getCachedLevel(userId) : null;
-  const [level, setLevel] = useState<number>(cached?.level ?? 1);
+  const [level, setLevel] = useState<number | null>(cached?.level ?? null);
   const [levelData, setLevelData] = useState<LevelData | null>(cached?.levelData ?? null);
-  const [loading, setLoading] = useState(!cached);
+  const [loading, setLoading] = useState(Boolean(userId) && !cached);
   
   // Track previous level to detect level-up and trigger frame refresh
   const previousLevelRef = useRef<number | null>(cached?.level ?? null);
   
+  // Reset synchronously on account changes so Android never flashes a fake Lv1.
+  useEffect(() => {
+    if (!userId) {
+      setLevel(null);
+      setLevelData(null);
+      setLoading(false);
+      previousLevelRef.current = null;
+      return;
+    }
+
+    const nextCached = getCachedLevel(userId);
+    setLevel(nextCached?.level ?? null);
+    setLevelData(nextCached?.levelData ?? null);
+    setLoading(!nextCached);
+    previousLevelRef.current = nextCached?.level ?? null;
+  }, [userId]);
+
   // Fetch initial level data
   const fetchLevel = useCallback(async () => {
     if (!userId) {
@@ -108,9 +136,11 @@ export const useRealtimeLevel = (userId: string | null) => {
       });
 
       const isFemaleHost = resolved.isFemaleHost;
-      const storedLevel = data.user_level ?? 1;
-      const maxLevel = (data as any).max_user_level ?? storedLevel;
-      const displayLevel = resolved.level;
+      const displayLevel = resolved.level || getBestStoredDisplayLevel(data) || null;
+      if (displayLevel === null) {
+        setLoading(false);
+        return;
+      }
       
       // CRITICAL: Detect level change and clear frame cache for automatic frame upgrade
       if (previousLevelRef.current !== null && previousLevelRef.current !== displayLevel) {
