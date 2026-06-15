@@ -529,8 +529,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           completedRef.current = true;
           onCompleteRef.current?.();
         }}
-        onWaiting={(e) => { void e.currentTarget.play().catch(() => {}); }}
-        onStalled={(e) => { void e.currentTarget.play().catch(() => {}); }}
+        onWaiting={() => { /* let the browser auto-resume; calling play() here causes play/pause churn during buffering and produces visible stutter */ }}
+        onStalled={() => { /* see onWaiting */ }}
         onError={() => { setLoading(false); onErrorRef.current?.(new Error('Load failed')); }}
       />
       {!useVideoFallback && (
