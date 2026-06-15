@@ -1694,7 +1694,7 @@ export function UnifiedPartyRoom({
         {/* Welcome message at bottom, messages stack upward */}
         {/* z-30 = BEHIND game board (z-50) */}
         <div 
-          className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end"
+          className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
             bottom: 'calc(var(--kb-h, 0px) + 72px)',
             maxHeight: (roomType === 'game' || showGameBoard) ? '22vh' : '42vh',
