@@ -1065,7 +1065,7 @@ const LiveStream = () => {
       const { data: hostProfile } = stream?.host_id
         ? await supabase
             .from("profiles_public")
-            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
+            .select("id, app_uid, display_name, avatar_url, gender, user_level, host_level, max_user_level, country_flag, country_name, is_host, frame_id, equipped_frame_id")
             .eq("id", stream.host_id)
             .maybeSingle()
         : { data: null };
@@ -1080,11 +1080,11 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
-        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
       if (cancelled || !mountedRef.current) return;
       
@@ -1099,8 +1099,9 @@ const LiveStream = () => {
           is_host: profile.is_host === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
-          user_level: profile.user_level || 1,
+          user_level: Number(profile.user_level ?? 0),
           host_level: profile.host_level || 0,
+          max_user_level: (profile as any).max_user_level || 0,
           country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
