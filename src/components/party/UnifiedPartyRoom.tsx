@@ -38,6 +38,7 @@ import { ChametStyleViewerPanel } from "./ChametStyleViewerPanel";
 import { ChametStyleCloseModal } from "./ChametStyleCloseModal";
 import { ChametStyleSettingsPanel } from "./ChametStyleSettingsPanel";
 import { BackgroundPickerPanel } from "./BackgroundPickerPanel";
+import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { LayoutPickerPanel } from "./LayoutPickerPanel";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
 import { SeatSelectorPanel } from "./SeatSelectorPanel";
@@ -787,7 +788,7 @@ export function UnifiedPartyRoom({
         const { data: publicProfiles } = userIds.length
           ? await supabase
               .from("profiles_public")
-              .select("id, app_uid, display_name, avatar_url, user_level, frame_id")
+              .select("id, app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, frame_id")
               .in("id", userIds)
           : { data: [] as any[] };
         const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
@@ -799,7 +800,7 @@ export function UnifiedPartyRoom({
               id: profile?.id || pv.user_id,
               displayName: profile?.display_name || profile?.app_uid || "Anonymous",
               avatarUrl: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
-              level: profile?.user_level || 1,
+              level: getRequiredDisplayLevel(profile),
               frameId: profile?.frame_id || undefined,
             };
           })
