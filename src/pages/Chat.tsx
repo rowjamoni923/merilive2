@@ -2980,38 +2980,7 @@ const Chat = () => {
             type="button"
             aria-label="Scroll to latest message"
             onClick={() => {
-              const c = chatScrollRef.current;
-              if (!c) return;
-              // Hard, immediate jump to the absolute bottom. We deliberately
-              // do NOT use smooth scroll here — smooth animations can be
-              // aborted by late-decoding sticker/gift images mid-flight,
-              // which is what caused the chevron to land on a first/middle
-              // message instead of the latest one. Then we re-pin across
-              // ~1.5s via rAF + ResizeObserver so any post-paint reflow
-              // (image decode, avatar frame swap, link previews) keeps us
-              // glued to the true bottom.
-              const slam = () => { c.scrollTop = c.scrollHeight; };
-              slam();
-              wasNearBottomRef.current = true;
-              setShowScrollToBottom(false);
-              setUnreadBelow(0);
-              requestAnimationFrame(slam);
-              const t1 = setTimeout(slam, 60);
-              const t2 = setTimeout(slam, 180);
-              const t3 = setTimeout(slam, 360);
-              const t4 = setTimeout(slam, 700);
-              let ro: ResizeObserver | null = null;
-              if (typeof ResizeObserver !== 'undefined') {
-                ro = new ResizeObserver(slam);
-                ro.observe(c);
-                // Also observe the inner content so child reflows re-pin.
-                Array.from(c.children).forEach((child) => ro!.observe(child as Element));
-              }
-              const tEnd = setTimeout(() => {
-                slam();
-                ro?.disconnect();
-                clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
-              }, 1500);
+              anchorChatToBottomSoon();
             }}
             className="absolute right-3 bottom-3 z-20 h-10 w-10 rounded-full bg-background/95 border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-transform animate-fade-in"
           >
