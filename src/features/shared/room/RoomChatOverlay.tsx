@@ -243,34 +243,35 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   // Only the flying gift animation banner (FlyingGiftAnimation) vanishes quickly
   // The chat gift messages (like "sent Gift x1") should remain in chat history
 
-  // Ultra Premium Background Styles with enhanced glassmorphism
+  // Pro-app style: subtle, tight, dark translucent pill (Bigo/Chamet/Olamet).
+  // No heavy gradients, no glowing rings — chat row hugs content and stays low-key
+  // so the video/seats stay the visual focus.
   const getBgStyle = () => {
-    if (isGameWinMessage) return "from-amber-500/35 via-yellow-400/30 to-orange-500/25";
-    if (isHost) return "from-rose-500/35 via-pink-500/30 to-red-500/25";
-    if (isGiftMessage) return "from-pink-500/30 via-rose-400/25 to-fuchsia-500/20";
-    if (isJoinMessage) return "from-emerald-500/25 via-green-400/20 to-teal-500/15";
-    if (isSystemMessage) return "from-amber-500/25 via-yellow-400/20 to-orange-500/15";
-    return "from-slate-800/40 via-slate-700/35 to-slate-900/30";
+    if (isGameWinMessage) return "from-amber-500/25 via-yellow-500/20 to-orange-500/15";
+    if (isHost) return "from-rose-500/22 via-pink-500/18 to-red-500/14";
+    if (isGiftMessage) return "from-pink-500/20 via-rose-500/16 to-fuchsia-500/12";
+    if (isJoinMessage) return "from-emerald-500/18 via-green-500/14 to-teal-500/10";
+    if (isSystemMessage) return "from-amber-500/18 via-yellow-500/14 to-orange-500/10";
+    return "from-black/45 via-black/35 to-black/30";
   };
 
-  // Premium border with subtle glow
   const getBorderStyle = () => {
-    if (isGameWinMessage) return "border-yellow-300/60 ring-1 ring-yellow-400/20";
-    if (isHost) return "border-rose-300/50 ring-1 ring-rose-400/15";
-    if (isGiftMessage) return "border-pink-300/45 ring-1 ring-pink-400/15";
-    if (isJoinMessage) return "border-emerald-300/40 ring-1 ring-emerald-400/10";
-    if (isSystemMessage) return "border-amber-300/40 ring-1 ring-amber-400/10";
-    return "border-white/15 ring-1 ring-white/5";
+    if (isGameWinMessage) return "border-yellow-300/35";
+    if (isHost) return "border-rose-300/30";
+    if (isGiftMessage) return "border-pink-300/25";
+    if (isJoinMessage) return "border-emerald-300/25";
+    if (isSystemMessage) return "border-amber-300/25";
+    return "border-white/10";
   };
-  
-  // Enhanced luxury glow effects
+
   const getGlowStyle = () => {
-    if (isGameWinMessage) return "shadow-[0_2px_20px_rgba(251,191,36,0.35),0_0_40px_rgba(251,191,36,0.15)]";
-    if (isHost) return "shadow-[0_2px_16px_rgba(244,63,94,0.3),0_0_30px_rgba(244,63,94,0.1)]";
-    if (isGiftMessage) return "shadow-[0_2px_14px_rgba(236,72,153,0.25),0_0_25px_rgba(236,72,153,0.1)]";
+    if (isGameWinMessage) return "shadow-[0_1px_8px_rgba(251,191,36,0.18)]";
+    if (isHost) return "shadow-[0_1px_8px_rgba(244,63,94,0.18)]";
+    if (isGiftMessage) return "shadow-[0_1px_8px_rgba(236,72,153,0.15)]";
     if (isJoinMessage) return "";
-    return "shadow-[0_2px_10px_rgba(0,0,0,0.3)]";
+    return "shadow-[0_1px_4px_rgba(0,0,0,0.35)]";
   };
+
 
   if (!isVisible) return null;
 
@@ -287,31 +288,22 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       exit={{ opacity: 0, x: 60, transition: { duration: 0.15 } }}
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
       className={cn(
-        "flex flex-wrap items-center gap-2 w-fit",
-        // Only apply default gradient bubble styling when there's NO designer bubble
+        "flex flex-wrap items-center gap-1.5 w-fit",
+        // Only apply default pill styling when there's NO designer bubble
         !hasDesignerBubble && [
-          "rounded-[20px] max-w-[94%] md:max-w-[70%]",
+          "rounded-full max-w-[94%] md:max-w-[72%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
           getGlowStyle(),
-          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4 md:py-2.5 md:px-5",
+          isGiftMessage ? "py-1 px-2.5" : "py-1 px-3",
         ],
       )}
     >
-      {/* Mini Avatar — Bigo-spacious sizing */}
-      {message.userAvatar && (
-        <Avatar className={cn(
-          "border-[1.5px] border-white/50 shrink-0 shadow-md",
-          isGiftMessage ? "w-5 h-5" : "w-6 h-6"
-        )}>
-          <AvatarImage src={message.userAvatar} alt={message.user} />
-          <AvatarFallback className="bg-violet-500 text-white text-[7px] font-bold">
-            {message.initial}
-          </AvatarFallback>
-        </Avatar>
-      )}
+      {/* Pro-app style: NO inline avatar in chat row (Bigo/Chamet/Olamet pattern).
+          Identity is conveyed by Level badge + colored username instead. */}
+
 
       {/* HOST Badge */}
       {isHost && !isGiftMessage && (
