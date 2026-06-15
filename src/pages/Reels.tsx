@@ -266,7 +266,7 @@ const Reels = () => {
           const reelId = row.reel_id;
           if (!reelId) return;
           if (event === 'INSERT') {
-            bumpCount(reelId, 'comment_count', 1);
+            if (row.user_id !== currentUserIdRef.current) bumpCount(reelId, 'comment_count', 1);
             // If user has the comments sheet open on this reel, prepend live
             if (showComments && reels[currentIndex]?.id === reelId && row.user_id !== currentUserIdRef.current) {
               // Re-fetch with profile join for the avatar/name
