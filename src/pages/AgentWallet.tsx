@@ -519,7 +519,7 @@ const AgentWallet = () => {
               <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <AvatarWithFrame
                   src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82})}
-                  name={tx.display_name || tx.agency_name || tx.name || "U"}
+                  name={(tx as any).display_name || (tx as any).agency_name || (tx as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -604,7 +604,7 @@ const AgentWallet = () => {
                   >
                     <AvatarWithFrame
                   src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82})}
-                  name={user.display_name || user.agency_name || user.name || "U"}
+                  name={(user as any).display_name || (user as any).agency_name || (user as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -632,7 +632,7 @@ const AgentWallet = () => {
               <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
                 <AvatarWithFrame
                   src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82})}
-                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

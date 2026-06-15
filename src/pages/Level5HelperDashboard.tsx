@@ -1576,7 +1576,7 @@ const Level5HelperDashboard = () => {
                       <div className="flex items-center gap-3">
                         <AvatarWithFrame
                   src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={withdrawal.agency.display_name || withdrawal.agency.agency_name || withdrawal.agency.name || "U"}
+                  name={(withdrawal.agency as any).display_name || (withdrawal.agency as any).agency_name || (withdrawal.agency as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -1736,7 +1736,7 @@ const Level5HelperDashboard = () => {
                     <div className="flex items-center gap-3">
                       <AvatarWithFrame
                   src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82})}
-                  name={order.user.display_name || order.user.agency_name || order.user.name || "U"}
+                  name={(order.user as any).display_name || (order.user as any).agency_name || (order.user as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2038,7 +2038,7 @@ const Level5HelperDashboard = () => {
                       <div className="flex items-center gap-3">
                         <AvatarWithFrame
                   src={enhanceThumbnail(request.agency?.logo_url || request.host?.avatar_url, { width: 96, quality: 82})}
-                  name={request.agency.display_name || request.agency.agency_name || request.agency.name || "U"}
+                  name={(request.agency as any).display_name || (request.agency as any).agency_name || (request.agency as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2232,7 +2232,7 @@ const Level5HelperDashboard = () => {
                             <div className="flex items-center gap-3">
                               <AvatarWithFrame
                   src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={withdrawal.agency.display_name || withdrawal.agency.agency_name || withdrawal.agency.name || "U"}
+                  name={(withdrawal.agency as any).display_name || (withdrawal.agency as any).agency_name || (withdrawal.agency as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2281,7 +2281,7 @@ const Level5HelperDashboard = () => {
                           <div className="flex items-center gap-3">
                             <AvatarWithFrame
                   src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82})}
-                  name={order.user.display_name || order.user.agency_name || order.user.name || "U"}
+                  name={(order.user as any).display_name || (order.user as any).agency_name || (order.user as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2746,7 +2746,7 @@ const Level5HelperDashboard = () => {
                   <div className="flex items-center gap-3">
                     <AvatarWithFrame
                   src={enhanceThumbnail(selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url, { width: 96, quality: 82})}
-                  name={selectedWithdrawal.agency.display_name || selectedWithdrawal.agency.agency_name || selectedWithdrawal.agency.name || "U"}
+                  name={(selectedWithdrawal.agency as any).display_name || (selectedWithdrawal.agency as any).agency_name || (selectedWithdrawal.agency as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -3247,7 +3247,7 @@ const Level5HelperDashboard = () => {
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <AvatarWithFrame
                   src={enhanceThumbnail(selectedAgencyWithdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={selectedAgencyWithdrawal.agency.display_name || selectedAgencyWithdrawal.agency.agency_name || selectedAgencyWithdrawal.agency.name || "U"}
+                  name={(selectedAgencyWithdrawal.agency as any).display_name || (selectedAgencyWithdrawal.agency as any).agency_name || (selectedAgencyWithdrawal.agency as any).name || "U"}
                   level={1}
                   size="md"
                   showFrame={true}

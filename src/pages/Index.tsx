@@ -674,7 +674,7 @@ const Index = () => {
                   <AvatarWithFrame
                     userId={user.id}
                     src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
-                    name={user.display_name || "U"}
+                    name={(user as any).display_name || "U"}
                     level={displayLevel}
                     isHost={user.gender === 'female' || user.is_host || false}
                     size="xxs"

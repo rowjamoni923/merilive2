@@ -412,7 +412,7 @@ const AgentRank = () => {
                     >
                       <AvatarWithFrame
                   src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82})}
-                  name={entry.display_name || entry.agency_name || entry.name || "U"}
+                  name={(entry as any).display_name || (entry as any).agency_name || (entry as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -507,7 +507,7 @@ const AgentRank = () => {
                   <div className="relative">
                     <AvatarWithFrame
                   src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82})}
-                  name={agency.display_name || agency.agency_name || agency.name || "U"}
+                  name={(agency as any).display_name || (agency as any).agency_name || (agency as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -561,7 +561,7 @@ const AgentRank = () => {
             </div>
             <AvatarWithFrame
                   src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82})}
-                  name={currentUserAgency.display_name || currentUserAgency.agency_name || currentUserAgency.name || "U"}
+                  name={(currentUserAgency as any).display_name || (currentUserAgency as any).agency_name || (currentUserAgency as any).name || "U"}
                   level={1}
                   size="xs"
                   showFrame={true}

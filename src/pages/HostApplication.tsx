@@ -462,7 +462,7 @@ const HostApplication = () => {
                     <div className="flex items-center gap-3">
                       <AvatarWithFrame
                   src={foundUser.avatar_url || undefined}
-                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -566,7 +566,7 @@ const HostApplication = () => {
             <div className="flex items-center gap-3">
               <AvatarWithFrame
                   src={foundUser?.avatar_url || undefined}
-                  name={foundUser.display_name || foundUser.agency_name || foundUser.name || "U"}
+                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
                   level={1}
                   size="md"
                   showFrame={true}

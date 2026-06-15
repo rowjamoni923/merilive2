@@ -333,7 +333,7 @@ const AgencyCommissionHistory = () => {
                       <div className="relative">
                         <AvatarWithFrame
                   src={enhanceThumbnail(commission.host_profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={commission.host_profile.display_name || commission.host_profile.agency_name || commission.host_profile.name || "U"}
+                  name={(commission.host_profile as any).display_name || (commission.host_profile as any).agency_name || (commission.host_profile as any).name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
