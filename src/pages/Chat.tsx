@@ -1576,7 +1576,14 @@ const Chat = () => {
         last_message: '',
         unread_count: 0
       });
+      lastScrollConvIdRef.current = null;
+      initialScrollDoneRef.current = false;
+      wasNearBottomRef.current = true;
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
+      setShowScrollToBottom(false);
+      setUnreadBelow(0);
       fetchMessages(existing.id);
+      anchorChatToBottomSoon();
     } else {
       const { data: newConv, error } = await supabase
         .from('conversations')
@@ -1604,7 +1611,14 @@ const Chat = () => {
         last_message: '',
         unread_count: 0
       });
+      lastScrollConvIdRef.current = null;
+      initialScrollDoneRef.current = false;
+      wasNearBottomRef.current = true;
+      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
+      setShowScrollToBottom(false);
+      setUnreadBelow(0);
       setMessages([]);
+      anchorChatToBottomSoon();
     }
   };
 
