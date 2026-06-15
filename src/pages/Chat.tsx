@@ -88,6 +88,7 @@ import { warmGiftForInstantPlay, warmGiftUrlsForInstantPlay } from "@/utils/inst
 import { ChatListView } from "@/components/chat/ChatListView";
 import { ChatDialogs } from "@/components/chat/ChatDialogs";
 import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
+import { DirectChatBubble } from "@/components/chat/UnifiedChatMessage";
 import { getCachedGifts } from "@/hooks/useGiftPrefetch";
 
 interface Conversation {
@@ -2807,29 +2808,17 @@ const Chat = () => {
                           );
                         }
 
-                        // Regular text messages - premium WhatsApp-style bubbles
+                        // Regular text messages - shared DM bubble primitive
                         return (
-                          <div
-                            className={cn(
-                              "px-3 py-[7px] max-w-full text-[14.5px] leading-[1.38] tracking-[-0.005em] antialiased",
-                              isMine
-                                ? "bg-primary text-primary-foreground rounded-[18px] rounded-br-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-                                : "bg-card text-card-foreground rounded-[18px] rounded-bl-[6px] border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
-                              msg._optimistic && "opacity-70"
-                            )}
+                          <DirectChatBubble
+                            message={content}
+                            isMine={isMine}
+                            createdAt={msg.created_at}
+                            status={msg.status || (msg.is_read ? 'read' : 'sent')}
+                            optimistic={msg._optimistic}
                           >
                             <span className="break-words whitespace-pre-wrap">{content}</span>
-                            <span className={cn(
-                              "text-[10px] ml-1.5 float-right mt-[5px] flex items-center gap-1 font-medium",
-                              isMine ? "text-primary-foreground/75" : "text-muted-foreground/80"
-                            )}>
-                              {formatTime(msg.created_at)}
-                              <MessageStatusIndicator 
-                                status={msg.status || (msg.is_read ? 'read' : 'sent')} 
-                                isMine={isMine} 
-                              />
-                            </span>
-                          </div>
+                          </DirectChatBubble>
                         );
                       })()}
                       {/* Reactions */}
