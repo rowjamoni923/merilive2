@@ -2694,6 +2694,8 @@ const Chat = () => {
                                 giftEmoji={emoji}
                                 count={giftCount}
                                 coins={totalCoins}
+                                isSelf={isMine}
+                                surface="chat"
                                 compact
                               />
                               <p className={cn("text-[8px] text-muted-foreground/60 flex items-center gap-0.5", isMine ? "pr-2" : "pl-2")}>

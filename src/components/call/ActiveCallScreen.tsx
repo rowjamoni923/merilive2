@@ -1220,6 +1220,8 @@ export function ActiveCallScreen({
                       giftIconUrl={giftMarker.iconUrl || undefined}
                       count={giftMarker.count}
                       coins={giftMarker.coins}
+                      isSelf={isMe}
+                      surface="overlay"
                       compact
                     />
                   </motion.div>
