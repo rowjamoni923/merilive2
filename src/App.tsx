@@ -438,6 +438,7 @@ import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
+import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 
 
