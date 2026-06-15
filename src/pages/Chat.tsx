@@ -2952,7 +2952,10 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border chat-composer-stable">
+        <div
+          className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border chat-composer-stable"
+          style={{ transform: 'translate3d(0, calc(var(--kb-h, 0px) * -1), 0)' }}
+        >
           {/* Media Uploader (direct gallery) */}
           {showMediaUploader && (
             <Suspense fallback={null}>
