@@ -304,29 +304,54 @@ const FramedAvatarWithPrivileges = ({
             </motion.div>
           )}
 
-          {/* The Animated Frame Image - extends slightly past the avatar disc */}
-          <motion.img
-            src={frameUrl}
-            alt="Frame"
-            className="absolute w-auto h-auto object-contain pointer-events-none"
-            style={{
-              inset: frameInsetPx[size],
-              width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
-              height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
-              zIndex: 20,
-            }}
-            animate={showAnimation ? {
-              scale: [1, 1.03, 1],
-              filter: level >= 20 
-                ? ["brightness(1)", "brightness(1.15)", "brightness(1)"] 
-                : undefined,
-            } : {}}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
+          {/* The Animated Frame - extends slightly past the avatar disc.
+              SVGA/Lottie need a player (an <img> tag can't decode them and
+              would show broken-image alt text). Static/GIF/WebP render as
+              a regular <img>. */}
+          {isAnimatedFrame ? (
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                inset: frameInsetPx[size],
+                width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                zIndex: 20,
+              }}
+            >
+              <Suspense fallback={null}>
+                <UniversalFramePlayer
+                  src={frameUrl!}
+                  type={frameType as 'svga' | 'lottie'}
+                  className="w-full h-full"
+                  loop
+                  autoPlay
+                />
+              </Suspense>
+            </div>
+          ) : (
+            <motion.img
+              src={frameUrl}
+              alt=""
+              className="absolute w-auto h-auto object-contain pointer-events-none"
+              style={{
+                inset: frameInsetPx[size],
+                width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                zIndex: 20,
+              }}
+              animate={showAnimation ? {
+                scale: [1, 1.03, 1],
+                filter: level >= 20
+                  ? ["brightness(1)", "brightness(1.15)", "brightness(1)"]
+                  : undefined,
+              } : {}}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          )}
           
           {/* Avatar fills the entire container — no inner padding gap */}
           <div 
