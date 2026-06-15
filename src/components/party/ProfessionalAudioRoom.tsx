@@ -875,7 +875,7 @@ export function ProfessionalAudioRoom({
 
       {/* Professional floating chat — same compact room style as Live/Party/Private Call */}
       <div className="absolute left-0 right-[56px] z-20 px-3 chat-composer-stable" style={{ bottom: 'calc(var(--kb-h, 0px) + 72px)' }}>
-        <div className="space-y-1.5 max-h-[34vh] overflow-y-auto overflow-x-hidden pointer-events-none mb-2 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="space-y-1.5 max-h-[34vh] overflow-y-auto overflow-x-hidden pointer-events-auto mb-2 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch' }}>
           <AnimatePresence mode="popLayout">
             {chatMessages.slice(-6).map((msg) => (
               <motion.div
