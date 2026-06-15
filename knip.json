@@ -1,0 +1,6 @@
+{
+  "entry": ["index.html", "src/main.tsx", "src/test/**/*.{ts,tsx}", "vite.config.ts", "tailwind.config.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/integrations/supabase/types.ts", "supabase/**", "android/**"],
+  "ignoreDependencies": ["@capacitor/.*"]
+}
