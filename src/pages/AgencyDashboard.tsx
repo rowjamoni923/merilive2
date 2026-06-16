@@ -76,6 +76,21 @@ import { formatNumber as formatNum } from "@/utils/formatNumber";
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
 
+type AgencyProfileLike = {
+  display_name?: string | null;
+  agency_name?: string | null;
+  name?: string | null;
+  avatar_url?: string | null;
+  app_uid?: string | null;
+} | null | undefined;
+
+const getProfileName = (profile: AgencyProfileLike, fallback: string) => {
+  const name = profile?.display_name || profile?.agency_name || profile?.name;
+  return typeof name === "string" && name.trim().length > 0 ? name : fallback;
+};
+
+const getProfileAvatar = (profile: AgencyProfileLike) => profile?.avatar_url || "";
+
 interface Agency {
   id: string;
   name: string;
@@ -954,13 +969,13 @@ const AgencyDashboard = () => {
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
-                  src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82})}
-                  name={(ph.profile as any)?.display_name || (ph.profile as any)?.agency_name || (ph.profile as any)?.name || "U"}
-                  level={1}
-                  size="xs"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                      src={enhanceThumbnail(getProfileAvatar(ph.profile), { width: 96, quality: 82})}
+                      name={getProfileName(ph.profile, "User")}
+                      level={1}
+                      size="xs"
+                      showFrame={true}
+                      showAnimation={false}
+                    />
                     <div>
                       <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
                       <p className="text-amber-300/60 text-[10px]">
@@ -1030,16 +1045,16 @@ const AgencyDashboard = () => {
               {parentAgency.owner_profile && (
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <AvatarWithFrame
-                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
-                  level={1}
-                  size="xs"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                    src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
+                    name={getProfileName(parentAgency.owner_profile, "Agency Owner")}
+                    level={1}
+                    size="xs"
+                    showFrame={true}
+                    showAnimation={false}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">
-                      {parentAgency.owner_profile.display_name || "Agency Owner"}
+                      {getProfileName(parentAgency.owner_profile, "Agency Owner")}
                     </p>
                     <p className="text-[10px] text-white/60">Agency Owner</p>
                   </div>
@@ -1645,13 +1660,13 @@ const AgencyDashboard = () => {
                         {index + 1}
                       </span>
                       <AvatarWithFrame
-                  src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(host.profile as any)?.display_name || (host.profile as any)?.agency_name || (host.profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                        src={enhanceThumbnail(getProfileAvatar(host.profile), { width: 96, quality: 82})}
+                        name={getProfileName(host.profile, "Host")}
+                        level={1}
+                        size="sm"
+                        showFrame={true}
+                        showAnimation={false}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
@@ -1781,13 +1796,13 @@ const AgencyDashboard = () => {
                     {subAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
-                  src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(sa.profile as any)?.display_name || (sa.profile as any)?.agency_name || (sa.profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                          src={enhanceThumbnail(getProfileAvatar(sa.profile), { width: 96, quality: 82})}
+                          name={getProfileName(sa.profile, "Sub-Agent")}
+                          level={1}
+                          size="sm"
+                          showFrame={true}
+                          showAnimation={false}
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -2128,15 +2143,15 @@ const AgencyDashboard = () => {
                 {parentAgency.owner_profile && (
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
                     <AvatarWithFrame
-                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                      src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
+                      name={getProfileName(parentAgency.owner_profile, "Agency Owner")}
+                      level={1}
+                      size="sm"
+                      showFrame={true}
+                      showAnimation={false}
+                    />
                     <div className="flex-1">
-                      <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
+                      <p className="font-semibold">{getProfileName(parentAgency.owner_profile, "Agency Owner")}</p>
                       <p className="text-xs text-gray-500">Agency Owner</p>
                     </div>
                   </div>

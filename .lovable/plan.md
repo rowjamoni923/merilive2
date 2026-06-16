@@ -47,6 +47,10 @@
 
 Common patterns: missing RLS grant, null agency_id, hook order violation, type mismatch in `AgencyDashboard.tsx`.
 
+**Verified root cause (2026-06-16):** dashboard relational joins can legally return `null` profile rows for deleted/missing users, but render paths still read `profile.display_name` / `owner_profile.display_name` directly. That matches the screenshot stack: `Cannot read properties of null (reading 'display_name')` in `AgencyDashboard`. Professional pattern is tombstone/fallback rendering for missing users rather than crashing the whole admin/agency surface (example pattern: render “deleted/missing user” fallback instead of raw null profile data; see React missing-user handling discussion: StackOverflow result `How to gracefully handle missing user data in React...`, 2024-11-19).
+
+**Fix applied:** centralized nullable profile helpers (`getProfileName`, `getProfileInitial`, `getProfileAvatar`) and replaced unsafe avatar/name reads in pending hosts, parent agency owner, top hosts, sub-agents, and parent contact modal.
+
 ---
 
 ### Issue 5: Agency creation OTP not arriving (in-app notification + Gmail)
