@@ -2146,15 +2146,15 @@ const AgencyDashboard = () => {
                 {parentAgency.owner_profile && (
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
                     <AvatarWithFrame
-                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                      src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
+                      name={getProfileInitial(parentAgency.owner_profile)}
+                      level={1}
+                      size="sm"
+                      showFrame={true}
+                      showAnimation={false}
+                    />
                     <div className="flex-1">
-                      <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
+                      <p className="font-semibold">{getProfileName(parentAgency.owner_profile, "Agency Owner")}</p>
                       <p className="text-xs text-gray-500">Agency Owner</p>
                     </div>
                   </div>
