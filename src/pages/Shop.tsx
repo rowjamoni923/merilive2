@@ -388,13 +388,9 @@ const Shop = () => {
     import('@/hooks/useUniversalRealtime').then(({ subscribeToTables }) => {
       unsubscribe = subscribeToTables(
         `shop-page-${Date.now()}`,
-        ['shop_items', 'user_purchases', 'profiles'],
+        ['shop_items', 'user_purchases'],
         (table, _event, payload) => {
-          if (table === 'profiles' && (payload?.new as any)?.coins !== undefined) {
-            setUserDiamonds((payload.new as any).coins || 0);
-          } else {
-            fetchData();
-          }
+          fetchData();
         }
       );
     });
