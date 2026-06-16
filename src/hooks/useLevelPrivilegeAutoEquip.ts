@@ -301,6 +301,8 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           if (!error && (updateData.equipped_entrance_id || updateData.equipped_entry_name_bar_id || updateData.equipped_vehicle_id)) {
             clearEntryAnimationCache();
           }
+        } else {
+          setPersistedLastRun(userId);
         }
         } catch (error) {
           console.error('[useLevelPrivilegeAutoEquip] sync failed:', error);
