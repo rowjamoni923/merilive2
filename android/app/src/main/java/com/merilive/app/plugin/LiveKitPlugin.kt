@@ -585,7 +585,14 @@ class LiveKitPlugin : Plugin() {
         // Mount ABOVE the WebView so the camera tile is visible on top of the
         // (opaque) React seat tile. React layer still renders empty-seat UI,
         // gradients, badges, etc — only the inner video region is covered.
-        val lp = FrameLayout.LayoutParams(1, 1)
+        // Parent of the WebView in Capacitor BridgeActivity may be a
+        // CoordinatorLayout (Material) or a plain FrameLayout/ContentFrameLayout.
+        // Using FrameLayout.LayoutParams inside a CoordinatorLayout crashes the
+        // next measure pass with a ClassCastException → use parent-correct LP.
+        val lp: ViewGroup.MarginLayoutParams = when (parent) {
+            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(1, 1)
+            else -> FrameLayout.LayoutParams(1, 1)
+        }
         parent.addView(renderer, lp)
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
