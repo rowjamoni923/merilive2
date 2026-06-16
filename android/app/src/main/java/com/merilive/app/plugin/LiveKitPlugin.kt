@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.FrameLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -584,7 +585,14 @@ class LiveKitPlugin : Plugin() {
         // Mount ABOVE the WebView so the camera tile is visible on top of the
         // (opaque) React seat tile. React layer still renders empty-seat UI,
         // gradients, badges, etc — only the inner video region is covered.
-        val lp = FrameLayout.LayoutParams(1, 1)
+        // Parent of the WebView in Capacitor BridgeActivity may be a
+        // CoordinatorLayout (Material) or a plain FrameLayout/ContentFrameLayout.
+        // Using FrameLayout.LayoutParams inside a CoordinatorLayout crashes the
+        // next measure pass with a ClassCastException → use parent-correct LP.
+        val lp: ViewGroup.MarginLayoutParams = when (parent) {
+            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(1, 1)
+            else -> FrameLayout.LayoutParams(1, 1)
+        }
         parent.addView(renderer, lp)
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
@@ -610,8 +618,13 @@ class LiveKitPlugin : Plugin() {
         val h = (cssH * density).toInt().coerceAtLeast(1)
         val left = (cssX * density).toInt().coerceAtLeast(0)
         val top = (cssY * density).toInt().coerceAtLeast(0)
-        val lp = (view.layoutParams as? FrameLayout.LayoutParams)
-            ?: FrameLayout.LayoutParams(w, h)
+        // Reuse existing LP if it is a MarginLayoutParams subclass; otherwise
+        // create one matching the actual parent type to avoid ClassCastException.
+        val current = view.layoutParams as? ViewGroup.MarginLayoutParams
+        val lp: ViewGroup.MarginLayoutParams = current ?: when (view.parent) {
+            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(w, h)
+            else -> FrameLayout.LayoutParams(w, h)
+        }
         lp.width = w
         lp.height = h
         lp.leftMargin = left
@@ -776,10 +789,16 @@ class LiveKitPlugin : Plugin() {
                         setMirror(mirror)
                     }
                     room?.initVideoRenderer(renderer)
-                    val lp = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
+                    val lp: ViewGroup.MarginLayoutParams = when (parent) {
+                        is CoordinatorLayout -> CoordinatorLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                        else -> FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    }
                     parent.addView(renderer, 0, lp)
                     previewRenderer = renderer
 
