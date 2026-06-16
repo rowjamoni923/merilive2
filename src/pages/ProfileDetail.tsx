@@ -578,7 +578,7 @@ const ProfileDetail = () => {
       `profile-detail-presence-${targetId}`,
       ['live_streams', 'party_rooms', 'party_room_participants', 'private_calls'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as { host_id?: string; caller_id?: string; user_id?: string; id?: string } | undefined;
+        const row = payload as { host_id?: string; caller_id?: string; user_id?: string; id?: string } | undefined;
         if (row?.host_id === targetId || row?.caller_id === targetId || row?.user_id === targetId || row?.id === targetId) void refetchPresenceStatus();
       }
     );
