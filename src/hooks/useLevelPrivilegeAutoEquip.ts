@@ -45,9 +45,12 @@ const isActivePurchase = (purchase: any) => {
 };
 
 // Per-user throttle so an autosync storm cannot hammer the DB. This hook was
-// one of the highest-volume write sources in production, so boot-time sync is
-// now daily-local at most and realtime/admin bursts are coalesced.
+// the #1 production write source (millions of repeated equipped_* profile
+// updates). Boot/admin sync is daily; purchase-driven force sync is still
+// throttled to a small window so duplicate app_sync rows / old clients cannot
+// bypass the guard and hammer profiles again.
 const MIN_INTERVAL_MS = 24 * 60 * 60_000;
+const FORCE_MIN_INTERVAL_MS = 10 * 60_000;
 const lastRunAt = new Map<string, number>();
 const inFlight = new Map<string, Promise<void>>();
 
@@ -75,7 +78,8 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
       // Throttle: skip if we ran recently for this user.
       const now = Date.now();
       const last = Math.max(lastRunAt.get(userId) ?? 0, getPersistedLastRun(userId));
-      if (!opts.force && now - last < MIN_INTERVAL_MS) return;
+      const minInterval = opts.force ? FORCE_MIN_INTERVAL_MS : MIN_INTERVAL_MS;
+      if (now - last < minInterval) return;
       // Coalesce concurrent invocations for the same user.
       const existing = inFlight.get(userId);
       if (existing) return existing;
@@ -325,7 +329,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
     const scheduleForceSync = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => { void syncLevelRewards({ force: true }); }, 3000);
+      debounceTimer = setTimeout(() => { void syncLevelRewards({ force: true }); }, 10_000);
     };
 
     const onAdminUpdate = (event: Event) => {
