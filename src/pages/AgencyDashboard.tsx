@@ -307,7 +307,7 @@ const AgencyDashboard = () => {
           // 8. Beans rate
           supabase.from("app_settings").select("setting_value").eq("setting_key", "beans_to_usd_rate").maybeSingle(),
           // 9. User profile (country)
-          supabase.from('profiles').select('country_code, country_flag').eq('id', user.id).single(),
+          supabase.from('profiles').select('country_code, country_flag').eq('id', user.id).maybeSingle(),
           // 10. Helper data
           supabase.from("topup_helpers").select("id, is_verified, is_active, trader_level, payroll_enabled").eq("user_id", user.id).maybeSingle(),
           // 11. Helper contact settings
@@ -360,7 +360,7 @@ const AgencyDashboard = () => {
             : Promise.resolve({ data: [] }),
           // Currency rate
           countryCode
-            ? supabase.from('currency_rates').select('*').eq('country_code', countryCode).eq('is_active', true).single()
+            ? supabase.from('currency_rates').select('*').eq('country_code', countryCode).eq('is_active', true).maybeSingle()
             : Promise.resolve({ data: null }),
           // Helper pending topup count
           helperData?.is_verified
@@ -559,7 +559,11 @@ const AgencyDashboard = () => {
       if (refetchTimer) clearTimeout(refetchTimer);
       supabase.removeChannel(channel);
     };
-  }, [navigate, agency?.id]);
+    // NOTE: `agency?.id` intentionally NOT in deps — it would cause this
+    // effect (which itself calls setAgency) to re-run, double-fetching
+    // every dashboard query and creating a duplicate Realtime subscription.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   // ===== Approve/Reject Host Handlers =====
   const handleApproveHost = async (hostId: string) => {
