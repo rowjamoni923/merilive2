@@ -309,17 +309,17 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
                         {subAgency.owner_profile && (
                           <div className="flex items-center gap-2 mt-2 p-2 bg-muted/50 rounded-lg">
                             <Avatar className="w-6 h-6">
-                              <AvatarImage src={subAgency.owner_profile.avatar_url || ""} />
+                              <AvatarImage src={subAgency.owner_profile?.avatar_url || ""} />
                               <AvatarFallback className="text-[10px]">
-                                {subAgency.owner_profile.display_name?.charAt(0) || "?"}
+                                {subAgency.owner_profile?.display_name?.charAt(0) || "?"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium truncate">
-                                {subAgency.owner_profile.display_name || "Agency Owner"}
+                                {subAgency.owner_profile?.display_name || "Agency Owner"}
                               </p>
                               <p className="text-[10px] text-muted-foreground">
-                                Owner • UID: {subAgency.owner_profile.app_uid || "N/A"}
+                                Owner • UID: {subAgency.owner_profile?.app_uid || "N/A"}
                               </p>
                             </div>
                           </div>

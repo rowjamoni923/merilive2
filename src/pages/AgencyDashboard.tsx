@@ -84,12 +84,28 @@ type AgencyProfileLike = {
   app_uid?: string | null;
 } | null | undefined;
 
-const getProfileName = (profile: AgencyProfileLike, fallback: string) => {
-  const name = profile?.display_name || profile?.agency_name || profile?.name;
-  return typeof name === "string" && name.trim().length > 0 ? name : fallback;
+// Bulletproof: always returns a non-empty string, never throws — even if
+// `profile` is null/undefined/number/string or has frozen prototype.
+const getProfileName = (profile: AgencyProfileLike, fallback: string): string => {
+  try {
+    if (!profile || typeof profile !== "object") return fallback;
+    const p = profile as Record<string, unknown>;
+    const name = (p.display_name ?? p.agency_name ?? p.name) as unknown;
+    return typeof name === "string" && name.trim().length > 0 ? name : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
-const getProfileAvatar = (profile: AgencyProfileLike) => profile?.avatar_url || "";
+const getProfileAvatar = (profile: AgencyProfileLike): string => {
+  try {
+    if (!profile || typeof profile !== "object") return "";
+    const url = (profile as Record<string, unknown>).avatar_url;
+    return typeof url === "string" ? url : "";
+  } catch {
+    return "";
+  }
+};
 
 interface Agency {
   id: string;
