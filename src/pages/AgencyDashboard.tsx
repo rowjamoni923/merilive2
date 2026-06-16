@@ -972,13 +972,13 @@ const AgencyDashboard = () => {
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
-                  src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82})}
-                  name={(ph.profile as any)?.display_name || (ph.profile as any)?.agency_name || (ph.profile as any)?.name || "U"}
-                  level={1}
-                  size="xs"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                      src={enhanceThumbnail(getProfileAvatar(ph.profile), { width: 96, quality: 82})}
+                      name={getProfileInitial(ph.profile)}
+                      level={1}
+                      size="xs"
+                      showFrame={true}
+                      showAnimation={false}
+                    />
                     <div>
                       <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
                       <p className="text-amber-300/60 text-[10px]">
@@ -1048,16 +1048,16 @@ const AgencyDashboard = () => {
               {parentAgency.owner_profile && (
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <AvatarWithFrame
-                  src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
-                  level={1}
-                  size="xs"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                    src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
+                    name={getProfileInitial(parentAgency.owner_profile)}
+                    level={1}
+                    size="xs"
+                    showFrame={true}
+                    showAnimation={false}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">
-                      {parentAgency.owner_profile.display_name || "Agency Owner"}
+                      {getProfileName(parentAgency.owner_profile, "Agency Owner")}
                     </p>
                     <p className="text-[10px] text-white/60">Agency Owner</p>
                   </div>
