@@ -630,8 +630,7 @@ const App = () => {
 
   useEffect(() => {
     if (!isAdminRoute || !loading) return;
-    const timer = window.setTimeout(() => setLoading(false), 1200);
-    return () => window.clearTimeout(timer);
+    setLoading(false);
   }, [isAdminRoute, loading]);
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
