@@ -478,7 +478,8 @@ export const RoomChatOverlay = memo(({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Show all messages or limit if maxMessages is provided
-  const displayMessages = maxMessages ? messages.slice(-maxMessages) : messages;
+  const displayLimit = maxMessages ?? 40;
+  const displayMessages = messages.slice(-Math.min(displayLimit, 40));
 
   // With flex-col-reverse, scroll position 0 is at bottom (newest)
   // No auto-scroll needed - newest messages naturally appear at bottom
@@ -514,7 +515,7 @@ export const RoomChatOverlay = memo(({
         style={{ maxHeight: `min(${maxHeight}, 400px)` }}
       >
         {/* Chat messages — first DOM child = visually at the bottom */}
-        <AnimatePresence initial={false} mode="sync">
+        <AnimatePresence initial={false} mode="popLayout">
           {displayMessages.slice().reverse().map((msg) => (
             <ChatMessageItem
               key={msg.id}
@@ -525,7 +526,7 @@ export const RoomChatOverlay = memo(({
         </AnimatePresence>
 
         {/* Join Notifications — appear above messages */}
-        <AnimatePresence initial={false} mode="sync">
+        <AnimatePresence initial={false} mode="popLayout">
           {joinNotifications.slice().reverse().map((notification) => (
             <JoinNotificationItem
               key={notification.id}
