@@ -110,6 +110,7 @@ const CORE_PAGE_IMPORTERS = [
 let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
+  if (Capacitor.isNativePlatform()) return;
   coreChunksPreloaded = true;
 
   // Stagger imports across idle frames so they NEVER compete with the
@@ -715,7 +716,7 @@ const App = () => {
       else clearTimeout(id);
     };
 
-    const routeIdleId = idle(preloadCoreRoutes, 1800);
+    const routeIdleId = Capacitor.isNativePlatform() ? 0 : idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner/gift/frame cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
@@ -769,7 +770,7 @@ const App = () => {
     }, 6000);
 
     return () => {
-      cancelIdle(routeIdleId);
+      if (routeIdleId) cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
