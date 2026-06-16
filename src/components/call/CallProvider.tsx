@@ -13,10 +13,20 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { useProCamera } from '@/camera/useProCamera';
 import { toast as sonnerToast } from 'sonner';
+import { CallingFallback } from './CallingFallback';
 
-// 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
+// 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
+// Eagerly kick off the import the moment this module loads (not on
+// idle, not on userId-ready) so the chunk is in cache before the very
+// first call attempt — otherwise the Suspense fallback paints during
+// the chunk fetch and the user sees a blank-ish "Calling…" stage.
 const importActiveCallScreen = () => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen }));
 const ActiveCallScreen = lazy(importActiveCallScreen);
+if (typeof window !== 'undefined') {
+  // Fire-and-forget — never blocks render, never throws into module init.
+  Promise.resolve().then(() => { importActiveCallScreen().catch(() => {}); });
+}
+
 
 /**
  * Phase-3 C1: GLOBAL `notifications` realtime mount, attached to the
@@ -663,9 +673,21 @@ export function CallProvider({ children }: CallProviderProps) {
         ? createPortal(incomingCallModalNode, document.body)
         : incomingCallModalNode}
 
-      {/* Active Call Screen with LiveKit (Android native) - lazy loaded to defer livekit bundle */}
+      {/* Active Call Screen with LiveKit (Android native) - lazy loaded to defer livekit bundle.
+          Suspense fallback paints the SAME dark "Calling…" stage so users never
+          see a blank white screen during the 172KB chunk fetch on first call. */}
       {shouldShowActiveCall && (
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={
+            <CallingFallback
+              remoteUserName={remoteUserName}
+              remoteUserAvatar={remoteUserAvatar}
+              callStatus={callState.status}
+              isHost={isHost}
+              onEndCall={handleEndCall}
+            />
+          }
+        >
           <ActiveCallScreen
             isOpen={shouldShowActiveCall}
             callId={activeCallId}
@@ -687,6 +709,7 @@ export function CallProvider({ children }: CallProviderProps) {
           />
         </Suspense>
       )}
+
 
       {/* Call Ended Modal - Shows when remote user ends the call */}
       <CallEndedModal
