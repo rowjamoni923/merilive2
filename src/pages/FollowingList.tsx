@@ -177,7 +177,7 @@ const FollowingList = () => {
       const uid = userIdRef.current;
       if (!uid) return;
       if (table === 'followers') {
-        const row = (payload?.new ?? payload?.old) as { follower_id?: string; following_id?: string } | null;
+        const row = payload as { follower_id?: string; following_id?: string } | null;
         if (!row) return;
         if (row.follower_id === uid || row.following_id === uid) scheduleRefetch();
       }
