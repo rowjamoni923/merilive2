@@ -54,14 +54,14 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
     let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
     checkEligibilityAndFetch();
-    // Pkg83 LiveKit-Purist: removed `live-tasks-sync-${hostId}` Supabase
-    // postgres_changes channel. Task progress updates are driven by RPCs the
-    // user themselves invokes (gift, viewer, live-minutes); a 30s safety-net
-    // REST poll catches any server-side recalc. Pkg57 ≥30s floor satisfied.
-    // guard-ok: live tasks owner-data poll, 30s safety net (Pkg83)
+    // Event-driven refresh: task progress changes when gift/live-minute RPCs
+    // run. A 5-minute safety net avoids per-viewer 30s DB polling in rooms.
+    const onLiveTaskProgress = () => { if (!cancelled) fetchLiveTasks(); };
+    window.addEventListener('gift-sent', onLiveTaskProgress);
+    window.addEventListener('live-minutes-updated', onLiveTaskProgress);
     const taskPollId = setInterval(() => {
       if (!cancelled) fetchLiveTasks();
-    }, 30000);
+    }, 300_000);
 
     // Auto-refresh at 12:30 AM Europe/London (server reset) — re-fetches eligibility too.
     resetTimer = setTimeout(() => {
@@ -90,6 +90,8 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
 
     return () => {
       cancelled = true;
+      window.removeEventListener('gift-sent', onLiveTaskProgress);
+      window.removeEventListener('live-minutes-updated', onLiveTaskProgress);
       clearInterval(taskPollId);
       if (resetTimer) clearTimeout(resetTimer);
       if (hourTimer) clearTimeout(hourTimer);
