@@ -10,7 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { clearGiftCache, prefetchGifts } from '@/hooks/useGiftPrefetch';
+import { clearGiftCache } from '@/hooks/useGiftPrefetch';
 import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { clearAllFrameCaches } from '@/utils/frameCache';
