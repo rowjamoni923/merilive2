@@ -89,9 +89,6 @@ const getProfileName = (profile: AgencyProfileLike, fallback: string) => {
   return typeof name === "string" && name.trim().length > 0 ? name : fallback;
 };
 
-const getProfileInitial = (profile: AgencyProfileLike, fallback = "U") =>
-  getProfileName(profile, fallback).trim().charAt(0).toUpperCase() || fallback;
-
 const getProfileAvatar = (profile: AgencyProfileLike) => profile?.avatar_url || "";
 
 interface Agency {
