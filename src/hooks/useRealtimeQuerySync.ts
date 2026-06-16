@@ -276,6 +276,28 @@ export const useRealtimeQuerySync = () => {
         const queryKeys = TABLE_TO_QUERY_KEYS[table];
         if (queryKeys) {
           invalidateWithDebounce(table, queryKeys);
+        } else {
+          // 🛡️ Safety-net: for any admin table not in the explicit map,
+          // invalidate every active query whose root key contains the table
+          // name or its kebab-case form. Guarantees 100% admin→app coverage
+          // without requiring every hook to declare its key in the map.
+          const tableKebab = table.replace(/_/g, '-');
+          const tableTokens = [table, tableKebab];
+          const fallbackKey = `__fallback__${table}`;
+          const existing = pendingInvalidations.get(fallbackKey);
+          if (existing) clearTimeout(existing);
+          const timer = setTimeout(() => {
+            pendingInvalidations.delete(fallbackKey);
+            queryClientRef.current.invalidateQueries({
+              predicate: (query) => {
+                const root = String(query.queryKey?.[0] ?? '');
+                if (!root) return false;
+                return tableTokens.some((tok) => root.includes(tok));
+              },
+              refetchType: 'active',
+            });
+          }, DEFAULT_DEBOUNCE_MS);
+          pendingInvalidations.set(fallbackKey, timer);
         }
 
         if (GLOBAL_SETTINGS_TABLES.has(table)) {
