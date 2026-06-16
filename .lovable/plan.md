@@ -15,6 +15,8 @@
 
 **Audit deliverable:** Chrome trace + bundle analysis + realtime channel count report. Then targeted fix (lazy chunks, debounce, memoization).
 
+**Live-room warning overlap fix (2026-06-16):** Verified root cause was not the admin message component itself; the live/party chat stack was anchored with a fixed `72px` bottom offset while the real composer + action button row is ~96–104px plus safe-area/keyboard inset. Result: the permanent admin warning sat visually on top of the lower buttons instead of above the chat/input area. Professional live-stream pattern (Bigo/Chamet/Poppo-style chat stack; refs: LiveKit data-channel UI guidance https://docs.livekit.io/transport/data/ and Stream keyboard/safe-area guidance https://getstream.io/chat/docs/sdk/react-native/guides/keyboard/) is: bottom controls fixed, chat+warning stack offset by full composer/action-row height + `env(safe-area-inset-bottom)` + keyboard inset. Applied to both LiveStream and UnifiedPartyRoom so live + party rooms share the corrected safe-area gap.
+
 ---
 
 ### Issue 2: Inbox photo not showing instantly
