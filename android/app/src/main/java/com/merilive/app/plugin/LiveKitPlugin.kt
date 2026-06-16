@@ -789,10 +789,16 @@ class LiveKitPlugin : Plugin() {
                         setMirror(mirror)
                     }
                     room?.initVideoRenderer(renderer)
-                    val lp = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
+                    val lp: ViewGroup.MarginLayoutParams = when (parent) {
+                        is CoordinatorLayout -> CoordinatorLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                        else -> FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    }
                     parent.addView(renderer, 0, lp)
                     previewRenderer = renderer
 
