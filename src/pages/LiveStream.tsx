@@ -1507,10 +1507,11 @@ const LiveStream = () => {
         
         // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
-          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id).is('left_at', null)
-            .then(({ count }) => {
-              if (count !== null) setViewerCount(count);
-            });
+          if (row.viewer_id) {
+            if (row.left_at) activeViewerIdsRef.current.delete(row.viewer_id);
+            else activeViewerIdsRef.current.add(row.viewer_id);
+            setViewerCount((prev) => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(prev, activeViewerIdsRef.current.size));
+          }
           // Pkg383 safety-net: if LiveKit viewer_joined doesn't arrive within 1.5s,
           // fire welcome popup + join chat + entry animation from Postgres INSERT
           // so other viewers always see the new viewer's entrance instantly.
