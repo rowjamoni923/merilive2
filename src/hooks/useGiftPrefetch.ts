@@ -45,6 +45,13 @@ const giftCache: GiftCache = {
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 const listeners: Set<() => void> = new Set();
 let loadingPromise: Promise<GiftCacheItem[]> | null = null;
+let clearEventInstalled = false;
+
+const ensureGiftCacheClearEvent = () => {
+  if (clearEventInstalled || typeof window === 'undefined') return;
+  clearEventInstalled = true;
+  window.addEventListener('gift-cache:clear', () => clearGiftCache());
+};
 
 function seedAnimationHints(gifts: GiftCacheItem[]): void {
   for (const gift of gifts) {
@@ -60,6 +67,7 @@ function seedAnimationHints(gifts: GiftCacheItem[]): void {
  * Fetch gifts and cache them globally
  */
 export async function prefetchGifts(): Promise<GiftCacheItem[]> {
+  ensureGiftCacheClearEvent();
   // Return cached if valid and not stale
   if (
     giftCache.gifts.length > 0 && 
@@ -147,6 +155,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
  * Get cached gifts synchronously (returns empty if not yet fetched)
  */
 export function getCachedGifts(): GiftCacheItem[] {
+  ensureGiftCacheClearEvent();
   return giftCache.gifts;
 }
 

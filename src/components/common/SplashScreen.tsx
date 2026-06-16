@@ -11,6 +11,9 @@ import appLogo from '@/assets/app-logo.png';
 import { APP_VERSION } from '@/lib/version';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import type { ImgHTMLAttributes } from 'react';
+
+type PriorityImgProps = ImgHTMLAttributes<HTMLImageElement> & { fetchpriority?: 'high' | 'low' | 'auto' };
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -117,7 +120,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
                 alt="MeriLive"
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
+                {...({ fetchpriority: 'high' } as PriorityImgProps)}
                 onError={(e) => {
                   // Last-resort fallback: if the bundled chunk somehow 404s
                   // (offline cache miss, corrupted SW), fall back to the

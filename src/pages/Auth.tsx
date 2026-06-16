@@ -29,6 +29,7 @@ const loadGeolocation = () => import("@/hooks/useGeolocation");
 import { COUNTRY_CODES } from "@/data/countryCodes";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { getDetectedCountry } from "@/utils/countryDetectionCache";
 
 type Gender = "male" | "female" | null;
 type AuthStep = "gender" | "name" | "email" | "login" | "agency_code" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
@@ -305,8 +306,8 @@ const Auth = () => {
   useEffect(() => {
     const detectUserCountry = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('detect-country');
-        if (!error && data?.countryCode) {
+        const data = await getDetectedCountry();
+        if (data?.countryCode) {
           const detected = COUNTRY_CODES.find(c => c.country === data.countryCode.toUpperCase());
           if (detected) {
             setSelectedCountryCode(detected.code);
@@ -745,8 +746,8 @@ const Auth = () => {
       let ip = '';
 
       try {
-        const { data: serverResult, error: serverError } = await supabase.functions.invoke('detect-country');
-        if (!serverError && serverResult?.countryCode) {
+        const serverResult = await getDetectedCountry();
+        if (serverResult?.countryCode) {
           countryCode = serverResult.countryCode;
           city = serverResult.city || '';
           region = serverResult.region || '';

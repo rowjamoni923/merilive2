@@ -30,10 +30,11 @@ export const queryClient = new QueryClient({
 export const queryPersister = (() => {
   try {
     if (typeof window === 'undefined') return undefined;
+    const isNative = Boolean((window as any).Capacitor?.isNativePlatform?.());
     return createSyncStoragePersister({
       storage: window.localStorage,
       key: 'merilive-rq-cache-v1',
-      throttleTime: 1000,
+      throttleTime: isNative ? 5000 : 2500,
     });
   } catch {
     return undefined;

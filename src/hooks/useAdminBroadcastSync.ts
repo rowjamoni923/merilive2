@@ -16,9 +16,8 @@
  * Mount ONCE globally (App.tsx) — works on every route, every device.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 
 type BroadcastRow = {
   topic: string;
@@ -240,9 +239,24 @@ let killSwitchEnabled = true;
 // belt-and-suspenders to absorb retries / multiple bumps).
 const TOPIC_DEDUPE_MS = 2000; // Increased from 400ms to 2s to prevent flash-storms
 const lastTopicAt = new Map<string, number>();
+const KILL_SWITCH_CACHE_KEY = 'meri_rt_admin_broadcast_enabled_v1';
+const KILL_SWITCH_CACHE_MS = 60 * 60_000;
 
 async function checkKillSwitch(): Promise<boolean> {
   if (killSwitchChecked) return killSwitchEnabled;
+  try {
+    const cached = localStorage.getItem(KILL_SWITCH_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached) as { at: number; value: boolean };
+      if (Date.now() - Number(parsed.at || 0) < KILL_SWITCH_CACHE_MS) {
+        killSwitchEnabled = parsed.value !== false;
+        killSwitchChecked = true;
+        return killSwitchEnabled;
+      }
+    }
+  } catch {
+    // cache is best-effort
+  }
   try {
     const { data } = await supabase
       .from('app_settings')
@@ -254,15 +268,12 @@ async function checkKillSwitch(): Promise<boolean> {
   } catch {
     killSwitchEnabled = true; // fail-open: don't break sync if check fails
   }
+  try { localStorage.setItem(KILL_SWITCH_CACHE_KEY, JSON.stringify({ at: Date.now(), value: killSwitchEnabled })); } catch {}
   killSwitchChecked = true;
   return killSwitchEnabled;
 }
 
 export function useAdminBroadcastSync() {
-  const qc = useQueryClient();
-  const qcRef = useRef(qc);
-  qcRef.current = qc;
-
   useEffect(() => {
     mountCount += 1;
     let cancelled = false;
@@ -306,14 +317,6 @@ export function useAdminBroadcastSync() {
               );
             } catch {}
 
-            const keys = TOPIC_QUERY_KEYS[topic];
-            if (keys?.length) {
-              for (const key of keys) {
-                try {
-                  qcRef.current.invalidateQueries({ queryKey: key, refetchType: 'active' });
-                } catch {}
-              }
-            }
           }
         )
         .subscribe((status) => {

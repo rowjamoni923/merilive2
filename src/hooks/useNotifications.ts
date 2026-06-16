@@ -90,6 +90,7 @@ const getNotificationCategory = (type: string): string => {
 };
 
 const ROOM_GIFT_NOTIFICATION_TYPES = new Set(['gift', 'gift_received', 'gift_sent']);
+const activeNotificationUsers = new Map<string, number>();
 
 // Get emoji icon based on notification type
 const getNotificationIcon = (type: string): string => {
@@ -136,14 +137,15 @@ const getNotificationIcon = (type: string): string => {
   return iconMap[type] || '🔔';
 };
 
-export const useNotifications = () => {
+export const useNotifications = (options: { realtimeOnly?: boolean } = {}) => {
+  const realtimeOnly = options.realtimeOnly === true;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!realtimeOnly);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [helperId, setHelperId] = useState<string | null>(null);
-  const [ownedAgencyId, setOwnedAgencyId] = useState<string | null>(null);
   const hasInteractedRef = useRef(false);
+  const ownsRealtimeRef = useRef(false);
 
   const emitGlobalUnreadRefresh = useCallback((detail?: { notificationsDecrement?: number; notificationsSetZero?: boolean }) => {
     if (typeof window !== 'undefined') {
@@ -185,6 +187,7 @@ export const useNotifications = () => {
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
+    if (realtimeOnly) return;
     if (!currentUserId) return;
 
      // Fetch ALL notifications (read + unread) so history persists in the list
@@ -239,7 +242,7 @@ export const useNotifications = () => {
       setNotifications(allNotifications);
       setUnreadCount(allNotifications.filter(n => !n.is_read).length);
     setLoading(false);
-   }, [currentUserId, helperId]);
+   }, [currentUserId, helperId, realtimeOnly]);
 
   // Initialize
   useEffect(() => {
@@ -248,6 +251,7 @@ export const useNotifications = () => {
       const user = await getCachedUser();
       if (user) {
         setCurrentUserId(user.id);
+        if (realtimeOnly) return;
 
          // Check if user is a helper (ANY level 1-5, verified or not)
          const { data: helperData } = await supabase
@@ -262,7 +266,7 @@ export const useNotifications = () => {
       }
     };
     initUser();
-  }, []);
+  }, [realtimeOnly]);
 
   // Keep latest fetchNotifications in a ref so realtime effects don't re-subscribe
   const fetchNotificationsRef = useRef(fetchNotifications);
@@ -272,16 +276,30 @@ export const useNotifications = () => {
 
   // Fetch on user change or when helperId becomes available
   useEffect(() => {
-    if (currentUserId) {
+    if (!realtimeOnly && currentUserId) {
       fetchNotificationsRef.current();
     }
-  }, [currentUserId, helperId]);
+  }, [currentUserId, helperId, realtimeOnly]);
 
   // Subscribe to realtime notifications
   useEffect(() => {
     if (!currentUserId) return;
 
-    console.log('Subscribing to notifications for user:', currentUserId);
+    const activeCount = activeNotificationUsers.get(currentUserId) ?? 0;
+    activeNotificationUsers.set(currentUserId, activeCount + 1);
+    // CallProvider owns the always-on notification channel. NotificationList / Chat
+    // may mount the hook too, but they must not open duplicate WebSocket channels
+    // because that causes subscribe/unsubscribe churn and delayed calls.
+    if (activeCount > 0) {
+      ownsRealtimeRef.current = false;
+      return () => {
+        const next = Math.max(0, (activeNotificationUsers.get(currentUserId) ?? 1) - 1);
+        if (next === 0) activeNotificationUsers.delete(currentUserId);
+        else activeNotificationUsers.set(currentUserId, next);
+      };
+    }
+
+    ownsRealtimeRef.current = true;
 
     const channels: any[] = [];
     // Use a truly unique suffix per effect run. StrictMode (and rapid
@@ -427,9 +445,7 @@ export const useNotifications = () => {
           fetchNotificationsRef.current();
         }
       )
-      .subscribe((status) => {
-        console.log('Notification subscription status:', status);
-      });
+      .subscribe();
 
     channels.push(regularChannel);
 
@@ -440,10 +456,13 @@ export const useNotifications = () => {
     // Admin notices are handled by OfficialNoticeList component separately
 
     return () => {
-      console.log('Unsubscribing from notifications');
-      channels.forEach(ch => supabase.removeChannel(ch));
+      const next = Math.max(0, (activeNotificationUsers.get(currentUserId) ?? 1) - 1);
+      if (next === 0) activeNotificationUsers.delete(currentUserId);
+      else activeNotificationUsers.set(currentUserId, next);
+      if (ownsRealtimeRef.current) channels.forEach(ch => supabase.removeChannel(ch));
+      ownsRealtimeRef.current = false;
     };
-  }, [currentUserId, helperId]);
+  }, [currentUserId, emitGlobalUnreadRefresh]);
 
   // Mark as read
   const markAsRead = async (notificationId: string) => {
