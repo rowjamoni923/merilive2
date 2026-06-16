@@ -76,6 +76,9 @@ import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
+const PARTY_ROOM_CHAT_STACK_BOTTOM =
+  'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 88px), 96px))';
+
 // Real-time viewer type for header display
 interface RealtimeViewer {
   id: string;
@@ -1697,7 +1700,7 @@ export function UnifiedPartyRoom({
         <div 
           className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
-            bottom: 'calc(var(--kb-h, 0px) + 72px)',
+            bottom: PARTY_ROOM_CHAT_STACK_BOTTOM,
             maxHeight: (roomType === 'game' || showGameBoard) ? '22vh' : '42vh',
           }}
         >
