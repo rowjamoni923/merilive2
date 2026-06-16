@@ -285,24 +285,32 @@ serve(async (req: Request): Promise<Response> => {
 
 
     const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
-    const accessToken = await getAccessToken(credentials);
+    // ⚡ Reuse the OAuth token already fetched in parallel up top. Only fall
+    // back to a fresh exchange if the pre-fetch failed.
+    const accessToken = accessTokenEarly ?? (await getAccessToken(credentials));
     const projectId = credentials.project_id;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const { data: deviceTokens, error: tokErr } = await admin
-        .from("device_tokens")
-        .select("token, platform, user_id")
-        .eq("user_id", calleeId)
-        .eq("is_active", true);
+      // ⚡ device-tokens + fresh-status reads in parallel (independent).
+      const [tokensRes, freshRes] = await Promise.all([
+        admin
+          .from("device_tokens")
+          .select("token, platform, user_id")
+          .eq("user_id", calleeId)
+          .eq("is_active", true),
+        admin.from("private_calls").select("status").eq("id", callId).maybeSingle(),
+      ]);
 
+      const { data: deviceTokens, error: tokErr } = tokensRes;
       if (tokErr) {
         console.error("[call-deliver] tokens:", tokErr);
       }
 
       const tokens = deviceTokens ?? [];
-      const { data: fresh } = await admin.from("private_calls").select("status").eq("id", callId).maybeSingle();
+      const fresh = freshRes.data;
       const fst = String(fresh?.status || "").toLowerCase();
       if (!["ringing", "pending"].includes(fst)) {
+
         await admin.from("call_delivery_log").insert({
           call_id: callId,
           callee_id: calleeId,
