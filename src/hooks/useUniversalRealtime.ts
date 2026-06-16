@@ -602,6 +602,7 @@ export const useUniversalRealtime = (
 ) => {
   const callbackRef = useRef(onUpdate);
   callbackRef.current = onUpdate;
+  const tableKey = useMemo(() => [...tables].sort().join(','), [tables]);
 
   useEffect(() => {
     if (!enabled || tables.length === 0) return;
@@ -615,7 +616,7 @@ export const useUniversalRealtime = (
     );
 
     return unsubscribe;
-  }, [enabled, JSON.stringify(tables)]);
+  }, [enabled, tableKey]);
 
   return { isConnected };
 };
