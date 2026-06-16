@@ -1663,13 +1663,13 @@ const AgencyDashboard = () => {
                         {index + 1}
                       </span>
                       <AvatarWithFrame
-                  src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(host.profile as any)?.display_name || (host.profile as any)?.agency_name || (host.profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                        src={enhanceThumbnail(getProfileAvatar(host.profile), { width: 96, quality: 82})}
+                        name={getProfileInitial(host.profile)}
+                        level={1}
+                        size="sm"
+                        showFrame={true}
+                        showAnimation={false}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
@@ -1799,13 +1799,13 @@ const AgencyDashboard = () => {
                     {subAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
-                  src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(sa.profile as any)?.display_name || (sa.profile as any)?.agency_name || (sa.profile as any)?.name || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={true}
-                  showAnimation={false}
-                />
+                          src={enhanceThumbnail(getProfileAvatar(sa.profile), { width: 96, quality: 82})}
+                          name={getProfileInitial(sa.profile)}
+                          level={1}
+                          size="sm"
+                          showFrame={true}
+                          showAnimation={false}
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
