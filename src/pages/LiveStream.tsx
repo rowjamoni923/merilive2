@@ -4255,7 +4255,7 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none chat-composer-stable"
+        className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none overflow-hidden chat-composer-stable"
         style={{ bottom: chatStackBottom, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
       >
         <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
