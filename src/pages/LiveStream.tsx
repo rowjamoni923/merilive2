@@ -4251,7 +4251,7 @@ const LiveStream = () => {
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none chat-composer-stable"
-        style={{ bottom: LIVE_ROOM_CHAT_STACK_BOTTOM, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
+        style={{ bottom: chatStackBottom, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
       >
         <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
           {/* UNIFIED Chat Overlay - ONE LINK for Live + Party */}
@@ -4279,6 +4279,7 @@ const LiveStream = () => {
 
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 
+        ref={bottomControlsRef}
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="absolute bottom-kb left-0 right-0 z-20 chat-composer-stable"
