@@ -4241,9 +4241,9 @@ const LiveStream = () => {
             maxMessages={60}
             maxHeight="45vh"
             roomType="live"
-            /* Admin rule + host welcome now rendered by <RoomTopNoticeStack />
-               at the TRUE TOP of the room, not inside the chat overlay. */
+            adminBannerRoomType="live"
           />
+
         </div>
       </motion.div>
 
