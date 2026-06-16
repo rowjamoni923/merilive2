@@ -72,11 +72,12 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
-        // Pkg416 / Android 15+ (Pixel 9): keep .so files uncompressed and
-        // page-aligned in the APK so 16 KB-page devices can mmap them.
-        // Pairs with android.bundle.enable16kAlignment=true in gradle.properties.
+        // 16 KB page-size compliance (Pixel 8+, Android 15, Play Store Nov 2025).
+        // .so files MUST be stored UNCOMPRESSED and page-aligned inside the APK
+        // so the kernel can mmap them directly. useLegacyPackaging=false PLUS
+        // android:extractNativeLibs="false" in the manifest is the official pair.
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
     }
 }
