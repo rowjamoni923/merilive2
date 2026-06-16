@@ -137,10 +137,11 @@ const getNotificationIcon = (type: string): string => {
   return iconMap[type] || '🔔';
 };
 
-export const useNotifications = () => {
+export const useNotifications = (options: { realtimeOnly?: boolean } = {}) => {
+  const realtimeOnly = options.realtimeOnly === true;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!realtimeOnly);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [helperId, setHelperId] = useState<string | null>(null);
   const hasInteractedRef = useRef(false);
@@ -186,6 +187,7 @@ export const useNotifications = () => {
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
+    if (realtimeOnly) return;
     if (!currentUserId) return;
 
      // Fetch ALL notifications (read + unread) so history persists in the list
@@ -240,7 +242,7 @@ export const useNotifications = () => {
       setNotifications(allNotifications);
       setUnreadCount(allNotifications.filter(n => !n.is_read).length);
     setLoading(false);
-   }, [currentUserId, helperId]);
+   }, [currentUserId, helperId, realtimeOnly]);
 
   // Initialize
   useEffect(() => {
@@ -249,6 +251,7 @@ export const useNotifications = () => {
       const user = await getCachedUser();
       if (user) {
         setCurrentUserId(user.id);
+        if (realtimeOnly) return;
 
          // Check if user is a helper (ANY level 1-5, verified or not)
          const { data: helperData } = await supabase
@@ -263,7 +266,7 @@ export const useNotifications = () => {
       }
     };
     initUser();
-  }, []);
+  }, [realtimeOnly]);
 
   // Keep latest fetchNotifications in a ref so realtime effects don't re-subscribe
   const fetchNotificationsRef = useRef(fetchNotifications);
@@ -273,10 +276,10 @@ export const useNotifications = () => {
 
   // Fetch on user change or when helperId becomes available
   useEffect(() => {
-    if (currentUserId) {
+    if (!realtimeOnly && currentUserId) {
       fetchNotificationsRef.current();
     }
-  }, [currentUserId, helperId]);
+  }, [currentUserId, helperId, realtimeOnly]);
 
   // Subscribe to realtime notifications
   useEffect(() => {
