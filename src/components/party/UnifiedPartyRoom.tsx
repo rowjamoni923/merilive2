@@ -672,6 +672,25 @@ export function UnifiedPartyRoom({
     });
   }, [premiumMessages]);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
+  useEffect(() => {
+    const node = bottomControlsRef.current;
+    if (!node || typeof window === 'undefined') return;
+
+    const updateChatOffset = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height);
+      if (height > 0) setChatStackBottom(`calc(var(--kb-h, 0px) + ${height + 8}px)`);
+    };
+
+    updateChatOffset();
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateChatOffset) : null;
+    resizeObserver?.observe(node);
+    window.addEventListener('resize', updateChatOffset);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateChatOffset);
+    };
+  }, []);
   
   // Join notifications for stacking display
   const [joinNotifications, setJoinNotifications] = useState<JoinNotification[]>([]);
