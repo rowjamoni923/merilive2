@@ -315,7 +315,6 @@ export const useRealtimeQuerySync = () => {
 
         if (GIFT_CACHE_TABLES.has(table)) {
           clearGiftCache();
-          void prefetchGifts();
         }
 
         if (ENTRY_ASSET_CACHE_TABLES.has(table)) {
