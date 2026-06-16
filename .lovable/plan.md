@@ -1,76 +1,80 @@
-# Admin Panel → App Instant Update (Full Sweep)
+## 5 Critical Issues — Deep Audit & Fix Plan
 
-লক্ষ্য: admin panel-এ যেকোনো change করলে app-এ **<1s এর মধ্যে** auto-reflect হবে। কোনো manual refresh, app restart, বা lag নেই।
+প্রতিটা issue research-first rule অনুযায়ী আগে audit করব (industry standard + আমাদের current code gap), তারপর fix। এক issue এক pass — যাতে কোনোটা half-baked না থাকে।
 
-## Strategy
+---
 
-প্রতিটা admin-managed table-এ ৩টা layer:
-1. **DB layer** — `supabase_realtime` publication-এ add + `REPLICA IDENTITY FULL` set (যাতে UPDATE/DELETE event-এ পুরো row pay-load হয়)
-2. **Cache layer** — central `useRealtimeTable(table, queryKey)` hook যা React Query cache invalidate করে
-3. **Consumer layer** — প্রতিটা admin-content hook (`useGifts`, `useBanners`, `useEntryEffects`, etc.) ওই hook ব্যবহার করবে
+### Issue 1: App overall slowness (internet থাকা সত্ত্বেও)
 
-## Phase 1 — DB Migration (one big migration)
+**Suspected root causes to audit:**
+- Cold-start chunk storm (route prefetch firing too early on low-end Android)
+- Realtime channel duplication / leaked subscriptions
+- Excessive re-renders from CallProvider / AdminRealtime
+- Image cache SW missing or thrashing
+- LiveKit warmup blocking main thread
 
-৭০+ table publication-এ add + REPLICA IDENTITY FULL set। List:
+**Audit deliverable:** Chrome trace + bundle analysis + realtime channel count report. Then targeted fix (lazy chunks, debounce, memoization).
 
-**Visual assets (20):** gifts, gift_categories, banners, popup_event_banners, rating_banners, pk_reward_banners, entry_banners, entry_effects, entry_name_bars, vehicle_entrances, chat_bubbles, avatar_frames, role_frames, beauty_filters, ar_stickers, party_room_backgrounds, party_room_banners, onboarding_slides, app_event_themes, app_icon_registry, room_welcome_messages
+---
 
-**Pricing & economy (16):** coin_packages, recharge_campaigns, first_recharge_bonus, limited_time_offers, topup_payment_methods, payment_gateways, payment_methods, helper_diamond_packages, diamond_exchange_packages, currency_rates, consumption_return_config, profit_config, shop_items, subscription_plans, noble_cards, parcel_templates
+### Issue 2: Inbox photo not showing instantly
 
-**VIP & levels (10):** vip_tiers, vip_medals, vip_perks, vip_exclusive_items, feature_level_requirements, host_levels, helper_level_config, topup_helper_levels, trader_level_tiers (already in), agency_level_tiers (already in)
+**Suspected root causes:**
+- Optimistic UI missing — waits for Supabase Storage upload + signed URL before render
+- No local blob preview while uploading
+- Realtime INSERT event arriving before image URL is ready
+- `MediaUploader.tsx` / `UnifiedChatMessage.tsx` not using `URL.createObjectURL` for instant preview
 
-**Config (13):** app_version_settings, app_content, site_content, site_settings, branding_settings, daily_login_rewards_config, daily_tasks, ranking_rewards, leaderboard_reward_config, leaderboard_podium_frames, invitation_settings, invitation_reward_tiers, live_categories, live_moderation_settings, notification_templates, allowed_external_links, categories, channels
+**Fix pattern (industry std — WhatsApp/Telegram):** Show local blob immediately, upload in background, swap URL on success, show retry on fail.
 
-**Games & PK (10):** game_settings, game_configs, game_providers, game_server_settings, provider_games, pk_battle_assets, pk_competitions, pk_competition_rewards, lucky_gift_config, new_host_live_bonus_settings
+---
 
-**Content (8):** landing_page_sections, help_articles, support_categories, iptv_sources, news_sources, youtube_sources, movies, music
+### Issue 3: Call screen goes white during ringing (Android APK)
 
-Excluded: log/audit/transient tables, user-private data already covered।
+**Suspected root causes:**
+- `IncomingCallActivity` / call UI route lazy chunk not preloaded → WebView blanks while fetching
+- FLAG_SECURE + WebView transparency conflict
+- LiveKit prejoin renderer attached before DOM mounted
+- Cold-start capture redirecting before call route hydrates
 
-## Phase 2 — Central realtime hook
+**Audit:** logcat from APK + React route mount timing. Likely fix: preload `/call` chunk on FCM receive, keep solid background until first frame.
 
-`src/hooks/useAdminRealtimeSync.ts` — single hook যা table name নিয়ে subscribe করবে, React Query cache invalidate করবে। Already-subscribed table-এ duplicate বসাবে না (ref-counted)।
+---
 
-## Phase 3 — Wire consumer hooks
+### Issue 4: Agency Dashboard error on entry
 
-প্রতিটা admin-content hook scan + wire:
-- `useGifts`, `useGiftCategories`, `useBanners`, `useEntryEffects`, `useEntryBanners`, `useVehicleEntrances`, `useChatBubbles`, `useAvatarFrames`, `useRoleFrames`, `usePartyRoomBackgrounds`, `useCoinPackages`, `useRechargeCampaigns`, `useAppSettings`, `useAppVersionSettings`, `useVipTiers`, `useNobleCards`, `useShopItems`, `useGameSettings`, `useDailyTasks`, `useRankingRewards`, `useInvitationSettings`, `useLandingPageSections`, ইত্যাদি (যেগুলো অলরেডি wire করা সেগুলো skip)।
+**Need:** exact error message/stack. Will reproduce with owner test account (smdollarex923@gmail.com) in preview, capture console, then fix.
 
-## Phase 4 — Owner-account verification
+Common patterns: missing RLS grant, null agency_id, hook order violation, type mismatch in `AgencyDashboard.tsx`.
 
-`smdollarex923@gmail.com` দিয়ে preview login → admin-এ change → app-এ ১ সেকেন্ডের মধ্যে দেখা যাচ্ছে কিনা spot-check ১০টা critical flow:
-1. Gift add → gift sheet
-2. Banner toggle → home banner
-3. Vehicle entrance new → entrance shop
-4. Coin package price change → recharge page
-5. App version bump → force-update modal
-6. VIP tier perk edit → VIP page
-7. Daily task add → tasks page
-8. Live category rename → live tab
-9. Party background add → party bg picker
-10. Noble card edit → noble page
+---
 
-## Hard rules
+### Issue 5: Agency creation OTP not arriving (in-app notification + Gmail)
 
-- **UI/design কোনো change হবে না** (memory: WEB DESIGN SACRED)
-- কোনো polling বসাবে না (memory: NEVER polling)
-- English-only UI strings
-- প্রতিটা realtime subscription `useEffect` cleanup-সহ
-- কোনো `service_role_key` frontend-এ যাবে না
-- RLS policies untouched
+**Two channels broken:**
+- **In-app OTP notification:** FCM push payload missing or topic not subscribed for agency-otp event
+- **Gmail OTP:** Was "default" but Lovable Emails domain status unknown — need to check `email_domain--check_email_domain_status` first
 
-## Deliverable
+**Fix order:** verify email domain → fix edge function `send-agency-otp` (or equivalent) → fix in-app notification trigger → test end-to-end with owner account.
 
-- ১টা big migration (Phase 1)
-- ১টা new hook file (Phase 2)
-- ~30-50 hook file edit (Phase 3) — additive only, design untouched
-- Verification report (Phase 4)
+---
 
-## Out of scope
+## Execution Order (one focused pass per issue)
 
-- VPS work (deferred per memory)
-- New admin pages
-- Schema changes
-- Native Android changes (web React only — APK rebuild লাগবে না এই কাজে)
+1. **Issue 4 first** (agency dashboard error) — fastest, blocks agency testing for issues 5
+2. **Issue 5** (OTP) — needed for new agency signups
+3. **Issue 3** (call white screen) — APK-critical, needs rebuild anyway
+4. **Issue 2** (inbox photo) — UX critical
+5. **Issue 1** (overall slowness) — largest scope, needs profiling data, done last
 
-confirm করলে Phase 1 migration শুরু করব।
+**Each pass = research → audit current code → identify gap → fix → owner-account verify (where possible in Lovable preview) → mark APK-rebuild items honestly.**
+
+**Design SACRED** — only business logic/functionality touched, zero UI changes.
+
+---
+
+### What I need from you to start
+
+1. **Issue 4 exact error text** — open Agency Dashboard, screenshot or paste the red error. (Or I can reproduce with owner account — just confirm I should.)
+2. **Issue 3** — call white screen: happens on caller side or callee side? Both?
+3. Approve plan → I start with Issue 4 immediately.
