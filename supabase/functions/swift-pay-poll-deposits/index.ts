@@ -16,6 +16,7 @@ const SWIFT_PAY_BASE_URL = "https://instant-harmony-flow.lovable.app";
 const SWIFT_PAY_API_KEY = Deno.env.get("SWIFT_PAY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const MIN_POLL_GAP_MS = 25_000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,17 +56,20 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { userId, topupId } = await resolveScope(req);
+  const nowIso = new Date().toISOString();
+  const pollBeforeIso = new Date(Date.now() - MIN_POLL_GAP_MS).toISOString();
 
   // Build the candidate list
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, created_at")
+    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, created_at, last_polled_at")
     .in("status", ["pending", "paid"])
     .order("created_at", { ascending: true })
     .limit(50);
 
   if (topupId) query = query.eq("id", topupId);
   else if (userId) query = query.eq("user_id", userId);
+  else query = query.or(`last_polled_at.is.null,last_polled_at.lt.${pollBeforeIso}`);
 
   const { data: pending, error: pErr } = await query;
   if (pErr) return json({ error: pErr.message }, 500);
@@ -73,6 +77,7 @@ Deno.serve(async (req) => {
 
 
   const balanceCache = new Map<string, { balance: number; total_deposited: number }>();
+  const priorPaidUsdCache = new Map<string, number>();
   let credited = 0;
   const results: any[] = [];
 
@@ -89,7 +94,7 @@ Deno.serve(async (req) => {
         try { balBody = balText ? JSON.parse(balText) : null; } catch { balBody = null; }
         if (!balRes.ok || !balBody) {
           await admin.from("swift_pay_topups").update({
-            last_polled_at: new Date().toISOString(),
+            last_polled_at: nowIso,
           }).eq("id", row.id);
           results.push({ id: row.id, skipped: "balance_unavailable", status: balRes.status });
           continue;
@@ -104,19 +109,22 @@ Deno.serve(async (req) => {
       const expectedUsd = Number(row.price_usd);
       // Scope prior sum by external_user_id (uniquely identifies Swift Pay sub-account
       // — separate sub-account per user-diamonds vs per-helper-wallet).
-      const { data: prior } = await admin
-        .from("swift_pay_topups")
-        .select("price_usd, status")
-        .eq("external_user_id", row.external_user_id)
-        .neq("id", row.id);
-      const usedUsd = (prior ?? [])
-        .filter((p: any) => ["paid", "credited"].includes(p.status))
-        .reduce((s: number, p: any) => s + Number(p.price_usd || 0), 0);
+      let usedUsd = priorPaidUsdCache.get(row.external_user_id);
+      if (usedUsd === undefined) {
+        const { data: prior } = await admin
+          .from("swift_pay_topups")
+          .select("price_usd, status")
+          .eq("external_user_id", row.external_user_id)
+          .in("status", ["paid", "credited"]);
+        usedUsd = (prior ?? []).reduce((s: number, p: any) => s + Number(p.price_usd || 0), 0);
+        if (["paid", "credited"].includes(row.status)) usedUsd = Math.max(0, usedUsd - expectedUsd);
+        priorPaidUsdCache.set(row.external_user_id, usedUsd);
+      }
 
       const isPaid = bal.total_deposited >= usedUsd + expectedUsd - 0.01;
       if (!isPaid) {
         await admin.from("swift_pay_topups").update({
-          last_polled_at: new Date().toISOString(),
+          last_polled_at: nowIso,
         }).eq("id", row.id);
         results.push({ id: row.id, waiting: true, balance: bal.total_deposited, needed: usedUsd + expectedUsd });
         continue;
@@ -125,8 +133,8 @@ Deno.serve(async (req) => {
       // Mark paid first (idempotency anchor)
       await admin.from("swift_pay_topups").update({
         status: "paid",
-        paid_at: new Date().toISOString(),
-        last_polled_at: new Date().toISOString(),
+        paid_at: nowIso,
+        last_polled_at: nowIso,
       }).eq("id", row.id).eq("status", "pending");
 
       // Route credit by target_type
@@ -167,8 +175,9 @@ Deno.serve(async (req) => {
 
       await admin.from("swift_pay_topups").update({
         status: "credited",
-        credited_at: new Date().toISOString(),
+        credited_at: nowIso,
       }).eq("id", row.id);
+      priorPaidUsdCache.set(row.external_user_id, usedUsd + expectedUsd);
 
       // Pkg433: if the user opened a helper-upgrade flow and stashed intent on the
       // topup row, auto-grant the Trader Wallet right now — even if the user closed

@@ -110,6 +110,7 @@ const CORE_PAGE_IMPORTERS = [
 let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
+  if (Capacitor.isNativePlatform()) return;
   coreChunksPreloaded = true;
 
   // Stagger imports across idle frames so they NEVER compete with the
@@ -715,7 +716,7 @@ const App = () => {
       else clearTimeout(id);
     };
 
-    const routeIdleId = idle(preloadCoreRoutes, 1800);
+    const routeIdleId = Capacitor.isNativePlatform() ? 0 : idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner/gift/frame cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
@@ -723,7 +724,7 @@ const App = () => {
       // Pkg-NetFix: actively populate cross-origin image cache at idle so first
       // visit thumbnails/banners/gifts/frames appear instantly instead of streaming
       // tile-by-tile on 3G/4G. Function is no-op safe and bounded (≤500 URLs).
-      m.warmAppImageCache?.().catch(() => {});
+      if (!Capacitor.isNativePlatform()) m.warmAppImageCache?.().catch(() => {});
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 5000);
@@ -769,7 +770,7 @@ const App = () => {
     }, 6000);
 
     return () => {
-      cancelIdle(routeIdleId);
+      if (routeIdleId) cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);

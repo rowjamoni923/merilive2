@@ -15,16 +15,17 @@ import { clearGiftCache, prefetchGifts } from '@/hooks/useGiftPrefetch';
 import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { clearAllFrameCaches } from '@/utils/frameCache';
+import { clearSupabaseReadCaches } from '@/utils/supabaseFetchGuard';
 
 // Tables mapped to cache keys. The allowlist below decides which ones may use
 // Supabase Realtime; room/live/call/gift fanout stays on LiveKit/FCM + REST.
 const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
-  live_streams: [['index-hosts-v4'], ['live-stream'], ['active-streams']],
+  live_streams: [['active-streams']],
   conversations: [['conversations'], ['recent-chats']],
   messages: [['messages'], ['conversations']],
-  gift_transactions: [['user-profile'], ['gift-history'], ['host-rankings-v2'], ['gifter-rankings-v2'], ['game-rankings-v2']],
-  party_rooms: [['party-rooms'], ['index-hosts-v4']],
-  private_calls: [['private-calls'], ['call-history'], ['index-hosts-v4'], ['host-rankings-v2']],
+  gift_transactions: [['gift-history']],
+  party_rooms: [['party-rooms']],
+  private_calls: [['private-calls'], ['call-history']],
   notifications: [['notifications']],
   app_settings: [['app-settings'], ['global-settings']],
   agencies: [['agencies'], ['agency-details']],
@@ -185,9 +186,12 @@ const DEFAULT_DEBOUNCE_MS = 160;
 
 // Heavy home query protection: prevent refetch storms from high-frequency realtime updates
 const QUERY_KEY_MIN_INVALIDATE_MS: Record<string, number> = {
-  'index-hosts-v4': 800,
+  'index-hosts-v4': 5000,
   'live-stream': 3000,
   'active-streams': 3000,
+  'host-rankings-v2': 10000,
+  'gifter-rankings-v2': 10000,
+  'game-rankings-v2': 10000,
 };
 
 const GLOBAL_SETTINGS_TABLES = new Set([
@@ -207,11 +211,25 @@ const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_f
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
 const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v4'], ['host-countries']];
 
-// NOTE: Universal realtime flattens the payload to just `new` (or `old` for DELETE),
-// so we cannot reliably diff field-by-field. The home query is throttled to 800ms
-// in QUERY_KEY_MIN_INVALIDATE_MS, so always invalidating on any profile change is safe
-// and necessary for is_online / host_availability toggles to appear without refresh.
-const shouldInvalidateHomeForProfileChange = (_payload: any) => true;
+const HOME_PROFILE_FIELDS = new Set([
+  'is_online',
+  'host_availability',
+  'is_host',
+  'avatar_url',
+  'display_name',
+  'user_level',
+  'host_level',
+  'country_code',
+  'country_flag',
+]);
+
+const shouldInvalidateHomeForProfileChange = (payload: any) => {
+  if (!payload || typeof payload !== 'object') return false;
+  // Most profile updates are wallet/equipped-asset writes. Re-fetching the full
+  // home host list for those makes the whole app feel slow. Only home-visible
+  // profile fields should invalidate the heavy home queries.
+  return Object.keys(payload).some((key) => HOME_PROFILE_FIELDS.has(key));
+};
 
 // All tables we want to sync. Do NOT publication-filter here: that caused
 // admin/app-sync events for most tables to be silently ignored by this bridge.
@@ -230,6 +248,7 @@ export const useRealtimeQuerySync = () => {
     const lastInvalidatedAt = new Map<string, number>();
 
     const invalidateWithDebounce = (table: string, keys: string[][]) => {
+      clearSupabaseReadCaches();
       const existing = pendingInvalidations.get(table);
       if (existing) clearTimeout(existing);
 

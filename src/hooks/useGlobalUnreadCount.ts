@@ -34,6 +34,7 @@ const EMPTY_COUNTS: UnreadCounts = {
 };
 
 const MIN_FETCH_INTERVAL_MS = 800;
+const MAX_BADGE_CONVERSATIONS = 500;
 
 type CountsListener = (counts: UnreadCounts) => void;
 
@@ -120,7 +121,9 @@ const computeCounts = async (userId: string): Promise<UnreadCounts> => {
     supabase
       .from('conversations')
       .select('id, participant1_id, participant2_id')
-      .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`),
+      .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
+      .order('updated_at', { ascending: false })
+      .limit(MAX_BADGE_CONVERSATIONS),
 
     supabase.rpc('get_user_notices', { p_user_id: userId }),
 
@@ -286,7 +289,7 @@ export const useGlobalUnreadCount = () => {
         return;
       }
 
-      void fetchSharedCounts(true);
+      scheduleSharedCountsRefresh(450);
     };
 
     window.addEventListener('global-unread:refresh', handleRefresh);

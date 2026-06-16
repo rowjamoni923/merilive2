@@ -51,7 +51,7 @@ const DEBOUNCE_MS = 80;
 // Notifications: ZERO debounce for instant delivery.
 // Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 // Other high-frequency tables get a slight debounce to prevent render thrash
-const INSTANT_TABLES = new Set(['notifications', 'admin_notices', 'messages', 'group_messages', 'gift_transactions', 'live_streams', 'private_calls', 'party_rooms', 'seat_requests']);
+const INSTANT_TABLES = new Set(['notifications', 'admin_notices', 'messages', 'group_messages', 'private_calls', 'seat_requests']);
 const HIGH_FREQ_DEBOUNCE_MS = 120;
 const HIGH_FREQUENCY_TABLES = new Set<string>();
 
@@ -61,25 +61,15 @@ const HIGH_FREQUENCY_TABLES = new Set<string>();
 const BASE_MONITORED_TABLES: TableSubscription[] = [];
 
 const REALTIME_PUBLICATION_TABLES = new Set<string>([
-  // ===== Core realtime (chat / call / live / gifts / payments) =====
+  // ===== Core realtime (chat / call / payments) =====
   'notifications',
   'admin_notices',
   'admin_broadcast',
   'messages',
   'group_messages',
   'conversations',
-  'gift_transactions',
-  'live_streams',
   'private_calls',
-  'party_rooms',
   'seat_requests',
-  'pk_battles',
-  'pk_battle_gifts',
-  'pk_participants',
-  'stream_viewers',
-  'party_room_participants',
-  'party_room_messages',
-  'stream_chat',
   'user_active_sessions',
   'profiles',
   'followers',
@@ -89,8 +79,9 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'recharge_transactions',
   'helper_notifications',
   'helper_orders',
-  'live_game_bets',
-  'live_game_rounds',
+  // High-frequency room/live/gift/game fanout is intentionally NOT subscribed
+  // here. Those paths use LiveKit/FCM + screen-scoped snapshots; subscribing
+  // app-wide makes every client process other rooms' traffic and causes lag.
 
   // ===== Admin-managed visual assets (instant push on admin change) =====
   'gifts',

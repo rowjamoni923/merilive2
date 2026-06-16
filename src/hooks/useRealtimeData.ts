@@ -37,7 +37,7 @@ export function useRealtimeProfile(userId: string | null) {
     // Pkg361: direct Realtime on own profile row — instant coins / beans /
     // diamonds / level / host_status / avatar updates across every page.
     const channel = supabase
-      .channel(`rt-profile-${userId}-${Date.now()}`)
+      .channel(`rt-profile-${userId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
@@ -97,7 +97,7 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
 
     // Pkg361: direct Realtime on agency row + this week's performance row.
     const channel = supabase
-      .channel(`rt-agency-${agencyId}-${Date.now()}`)
+      .channel(`rt-agency-${agencyId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
@@ -152,7 +152,7 @@ export function useRealtimeLiveStream(streamId: string | null) {
     const fetchData = async () => {
       const [{ data: streamData }, { data: viewerData }, { data: giftData }] = await Promise.all([
         supabase.from('live_streams').select('*').eq('id', streamId).single(),
-        supabase.from('stream_viewers').select('*').eq('stream_id', streamId).is('left_at', null),
+        supabase.from('stream_viewers').select('user_id, joined_at').eq('stream_id', streamId).is('left_at', null).limit(500),
         supabase
           .from('gift_transactions')
           .select('*')
@@ -209,7 +209,7 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
     // refetch so the leaderboard reflects new beans/diamonds instantly.
     let debounce: ReturnType<typeof setTimeout> | null = null;
     const channel = supabase
-      .channel(`rt-rankings-${rankingType}-${periodType}-${Date.now()}`)
+      .channel(`rt-rankings-${rankingType}-${periodType}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agency_performance' },
@@ -292,7 +292,7 @@ export function useRealtimeEarnings(userId: string | null) {
     };
 
     const channel = supabase
-      .channel(`rt-earnings-${userId}-${Date.now()}`)
+      .channel(`rt-earnings-${userId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'gift_transactions', filter: `receiver_id=eq.${userId}` },

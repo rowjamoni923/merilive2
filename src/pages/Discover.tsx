@@ -257,7 +257,7 @@ const Discover = () => {
 
     // Universal realtime (debounced refetch for adds / participant changes).
     const unsubscribe = subscribeToTables(
-      `discover-rooms-${Date.now()}`,
+      'discover-rooms',
       ['party_rooms', 'party_room_participants'],
       () => debouncedFetch()
     );
@@ -265,7 +265,7 @@ const Discover = () => {
     // Instant-close: subscribe directly to party_rooms UPDATE so a host
     // ending their room removes the card immediately (no 1.5s debounce wait).
     const instantCloseChannel = supabase
-      .channel(`discover-instant-close-${Date.now()}`)
+      .channel('discover-instant-close')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'party_rooms' },
