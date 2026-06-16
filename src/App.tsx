@@ -84,65 +84,8 @@ const Recharge = lazy(lazyRetry(() => import("./pages/Recharge")));
 const Discover = lazy(lazyRetry(() => import("./pages/Discover")));
 const Live = lazy(lazyRetry(() => import("./pages/Live")));
 
-// =============================================
-// ROUTE PRELOADING — Download only next-likely page chunks after first paint.
-// The previous all-at-once prefetch caused a script storm on cold start.
-// =============================================
-const CORE_PAGE_IMPORTERS = [
-  () => import("./pages/Index"),
-  () => import("./pages/Profile"),
-  () => import("./pages/Discover"),
-  () => import("./pages/Chat"),
-  () => import("./pages/Live"),
-  () => import("./pages/Reels"),
-  () => import("./pages/Recharge"),
-  () => import("./pages/PartyRooms"),
-  () => import("./pages/GoLive"),
-  // 🚀 INSTANT-TAP: the three destinations users tap into most often
-  // from the home grid (live cards / party cards / profile cards). Without
-  // these in the idle-preload set, the very first tap pays a full chunk
-  // round-trip (200-500ms on slow networks) — felt as "lag" by the user.
-  () => import("./pages/LiveStream"),
-  () => import("./pages/PartyRoom"),
-  () => import("./pages/ProfileDetail"),
-];
-
-let coreChunksPreloaded = false;
-function preloadCoreRoutes() {
-  if (coreChunksPreloaded) return;
-  if (Capacitor.isNativePlatform()) return;
-  coreChunksPreloaded = true;
-
-  // Stagger imports across idle frames so they NEVER compete with the
-  // first paint or first user interaction. Each importer fires one
-  // requestIdleCallback later — browser keeps main thread free.
-  const fire = (i: number) => {
-    if (i >= CORE_PAGE_IMPORTERS.length) return;
-    CORE_PAGE_IMPORTERS[i]().catch(() => {});
-    const next = () => fire(i + 1);
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      (window as any).requestIdleCallback(next, { timeout: 2000 });
-    } else {
-      setTimeout(next, 150);
-    }
-  };
-  fire(0);
-}
-
-// Defer until AFTER first paint + idle window. Previous "ASAP at module
-// eval" fired 9 chunk requests before the user even saw the splash,
-// stealing bandwidth from Index.tsx and its CSS.
-if (typeof window !== 'undefined' && !isStandalonePublicLocation()) {
-  const schedule = () => {
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      (window as any).requestIdleCallback(preloadCoreRoutes, { timeout: 3000 });
-    } else {
-      setTimeout(preloadCoreRoutes, 1500);
-    }
-  };
-  if (document.readyState === 'complete') schedule();
-  else window.addEventListener('load', schedule, { once: true });
-}
+// Route chunks are loaded on demand. Previous global route preloading created
+// visible startup/network storms on mobile WebView and slow devices.
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
 const Level = lazy(lazyRetry(() => import("./pages/Level")));
@@ -716,8 +659,6 @@ const App = () => {
       else clearTimeout(id);
     };
 
-    const routeIdleId = Capacitor.isNativePlatform() ? 0 : idle(preloadCoreRoutes, 1800);
-
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner/gift/frame cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW();
@@ -770,7 +711,6 @@ const App = () => {
     }, 6000);
 
     return () => {
-      if (routeIdleId) cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
@@ -784,10 +724,6 @@ const App = () => {
   useEffect(() => {
     // Initialize error logging service (deferred)
     import('./services/ErrorLoggingService').then(m => m.default.initialize());
-
-    // 🚀 INSTANT-LOAD: warm up most-visited route chunks during browser idle time
-    // so the user's first navigation to any of them is 0ms.
-    import('./utils/idleRoutePrefetch').then(m => m.startIdleRoutePrefetch()).catch(() => {});
 
     // 🔐 ENCRYPTED STORAGE - Migrate plaintext sensitive data to encrypted
     if (secureStorage.isAvailable()) {
