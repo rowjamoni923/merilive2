@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
  * Suspense dead-window that used to drop the first call on cold start.
  */
 const GlobalNotificationsMount = () => {
-  useNotifications();
+  useNotifications({ realtimeOnly: true });
   return null;
 };
 
