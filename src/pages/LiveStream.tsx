@@ -284,6 +284,26 @@ const LiveStream = () => {
   const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
 
   useEffect(() => {
+    const node = bottomControlsRef.current;
+    if (!node || typeof window === 'undefined') return;
+
+    const updateChatOffset = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height);
+      if (height > 0) setChatStackBottom(`calc(var(--kb-h, 0px) + ${height + 8}px)`);
+    };
+
+    updateChatOffset();
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateChatOffset) : null;
+    resizeObserver?.observe(node);
+    window.addEventListener('resize', updateChatOffset);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateChatOffset);
+    };
+  }, []);
+
+  useEffect(() => {
     if (pendingGiftCostRef.current === 0) {
       userCoinsRef.current = userCoins;
     }
