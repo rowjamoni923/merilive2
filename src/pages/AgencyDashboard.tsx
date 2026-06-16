@@ -970,7 +970,7 @@ const AgencyDashboard = () => {
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
                       src={enhanceThumbnail(getProfileAvatar(ph.profile), { width: 96, quality: 82})}
-                      name={getProfileInitial(ph.profile)}
+                      name={getProfileName(ph.profile, "User")}
                       level={1}
                       size="xs"
                       showFrame={true}
@@ -1046,7 +1046,7 @@ const AgencyDashboard = () => {
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <AvatarWithFrame
                     src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
-                    name={getProfileInitial(parentAgency.owner_profile)}
+                    name={getProfileName(parentAgency.owner_profile, "Agency Owner")}
                     level={1}
                     size="xs"
                     showFrame={true}
@@ -1661,7 +1661,7 @@ const AgencyDashboard = () => {
                       </span>
                       <AvatarWithFrame
                         src={enhanceThumbnail(getProfileAvatar(host.profile), { width: 96, quality: 82})}
-                        name={getProfileInitial(host.profile)}
+                        name={getProfileName(host.profile, "Host")}
                         level={1}
                         size="sm"
                         showFrame={true}
@@ -1797,7 +1797,7 @@ const AgencyDashboard = () => {
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
                           src={enhanceThumbnail(getProfileAvatar(sa.profile), { width: 96, quality: 82})}
-                          name={getProfileInitial(sa.profile)}
+                          name={getProfileName(sa.profile, "Sub-Agent")}
                           level={1}
                           size="sm"
                           showFrame={true}
@@ -2144,7 +2144,7 @@ const AgencyDashboard = () => {
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
                     <AvatarWithFrame
                       src={enhanceThumbnail(getProfileAvatar(parentAgency.owner_profile), { width: 96, quality: 82})}
-                      name={getProfileInitial(parentAgency.owner_profile)}
+                      name={getProfileName(parentAgency.owner_profile, "Agency Owner")}
                       level={1}
                       size="sm"
                       showFrame={true}
