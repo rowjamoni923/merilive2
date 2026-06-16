@@ -131,10 +131,7 @@ import NewHostBonusCard from "@/components/live/NewHostBonusCard";
 import LiveTasksCard from "@/components/live/LiveTasksCard";
 // TikTok-style swipe between live streams
 import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
-// Room Welcome Banner - Admin configurable
-// Admin warning + host welcome are mounted via RoomTopNoticeStack at TRUE TOP
-// of the room (below the host header), NOT above the bottom action buttons.
-import RoomTopNoticeStack from "@/components/room/RoomTopNoticeStack";
+// Admin warning banner is rendered INSIDE RoomChatOverlay (top of chat column).
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
@@ -4055,20 +4052,10 @@ const LiveStream = () => {
         </div>
       </motion.div>
 
-      {/* True-top notice stack — Bigo/Chamet reference pattern.
-          Anchored ~64px below safe-area-top (just under the host header),
-          renders the admin rule banner sticky + host welcome (auto-collapses
-          after 6s). Was previously inside RoomChatOverlay above the bottom
-          action buttons — that violated the pro layout. */}
-      {!isUIHidden && (
-        <RoomTopNoticeStack
-          roomType="live"
-          hostName={hostInfo?.name}
-          hostLevel={hostInfo?.level}
-          roomTitle={streamTitle || streamData?.title}
-          topOffsetPx={64}
-        />
-      )}
+      {/* Admin rule banner is rendered INSIDE the chat overlay
+          (top of the chat column, above the bottom action buttons),
+          per Bigo/Chamet/Olamet reference. Do NOT mount it at the
+          true top of the screen — that crowded the host header. */}
 
       {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
       {false && (
@@ -4251,9 +4238,9 @@ const LiveStream = () => {
             maxMessages={60}
             maxHeight="45vh"
             roomType="live"
-            /* Admin rule + host welcome now rendered by <RoomTopNoticeStack />
-               at the TRUE TOP of the room, not inside the chat overlay. */
+            adminBannerRoomType="live"
           />
+
         </div>
       </motion.div>
 

@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// RoomWelcomeBanner no longer rendered here — see RoomTopNoticeStack.
+import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
 
@@ -488,13 +488,14 @@ export const RoomChatOverlay = memo(({
       "flex flex-col relative gap-1.5 w-[68vw] max-w-[520px] min-w-0",
       className
     )}>
-      {/* NOTE: Admin rule banner + host welcome moved OUT of this overlay.
-          They are rendered by the parent screen via <RoomTopNoticeStack />
-          at the TRUE TOP of the room, so they never crowd the bottom
-          action buttons (Bigo/Chamet/Olamet reference pattern). The
-          `adminBannerRoomType`, `showWelcome`, `hostName`, `hostLevel`,
-          and `roomTitle` props are still accepted for backward
-          compatibility but intentionally not rendered here. */}
+      {/* Admin rule warning — anchored to the TOP of the chat column,
+          just above the chat messages and above the bottom action buttons.
+          This is the Bigo/Chamet/Olamet reference position: the warning
+          lives inside the chat stream, NOT pinned to the very top of the
+          screen. */}
+      {adminBannerRoomType && (
+        <RoomWelcomeBanner roomType={adminBannerRoomType} />
+      )}
 
       {/* SCROLLABLE CHAT CONTAINER — messages + join notifications only.
           flex-col-reverse: newest at bottom, scroll up to see older.
