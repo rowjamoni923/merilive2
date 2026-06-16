@@ -607,11 +607,12 @@ export const useUniversalRealtime = (
   const callbackRef = useRef(onUpdate);
   callbackRef.current = onUpdate;
   const tableKey = useMemo(() => [...tables].sort().join(','), [tables]);
+  const subscriberIdRef = useRef(`hook-${Math.random().toString(36).slice(2, 11)}`);
 
   useEffect(() => {
     if (!enabled || tables.length === 0) return;
 
-    const subscriberId = `hook-${tableKey}`;
+    const subscriberId = subscriberIdRef.current;
 
     const unsubscribe = subscribeToTables(
       subscriberId,
