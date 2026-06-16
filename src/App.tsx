@@ -653,13 +653,11 @@ const App = () => {
       else clearTimeout(id);
     };
 
-    // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner/gift/frame cache so all app images load in ~0ms
+    // 🖼️ Register cache SW only. Do NOT boot-warm hundreds of remote images:
+    // it was competing with auth/realtime/call delivery on mobile data and made
+    // the whole app feel slow even when internet was good.
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW();
-      // Pkg-NetFix: actively populate cross-origin image cache at idle so first
-      // visit thumbnails/banners/gifts/frames appear instantly instead of streaming
-      // tile-by-tile on 3G/4G. Function is no-op safe and bounded (≤500 URLs).
-      if (!Capacitor.isNativePlatform()) m.warmAppImageCache?.().catch(() => {});
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 5000);
@@ -678,15 +676,10 @@ const App = () => {
     // Defer SVGA module prewarm to idle (JS module only — zero network bytes).
     const svgaIdleId = idle(() => prewarmSVGA(), 2000);
 
-    // Gift METADATA prefetch only (small JSON, no animation binaries).
-    // Binary animations are warmed on-demand: when GiftPanel opens (visible
-    // gifts only) and when a gift is actually sent/received. This matches
-    // TikTok/Bigo/Chamet behavior and is the single biggest egress saver.
-    const giftIdleId = idle(() => {
-      import('@/hooks/useGiftPrefetch')
-        .then(m => m.prefetchGifts())
-        .catch(() => {});
-    }, 2200);
+    // Gift metadata is fetched when a gift panel/room actually needs it.
+    // Boot-time gift queries + animation warmups were still stealing bandwidth
+    // from first-screen data and private-call delivery.
+    const giftIdleId = 0;
 
     // NOTE: Boot-time bulk binary prewarm (giftAnimationPrewarm / frameBulkPrewarm)
     // has been removed — it was causing 100+ MB egress per cold session for
@@ -707,7 +700,7 @@ const App = () => {
     return () => {
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
-      cancelIdle(giftIdleId);
+      if (giftIdleId) cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
     };
 
