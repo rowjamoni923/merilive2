@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getDetectedCountry } from "@/utils/countryDetectionCache";
 
 interface LocationData {
   country: string;
@@ -381,8 +382,8 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
                 
                 // Try server-side first
                 try {
-                  const { data: serverResult, error: serverError } = await supabase.functions.invoke('detect-country');
-                  if (!serverError && serverResult?.ip) {
+                  const serverResult = await getDetectedCountry();
+                  if (serverResult?.ip) {
                     ipData = { ip: serverResult.ip, city: serverResult.city, region: serverResult.region, countryCode: serverResult.countryCode };
                   }
                 } catch (e) {
@@ -492,8 +493,8 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
     let ipResult: { countryCode: string; countryName: string; city: string; region: string; ip: string } | null = null;
     
     try {
-      const { data: serverResult, error: serverError } = await supabase.functions.invoke('detect-country');
-      if (!serverError && serverResult?.countryCode) {
+      const serverResult = await getDetectedCountry();
+      if (serverResult?.countryCode) {
         ipResult = {
           countryCode: serverResult.countryCode,
           countryName: '',
