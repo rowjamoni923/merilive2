@@ -76,6 +76,24 @@ import { formatNumber as formatNum } from "@/utils/formatNumber";
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
 
+type AgencyProfileLike = {
+  display_name?: string | null;
+  agency_name?: string | null;
+  name?: string | null;
+  avatar_url?: string | null;
+  app_uid?: string | null;
+} | null | undefined;
+
+const getProfileName = (profile: AgencyProfileLike, fallback: string) => {
+  const name = profile?.display_name || profile?.agency_name || profile?.name;
+  return typeof name === "string" && name.trim().length > 0 ? name : fallback;
+};
+
+const getProfileInitial = (profile: AgencyProfileLike, fallback = "U") =>
+  getProfileName(profile, fallback).trim().charAt(0).toUpperCase() || fallback;
+
+const getProfileAvatar = (profile: AgencyProfileLike) => profile?.avatar_url || "";
+
 interface Agency {
   id: string;
   name: string;
