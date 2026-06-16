@@ -955,7 +955,7 @@ const AgencyDashboard = () => {
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
                   src={enhanceThumbnail(ph.profile?.avatar_url || '', { width: 96, quality: 82})}
-                  name={(ph.profile as any).display_name || (ph.profile as any).agency_name || (ph.profile as any).name || "U"}
+                  name={(ph.profile as any)?.display_name || (ph.profile as any)?.agency_name || (ph.profile as any)?.name || "U"}
                   level={1}
                   size="xs"
                   showFrame={true}
@@ -1031,7 +1031,7 @@ const AgencyDashboard = () => {
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <AvatarWithFrame
                   src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any).display_name || (parentAgency.owner_profile as any).agency_name || (parentAgency.owner_profile as any).name || "U"}
+                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
                   level={1}
                   size="xs"
                   showFrame={true}
@@ -1646,7 +1646,7 @@ const AgencyDashboard = () => {
                       </span>
                       <AvatarWithFrame
                   src={enhanceThumbnail(host.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(host.profile as any).display_name || (host.profile as any).agency_name || (host.profile as any).name || "U"}
+                  name={(host.profile as any)?.display_name || (host.profile as any)?.agency_name || (host.profile as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -1782,7 +1782,7 @@ const AgencyDashboard = () => {
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
                   src={enhanceThumbnail(sa.profile?.avatar_url || "", { width: 96, quality: 82})}
-                  name={(sa.profile as any).display_name || (sa.profile as any).agency_name || (sa.profile as any).name || "U"}
+                  name={(sa.profile as any)?.display_name || (sa.profile as any)?.agency_name || (sa.profile as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2129,7 +2129,7 @@ const AgencyDashboard = () => {
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
                     <AvatarWithFrame
                   src={enhanceThumbnail(parentAgency.owner_profile.avatar_url || "", { width: 96, quality: 82})}
-                  name={(parentAgency.owner_profile as any).display_name || (parentAgency.owner_profile as any).agency_name || (parentAgency.owner_profile as any).name || "U"}
+                  name={(parentAgency.owner_profile as any)?.display_name || (parentAgency.owner_profile as any)?.agency_name || (parentAgency.owner_profile as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
