@@ -101,14 +101,14 @@ export default function LiveStreamFeed() {
 
     fetchStreams();
     const unsubscribe = subscribeToTables(
-      `live-feed-${Date.now()}`,
+      'live-feed',
       ['live_streams', 'profiles'],
       () => fetchStreams()
     );
 
     // Instant-close: drop streams the moment the host marks them inactive.
     const instantCloseChannel = supabase
-      .channel(`live-feed-instant-close-${Date.now()}`)
+      .channel('live-feed-instant-close')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'live_streams' },
