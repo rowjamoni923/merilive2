@@ -204,6 +204,11 @@ const GLOBAL_SETTINGS_TABLES = new Set([
 const GIFT_CACHE_TABLES = new Set(['gifts', 'gift_categories']);
 const ENTRY_ASSET_CACHE_TABLES = new Set(['entry_banners', 'entry_name_bars', 'shop_items', 'level_privileges', 'vip_tiers']);
 const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_frames', 'shop_items', 'profiles']);
+const REST_CACHE_AFFECTED_TABLES = new Set([
+  'app_settings', 'banners', 'popup_event_banners', 'rating_banners', 'gifts', 'gift_categories',
+  'coin_packages', 'payment_methods', 'payment_gateways', 'topup_payment_methods', 'vip_tiers',
+  'avatar_frames', 'role_frames', 'entry_banners', 'entry_name_bars', 'vehicle_entrances',
+]);
 
 // Profiles handled separately
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
@@ -239,7 +244,6 @@ export const useRealtimeQuerySync = () => {
     const lastInvalidatedAt = new Map<string, number>();
 
     const invalidateWithDebounce = (table: string, keys: string[][]) => {
-      clearSupabaseReadCaches();
       const existing = pendingInvalidations.get(table);
       if (existing) clearTimeout(existing);
 
@@ -247,6 +251,7 @@ export const useRealtimeQuerySync = () => {
 
       const timer = setTimeout(() => {
         const now = Date.now();
+        if (REST_CACHE_AFFECTED_TABLES.has(table)) clearSupabaseReadCaches();
 
         keys.forEach((key) => {
           const rootKey = String(key[0] ?? '');
