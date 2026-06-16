@@ -76,7 +76,7 @@ import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
-const PARTY_ROOM_CHAT_STACK_BOTTOM =
+const PARTY_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
   'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 108px), 116px))';
 
 // Real-time viewer type for header display
@@ -630,6 +630,8 @@ export function UnifiedPartyRoom({
   const [showLayoutPanel, setShowLayoutPanel] = useState(false);
   const [showMusicPanel, setShowMusicPanel] = useState(false);
   const [showSeatSelectorPanel, setShowSeatSelectorPanel] = useState(false);
+  const bottomControlsRef = useRef<HTMLDivElement | null>(null);
+  const [chatStackBottom, setChatStackBottom] = useState(PARTY_ROOM_CHAT_STACK_BOTTOM_FALLBACK);
   const [activeSeats, setActiveSeats] = useState(initialActiveSeats || maxSeats);
   const [isMirrorMode, setIsMirrorMode] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
