@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
         let balBody: any = null;
         try { balBody = balText ? JSON.parse(balText) : null; } catch { balBody = null; }
         if (!balRes.ok || !balBody) {
+          touchPollIds.push(row.id);
           results.push({ id: row.id, skipped: "balance_unavailable", status: balRes.status });
           continue;
         }
@@ -121,6 +122,7 @@ Deno.serve(async (req) => {
 
       const isPaid = bal.total_deposited >= usedUsd + expectedUsd - 0.01;
       if (!isPaid) {
+        touchPollIds.push(row.id);
         results.push({ id: row.id, waiting: true, balance: bal.total_deposited, needed: usedUsd + expectedUsd });
         continue;
       }
