@@ -4055,20 +4055,10 @@ const LiveStream = () => {
         </div>
       </motion.div>
 
-      {/* True-top notice stack — Bigo/Chamet reference pattern.
-          Anchored ~64px below safe-area-top (just under the host header),
-          renders the admin rule banner sticky + host welcome (auto-collapses
-          after 6s). Was previously inside RoomChatOverlay above the bottom
-          action buttons — that violated the pro layout. */}
-      {!isUIHidden && (
-        <RoomTopNoticeStack
-          roomType="live"
-          hostName={hostInfo?.name}
-          hostLevel={hostInfo?.level}
-          roomTitle={streamTitle || streamData?.title}
-          topOffsetPx={64}
-        />
-      )}
+      {/* Admin rule banner is rendered INSIDE the chat overlay
+          (top of the chat column, above the bottom action buttons),
+          per Bigo/Chamet/Olamet reference. Do NOT mount it at the
+          true top of the screen — that crowded the host header. */}
 
       {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
       {false && (
