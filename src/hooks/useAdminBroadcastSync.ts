@@ -300,6 +300,7 @@ export function useAdminBroadcastSync() {
                     table: topic,
                     eventType,
                     payload: { version: row.version, row_id: row.last_row_id },
+                    source: 'admin-broadcast',
                   },
                 })
               );

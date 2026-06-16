@@ -377,7 +377,6 @@ const Index = () => {
   // Route-local safety net: keep the home host feed live for stream/call status changes.
   useEffect(() => {
     let invalidateTimer: ReturnType<typeof setTimeout> | null = null;
-    let profilesTimer: ReturnType<typeof setTimeout> | null = null;
 
     const queueHomeInvalidate = () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
@@ -395,36 +394,9 @@ const Index = () => {
       queueHomeInvalidate
     );
 
-    // Pkg423: Subscribe to `profiles` UPDATE — but ONLY invalidate when
-    // presence-relevant fields actually change (is_online / host_availability /
-    // is_in_call / host_status). Heartbeat-only last_seen_at writes are ignored,
-    // so the home feed never flickers on idle traffic, but real online/busy/live
-    // transitions surface instantly. 1500ms debounce batches bursts.
-    const unsubscribeProfiles = subscribeToTables(
-      `home-presence-${Date.now()}`,
-      ["profiles"],
-      (_t, event, payload: any) => {
-        if (event !== 'UPDATE') return;
-        const nw = payload?.new || {};
-        const od = payload?.old || {};
-        const changed =
-          nw.is_online !== od.is_online ||
-          nw.host_availability !== od.host_availability ||
-          nw.is_in_call !== od.is_in_call ||
-          nw.host_status !== od.host_status;
-        if (!changed) return;
-        if (profilesTimer) clearTimeout(profilesTimer);
-        profilesTimer = setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
-        }, 1500);
-      }
-    );
-
     return () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
-      if (profilesTimer) clearTimeout(profilesTimer);
       unsubscribe();
-      unsubscribeProfiles();
     };
   }, [queryClient]);
 

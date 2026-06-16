@@ -102,7 +102,7 @@ export default function LiveStreamFeed() {
     fetchStreams();
     const unsubscribe = subscribeToTables(
       'live-feed',
-      ['live_streams', 'profiles'],
+      ['live_streams'],
       () => fetchStreams()
     );
 

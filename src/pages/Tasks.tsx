@@ -158,7 +158,7 @@ const Tasks = () => {
     const subscriberId = `tasks-page-${Date.now()}`;
     const unsubscribe = subscribeToTables(
       subscriberId,
-      ['notifications', 'profiles'],
+      ['notifications'],
       () => {
         fetchTasks();
       }

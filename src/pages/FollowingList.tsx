@@ -171,22 +171,15 @@ const FollowingList = () => {
     cancelledRef.current = false;
     void fetchData();
 
-    // Pkg335: Honor Core rule — restore Supabase Realtime on `followers`+`profiles`
-    // (both in supabase_realtime publication). Drops prior visibility-refresh fallback.
-    const unsub = subscribeToTables('following-list', ['followers', 'profiles'], (table, _event, payload) => {
+    // Realtime is scoped to follower graph changes; profile edit pushes arrive
+    // through app-sync/admin-table-update instead of a broad profiles fanout.
+    const unsub = subscribeToTables('following-list', ['followers'], (table, _event, payload) => {
       const uid = userIdRef.current;
       if (!uid) return;
       if (table === 'followers') {
-        const row = (payload?.new ?? payload?.old) as { follower_id?: string; following_id?: string } | null;
+        const row = payload as { follower_id?: string; following_id?: string } | null;
         if (!row) return;
         if (row.follower_id === uid || row.following_id === uid) scheduleRefetch();
-      } else if (table === 'profiles') {
-        const row = (payload?.new ?? payload?.old) as { id?: string } | null;
-        if (!row?.id) return;
-        // Only refresh if it's a profile we are currently showing.
-        if (followingIds.has(row.id) || following.some(f => f.profile.id === row.id) || followers.some(f => f.profile.id === row.id)) {
-          scheduleRefetch();
-        }
       }
     });
 

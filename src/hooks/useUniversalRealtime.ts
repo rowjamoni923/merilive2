@@ -266,6 +266,10 @@ const ensureExternalSyncBridge = () => {
     const detail = (event as CustomEvent<any>).detail || {};
     // Pkg362: Avoid loop — do not re-notify if this event was dispatched by us below.
     if (detail.source === 'universal-realtime') return;
+    // Admin broadcast changes are handled by the dedicated admin-table-update
+    // listener. Replaying them here doubles cache invalidations and can cause
+    // visible app-wide refresh storms after admin saves.
+    if (detail.source === 'admin-broadcast') return;
 
     const table = typeof detail.topic === 'string' ? detail.topic : null;
     if (!table) return;
@@ -603,11 +607,12 @@ export const useUniversalRealtime = (
   const callbackRef = useRef(onUpdate);
   callbackRef.current = onUpdate;
   const tableKey = useMemo(() => [...tables].sort().join(','), [tables]);
+  const subscriberIdRef = useRef(`hook-${Math.random().toString(36).slice(2, 11)}`);
 
   useEffect(() => {
     if (!enabled || tables.length === 0) return;
 
-    const subscriberId = `hook-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const subscriberId = subscriberIdRef.current;
 
     const unsubscribe = subscribeToTables(
       subscriberId,

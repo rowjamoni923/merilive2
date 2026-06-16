@@ -10,7 +10,6 @@
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { clearGiftCache, prefetchGifts } from '@/hooks/useGiftPrefetch';
 import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
@@ -231,19 +230,12 @@ const shouldInvalidateHomeForProfileChange = (payload: any) => {
   return Object.keys(payload).some((key) => HOME_PROFILE_FIELDS.has(key));
 };
 
-// All tables we want to sync. Do NOT publication-filter here: that caused
-// admin/app-sync events for most tables to be silently ignored by this bridge.
-const SYNCED_TABLES = Array.from(
-  new Set([...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'])
-);
-
 export const useRealtimeQuerySync = () => {
   const queryClient = useQueryClient();
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
   useEffect(() => {
-    const subscriberId = `rq-sync-${Date.now()}`;
     const pendingInvalidations = new Map<string, NodeJS.Timeout>();
     const lastInvalidatedAt = new Map<string, number>();
 
@@ -278,10 +270,8 @@ export const useRealtimeQuerySync = () => {
       pendingInvalidations.set(table, timer);
     };
 
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      SYNCED_TABLES,
-      (table, _event, _payload) => {
+    const handleTableEvent = (table: string | null | undefined, _event: string | undefined, _payload: any) => {
+        if (!table) return;
         if (table === 'profiles') {
           invalidateWithDebounce(table, PROFILE_QUERY_KEYS);
 
@@ -335,14 +325,36 @@ export const useRealtimeQuerySync = () => {
         if (FRAME_CACHE_TABLES.has(table)) {
           clearAllFrameCaches();
         }
-      }
-    );
+    };
+
+    // App-wide cache sync must be event-based, not a huge unfiltered DB
+    // Realtime subscription. Screen-specific hooks own their own scoped
+    // subscriptions; this bridge only reacts to already-filtered user
+    // notifications/app-sync and the single admin_broadcast channel.
+    const onAppSync = (event: Event) => {
+      const detail = (event as CustomEvent<any>).detail || {};
+      handleTableEvent(detail.topic, detail.eventType, detail.payload || detail);
+    };
+    const onAdminUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<any>).detail || {};
+      handleTableEvent(detail.table, detail.eventType, detail.payload || detail);
+    };
+    const onNotificationsChange = (event: Event) => {
+      const detail = (event as CustomEvent<any>).detail || {};
+      handleTableEvent('notifications', detail.eventType, detail.notification || detail.payload || detail);
+    };
+
+    window.addEventListener('app-sync', onAppSync as EventListener);
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    window.addEventListener('notifications:change', onNotificationsChange as EventListener);
 
     return () => {
       // Clear all pending timers
       pendingInvalidations.forEach((timer) => clearTimeout(timer));
       pendingInvalidations.clear();
-      unsubscribe();
+      window.removeEventListener('app-sync', onAppSync as EventListener);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      window.removeEventListener('notifications:change', onNotificationsChange as EventListener);
     };
   }, []);
 };

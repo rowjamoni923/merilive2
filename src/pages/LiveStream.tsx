@@ -172,7 +172,7 @@ interface LiveEndStats {
   callEarnings: number;
 }
 
-const LIVE_ROOM_CHAT_STACK_BOTTOM =
+const LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
   'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 116px), 124px))';
 
 const LiveStream = () => {
@@ -254,6 +254,8 @@ const LiveStream = () => {
   const [message, setMessage] = useState("");
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const bottomControlsRef = useRef<HTMLDivElement | null>(null);
+  const [chatStackBottom, setChatStackBottom] = useState(LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK);
   // REAL native beauty native beauty integration
   const beauty = useBeautyState();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
@@ -280,6 +282,26 @@ const LiveStream = () => {
   
   // ✅ REAL-TIME ADMIN SETTINGS - Gift Commission from Admin Panel
   const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
+
+  useEffect(() => {
+    const node = bottomControlsRef.current;
+    if (!node || typeof window === 'undefined') return;
+
+    const updateChatOffset = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height);
+      if (height > 0) setChatStackBottom(`calc(var(--kb-h, 0px) + ${height + 8}px)`);
+    };
+
+    updateChatOffset();
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateChatOffset) : null;
+    resizeObserver?.observe(node);
+    window.addEventListener('resize', updateChatOffset);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateChatOffset);
+    };
+  }, []);
 
   useEffect(() => {
     if (pendingGiftCostRef.current === 0) {
@@ -422,15 +444,14 @@ const LiveStream = () => {
     completeNotification: completeBigoJoin 
   } = useBigoJoinNotifications();
   const [liveJoinNotifications, setLiveJoinNotifications] = useState<JoinNotification[]>([]);
+  const liveJoinExpiryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
-    if (liveJoinNotifications.length === 0) return;
-    const timer = window.setInterval(() => {
-      const now = Date.now();
-      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 6000));
-    }, 300);
-    return () => window.clearInterval(timer);
-  }, [liveJoinNotifications.length]);
+    return () => {
+      liveJoinExpiryTimersRef.current.forEach((timer) => clearTimeout(timer));
+      liveJoinExpiryTimersRef.current.clear();
+    };
+  }, []);
 
   const addLiveJoinNotification = useCallback((notification: Omit<JoinNotification, 'id' | 'timestamp'>) => {
     const now = Date.now();
@@ -443,6 +464,11 @@ const LiveStream = () => {
       const withoutRecentDuplicate = prev.filter((n) => n.userId !== notification.userId || now - n.timestamp > 1200);
       return [...withoutRecentDuplicate.slice(-5), next];
     });
+    const timer = setTimeout(() => {
+      liveJoinExpiryTimersRef.current.delete(next.id);
+      setLiveJoinNotifications((prev) => prev.filter((n) => n.id !== next.id));
+    }, 6000);
+    liveJoinExpiryTimersRef.current.set(next.id, timer);
   }, []);
   
   // Sound hook
@@ -1481,10 +1507,11 @@ const LiveStream = () => {
         
         // 2. Viewer count updates + welcome popup safety-net
         if (table === 'stream_viewers' && row.stream_id === id) {
-          supabase.from('stream_viewers').select('id', { count: 'exact', head: true }).eq('stream_id', id).is('left_at', null)
-            .then(({ count }) => {
-              if (count !== null) setViewerCount(count);
-            });
+          if (row.viewer_id) {
+            if (row.left_at) activeViewerIdsRef.current.delete(row.viewer_id);
+            else activeViewerIdsRef.current.add(row.viewer_id);
+            setViewerCount((prev) => activeViewerIdsHydratedRef.current ? activeViewerIdsRef.current.size : Math.max(prev, activeViewerIdsRef.current.size));
+          }
           // Pkg383 safety-net: if LiveKit viewer_joined doesn't arrive within 1.5s,
           // fire welcome popup + join chat + entry animation from Postgres INSERT
           // so other viewers always see the new viewer's entrance instantly.
@@ -4228,8 +4255,8 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none chat-composer-stable"
-        style={{ bottom: LIVE_ROOM_CHAT_STACK_BOTTOM, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
+        className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none overflow-hidden chat-composer-stable"
+        style={{ bottom: chatStackBottom, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
       >
         <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
           {/* UNIFIED Chat Overlay - ONE LINK for Live + Party */}
@@ -4257,6 +4284,7 @@ const LiveStream = () => {
 
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 
+        ref={bottomControlsRef}
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="absolute bottom-kb left-0 right-0 z-20 chat-composer-stable"

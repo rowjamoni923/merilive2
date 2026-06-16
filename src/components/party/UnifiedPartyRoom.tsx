@@ -76,7 +76,7 @@ import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
-const PARTY_ROOM_CHAT_STACK_BOTTOM =
+const PARTY_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
   'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 108px), 116px))';
 
 // Real-time viewer type for header display
@@ -630,6 +630,8 @@ export function UnifiedPartyRoom({
   const [showLayoutPanel, setShowLayoutPanel] = useState(false);
   const [showMusicPanel, setShowMusicPanel] = useState(false);
   const [showSeatSelectorPanel, setShowSeatSelectorPanel] = useState(false);
+  const bottomControlsRef = useRef<HTMLDivElement | null>(null);
+  const [chatStackBottom, setChatStackBottom] = useState(PARTY_ROOM_CHAT_STACK_BOTTOM_FALLBACK);
   const [activeSeats, setActiveSeats] = useState(initialActiveSeats || maxSeats);
   const [isMirrorMode, setIsMirrorMode] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
@@ -670,6 +672,25 @@ export function UnifiedPartyRoom({
     });
   }, [premiumMessages]);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
+  useEffect(() => {
+    const node = bottomControlsRef.current;
+    if (!node || typeof window === 'undefined') return;
+
+    const updateChatOffset = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height);
+      if (height > 0) setChatStackBottom(`calc(var(--kb-h, 0px) + ${height + 8}px)`);
+    };
+
+    updateChatOffset();
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateChatOffset) : null;
+    resizeObserver?.observe(node);
+    window.addEventListener('resize', updateChatOffset);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateChatOffset);
+    };
+  }, []);
   
   // Join notifications for stacking display
   const [joinNotifications, setJoinNotifications] = useState<JoinNotification[]>([]);
@@ -1700,7 +1721,7 @@ export function UnifiedPartyRoom({
         <div 
           className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
-            bottom: PARTY_ROOM_CHAT_STACK_BOTTOM,
+            bottom: chatStackBottom,
             maxHeight: (roomType === 'game' || showGameBoard) ? '20vh' : '34vh',
           }}
         >
@@ -1809,7 +1830,7 @@ export function UnifiedPartyRoom({
       </main>
 
       {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
-      <div className="absolute bottom-kb left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] chat-composer-stable">
+      <div ref={bottomControlsRef} className="absolute bottom-kb left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] chat-composer-stable">
         <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-3">
           {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 
