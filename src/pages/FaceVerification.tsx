@@ -760,7 +760,7 @@ const FaceVerification = () => {
   // 🚀 Enterprise Real-time Sync: listen to direct DB changes for instant UI updates.
   // When admin approves/rejects, the status updates here without manual refresh.
   useUniversalRealtime(
-    ['face_verification_submissions', 'host_applications', 'profiles'],
+    ['face_verification_submissions', 'host_applications'],
     (table, _event, payload) => {
       if (!userId) return;
       const rowUser = (payload as any)?.user_id ?? (payload as any)?.id;
