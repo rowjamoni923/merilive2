@@ -21,6 +21,10 @@ const ric = (cb: () => void, timeout = 4000) => {
 
 export function startIdleRoutePrefetch() {
   if (started || typeof window === 'undefined') return;
+  // Native Android already has touch/pointer prefetch for the exact next route.
+  // Bulk-importing dozens of chunks after launch competes with REST/realtime/media
+  // traffic and makes the whole WebView feel slow on real devices.
+  if ((window as any).Capacitor?.isNativePlatform?.()) return;
   started = true;
 
   const warmSequentially = (imports: Array<() => Promise<unknown>>, gap = 300) => {
