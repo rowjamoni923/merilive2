@@ -22,7 +22,10 @@ type Candidate = { id: string; level: number };
 
 const pickHighest = (items: Candidate[]): Candidate | null => {
   if (items.length === 0) return null;
-  return items.reduce((best, item) => (item.level > best.level ? item : best));
+  return items.reduce((best, item) => {
+    if (item.level !== best.level) return item.level > best.level ? item : best;
+    return item.id > best.id ? item : best;
+  });
 };
 
 const normalizePrivilegeSlot = (category: string | null | undefined) => {
@@ -43,12 +46,12 @@ const isActivePurchase = (purchase: any) => {
 
 // Per-user throttle so an autosync storm cannot hammer the DB.
 // We only re-run after MIN_INTERVAL_MS, regardless of how many app-sync events fire.
-const MIN_INTERVAL_MS = 60_000;
+const MIN_INTERVAL_MS = 5 * 60_000;
 const lastRunAt = new Map<string, number>();
 const inFlight = new Map<string, Promise<void>>();
 
 export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
-  useAppSyncEvent(['profiles', 'user_purchases'], () => {
+  useAppSyncEvent(['user_purchases'], () => {
     window.dispatchEvent(new CustomEvent('level-privilege-sync'));
   }, Boolean(userId));
 
