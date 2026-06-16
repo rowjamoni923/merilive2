@@ -252,12 +252,14 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
       lastUpdated: new Date(),
     };
 
-    console.log('[GlobalSettings] ✅ Settings loaded:', {
-      agencyLevels: settings.agencyLevelTiers.length,
-      helperLevels: settings.helperLevelConfig.length,
-      vipTiers: settings.vipTiers.length,
-      hostCommission: settings.hostCommissionPercent + '%',
-    });
+    if (import.meta.env.DEV) {
+      console.log('[GlobalSettings] ✅ Settings loaded:', {
+        agencyLevels: settings.agencyLevelTiers.length,
+        helperLevels: settings.helperLevelConfig.length,
+        vipTiers: settings.vipTiers.length,
+        hostCommission: settings.hostCommissionPercent + '%',
+      });
+    }
 
     // Update memory + localStorage cache
     settingsCache = settings;
