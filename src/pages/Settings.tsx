@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useDevAccess } from "@/hooks/useDevAccess";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
+import { getDetectedCountry } from "@/utils/countryDetectionCache";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -263,8 +264,7 @@ const Settings = () => {
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke("detect-country");
-        if (error) throw error;
+        const data = await getDetectedCountry();
         const countryCode = typeof data?.countryCode === "string" ? data.countryCode : null;
 
         if (countryCode) {
