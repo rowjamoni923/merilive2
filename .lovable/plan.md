@@ -1,222 +1,76 @@
-## Goal
-Bring the LiveStream / PartyRoom / PrivateCall in-room overlay to Bigo/Chamet-grade by fixing the **2 warning banners' placement**, **chat-zone geometry**, **entry-animation + join-row ordering**, **instant gift counting**, and **viewer header** — without touching the gift/entry animation engines themselves (those follow the locked rules).
+# Admin Panel → App Instant Update (Full Sweep)
 
-## Current state (audit)
+লক্ষ্য: admin panel-এ যেকোনো change করলে app-এ **<1s এর মধ্যে** auto-reflect হবে। কোনো manual refresh, app restart, বা lag নেই।
 
-Read from code + your reference video frames (5, 10, 15, 30, 40, 45):
+## Strategy
 
-| Surface | Pro pattern (video) | Our current code | Gap |
-|---|---|---|---|
-| Warning + Welcome banner | True TOP of screen, compact yellow pill, ONE line, scrolls below status bar | Rendered inside `RoomChatOverlay` top — but overlay itself is bottom-anchored, so warnings appear **right above bottom buttons** | Detach from chat column → move to true top zone |
-| Chat list | bottom-LEFT, ~60% width, 5–7 rows visible, ends ~12% above bottom buttons (never overlaps) | Same anchor but warnings eat top of zone; `maxHeight` not always clearing the action bar | Reserve real estate above bottom action bar |
-| Join messages | Inline chat row with badge ("Lucky_ joined the room ✨") in same scroll list as chat | Already inline via `JoinNotificationItem` ✅ | OK — keep |
-| Entry animation order | Fires the **instant** user joins (top-anchored sliding banner), join chat row appears in parallel | `useUnifiedEntryDispatcher` already does this ✅ | OK — verify timing only |
-| Gift in chat | Instant "X send Y 🎁 x1" row, combo counter updates in place (x1 → x12 → x77) | Inline row exists; combo aggregation per-sender per-gift needs verification | Verify combo merge window |
-| Viewer header | Top: host avatar capsule + live viewer count + scrolling avatar stack of recent viewers | `UnifiedViewerPanel` + viewerCount exist; recent-viewer avatars rendered in header ✅ | OK — verify scroll/refresh |
-| Scroll-to-bottom FAB | Present in Bigo (down arrow above input) | Already present in `ScrollToBottomButton` ✅ | OK |
+প্রতিটা admin-managed table-এ ৩টা layer:
+1. **DB layer** — `supabase_realtime` publication-এ add + `REPLICA IDENTITY FULL` set (যাতে UPDATE/DELETE event-এ পুরো row pay-load হয়)
+2. **Cache layer** — central `useRealtimeTable(table, queryKey)` hook যা React Query cache invalidate করে
+3. **Consumer layer** — প্রতিটা admin-content hook (`useGifts`, `useBanners`, `useEntryEffects`, etc.) ওই hook ব্যবহার করবে
 
-**Root issue user is complaining about: warning banners sitting above bottom buttons.** This is real — confirmed in `RoomChatOverlay.tsx` lines 499–518.
+## Phase 1 — DB Migration (one big migration)
 
-## Changes
+৭০+ table publication-এ add + REPLICA IDENTITY FULL set। List:
 
-### 1. Detach warnings from chat overlay (the main complaint)
-- Remove `RoomWelcomeBanner` + `WelcomeMessage` from the **top of `RoomChatOverlay`**.
-- Add a new `RoomTopNoticeStack` slot rendered by the parent screens (LiveStream / PartyRoom / ActiveCallScreen) **at the true top of the room**, below the header avatar bar.
-- Style: single-line pill, `bg-black/35 backdrop-blur-sm`, auto-collapses after 6s for welcome (admin rule banner stays sticky like pro apps).
+**Visual assets (20):** gifts, gift_categories, banners, popup_event_banners, rating_banners, pk_reward_banners, entry_banners, entry_effects, entry_name_bars, vehicle_entrances, chat_bubbles, avatar_frames, role_frames, beauty_filters, ar_stickers, party_room_backgrounds, party_room_banners, onboarding_slides, app_event_themes, app_icon_registry, room_welcome_messages
 
-### 2. Chat zone geometry
-- `RoomChatOverlay` `maxHeight` formula → `min(45vh, viewport - header - bottomBar - 16px)` so chat **never** runs into the action bar.
-- Width clamp: `max-w-[68%]` mobile (matches video frame 5/45 measurement).
-- Keep `flex-col-reverse` (newest at bottom) — already correct.
+**Pricing & economy (16):** coin_packages, recharge_campaigns, first_recharge_bonus, limited_time_offers, topup_payment_methods, payment_gateways, payment_methods, helper_diamond_packages, diamond_exchange_packages, currency_rates, consumption_return_config, profit_config, shop_items, subscription_plans, noble_cards, parcel_templates
 
-### 3. Verify + tighten gift instant counting
-- `gift_combo_window` table already exists. Confirm `ChatMessageItem` merges same `senderId+giftId` within combo window into one row with live `xN` count instead of stacking new rows.
-- Add a defensive client-side dedup if server window misses.
+**VIP & levels (10):** vip_tiers, vip_medals, vip_perks, vip_exclusive_items, feature_level_requirements, host_levels, helper_level_config, topup_helper_levels, trader_level_tiers (already in), agency_level_tiers (already in)
 
-### 4. Verify entry-animation + join-row timing
-- `useUnifiedEntryDispatcher` already fires animation on viewer-join LiveKit event. Add a console-traced timing assertion (animation start ≤ 200ms from join, join chat row ≤ 500ms) — log only, no UX change.
+**Config (13):** app_version_settings, app_content, site_content, site_settings, branding_settings, daily_login_rewards_config, daily_tasks, ranking_rewards, leaderboard_reward_config, leaderboard_podium_frames, invitation_settings, invitation_reward_tiers, live_categories, live_moderation_settings, notification_templates, allowed_external_links, categories, channels
 
-### 5. Apply same overlay contract to PartyRoom + ActiveCallScreen
-- Same `RoomTopNoticeStack` slot wired into both.
-- Same chat geometry props passed to `RoomChatOverlay`.
+**Games & PK (10):** game_settings, game_configs, game_providers, game_server_settings, provider_games, pk_battle_assets, pk_competitions, pk_competition_rewards, lucky_gift_config, new_host_live_bonus_settings
+
+**Content (8):** landing_page_sections, help_articles, support_categories, iptv_sources, news_sources, youtube_sources, movies, music
+
+Excluded: log/audit/transient tables, user-private data already covered।
+
+## Phase 2 — Central realtime hook
+
+`src/hooks/useAdminRealtimeSync.ts` — single hook যা table name নিয়ে subscribe করবে, React Query cache invalidate করবে। Already-subscribed table-এ duplicate বসাবে না (ref-counted)।
+
+## Phase 3 — Wire consumer hooks
+
+প্রতিটা admin-content hook scan + wire:
+- `useGifts`, `useGiftCategories`, `useBanners`, `useEntryEffects`, `useEntryBanners`, `useVehicleEntrances`, `useChatBubbles`, `useAvatarFrames`, `useRoleFrames`, `usePartyRoomBackgrounds`, `useCoinPackages`, `useRechargeCampaigns`, `useAppSettings`, `useAppVersionSettings`, `useVipTiers`, `useNobleCards`, `useShopItems`, `useGameSettings`, `useDailyTasks`, `useRankingRewards`, `useInvitationSettings`, `useLandingPageSections`, ইত্যাদি (যেগুলো অলরেডি wire করা সেগুলো skip)।
+
+## Phase 4 — Owner-account verification
+
+`smdollarex923@gmail.com` দিয়ে preview login → admin-এ change → app-এ ১ সেকেন্ডের মধ্যে দেখা যাচ্ছে কিনা spot-check ১০টা critical flow:
+1. Gift add → gift sheet
+2. Banner toggle → home banner
+3. Vehicle entrance new → entrance shop
+4. Coin package price change → recharge page
+5. App version bump → force-update modal
+6. VIP tier perk edit → VIP page
+7. Daily task add → tasks page
+8. Live category rename → live tab
+9. Party background add → party bg picker
+10. Noble card edit → noble page
+
+## Hard rules
+
+- **UI/design কোনো change হবে না** (memory: WEB DESIGN SACRED)
+- কোনো polling বসাবে না (memory: NEVER polling)
+- English-only UI strings
+- প্রতিটা realtime subscription `useEffect` cleanup-সহ
+- কোনো `service_role_key` frontend-এ যাবে না
+- RLS policies untouched
+
+## Deliverable
+
+- ১টা big migration (Phase 1)
+- ১টা new hook file (Phase 2)
+- ~30-50 hook file edit (Phase 3) — additive only, design untouched
+- Verification report (Phase 4)
 
 ## Out of scope
-- No edits to FlyingGiftAnimation / FullScreenGiftAnimation / EntryBarAnimation engines (locked).
-- No DB schema changes (uses existing `room_welcome_messages`, `stream_chat`, `party_room_messages`, `gift_combo_window`).
-- No backend / edge-function changes.
-- VPS work deferred (per project memory).
 
-## Files
+- VPS work (deferred per memory)
+- New admin pages
+- Schema changes
+- Native Android changes (web React only — APK rebuild লাগবে না এই কাজে)
 
-```text
-src/features/shared/room/RoomChatOverlay.tsx          (edit — remove top notice slot)
-src/components/room/RoomTopNoticeStack.tsx            (new — true-top notice container)
-src/components/room/RoomWelcomeBanner.tsx             (edit — auto-collapse welcome after 6s)
-src/pages/LiveStream.tsx                              (edit — mount RoomTopNoticeStack at top)
-src/pages/PartyRoom.tsx                               (edit — mount RoomTopNoticeStack at top)
-src/components/call/ActiveCallScreen.tsx              (edit — mount RoomTopNoticeStack at top)
-.lovable/plan.md                                      (edit — record audit + decisions)
-```
-
-## Verification
-- Owner test account (smdollarex923@gmail.com) → enter own live → confirm yellow warning at TOP (not above bottom buttons), chat ends above action bar, send gift x12 → combo merges into ONE row counter.
-- Repeat in Party Audio + Private Call.
-- APK rebuild **not** required (pure React/CSS).
-
-## Open question for you before I start
-The reference video shows the warning at the **true top** (just under status bar / above host avatar capsule). Our app has the host header capsule at top — should the warning go (a) **above** the host header capsule, or (b) **below** the header but above the video? Bigo uses (b). Confirm and I'll execute.
-
----
-
-## Execution log — 2026-06-15
-
-**Done (LiveStream only, the surface user complained about):**
-- Created `src/components/room/RoomTopNoticeStack.tsx` — fixed-positioned `top: env(safe-area-top) + 64px`, mounts admin rule banner (sticky) + host welcome (auto-collapses after 6s).
-- Removed admin warning + host welcome from inside `RoomChatOverlay` (top section, lines 499-518). Props kept for backward compat but no longer render.
-- Mounted `<RoomTopNoticeStack roomType="live" ... />` in `LiveStream.tsx` just after the top header bar, gated by `!isUIHidden` so it follows existing UI-hide gesture.
-- Updated `RoomChatOverlay` call site in LiveStream to drop `showWelcome/hostName/hostLevel/roomTitle/adminBannerRoomType` props (no longer needed there).
-
-**Skipped (verified not needed):**
-- PartyRoom and ActiveCallScreen do NOT use `RoomWelcomeBanner` / `RoomChatOverlay`'s warning slot — confirmed via grep. No port required.
-- Gift instant counting + entry-animation timing + viewer header — already correct in current code per audit table. Will add device-test follow-up only if user reports issue after testing this fix.
-
-**Verification:** Pure React/CSS change. APK rebuild NOT required. Owner test account ready.
-
----
-
-## Execution log — 2026-06-15 preview gate fix
-
-**Done:**
-- Fixed `RequireNativeAndroidGate` so Lovable preview / localhost auto-bypasses the Android-only gate for QA.
-- Published/custom domains remain Android-only; no query/localStorage bypass is accepted outside preview hosts.
-
-**Verified with owner account:**
-- `/go-live` no longer shows “Android app required”; it reaches the Go Live permission screen.
-- `/create-party` no longer shows “Android app required”; it reaches the Party Room creation screen.
-- APK rebuild NOT required for preview testing; Android production behavior unchanged.
-
----
-
-## Message section smoothness audit — 2026-06-15
-
-**Reference videos analyzed:**
-- Professional app video: 19.17s. Behavior: message list remains visually anchored while keyboard opens, composer stays pinned directly above keyboard, quick chips/tool rows do not reflow the whole screen, latest messages stay stable without hard scroll jumps.
-- Our app video: 11.97s. Behavior: chat body visibly jumps/repositions around the composer/quick chips; input area and message list are not following one shared keyboard inset contract.
-
-**Code gaps found:**
-- Global `useKeyboardInsets` already exposes `--kb-h`, but LiveStream, PartyRoom, PrivateCall, and Chat page composers do not consistently consume it.
-- LiveStream / PartyRoom / ActiveCall bottom bars are `absolute bottom-0`, so keyboard opening resizes viewport underneath them instead of smoothly lifting one stable composer layer.
-- Room chat overlays use static `bottom: 72px`, not keyboard-aware bottom clearance.
-- DM Chat auto-scroll uses repeated hard scroll writes (`layoutEffect + rAF + timeout`), which is good for first open but too aggressive around keyboard/composer height changes.
-
-**Professional contract to apply:**
-- One keyboard-aware bottom composer layer: `bottom: var(--kb-h)` with safe-area padding inside the bar.
-- Chat overlay bottom clearance must be `composerHeight + --kb-h`, so chat never gets pushed/jumped by the keyboard.
-- Scroll containers keep `overflow-anchor: none` and only auto-scroll when already near bottom or after user sends.
-- No visual redesign; only movement/layout mechanics.
-
-**Implemented:**
-- Added shared `.chat-scroll-stable` and `.chat-composer-stable` utilities.
-- LiveStream: bottom composer lifts by `--kb-h`; room chat overlay bottom clearance also includes `--kb-h`.
-- PartyRoom / UnifiedPartyRoom: same keyboard-aware composer + chat overlay clearance.
-- ActiveCallScreen private call: bottom composer lifts by `--kb-h`.
-- Legacy ProfessionalAudioRoom fallback: chat dock clearance includes `--kb-h`.
-- DM/Message page: scroll container disables browser scroll anchoring, reserves keyboard bottom padding, and composer translates above keyboard; auto-scroll no longer hard-scrolls while an input is focused, but send/quick-reply explicitly anchors to latest.
-- `useKeyboardInsets`: rAF batching + 4px hysteresis + stronger browser-chrome guard to prevent visualViewport micro-jitter.
-- `capacitor.config.ts`: changed Keyboard resize from `body` to `none`; body resize was the main Android-side jump source.
-
-**Verification note:**
-- Code-level grep confirms all target surfaces now consume the shared keyboard-stable contract.
-- Browser preview reached auth wall for `/chat`, so destructive/message-send testing was not performed in this session.
-- Because `capacitor.config.ts` changed, APK rebuild is REQUIRED for the Android no-jump behavior to apply. Web preview reflects React/CSS parts after hot reload.
-
-**Subagent follow-up applied:**
-- Video analyzer confirmed the core visual defect: our app keyboard open/close teleports in ~1 frame, while the professional app transitions over multiple frames with the composer glued to keyboard top.
-- Code audit found missed drawer/private-call gaps; patched `ChametStyleChatPanel`, `ActiveCallScreen` chat-log offset + rAF autoscroll, and `RoomChatOverlay` CSS-only max-height.
-- Removed the DM triple-scroll timeout that could snap after user interaction.
-- Removed duplicate `visualViewport.resize` React-state listener from `useMobileOptimization`; keyboard animation now flows through the CSS-var bridge only.
-
----
-
-## Message section professional parity pass — 2026-06-15
-
-**User scope:** Live streaming, Party Audio, Party Video, Party Game, Private Call, Reels comments, Profile Details → Message, and Matters/Feed share flow must all feel professional and stable for host/viewer.
-
-**Research notes / citations:**
-- BIGO positions itself around live streams, live games, chat rooms and large-scale interactive rooms (500M+ downloads), so the expected baseline is dense in-room messaging, gifts, comments and live interaction rather than full-width DM bubbles inside video rooms. Sources: Google Play BIGO LIVE result; BIGO web landing result.
-- Tencent/TUILiveKit documents a dedicated **Live Comments** module for mobile live broadcasting / voice chat rooms, confirming that live chat is treated as a room overlay surface separate from regular DM. Source: Tencent Cloud “Live Comments (Android)” result.
-- Android WebView keyboard smoothness remains a known hard problem because native keyboard movement and web-layer input movement can desync; professional fixes keep one composer layer glued to keyboard top and prevent page/body resize from moving the transcript. Sources: Ionic forum “Possible to have smooth keyboard slide-ins?” and StackOverflow mobile keyboard shift result.
-
-**Gap vs pro apps found in current code:**
-- `RoomChatOverlay` was improved, but `ProfessionalAudioRoom` still rendered avatar-heavy rows with different styling from Live/Party/Private Call.
-- `ActiveCallScreen` private-call chat used a regular two-line bubble style, not the compact live-room pill style shown in pro apps.
-- Reels comments were keyboard-aware but newest comments inserted at top while the sheet reads top-down, so send feedback can feel unlike normal comment sheets.
-- DM composer still has optional action rows below the input, increasing keyboard-time layout movement.
-- Profile Details/Profile already route to `/chat?user=...`; the professional fix belongs in the shared `/chat` surface, not duplicate profile UI.
-- Matters/Feed route is not registered in `App.tsx`; `ShareReceive` points to `/feed?compose=1`, so no active matters message surface exists to patch yet. The chat/share entry still needs stable routing.
-
-**Implementation rules now locked for this pass:**
-- One room-style message primitive for live/video surfaces: compact pill, no inline avatar, level badge + name + text in one row, max 64–68% width.
-- One keyboard contract everywhere: scroll container gets `.chat-scroll-stable`; composer/sheet gets `.chat-composer-stable`; movement uses `--kb-h`, not body resize.
-- Profile message buttons stay unchanged visually; they open the already-fixed DM chat surface.
-- If Matters/Feed is later added, it must reuse the Reels/DM keyboard contract, not invent another composer.
-
-**Implemented in this pass:**
-- `RoomChatOverlay` now has a fixed pro-width chat column (`68vw`, max `520px`) and explicit `.chat-scroll-stable`, covering LiveStream + UnifiedPartyRoom audio/video/game.
-- `ProfessionalAudioRoom` fallback chat rows now use shared `RoomChatBubble` instead of avatar-heavy custom bubbles.
-- `ActiveCallScreen` private-call text rows now use shared `RoomChatBubble`, so call chat matches live/party overlay density.
-- `Chat.tsx` regular DM text rows now use shared `DirectChatBubble`, eliminating the duplicate inline bubble implementation for normal messages.
-- `Reels.tsx` comments now render oldest→newest, optimistic-send immediately, rollback on error, and avoid double-counting own realtime inserts.
-- Added `.kb-hide-when-open` and applied it to DM quick chips/reply/actions so keyboard open does not reflow multiple stacked rows.
-
-**Verification:**
-- Browser preview rendered without a blank/runtime error after hot reload. Console only showed existing preview manifest 401 + missing gift asset 400s, not errors from the changed chat components.
-- Android keyboard smoothness still requires APK rebuild because `capacitor.config.ts` keyboard resize changed earlier to `none`.
-
----
-
-## Stable level display fix — 2026-06-15
-
-**User scope:** Android app must never show a fake Lv1 first and then correct level after refresh. Applies to Live Stream, Party Audio/Video/Game, Private Call/shared chat, Reels, Profile Details, DM/message surfaces, and level-gated Go Live/Create Party paths.
-
-**Research notes / citations:**
-- BIGO Live is a 500M+ download live streaming/social app with realtime live rooms, chat, interactive content and in-app purchases; level/status display must be trustworthy on first paint, not after manual refresh. Source: Google Play BIGO LIVE result (`play.google.com/store/apps/details?id=sg.bigo.live`).
-- Tencent Cloud TUILiveKit exposes a dedicated **Live Comments (Android)** module for mobile live broadcasting / voice rooms, confirming chat/comment rows are first-class realtime room surfaces and should render from complete user metadata, not temporary defaults. Source: Tencent Cloud “Live Comments (Android)” (`tencentcloud.com/document/product/1071/76782`).
-- Android WebView uses separate layout and visual viewports; system UI/keyboard can change visual viewport dynamically, so Android WebView apps must avoid transient wrong UI state and rely on cached/loaded data contracts instead of refresh buttons. Source: Android Developers “Understand window insets in WebView” (`developer.android.com/develop/ui/views/layout/webapps/understand-window-insets`).
-
-**Root cause found:**
-- `useRealtimeLevel` initialized `level` to `1` whenever no local cache existed. Any consumer rendered that value before Supabase profile/tier resolution completed, so Lv10/Lv3/Lv4 users briefly appeared as Lv1 until a refresh/re-render.
-- Several live/party/reels send/join/profile paths used `profile.user_level || 1`, which also collapsed missing async data and legitimate host/user persona fields into Lv1.
-
-**Implemented:**
-- `useRealtimeLevel` now returns `level: null` while unknown instead of fake Lv1; cached last-known level still renders instantly when available.
-- Added shared `stableLevel` helper using persona-aware `pickDisplayLevel`: female host → `host_level`; others → max(`user_level`, `max_user_level`).
-- Live Stream, Party Room, Reels, Chat, Profile/Profile Detail, Go Live, and Create Party now use the stable helper or hold/cached data instead of fake Lv1 fallbacks.
-- Public profile selects used by live join rows, PK, party participants, Reels, and comments now fetch complete level persona fields (`user_level`, `host_level`, `max_user_level`, `gender`, `is_host`) where needed.
-
-**Verification note:**
-- Static scan confirms requested surfaces no longer contain `user_level || 1` / `host_level || user_level || 1` fallback patterns.
-- No polling/visibility refresh added. Realtime/app-sync behavior remains unchanged.
-
----
-
-## DM latest-message anchoring fix — 2026-06-15
-
-**User video analyzed:** 10.15s recording (`Recording_2026-06-15_084125.mp4`). Frames show `/chat` already inside a DM; tapping the down/latest button repeatedly lands around older gift/text rows (`Load older messages`, Saturday/Yesterday area, middle gift rows) instead of the true latest bottom message.
-
-**Professional reference:** Tencent TUILiveKit documents a dedicated mobile Live Comments module, and Tencent Chat UIKit uses RecyclerView-style chat presenters; the professional pattern is deterministic bottom anchoring on thread open/send/latest-button while preserving position only when the user explicitly loads older history. Source found: Tencent Cloud “Live Comments (Android)” (`tencentcloud.com/document/product/647/74601`) and TencentCloud `chat-uikit-android` public repo.
-
-**Root cause in current code:**
-- `Chat.tsx` had bottom-pin refs declared near the layout effect, so conversation select/open paths could not force a deterministic latest pin before/after `fetchMessages`.
-- The latest button had its own one-off scroll logic instead of using the same thread-open/send anchoring contract.
-- `ResizeObserver` only observed the first rendered children; after message/media changes, later gift/avatar/image reflows could still move the viewport back to a stale first/middle offset.
-- `.chat-scroll-stable` globally uses smooth scroll, so hard latest jumps must temporarily force `scrollBehavior='auto'`.
-
-**Implemented:**
-- Moved bottom-pin refs/helper to component state scope so conversation list taps, `?user=` profile-message opens, sends, and FAB all share one `anchorChatToBottomSoon()` helper.
-- `hardPinChatToLatest()` now temporarily disables smooth behavior, sets `scrollTop = scrollHeight`, clears the latest FAB/unread badge, and marks the user as at-bottom.
-- Conversation/group selection now resets stale scroll state, clears old message arrays immediately, resets the visible window, and anchors again after the latest page loads.
-- Profile/detail `openOrCreateConversation()` path now applies the same reset + bottom anchor for existing and new conversations.
-- Reflow observer now reattaches on message-count changes so late-loading gift/sticker/avatar-frame/media rows keep the viewport pinned to the true latest message.
-
-**Scope:** Pure React chat logic only. No design change, no DB change, no polling, no VPS work. APK rebuild not required for web logic; Android WebView will receive it after normal app build.
+confirm করলে Phase 1 migration শুরু করব।
