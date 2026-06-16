@@ -618,8 +618,13 @@ class LiveKitPlugin : Plugin() {
         val h = (cssH * density).toInt().coerceAtLeast(1)
         val left = (cssX * density).toInt().coerceAtLeast(0)
         val top = (cssY * density).toInt().coerceAtLeast(0)
-        val lp = (view.layoutParams as? FrameLayout.LayoutParams)
-            ?: FrameLayout.LayoutParams(w, h)
+        // Reuse existing LP if it is a MarginLayoutParams subclass; otherwise
+        // create one matching the actual parent type to avoid ClassCastException.
+        val current = view.layoutParams as? ViewGroup.MarginLayoutParams
+        val lp: ViewGroup.MarginLayoutParams = current ?: when (view.parent) {
+            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(w, h)
+            else -> FrameLayout.LayoutParams(w, h)
+        }
         lp.width = w
         lp.height = h
         lp.leftMargin = left
