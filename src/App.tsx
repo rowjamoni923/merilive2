@@ -1182,8 +1182,14 @@ const App = () => {
       client={queryClient}
       persistOptions={{
         persister: queryPersister as any,
-        maxAge: 1000 * 60 * 60 * 24 * 7, // keep cache 7 days
-        buster: 'merilive-v1',
+        maxAge: 1000 * 60 * 60 * 6,
+        buster: 'merilive-v2-lean',
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query: any) => {
+            const root = String(query?.queryKey?.[0] ?? '');
+            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance'].includes(root);
+          },
+        },
       }}
     >
       {showSplash && (
