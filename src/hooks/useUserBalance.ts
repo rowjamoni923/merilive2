@@ -176,8 +176,6 @@ export function useUserBalancePrefetch(): void {
     // Balance sync is event-based here. A prior global `profiles` subscription was
     // unfiltered inside the shared channel, so every profile change in the app was
     // delivered to every client and made the whole app feel slow.
-    let directProfileUnsub: (() => void) | null = null;
-
     const handleAppSync = async (event: Event) => {
       const detail = (event as CustomEvent<{ topic?: string; payload?: Record<string, any> }>).detail;
       if (detail?.topic !== 'profiles') return;
@@ -212,7 +210,6 @@ export function useUserBalancePrefetch(): void {
       clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
       authListener.subscription.unsubscribe();
-      directProfileUnsub?.();
     };
   }, []);
 }
