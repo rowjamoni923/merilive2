@@ -389,7 +389,7 @@ const Shop = () => {
       unsubscribe = subscribeToTables(
         `shop-page-${Date.now()}`,
         ['shop_items', 'user_purchases'],
-        (table, _event, payload) => {
+        () => {
           fetchData();
         }
       );
