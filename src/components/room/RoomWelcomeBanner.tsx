@@ -13,6 +13,12 @@ interface RoomWelcomeBannerProps {
   className?: string;
 }
 
+const roomWelcomeCache = {
+  data: null as RoomWelcomeMessage[] | null,
+  fetchedAt: 0,
+};
+const ROOM_WELCOME_CACHE_MS = 5 * 60_000;
+
 export const RoomWelcomeBanner = memo(({ 
   roomType,
   className
@@ -26,12 +32,24 @@ export const RoomWelcomeBanner = memo(({
 
   const fetchWelcomeMessage = async () => {
     try {
-      const { data, error } = await supabase
-        .from('room_welcome_messages')
-        .select('id, message_text, is_active, created_at')
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
-        .limit(4);
+      const now = Date.now();
+      let data = roomWelcomeCache.data;
+      let error: any = null;
+
+      if (!data || now - roomWelcomeCache.fetchedAt > ROOM_WELCOME_CACHE_MS) {
+        const result = await supabase
+          .from('room_welcome_messages')
+          .select('id, message_text, is_active, created_at')
+          .eq('is_active', true)
+          .order('created_at', { ascending: true })
+          .limit(4);
+        data = (result.data || []) as RoomWelcomeMessage[];
+        error = result.error;
+        if (!error) {
+          roomWelcomeCache.data = data;
+          roomWelcomeCache.fetchedAt = now;
+        }
+      }
 
       if (error) {
         console.error('Error fetching welcome message:', error);
@@ -53,8 +71,8 @@ export const RoomWelcomeBanner = memo(({
   // rendered like a system chat message that blends into the chat column.
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
       className={cn(
         "flex items-start gap-1.5 py-1 px-2.5 rounded-xl w-fit max-w-[92%]",
         "bg-black/35 backdrop-blur-sm border border-white/10",
