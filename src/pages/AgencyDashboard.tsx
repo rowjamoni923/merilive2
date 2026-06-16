@@ -977,7 +977,7 @@ const AgencyDashboard = () => {
                       showAnimation={false}
                     />
                     <div>
-                      <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
+                      <p className="text-white text-sm font-medium">{getProfileName(ph.profile, "Unknown")}</p>
                       <p className="text-amber-300/60 text-[10px]">
                         {ph.profile?.app_uid ? `UID: ${ph.profile.app_uid}` : ''} • {new Date(ph.joined_at).toLocaleDateString()}
                       </p>
@@ -1669,7 +1669,7 @@ const AgencyDashboard = () => {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
+                          <p className="font-medium truncate">{getProfileName(host.profile, "Host")}</p>
                           {host.profile?.is_online && (
                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                           )}
@@ -1804,7 +1804,7 @@ const AgencyDashboard = () => {
                           showAnimation={false}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{sa.profile?.display_name || "Sub-Agent"}</p>
+                          <p className="font-medium truncate">{getProfileName(sa.profile, "Sub-Agent")}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span>Code: {sa.referral_code}</span>
                             <span>•</span>
