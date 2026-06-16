@@ -239,9 +239,24 @@ let killSwitchEnabled = true;
 // belt-and-suspenders to absorb retries / multiple bumps).
 const TOPIC_DEDUPE_MS = 2000; // Increased from 400ms to 2s to prevent flash-storms
 const lastTopicAt = new Map<string, number>();
+const KILL_SWITCH_CACHE_KEY = 'meri_rt_admin_broadcast_enabled_v1';
+const KILL_SWITCH_CACHE_MS = 60 * 60_000;
 
 async function checkKillSwitch(): Promise<boolean> {
   if (killSwitchChecked) return killSwitchEnabled;
+  try {
+    const cached = localStorage.getItem(KILL_SWITCH_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached) as { at: number; value: boolean };
+      if (Date.now() - Number(parsed.at || 0) < KILL_SWITCH_CACHE_MS) {
+        killSwitchEnabled = parsed.value !== false;
+        killSwitchChecked = true;
+        return killSwitchEnabled;
+      }
+    }
+  } catch {
+    // cache is best-effort
+  }
   try {
     const { data } = await supabase
       .from('app_settings')
@@ -253,6 +268,7 @@ async function checkKillSwitch(): Promise<boolean> {
   } catch {
     killSwitchEnabled = true; // fail-open: don't break sync if check fails
   }
+  try { localStorage.setItem(KILL_SWITCH_CACHE_KEY, JSON.stringify({ at: Date.now(), value: killSwitchEnabled })); } catch {}
   killSwitchChecked = true;
   return killSwitchEnabled;
 }
