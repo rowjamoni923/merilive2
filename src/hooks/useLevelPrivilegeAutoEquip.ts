@@ -71,11 +71,11 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
     let cancelled = false;
 
-    const syncLevelRewards = async () => {
+    const syncLevelRewards = async (opts: { force?: boolean } = {}) => {
       // Throttle: skip if we ran recently for this user.
       const now = Date.now();
       const last = Math.max(lastRunAt.get(userId) ?? 0, getPersistedLastRun(userId));
-      if (now - last < MIN_INTERVAL_MS) return;
+      if (!opts.force && now - last < MIN_INTERVAL_MS) return;
       // Coalesce concurrent invocations for the same user.
       const existing = inFlight.get(userId);
       if (existing) return existing;
@@ -323,13 +323,18 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
         debounceTimer = setTimeout(() => { void syncLevelRewards(); }, 3000);
     };
 
+    const scheduleForceSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => { void syncLevelRewards({ force: true }); }, 3000);
+    };
+
     const onAdminUpdate = (event: Event) => {
       const table = (event as CustomEvent<{ table?: string }>).detail?.table;
       if (table && ['user_role_frames', 'avatar_frames', 'level_privileges', 'entry_name_bars', 'entry_banners', 'vehicle_entrances'].includes(table)) {
         scheduleSync();
       }
     };
-    const onAppSync = () => scheduleSync();
+    const onAppSync = () => scheduleForceSync();
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     window.addEventListener('level-privilege-sync', onAppSync as EventListener);
 
