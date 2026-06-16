@@ -136,22 +136,40 @@ serve(async (req: Request): Promise<Response> => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const maxRetries = parseInt(await loadSetting(admin, "call_delivery_max_retries", "3"), 10) || 3;
-    const gapMs = parseInt(await loadSetting(admin, "call_delivery_retry_gap_ms", "2000"), 10) || 2000;
-    const ringTimeoutSec = parseInt(await loadSetting(admin, "call_ring_timeout_seconds", "30"), 10) || 30;
+    // ⚡ INSTANT-CALL OPTIMIZATION: every read below is independent of the
+    // others, so issue them ALL in parallel + kick off the FCM OAuth token
+    // exchange at the same time. Previously these were 6 sequential awaits
+    // (~600-1500ms cumulative); now wall-clock = slowest single round trip.
+    const [
+      maxRetriesRaw,
+      gapMsRaw,
+      ringTimeoutRaw,
+      profileRes,
+      callRowRes,
+      accessTokenEarly,
+    ] = await Promise.all([
+      loadSetting(admin, "call_delivery_max_retries", "3"),
+      loadSetting(admin, "call_delivery_retry_gap_ms", "2000"),
+      loadSetting(admin, "call_ring_timeout_seconds", "30"),
+      admin.from("profiles").select("display_name,avatar_url,user_level").eq("id", callerId).maybeSingle(),
+      admin.from("private_calls").select("id,status,caller_id,host_id").eq("id", callId).maybeSingle(),
+      serviceAccountJson
+        ? getAccessToken(JSON.parse(serviceAccountJson) as ServiceAccountCredentials).catch((e) => {
+            console.warn("[call-deliver] OAuth token pre-fetch failed:", e);
+            return null as string | null;
+          })
+        : Promise.resolve(null as string | null),
+    ]);
+
+    const maxRetries = parseInt(maxRetriesRaw, 10) || 3;
+    const gapMs = parseInt(gapMsRaw, 10) || 2000;
+    const ringTimeoutSec = parseInt(ringTimeoutRaw, 10) || 30;
 
     let callerName = body.callerName?.trim() || "";
     let callerAvatar = body.callerAvatar?.trim() || "";
     let callerLevel = 1;
-    // Pkg84-audit: always fetch caller profile (service-role bypasses RLS) so we
-    // get the real user_level for the IncomingCallModal badge/styling. Use
-    // client-supplied name/avatar when present, else fall back to profile row.
     {
-      const { data: prof } = await admin
-        .from("profiles")
-        .select("display_name,avatar_url,user_level")
-        .eq("id", callerId)
-        .maybeSingle();
+      const prof = profileRes.data;
       if (prof) {
         if (!callerName && prof.display_name) callerName = String(prof.display_name);
         if (!callerAvatar && prof.avatar_url) callerAvatar = String(prof.avatar_url ?? "");
@@ -163,12 +181,8 @@ serve(async (req: Request): Promise<Response> => {
 
     const callType = (body.callType || "video").toLowerCase();
 
-    const { data: callRow, error: callErr } = await admin
-      .from("private_calls")
-      .select("id,status,caller_id,host_id")
-      .eq("id", callId)
-      .maybeSingle();
-
+    const callRow = callRowRes.data;
+    const callErr = callRowRes.error;
     if (callErr || !callRow) {
       return new Response(JSON.stringify({ error: "call_not_found" }), {
         status: 404,
@@ -190,6 +204,7 @@ serve(async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     let lastResults: unknown[] = [];
     let anyFcmOk = false;
