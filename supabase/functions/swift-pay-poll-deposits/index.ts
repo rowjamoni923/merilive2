@@ -16,7 +16,7 @@ const SWIFT_PAY_BASE_URL = "https://instant-harmony-flow.lovable.app";
 const SWIFT_PAY_API_KEY = Deno.env.get("SWIFT_PAY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const MIN_POLL_GAP_MS = 25_000;
+const MIN_POLL_GAP_MS = 120_000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
 
   const balanceCache = new Map<string, { balance: number; total_deposited: number }>();
   const priorPaidUsdCache = new Map<string, number>();
+  const touchPollIds: string[] = [];
   let credited = 0;
   const results: any[] = [];
 
@@ -93,9 +94,7 @@ Deno.serve(async (req) => {
         let balBody: any = null;
         try { balBody = balText ? JSON.parse(balText) : null; } catch { balBody = null; }
         if (!balRes.ok || !balBody) {
-          await admin.from("swift_pay_topups").update({
-            last_polled_at: nowIso,
-          }).eq("id", row.id);
+          touchPollIds.push(row.id);
           results.push({ id: row.id, skipped: "balance_unavailable", status: balRes.status });
           continue;
         }
@@ -123,9 +122,7 @@ Deno.serve(async (req) => {
 
       const isPaid = bal.total_deposited >= usedUsd + expectedUsd - 0.01;
       if (!isPaid) {
-        await admin.from("swift_pay_topups").update({
-          last_polled_at: nowIso,
-        }).eq("id", row.id);
+        touchPollIds.push(row.id);
         results.push({ id: row.id, waiting: true, balance: bal.total_deposited, needed: usedUsd + expectedUsd });
         continue;
       }
@@ -203,6 +200,10 @@ Deno.serve(async (req) => {
       results.push({ id: row.id, error: (e as Error).message });
     }
 
+  }
+
+  if (touchPollIds.length > 0) {
+    await admin.from("swift_pay_topups").update({ last_polled_at: nowIso }).in("id", touchPollIds);
   }
 
   return json({ checked: pending.length, credited, results });
