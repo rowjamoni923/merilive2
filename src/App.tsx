@@ -402,14 +402,9 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
   </div>
 ));
 
-// Pkg51: INSTANT navigation policy.
-// We deliberately render NOTHING during route chunk loads. Combined with the
-// CORE_PAGE_IMPORTERS preload that runs on first mount, every navigation to a
-// preloaded route resolves synchronously — no fallback flash, no spinner, no
-// blank-then-spinner sequence. For routes that haven't been preloaded yet,
-// we render a transparent placeholder so the previous screen visually
-// remains until the new one is ready (no jarring full-screen loader).
-const RouteSuspenseFallback = memo(() => null);
+// Route chunks now load on demand; keep a real themed fallback so slow networks
+// never show a white/blank screen while a lazy page chunk downloads.
+const RouteSuspenseFallback = memo(() => <PageLoader message="Loading..." />);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
