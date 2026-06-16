@@ -146,7 +146,7 @@ const getRouteKey = (url: string) => {
   }
 };
 
-const clearReadCaches = () => {
+export const clearSupabaseReadCaches = () => {
   getResponseCache.clear();
   inFlightGetRequests.clear();
 };
@@ -399,7 +399,7 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
               }
 
     if (!isReadRequest && response.ok) {
-                clearReadCaches();
+                clearSupabaseReadCaches();
                 if (mutationTable) {
                   lockAdminRealtimeTables([mutationTable]);
                 }
