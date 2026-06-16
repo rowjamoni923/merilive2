@@ -44,11 +44,22 @@ const isActivePurchase = (purchase: any) => {
   return !purchase?.expires_at || new Date(purchase.expires_at).getTime() > Date.now();
 };
 
-// Per-user throttle so an autosync storm cannot hammer the DB.
-// We only re-run after MIN_INTERVAL_MS, regardless of how many app-sync events fire.
-const MIN_INTERVAL_MS = 5 * 60_000;
+// Per-user throttle so an autosync storm cannot hammer the DB. This hook was
+// one of the highest-volume write sources in production, so boot-time sync is
+// now daily-local at most and realtime/admin bursts are coalesced.
+const MIN_INTERVAL_MS = 24 * 60 * 60_000;
 const lastRunAt = new Map<string, number>();
 const inFlight = new Map<string, Promise<void>>();
+
+const getPersistedLastRun = (userId: string) => {
+  try { return Number(localStorage.getItem(`meri_level_auto_equip_last_${userId}`) || 0); }
+  catch { return 0; }
+};
+
+const setPersistedLastRun = (userId: string) => {
+  try { localStorage.setItem(`meri_level_auto_equip_last_${userId}`, String(Date.now())); }
+  catch { /* ignore */ }
+};
 
 export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
   useAppSyncEvent(['user_purchases'], () => {
@@ -60,11 +71,11 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
     let cancelled = false;
 
-    const syncLevelRewards = async () => {
+    const syncLevelRewards = async (opts: { force?: boolean } = {}) => {
       // Throttle: skip if we ran recently for this user.
       const now = Date.now();
-      const last = lastRunAt.get(userId) ?? 0;
-      if (now - last < MIN_INTERVAL_MS) return;
+      const last = Math.max(lastRunAt.get(userId) ?? 0, getPersistedLastRun(userId));
+      if (!opts.force && now - last < MIN_INTERVAL_MS) return;
       // Coalesce concurrent invocations for the same user.
       const existing = inFlight.get(userId);
       if (existing) return existing;
@@ -283,12 +294,15 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         if (Object.keys(updateData).length > 0) {
           const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
+          if (!error) setPersistedLastRun(userId);
           if (!error && updateData.equipped_frame_id) {
             clearFrameCache();
           }
           if (!error && (updateData.equipped_entrance_id || updateData.equipped_entry_name_bar_id || updateData.equipped_vehicle_id)) {
             clearEntryAnimationCache();
           }
+        } else {
+          setPersistedLastRun(userId);
         }
         } catch (error) {
           console.error('[useLevelPrivilegeAutoEquip] sync failed:', error);
@@ -306,7 +320,12 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const scheduleSync = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => { void syncLevelRewards(); }, 1500);
+        debounceTimer = setTimeout(() => { void syncLevelRewards(); }, 3000);
+    };
+
+    const scheduleForceSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => { void syncLevelRewards({ force: true }); }, 3000);
     };
 
     const onAdminUpdate = (event: Event) => {
@@ -315,7 +334,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
         scheduleSync();
       }
     };
-    const onAppSync = () => scheduleSync();
+    const onAppSync = () => scheduleForceSync();
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     window.addEventListener('level-privilege-sync', onAppSync as EventListener);
 

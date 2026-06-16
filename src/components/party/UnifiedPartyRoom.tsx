@@ -77,7 +77,7 @@ import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 const PARTY_ROOM_CHAT_STACK_BOTTOM =
-  'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 88px), 96px))';
+  'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 108px), 116px))';
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
@@ -1701,7 +1701,7 @@ export function UnifiedPartyRoom({
           className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
             bottom: PARTY_ROOM_CHAT_STACK_BOTTOM,
-            maxHeight: (roomType === 'game' || showGameBoard) ? '22vh' : '42vh',
+            maxHeight: (roomType === 'game' || showGameBoard) ? '20vh' : '34vh',
           }}
         >
           <div className="px-3 pointer-events-auto">
@@ -1712,7 +1712,7 @@ export function UnifiedPartyRoom({
               messages={premiumMessages}
               joinNotifications={joinNotifications}
               maxMessages={(roomType === 'game' || showGameBoard) ? 3 : 20}
-              maxHeight={(roomType === 'game' || showGameBoard) ? "18vh" : "35vh"}
+              maxHeight={(roomType === 'game' || showGameBoard) ? "16vh" : "30vh"}
               showWelcome={true}
               hostName={hostInfo?.displayName}
               hostLevel={hostInfo?.level}

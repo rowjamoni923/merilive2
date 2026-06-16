@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -602,6 +602,7 @@ export const useUniversalRealtime = (
 ) => {
   const callbackRef = useRef(onUpdate);
   callbackRef.current = onUpdate;
+  const tableKey = useMemo(() => [...tables].sort().join(','), [tables]);
 
   useEffect(() => {
     if (!enabled || tables.length === 0) return;
@@ -615,7 +616,7 @@ export const useUniversalRealtime = (
     );
 
     return unsubscribe;
-  }, [enabled, JSON.stringify(tables)]);
+  }, [enabled, tableKey]);
 
   return { isConnected };
 };
