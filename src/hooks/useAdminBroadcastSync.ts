@@ -18,7 +18,6 @@
 
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 
 type BroadcastRow = {
   topic: string;
@@ -259,10 +258,6 @@ async function checkKillSwitch(): Promise<boolean> {
 }
 
 export function useAdminBroadcastSync() {
-  const qc = useQueryClient();
-  const qcRef = useRef(qc);
-  qcRef.current = qc;
-
   useEffect(() => {
     mountCount += 1;
     let cancelled = false;
@@ -306,14 +301,6 @@ export function useAdminBroadcastSync() {
               );
             } catch {}
 
-            const keys = TOPIC_QUERY_KEYS[topic];
-            if (keys?.length) {
-              for (const key of keys) {
-                try {
-                  qcRef.current.invalidateQueries({ queryKey: key, refetchType: 'active' });
-                } catch {}
-              }
-            }
           }
         )
         .subscribe((status) => {
