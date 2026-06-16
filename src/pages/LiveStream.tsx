@@ -172,6 +172,9 @@ interface LiveEndStats {
   callEarnings: number;
 }
 
+const LIVE_ROOM_CHAT_STACK_BOTTOM =
+  'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 96px), 104px))';
+
 const LiveStream = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -4226,7 +4229,7 @@ const LiveStream = () => {
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none chat-composer-stable"
-        style={{ bottom: 'calc(var(--kb-h, 0px) + 72px)', maxHeight: '40vh', pointerEvents: isUIHidden ? 'none' : undefined }}
+        style={{ bottom: LIVE_ROOM_CHAT_STACK_BOTTOM, maxHeight: '40vh', pointerEvents: isUIHidden ? 'none' : undefined }}
       >
         <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
           {/* UNIFIED Chat Overlay - ONE LINK for Live + Party */}
