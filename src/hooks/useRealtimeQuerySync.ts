@@ -236,7 +236,6 @@ export const useRealtimeQuerySync = () => {
   queryClientRef.current = queryClient;
 
   useEffect(() => {
-    const subscriberId = `rq-sync-${Date.now()}`;
     const pendingInvalidations = new Map<string, NodeJS.Timeout>();
     const lastInvalidatedAt = new Map<string, number>();
 
