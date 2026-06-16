@@ -172,7 +172,7 @@ interface LiveEndStats {
   callEarnings: number;
 }
 
-const LIVE_ROOM_CHAT_STACK_BOTTOM =
+const LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
   'calc(var(--kb-h, 0px) + max(calc(env(safe-area-inset-bottom, 0px) + 116px), 124px))';
 
 const LiveStream = () => {
@@ -254,6 +254,8 @@ const LiveStream = () => {
   const [message, setMessage] = useState("");
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const bottomControlsRef = useRef<HTMLDivElement | null>(null);
+  const [chatStackBottom, setChatStackBottom] = useState(LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK);
   // REAL native beauty native beauty integration
   const beauty = useBeautyState();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
