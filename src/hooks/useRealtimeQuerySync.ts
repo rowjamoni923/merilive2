@@ -10,7 +10,6 @@
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { clearGiftCache } from '@/hooks/useGiftPrefetch';
 import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { clearAllFrameCaches } from '@/utils/frameCache';
@@ -314,7 +313,7 @@ export const useRealtimeQuerySync = () => {
         }
 
         if (GIFT_CACHE_TABLES.has(table)) {
-          clearGiftCache();
+          try { window.dispatchEvent(new CustomEvent('gift-cache:clear')); } catch {}
         }
 
         if (ENTRY_ASSET_CACHE_TABLES.has(table)) {
