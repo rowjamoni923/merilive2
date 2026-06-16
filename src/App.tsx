@@ -1136,9 +1136,7 @@ const App = () => {
     || isStandalonePublicPath(currentPath);
 
   if (loading && !isAdminRoute) {
-    // No full-screen "Checking your session…" loader — render nothing so the
-    // app feels instant. Auth-gated routes already handle their own redirect.
-    return null;
+    return <div className="min-h-screen w-full bg-background" aria-hidden="true" />;
   }
 
   if (isLandingDomain && isAdminRoute) {
