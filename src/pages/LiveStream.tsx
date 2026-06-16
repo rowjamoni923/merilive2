@@ -131,10 +131,7 @@ import NewHostBonusCard from "@/components/live/NewHostBonusCard";
 import LiveTasksCard from "@/components/live/LiveTasksCard";
 // TikTok-style swipe between live streams
 import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
-// Room Welcome Banner - Admin configurable
-// Admin warning + host welcome are mounted via RoomTopNoticeStack at TRUE TOP
-// of the room (below the host header), NOT above the bottom action buttons.
-import RoomTopNoticeStack from "@/components/room/RoomTopNoticeStack";
+// Admin warning banner is rendered INSIDE RoomChatOverlay (top of chat column).
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
