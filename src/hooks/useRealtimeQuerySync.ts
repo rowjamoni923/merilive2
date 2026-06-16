@@ -15,6 +15,7 @@ import { clearGiftCache, prefetchGifts } from '@/hooks/useGiftPrefetch';
 import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { clearAllFrameCaches } from '@/utils/frameCache';
+import { clearSupabaseReadCaches } from '@/utils/supabaseFetchGuard';
 
 // Tables mapped to cache keys. The allowlist below decides which ones may use
 // Supabase Realtime; room/live/call/gift fanout stays on LiveKit/FCM + REST.
@@ -247,6 +248,7 @@ export const useRealtimeQuerySync = () => {
     const lastInvalidatedAt = new Map<string, number>();
 
     const invalidateWithDebounce = (table: string, keys: string[][]) => {
+      clearSupabaseReadCaches();
       const existing = pendingInvalidations.get(table);
       if (existing) clearTimeout(existing);
 
