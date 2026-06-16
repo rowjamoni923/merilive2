@@ -444,15 +444,14 @@ const LiveStream = () => {
     completeNotification: completeBigoJoin 
   } = useBigoJoinNotifications();
   const [liveJoinNotifications, setLiveJoinNotifications] = useState<JoinNotification[]>([]);
+  const liveJoinExpiryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
-    if (liveJoinNotifications.length === 0) return;
-    const timer = window.setInterval(() => {
-      const now = Date.now();
-      setLiveJoinNotifications((prev) => prev.filter((n) => now - n.timestamp < 6000));
-    }, 300);
-    return () => window.clearInterval(timer);
-  }, [liveJoinNotifications.length]);
+    return () => {
+      liveJoinExpiryTimersRef.current.forEach((timer) => clearTimeout(timer));
+      liveJoinExpiryTimersRef.current.clear();
+    };
+  }, []);
 
   const addLiveJoinNotification = useCallback((notification: Omit<JoinNotification, 'id' | 'timestamp'>) => {
     const now = Date.now();
@@ -465,6 +464,11 @@ const LiveStream = () => {
       const withoutRecentDuplicate = prev.filter((n) => n.userId !== notification.userId || now - n.timestamp > 1200);
       return [...withoutRecentDuplicate.slice(-5), next];
     });
+    const timer = setTimeout(() => {
+      liveJoinExpiryTimersRef.current.delete(next.id);
+      setLiveJoinNotifications((prev) => prev.filter((n) => n.id !== next.id));
+    }, 6000);
+    liveJoinExpiryTimersRef.current.set(next.id, timer);
   }, []);
   
   // Sound hook
