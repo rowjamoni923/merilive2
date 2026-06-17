@@ -487,26 +487,6 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
 RouteScopedBackgroundHooks.displayName = 'RouteScopedBackgroundHooks';
 
-// ⚡ INSTANT-BOOT helper: synchronously detect a stored Supabase session in
-// localStorage so we can skip the full-screen "Checking your session..." loader
-// on the very first paint. The actual session object is still loaded
-// asynchronously by initSession(), but we can render the UI immediately.
-const hasStoredSupabaseSession = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      // supabase-js v2 stores under keys like "sb-<ref>-auth-token"
-      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-        const raw = localStorage.getItem(key);
-        if (raw && raw.length > 20) return true;
-      }
-    }
-  } catch {}
-  return false;
-};
-
 const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
   useEnableBrowserPageInteraction();
   return <>{children}</>;
@@ -517,10 +497,9 @@ const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</S
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
-  const isInitialAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-  // ⚡ Skip the splash loader entirely if we already have a stored session.
-  // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !isInitialAdminRoute && !isStandalonePublicLocation() && !hasStoredSupabaseSession());
+  // ⚡ Never block first paint for auth/session IO. Native session hydration and
+  // Supabase recovery run in the background; route surfaces render from cached
+  // UI immediately and then reconcile when the real Session arrives.
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -603,11 +582,6 @@ const App = () => {
   const isLandingDomain = isLandingOnlyHostname(hostname);
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
-
-  useEffect(() => {
-    if (!isAdminRoute || !loading) return;
-    setLoading(false);
-  }, [isAdminRoute, loading]);
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
@@ -788,7 +762,6 @@ const App = () => {
           if (mounted) {
             setSession(session);
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
-            setLoading(false); // ⚡ Unblock UI immediately
           }
           const syncId = window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
           void syncId;
@@ -798,7 +771,6 @@ const App = () => {
         // No local session — unblock UI NOW, attempt recovery in background
         if (mounted) {
           setSession(null);
-          setLoading(false); // ⚡ Never block UI waiting for network
         }
 
         // 🔒 BACKGROUND RECOVERY — UI is already interactive
@@ -856,7 +828,6 @@ const App = () => {
         console.error('[App] initSession failed:', error);
         if (mounted) {
           setSession(null);
-          setLoading(false);
         }
       }
     };
@@ -1111,10 +1082,6 @@ const App = () => {
     || currentPath.startsWith('/join-agency')
     || isStandalonePublicPath(currentPath);
 
-  if (loading && !isAdminRoute) {
-    return <div className="min-h-screen w-full bg-background" aria-hidden="true" />;
-  }
-
   if (isLandingDomain && isAdminRoute) {
     window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
     return null;
@@ -1161,7 +1128,7 @@ const App = () => {
         dehydrateOptions: {
           shouldDehydrateQuery: (query: any) => {
             const root = String(query?.queryKey?.[0] ?? '');
-            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance'].includes(root);
+            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
           },
         },
       }}

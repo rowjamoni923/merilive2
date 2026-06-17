@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 // CameraOwnership removed in 2026-06-14 rebuild — no arbiter needed.
@@ -186,13 +188,29 @@ public class MainActivity extends BridgeActivity {
         // Setup notification channels
         NotificationHelper.createNotificationChannels(this);
 
-        // Pkg-fix: allow muted autoplay for in-app <video> previews (LiveKit /
-        // GoLive / Party / Face Verify / Reels). Without this the WebView
-        // injects a native play-icon overlay on every video surface.
+        // Android instant-start policy: the packaged dist/ assets should come
+        // from WebView's HTTP/cache store immediately on repeat launch, while
+        // dynamic Supabase/LiveKit requests still use normal network freshness.
+        // This also keeps the compositor black/transparent instead of default
+        // white while React is mounting.
         try {
             if (getBridge() != null && getBridge().getWebView() != null) {
-                android.webkit.WebSettings ws = getBridge().getWebView().getSettings();
+                WebView webView = getBridge().getWebView();
+                WebSettings ws = webView.getSettings();
                 ws.setMediaPlaybackRequiresUserGesture(false);
+                ws.setCacheMode(WebSettings.LOAD_DEFAULT);
+                ws.setDomStorageEnabled(true);
+                ws.setDatabaseEnabled(true);
+                ws.setLoadsImagesAutomatically(true);
+                ws.setBlockNetworkImage(false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    ws.setOffscreenPreRaster(true);
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, true);
+                }
+                webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                webView.setBackgroundColor(Color.TRANSPARENT);
             }
         } catch (Throwable ignored) {}
 

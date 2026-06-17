@@ -67,3 +67,14 @@ Approve করলে Phase 1 দিয়ে শুরু — call flow পু�
 
 **Fix shipped:** user app route Suspense fallback is now silent (`null`) and first-launch branded splash is disabled, so the app no longer shows the screenshot-style `MeriLive Loading...` blocker.
 
+## Android Instant Startup / Network-Adaptive Performance Pass (2026-06-18)
+**User-visible failure:** Android APK cold/resume path felt slow/laggy on 4G/5G: delayed design paint, white/blank screen, generic spinner/loader surfaces, and late image/feed rendering.
+
+**Research/pro standard:** Capacitor SplashScreen docs confirm Android launch splash is controlled by native SplashScreen API and can be hidden programmatically; Android `WebSettings` supports normal HTTP cache mode + DOM storage + offscreen pre-raster; web.dev recommends stale-while-revalidate so cached assets paint immediately while updates refresh in background; MDN NetworkInformation exposes effective connection/downlink/saveData for network-adaptive behavior.
+
+**Root causes found:** `capacitor.config.ts` forced `launchShowDuration: 2000`; `index.html` still drew a boot spinner before React; `ProtectedRoute` still showed `MeriLiveLoader` for 1.5s auth recovery; Home feed instant cache used `sessionStorage`, so Android process kill lost it; native Glide image prefetch existed but defaulted OFF.
+
+**Fix shipped:** native splash delay set to `0`; boot spinner removed; ProtectedRoute now renders cached route surface during native auth recovery and ban checks instead of a loader; React Query persistence now includes Home feed/countries; Home feed snapshot persists in `localStorage` across app kills; Android WebView now enables cache/DOM storage/offscreen pre-raster/hardware layer/important renderer priority; native Glide first-screen image prefetch is default ON while interceptor remains OFF; image warmup limits adapt to connection tier (2G/slow/offline 6, 3G 12, 4G/5G 24).
+
+**Verification status:** Static scan confirms no `MeriLiveLoader` remains in ProtectedRoute and no `#root:empty` spinner remains. Android-native changes require APK rebuild before device timing can be honestly claimed fixed.
+

@@ -4,9 +4,9 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import BanPopupDialog from './BanPopupDialog';
 import VpnWarningBanner from '@/components/VpnWarningBanner';
-import MeriLiveLoader from '@/components/MeriLiveLoader';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
+import { isNativeApp } from '@/utils/nativeUtils';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -74,8 +74,8 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     }
 
     // Always allow render immediately — ban check runs in background.
-    // This prevents the "Loading your account" screen from getting stuck
-    // if a previous async check is still in flight on route change.
+    // This prevents account checks from blocking the route surface if a
+    // previous async check is still in flight on route change.
     setChecked(true);
 
     // Check cache first — apply cached ban state if any
@@ -167,9 +167,15 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Wait briefly for background session recovery before redirecting to auth
+  // Native app cold starts must not show a branded loading blocker while
+  // Capacitor Preferences hydrates Supabase auth. Render the cached route
+  // surface during the short recovery window, then redirect only if recovery
+  // actually fails.
   if (!effectiveSession && !waitedForRecovery) {
-    return <MeriLiveLoader />;
+    if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
+      return <>{children}</>;
+    }
+    return null;
   }
 
   if (!effectiveSession) {
@@ -188,14 +194,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!checked) {
-    return (
-      <MeriLiveLoader
-        message="Loading your account"
-        subMessage="We're preparing your access..."
-      />
-    );
-  }
+  if (!checked) return <>{children}</>;
 
   return (
     <>

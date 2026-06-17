@@ -29,6 +29,7 @@ import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 import { useNativeFeed } from "@/hooks/useNativeFeed";
 import type { NativeFeedCard } from "@/plugins/NativeFeed";
+import { getConnectionTier } from "@/utils/connectionProfile";
 
 interface Profile {
   id: string;
@@ -184,15 +185,17 @@ const Index = () => {
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
-      // Pkg369: bump cache key to invalidate pre-Pkg368 snapshots that may
-      // still contain hosts marked is_online=true even though server now
-      // considers them offline (heartbeat>30min OR availability='offline').
+      // Persist the first-screen home snapshot across Android process kills so
+      // the feed paints instantly from disk while the live RPC refreshes.
       window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
-      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v2");
+      const raw = window.localStorage.getItem("index-hosts-instant-cache-v3")
+        || window.localStorage.getItem("index-hosts-instant-cache-v2")
+        || window.sessionStorage.getItem("index-hosts-instant-cache-v2");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed)
-        ? parsed.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
+      const list = Array.isArray(parsed) ? parsed : parsed?.hosts;
+      return Array.isArray(list)
+        ? list.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
         : [];
     } catch {
       return [];
@@ -293,9 +296,9 @@ const Index = () => {
 
     try {
       if (snapshot.length > 0) {
-        window.sessionStorage.setItem("index-hosts-instant-cache-v2", JSON.stringify(snapshot));
+        window.localStorage.setItem("index-hosts-instant-cache-v3", JSON.stringify({ at: Date.now(), hosts: snapshot }));
       } else {
-        window.sessionStorage.removeItem("index-hosts-instant-cache-v2");
+        window.localStorage.removeItem("index-hosts-instant-cache-v3");
       }
     } catch {
       // no-op
@@ -311,12 +314,15 @@ const Index = () => {
   // thumbnails. No-op on web/iOS or when flag is off. Drastically reduces
   // image jank when killed-cold scroll begins on Android.
   const nativePrefetchUrls = useMemo(
-    () =>
-      displayHosts
-        .slice(0, 24)
+    () => {
+      const tier = getConnectionTier();
+      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+      return displayHosts
+        .slice(0, max)
         .flatMap((h) => [h.avatar_url, h.liveThumbnailUrl])
         .map((u) => (u ? normalizeProfileMediaUrl(u) || u : null))
-        .filter((u): u is string => !!u),
+        .filter((u): u is string => !!u);
+    },
     [displayHosts]
   );
   useNativeImagePrefetch(nativePrefetchUrls);
@@ -345,9 +351,12 @@ const Index = () => {
       .slice(0, 8)
       .map((host) => host.liveStreamId as string);
 
-    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
+    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering,
+    // without flooding weaker/data-saver networks.
+    const tier = getConnectionTier();
+    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
     const warmableUrls = hosts
-      .slice(0, 24)
+      .slice(0, warmImageLimit)
       .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
