@@ -500,7 +500,6 @@ const App = () => {
   // ⚡ Never block first paint for auth/session IO. Native session hydration and
   // Supabase recovery run in the background; route surfaces render from cached
   // UI immediately and then reconcile when the real Session arrives.
-  const [loading, setLoading] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -583,11 +582,6 @@ const App = () => {
   const isLandingDomain = isLandingOnlyHostname(hostname);
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
-
-  useEffect(() => {
-    if (!isAdminRoute || !loading) return;
-    setLoading(false);
-  }, [isAdminRoute, loading]);
 
   // Preload core routes IMMEDIATELY on mount — don't wait for idle
   useEffect(() => {
