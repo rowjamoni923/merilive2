@@ -772,9 +772,9 @@ const AgencyDashboard = () => {
   }
 
   const safeHosts = hosts.map(normalizeAgencyHost);
-  const safePendingHosts = safePendingHosts.map(normalizeAgencyHost);
-  const safeSubAgents = safeSubAgents.map(normalizeSubAgent);
-  const safeSubAgencies = safeSubAgencies.map(normalizeSubAgency);
+  const safePendingHosts = pendingHosts.map(normalizeAgencyHost);
+  const safeSubAgents = subAgents.map(normalizeSubAgent);
+  const safeSubAgencies = subAgencies.map(normalizeSubAgency);
 
   const totalHostEarnings = safeHosts.reduce((sum, h) => sum + (h.profile.total_earnings || 0), 0);
   const onlineHosts = safeHosts.filter(h => h.profile.is_online).length;
