@@ -2838,7 +2838,7 @@ const FaceVerification = () => {
                 <AvatarWithFrame
                   userId={(duplicateInfo as any).user_id || (duplicateInfo as any).id}
                   src={duplicateInfo.avatar || undefined}
-                  name={(duplicateInfo as any).name || "U"}
+                  name={(duplicateInfo as any)?.name || "U"}
                   level={1}
                   size="lg"
                   showFrame={true}

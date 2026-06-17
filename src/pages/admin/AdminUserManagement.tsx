@@ -1358,8 +1358,8 @@ export default function AdminUserManagement() {
         bio: profile.bio,
         agency: agencyHost?.agencies ? {
           id: (agencyHost.agencies as any).id,
-          name: (agencyHost.agencies as any).name,
-          agency_code: (agencyHost.agencies as any).agency_code,
+          name: (agencyHost.agencies as any)?.name,
+          agency_code: (agencyHost.agencies as any)?.agency_code,
         } : null,
         followers_count: followersRes.count || 0,
         following_count: followingRes.count || 0,
