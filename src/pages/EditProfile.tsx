@@ -5,7 +5,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Copy,
-  Camera,
+  ImagePlus,
   User,
   Phone,
   Mail,
@@ -575,7 +575,7 @@ const EditProfile = () => {
                     {uploading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Camera className="w-4 h-4 text-heading" />
+                      <ImagePlus className="w-4 h-4 text-heading" />
                     )}
                   </div>
                 </div>
@@ -616,7 +616,7 @@ const EditProfile = () => {
             <label className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70 cursor-pointer">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-purple-600" />
+                  <ImagePlus className="w-5 h-5 text-purple-600" />
                 </div>
                 <span className="font-medium text-heading">My Avatar</span>
               </div>
