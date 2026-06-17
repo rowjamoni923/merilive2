@@ -49,7 +49,7 @@ interface NewHostBonusProgress {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  video: Video,
+  video: Radio,
   clock: Clock,
   users: Users,
   gift: Gift,
