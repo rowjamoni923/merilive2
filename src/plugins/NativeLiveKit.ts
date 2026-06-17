@@ -103,6 +103,16 @@ interface NativeLiveKitPlugin {
   getCameraOwner(): Promise<{ owner: string | null }>;
   claimCameraForWebView(): Promise<void>;
   releaseCameraForWebView(): Promise<void>;
+  /**
+   * Bug-fix 2026-06-17 — mounts a fullscreen SurfaceViewRenderer behind the
+   * WebView and binds it to the current local camera track. Required by
+   * `connect()` paths (private call, etc.) that don't go through
+   * `startLocalPreview` first — without it the camera publishes but nothing
+   * renders, producing a pure white screen on top of the transparent WebView.
+   * No-op in bounded (seat) mode.
+   */
+  attachLocal?(opts?: { mirror?: boolean }): Promise<{ attached: boolean; reason?: string }>;
+  detachLocal?(): Promise<{ detached: boolean }>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
