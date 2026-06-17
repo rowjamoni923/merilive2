@@ -275,7 +275,6 @@ export function ActiveCallScreen({
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
   const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
   const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
-  const shouldExposeNativePreview = isNativeAndroidApp() && !localVideoTrack && !isLiveConnected;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
@@ -339,6 +338,7 @@ export function ActiveCallScreen({
   // for audio-only. isInPip flips true while in floating window — use it
   // to collapse the heavy chat / gift / settings overlays below.
   const isInNativePip = isInPip;
+  const shouldExposeNativePreview = isNativeAndroidApp() && !localVideoTrack && !isLiveConnected;
 
 
 
