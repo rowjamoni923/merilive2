@@ -772,9 +772,9 @@ const AgencyDashboard = () => {
   }
 
   const safeHosts = hosts.map(normalizeAgencyHost);
-  const safePendingHosts = pendingHosts.map(normalizeAgencyHost);
-  const safeSubAgents = subAgents.map(normalizeSubAgent);
-  const safeSubAgencies = subAgencies.map(normalizeSubAgency);
+  const safePendingHosts = safePendingHosts.map(normalizeAgencyHost);
+  const safeSubAgents = safeSubAgents.map(normalizeSubAgent);
+  const safeSubAgencies = safeSubAgencies.map(normalizeSubAgency);
 
   const totalHostEarnings = safeHosts.reduce((sum, h) => sum + (h.profile.total_earnings || 0), 0);
   const onlineHosts = safeHosts.filter(h => h.profile.is_online).length;
@@ -1023,7 +1023,7 @@ const AgencyDashboard = () => {
       })()}
 
       {/* Pending Host Requests */}
-      {pendingHosts.length > 0 && (
+      {safePendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
           <div className="rounded-2xl bg-gradient-to-r from-amber-900/80 to-orange-800/60 border border-amber-500/40 p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -1032,13 +1032,13 @@ const AgencyDashboard = () => {
               </div>
               <div>
                 <p className="font-bold text-amber-100 text-sm">
-                  🔔 {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
+                  🔔 {safePendingHosts.length} Pending Host Request{safePendingHosts.length > 1 ? 's' : ''}
                 </p>
                 <p className="text-[10px] text-amber-300/70">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {pendingHosts.map((ph) => (
+              {safePendingHosts.map((ph) => (
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
@@ -1716,7 +1716,7 @@ const AgencyDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {hosts
+                {safeHosts
                   .sort((a, b) => (b.profile?.total_earnings || 0) - (a.profile?.total_earnings || 0))
                   .slice(0, 5)
                   .map((host, index) => (
@@ -1759,7 +1759,7 @@ const AgencyDashboard = () => {
                     </div>
                   ))}
                 
-                {hosts.length === 0 && (
+                {safeHosts.length === 0 && (
                   <div className="py-12 text-center">
                     <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
                       <Users className="w-8 h-8 text-muted-foreground" />
@@ -1847,7 +1847,7 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card className="border-0 shadow-md">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{subAgents.length}</p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{safeSubAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
@@ -1864,9 +1864,9 @@ const AgencyDashboard = () => {
                 <CardTitle className="text-base">Sub-Agent List</CardTitle>
               </CardHeader>
               <CardContent>
-                {subAgents.length > 0 ? (
+                {safeSubAgents.length > 0 ? (
                   <div className="space-y-3">
-                    {subAgents.map((sa) => (
+                    {safeSubAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
                           src={enhanceThumbnail(getProfileAvatar(sa.profile), { width: 96, quality: 82})}
@@ -1914,9 +1914,9 @@ const AgencyDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {subAgencies.length > 0 ? (
+                {safeSubAgencies.length > 0 ? (
                   <div className="space-y-3">
-                    {subAgencies.map((sa: any) => (
+                    {safeSubAgencies.map((sa: any) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                           <Building2 className="w-5 h-5 text-white" />
