@@ -489,8 +489,11 @@ export const RoomChatOverlay = memo(({
       "flex flex-col relative gap-1.5 w-[68vw] max-w-[520px] min-w-0",
       className
     )}>
-      {/* SCROLLABLE CHAT CONTAINER — messages + join notifications only.
-          flex-col-reverse: newest at bottom, scroll up to see older. */}
+      {/* SCROLLABLE CHAT CONTAINER — admin warning + join + messages.
+          flex-col-reverse: first DOM child = visually bottom (newest).
+          Warning is the LAST DOM child → renders at the TOP of the stream
+          (oldest), and as new joins/messages arrive it naturally scrolls
+          upward out of view — Bigo/Chamet/Olamet behaviour. */}
       <div
         ref={chatContainerRef}
         className={cn(
@@ -524,16 +527,15 @@ export const RoomChatOverlay = memo(({
             />
           ))}
         </AnimatePresence>
+
+        {/* Admin rule warning — LAST DOM child → visually at the TOP of
+            the chat stream. New joins/messages render below and push the
+            warning upward as the stream fills. */}
+        {adminBannerRoomType && (
+          <RoomWelcomeBanner roomType={adminBannerRoomType} />
+        )}
       </div>
 
-      {/* Admin rule warning — anchored to the BOTTOM of the chat column,
-          sitting directly above the chat input and the bottom action
-          buttons. This is the placement requested for live + party rooms:
-          the warning lives between the chat stream and the input/button row
-          so it stays visible without covering messages. */}
-      {adminBannerRoomType && (
-        <RoomWelcomeBanner roomType={adminBannerRoomType} />
-      )}
 
       {/* Scroll-to-bottom button — appears when user scrolls up */}
       <ScrollToBottomButton
