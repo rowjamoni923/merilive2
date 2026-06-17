@@ -524,20 +524,8 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  // Show splash once per tab session, and never on /admin or auth callback routes.
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      if (sessionStorage.getItem('splash_shown') === '1') return false;
-      const host = window.location.hostname;
-      // Landing-only marketing domain — never show the app splash.
-      if (isLandingOnlyHostname(host)) return false;
-      const p = window.location.pathname;
-      if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
-      if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
-      return true;
-    } catch { return false; }
-  });
+  // App must feel instant: no first-launch branded splash/loading overlay.
+  const [showSplash, setShowSplash] = useState(false);
   
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
