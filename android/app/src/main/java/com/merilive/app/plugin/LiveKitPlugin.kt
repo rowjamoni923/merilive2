@@ -298,6 +298,27 @@ class LiveKitPlugin : Plugin() {
         }
         room = r
         observeRoomEvents(r)
+
+        // Professional Android live/call pattern (Agora startPreview → join):
+        // open CameraX and bind the local renderer BEFORE the network-bound
+        // room.connect() suspension. Without this, 4G/5G signaling latency is
+        // added directly to first camera frame, producing the 5–10s blank/ dark
+        // surface seen in party rooms and private calls.
+        if (args.publishVideo && previewTrack == null) {
+            val opts = LocalVideoTrackOptions(position = CameraPosition.FRONT)
+            val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
+            track.startCapture()
+            previewTrack = track
+            if (!boundedMode) {
+                ensureRendererAttached(true)
+                previewRenderer?.let { renderer ->
+                    try { track.addRenderer(renderer) } catch (_: Throwable) {}
+                }
+            }
+            rebindSeatSlotsForLocalTrack(track)
+            Log.i(TAG, "promotePreviewToSession: prewarmed local camera before room.connect")
+        }
+
         r.connect(args.url, args.token, ConnectOptions())
         isConnected = true
 
@@ -541,8 +562,12 @@ class LiveKitPlugin : Plugin() {
                 slot.identity = room?.localParticipant?.identity?.value
                 val track = previewTrack
                     ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
-                if (track != null) attachTrackToSlot(slot, track)
-                call.resolve(JSObject().put("attached", true))
+                if (track != null) {
+                    attachTrackToSlot(slot, track)
+                    call.resolve(JSObject().put("attached", true))
+                } else {
+                    call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
+                }
             } catch (t: Throwable) {
                 Log.w(TAG, "attachLocalSurface", t)
                 call.reject("attachLocalSurface: ${t.message}", t)

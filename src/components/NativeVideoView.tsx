@@ -80,14 +80,16 @@ export const NativeVideoView = ({
       try {
         if (!attachedRef.current) {
           if (kind === 'local') {
-            await NativeLiveKit.attachLocalSurface({
+            const res = await NativeLiveKit.attachLocalSurface({
               viewId, x: b.x, y: b.y, width: b.w, height: b.h,
               mirror: mirror ?? true,
             });
+            if ((res as any)?.attached === false) throw new Error((res as any)?.reason || 'local_not_ready');
           } else {
-            await NativeLiveKit.attachRemoteSurface({
+            const res = await NativeLiveKit.attachRemoteSurface({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
+            if ((res as any)?.attached === false) throw new Error((res as any)?.reason || 'remote_not_ready');
           }
           if (cancelled) return;
           attachedRef.current = true;
@@ -100,7 +102,10 @@ export const NativeVideoView = ({
           lastBoundsRef.current = b;
         }
       } catch {
-        // Plugin not loaded / Room not connected yet — keep trying on next signal.
+        // Plugin/Room/track may not be ready yet. Keep retrying on a bounded
+        // short cadence instead of waiting for resize/scroll; otherwise party
+        // seats can sit blank until another layout signal happens.
+        if (!cancelled && !attachedRef.current) schedule(true);
       } finally {
         inflight = false;
       }
@@ -112,7 +117,7 @@ export const NativeVideoView = ({
       pendingTimer = window.setTimeout(() => {
         pendingTimer = null;
         void doPush(force);
-      }, 100); // ~10 Hz — matches Bigo/Agora native overlay reposition rate
+      }, force && !attachedRef.current ? 160 : 100); // fast initial bind, then ~10 Hz bounds sync
     };
 
     // Initial attach pushed immediately (not throttled) so the user

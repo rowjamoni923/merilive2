@@ -78,3 +78,14 @@ Approve করলে Phase 1 দিয়ে শুরু — call flow পু�
 
 **Verification status:** Static scan confirms no `MeriLiveLoader` remains in ProtectedRoute and no `#root:empty` spinner remains. Android-native changes require APK rebuild before device timing can be honestly claimed fixed.
 
+## Video Evidence Fix — Party + Private Camera 5–10s Delay (2026-06-18)
+**Uploaded video analyzed:** `VID-20260618-WA0002.mp4` is 75.18s. Timestamp sheet shows: private/live surface dark camera placeholder from about **40.5s → 49.0s (~8.5s)** before first visible camera frame; party slot blank/spinner from about **61.5s → 66.5s (~5s)**; party room transition/preparing around **70.5s → 71.5s**.
+
+**Research/pro standard:** Chamet/Bigo/Agora-style Android flow is `startPreview()` first, render local native SurfaceView/TextureView immediately, then `joinChannel/connect` in background. LiveKit Android supports creating a `LocalVideoTrack` independently and publishing it after `Room.connect`, so CameraX first frame must not wait on token/signaling network latency.
+
+**Root cause:** Native `LiveKitPlugin.promotePreviewToSession()` called network-bound `room.connect(url, token)` before opening/rendering the camera on cold paths. Party JS also fetched token before prewarming native bounded preview. `NativeVideoView` tried `attachLocalSurface` once; native returned `attached:true` even when no camera track existed, so React stopped retrying and the party tile stayed blank until another layout signal.
+
+**Fix shipped:** `LiveKitPlugin.kt` now creates/starts the local CameraX track and binds renderer/seat slots **before** `room.connect()`. Party join now starts bounded native preview in parallel with LiveKit token fetch and re-prewarms before seat video enable. Native `attachLocalSurface` now returns `attached:false reason=no_track` until the track exists, and `NativeVideoView` retries every ~160ms until bound. Private call native startup now uses **720p** instead of cold 1080p for faster CameraX first frame/encoder warmup.
+
+**Verification status:** Static scan confirms all three fixes are present. Because this changes Android native plugin + native camera timing, **APK rebuild is required** before honest device verification.
+

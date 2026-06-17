@@ -451,7 +451,10 @@ export function useLiveKitCall(
                   video: true,
                   audio: true,
                   lens: 'front',
-                  resolution: '1080p',
+                  // 720p is the Chamet/Bigo-style Android call startup tier:
+                  // faster CameraX first frame and lower encoder warmup than
+                  // cold 1080p; quality can adapt upward after connection.
+                  resolution: '720p',
                   attachLocal: true,
                   callType: 'Video Call',
                   audioProfile: 'voice',
